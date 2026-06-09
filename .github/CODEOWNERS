@@ -1,0 +1,33 @@
+# CODEOWNERS — 자동 리뷰어 할당
+# 자세한 분리 정책: /docs/prd/PRD_neuro-sync.md §0 Ownership Matrix
+# GitHub 팀명은 조직 셋업 시점에 실제 핸들로 교체.
+#
+# 규칙: 가장 마지막에 매치되는 패턴이 우선. 더 구체적인 규칙은 아래쪽에.
+
+# 기본값 — 매치되지 않으면 Platform 팀
+*                                       @platform-team
+
+# ─── Docs ───
+/docs/prd/                              @platform-team
+/docs/todo_plan/                        @platform-team
+/docs/ai/                               @ai-team
+
+# ─── Code: Platform 단독 ───
+/apps/api/                              @platform-team
+/apps/mobile/                           @platform-team
+/apps/web/                              @platform-team
+/infra/                                 @platform-team
+
+# ─── Code: AI Research 단독 ───
+/apps/ai-server/                        @ai-team
+
+# ─── 공유 (양 팀 리뷰 필수) ───
+/packages/shared-contracts/             @platform-team @ai-team
+/.github/CODEOWNERS                     @platform-team @ai-team
+/README.md                              @platform-team @ai-team
+
+# ─── 공유 utility ───
+/tools/                                 @platform-team
+
+# ─── Read-only ───
+/references/                            @platform-team @ai-team

@@ -1,0 +1,76 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+htmlcov/
+.coverage
+.coverage.*
+
+# Node / JS
+node_modules/
+.next/
+dist/
+build/
+.expo/
+.expo-shared/
+*.log
+.npm/
+.pnpm-store/
+.yarn/
+
+# Mobile
+ios/Pods/
+android/.gradle/
+android/build/
+android/app/build/
+*.keystore
+
+# Env / Secrets — NEVER commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local data
+*.sqlite
+*.db
+*.dump
+audio/
+uploads/
+tmp/
+
+# AI artifacts (local model caches, eval outputs)
+.langsmith/
+models/
+*.bin
+*.safetensors
+*.gguf
+
+# OCR/PDF working dirs
+/tmp/pdf_pages/
+ocr-output/
+
+# CI cache
+.github/cache/
+
+# Source materials (large originals, stored separately)
+references/

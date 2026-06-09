@@ -1,0 +1,2422 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neuro-Sync Mobile Wireframe (v1.4 PRD)</title>
+<style>
+  /* ============================================================
+     Neuro-Sync Lo-Fi Wireframe
+     Palette (tokens): text-primary #0F172A, text-secondary #64748B,
+     surface #FFFFFF, surface-elevated #F8FAFC, border #E2E8F0,
+     state-danger #DC2626, state-warning #D97706,
+     state-success #059669, state-info #2563EB
+     ============================================================ */
+
+  :root {
+    --text-primary: #0F172A;
+    --text-secondary: #64748B;
+    --surface: #FFFFFF;
+    --surface-elevated: #F8FAFC;
+    --border: #E2E8F0;
+    --state-danger: #DC2626;
+    --state-warning: #D97706;
+    --state-success: #059669;
+    --state-info: #2563EB;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--surface-elevated);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ---------- Page chrome ---------- */
+  .page-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 32px;
+  }
+  .page-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .page-header .meta {
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+  .page-header .meta span { margin-right: 12px; }
+
+  /* Sticky top quick-nav */
+  .quick-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+  .quick-nav a {
+    display: inline-block;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--text-primary);
+    font-size: 12px;
+    background: var(--surface);
+  }
+  .quick-nav a:hover {
+    background: var(--surface-elevated);
+    border-color: var(--text-secondary);
+  }
+  .quick-nav .nav-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-right: 8px;
+    align-self: center;
+  }
+
+  /* ---------- Gallery grid ---------- */
+  .gallery {
+    padding: 32px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(395px, 1fr));
+    gap: 28px;
+  }
+
+  .frame-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .frame-label {
+    width: 100%;
+    max-width: 395px;
+    margin-bottom: 8px;
+  }
+  .frame-label .id {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.04em;
+  }
+  .frame-label .title {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-left: 4px;
+  }
+  .frame-label .state-tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    background: var(--surface);
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .state-tag.danger { color: var(--state-danger); border-color: var(--state-danger); }
+  .state-tag.warning { color: var(--state-warning); border-color: var(--state-warning); }
+  .state-tag.success { color: var(--state-success); border-color: var(--state-success); }
+  .state-tag.info { color: var(--state-info); border-color: var(--state-info); }
+
+  /* ---------- Device frame ---------- */
+  .device-frame {
+    width: 375px;
+    height: 812px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 36px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    cursor: pointer;
+  }
+  .device-frame.focused {
+    transform: scale(1.02);
+    box-shadow: 0 8px 32px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06);
+    border-color: var(--state-info);
+  }
+
+  .device-screen {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+  }
+
+  /* iOS status bar */
+  .status-bar {
+    height: 44px;
+    flex-shrink: 0;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--surface);
+  }
+  .status-bar .icons {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .status-bar .icon-bar {
+    width: 16px; height: 9px;
+    background: var(--text-primary);
+    border-radius: 2px;
+  }
+  .status-bar .icon-bar.wifi { width: 14px; height: 10px; }
+  .status-bar .icon-bar.battery {
+    width: 22px; height: 10px;
+    border: 1px solid var(--text-primary);
+    background: transparent;
+    position: relative;
+  }
+  .status-bar .icon-bar.battery::after {
+    content: '';
+    position: absolute;
+    right: -3px; top: 2px;
+    width: 2px; height: 4px;
+    background: var(--text-primary);
+    border-radius: 0 1px 1px 0;
+  }
+  .status-bar .icon-bar.battery::before {
+    content: '';
+    position: absolute;
+    left: 1px; top: 1px; bottom: 1px;
+    width: 16px;
+    background: var(--text-primary);
+  }
+
+  /* Content area */
+  .screen-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .screen-content::-webkit-scrollbar { width: 0; display: none; }
+
+  /* Home indicator */
+  .home-indicator {
+    height: 34px;
+    flex-shrink: 0;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .home-indicator-bar {
+    width: 134px;
+    height: 5px;
+    background: var(--text-primary);
+    border-radius: 3px;
+    opacity: 0.85;
+  }
+
+  /* ---------- Common in-screen widgets ---------- */
+  .screen-padding { padding: 16px 20px; }
+
+  .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .app-header .left { display: flex; align-items: center; gap: 8px; }
+  .app-header .back-btn {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .app-header .title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .app-header .stop-link {
+    color: var(--text-secondary);
+    font-size: 13px;
+    text-decoration: none;
+  }
+  .app-header .step-label {
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+
+  .progress-track {
+    height: 4px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--text-primary);
+  }
+
+  .h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.35;
+    margin: 0 0 8px 0;
+  }
+  .h2 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 6px 0;
+  }
+  .h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 6px 0;
+  }
+  .body {
+    font-size: 14px;
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+  .caption {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .micro {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card.elevated {
+    background: var(--surface-elevated);
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+  }
+  .card-sub {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0 0 12px 0;
+  }
+
+  /* Buttons */
+  .btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 14px 12px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--text-primary);
+    background: var(--text-primary);
+    color: var(--surface);
+    cursor: pointer;
+  }
+  .btn.secondary {
+    background: var(--surface);
+    color: var(--text-primary);
+    border-color: var(--border);
+  }
+  .btn.ghost {
+    background: transparent;
+    color: var(--text-primary);
+    border-color: transparent;
+  }
+  .btn.danger {
+    background: var(--state-danger);
+    color: var(--surface);
+    border-color: var(--state-danger);
+  }
+  .btn.danger-outline {
+    background: var(--surface);
+    color: var(--state-danger);
+    border-color: var(--state-danger);
+  }
+  .btn.disabled {
+    background: var(--surface-elevated);
+    color: var(--text-secondary);
+    border-color: var(--border);
+    cursor: not-allowed;
+  }
+  .btn.small {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .btn.xl {
+    padding: 18px 12px;
+    font-size: 17px;
+  }
+
+  /* Inputs */
+  .input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    font-size: 14px;
+    color: var(--text-secondary);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .input.with-value {
+    color: var(--text-primary);
+  }
+  .input-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .input-row { margin-bottom: 12px; }
+  .input-error {
+    color: var(--state-danger);
+    font-size: 12px;
+    margin-top: 4px;
+  }
+  .input-hint {
+    color: var(--text-secondary);
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
+  /* Placeholder block */
+  .placeholder {
+    background: var(--surface-elevated);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-align: center;
+  }
+  .placeholder.h120 { height: 120px; }
+  .placeholder.h160 { height: 160px; }
+  .placeholder.h200 { height: 200px; }
+  .placeholder.h80 { height: 80px; }
+
+  /* Bottom tab */
+  .bottom-tab {
+    display: flex;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .bottom-tab .tab {
+    flex: 1;
+    padding: 10px 0 8px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 11px;
+    text-decoration: none;
+  }
+  .bottom-tab .tab.active { color: var(--text-primary); font-weight: 600; }
+  .bottom-tab .tab .ico {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 2px;
+    line-height: 1;
+  }
+
+  /* Onboarding pager dots */
+  .pager-dots { display: flex; gap: 8px; justify-content: center; }
+  .pager-dots .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  .pager-dots .dot.active { background: var(--text-primary); }
+
+  /* Checkbox / Toggle */
+  .check {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--text-secondary);
+    border-radius: 4px;
+    vertical-align: middle;
+    margin-right: 8px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .check.checked {
+    background: var(--text-primary);
+    border-color: var(--text-primary);
+  }
+  .check.checked::after {
+    content: '';
+    position: absolute;
+    left: 4px; top: 1px;
+    width: 5px; height: 10px;
+    border: solid var(--surface);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .check.radio { border-radius: 50%; }
+  .check.radio.checked { background: var(--surface); }
+  .check.radio.checked::after {
+    content: '';
+    border: none;
+    width: 8px; height: 8px;
+    background: var(--text-primary);
+    border-radius: 50%;
+    left: 3px; top: 3px;
+    transform: none;
+  }
+
+  .toggle {
+    display: inline-flex;
+    width: 40px; height: 22px;
+    border-radius: 12px;
+    background: var(--text-primary);
+    position: relative;
+    align-items: center;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    right: 2px;
+    width: 18px; height: 18px;
+    background: var(--surface);
+    border-radius: 50%;
+  }
+  .toggle.off {
+    background: var(--border);
+  }
+  .toggle.off::after { right: auto; left: 2px; }
+
+  /* Consent row */
+  .consent-row {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .consent-row:last-child { border-bottom: 0; }
+  .consent-row .text { flex: 1; }
+  .consent-row .tag-required {
+    color: var(--state-danger);
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .consent-row .tag-optional {
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .consent-row .detail-link {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-left: 4px;
+    text-decoration: underline;
+  }
+
+  /* Chat */
+  .chat-area {
+    flex: 1;
+    padding: 12px 14px 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .bubble {
+    max-width: 78%;
+    padding: 10px 12px;
+    border-radius: 14px;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+  .bubble.ai {
+    align-self: flex-start;
+    background: var(--surface-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+  }
+  .bubble.user {
+    align-self: flex-end;
+    background: var(--text-primary);
+    color: var(--surface);
+    border-top-right-radius: 4px;
+  }
+  .bubble-meta {
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    align-self: flex-end;
+  }
+  .bubble .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 14px;
+    background: var(--text-primary);
+    vertical-align: middle;
+    margin-left: 2px;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+  .bubble .role-tag {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+
+  .composer {
+    border-top: 1px solid var(--border);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+  }
+  .composer .text-input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface-elevated);
+    font-size: 13px;
+    color: var(--text-secondary);
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+  }
+  .composer .icon-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--text-primary);
+    flex-shrink: 0;
+  }
+  .composer .icon-btn.primary {
+    background: var(--text-primary);
+    color: var(--surface);
+    border-color: var(--text-primary);
+  }
+  .composer .icon-btn.danger {
+    background: var(--state-danger);
+    color: var(--surface);
+    border-color: var(--state-danger);
+  }
+
+  /* Recording overlay (in-composer view) */
+  .recording-overlay {
+    flex: 1;
+    background: var(--surface-elevated);
+    border: 1px solid var(--state-danger);
+    border-radius: 20px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+  }
+  .recording-overlay .pulse {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--state-danger);
+    animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+  .recording-overlay .waveform {
+    flex: 1;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .recording-overlay .wave-bar {
+    flex: 1;
+    background: var(--text-primary);
+    border-radius: 1px;
+  }
+  .recording-overlay .timer {
+    font-size: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--text-primary);
+  }
+
+  .risk-banner {
+    background: var(--state-danger);
+    color: var(--surface);
+    padding: 10px 16px;
+    font-size: 13px;
+    text-align: center;
+  }
+  .warn-banner {
+    background: var(--state-warning);
+    color: var(--surface);
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+  .info-banner {
+    background: var(--surface-elevated);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    font-size: 11px;
+  }
+  .offline-banner {
+    background: var(--state-danger);
+    color: var(--surface);
+    padding: 6px 14px;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  /* Questionnaire option */
+  .opt {
+    display: flex;
+    align-items: center;
+    padding: 14px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--text-primary);
+    background: var(--surface);
+  }
+  .opt.selected {
+    border-color: var(--text-primary);
+    background: var(--surface-elevated);
+  }
+
+  /* Emergency */
+  .emergency-banner {
+    background: var(--state-danger);
+    color: var(--surface);
+    padding: 20px 20px 18px;
+    text-align: center;
+  }
+  .emergency-banner .h1 { color: var(--surface); }
+  .emergency-banner .sub { color: var(--surface); opacity: 0.92; font-size: 13px; margin-top: 6px; }
+
+  .hotline-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+    background: var(--surface);
+  }
+  .hotline-card .num {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .hotline-card .lbl {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  .hotline-card .sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    margin-bottom: 10px;
+  }
+
+  /* Safe area exit row */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 14px 0;
+  }
+
+  /* Settings rows */
+  .settings-section-title {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: none;
+    font-weight: 600;
+    padding: 16px 20px 6px;
+  }
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--text-primary);
+    background: var(--surface);
+  }
+  .settings-row .arrow {
+    color: var(--text-secondary);
+    font-size: 16px;
+  }
+  .settings-row .right-text {
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+  .settings-row.danger { color: var(--state-danger); }
+  .settings-row .ph-tag {
+    font-size: 10px;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin-left: 6px;
+  }
+
+  /* Report progress */
+  .report-progress-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .report-progress-fill {
+    height: 100%;
+    background: var(--text-primary);
+  }
+
+  /* Hospital list (Phase 2 ref) */
+  .hospital-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  /* Summary check list */
+  .check-list { margin: 6px 0 0 0; padding: 0; list-style: none; }
+  .check-list li {
+    font-size: 13px;
+    color: var(--text-primary);
+    padding: 4px 0;
+  }
+  .check-list li::before {
+    content: '✓';
+    color: var(--state-success);
+    margin-right: 8px;
+    font-weight: 700;
+  }
+
+  /* Annotations (a11y comments visualized) */
+  .annotation {
+    font-size: 10px;
+    color: var(--state-info);
+    background: var(--surface-elevated);
+    border-left: 2px solid var(--state-info);
+    padding: 4px 8px;
+    margin: 6px 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    display: none; /* Hidden by default; toggle via legend if needed */
+  }
+
+  /* Strength meter */
+  .strength {
+    display: flex;
+    gap: 3px;
+    margin-top: 6px;
+  }
+  .strength .seg {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+  }
+  .strength .seg.on { background: var(--text-primary); }
+
+  /* Segmented */
+  .segmented {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .segmented .seg {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+  }
+  .segmented .seg:last-child { border-right: 0; }
+  .segmented .seg.active {
+    background: var(--text-primary);
+    color: var(--surface);
+  }
+
+  /* Footer */
+  .page-footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 24px 32px;
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+  .page-footer h3 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: var(--text-primary);
+  }
+  .legend-tokens {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .legend-tokens .token {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+  }
+  .legend-tokens .swatch {
+    width: 14px; height: 14px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  /* Section break label between gallery groups */
+  .gallery-section-title {
+    grid-column: 1 / -1;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    margin-top: 8px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Misc helpers */
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; }
+  .mt-8 { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
+  .mb-8 { margin-bottom: 8px; }
+  .mb-12 { margin-bottom: 12px; }
+  .mb-16 { margin-bottom: 16px; }
+  .center { text-align: center; }
+  .danger-text { color: var(--state-danger); }
+  .success-text { color: var(--state-success); }
+  .warning-text { color: var(--state-warning); }
+  .info-text { color: var(--state-info); }
+  .secondary-text { color: var(--text-secondary); }
+  .grow { flex: 1; }
+  .space-between { display: flex; justify-content: space-between; align-items: center; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     PAGE HEADER
+     ============================================================ -->
+<header class="page-header">
+  <h1>Neuro-Sync Mobile Wireframe (v1.4 PRD)</h1>
+  <div class="meta">
+    <span><strong>Generated</strong>: 2026-06-06</span>
+    <span><strong>Platform</strong>: Mobile (React Native, iOS/Android)</span>
+    <span><strong>Scope</strong>: Phase 1a + 1b + Demo Polish</span>
+    <span><strong>Fidelity</strong>: Lo-fi (grayscale + semantic colors only)</span>
+  </div>
+</header>
+
+<!-- ============================================================
+     STICKY QUICK NAV
+     ============================================================ -->
+<nav class="quick-nav" aria-label="Screen quick navigation">
+  <span class="nav-label">Jump to:</span>
+  <a href="#s01">Onboarding</a>
+  <a href="#s02">Login</a>
+  <a href="#s03">Register</a>
+  <a href="#s04">Home</a>
+  <a href="#s05">Chat</a>
+  <a href="#s06">PHQ-9</a>
+  <a href="#s07">GAD-7</a>
+  <a href="#s08">Docs</a>
+  <a href="#s09">Submit</a>
+  <a href="#s10">Emergency</a>
+  <a href="#s11">Hospitals</a>
+  <a href="#s12">Report</a>
+  <a href="#s13">Settings</a>
+</nav>
+
+<!-- ============================================================
+     GALLERY
+     ============================================================ -->
+<main class="gallery">
+
+  <!-- ────────── GROUP A: ENTRY ────────── -->
+  <div class="gallery-section-title">Group A — Entry (Onboarding / Login / Register)</div>
+
+  <!-- ╔════════════════ S-01 ONBOARDING ════════════════╗ -->
+  <div class="frame-wrap" id="s01">
+    <div class="frame-label">
+      <span class="id">S-01</span>
+      <span class="title">/onboarding</span>
+      <span class="state-tag">step 1 / 4</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+        <div class="screen-content">
+          <div class="screen-padding" style="display: flex; flex-direction: column; height: 100%;">
+            <!-- a11y: role=button, label="건너뛰기" -->
+            <div class="center" style="text-align: right;">
+              <a href="#s02" class="caption" style="text-decoration: underline;">건너뛰기</a>
+            </div>
+
+            <div class="placeholder h200 mt-16">[일러스트]</div>
+
+            <div class="mt-16">
+              <p class="h1">초진 대기 6개월,<br/>변화가 기록되지 않습니다.</p>
+              <p class="body secondary-text">본 앱은 진료 전 사전 문진을 AI와 함께 준비하도록 돕습니다.</p>
+            </div>
+
+            <div class="grow"></div>
+
+            <!-- a11y: role=adjustable, label="1단계 / 4단계 중" -->
+            <div class="pager-dots mb-16">
+              <span class="dot active"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+
+            <!-- a11y: role=button, label="다음" -->
+            <a href="#s01-step4" class="btn">다음</a>
+          </div>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔════════════════ S-01 ONBOARDING (LAST STEP) ════════════════╗ -->
+  <div class="frame-wrap" id="s01-step4">
+    <div class="frame-label">
+      <span class="id">S-01</span>
+      <span class="title">/onboarding</span>
+      <span class="state-tag">step 4 / 4 · Non-Goals</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+        <div class="screen-content">
+          <div class="screen-padding" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="placeholder h200 mt-16">[일러스트]</div>
+
+            <div class="mt-16">
+              <p class="h1">본 앱은 진단·치료를 제공하지 않습니다.</p>
+              <p class="body secondary-text">AI는 환자의 정보를 구조화하고 요약합니다. 최종 판단은 의료진이 합니다.</p>
+            </div>
+
+            <div class="grow"></div>
+
+            <div class="pager-dots mb-16">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot active"></span>
+            </div>
+
+            <!-- a11y: role=button, label="시작하기" -->
+            <a href="#s02" class="btn">시작하기</a>
+          </div>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔════════════════ S-02 LOGIN ════════════════╗ -->
+  <div class="frame-wrap" id="s02">
+    <div class="frame-label">
+      <span class="id">S-02</span>
+      <span class="title">/login</span>
+      <span class="state-tag">default</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+        <div class="screen-content">
+          <div class="screen-padding" style="display: flex; flex-direction: column; height: 100%;">
+
+            <div class="center" style="margin-top: 32px;">
+              <div class="placeholder h80" style="width: 80px; margin: 0 auto;">[로고]</div>
+              <p class="h2 mt-12">Neuro-Sync</p>
+              <p class="caption">진료 전 사전 문진 도우미</p>
+            </div>
+
+            <div class="mt-16" style="margin-top: 36px;">
+              <div class="input-row">
+                <label class="input-label">이메일</label>
+                <!-- a11y: role=textbox, label="이메일", keyboardType=email-address -->
+                <div class="input">이메일</div>
+              </div>
+
+              <div class="input-row">
+                <label class="input-label">비밀번호</label>
+                <!-- a11y: role=textbox, label="비밀번호", secureTextEntry -->
+                <div class="input">
+                  <span>비밀번호</span>
+                  <span class="secondary-text">눈 아이콘</span>
+                </div>
+              </div>
+
+              <a href="#s04" class="btn mt-12">로그인</a>
+            </div>
+
+            <div class="grow"></div>
+
+            <div class="center mb-12">
+              <p class="caption">회원이 아니신가요? <a href="#s03" style="color: var(--text-primary); text-decoration: underline;">가입하기</a></p>
+              <p class="caption mt-8">비밀번호를 잊으셨나요?</p>
+            </div>
+
+          </div>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔════════════════ S-03 REGISTER STEP 1 ════════════════╗ -->
+  <div class="frame-wrap" id="s03">
+    <div class="frame-label">
+      <span class="id">S-03</span>
+      <span class="title">/register</span>
+      <span class="state-tag">step 1 / 3 · Consents</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+
+        <!-- App header -->
+        <div class="app-header">
+          <div class="left">
+            <!-- a11y: role=button, label="뒤로 가기" -->
+            <a href="#s02" class="back-btn">←</a>
+            <span class="title">회원가입</span>
+          </div>
+          <span class="step-label">1 / 3</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width: 33%;"></div></div>
+
+        <div class="screen-content">
+          <div class="screen-padding" style="display: flex; flex-direction: column; height: 100%;">
+            <p class="h2">다음 항목에 동의해 주세요.</p>
+
+            <div class="card mt-12" style="padding: 12px 16px;">
+              <div style="display: flex; align-items: center;">
+                <span class="check"></span>
+                <span class="body" style="font-weight: 600;">전체 동의</span>
+              </div>
+            </div>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 4px;">
+              <div class="consent-row">
+                <span class="check checked"></span>
+                <div class="text">
+                  <span class="body">
+                    <span class="tag-required">[필수]</span>
+                    서비스 이용약관
+                  </span>
+                  <a class="detail-link">보기</a>
+                </div>
+              </div>
+              <div class="consent-row">
+                <span class="check checked"></span>
+                <div class="text">
+                  <span class="body">
+                    <span class="tag-required">[필수]</span>
+                    개인정보 처리방침
+                  </span>
+                  <a class="detail-link">상세보기</a>
+                </div>
+              </div>
+              <div class="consent-row">
+                <span class="check checked"></span>
+                <div class="text">
+                  <span class="body">
+                    <span class="tag-required">[필수]</span>
+                    민감정보(의료) 수집 동의
+                  </span>
+                  <a class="detail-link">상세보기</a>
+                </div>
+              </div>
+              <div class="consent-row">
+                <span class="check checked"></span>
+                <div class="text">
+                  <span class="body">
+                    <span class="tag-required">[필수]</span>
+                    위험 신호 감지 시 통보 동의
+                  </span>
+                  <a class="detail-link">상세보기</a>
+                  <div class="micro mt-8">옵트아웃 시 위험 감지 알림이 제한됩니다.</div>
+                </div>
+              </div>
+              <div class="consent-row">
+                <span class="check"></span>
+                <div class="text">
+                  <span class="body">
+                    <span class="tag-optional">[선택]</span>
+                    음성 입력 사용 동의
+                  </span>
+                  <a class="detail-link">상세보기</a>
+                  <div class="micro mt-8">미동의 시 마이크 입력이 비활성화됩니다.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grow"></div>
+
+            <!-- a11y: role=button, label="다음으로", disabled={!allRequired} -->
+            <a href="#s03-step2" class="btn">다음으로</a>
+          </div>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔════════════════ S-03 REGISTER STEP 2 ════════════════╗ -->
+  <div class="frame-wrap" id="s03-step2">
+    <div class="frame-label">
+      <span class="id">S-03</span>
+      <span class="title">/register</span>
+      <span class="state-tag">step 2 / 3 · Profile</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+        <div class="app-header">
+          <div class="left">
+            <a href="#s03" class="back-btn">←</a>
+            <span class="title">회원가입</span>
+          </div>
+          <span class="step-label">2 / 3</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width: 66%;"></div></div>
+
+        <div class="screen-content">
+          <div class="screen-padding">
+            <div class="input-row">
+              <label class="input-label">이름</label>
+              <div class="input">홍길동</div>
+            </div>
+
+            <div class="input-row">
+              <label class="input-label">출생연도</label>
+              <div class="input" style="max-width: 140px;">
+                <span class="with-value">1985</span>
+                <span class="secondary-text">▾</span>
+              </div>
+            </div>
+
+            <div class="input-row">
+              <label class="input-label">성별</label>
+              <div class="segmented">
+                <div class="seg active">여성</div>
+                <div class="seg">남성</div>
+                <div class="seg">그 외</div>
+              </div>
+            </div>
+
+            <div class="input-row">
+              <label class="input-label">연락처 (휴대폰)</label>
+              <div class="input">010-</div>
+            </div>
+
+            <div class="input-row">
+              <label class="input-label">거주 지역</label>
+              <div class="input mb-8">
+                <span>시/도</span><span class="secondary-text">▾</span>
+              </div>
+              <div class="input">
+                <span>시/군/구</span><span class="secondary-text">▾</span>
+              </div>
+            </div>
+
+            <div class="input-row">
+              <label class="input-label">비상 연락처</label>
+              <div class="input">010-</div>
+              <div class="input-hint">ⓘ 위기 시 안내 또는 연락에 사용됩니다.</div>
+            </div>
+
+            <a href="#s03-step3" class="btn mt-12">다음으로</a>
+          </div>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔════════════════ S-03 REGISTER STEP 3 ════════════════╗ -->
+  <div class="frame-wrap" id="s03-step3">
+    <div class="frame-label">
+      <span class="id">S-03</span>
+      <span class="title">/register</span>
+      <span class="state-tag">step 3 / 3 · Account</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+        <div class="app-header">
+          <div class="left">
+            <a href="#s03-step2" class="back-btn">←</a>
+            <span class="title">회원가입</span>
+          </div>
+          <span class="step-label">3 / 3</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width: 100%;"></div></div>
+
+        <div class="screen-content">
+          <div class="screen-padding">
+            <div class="input-row">
+              <label class="input-label">이메일</label>
+              <div class="input">이메일 입력</div>
+            </div>
+
+            <div class="input-row">
+              <label class="input-label">비밀번호</label>
+              <div class="input">
+                <span>비밀번호</span>
+                <span class="secondary-text">눈 아이콘</span>
+              </div>
+              <div class="strength">
+                <span class="seg on"></span>
+                <span class="seg on"></span>
+                <span class="seg on"></span>
+                <span class="seg"></span>
+              </div>
+              <div class="micro mt-8" style="line-height: 1.7;">
+                • 12자 이상 <span class="success-text">✓</span><br/>
+                • 영문 대소문자 <span class="success-text">✓</span><br/>
+                • 숫자 <span class="success-text">✓</span><br/>
+                • 특수문자 <span class="danger-text">✗</span>
+              </div>
+            </div>
+
+            <div class="input-row">
+              <label class="input-label">비밀번호 확인</label>
+              <div class="input">비밀번호 확인</div>
+            </div>
+
+            <div class="input-row">
+              <label class="input-label">진료 예정 병원 (선택)</label>
+              <div class="input">검색…</div>
+            </div>
+
+            <a href="#s04" class="btn mt-12 disabled">가입 완료</a>
+            <p class="caption center mt-8">조건을 모두 충족하면 활성화됩니다.</p>
+          </div>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ────────── GROUP B: HOME ────────── -->
+  <div class="gallery-section-title">Group B — Home (Patient root)</div>
+
+  <!-- ╔════════════════ S-04 HOME (SUCCESS / IN-PROGRESS RESUME) ════════════════╗ -->
+  <div class="frame-wrap" id="s04">
+    <div class="frame-label">
+      <span class="id">S-04</span>
+      <span class="title">/home</span>
+      <span class="state-tag success">success · resume card</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+
+        <div class="screen-content">
+          <div class="screen-padding">
+            <p class="h2 mb-8">안녕하세요, 홍길동님</p>
+            <p class="caption mb-16">오늘은 어떠신가요?</p>
+
+            <!-- Resume in-progress session -->
+            <div class="card">
+              <div class="card-title">진행 중인 사전 문진</div>
+              <div class="card-sub">65% 완료 · 6/14 단계</div>
+              <div class="progress-track mb-12" style="border-radius: 3px;">
+                <div class="progress-fill" style="width: 65%;"></div>
+              </div>
+              <!-- a11y: role=button, label="이어서 진행" -->
+              <a href="#s05" class="btn small">이어서 진행</a>
+            </div>
+
+            <!-- New intake -->
+            <div class="card elevated">
+              <div class="card-title">새 사전 문진 시작</div>
+              <div class="card-sub">약 15~20분 소요</div>
+              <a href="#s05" class="btn small secondary disabled">문진 시작</a>
+              <p class="micro mt-8">진행 중인 문진을 마쳐주세요.</p>
+            </div>
+
+            <!-- Latest report -->
+            <div class="card">
+              <div class="card-title">최근 리포트 (지난주)</div>
+              <div class="card-sub">의료진 전달 완료 · 2026-05-30 제출</div>
+              <span class="micro success-text">● completed</span>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Emergency entry -->
+            <p class="body" style="color: var(--state-danger); font-weight: 600;">⚠️ 지금 도움이 필요해요</p>
+            <!-- a11y: role=button, label="응급 도움 받기" -->
+            <a href="#s10" class="btn danger-outline mt-8">응급 도움 받기</a>
+
+          </div>
+        </div>
+
+        <div class="bottom-tab">
+          <a href="#s04" class="tab active"><span class="ico">🏠</span>홈</a>
+          <a href="#s11" class="tab"><span class="ico">🏥</span>병원</a>
+          <a href="#s13" class="tab"><span class="ico">⚙</span>설정</a>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ────────── GROUP C: INTAKE PIPELINE ────────── -->
+  <div class="gallery-section-title">Group C — Intake (Chat 3 variants · PHQ-9 · GAD-7 · Docs · Submit)</div>
+
+  <!-- ╔════════════════ S-05 CHAT — IDLE/STREAMING ════════════════╗ -->
+  <div class="frame-wrap" id="s05">
+    <div class="frame-label">
+      <span class="id">S-05</span>
+      <span class="title">/intake/chat</span>
+      <span class="state-tag">success · streaming</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+
+        <!-- Chat header -->
+        <div class="app-header">
+          <div class="left">
+            <a href="#s04" class="back-btn">←</a>
+            <span class="title">사전 문진</span>
+          </div>
+          <a href="#" class="stop-link">그만하기</a>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width: 45%;"></div></div>
+
+        <!-- Chat area -->
+        <div class="chat-area">
+          <div class="bubble ai">
+            <span class="role-tag">AI</span>
+            안녕하세요 길동님, 오늘은 어떤 점이 가장 힘드신가요?
+          </div>
+
+          <div class="bubble user">
+            요즘 2주째 잠을 못 자고 우울해요.
+            <div class="bubble-meta" style="color: rgba(255,255,255,0.7);">21:34</div>
+          </div>
+
+          <div class="bubble ai">
+            <span class="role-tag">AI</span>
+            잠을 못 주무신 지 얼마나 되셨어요?<span class="cursor"></span>
+          </div>
+        </div>
+
+        <!-- Composer -->
+        <div class="composer">
+          <!-- a11y: role=textbox, label="메시지를 입력하거나 마이크를 길게 눌러 말씀해 주세요" -->
+          <div class="text-input">메시지를 입력하거나 마이크를 길게 눌러 말씀해 주세요</div>
+          <!-- a11y: role=button, label="음성 입력 (길게 누름)", hint="길게 눌러 음성 입력" -->
+          <div class="icon-btn">🎤</div>
+          <!-- a11y: role=button, label="전송" -->
+          <div class="icon-btn primary">↑</div>
+        </div>
+
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔════════════════ S-05 CHAT — RECORDING (PUSH-TO-TALK) ════════════════╗ -->
+  <div class="frame-wrap" id="s05-recording">
+    <div class="frame-label">
+      <span class="id">S-05</span>
+      <span class="title">/intake/chat</span>
+      <span class="state-tag warning">recording · push-to-talk</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+
+        <div class="app-header">
+          <div class="left">
+            <a href="#s04" class="back-btn">←</a>
+            <span class="title">사전 문진</span>
+          </div>
+          <a href="#" class="stop-link">그만하기</a>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width: 45%;"></div></div>
+
+        <div class="chat-area" style="background: var(--surface-elevated);">
+          <div class="bubble ai">
+            <span class="role-tag">AI</span>
+            잠을 못 주무신 지 얼마나 되셨어요?
+          </div>
+
+          <div style="flex: 1;"></div>
+
+          <div class="center" style="padding: 24px 16px;">
+            <p class="h3" style="font-weight: 600;">말씀해 주세요</p>
+            <p class="micro mt-8">↑ 위로 드래그하면 취소돼요</p>
+          </div>
+        </div>
+
+        <!-- Composer in recording state -->
+        <div class="composer">
+          <div class="recording-overlay">
+            <span class="pulse"></span>
+            <div class="waveform">
+              <!-- 24-ch FFT visualization -->
+              <span class="wave-bar" style="height: 6px;"></span>
+              <span class="wave-bar" style="height: 12px;"></span>
+              <span class="wave-bar" style="height: 18px;"></span>
+              <span class="wave-bar" style="height: 22px;"></span>
+              <span class="wave-bar" style="height: 14px;"></span>
+              <span class="wave-bar" style="height: 8px;"></span>
+              <span class="wave-bar" style="height: 16px;"></span>
+              <span class="wave-bar" style="height: 20px;"></span>
+              <span class="wave-bar" style="height: 24px;"></span>
+              <span class="wave-bar" style="height: 18px;"></span>
+              <span class="wave-bar" style="height: 10px;"></span>
+              <span class="wave-bar" style="height: 14px;"></span>
+              <span class="wave-bar" style="height: 22px;"></span>
+              <span class="wave-bar" style="height: 16px;"></span>
+              <span class="wave-bar" style="height: 8px;"></span>
+              <span class="wave-bar" style="height: 12px;"></span>
+              <span class="wave-bar" style="height: 18px;"></span>
+              <span class="wave-bar" style="height: 22px;"></span>
+              <span class="wave-bar" style="height: 14px;"></span>
+              <span class="wave-bar" style="height: 8px;"></span>
+              <span class="wave-bar" style="height: 16px;"></span>
+              <span class="wave-bar" style="height: 12px;"></span>
+              <span class="wave-bar" style="height: 6px;"></span>
+              <span class="wave-bar" style="height: 10px;"></span>
+            </div>
+            <span class="timer">0:08</span>
+          </div>
+          <!-- a11y: role=button, label="녹음 중. 손을 떼면 종료됩니다" -->
+          <div class="icon-btn danger">🎤</div>
+        </div>
+
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔════════════════ S-05 CHAT — PAUSED BY RISK (TRANSITION TRIGGER) ════════════════╗ -->
+  <div class="frame-wrap" id="s05-risk">
+    <div class="frame-label">
+      <span class="id">S-05</span>
+      <span class="title">/intake/chat</span>
+      <span class="state-tag danger">paused · risk:detected → /emergency</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+
+        <div class="app-header">
+          <div class="left">
+            <a href="#s04" class="back-btn">←</a>
+            <span class="title">사전 문진</span>
+          </div>
+          <a href="#" class="stop-link">그만하기</a>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width: 45%;"></div></div>
+
+        <!-- Risk banner -->
+        <div class="risk-banner">⚠️ 안전 확인이 필요해요 · /emergency 로 이동합니다</div>
+
+        <!-- Chat area dimmed -->
+        <div class="chat-area" style="opacity: 0.5; pointer-events: none;">
+          <div class="bubble ai">
+            <span class="role-tag">AI</span>
+            잠을 못 주무신 지 얼마나 되셨어요?
+          </div>
+          <div class="bubble user">
+            때때로 죽고 싶다는 생각이 들어요.
+            <div class="bubble-meta" style="color: rgba(255,255,255,0.7);">21:36</div>
+          </div>
+        </div>
+
+        <!-- Composer disabled -->
+        <div class="composer" style="opacity: 0.5;">
+          <div class="text-input">연결되면 자동으로 보내드릴게요</div>
+          <div class="icon-btn">🎤</div>
+          <div class="icon-btn">↑</div>
+        </div>
+
+        <!-- a11y comment: Navigation.replace('/emergency'), back gesture disabled -->
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔════════════════ S-06 PHQ-9 ════════════════╗ -->
+  <div class="frame-wrap" id="s06">
+    <div class="frame-label">
+      <span class="id">S-06</span>
+      <span class="title">/intake/phq9</span>
+      <span class="state-tag">question 3 / 9</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+
+        <div class="app-header">
+          <div class="left">
+            <a href="#s05" class="back-btn">←</a>
+            <span class="title">사전 문진</span>
+          </div>
+          <a href="#" class="stop-link">그만하기</a>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width: 60%;"></div></div>
+
+        <div class="screen-content">
+          <div class="screen-padding">
+            <p class="label">PHQ-9 · 3 / 9</p>
+            <p class="body secondary-text mt-8">지난 2주 동안, 다음 항목이 얼마나 자주 당신을 괴롭혔습니까?</p>
+
+            <p class="h3 mt-16" style="font-size: 16px; font-weight: 600;">3. 잠들기 어렵거나 자주 깨거나, 너무 많이 잠.</p>
+
+            <div class="mt-16">
+              <div class="opt">
+                <span class="check radio"></span>
+                전혀 없음 (0)
+              </div>
+              <div class="opt">
+                <span class="check radio"></span>
+                며칠 동안 (1)
+              </div>
+              <div class="opt selected">
+                <span class="check radio checked"></span>
+                일주일 이상 (2)
+              </div>
+              <div class="opt">
+                <span class="check radio"></span>
+                거의 매일 (3)
+              </div>
+            </div>
+
+            <p class="micro center mt-16">본 결과는 의료진 참고용이며, 진단이 아닙니다.</p>
+
+            <div class="row mt-16">
+              <a href="#s05" class="btn secondary small">이전</a>
+              <a href="#s07" class="btn small">다음</a>
+            </div>
+          </div>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔════════════════ S-07 GAD-7 ════════════════╗ -->
+  <div class="frame-wrap" id="s07">
+    <div class="frame-label">
+      <span class="id">S-07</span>
+      <span class="title">/intake/gad7</span>
+      <span class="state-tag">question 2 / 7</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+
+        <div class="app-header">
+          <div class="left">
+            <a href="#s06" class="back-btn">←</a>
+            <span class="title">사전 문진</span>
+          </div>
+          <a href="#" class="stop-link">그만하기</a>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width: 82%;"></div></div>
+
+        <div class="screen-content">
+          <div class="screen-padding">
+            <p class="label">GAD-7 · 2 / 7</p>
+            <p class="body secondary-text mt-8">지난 2주 동안, 다음 항목이 얼마나 자주 당신을 괴롭혔습니까?</p>
+
+            <p class="h3 mt-16" style="font-size: 16px; font-weight: 600;">2. 걱정을 멈추거나 조절하기 어려움.</p>
+
+            <div class="mt-16">
+              <div class="opt">
+                <span class="check radio"></span>
+                전혀 없음 (0)
+              </div>
+              <div class="opt selected">
+                <span class="check radio checked"></span>
+                며칠 동안 (1)
+              </div>
+              <div class="opt">
+                <span class="check radio"></span>
+                일주일 이상 (2)
+              </div>
+              <div class="opt">
+                <span class="check radio"></span>
+                거의 매일 (3)
+              </div>
+            </div>
+
+            <p class="micro center mt-16">본 결과는 의료진 참고용이며, 진단이 아닙니다.</p>
+
+            <div class="row mt-16">
+              <a href="#s06" class="btn secondary small">이전</a>
+              <a href="#s08" class="btn small">다음</a>
+            </div>
+          </div>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔════════════════ S-08 DOCUMENTS (DEMO STUB) ════════════════╗ -->
+  <div class="frame-wrap" id="s08">
+    <div class="frame-label">
+      <span class="id">S-08</span>
+      <span class="title">/intake/documents</span>
+      <span class="state-tag">Demo Stub (Phase 2)</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+
+        <div class="app-header">
+          <div class="left">
+            <a href="#s07" class="back-btn">←</a>
+            <span class="title">사전 문진</span>
+          </div>
+          <a href="#" class="stop-link">그만하기</a>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width: 85%;"></div></div>
+
+        <div class="screen-content">
+          <div class="screen-padding" style="display: flex; flex-direction: column; height: 100%;">
+
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 24px;">
+              <div class="placeholder h120" style="width: 120px;">[문서 아이콘]</div>
+
+              <p class="h3 mt-16" style="font-size: 16px;">타 병원 진단서·처방전을 업로드할 수 있어요.</p>
+              <p class="caption mt-8">이 기능은 정식 버전에서 제공됩니다.</p>
+              <p class="caption mt-8">문서가 없어도 진행할 수 있어요.</p>
+
+              <p class="micro mt-16" style="border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px;">Phase 2 · Stub</p>
+            </div>
+
+            <a href="#s09" class="btn">건너뛰고 다음으로</a>
+          </div>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔════════════════ S-09 SUBMIT ════════════════╗ -->
+  <div class="frame-wrap" id="s09">
+    <div class="frame-label">
+      <span class="id">S-09</span>
+      <span class="title">/intake/submit</span>
+      <span class="state-tag">success · ready to submit</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+
+        <div class="app-header">
+          <div class="left">
+            <a href="#s08" class="back-btn">←</a>
+            <span class="title">최종 확인</span>
+          </div>
+          <a href="#" class="stop-link">그만하기</a>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width: 100%;"></div></div>
+
+        <div class="screen-content">
+          <div class="screen-padding">
+            <p class="body mb-12">의료진에게 전달할 내용을 확인해 주세요.</p>
+
+            <div class="card">
+              <div class="card-title">AI 사전 대화</div>
+              <div class="caption">약 12개 메시지 교환</div>
+              <div class="caption">주요 호소: 수면, 우울</div>
+            </div>
+            <div class="card">
+              <div class="card-title">PHQ-9</div>
+              <div class="caption">9문항 응답 완료</div>
+            </div>
+            <div class="card">
+              <div class="card-title">GAD-7</div>
+              <div class="caption">7문항 응답 완료</div>
+            </div>
+            <div class="card">
+              <div class="card-title">업로드 문서</div>
+              <div class="caption">0건 (선택 사항)</div>
+            </div>
+
+            <div class="card elevated" style="border-color: var(--state-warning); border-left: 4px solid var(--state-warning);">
+              <p class="h3" style="color: var(--state-warning); font-size: 13px;">⚠️ 안내</p>
+              <p class="caption" style="line-height: 1.6;">
+                본 문진은 의료진의 진료를 돕기 위한 사전 정보 수집입니다.
+                AI는 진단이나 치료를 제공하지 않으며, 최종 판단은 의료진이 수행합니다.
+              </p>
+            </div>
+
+            <!-- a11y: role=button, label="최종 제출" -->
+            <a href="#s12" class="btn mt-12">최종 제출</a>
+            <p class="micro center mt-8">제출 후에는 수정이 어려워요</p>
+
+          </div>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ────────── GROUP D: SAFETY ────────── -->
+  <div class="gallery-section-title">Group D — Safety net (/emergency)</div>
+
+  <!-- ╔════════════════ S-10 EMERGENCY ════════════════╗ -->
+  <div class="frame-wrap" id="s10">
+    <div class="frame-label">
+      <span class="id">S-10</span>
+      <span class="title">/emergency</span>
+      <span class="state-tag danger">Modal · back gesture blocked</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+
+        <!-- Red emergency banner -->
+        <div class="emergency-banner">
+          <p class="h1" style="font-size: 18px; margin: 0;">⚠️ 지금 당신의 안전이<br/>가장 중요해요</p>
+          <p class="sub">도움을 받을 수 있는 곳이 여기 있어요.</p>
+        </div>
+
+        <div class="screen-content">
+          <div class="screen-padding">
+
+            <!-- 1393 -->
+            <div class="hotline-card">
+              <div class="space-between">
+                <div>
+                  <div class="num">📞 1393</div>
+                  <div class="lbl">자살예방상담전화</div>
+                  <div class="sub">24시간 무료 · 익명 상담 가능</div>
+                </div>
+              </div>
+              <!-- a11y: role=button, label="1393으로 전화 걸기" -->
+              <a href="tel:1393" class="btn danger small">전화 걸기</a>
+            </div>
+
+            <!-- 119 -->
+            <div class="hotline-card">
+              <div class="num">🚑 119</div>
+              <div class="lbl">응급의료</div>
+              <div class="sub">응급실 이송 필요 시</div>
+              <a href="tel:119" class="btn small">전화 걸기</a>
+            </div>
+
+            <!-- 1577-0199 -->
+            <div class="hotline-card">
+              <div class="num">📞 1577-0199</div>
+              <div class="lbl">정신건강상담전화</div>
+              <div class="sub">정신건강 위기 상담</div>
+              <a href="tel:1577-0199" class="btn small">전화 걸기</a>
+            </div>
+
+            <!-- Emergency contact -->
+            <div class="hotline-card">
+              <div class="lbl">등록된 비상 연락처</div>
+              <div class="caption" style="margin: 4px 0 10px;">○○○ 010-XXXX-XXXX</div>
+              <a href="tel:#" class="btn secondary small">전화 걸기</a>
+            </div>
+
+            <p class="micro" style="border: 1px solid var(--border); padding: 6px 8px; border-radius: 4px; color: var(--text-secondary);">
+              Demo Stub · 비상 연락처에 안내가 발송됩니다 (정식 버전)
+            </p>
+
+            <div class="divider"></div>
+
+            <!-- Safety question -->
+            <p class="h3" style="font-size: 15px;">지금 혼자 계신가요?</p>
+            <div class="row mt-12">
+              <a href="#" class="btn secondary small">네, 혼자예요</a>
+              <a href="#" class="btn secondary small">아니요, 같이 있어요</a>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- a11y: role=button, label="안전한 곳에 있어요, 닫기" -->
+            <a href="#s04" class="btn">안전한 곳에 있어요 → 닫기</a>
+
+          </div>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ────────── GROUP E: AUXILIARY ────────── -->
+  <div class="gallery-section-title">Group E — Auxiliary (Hospitals · Report · Settings)</div>
+
+  <!-- ╔════════════════ S-11 HOSPITALS (DEMO STUB) ════════════════╗ -->
+  <div class="frame-wrap" id="s11">
+    <div class="frame-label">
+      <span class="id">S-11</span>
+      <span class="title">/hospitals</span>
+      <span class="state-tag">Demo Stub (Phase 2)</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+
+        <div class="app-header">
+          <div class="left">
+            <span class="title">병원 찾기</span>
+          </div>
+        </div>
+
+        <div class="screen-content">
+          <div class="screen-padding" style="display: flex; flex-direction: column; height: 100%;">
+
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 24px;">
+              <div class="placeholder h120" style="width: 120px;">[지도 아이콘]</div>
+
+              <p class="h3 mt-16" style="font-size: 16px;">가까운 정신건강의학과를 찾을 수 있어요.</p>
+              <p class="caption mt-8">이 기능은 정식 버전에서 제공됩니다.</p>
+
+              <p class="micro mt-16" style="border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px;">Phase 2 · Stub</p>
+            </div>
+
+            <div>
+              <p class="caption center mb-8">응급 상황이라면</p>
+              <!-- a11y: role=button, label="119 전화 걸기" -->
+              <a href="tel:119" class="btn danger">119 전화 걸기</a>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="bottom-tab">
+          <a href="#s04" class="tab"><span class="ico">🏠</span>홈</a>
+          <a href="#s11" class="tab active"><span class="ico">🏥</span>병원</a>
+          <a href="#s13" class="tab"><span class="ico">⚙</span>설정</a>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔════════════════ S-12 REPORT STATUS (GENERATING) ════════════════╗ -->
+  <div class="frame-wrap" id="s12">
+    <div class="frame-label">
+      <span class="id">S-12</span>
+      <span class="title">/report/status</span>
+      <span class="state-tag info">generating · polling</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+
+        <div class="app-header">
+          <div class="left">
+            <a href="#s04" class="back-btn">←</a>
+            <span class="title">리포트 상태</span>
+          </div>
+        </div>
+
+        <div class="screen-content">
+          <div class="screen-padding">
+
+            <div class="center mt-16">
+              <div class="placeholder h160" style="width: 160px; margin: 0 auto;">[로딩 일러스트]</div>
+            </div>
+
+            <p class="h2 center mt-16" style="font-size: 18px;">AI가 의료진 전달 리포트를<br/>만들고 있어요.</p>
+            <p class="caption center mt-8">약 30초 소요됩니다.</p>
+
+            <div class="mt-16" style="padding: 0 4px;">
+              <div class="report-progress-track">
+                <div class="report-progress-fill" style="width: 60%;"></div>
+              </div>
+              <p class="micro mt-8 center">18 / 30 s</p>
+            </div>
+
+            <div class="divider"></div>
+
+            <p class="label">리포트에 포함되는 내용</p>
+            <ul class="check-list mt-8">
+              <li>주호소 및 현병력</li>
+              <li>PHQ-9, GAD-7 점수</li>
+              <li>의료진 확인 필요 사항</li>
+              <li>원문 근거 인용</li>
+            </ul>
+
+            <div class="divider"></div>
+
+            <p class="caption">완료되면 알림을 받을 수 있어요.</p>
+            <a href="#" class="btn secondary small mt-8">알림 받기</a>
+            <p class="micro center mt-8">Phase 2 · 알림</p>
+
+          </div>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔════════════════ S-13 SETTINGS (MAIN) ════════════════╗ -->
+  <div class="frame-wrap" id="s13">
+    <div class="frame-label">
+      <span class="id">S-13</span>
+      <span class="title">/settings</span>
+      <span class="state-tag">main</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+
+        <div class="app-header">
+          <div class="left">
+            <span class="title">설정</span>
+          </div>
+        </div>
+
+        <div class="screen-content">
+
+          <div class="screen-padding">
+            <div class="card">
+              <div class="card-title">홍길동</div>
+              <div class="card-sub">contact@example.com</div>
+              <a href="#" class="btn secondary small">프로필 수정</a>
+            </div>
+          </div>
+
+          <p class="settings-section-title">개인정보 및 동의</p>
+          <a href="#s13-consent" class="settings-row" style="text-decoration: none;">
+            <span>동의 관리</span>
+            <span class="arrow">›</span>
+          </a>
+          <div class="settings-row">
+            <span>약관 / 개인정보 처리방침</span>
+            <span class="arrow">›</span>
+          </div>
+          <div class="settings-row">
+            <span>데이터 다운로드<span class="ph-tag">Phase 4</span></span>
+            <span class="arrow">›</span>
+          </div>
+
+          <p class="settings-section-title">앱 설정</p>
+          <div class="settings-row">
+            <span>알림<span class="ph-tag">Phase 2</span></span>
+            <span class="arrow">›</span>
+          </div>
+          <div class="settings-row">
+            <span>음성 입력 사용</span>
+            <span class="toggle"></span>
+          </div>
+          <div class="settings-row">
+            <span>변환 즉시 삭제 <span class="micro">(FR-036)</span></span>
+            <span class="toggle off"></span>
+          </div>
+
+          <p class="settings-section-title">지원</p>
+          <div class="settings-row">
+            <span>자주 묻는 질문</span>
+            <span class="arrow">›</span>
+          </div>
+          <div class="settings-row">
+            <span>문의하기</span>
+            <span class="arrow">›</span>
+          </div>
+          <div class="settings-row">
+            <span>안전 도움말 (1393 / 119)</span>
+            <span class="arrow">›</span>
+          </div>
+
+          <p class="settings-section-title">계정</p>
+          <div class="settings-row">
+            <span>로그아웃</span>
+          </div>
+          <div class="settings-row danger">
+            <span>회원 탈퇴<span class="ph-tag">Phase 2</span></span>
+          </div>
+
+          <p class="micro center" style="padding: 16px 20px;">v0.1.0 (Demo)</p>
+
+        </div>
+
+        <div class="bottom-tab">
+          <a href="#s04" class="tab"><span class="ico">🏠</span>홈</a>
+          <a href="#s11" class="tab"><span class="ico">🏥</span>병원</a>
+          <a href="#s13" class="tab active"><span class="ico">⚙</span>설정</a>
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔════════════════ S-13 SETTINGS — CONSENT SUBVIEW ════════════════╗ -->
+  <div class="frame-wrap" id="s13-consent">
+    <div class="frame-label">
+      <span class="id">S-13</span>
+      <span class="title">/settings → 동의 관리</span>
+      <span class="state-tag">consent management</span>
+    </div>
+    <div class="device-frame" tabindex="0">
+      <div class="device-screen">
+        <div class="status-bar">
+          <span>9:41</span>
+          <div class="icons">
+            <span class="icon-bar"></span>
+            <span class="icon-bar wifi"></span>
+            <span class="icon-bar battery"></span>
+          </div>
+        </div>
+
+        <div class="app-header">
+          <div class="left">
+            <a href="#s13" class="back-btn">←</a>
+            <span class="title">동의 관리</span>
+          </div>
+        </div>
+
+        <div class="screen-content">
+
+          <p class="settings-section-title">필수 동의 (가입 시 수집)</p>
+          <div class="settings-row">
+            <span>서비스 이용약관</span>
+            <span class="right-text">내용보기 ›</span>
+          </div>
+          <div class="settings-row">
+            <span>개인정보 처리방침</span>
+            <span class="right-text">내용보기 ›</span>
+          </div>
+          <div class="settings-row">
+            <span>민감정보 수집</span>
+            <span class="right-text">내용보기 ›</span>
+          </div>
+
+          <p class="settings-section-title">변경 가능한 동의</p>
+
+          <div class="screen-padding">
+            <div class="card">
+              <div class="space-between">
+                <div>
+                  <div class="card-title">위험 통보 동의</div>
+                  <div class="micro">FR-026 · 옵트인</div>
+                </div>
+                <span class="toggle"></span>
+              </div>
+              <p class="micro mt-12" style="line-height: 1.55;">
+                ⓘ 위험 감지 시 비상 연락처에 안내를 보내도록 허용합니다.
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="space-between">
+                <div>
+                  <div class="card-title">음성 입력 동의</div>
+                  <div class="micro">FR-034 · 옵트인</div>
+                </div>
+                <span class="toggle"></span>
+              </div>
+              <p class="micro mt-12" style="line-height: 1.55;">
+                ⓘ 음성 입력을 위해 녹음한 오디오는 48시간 내 삭제됩니다.
+              </p>
+            </div>
+
+            <p class="micro mt-12" style="color: var(--state-warning); line-height: 1.55;">
+              ⚠️ 옵트아웃 시 위험 감지 알림이 환자 본인에게만 표시되며, 비상 연락처/의료진에게 전달되지 않습니다.
+            </p>
+          </div>
+
+        </div>
+        <div class="home-indicator"><div class="home-indicator-bar"></div></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ============================================================
+     FOOTER / LEGEND
+     ============================================================ -->
+<footer class="page-footer">
+  <h3>Legend &amp; conventions</h3>
+  <p>This is a <strong>lo-fi clickable wireframe</strong> for stakeholder review. Layout, microcopy and information hierarchy reflect <code>03-SCREEN-SPEC.md</code>. Visual style (brand color, typography, motion) is intentionally deferred to a later mockup step.</p>
+
+  <ul style="margin: 8px 0 0 16px; padding: 0;">
+    <li>Each phone frame is 375 × 812 pt and is independently scrollable.</li>
+    <li>Click a frame to focus / highlight it. Use the sticky top-nav (or any in-screen link) to jump between screens.</li>
+    <li>Korean microcopy is taken verbatim from the screen spec. Icons (🏠 🏥 ⚙ 🎤 📞 🚑 ⚠️ ↑ ← ▾) act as placeholders, mirroring the spec.</li>
+    <li>HTML comments (<code>&lt;!-- a11y: ... --&gt;</code>) annotate key interactive elements with intended roles / labels.</li>
+    <li>Recording overlay, streaming cursor and risk banner are the only animated elements. No marketing motion.</li>
+  </ul>
+
+  <h3 style="margin-top: 16px;">Semantic color palette</h3>
+  <div class="legend-tokens">
+    <div class="token"><span class="swatch" style="background: #0F172A;"></span>text-primary · #0F172A</div>
+    <div class="token"><span class="swatch" style="background: #64748B;"></span>text-secondary · #64748B</div>
+    <div class="token"><span class="swatch" style="background: #FFFFFF;"></span>surface · #FFFFFF</div>
+    <div class="token"><span class="swatch" style="background: #F8FAFC;"></span>surface-elevated · #F8FAFC</div>
+    <div class="token"><span class="swatch" style="background: #E2E8F0;"></span>border · #E2E8F0</div>
+    <div class="token"><span class="swatch" style="background: #DC2626;"></span>state-danger · #DC2626</div>
+    <div class="token"><span class="swatch" style="background: #D97706;"></span>state-warning · #D97706</div>
+    <div class="token"><span class="swatch" style="background: #059669;"></span>state-success · #059669</div>
+    <div class="token"><span class="swatch" style="background: #2563EB;"></span>state-info · #2563EB</div>
+  </div>
+
+  <p style="margin-top: 16px;">© 2026 Neuro-Sync · Generated 2026-06-06 · Source: PRD v1.4 · 01-IA.md · 02-USER-FLOW.md · 03-SCREEN-SPEC.md</p>
+</footer>
+
+<script>
+  // Minimal vanilla JS: focus a frame on click, scroll target into view on hash change.
+  (function () {
+    var frames = document.querySelectorAll('.device-frame');
+
+    function clearFocus() {
+      frames.forEach(function (f) { f.classList.remove('focused'); });
+    }
+
+    frames.forEach(function (frame) {
+      frame.addEventListener('click', function (e) {
+        // Don't steal focus from real link clicks inside the frame.
+        if (e.target.closest('a')) return;
+        clearFocus();
+        frame.classList.add('focused');
+      });
+      frame.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          clearFocus();
+          frame.classList.add('focused');
+        }
+      });
+    });
+
+    function focusFromHash() {
+      var hash = window.location.hash;
+      if (!hash) return;
+      var target = document.querySelector(hash);
+      if (!target) return;
+      var frame = target.querySelector('.device-frame');
+      if (frame) {
+        clearFocus();
+        frame.classList.add('focused');
+      }
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    window.addEventListener('hashchange', focusFromHash);
+    window.addEventListener('load', focusFromHash);
+  })();
+</script>
+
+</body>
+</html>
