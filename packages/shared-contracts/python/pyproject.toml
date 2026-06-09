@@ -1,0 +1,22 @@
+[project]
+name = "neuro-sync-contracts"
+version = "0.1.0"
+description = "Shared Pydantic schemas for Platform ↔ AI Server interface (5 AI endpoints)"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.9.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/contracts"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

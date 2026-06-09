@@ -1,0 +1,80 @@
+# Build context exclusions — applied to every Dockerfile under this repo.
+# Keep this list in sync with .gitignore for safety.
+
+# VCS / editor / OS
+.git
+.gitignore
+.github
+.editorconfig
+.vscode
+.idea
+.DS_Store
+**/.DS_Store
+
+# JS deps and build artifacts
+node_modules
+**/node_modules
+.next
+**/.next
+dist
+**/dist
+build
+**/build
+.expo
+**/.expo
+.expo-shared
+.npm
+.pnpm-store
+.yarn
+*.log
+
+# Python venvs / caches
+**/.venv
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/.tox
+**/htmlcov
+**/.coverage
+**/*.egg-info
+
+# Mobile native build dirs
+**/ios/Pods
+**/android/.gradle
+**/android/build
+**/android/app/build
+*.keystore
+
+# Secrets / env
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Large source materials (kept locally, never shipped)
+references
+
+# Docs — not needed at runtime
+docs
+README.md
+
+# Local data
+*.sqlite
+*.db
+*.dump
+audio
+uploads
+tmp
+infra/deploy/postgres_data
+
+# AI artifacts
+.langsmith
+models
+*.bin
+*.safetensors
+*.gguf
+
+# Lockfile is needed by uv for reproducible builds — DO NOT ignore uv.lock or pnpm-lock.yaml

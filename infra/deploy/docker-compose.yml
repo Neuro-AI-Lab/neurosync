@@ -1,0 +1,81 @@
+# Local dev stack — Phase 1a Day 1~2 bootstrap.
+#
+# ⚠️  DEV ONLY. DO NOT DEPLOY TO PROD.
+#   - 비밀번호는 .env 또는 환경변수로 주입 (`POSTGRES_PASSWORD` 미설정 시 compose 실패).
+#   - 포트는 모두 127.0.0.1 로컬바인딩 — 외부 노출 안 함.
+#   - 프로덕션 매니페스트는 infra/deploy/k8s/ (Phase 2+).
+#
+# Run from repo root:
+#   export POSTGRES_PASSWORD=$(openssl rand -hex 16)
+#   docker compose -f infra/deploy/docker-compose.yml up -d
+
+name: neuro-sync-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ns-postgres
+    environment:
+      POSTGRES_USER: neurosync
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set; e.g. export POSTGRES_PASSWORD=$(openssl rand -hex 16)}
+      POSTGRES_DB: neurosync
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neurosync -d neurosync"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: ns-redis
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    container_name: ns-api
+    # Dev override — production CMD lives in Dockerfile (no --reload).
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://neurosync:${POSTGRES_PASSWORD:?}@postgres:5432/neurosync
+      REDIS_URL: redis://redis:6379/0
+      AI_SERVER_URL: http://ai-server:8001
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../../apps/api/src:/app/src
+      - ../../apps/api/tests:/app/tests
+
+  ai-server:
+    build:
+      context: ../..
+      dockerfile: apps/ai-server/Dockerfile
+    container_name: ns-ai-server
+    # Dev override — production CMD lives in Dockerfile (no --reload).
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+    environment:
+      LOG_LEVEL: info
+    ports:
+      - "127.0.0.1:8001:8001"
+    volumes:
+      - ../../apps/ai-server/src:/app/src
+      - ../../apps/ai-server/tests:/app/tests
+
+volumes:
+  postgres_data:

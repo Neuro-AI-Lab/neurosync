@@ -1,0 +1,35 @@
+name: AI CI
+
+on:
+  push:
+    branches: [Master]
+    paths:
+      - "apps/ai-server/**"
+      - "docs/ai/**"
+      - ".github/workflows/ai-ci.yml"
+  pull_request:
+    paths:
+      - "apps/ai-server/**"
+      - "docs/ai/**"
+      - ".github/workflows/ai-ci.yml"
+
+jobs:
+  ai-server:
+    name: apps/ai-server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        run: pip install uv
+      - name: Install deps
+        working-directory: apps/ai-server
+        run: uv sync --dev
+      - name: Ruff
+        working-directory: apps/ai-server
+        run: uv run ruff check src tests
+      - name: Pytest
+        working-directory: apps/ai-server
+        run: uv run pytest

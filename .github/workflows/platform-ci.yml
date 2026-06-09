@@ -1,0 +1,66 @@
+name: Platform CI
+
+on:
+  push:
+    branches: [Master]
+    paths:
+      - "apps/api/**"
+      - "apps/mobile/**"
+      - "apps/web/**"
+      - "infra/**"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+      - "tsconfig.base.json"
+      - ".github/workflows/platform-ci.yml"
+  pull_request:
+    paths:
+      - "apps/api/**"
+      - "apps/mobile/**"
+      - "apps/web/**"
+      - "infra/**"
+      - "package.json"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+      - "tsconfig.base.json"
+      - ".github/workflows/platform-ci.yml"
+
+jobs:
+  api:
+    name: apps/api (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install uv
+        run: pip install uv
+      - name: Install deps
+        working-directory: apps/api
+        run: uv sync --dev
+      - name: Ruff
+        working-directory: apps/api
+        run: uv run ruff check src tests
+      - name: Pytest
+        working-directory: apps/api
+        run: uv run pytest
+
+  js:
+    name: apps/{web,mobile} (TypeScript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm turbo run typecheck --filter='./apps/web' --filter='./apps/mobile' --filter='./packages/shared-contracts/typescript'
+      - name: Build web
+        run: pnpm turbo run build --filter='./apps/web'

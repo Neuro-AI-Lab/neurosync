@@ -1,0 +1,66 @@
+name: Contracts CI
+
+# packages/shared-contracts 변경은 양 팀(Platform + AI) 모두 영향.
+# 두 파이프라인을 모두 통과해야 머지 가능 (CODEOWNERS 강제).
+
+on:
+  push:
+    branches: [Master]
+    paths:
+      - "packages/shared-contracts/**"
+      - ".github/workflows/contracts-ci.yml"
+  pull_request:
+    paths:
+      - "packages/shared-contracts/**"
+      - ".github/workflows/contracts-ci.yml"
+
+jobs:
+  python:
+    name: shared-contracts (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install uv
+      - working-directory: packages/shared-contracts/python
+        run: |
+          uv sync
+          uv run python -c "import contracts; print('contracts', contracts.__version__)"
+
+  typescript:
+    name: shared-contracts (TypeScript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter '@neuro-sync/contracts' typecheck
+
+  consumers:
+    name: Consumers smoke (api + ai-server typecheck)
+    needs: [python, typescript]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install uv
+      - name: api can import contracts
+        working-directory: apps/api
+        run: |
+          uv sync --dev
+          uv run python -c "from contracts import __version__; print('api sees contracts', __version__)"
+      - name: ai-server can import contracts
+        working-directory: apps/ai-server
+        run: |
+          uv sync --dev
+          uv run python -c "from contracts import __version__; print('ai-server sees contracts', __version__)"
