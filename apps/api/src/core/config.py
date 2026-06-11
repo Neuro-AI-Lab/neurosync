@@ -73,6 +73,16 @@ class Settings(BaseSettings):
     # CORS — DEV permissive. Validator below forbids wildcard outside dev.
     cors_origins: list[str] = Field(default_factory=lambda: ["*"])
 
+    # WebSocket Origin whitelist (PRD C-7). Use ["*"] in dev only.
+    cors_ws_origins: list[str] = Field(default_factory=lambda: ["*"])
+
+    # Idempotency LRU cap (per WebSocket connection). Bounded to prevent OOM.
+    ws_idempotency_cache_size: int = Field(default=200)
+    ws_auth_handshake_seconds: float = Field(default=5.0)
+
+    # AI server (apps/ai-server) location
+    ai_server_url: str = Field(default="http://localhost:8001")
+
     # ---------- Validators ----------
 
     @field_validator("argon2_memory_cost_kib")
@@ -139,6 +149,10 @@ class Settings(BaseSettings):
         if "*" in self.cors_origins:
             raise ValueError(
                 f"cors_origins must not contain '*' in app_env={self.app_env}."
+            )
+        if "*" in self.cors_ws_origins:
+            raise ValueError(
+                f"cors_ws_origins must not contain '*' in app_env={self.app_env}."
             )
         return self
 

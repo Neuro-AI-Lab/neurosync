@@ -8,12 +8,15 @@ Phase 1a Day 1~2 부트스트랩 — /health 만 노출.
 from fastapi import FastAPI
 
 from src import __version__
+from src.api.safety import router as safety_router
 
 app = FastAPI(
     title="Neuro-Sync AI Server",
     version=__version__,
     description="5 HTTP interfaces consumed by Platform API.",
 )
+
+app.include_router(safety_router)
 
 
 @app.get("/health")
