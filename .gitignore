@@ -75,5 +75,11 @@ ocr-output/
 # CI cache
 .github/cache/
 
+# Turborepo cache
+.turbo/
+
+# TS incremental build info
+*.tsbuildinfo
+
 # Source materials (large originals, stored separately)
 references/
