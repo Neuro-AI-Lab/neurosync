@@ -60,7 +60,10 @@ tmp/
 
 # AI artifacts (local model caches, eval outputs)
 .langsmith/
-models/
+# Ignore ML model weight directories at repo root or under AI server,
+# but NOT source package paths like `apps/api/src/models/`.
+/models/
+apps/ai-server/models/
 *.bin
 *.safetensors
 *.gguf
