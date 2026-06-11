@@ -119,7 +119,15 @@ def test_password_policy_rejects_oversized(fast_settings):
 
 def test_jwt_tampered_signature_rejected(fast_settings):
     token = create_token("user-123", "access", settings=fast_settings)
-    tampered = token[:-1] + ("A" if token[-1] != "A" else "B")
+    # Tamper a char inside the signature segment so the change cannot be
+    # absorbed by base64 padding bits (the very last char of a 32-byte HS256
+    # signature carries only 4 payload bits + 2 padding bits, which can leave
+    # the decoded bytes unchanged on some single-char flips).
+    last_dot = token.rfind(".")
+    sig = token[last_dot + 1 :]
+    idx = len(sig) // 2  # middle of signature
+    flipped_char = "A" if sig[idx] != "A" else "B"
+    tampered = token[: last_dot + 1] + sig[:idx] + flipped_char + sig[idx + 1 :]
     with pytest.raises(TokenError):
         decode_token(tampered, settings=fast_settings)
 
