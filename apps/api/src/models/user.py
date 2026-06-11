@@ -50,6 +50,6 @@ class User(Base):
     )
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    profile: Mapped["PatientProfile | None"] = relationship(  # noqa: F821
+    profile: Mapped[PatientProfile | None] = relationship(  # noqa: F821
         back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
