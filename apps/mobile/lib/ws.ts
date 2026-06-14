@@ -51,6 +51,21 @@ export type WSEvent =
         latencyMs: number;
       };
     }
+  | {
+      // Per-token streaming — reserved (AI server SSE pending). Typed so the
+      // client stays forward-compatible.
+      type: "ai:token";
+      payload: { token: string; messageId?: string };
+    }
+  | {
+      type: "ai:complete";
+      payload: {
+        messageId: string;
+        content: string;
+        modelUsed: string;
+        progress: { collectedItems: string[]; totalItems: number; ratio: number };
+      };
+    }
   | { type: "error"; payload: { code: string; details?: unknown[] } };
 
 export type WSStatus =

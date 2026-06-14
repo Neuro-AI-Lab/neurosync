@@ -33,12 +33,16 @@ export type SessionState = {
   sessionId: string | null;
   messages: LocalMessage[];
   lastRisk: RiskEvent | null;
+  /** Intake completeness 0..1 (FR-004), reported by the AI via ai:complete. */
+  progress: number;
 
   start: (sessionId: string) => void;
   addUserMessage: (msg: LocalMessage) => void;
+  addAiMessage: (msg: LocalMessage) => void;
   markAcked: (idempotencyKey: string, messageId: string, safetyLevel: SafetyLevel) => void;
   setRisk: (risk: RiskEvent) => void;
   clearRisk: () => void;
+  setProgress: (ratio: number) => void;
   reset: () => void;
 };
 
@@ -46,9 +50,17 @@ export const useSession = create<SessionState>((set) => ({
   sessionId: null,
   messages: [],
   lastRisk: null,
+  progress: 0,
 
-  start: (sessionId) => set({ sessionId, messages: [], lastRisk: null }),
+  start: (sessionId) => set({ sessionId, messages: [], lastRisk: null, progress: 0 }),
   addUserMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
+  addAiMessage: (msg) =>
+    set((s) =>
+      // Guard against a replayed ai:complete adding the same bubble twice.
+      s.messages.some((m) => m.id === msg.id)
+        ? s
+        : { messages: [...s.messages, msg] },
+    ),
   markAcked: (idempotencyKey, messageId, safetyLevel) =>
     set((s) => ({
       messages: s.messages.map((m) =>
@@ -57,5 +69,7 @@ export const useSession = create<SessionState>((set) => ({
     })),
   setRisk: (risk) => set({ lastRisk: risk }),
   clearRisk: () => set({ lastRisk: null }),
-  reset: () => set({ sessionId: null, messages: [], lastRisk: null }),
+  // Progress is monotonic — never let a late/replayed frame walk it backwards.
+  setProgress: (ratio) => set((s) => ({ progress: Math.max(s.progress, ratio) })),
+  reset: () => set({ sessionId: null, messages: [], lastRisk: null, progress: 0 }),
 }));

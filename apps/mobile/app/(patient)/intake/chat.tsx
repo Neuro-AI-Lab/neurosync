@@ -28,9 +28,12 @@ export default function ChatScreen() {
   const refreshAccessToken = useAuth((s) => s.refreshAccessToken);
   const sessionId = useSession((s) => s.sessionId);
   const messages = useSession((s) => s.messages);
+  const progress = useSession((s) => s.progress);
   const addUserMessage = useSession((s) => s.addUserMessage);
+  const addAiMessage = useSession((s) => s.addAiMessage);
   const markAcked = useSession((s) => s.markAcked);
   const setRisk = useSession((s) => s.setRisk);
+  const setProgress = useSession((s) => s.setProgress);
   const clearRisk = useSession((s) => s.clearRisk);
 
   const [draft, setDraft] = useState("");
@@ -56,6 +59,10 @@ export default function ChatScreen() {
         if (ack.idempotencyKey) {
           markAcked(ack.idempotencyKey, ack.messageId, ack.safetyLevel);
         }
+      } else if (event.type === "ai:complete") {
+        const { messageId, content, progress: p } = event.payload;
+        addAiMessage({ id: messageId, role: "ai", content, sentAt: Date.now() });
+        setProgress(p.ratio);
       } else if (event.type === "risk:detected") {
         const { level } = event.payload;
         setRisk(event.payload);
@@ -87,7 +94,20 @@ export default function ChatScreen() {
       // C-10: avoid stale modal state if user navigates away mid-event.
       clearRisk();
     };
-  }, [sessionId, initialAccessToken, markAcked, setRisk, clearRisk, refreshAccessToken]);
+  }, [
+    sessionId,
+    initialAccessToken,
+    markAcked,
+    addAiMessage,
+    setRisk,
+    setProgress,
+    clearRisk,
+    refreshAccessToken,
+  ]);
+
+  // PRD §5.5 flow — surface the questionnaire step once intake is ~70% done.
+  const progressPct = Math.round(progress * 100);
+  const questionnaireReady = progress >= 0.7;
 
   const onSend = () => {
     const content = draft.trim();
@@ -142,7 +162,9 @@ export default function ChatScreen() {
           accessibilityLabel="표준 문진으로 이동"
           hitSlop={8}
         >
-          <Text style={styles.next}>설문 →</Text>
+          <Text style={[styles.next, questionnaireReady && styles.nextReady]}>
+            설문 →
+          </Text>
         </Pressable>
         <View
           style={[
@@ -151,6 +173,20 @@ export default function ChatScreen() {
           ]}
         />
       </View>
+
+      <View style={styles.progressRow}>
+        <View
+          style={styles.progressTrack}
+          accessibilityRole="progressbar"
+          accessibilityValue={{ min: 0, max: 100, now: progressPct }}
+        >
+          <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
+        </View>
+        <Text style={styles.progressLabel}>
+          {questionnaireReady ? `문진 준비됨 · ${progressPct}%` : `진행률 ${progressPct}%`}
+        </Text>
+      </View>
+
       {statusLabel ? <Text style={styles.statusText}>{statusLabel}</Text> : null}
       {mediumBanner ? (
         <View style={styles.banner} accessibilityLiveRegion="polite">
@@ -219,7 +255,28 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   back: { fontSize: fontSize.bodyLg, color: colors.textPrimary, fontWeight: "500" },
-  next: { fontSize: fontSize.bodyLg, color: colors.stateInfo, fontWeight: "600", marginRight: spacing.sm },
+  next: { fontSize: fontSize.bodyLg, color: colors.textSecondary, fontWeight: "600", marginRight: spacing.sm },
+  nextReady: { color: colors.stateInfo },
+  progressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.xs,
+  },
+  progressTrack: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.surfaceElevated,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.stateInfo,
+  },
+  progressLabel: { fontSize: fontSize.caption, color: colors.textSecondary, minWidth: 96, textAlign: "right" },
   statusDot: { width: 10, height: 10, borderRadius: 5 },
   statusText: {
     fontSize: fontSize.caption,

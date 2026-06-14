@@ -84,6 +84,8 @@ class Settings(BaseSettings):
     ai_server_url: str = Field(default="http://localhost:8001")
     # Handoff generation budget — PRD §4.1 p95 < 30s, allow margin.
     ai_handoff_timeout_seconds: float = Field(default=45.0)
+    # Chat reply budget — first token < 800ms; full non-streaming reply margin.
+    ai_chat_timeout_seconds: float = Field(default=10.0)
 
     # ---------- Validators ----------
 

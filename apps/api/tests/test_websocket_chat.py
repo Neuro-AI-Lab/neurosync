@@ -50,6 +50,24 @@ def _ai_safety_response(level: str = "low", category: str = "none") -> dict[str,
     }
 
 
+def _ai_chat_response(
+    reply: str = "조금 더 말씀해 주실 수 있을까요?",
+    *,
+    collected: list[str] | None = None,
+    ratio: float = 0.23,
+) -> dict[str, Any]:
+    return {
+        "reply": reply,
+        "model_used": "chat-stub-v0",
+        "progress": {
+            "collected_items": collected if collected is not None else ["chief_complaint"],
+            "total_items": 13,
+            "ratio": ratio,
+        },
+        "latency_ms": 12,
+    }
+
+
 def _new_session_id(db_session, patient_id) -> uuid.UUID:
     sess = Session(patient_id=patient_id, status="in_progress")
     db_session.add(sess)
@@ -306,6 +324,131 @@ async def test_ws_ai_server_failure_returns_conservative_risk_detected(
         assert event["type"] == "risk:detected"
         assert event["payload"]["level"] == "medium"
         assert event["payload"]["reason"] == "classifier_unavailable"
+
+
+# ────────── AI dialogue turn (FR-004) ──────────
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_ws_low_safety_emits_ai_complete_with_progress(client, test_settings, db_session):
+    """LOW safety → ack THEN ai:complete (progress) + session progress persisted."""
+    respx.post(f"{test_settings.ai_server_url}/ai/safety/classify").mock(
+        return_value=Response(200, json=_ai_safety_response("low"))
+    )
+    respx.post(f"{test_settings.ai_server_url}/ai/chat/respond").mock(
+        return_value=Response(
+            200, json=_ai_chat_response(reply="언제부터 그러셨나요?", ratio=0.31)
+        )
+    )
+
+    reg = client.post(REGISTER_URL, json=_register_payload("chat-ok@example.com"))
+    access = reg.json()["data"]["accessToken"]
+    sid = client.post(
+        SESSIONS_URL, headers={"Authorization": f"Bearer {access}"}
+    ).json()["data"]["sessionId"]
+
+    with client.websocket_connect(f"/api/v1/sessions/{sid}/chat") as ws:
+        ws.send_json({"type": "auth:connect", "payload": {"accessToken": access}})
+        assert ws.receive_json()["type"] == "auth:connected"
+
+        ws.send_json(
+            {
+                "type": "user:message",
+                "payload": {"content": "요즘 너무 힘들어요", "idempotencyKey": "chat-idem-1"},
+            }
+        )
+        ack = ws.receive_json()
+        assert ack["type"] == "user:message:received"
+        assert ack["payload"]["idempotencyKey"] == "chat-idem-1"
+
+        ai = ws.receive_json()
+        assert ai["type"] == "ai:complete"
+        assert ai["payload"]["content"] == "언제부터 그러셨나요?"
+        assert ai["payload"]["progress"]["ratio"] == 0.31
+        assert ai["payload"]["progress"]["collectedItems"] == ["chief_complaint"]
+        assert ai["payload"]["messageId"]
+
+    # Progress snapshot persisted on the session.
+    from sqlalchemy import select
+
+    row = await db_session.execute(select(Session).where(Session.id == uuid.UUID(sid)))
+    sess = row.scalar_one()
+    assert sess.progress_ratio == 0.31
+    assert sess.collected_items == ["chief_complaint"]
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_ws_chat_failure_is_graceful(client, test_settings):
+    """AI chat down → still get the ack, no ai:complete (dialogue is best-effort)."""
+    respx.post(f"{test_settings.ai_server_url}/ai/safety/classify").mock(
+        return_value=Response(200, json=_ai_safety_response("low"))
+    )
+    respx.post(f"{test_settings.ai_server_url}/ai/chat/respond").mock(
+        side_effect=Exception("chat down")
+    )
+
+    reg = client.post(REGISTER_URL, json=_register_payload("chat-down@example.com"))
+    access = reg.json()["data"]["accessToken"]
+    sid = client.post(
+        SESSIONS_URL, headers={"Authorization": f"Bearer {access}"}
+    ).json()["data"]["sessionId"]
+
+    with client.websocket_connect(f"/api/v1/sessions/{sid}/chat") as ws:
+        ws.send_json({"type": "auth:connect", "payload": {"accessToken": access}})
+        ws.receive_json()  # auth:connected
+
+        ws.send_json(
+            {
+                "type": "user:message",
+                "payload": {"content": "안녕하세요", "idempotencyKey": "chat-idem-2"},
+            }
+        )
+        ack = ws.receive_json()
+        assert ack["type"] == "user:message:received"
+        # Next message round-trips fine — connection still healthy.
+        ws.send_json(
+            {
+                "type": "user:message",
+                "payload": {"content": "또 메시지", "idempotencyKey": "chat-idem-3"},
+            }
+        )
+        assert ws.receive_json()["type"] == "user:message:received"
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_ws_critical_safety_skips_ai_reply(client, test_settings):
+    """HIGH/CRITICAL interrupts the dialogue — risk:detected only, no ai:complete."""
+    respx.post(f"{test_settings.ai_server_url}/ai/safety/classify").mock(
+        return_value=Response(200, json=_ai_safety_response("critical", "suicide"))
+    )
+    chat_route = respx.post(f"{test_settings.ai_server_url}/ai/chat/respond").mock(
+        return_value=Response(200, json=_ai_chat_response())
+    )
+
+    reg = client.post(REGISTER_URL, json=_register_payload("chat-risk@example.com"))
+    access = reg.json()["data"]["accessToken"]
+    sid = client.post(
+        SESSIONS_URL, headers={"Authorization": f"Bearer {access}"}
+    ).json()["data"]["sessionId"]
+
+    with client.websocket_connect(f"/api/v1/sessions/{sid}/chat") as ws:
+        ws.send_json({"type": "auth:connect", "payload": {"accessToken": access}})
+        ws.receive_json()
+
+        ws.send_json(
+            {
+                "type": "user:message",
+                "payload": {"content": "죽고 싶어요", "idempotencyKey": "chat-idem-4"},
+            }
+        )
+        event = ws.receive_json()
+        assert event["type"] == "risk:detected"
+
+    # Dialogue endpoint must NOT be called when the message is a crisis.
+    assert not chat_route.called
 
 
 # Sanity: token util used elsewhere in tests

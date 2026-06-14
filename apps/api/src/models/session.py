@@ -14,6 +14,7 @@ from sqlalchemy import (
     ARRAY,
     CheckConstraint,
     DateTime,
+    Float,
     ForeignKey,
     Index,
     LargeBinary,
@@ -51,6 +52,13 @@ class Session(Base):
         DateTime(timezone=True), server_default=func.now()
     )
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # FR-004 — AI-reported intake completeness for the progress bar.
+    progress_ratio: Mapped[float] = mapped_column(
+        Float, nullable=False, default=0.0, server_default="0"
+    )
+    collected_items: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, default=list, server_default="[]"
+    )
 
     messages = relationship(
         "Message", back_populates="session", cascade="all, delete-orphan"

@@ -82,9 +82,12 @@
 - [x] 모바일 `/intake/phq9`, `/intake/gad7`
 
 #### 1b.2 AI 사전 문진 채팅 본격 운영 (FR-004)
-- [ ] 프롬프트 시스템 메시지 (진단 금지, 구조화 수집 가이드) — `apps/ai-server/src/prompts/chat/`
-- [ ] 대화 진행률 계산 로직 (수집 항목 13개 기준)
-- [ ] 모바일 `/intake/chat` 화면 (스트리밍 UX)
+- [ ] 프롬프트 시스템 메시지 (진단 금지, 구조화 수집 가이드) — `apps/ai-server/src/prompts/chat/` **[AI팀]**
+- [x] 채팅 계약 `contracts/chat.py` (`ChatRequest/Response`, `ChatProgress`) + WS `ai:complete`(progress 포함) 배관
+- [x] 대화 진행률 **표시/저장** (수집 항목 13개 기준 — 항목 산출은 AI, 플랫폼은 `sessions.progress_ratio/collected_items` 저장)
+- [x] WS 게이트웨이: 비위험 턴에 `/ai/chat/respond` 호출 → AI 메시지 저장 + `ai:complete` 전송 (위험 시 대화 중단, AI 응답 생략)
+- [x] 모바일 `/intake/chat` — AI 메시지 버블 + 진행률 바(70%+ 문진 안내)
+- [ ] 토큰 단위 스트리밍(`ai:token`) — ai-server SSE 지원 시 후속 (현재 non-streaming `ai:complete`)
 
 #### 1b.3 문진 제출 + Handoff 리포트 (FR-010, FR-018)
 - [x] DB: `handoff_reports` (alembic 0003, 상태 추적 generating/ready/failed)
@@ -231,6 +234,7 @@
 | 2026-06-14 | Phase 1b | 1b.1 표준 문진(PHQ-9/GAD-7) — DB+API+채점+모바일 화면 | completed |
 | 2026-06-14 | Phase 1b | 1b.3/1b.4 Handoff 배관 — submit/report API(BackgroundTasks)+계약+웹 리포트 뷰 | completed |
 | 2026-06-14 | Phase 1b | 1b.x 위험 이벤트 확인 PATCH + 모바일 응급화면 활성화 (FR-011/022) | completed |
+| 2026-06-14 | Phase 1b | 1b.2 채팅 진행률 — chat 계약 + WS ai:complete 배관 + 진행률 저장/표시 (FR-004, AI 생성은 ai-server) | completed |
 
 ## Critical Path (Demo)
 

@@ -68,6 +68,7 @@ from src.schemas.session import (
     WSUserMessage,
 )
 from src.services.ai_client import AIClient, AIClientError, get_ai_client
+from src.services.chat import respond as chat_turn
 from src.services.handoff import (
     build_report_response,
     create_pending_report,
@@ -450,8 +451,9 @@ async def session_chat(
         }
     )
 
-    # C-2: bounded LRU. Key → cached ack payload for replay.
-    idem_cache: OrderedDict[str, dict[str, Any]] = OrderedDict()
+    # C-2: bounded LRU. Key → cached response frames for replay. A single
+    # user:message can fan out to multiple frames (ack + ai:complete).
+    idem_cache: OrderedDict[str, list[dict[str, Any]]] = OrderedDict()
 
     try:
         while True:
@@ -495,12 +497,13 @@ async def session_chat(
 
             cached = idem_cache.get(frame.payload.idempotency_key)
             if cached is not None:
-                # Replay the same response so client stays consistent.
+                # Replay the same frames so the client stays consistent.
                 idem_cache.move_to_end(frame.payload.idempotency_key)
-                await ws.send_json(cached)
+                for frame_out in cached:
+                    await ws.send_json(frame_out)
                 continue
 
-            response = await _handle_message(
+            frames = await _handle_message(
                 settings=settings,
                 ai_client=ai_client,
                 user_id=user_id,
@@ -508,11 +511,12 @@ async def session_chat(
                 frame=frame,
             )
 
-            idem_cache[frame.payload.idempotency_key] = response
+            idem_cache[frame.payload.idempotency_key] = frames
             if len(idem_cache) > settings.ws_idempotency_cache_size:
                 idem_cache.popitem(last=False)
 
-            await ws.send_json(response)
+            for frame_out in frames:
+                await ws.send_json(frame_out)
 
     except WebSocketDisconnect:
         pass
@@ -542,7 +546,7 @@ async def _handle_message(
     user_id: UUID,
     session_id: UUID,
     frame: WSUserMessage,
-) -> dict[str, Any]:
+) -> list[dict[str, Any]]:
     started = time.perf_counter()
 
     async with SessionLocal() as db:
@@ -598,18 +602,34 @@ async def _handle_message(
 
     elapsed_ms = int((time.perf_counter() - started) * 1000)
 
+    # HIGH/CRITICAL — the dialogue is interrupted (PRD §5.1): risk only, no AI reply.
     if payload is not None:
-        return {"type": "risk:detected", "payload": payload}
+        return [{"type": "risk:detected", "payload": payload}]
 
     safety_level_str = safety.level.value if safety is not None else "unknown"
-    return {
-        "type": "user:message:received",
-        "payload": {
-            "messageId": str(trigger_message_id),
-            "safetyLevel": safety_level_str,
-            "latencyMs": elapsed_ms,
-        },
-    }
+    frames: list[dict[str, Any]] = [
+        {
+            "type": "user:message:received",
+            "payload": {
+                "messageId": str(trigger_message_id),
+                "idempotencyKey": frame.payload.idempotency_key,
+                "safetyLevel": safety_level_str,
+                "latencyMs": elapsed_ms,
+            },
+        }
+    ]
+
+    # FR-004 — best-effort AI dialogue turn (LOW/MEDIUM only). Failure is
+    # swallowed inside chat_turn so the chat keeps flowing.
+    async with SessionLocal() as db:
+        ai_payload = await chat_turn(
+            db, ai_client=ai_client, session_id=session_id, settings=settings
+        )
+        await db.commit()
+    if ai_payload is not None:
+        frames.append({"type": "ai:complete", "payload": ai_payload})
+
+    return frames
 
 
 __all__ = ["router"]
