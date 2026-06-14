@@ -136,6 +136,14 @@ export default function ChatScreen() {
           <Text style={styles.back}>← 그만하기</Text>
         </Pressable>
         <View style={{ flex: 1 }} />
+        <Pressable
+          onPress={() => router.push("/(patient)/intake/phq9")}
+          accessibilityRole="button"
+          accessibilityLabel="표준 문진으로 이동"
+          hitSlop={8}
+        >
+          <Text style={styles.next}>설문 →</Text>
+        </Pressable>
         <View
           style={[
             styles.statusDot,
@@ -211,6 +219,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   back: { fontSize: fontSize.bodyLg, color: colors.textPrimary, fontWeight: "500" },
+  next: { fontSize: fontSize.bodyLg, color: colors.stateInfo, fontWeight: "600", marginRight: spacing.sm },
   statusDot: { width: 10, height: 10, borderRadius: 5 },
   statusText: {
     fontSize: fontSize.caption,

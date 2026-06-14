@@ -82,6 +82,8 @@ class Settings(BaseSettings):
 
     # AI server (apps/ai-server) location
     ai_server_url: str = Field(default="http://localhost:8001")
+    # Handoff generation budget — PRD §4.1 p95 < 30s, allow margin.
+    ai_handoff_timeout_seconds: float = Field(default=45.0)
 
     # ---------- Validators ----------
 

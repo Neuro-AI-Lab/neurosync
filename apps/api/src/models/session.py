@@ -100,6 +100,10 @@ class RiskEvent(Base):
             "status IN ('detected','acknowledged','resolved','dismissed')",
             name="ck_risk_events_status",
         ),
+        CheckConstraint(
+            "alone_status IS NULL OR alone_status IN ('alone','with_someone')",
+            name="ck_risk_events_alone_status",
+        ),
         Index("idx_risk_events_patient", "patient_id", "detected_at"),
     )
 
@@ -127,6 +131,9 @@ class RiskEvent(Base):
     consent_snapshot_id: Mapped[uuid.UUID | None] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("consent_snapshots.id")
     )
+    # FR-011/022 — patient response on the emergency screen.
+    alone_status: Mapped[str | None] = mapped_column(String(16))
+    acknowledged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     detected_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

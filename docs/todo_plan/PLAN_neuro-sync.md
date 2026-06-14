@@ -74,12 +74,12 @@
 > **Gate (W7)**: 가상 페르소나 3건으로 채팅→문진→Handoff 풀 시나리오 통과.
 
 #### 1b.1 표준 문진 (FR-006, FR-007)
-- [ ] DB: `questionnaire_results`
-- [ ] PHQ-9 9문항
-- [ ] GAD-7 7문항
-- [ ] `POST /api/v1/sessions/:id/questionnaires`
-- [ ] 총점 자동 계산 + severity 분류 (참고용)
-- [ ] 모바일 `/intake/phq9`, `/intake/gad7`
+- [x] DB: `questionnaire_results` (alembic 0003)
+- [x] PHQ-9 9문항
+- [x] GAD-7 7문항
+- [x] `POST /api/v1/sessions/:id/questionnaires`
+- [x] 총점 자동 계산 + severity 분류 (참고용)
+- [x] 모바일 `/intake/phq9`, `/intake/gad7`
 
 #### 1b.2 AI 사전 문진 채팅 본격 운영 (FR-004)
 - [ ] 프롬프트 시스템 메시지 (진단 금지, 구조화 수집 가이드) — `apps/ai-server/src/prompts/chat/`
@@ -87,18 +87,25 @@
 - [ ] 모바일 `/intake/chat` 화면 (스트리밍 UX)
 
 #### 1b.3 문진 제출 + Handoff 리포트 (FR-010, FR-018)
-- [ ] DB: `handoff_reports`
-- [ ] `POST /api/v1/sessions/:id/submit`
-- [ ] Celery worker: 리포트 생성 비동기 작업 → `apps/ai-server`의 `/ai/handoff/generate` 호출
-- [ ] LLM 프롬프트: 환자 발화 → 구조화 JSON (주호소, 현병력, 증상 등 13항목)
-- [ ] **원문 근거 인용 강제** (각 필드마다 source message_id)
-- [ ] `GET /api/v1/sessions/:id/report`
-- [ ] 모바일 `/intake/submit`, `/report/status`
+- [x] DB: `handoff_reports` (alembic 0003, 상태 추적 generating/ready/failed)
+- [x] `POST /api/v1/sessions/:id/submit` (202, 세션 freeze + 리포트 row 생성)
+- [x] 비동기 리포트 생성 작업 → `apps/ai-server`의 `/ai/handoff/generate` 호출
+      (**Demo는 FastAPI BackgroundTasks**, seam = `generate_report_task`; Celery 스왑은 Phase 후속)
+- [ ] LLM 프롬프트: 환자 발화 → 구조화 JSON (주호소, 현병력, 증상 등 13항목) — **AI팀 (ai-server)**
+- [x] **원문 근거 인용 계약** (`contracts.handoff.Citation`, field별 source_message_id) — 생성 검증은 AI팀
+- [x] `GET /api/v1/sessions/:id/report` (의료진, 문진점수·위험신호는 항상 서버 조합)
+- [x] 모바일 `/intake/submit` (제출 전 안내문구 FR-010)
+- [ ] 모바일 `/report/status` (환자용 리포트 상태 화면 — 후속)
 
 #### 1b.4 의료진 환자 상세 + 리포트 뷰 (FR-017)
-- [ ] `GET /api/v1/clinician/patients/:id`
-- [ ] 웹 `/dashboard/patients/:id` 환자 상세 + Handoff 리포트 뷰
-- [ ] 위험 신호 강조 표시 + 원문 근거 링크
+- [x] `GET /api/v1/clinician/patients/:id` (Phase 1a 완료)
+- [x] 웹 `/dashboard/patients/:id/sessions/:id` Handoff 리포트 뷰 (HandoffReportView)
+- [x] 위험 신호 강조 표시 + 원문 근거 표시 (narrative.evidence)
+
+#### 1b.x 위험 이벤트 확인 (FR-011, FR-022) — 추가 슬라이스
+- [x] DB: `risk_events.alone_status`, `acknowledged_at` (alembic 0003)
+- [x] `PATCH /api/v1/risk_events/:id` (환자 본인, aloneStatus 기록)
+- [x] `risk:detected` payload에 `riskEventId` 추가 + 모바일 `/emergency` "혼자 계신가요?" 활성화
 
 #### 1b.5 STT (Whisper 모드) (FR-033, FR-034, FR-035, FR-036, FR-037)
 - [ ] DB: `audio_recordings`, `stt_transcriptions`, `messages.input_modality` 컬럼
@@ -221,6 +228,9 @@
 | 2026-06-04 | - | PRD v1.3 & 워크스페이스 분리: Ownership Matrix + AI Research 독립 | completed |
 | 2026-06-04 | - | PRD v1.4 & PLAN: 8주 데모 일정 재구성, Phase 0 제거 (제안서 단계 완료 항목 분리) | completed |
 | 2026-06-04 | Phase 1a | 환경 셋업 시작 | pending |
+| 2026-06-14 | Phase 1b | 1b.1 표준 문진(PHQ-9/GAD-7) — DB+API+채점+모바일 화면 | completed |
+| 2026-06-14 | Phase 1b | 1b.3/1b.4 Handoff 배관 — submit/report API(BackgroundTasks)+계약+웹 리포트 뷰 | completed |
+| 2026-06-14 | Phase 1b | 1b.x 위험 이벤트 확인 PATCH + 모바일 응급화면 활성화 (FR-011/022) | completed |
 
 ## Critical Path (Demo)
 

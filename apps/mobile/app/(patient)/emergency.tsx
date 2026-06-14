@@ -1,12 +1,16 @@
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Alert, BackHandler, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { acknowledgeRiskEvent, APIException } from "../../lib/api";
 import { colors, fontSize, radius, spacing } from "../../lib/tokens";
+import { useAuth } from "../../state/auth";
 import { useSession } from "../../state/session";
+
+type AloneStatus = "alone" | "with_someone";
 
 /**
  * Modal-presented emergency screen (PRD §5.5 Flow C client side).
@@ -21,6 +25,25 @@ export default function EmergencyScreen() {
   const insets = useSafeAreaInsets();
   const risk = useSession((s) => s.lastRisk);
   const clearRisk = useSession((s) => s.clearRisk);
+  const accessToken = useAuth((s) => s.accessToken);
+  const [alone, setAlone] = useState<AloneStatus | null>(null);
+  const [acking, setAcking] = useState(false);
+
+  const acknowledge = async (value: AloneStatus) => {
+    // Optimistic — the UI reflects the choice even if the network is flaky.
+    setAlone(value);
+    if (!accessToken || !risk?.riskEventId) return;
+    setAcking(true);
+    try {
+      await acknowledgeRiskEvent(accessToken, risk.riskEventId, value);
+    } catch (e) {
+      // Acknowledgement is best-effort; never block the safety screen on it.
+      const code = e instanceof APIException ? e.body.code : "NETWORK";
+      Alert.alert("저장이 지연되고 있어요", `잠시 후 자동으로 다시 시도돼요 (코드: ${code})`);
+    } finally {
+      setAcking(false);
+    }
+  };
 
   const hotlines =
     risk?.hotlines ??
@@ -108,14 +131,44 @@ export default function EmergencyScreen() {
 
         <View style={styles.separator} />
 
-        {/* Phase 1b: PATCH /risk_events/:id { aloneStatus, acknowledgedAt }.
-            Disabled here so the patient is not misled by no-op buttons. */}
-        <Text style={styles.questionMuted}>지금 혼자 계신가요?</Text>
+        {/* FR-011/022 — patient self-report routes to risk_events.alone_status. */}
+        <Text style={styles.question}>지금 혼자 계신가요?</Text>
         <View style={styles.row}>
-          <View style={[styles.answer, styles.answerDisabled]}>
-            <Text style={styles.answerTextMuted}>곧 지원돼요</Text>
-          </View>
+          <Pressable
+            onPress={() => acknowledge("alone")}
+            disabled={acking}
+            accessibilityRole="button"
+            accessibilityState={{ selected: alone === "alone" }}
+            style={[styles.answer, alone === "alone" && styles.answerSelected]}
+          >
+            <Text style={[styles.answerText, alone === "alone" && styles.answerTextSelected]}>
+              혼자 있어요
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => acknowledge("with_someone")}
+            disabled={acking}
+            accessibilityRole="button"
+            accessibilityState={{ selected: alone === "with_someone" }}
+            style={[styles.answer, alone === "with_someone" && styles.answerSelected]}
+          >
+            <Text
+              style={[
+                styles.answerText,
+                alone === "with_someone" && styles.answerTextSelected,
+              ]}
+            >
+              누군가와 함께 있어요
+            </Text>
+          </Pressable>
         </View>
+        {alone !== null ? (
+          <Text style={styles.ackHint}>
+            {alone === "alone"
+              ? "혼자 계시는군요. 위 번호로 꼭 연락해 주세요."
+              : "곁에 누군가 있어 다행이에요. 함께 도움을 요청해 주세요."}
+          </Text>
+        ) : null}
 
         <View style={styles.separator} />
 
@@ -152,10 +205,10 @@ const styles = StyleSheet.create({
   cardName: { fontSize: fontSize.body, color: colors.textPrimary, marginTop: 2 },
   cardCta: { fontSize: fontSize.bodyLg, color: colors.stateDanger, fontWeight: "600" },
   separator: { height: 1, backgroundColor: colors.border, marginVertical: spacing.md },
-  questionMuted: {
+  question: {
     fontSize: fontSize.bodyLg,
     fontWeight: "600",
-    color: colors.textSecondary,
+    color: colors.textPrimary,
     textAlign: "center",
   },
   row: { flexDirection: "row", gap: spacing.sm },
@@ -166,9 +219,17 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     padding: spacing.md,
     alignItems: "center",
+    backgroundColor: colors.surface,
   },
-  answerDisabled: { backgroundColor: colors.surfaceElevated },
-  answerTextMuted: { fontSize: fontSize.body, color: colors.textSecondary },
+  answerSelected: { borderColor: colors.stateInfo, backgroundColor: "#EFF6FF" },
+  answerText: { fontSize: fontSize.body, color: colors.textPrimary, textAlign: "center" },
+  answerTextSelected: { color: colors.stateInfo, fontWeight: "700" },
+  ackHint: {
+    fontSize: fontSize.body,
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginTop: spacing.xs,
+  },
   exit: {
     paddingVertical: spacing.md,
     alignItems: "center",

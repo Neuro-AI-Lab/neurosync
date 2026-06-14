@@ -22,6 +22,7 @@ export type LocalMessage = {
 export type RiskEvent = {
   level: SafetyLevel;
   category: string;
+  riskEventId: string;
   triggerMessageId: string;
   routeTo: "/emergency" | "/self_hotline";
   hotlines: Array<{ name: string; number: string }>;

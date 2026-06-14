@@ -183,3 +183,71 @@ export async function getPatient(id: string): Promise<PatientDetail> {
 export async function getSession(id: string): Promise<SessionDetail> {
   return fetchAPI<SessionDetail>(`/api/v1/clinician/sessions/${id}`);
 }
+
+// ────────── Handoff report (FR-017/018) ──────────
+
+export type QuestionnaireScore = {
+  type: string;
+  totalScore: number;
+  severity: string;
+};
+
+export type ReportRiskSignal = {
+  level: "low" | "medium" | "high" | "critical";
+  category: string | null;
+  triggerMessageId: string | null;
+};
+
+export type ReportPatient = {
+  id: string;
+  name: string;
+  birthYear: number;
+  gender: string | null;
+};
+
+export type Citation = {
+  field: string;
+  source_message_id: string;
+  quote: string;
+};
+
+export type HandoffNarrative = {
+  chief_complaint: string;
+  present_illness: string;
+  symptoms: string[];
+  onset: string | null;
+  recent_changes: string | null;
+  triggers: string[];
+  sleep_appetite_activity: {
+    sleep: string | null;
+    appetite: string | null;
+    activity: string | null;
+  };
+  psych_history: string | null;
+  medications: string | null;
+  documents_summary: string[];
+  clinician_attention: string[];
+  evidence: Citation[];
+};
+
+export type HandoffReport = {
+  reportId: string;
+  sessionId: string;
+  status: "generating" | "ready" | "failed";
+  generatedAt: string | null;
+  failureReason: string | null;
+  patient: ReportPatient | null;
+  questionnaires: QuestionnaireScore[];
+  riskSignals: ReportRiskSignal[];
+  narrative: HandoffNarrative | null;
+};
+
+/** Returns null when the session has no report row yet (404). */
+export async function getReport(sessionId: string): Promise<HandoffReport | null> {
+  try {
+    return await fetchAPI<HandoffReport>(`/api/v1/sessions/${sessionId}/report`);
+  } catch (e) {
+    if (e instanceof APIException && e.status === 404) return null;
+    throw e;
+  }
+}

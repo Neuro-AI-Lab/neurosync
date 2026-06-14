@@ -190,3 +190,71 @@ export async function createSession(token: string): Promise<SessionOut> {
     token,
   });
 }
+
+// ────────── Questionnaires (FR-006/007) ──────────
+
+export type QuestionnaireType = "PHQ9" | "GAD7";
+
+export type QuestionnaireResult = {
+  id: string;
+  type: string;
+  totalScore: number;
+  severity: string;
+  completedAt: string;
+};
+
+export async function submitQuestionnaire(
+  token: string,
+  sessionId: string,
+  type: QuestionnaireType,
+  answers: number[],
+): Promise<QuestionnaireResult> {
+  return request<QuestionnaireResult>(
+    `/api/v1/sessions/${sessionId}/questionnaires`,
+    {
+      method: "POST",
+      token,
+      body: JSON.stringify({ type, answers }),
+    },
+  );
+}
+
+// ────────── Submit (FR-010) ──────────
+
+export type SubmitAccepted = {
+  sessionId: string;
+  status: string;
+  reportId: string;
+  estimatedSeconds: number;
+};
+
+export async function submitSession(
+  token: string,
+  sessionId: string,
+): Promise<SubmitAccepted> {
+  return request<SubmitAccepted>(`/api/v1/sessions/${sessionId}/submit`, {
+    method: "POST",
+    token,
+  });
+}
+
+// ────────── Risk event acknowledgement (FR-011/022) ──────────
+
+export type RiskEventAck = {
+  id: string;
+  status: string;
+  aloneStatus: string | null;
+  acknowledgedAt: string | null;
+};
+
+export async function acknowledgeRiskEvent(
+  token: string,
+  riskEventId: string,
+  aloneStatus: "alone" | "with_someone",
+): Promise<RiskEventAck> {
+  return request<RiskEventAck>(`/api/v1/risk_events/${riskEventId}`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify({ aloneStatus }),
+  });
+}

@@ -1,16 +1,20 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { HandoffReportView } from "../../../../../../components/HandoffReportView";
 import { MessageRow } from "../../../../../../components/MessageRow";
 import { RiskEventCard } from "../../../../../../components/RiskEventCard";
-import { APIException, getSession } from "../../../../../../lib/api";
+import { APIException, getReport, getSession } from "../../../../../../lib/api";
 
 type Params = { params: Promise<{ id: string; sessionId: string }> };
 
 export default async function SessionPage({ params }: Params) {
   const { id, sessionId } = await params;
   try {
-    const sess = await getSession(sessionId);
+    const [sess, report] = await Promise.all([
+      getSession(sessionId),
+      getReport(sessionId),
+    ]);
     return (
       <div className="flex flex-col gap-8">
         <Link
@@ -27,6 +31,8 @@ export default async function SessionPage({ params }: Params) {
             {new Date(sess.createdAt).toLocaleString("ko-KR")}
           </p>
         </header>
+
+        {report ? <HandoffReportView report={report} /> : null}
 
         {sess.riskEvents.length > 0 ? (
           <section className="flex flex-col gap-3">

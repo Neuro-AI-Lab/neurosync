@@ -31,6 +31,7 @@ import logging
 import time
 import uuid
 from collections import OrderedDict
+from datetime import UTC, datetime
 from typing import Annotated, Any
 from uuid import UUID
 
@@ -38,7 +39,9 @@ import anyio
 from contracts.safety import SafetyRequest
 from fastapi import (
     APIRouter,
+    BackgroundTasks,
     Depends,
+    HTTPException,
     Request,
     WebSocket,
     WebSocketDisconnect,
@@ -57,12 +60,20 @@ from src.db import SessionLocal, get_session
 from src.models.audit_log import AuditLog
 from src.models.session import Message, Session
 from src.models.user import User
+from src.schemas.handoff import SubmitAccepted
+from src.schemas.questionnaire import QuestionnaireResultOut, QuestionnaireSubmit
 from src.schemas.session import (
     SessionOut,
     WSAuthConnect,
     WSUserMessage,
 )
 from src.services.ai_client import AIClient, AIClientError, get_ai_client
+from src.services.handoff import (
+    build_report_response,
+    create_pending_report,
+    generate_report_task,
+)
+from src.services.questionnaire import QuestionnaireError, upsert_result
 from src.services.safety import (
     handle_safety_result,
     handle_unavailable_classifier,
@@ -104,6 +115,169 @@ async def create_session(
         "data": SessionOut(
             session_id=sess.id, status=sess.status, created_at=sess.created_at
         ).model_dump(by_alias=True, mode="json"),
+    }
+
+
+async def _owned_in_progress_session(
+    db: AsyncSession, *, session_id: UUID, patient_id: UUID
+) -> Session:
+    """Load a session the patient owns, or raise 404/409.
+
+    Patient-facing writes (questionnaires, submit) are only valid while the
+    session is still `in_progress` — FR-010 freezes the session after submit.
+    """
+    row = await db.execute(select(Session).where(Session.id == session_id))
+    sess = row.scalar_one_or_none()
+    if sess is None or sess.patient_id != patient_id:
+        # Don't leak existence of other patients' sessions.
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "SESSION_NOT_FOUND", "message": "세션을 찾을 수 없어요."},
+        )
+    if sess.status != "in_progress":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "code": "SESSION_NOT_EDITABLE",
+                "message": "이미 제출된 문진은 수정할 수 없어요.",
+            },
+        )
+    return sess
+
+
+@router.post("/{session_id}/questionnaires", status_code=status.HTTP_201_CREATED)
+async def submit_questionnaire(
+    session_id: UUID,
+    body: QuestionnaireSubmit,
+    request: Request,
+    patient: Annotated[User, Depends(require_role("patient"))],
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> dict:
+    await _owned_in_progress_session(
+        db, session_id=session_id, patient_id=patient.id
+    )
+
+    try:
+        result = await upsert_result(
+            db, session_id=session_id, qtype=body.type, answers=body.answers
+        )
+    except QuestionnaireError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"code": exc.code, "message": exc.message},
+        ) from exc
+
+    db.add(
+        AuditLog(
+            actor_id=patient.id,
+            actor_role="patient",
+            action="session.questionnaire.submit",
+            resource_type="questionnaire_result",
+            resource_id=result.id,
+            ip=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+            audit_metadata={"type": body.type, "session_id": str(session_id)},
+        )
+    )
+    await db.commit()
+    await db.refresh(result)
+    return {
+        "success": True,
+        "data": QuestionnaireResultOut(
+            id=result.id,
+            type=result.type,
+            total_score=result.total_score,
+            severity=result.severity,
+            completed_at=result.completed_at,
+        ).model_dump(by_alias=True, mode="json"),
+    }
+
+
+HANDOFF_ESTIMATED_SECONDS = 30
+
+require_clinician = require_role("clinician", "org_admin", "super_admin")
+
+
+@router.post("/{session_id}/submit", status_code=status.HTTP_202_ACCEPTED)
+async def submit_session(
+    session_id: UUID,
+    request: Request,
+    background: BackgroundTasks,
+    patient: Annotated[User, Depends(require_role("patient"))],
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> dict:
+    """FR-010 — freeze the session and queue Handoff generation (FR-018).
+
+    Generation runs out-of-band (BackgroundTasks now, Celery later); the client
+    polls report status. 202 Accepted with the report id.
+    """
+    sess = await _owned_in_progress_session(
+        db, session_id=session_id, patient_id=patient.id
+    )
+    sess.status = "submitted"
+    sess.submitted_at = datetime.now(UTC)
+
+    report = await create_pending_report(db, session_id=session_id)
+    db.add(
+        AuditLog(
+            actor_id=patient.id,
+            actor_role="patient",
+            action="session.submit",
+            resource_type="session",
+            resource_id=session_id,
+            ip=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+        )
+    )
+    await db.commit()
+
+    # Kick the generation after the response is sent. Failures are captured
+    # inside the task and surfaced via report.status = 'failed'.
+    background.add_task(generate_report_task, session_id)
+
+    return {
+        "success": True,
+        "data": SubmitAccepted(
+            session_id=session_id,
+            status="report_generating",
+            report_id=report.id,
+            estimated_seconds=HANDOFF_ESTIMATED_SECONDS,
+        ).model_dump(by_alias=True, mode="json"),
+    }
+
+
+@router.get("/{session_id}/report", response_model=dict)
+async def get_report(
+    session_id: UUID,
+    request: Request,
+    actor: Annotated[User, Depends(require_clinician)],
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> dict:
+    """FR-017/018 — clinician reads the Handoff report. Every read is audited."""
+    report = await build_report_response(db, session_id)
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "code": "REPORT_NOT_FOUND",
+                "message": "리포트를 찾을 수 없어요.",
+            },
+        )
+    db.add(
+        AuditLog(
+            actor_id=actor.id,
+            actor_role=actor.role,
+            action="clinician.report.read",
+            resource_type="handoff_report",
+            resource_id=report.report_id,
+            ip=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+        )
+    )
+    await db.commit()
+    return {
+        "success": True,
+        "data": report.model_dump(by_alias=True, mode="json"),
     }
 
 

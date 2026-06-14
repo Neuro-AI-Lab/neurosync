@@ -45,6 +45,7 @@ RouteTarget = Literal["/emergency", "/self_hotline"]
 class RiskDetectedPayload(TypedDict):
     level: str
     category: str
+    riskEventId: str  # FR-011/022 — client PATCHes /risk_events/:id with aloneStatus
     triggerMessageId: str
     routeTo: RouteTarget
     hotlines: list[dict[str, str]]
@@ -96,6 +97,7 @@ def _payload_for(
     *,
     level: RiskLevel,
     category: RiskCategory,
+    risk_event_id: uuid.UUID,
     trigger_message_id: uuid.UUID,
     consent_opted_in: bool,
     reason: str,
@@ -104,6 +106,7 @@ def _payload_for(
     return RiskDetectedPayload(
         level=level.value,
         category=category.value,
+        riskEventId=str(risk_event_id),
         triggerMessageId=str(trigger_message_id),
         routeTo=route,
         hotlines=HOTLINES,
@@ -181,6 +184,7 @@ async def handle_safety_result(
             actor_role="patient",
             action="safety.detected",
             resource_type="risk_event",
+            resource_id=risk_event.id,
             audit_metadata={
                 "level": safety.level.value,
                 "category": safety.category.value,
@@ -193,6 +197,7 @@ async def handle_safety_result(
     return _payload_for(
         level=safety.level,
         category=safety.category,
+        risk_event_id=risk_event.id,
         trigger_message_id=trigger_message_id,
         consent_opted_in=consent_opted_in,
         reason="risk_detected",
@@ -244,6 +249,7 @@ async def handle_unavailable_classifier(
             actor_role="patient",
             action="safety.unavailable",
             resource_type="risk_event",
+            resource_id=risk_event.id,
             audit_metadata={"reason": "ai_server_down"},
         )
     )
@@ -251,6 +257,7 @@ async def handle_unavailable_classifier(
     return _payload_for(
         level=RiskLevel.MEDIUM,
         category=RiskCategory.OTHER_HARM,
+        risk_event_id=risk_event.id,
         trigger_message_id=trigger_message_id,
         consent_opted_in=consent_opted_in,
         reason="classifier_unavailable",

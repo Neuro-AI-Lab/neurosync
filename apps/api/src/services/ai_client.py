@@ -7,6 +7,7 @@ Timeouts mirror PRD §4.1 SLA budgets (with a small safety margin).
 from __future__ import annotations
 
 import httpx
+from contracts.handoff import HandoffRequest, HandoffResponse
 from contracts.safety import SafetyRequest, SafetyResponse
 
 from src.core.config import Settings, get_settings
@@ -35,6 +36,21 @@ class AIClient:
         except httpx.HTTPError as exc:
             raise AIClientError(f"safety/classify failed: {exc}") from exc
         return SafetyResponse.model_validate(resp.json())
+
+    async def handoff_generate(self, payload: HandoffRequest) -> HandoffResponse:
+        """POST /ai/handoff/generate. Generation budget is generous (PRD §4.1
+        p95 < 30s) so this call uses its own longer timeout."""
+        url = f"{self._settings.ai_server_url}/ai/handoff/generate"
+        try:
+            resp = await self._client.post(
+                url,
+                json=payload.model_dump(mode="json"),
+                timeout=self._settings.ai_handoff_timeout_seconds,
+            )
+            resp.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise AIClientError(f"handoff/generate failed: {exc}") from exc
+        return HandoffResponse.model_validate(resp.json())
 
     async def aclose(self) -> None:
         if self._owned:
