@@ -14,31 +14,33 @@ const NOTICE =
   "본 문진은 의료진의 진료를 돕기 위한 사전 정보 수집입니다. " +
   "AI는 진단이나 치료를 제공하지 않으며, 최종 판단은 의료진이 수행합니다.";
 
-type Phase = "review" | "submitting" | "done";
+type Phase = "review" | "submitting";
 
 export default function SubmitScreen() {
   const insets = useSafeAreaInsets();
   const accessToken = useAuth((s) => s.accessToken);
   const sessionId = useSession((s) => s.sessionId);
-  const resetSession = useSession((s) => s.reset);
   const [phase, setPhase] = useState<Phase>("review");
 
   const onSubmit = async () => {
     if (!accessToken || !sessionId) return;
     setPhase("submitting");
     try {
-      await submitSession(accessToken, sessionId);
-      setPhase("done");
+      const accepted = await submitSession(accessToken, sessionId);
+      // FR-018 — generation runs out-of-band; hand off to the status screen
+      // which polls. Replace so back doesn't return to the submit confirm.
+      router.replace({
+        pathname: "/(patient)/report/status",
+        params: {
+          sessionId: accepted.sessionId,
+          estimatedSeconds: String(accepted.estimatedSeconds),
+        },
+      });
     } catch (e) {
       const code = e instanceof APIException ? e.body.code : "NETWORK";
       Alert.alert("제출 실패", `잠시 후 다시 시도해 주세요 (코드: ${code})`);
       setPhase("review");
     }
-  };
-
-  const finish = () => {
-    resetSession();
-    router.replace("/(patient)/home");
   };
 
   return (
@@ -49,53 +51,33 @@ export default function SubmitScreen() {
         { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl },
       ]}
     >
-      {phase === "done" ? (
-        <View style={styles.center}>
-          <Text style={styles.doneIcon}>✓</Text>
-          <Text style={styles.title}>문진이 제출되었어요</Text>
-          <Text style={styles.body}>
-            의료진이 검토할 수 있도록 리포트를 준비하고 있어요. 생성에는 보통
-            30초 정도 걸려요.
-          </Text>
-          <Button label="홈으로" onPress={finish} />
-        </View>
-      ) : (
-        <>
-          <Text style={styles.title}>문진을 제출할까요?</Text>
-          <View style={styles.noticeCard}>
-            <Text style={styles.noticeText}>{NOTICE}</Text>
-          </View>
-          <Text style={styles.body}>
-            제출하면 입력하신 내용은 의료진에게 전달되며, 이후에는 수정할 수
-            없어요.
-          </Text>
-          <View style={{ height: spacing.md }} />
-          <Button
-            label="제출하기"
-            onPress={onSubmit}
-            loading={phase === "submitting"}
-            disabled={phase === "submitting"}
-          />
-          <View style={{ height: spacing.sm }} />
-          <Button
-            label="더 작성하기"
-            variant="secondary"
-            onPress={() => router.back()}
-          />
-        </>
-      )}
+      <Text style={styles.title}>문진을 제출할까요?</Text>
+      <View style={styles.noticeCard}>
+        <Text style={styles.noticeText}>{NOTICE}</Text>
+      </View>
+      <Text style={styles.body}>
+        제출하면 입력하신 내용은 의료진에게 전달되며, 이후에는 수정할 수
+        없어요.
+      </Text>
+      <View style={{ height: spacing.md }} />
+      <Button
+        label="제출하기"
+        onPress={onSubmit}
+        loading={phase === "submitting"}
+        disabled={phase === "submitting"}
+      />
+      <View style={{ height: spacing.sm }} />
+      <Button
+        label="더 작성하기"
+        variant="secondary"
+        onPress={() => router.back()}
+      />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   scroll: { paddingHorizontal: spacing.lg, gap: spacing.md },
-  center: { gap: spacing.md, alignItems: "center", paddingTop: spacing.xl },
-  doneIcon: {
-    fontSize: 56,
-    color: colors.stateSuccess,
-    fontWeight: "700",
-  },
   title: { fontSize: fontSize.title, fontWeight: "700", color: colors.textPrimary },
   body: { fontSize: fontSize.bodyLg, color: colors.textSecondary, lineHeight: 24 },
   noticeCard: {

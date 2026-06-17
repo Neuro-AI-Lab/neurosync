@@ -41,6 +41,13 @@ export const WS_BASE_URL = envOr(
   platformLocalhost(8000).replace(/^http/, "ws"),
 );
 
+/**
+ * Offline mock mode — run the app with no API server / Postgres.
+ * Default: ON in development, OFF in production builds.
+ * Force with EXPO_PUBLIC_MOCK=1 (on) or =0 (off).
+ */
+export const MOCK = envOr("EXPO_PUBLIC_MOCK", __DEV__ ? "1" : "0") === "1";
+
 if (!__DEV__) {
   if (!API_BASE_URL.startsWith("https://")) {
     throw new Error(

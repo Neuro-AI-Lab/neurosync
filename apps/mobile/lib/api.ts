@@ -11,7 +11,8 @@
  *   purge any orphan state and the original 401 is re-thrown.
  */
 
-import { API_BASE_URL } from "./config";
+import { API_BASE_URL, MOCK } from "./config";
+import { mockApi } from "./mock";
 import * as Store from "./secure-store";
 
 export type APIError = {
@@ -89,6 +90,12 @@ async function tryRefresh(): Promise<string | null> {
   // token if multiple in-flight requests all 401 at once.
   if (refreshInFlight !== null) return refreshInFlight;
   refreshInFlight = (async () => {
+    if (MOCK) {
+      const fresh = await mockApi.refresh();
+      if (fresh) await Store.saveAccessToken(fresh);
+      refreshInFlight = null;
+      return fresh;
+    }
     const refresh = await Store.getRefreshToken();
     if (!refresh) return null;
     try {
@@ -155,6 +162,7 @@ export type RegisterInput = {
 };
 
 export async function register(input: RegisterInput): Promise<TokenPair> {
+  if (MOCK) return mockApi.register(input);
   return request<TokenPair>("/api/v1/auth/register", {
     method: "POST",
     body: JSON.stringify(input),
@@ -166,6 +174,7 @@ export async function login(
   password: string,
   role: "patient" | "clinician" | "org_admin" = "patient",
 ): Promise<TokenPair> {
+  if (MOCK) return mockApi.login(email, password);
   return request<TokenPair>("/api/v1/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password, role }),
@@ -185,6 +194,7 @@ export type SessionOut = {
 };
 
 export async function createSession(token: string): Promise<SessionOut> {
+  if (MOCK) return mockApi.createSession();
   return request<SessionOut>("/api/v1/sessions", {
     method: "POST",
     token,
@@ -209,6 +219,7 @@ export async function submitQuestionnaire(
   type: QuestionnaireType,
   answers: number[],
 ): Promise<QuestionnaireResult> {
+  if (MOCK) return mockApi.submitQuestionnaire(type, answers);
   return request<QuestionnaireResult>(
     `/api/v1/sessions/${sessionId}/questionnaires`,
     {
@@ -232,8 +243,33 @@ export async function submitSession(
   token: string,
   sessionId: string,
 ): Promise<SubmitAccepted> {
+  if (MOCK) return mockApi.submitSession(sessionId);
   return request<SubmitAccepted>(`/api/v1/sessions/${sessionId}/submit`, {
     method: "POST",
+    token,
+  });
+}
+
+// ────────── Report status (FR-013/018) ──────────
+
+export type ReportPhase = "generating" | "ready" | "failed";
+
+export type ReportStatusOut = {
+  status: ReportPhase;
+  reportId: string | null;
+};
+
+/**
+ * Patient-facing report status — STATUS ONLY (the report body stays
+ * clinician-only per screen-spec §S-12). The patient screen polls this.
+ */
+export async function getReportStatus(
+  token: string,
+  sessionId: string,
+): Promise<ReportStatusOut> {
+  if (MOCK) return mockApi.getReportStatus(sessionId);
+  return request<ReportStatusOut>(`/api/v1/sessions/${sessionId}/report/status`, {
+    method: "GET",
     token,
   });
 }
@@ -252,6 +288,7 @@ export async function acknowledgeRiskEvent(
   riskEventId: string,
   aloneStatus: "alone" | "with_someone",
 ): Promise<RiskEventAck> {
+  if (MOCK) return mockApi.acknowledgeRiskEvent(riskEventId, aloneStatus);
   return request<RiskEventAck>(`/api/v1/risk_events/${riskEventId}`, {
     method: "PATCH",
     token,

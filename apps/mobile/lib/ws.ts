@@ -22,7 +22,8 @@
  * silently break the mobile client.
  */
 
-import { WS_BASE_URL } from "./config";
+import { MOCK, WS_BASE_URL } from "./config";
+import { mockChatTurn } from "./mock";
 
 export type SafetyLevel = "low" | "medium" | "high" | "critical";
 
@@ -102,6 +103,9 @@ export class SessionChatClient {
   private authed = false;
   private attempts = 0;
   private accessToken: string;
+  // ── Mock mode (offline) state ──
+  private mockTimers: Array<ReturnType<typeof setTimeout>> = [];
+  private mockTurn = 0;
 
   /**
    * onTokenRefreshRequired: server sent `auth:refresh_required`. The caller
@@ -142,7 +146,26 @@ export class SessionChatClient {
     for (const l of this.statusListeners) l(next);
   }
 
+  private emitMock(event: WSEvent): void {
+    for (const h of this.handlers) h(event);
+  }
+
+  private connectMock(): void {
+    if (this.status === "connecting" || this.status === "open") return;
+    this.setStatus("connecting");
+    const t = setTimeout(() => {
+      this.authed = true;
+      this.setStatus("open");
+      this.emitMock({ type: "auth:connected", payload: { sessionId: this.sessionId } });
+    }, 400);
+    this.mockTimers.push(t);
+  }
+
   connect(): void {
+    if (MOCK) {
+      this.connectMock();
+      return;
+    }
     if (this.status === "connecting" || this.status === "open") return;
     if (this.status === "exhausted" || this.status === "auth_failed") return;
     this.intentionalClose = false;
@@ -268,6 +291,19 @@ export class SessionChatClient {
   }
 
   sendMessage(input: SendMessageInput): boolean {
+    if (MOCK) {
+      if (this.status !== "open" || !this.authed) return false;
+      mockChatTurn({
+        content: input.content,
+        idempotencyKey: input.idempotencyKey,
+        turnIndex: this.mockTurn++,
+        emit: (event) => this.emitMock(event),
+        schedule: (fn, ms) => {
+          this.mockTimers.push(setTimeout(fn, ms));
+        },
+      });
+      return true;
+    }
     if (this.socket === null || this.status !== "open" || !this.authed) {
       return false;
     }
@@ -286,6 +322,13 @@ export class SessionChatClient {
 
   close(): void {
     this.intentionalClose = true;
+    if (MOCK) {
+      for (const t of this.mockTimers) clearTimeout(t);
+      this.mockTimers = [];
+      this.authed = false;
+      this.setStatus("closed");
+      return;
+    }
     if (this.reconnectTimer !== null) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;

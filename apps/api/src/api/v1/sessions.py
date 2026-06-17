@@ -58,6 +58,7 @@ from src.core.encryption import encrypt_str
 from src.core.security import TokenError, decode_token
 from src.db import SessionLocal, get_session
 from src.models.audit_log import AuditLog
+from src.models.handoff import HandoffReport
 from src.models.session import Message, Session
 from src.models.user import User
 from src.schemas.handoff import SubmitAccepted
@@ -244,6 +245,43 @@ async def submit_session(
             report_id=report.id,
             estimated_seconds=HANDOFF_ESTIMATED_SECONDS,
         ).model_dump(by_alias=True, mode="json"),
+    }
+
+
+@router.get("/{session_id}/report/status", response_model=dict)
+async def get_report_status(
+    session_id: UUID,
+    patient: Annotated[User, Depends(require_role("patient"))],
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> dict:
+    """FR-013/018 — patient polls Handoff generation status.
+
+    STATUS ONLY: the report body stays clinician-only (screen-spec §S-12), so
+    this never returns report content — just generating / ready / failed.
+    """
+    srow = await db.execute(select(Session).where(Session.id == session_id))
+    sess = srow.scalar_one_or_none()
+    if sess is None or sess.patient_id != patient.id:
+        # Don't leak existence of other patients' sessions.
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "SESSION_NOT_FOUND", "message": "세션을 찾을 수 없어요."},
+        )
+    rrow = await db.execute(
+        select(HandoffReport)
+        .where(HandoffReport.session_id == session_id)
+        .order_by(HandoffReport.created_at.desc())
+        .limit(1)
+    )
+    report = rrow.scalar_one_or_none()
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "REPORT_NOT_FOUND", "message": "리포트를 찾을 수 없어요."},
+        )
+    return {
+        "success": True,
+        "data": {"status": report.status, "reportId": str(report.id)},
     }
 
 
