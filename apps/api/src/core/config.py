@@ -86,6 +86,15 @@ class Settings(BaseSettings):
     ai_handoff_timeout_seconds: float = Field(default=45.0)
     # Chat reply budget — first token < 800ms; full non-streaming reply margin.
     ai_chat_timeout_seconds: float = Field(default=10.0)
+    # STT budget — PRD §4.1 SLA < 2,000ms, allow margin for the vendor chain.
+    ai_stt_timeout_seconds: float = Field(default=8.0)
+
+    # STT audio (FR-033/036). S3 SSE-KMS is Phase 2; demo writes to local disk.
+    audio_storage_dir: str = Field(default=".audio_store")
+    audio_max_bytes: int = Field(default=2 * 1024 * 1024)  # 2MB (PRD §5.1)
+    audio_max_duration_ms: int = Field(default=30_000)  # 30s
+    audio_retention_hours: int = Field(default=48)  # FR-036
+    stt_min_confidence: float = Field(default=0.6)  # FR-037 fallback threshold
 
     # ---------- Validators ----------
 

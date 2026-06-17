@@ -240,6 +240,7 @@ async def register(
         privacy=payload.consents.privacy,
         sensitive=payload.consents.sensitive,
         risk_notification=payload.consents.risk_notification,
+        voice=bool(payload.consents.voice),  # FR-034 optional opt-in at signup
         guardian_consent=(
             payload.guardian_consent.model_dump(by_alias=True, mode="json")
             if payload.guardian_consent

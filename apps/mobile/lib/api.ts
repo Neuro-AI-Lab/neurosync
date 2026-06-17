@@ -158,6 +158,7 @@ export type RegisterInput = {
     privacy: boolean;
     sensitive: boolean;
     riskNotification: boolean;
+    voice?: boolean;
   };
 };
 
@@ -293,5 +294,25 @@ export async function acknowledgeRiskEvent(
     method: "PATCH",
     token,
     body: JSON.stringify({ aloneStatus }),
+  });
+}
+
+// ────────── Voice consent (FR-034) ──────────
+
+export type VoiceConsent = {
+  voice: boolean;
+  consentSnapshotId: string;
+};
+
+/** Toggle voice (STT) consent post-signup. Appends a new consent snapshot. */
+export async function setVoiceConsent(
+  token: string,
+  voice: boolean,
+): Promise<VoiceConsent> {
+  if (MOCK) return { voice, consentSnapshotId: "mock-consent" };
+  return request<VoiceConsent>("/api/v1/consent/voice", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ voice }),
   });
 }

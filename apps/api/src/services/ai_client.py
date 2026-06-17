@@ -10,6 +10,7 @@ import httpx
 from contracts.chat import ChatRequest, ChatResponse
 from contracts.handoff import HandoffRequest, HandoffResponse
 from contracts.safety import SafetyRequest, SafetyResponse
+from contracts.stt import STTRequest, STTResponse
 
 from src.core.config import Settings, get_settings
 
@@ -54,6 +55,21 @@ class AIClient:
         except httpx.HTTPError as exc:
             raise AIClientError(f"chat/respond failed: {exc}") from exc
         return ChatResponse.model_validate(resp.json())
+
+    async def stt_transcribe(self, payload: STTRequest) -> STTResponse:
+        """POST /ai/stt/transcribe. PRD §4.1 SLA < 2,000ms; the AI server runs
+        its own vendor fallback chain within this budget."""
+        url = f"{self._settings.ai_server_url}/ai/stt/transcribe"
+        try:
+            resp = await self._client.post(
+                url,
+                json=payload.model_dump(mode="json"),
+                timeout=self._settings.ai_stt_timeout_seconds,
+            )
+            resp.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise AIClientError(f"stt/transcribe failed: {exc}") from exc
+        return STTResponse.model_validate(resp.json())
 
     async def handoff_generate(self, payload: HandoffRequest) -> HandoffResponse:
         """POST /ai/handoff/generate. Generation budget is generous (PRD §4.1

@@ -111,14 +111,15 @@
 - [x] `risk:detected` payload에 `riskEventId` 추가 + 모바일 `/emergency` "혼자 계신가요?" 활성화
 
 #### 1b.5 STT (Whisper 모드) (FR-033, FR-034, FR-035, FR-036, FR-037)
-- [ ] DB: `audio_recordings`, `stt_transcriptions`, `messages.input_modality` 컬럼
-- [ ] `consent_snapshots`에 음성 동의 컬럼 추가 + 회원가입/설정에서 옵트인 UX (FR-034)
-- [ ] `POST /api/v1/stt/transcribe` (multipart) — `apps/ai-server`의 `/ai/stt/transcribe` 호출
-- [ ] **STT Adapter v1**: A.dot 어댑터는 스텁만, **Whisper(OpenAI 또는 self-hosted) 구현이 데모 경로**
-- [ ] **48시간 자동 폐기 잡** (Celery Beat) — FR-036
-- [ ] 모바일 마이크 권한 + Push-to-Talk UI (파형/경과시간/취소)
-- [ ] 변환 결과를 입력창에 자동 채움 + 사용자 명시적 전송 (FR-035)
-- [ ] 신뢰도 < 0.6 또는 실패 시 키보드 폴백 자동 전환 (FR-037)
+- [x] DB: `audio_recordings`, `stt_transcriptions` (alembic 0006), `messages.input_modality`(기존)
+- [x] `consent_snapshots.voice` 컬럼 + 회원가입 옵트인 + `POST /consent/voice` 토글 (FR-034)
+- [x] `POST /api/v1/stt/transcribe` (multipart) — 동의 게이트 + 파일검증(매직넘버/2MB) + `/ai/stt/transcribe` 호출 + 암호화 저장
+- [x] STT 계약 `contracts/stt.py` (`STTRequest/Response`, 폴백체인)
+- [ ] **STT Adapter v1**: A.dot 스텁 + Whisper 구현 — **[AI팀] ai-server**
+- [x] **48시간 자동 폐기** `purge_expired_audio()` (FR-036) — 스케줄러(Celery Beat) 연결은 후속
+- [x] 변환 결과 자동 전송 금지(서버 강제, 메시지 미추가) + 신뢰도<0.6 → 422 폴백 (FR-035/037)
+- [ ] 모바일 마이크 권한 + Push-to-Talk 녹음 UI (파형/경과시간) — **`expo-av` 필요, 모바일-deps 세션 협업**
+- [x] 모바일: 음성동의 토글(가입) + `setVoiceConsent`/STT API 클라이언트 (녹음 UI 연결 대기)
 
 **Phase 1b Deliverable**: 환자 앱(iOS or Android 1개) + 의료진 웹 + AI 서버 통합 + Whisper STT 가동.
 
@@ -235,6 +236,7 @@
 | 2026-06-14 | Phase 1b | 1b.3/1b.4 Handoff 배관 — submit/report API(BackgroundTasks)+계약+웹 리포트 뷰 | completed |
 | 2026-06-14 | Phase 1b | 1b.x 위험 이벤트 확인 PATCH + 모바일 응급화면 활성화 (FR-011/022) | completed |
 | 2026-06-14 | Phase 1b | 1b.2 채팅 진행률 — chat 계약 + WS ai:complete 배관 + 진행률 저장/표시 (FR-004, AI 생성은 ai-server) | completed |
+| 2026-06-18 | Phase 1b | 1b.5 STT 플랫폼 — stt 계약 + DB(0006) + 음성동의 + /stt/transcribe + 48h 폐기 + 검증 (FR-033~037, 어댑터는 ai-server, 녹음 UI는 expo-av 대기) | completed |
 
 ## Critical Path (Demo)
 

@@ -30,6 +30,9 @@ class ConsentSnapshot(Base):
     privacy: Mapped[bool] = mapped_column(Boolean, nullable=False)
     sensitive: Mapped[bool] = mapped_column(Boolean, nullable=False)
     risk_notification: Mapped[bool] = mapped_column(Boolean, nullable=False)  # FR-026
+    voice: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )  # FR-034 음성 녹음 별도 동의
     guardian_consent: Mapped[dict[str, Any] | None] = mapped_column(JSONB)  # FR-027
     tos_version: Mapped[str] = mapped_column(String(32), nullable=False)
     privacy_version: Mapped[str] = mapped_column(String(32), nullable=False)

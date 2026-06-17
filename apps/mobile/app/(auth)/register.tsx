@@ -32,6 +32,8 @@ export default function RegisterScreen() {
   // PRD §4.5.2 + FR-026 — risk_notification is OPT-IN per PIPA doctrine.
   // Default = false; toggling off is itself a consent decision.
   const [riskNotification, setRiskNotification] = useState(false);
+  // FR-034 — voice (STT) is sensitive (biometric); separate opt-in, default off.
+  const [voiceConsent, setVoiceConsent] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +63,7 @@ export default function RegisterScreen() {
         phone: phone.trim(),
         region: region.trim(),
         emergencyContact: emergency.trim(),
-        consents: { tos, privacy, sensitive, riskNotification },
+        consents: { tos, privacy, sensitive, riskNotification, voice: voiceConsent },
       });
       router.replace("/(patient)/home");
     } catch (e) {
@@ -128,6 +130,11 @@ export default function RegisterScreen() {
           label="[선택] 위험 신호 감지 시 비상 연락처에 안내 (옵트아웃 시 본인에게만 표시)"
           value={riskNotification}
           onChange={setRiskNotification}
+        />
+        <Toggle
+          label="[선택] 음성 입력(STT) 사용 — 음성은 민감정보로 별도 동의 (설정에서 변경 가능)"
+          value={voiceConsent}
+          onChange={setVoiceConsent}
         />
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
