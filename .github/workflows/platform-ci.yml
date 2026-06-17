@@ -62,5 +62,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Typecheck
         run: pnpm turbo run typecheck --filter='./apps/web' --filter='./apps/mobile' --filter='./packages/shared-contracts/typescript'
+      - name: Test
+        run: pnpm turbo run test --filter='./apps/web'
       - name: Build web
         run: pnpm turbo run build --filter='./apps/web'

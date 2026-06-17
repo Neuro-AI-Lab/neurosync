@@ -95,6 +95,9 @@ class Settings(BaseSettings):
     audio_max_duration_ms: int = Field(default=30_000)  # 30s
     audio_retention_hours: int = Field(default=48)  # FR-036
     stt_min_confidence: float = Field(default=0.6)  # FR-037 fallback threshold
+    # FR-036 in-process purge scheduler interval (seconds); 0 disables (use cron
+    # / Celery Beat instead via scripts/purge_audio.py).
+    audio_purge_interval_seconds: int = Field(default=3600)
 
     # ---------- Validators ----------
 

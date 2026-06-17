@@ -20,6 +20,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BottomTabBar } from "../../components/BottomTabBar";
+import { APIException, setVoiceConsent } from "../../lib/api";
 import { colors, fontSize, radius, spacing } from "../../lib/tokens";
 import { useAuth } from "../../state/auth";
 
@@ -59,11 +60,28 @@ function Row({
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const user = useAuth((s) => s.user);
+  const accessToken = useAuth((s) => s.accessToken);
   const logout = useAuth((s) => s.logout);
 
-  // Demo: consent toggles are local-only (no edit API yet).
+  // risk_notify edit API is Phase 2; voice consent (FR-034) has a real endpoint.
   const [riskNotify, setRiskNotify] = useState(true);
   const [voiceInput, setVoiceInput] = useState(false);
+  const [voiceSaving, setVoiceSaving] = useState(false);
+
+  const onVoiceToggle = async (next: boolean) => {
+    setVoiceInput(next); // optimistic
+    if (!accessToken) return;
+    setVoiceSaving(true);
+    try {
+      await setVoiceConsent(accessToken, next);
+    } catch (e) {
+      setVoiceInput(!next); // revert on failure
+      const code = e instanceof APIException ? e.body.code : "NETWORK";
+      Alert.alert("저장 실패", `잠시 후 다시 시도해 주세요 (코드: ${code})`);
+    } finally {
+      setVoiceSaving(false);
+    }
+  };
 
   const stub = (what: string) =>
     Alert.alert(what, "이 기능은 정식 버전에서 제공됩니다.");
@@ -111,11 +129,12 @@ export default function SettingsScreen() {
             }
           />
           <Row
-            label="음성 입력 사용"
+            label="음성 입력 사용 (음성은 민감정보)"
             right={
               <Switch
                 value={voiceInput}
-                onValueChange={setVoiceInput}
+                onValueChange={onVoiceToggle}
+                disabled={voiceSaving}
                 trackColor={{ true: colors.stateInfo }}
               />
             }

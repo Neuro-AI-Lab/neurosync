@@ -116,10 +116,10 @@
 - [x] `POST /api/v1/stt/transcribe` (multipart) — 동의 게이트 + 파일검증(매직넘버/2MB) + `/ai/stt/transcribe` 호출 + 암호화 저장
 - [x] STT 계약 `contracts/stt.py` (`STTRequest/Response`, 폴백체인)
 - [ ] **STT Adapter v1**: A.dot 스텁 + Whisper 구현 — **[AI팀] ai-server**
-- [x] **48시간 자동 폐기** `purge_expired_audio()` (FR-036) — 스케줄러(Celery Beat) 연결은 후속
+- [x] **48시간 자동 폐기** `purge_expired_audio()` (FR-036) + lifespan 주기 스케줄러 + cron CLI `scripts/purge_audio.py`
 - [x] 변환 결과 자동 전송 금지(서버 강제, 메시지 미추가) + 신뢰도<0.6 → 422 폴백 (FR-035/037)
 - [ ] 모바일 마이크 권한 + Push-to-Talk 녹음 UI (파형/경과시간) — **`expo-av` 필요, 모바일-deps 세션 협업**
-- [x] 모바일: 음성동의 토글(가입) + `setVoiceConsent`/STT API 클라이언트 (녹음 UI 연결 대기)
+- [x] 모바일: 음성동의 토글(가입+**설정 화면 연결**) + `setVoiceConsent`/STT API 클라이언트 (녹음 UI 연결 대기)
 
 **Phase 1b Deliverable**: 환자 앱(iOS or Android 1개) + 의료진 웹 + AI 서버 통합 + Whisper STT 가동.
 
@@ -129,7 +129,7 @@
 
 > **목표**: 데모 발표·시연 준비 완료.
 
-- [ ] 가상 페르소나 시드 데이터 3~5명 (위험·일반 혼합)
+- [x] 가상 페르소나 시드 데이터 3~5명 (위험·일반 혼합) — `scripts/seed_demo.py` (의료진 1 + 환자 4, 문진·위험·Handoff 포함, 멱등)
 - [ ] 데모 시나리오 스크립트 + 진행 가이드
 - [ ] UX 다듬기 (에러/로딩/empty 마이크로카피)
 - [ ] 데모 영상 백업 녹화 (라이브 실패 대비)
@@ -237,6 +237,7 @@
 | 2026-06-14 | Phase 1b | 1b.x 위험 이벤트 확인 PATCH + 모바일 응급화면 활성화 (FR-011/022) | completed |
 | 2026-06-14 | Phase 1b | 1b.2 채팅 진행률 — chat 계약 + WS ai:complete 배관 + 진행률 저장/표시 (FR-004, AI 생성은 ai-server) | completed |
 | 2026-06-18 | Phase 1b | 1b.5 STT 플랫폼 — stt 계약 + DB(0006) + 음성동의 + /stt/transcribe + 48h 폐기 + 검증 (FR-033~037, 어댑터는 ai-server, 녹음 UI는 expo-av 대기) | completed |
+| 2026-06-18 | Demo Prep | 데모 준비 — 시드 페르소나(scripts/seed_demo.py) + 48h purge 스케줄러 + 설정 음성동의 토글 + 웹 Jest 하네스(CI 연결) | completed |
 
 ## Critical Path (Demo)
 
