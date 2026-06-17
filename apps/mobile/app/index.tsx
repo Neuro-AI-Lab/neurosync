@@ -6,6 +6,7 @@ import { useAuth } from "../state/auth";
 
 export default function Index() {
   const status = useAuth((s) => s.status);
+  const seenOnboarding = useAuth((s) => s.seenOnboarding);
 
   if (status === "hydrating") {
     return (
@@ -16,6 +17,10 @@ export default function Index() {
   }
   if (status === "authenticated") {
     return <Redirect href="/(patient)/home" />;
+  }
+  // First-ever launch (anonymous + never seen intro) → onboarding.
+  if (seenOnboarding === false) {
+    return <Redirect href="/(auth)/onboarding" />;
   }
   return <Redirect href="/(auth)/login" />;
 }

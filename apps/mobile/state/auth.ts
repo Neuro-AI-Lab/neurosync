@@ -13,6 +13,7 @@ import {
   RegisterInput,
   TokenPair,
 } from "../lib/api";
+import * as Prefs from "../lib/prefs";
 import * as Store from "../lib/secure-store";
 
 export type AuthState = {
@@ -20,8 +21,11 @@ export type AuthState = {
   accessToken: string | null;
   refreshToken: string | null;
   user: Store.StoredUser | null;
+  /** S-01 — whether the intro has been seen. null until hydrate resolves. */
+  seenOnboarding: boolean | null;
 
   hydrate: () => Promise<void>;
+  completeOnboarding: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
@@ -44,16 +48,18 @@ export const useAuth = create<AuthState>((set) => ({
   accessToken: null,
   refreshToken: null,
   user: null,
+  seenOnboarding: null,
 
   hydrate: async () => {
     // Coalesce concurrent hydrate calls.
     if (hydrating !== null) return hydrating;
     hydrating = (async () => {
       try {
-        const [access, refresh, user] = await Promise.all([
+        const [access, refresh, user, seenOnboarding] = await Promise.all([
           Store.getAccessToken(),
           Store.getRefreshToken(),
           Store.getUser(),
+          Prefs.getSeenOnboarding(),
         ]);
         if (access && refresh && user) {
           set({
@@ -61,6 +67,7 @@ export const useAuth = create<AuthState>((set) => ({
             accessToken: access,
             refreshToken: refresh,
             user,
+            seenOnboarding,
           });
         } else {
           set({
@@ -68,6 +75,7 @@ export const useAuth = create<AuthState>((set) => ({
             accessToken: null,
             refreshToken: null,
             user: null,
+            seenOnboarding,
           });
         }
       } finally {
@@ -75,6 +83,11 @@ export const useAuth = create<AuthState>((set) => ({
       }
     })();
     return hydrating;
+  },
+
+  completeOnboarding: async () => {
+    await Prefs.setSeenOnboarding();
+    set({ seenOnboarding: true });
   },
 
   login: async (email, password) => {
