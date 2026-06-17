@@ -49,6 +49,13 @@ export const WS_BASE_URL = envOr(
 export const MOCK = envOr("EXPO_PUBLIC_MOCK", __DEV__ ? "1" : "0") === "1";
 
 if (!__DEV__) {
+  // Defense-in-depth: a release build must never run the mock backend, even if
+  // EXPO_PUBLIC_MOCK=1 is set by mistake. Fail fast rather than ship fake data.
+  if (MOCK) {
+    throw new Error(
+      "[neuro-sync] MOCK mode must be OFF in production builds (unset EXPO_PUBLIC_MOCK)",
+    );
+  }
   if (!API_BASE_URL.startsWith("https://")) {
     throw new Error(
       "[neuro-sync] Production builds require EXPO_PUBLIC_API_BASE_URL to start with https://",

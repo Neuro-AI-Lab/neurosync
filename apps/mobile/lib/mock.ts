@@ -53,7 +53,7 @@ export function classifyRisk(content: string): SafetyLevel {
 }
 
 export const MOCK_HOTLINES = [
-  { name: "자살예방 상담전화", number: "109" },
+  { name: "자살예방 상담전화", number: "1393" },
   { name: "정신건강 상담전화", number: "1577-0199" },
 ];
 
