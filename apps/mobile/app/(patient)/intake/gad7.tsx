@@ -28,7 +28,7 @@ export default function GAD7Screen() {
     setSubmitting(true);
     try {
       await submitQuestionnaire(accessToken, sessionId, "GAD7", answers);
-      router.push("/(patient)/intake/submit");
+      router.push("/(patient)/intake/documents");
     } catch (e) {
       const code = e instanceof APIException ? e.body.code : "NETWORK";
       Alert.alert("저장 실패", `잠시 후 다시 시도해 주세요 (코드: ${code})`);

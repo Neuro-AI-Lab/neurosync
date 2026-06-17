@@ -62,6 +62,7 @@ export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const completeOnboarding = useAuth((s) => s.completeOnboarding);
+  const authStatus = useAuth((s) => s.status);
   const scrollRef = useRef<ScrollView>(null);
   const [index, setIndex] = useState(0);
 
@@ -69,7 +70,12 @@ export default function OnboardingScreen() {
 
   const finish = async () => {
     await completeOnboarding();
-    router.replace("/(auth)/login");
+    // Re-viewed from Settings while logged in → return to the app, not login.
+    if (authStatus === "authenticated") {
+      router.replace("/(patient)/home");
+    } else {
+      router.replace("/(auth)/login");
+    }
   };
 
   const onNext = () => {
