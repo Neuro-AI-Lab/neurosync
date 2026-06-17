@@ -20,8 +20,15 @@ from psycopg.types.json import Jsonb
 from src.rag.tooling._db import connect
 
 SPLITS = ["Training", "Validation"]
-META = {"start_point", "end_point", "character_count", "cps",
-        "paragraph_speaker", "paragraph_text", "index"}
+META = {
+    "start_point",
+    "end_point",
+    "character_count",
+    "cps",
+    "paragraph_speaker",
+    "paragraph_text",
+    "index",
+}
 GENDER = {"여": "F", "남": "M", "여자": "F", "남자": "M"}
 
 
@@ -51,8 +58,7 @@ def _split_summary(summary: str):
             interv.append(body)
         else:
             sit.append(body)
-    return ("  ".join(x for x in sit if x) or summary.strip(),
-            "  ".join(x for x in interv if x))
+    return ("  ".join(x for x in sit if x) or summary.strip(), "  ".join(x for x in interv if x))
 
 
 def _agg_flags(paragraphs):
@@ -86,17 +92,26 @@ def main() -> None:
             folder, fname = Path(fp).parent.name, Path(fp).stem
             flags = _agg_flags(d.get("paragraph", []))
             sit, interv = _split_summary(d.get("summary", ""))
-            rows.append({
-                "person_id": d.get("id"), "session_no": _session_no(folder, fname),
-                "class": d.get("class"), "age": d.get("age"),
-                "gender": GENDER.get(str(d.get("gender", "")).strip()),
-                "sev_depression": d.get("depression"), "sev_anxiety": d.get("anxiety"),
-                "sev_addiction": d.get("addiction"), "total_time": d.get("total_time"),
-                "silence": d.get("silence"), "flag_suicidal": flags.get("suicidal", 0) > 0,
-                "flags": Jsonb(flags), "situation": _clean(sit), "intervention": _clean(interv),
-                "summary_full": _clean(d.get("summary", "")),
-                "source_ref": os.path.relpath(fp, base),
-            })
+            rows.append(
+                {
+                    "person_id": d.get("id"),
+                    "session_no": _session_no(folder, fname),
+                    "class": d.get("class"),
+                    "age": d.get("age"),
+                    "gender": GENDER.get(str(d.get("gender", "")).strip()),
+                    "sev_depression": d.get("depression"),
+                    "sev_anxiety": d.get("anxiety"),
+                    "sev_addiction": d.get("addiction"),
+                    "total_time": d.get("total_time"),
+                    "silence": d.get("silence"),
+                    "flag_suicidal": flags.get("suicidal", 0) > 0,
+                    "flags": Jsonb(flags),
+                    "situation": _clean(sit),
+                    "intervention": _clean(interv),
+                    "summary_full": _clean(d.get("summary", "")),
+                    "source_ref": os.path.relpath(fp, base),
+                }
+            )
         except Exception as e:  # noqa: BLE001
             errors += 1
             print(f"  [err] {fp}: {e}")

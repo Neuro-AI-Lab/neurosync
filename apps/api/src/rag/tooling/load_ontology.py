@@ -1,6 +1,6 @@
 """disease / symptom / disease_symptom 적재 (ontology.py 기반, 데이터셋 불필요).
 
-  python -m src.rag.tooling.load_ontology
+python -m src.rag.tooling.load_ontology
 """
 
 from __future__ import annotations

@@ -28,8 +28,12 @@ def main() -> None:
             q, a = d.get("question"), d.get("answer")
             if q and a:
                 rows.append(
-                    ("정신건강의학과", q.replace("\x00", ""), str(a).replace("\x00", ""),
-                     os.path.relpath(fp, base))
+                    (
+                        "정신건강의학과",
+                        q.replace("\x00", ""),
+                        str(a).replace("\x00", ""),
+                        os.path.relpath(fp, base),
+                    )
                 )
         except Exception:  # noqa: BLE001
             err += 1

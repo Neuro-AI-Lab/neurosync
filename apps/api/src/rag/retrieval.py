@@ -47,7 +47,9 @@ async def _topk(
 async def _detect_symptoms(db: AsyncSession, utterance: str) -> list[tuple[int, str]]:
     """발화에 증상 한글명/동의어가 등장하면 해당 증상으로 간주 (LLM 추출의 자리표시).
     TODO: ai-server 구조화 추출(40 플래그)로 교체하면 정확도↑ (MedRAG 변별자질 확장)."""
-    rows = (await db.execute(text("SELECT symptom_id, name, name_ko, synonyms FROM rag.symptom"))).fetchall()
+    rows = (
+        await db.execute(text("SELECT symptom_id, name, name_ko, synonyms FROM rag.symptom"))
+    ).fetchall()
     hits: list[tuple[int, str]] = []
     for sid, name, name_ko, synonyms in rows:
         terms = [name_ko or name] + list(synonyms or [])
@@ -77,13 +79,16 @@ async def _followup(db: AsyncSession, mentioned_ids: list[int]) -> GroundingFoll
     unconfirmed = (
         await db.execute(
             text(
-                """SELECT s.name_ko FROM rag.disease_symptom ds JOIN rag.symptom s USING (symptom_id)
+                """SELECT s.name_ko
+                   FROM rag.disease_symptom ds JOIN rag.symptom s USING (symptom_id)
                    WHERE ds.disease_id = :did AND ds.symptom_id <> ALL(:ids)"""
             ),
             {"did": did, "ids": mentioned_ids},
         )
     ).fetchall()
-    return GroundingFollowup(candidate_disease=dname, follow_up_symptoms=[r[0] for r in unconfirmed])
+    return GroundingFollowup(
+        candidate_disease=dname, follow_up_symptoms=[r[0] for r in unconfirmed]
+    )
 
 
 def _dec(v: Any) -> str:
@@ -102,8 +107,12 @@ async def retrieve_grounding(
     past: list[Any] = []
     if patient_id is not None:
         past = await _topk(
-            db, "session_insights", "class, situation_encrypted",
-            {"q": qlit, "pid": str(patient_id)}, k, where="AND patient_id = :pid",
+            db,
+            "session_insights",
+            "class, situation_encrypted",
+            {"q": qlit, "pid": str(patient_id)},
+            k,
+            where="AND patient_id = :pid",
         )
 
     mentioned = await _detect_symptoms(db, utterance)
@@ -119,8 +128,7 @@ async def retrieve_grounding(
             for c, s, sc in past
         ],
         knowledge=[
-            GroundingKnowledge(question=q, answer=a, score=round(float(sc), 3))
-            for q, a, sc in qa
+            GroundingKnowledge(question=q, answer=a, score=round(float(sc), 3)) for q, a, sc in qa
         ],
         mentioned_symptoms=[m[1] for m in mentioned],
         follow_up=followup,
