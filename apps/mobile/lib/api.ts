@@ -316,3 +316,77 @@ export async function setVoiceConsent(
     body: JSON.stringify({ voice }),
   });
 }
+
+// ────────── STT transcribe (FR-033) ──────────
+
+export type STTResult = {
+  transcriptionId: string;
+  text: string;
+  confidence: number;
+  vendor: string;
+  durationMs: number;
+  latencyMs: number;
+  audioRecordingId: string;
+};
+
+export type STTUpload = {
+  uri: string;
+  encoding?: "pcm16" | "opus";
+  sampleRateHz?: number;
+  prevContext?: string;
+};
+
+/**
+ * Upload a Push-to-Talk audio clip for transcription (multipart).
+ * Returns text only — the caller fills the input box; nothing is auto-sent
+ * (FR-035). Throws APIException on 403 (consent) / 422 (low confidence) / 503.
+ */
+export async function transcribeAudio(
+  token: string,
+  sessionId: string,
+  clip: STTUpload,
+): Promise<STTResult> {
+  if (MOCK) {
+    return {
+      transcriptionId: "mock-stt",
+      text: "요즘 잠을 잘 못 자고 불안한 느낌이 들어요",
+      confidence: 0.93,
+      vendor: "mock",
+      durationMs: 4200,
+      latencyMs: 120,
+      audioRecordingId: "mock-audio",
+    };
+  }
+
+  const ext = clip.encoding === "opus" ? "ogg" : "wav";
+  const mime = clip.encoding === "opus" ? "audio/ogg" : "audio/wav";
+  const form = new FormData();
+  // RN FormData file part: { uri, name, type }.
+  form.append("audio", { uri: clip.uri, name: `clip.${ext}`, type: mime } as unknown as Blob);
+  form.append("sessionId", sessionId);
+  form.append("encoding", clip.encoding ?? "pcm16");
+  form.append("sampleRateHz", String(clip.sampleRateHz ?? 16000));
+  if (clip.prevContext) form.append("prevContext", clip.prevContext);
+
+  // Do NOT set Content-Type — fetch adds the multipart boundary itself.
+  const resp = await fetch(`${API_BASE_URL}/api/v1/stt/transcribe`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+
+  let body: Envelope<STTResult> | null = null;
+  try {
+    body = (await resp.json()) as Envelope<STTResult>;
+  } catch {
+    body = null;
+  }
+  if (!resp.ok || !body || body.success === false) {
+    const err: APIError =
+      body && body.success === false
+        ? body.error
+        : { code: "HTTP_ERROR", message: `HTTP ${resp.status}` };
+    throw new APIException(resp.status, err);
+  }
+  return body.data;
+}

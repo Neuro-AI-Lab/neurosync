@@ -17,6 +17,7 @@
   "dependencies": {
     "@neuro-sync/contracts": "workspace:*",
     "expo": "~52.0.0",
+    "expo-av": "~15.0.0",
     "expo-clipboard": "^7.0.1",
     "expo-constants": "~17.0.0",
     "expo-crypto": "^14.0.2",

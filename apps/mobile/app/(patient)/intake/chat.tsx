@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { MessageBubble } from "../../../components/MessageBubble";
+import { PushToTalk } from "../../../components/PushToTalk";
 import { SafetyLevel, SessionChatClient, WSEvent, WSStatus } from "../../../lib/ws";
 import { colors, fontSize, radius, spacing } from "../../../lib/tokens";
 import { useAuth } from "../../../state/auth";
@@ -220,6 +221,16 @@ export default function ChatScreen() {
           style={styles.input}
           multiline
           maxLength={4000}
+        />
+        <PushToTalk
+          token={initialAccessToken}
+          sessionId={sessionId}
+          disabled={status !== "open"}
+          onTranscript={(text) =>
+            // FR-035 — fill the input; the patient edits + sends explicitly.
+            setDraft((prev) => (prev.trim() ? `${prev.trim()} ${text}` : text))
+          }
+          onNotice={(_reason, message) => Alert.alert("음성 입력", message)}
         />
         <Pressable
           onPress={onSend}
