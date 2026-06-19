@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
-    Computed,
+    Boolean,
     DateTime,
     ForeignKey,
     Integer,
@@ -23,8 +23,8 @@ class PatientProfile(Base):
     """PRD §5.2 patient_profiles.
 
     name/phone/emergency_contact are AES-256 encrypted blobs (BYTEA).
-    is_minor uses Postgres GENERATED ALWAYS AS STORED — FR-027 enforcement
-    in app layer also (since GENERATED requires postgres).
+    is_minor is app-managed (set at registration from birth_year per FR-027);
+    a Postgres STORED generated column cannot use CURRENT_DATE (non-immutable).
     """
 
     __tablename__ = "patient_profiles"
@@ -36,13 +36,7 @@ class PatientProfile(Base):
     )
     name_encrypted: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     birth_year: Mapped[int] = mapped_column(Integer, nullable=False)
-    is_minor: Mapped[bool] = mapped_column(
-        Computed(
-            "(EXTRACT(YEAR FROM CURRENT_DATE)::int - birth_year) < 14",
-            persisted=True,
-        ),
-        nullable=False,
-    )
+    is_minor: Mapped[bool] = mapped_column(Boolean, nullable=False)
     gender: Mapped[str | None] = mapped_column(Text)
     phone_encrypted: Mapped[bytes | None] = mapped_column(LargeBinary)
     region: Mapped[str | None] = mapped_column(Text)

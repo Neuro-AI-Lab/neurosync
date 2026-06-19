@@ -10,7 +10,7 @@ Run from apps/api:
 
 Demo logins (all password: Demo!Password-2026):
     clinician@neurosync.demo  (clinician)
-    minjun@demo / seoyeon@demo / jiho@demo / yujin@demo  (patients)
+    minjun@neurosync.demo / seoyeon@neurosync.demo / jiho@neurosync.demo / yujin@neurosync.demo  (patients)
 """
 
 from __future__ import annotations
@@ -60,7 +60,7 @@ def _severity_gad7(score: int) -> str:
 #  utterances, risk(level/category or None), report_narrative or None)
 PERSONAS = [
     {
-        "email": "minjun@demo",
+        "email": "minjun@neurosync.demo",
         "name": "김민준",
         "birth_year": 1994,
         "gender": "male",
@@ -95,7 +95,7 @@ PERSONAS = [
         },
     },
     {
-        "email": "seoyeon@demo",
+        "email": "seoyeon@neurosync.demo",
         "name": "이서연",
         "birth_year": 1990,
         "gender": "female",
@@ -131,7 +131,7 @@ PERSONAS = [
         },
     },
     {
-        "email": "jiho@demo",
+        "email": "jiho@neurosync.demo",
         "name": "박지호",
         "birth_year": 1998,
         "gender": "male",
@@ -169,7 +169,7 @@ PERSONAS = [
         },
     },
     {
-        "email": "yujin@demo",
+        "email": "yujin@neurosync.demo",
         "name": "최유진",
         "birth_year": 1996,
         "gender": "female",
@@ -233,6 +233,8 @@ async def _make_persona(db, settings: Settings, p: dict) -> None:
                 p["name"], aad=_profile_aad(user.id, "name"), settings=settings
             ),
             birth_year=p["birth_year"],
+            is_minor=(datetime.now(tz=UTC).year - p["birth_year"])
+            < settings.minor_age_cutoff,
             gender=p["gender"],
             phone_encrypted=encrypt_str(
                 p["phone"], aad=_profile_aad(user.id, "phone"), settings=settings

@@ -220,6 +220,7 @@ async def register(
             payload.name, aad=_profile_aad(user.id, "name"), settings=settings
         ),
         birth_year=payload.birth_year,
+        is_minor=_is_minor(payload.birth_year, settings),
         gender=payload.gender,
         phone_encrypted=encrypt_str(
             payload.phone, aad=_profile_aad(user.id, "phone"), settings=settings

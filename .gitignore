@@ -93,3 +93,16 @@ version.md
 
 # Source materials (large originals, stored separately)
 references/
+
+# Local datasets (AI-Hub 심리상담/QA 원본 — 대용량, 절대 커밋 금지)
+data/
+
+# Local-only runtime/working artifacts (Claude Code 세션 산출물)
+tasks/
+.active-agents
+.active-agents.*
+.failure-tracker.jsonl
+**/.failure-tracker.jsonl
+
+# Local compose override (LAN 노출용 — 공유 dev 기본값 변경 방지)
+infra/deploy/docker-compose.lan.yml

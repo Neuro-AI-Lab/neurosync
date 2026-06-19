@@ -70,15 +70,11 @@ def upgrade() -> None:
         ),
         sa.Column("name_encrypted", sa.LargeBinary(), nullable=False),
         sa.Column("birth_year", sa.Integer(), nullable=False),
-        sa.Column(
-            "is_minor",
-            sa.Boolean(),
-            sa.Computed(
-                "(EXTRACT(YEAR FROM CURRENT_DATE)::int - birth_year) < 14",
-                persisted=True,
-            ),
-            nullable=False,
-        ),
+        # is_minor: app-managed (set at registration from birth_year). A Postgres
+        # STORED generated column cannot use CURRENT_DATE (non-immutable), and a
+        # stored value is computed at write time anyway — so app-side is equivalent
+        # in freshness. FR-027 enforced in src/api/v1/auth.py:_is_minor.
+        sa.Column("is_minor", sa.Boolean(), nullable=False),
         sa.Column("gender", sa.Text()),
         sa.Column("phone_encrypted", sa.LargeBinary()),
         sa.Column("region", sa.Text()),

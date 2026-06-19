@@ -5,7 +5,9 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     UV_SYSTEM_PYTHON=1
 
-WORKDIR /app
+# WORKDIR mirrors the repo layout so pyproject's `[tool.uv.sources]` relative
+# path (`../../packages/shared-contracts/python`) resolves inside the build base.
+WORKDIR /workspace/apps/api
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl && \
     rm -rf /var/lib/apt/lists/* && \
@@ -18,9 +20,9 @@ COPY apps/api/pyproject.toml ./
 COPY apps/api/src ./src
 COPY apps/api/tests ./tests
 
+# `-e .` pulls neuro-sync-contracts editable via [tool.uv.sources].
 RUN uv pip install --system -e . && \
-    uv pip install --system -e /workspace/packages/shared-contracts/python && \
-    chown -R app:app /app /workspace
+    chown -R app:app /workspace
 
 USER app
 
