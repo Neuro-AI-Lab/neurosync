@@ -118,7 +118,7 @@
 - [ ] **STT Adapter v1**: A.dot 스텁 + Whisper 구현 — **[AI팀] ai-server**
 - [x] **48시간 자동 폐기** `purge_expired_audio()` (FR-036) + lifespan 주기 스케줄러 + cron CLI `scripts/purge_audio.py`
 - [x] 변환 결과 자동 전송 금지(서버 강제, 메시지 미추가) + 신뢰도<0.6 → 422 폴백 (FR-035/037)
-- [ ] 모바일 마이크 권한 + Push-to-Talk 녹음 UI (파형/경과시간) — **`expo-av` 필요, 모바일-deps 세션 협업**
+- [x] 모바일 마이크 권한 + Push-to-Talk 녹음 UI (`expo-av`, 경과시간/취소, 16kHz mono WAV) — iOS 검증 경로; Android WAV는 후속
 - [x] 모바일: 음성동의 토글(가입+**설정 화면 연결**) + `setVoiceConsent`/STT API 클라이언트 (녹음 UI 연결 대기)
 
 **Phase 1b Deliverable**: 환자 앱(iOS or Android 1개) + 의료진 웹 + AI 서버 통합 + Whisper STT 가동.
