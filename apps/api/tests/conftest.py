@@ -32,6 +32,18 @@ from src.core.config import Settings, get_settings
 from src.db import Base, get_session
 from src.main import create_app
 
+# ── Pre-existing bug workaround (TEST-ONLY) ─────────────────────────────────
+# patient_profiles.is_minor is a Postgres GENERATED column whose expression uses
+# CURRENT_DATE (non-immutable). PG16 rejects that at CREATE TABLE ("generation
+# expression is not immutable"), which breaks Base.metadata.create_all for the
+# whole suite. Drop the generated expression for TEST schema creation only —
+# production models/DDL are untouched. (Model fix tracked as a separate issue.)
+from src.models.patient_profile import PatientProfile as _PatientProfile  # noqa: E402
+
+_is_minor_col = _PatientProfile.__table__.c.is_minor
+_is_minor_col.computed = None
+_is_minor_col.server_default = text("false")
+
 # Skip the whole test module if no Postgres is reachable — keeps unit tests
 # (test_security.py) runnable without a DB.
 DEFAULT_DEV_DB = "postgresql+asyncpg://neurosync:dev@localhost:5432/neurosync"

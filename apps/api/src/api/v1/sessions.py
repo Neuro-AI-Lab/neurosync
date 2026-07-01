@@ -293,7 +293,7 @@ async def get_report(
     db: Annotated[AsyncSession, Depends(get_session)],
 ) -> dict:
     """FR-017/018 — clinician reads the Handoff report. Every read is audited."""
-    report = await build_report_response(db, session_id)
+    report = await build_report_response(db, actor=actor, session_id=session_id)
     if report is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

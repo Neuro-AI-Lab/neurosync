@@ -57,7 +57,7 @@ async def list_patients_endpoint(
     db: Annotated[AsyncSession, Depends(get_session)],
     limit: int = Query(default=50, ge=1, le=200),
 ) -> dict:
-    items = await list_patients(db, limit=limit)
+    items = await list_patients(db, actor=actor, limit=limit)
     await _audit(
         db,
         actor=actor,
@@ -79,7 +79,7 @@ async def get_patient_endpoint(
     actor: Annotated[User, Depends(require_clinician)],
     db: Annotated[AsyncSession, Depends(get_session)],
 ) -> dict:
-    detail = await get_patient_detail(db, patient_id)
+    detail = await get_patient_detail(db, actor=actor, patient_id=patient_id)
     if detail is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -104,7 +104,7 @@ async def get_session_endpoint(
     actor: Annotated[User, Depends(require_clinician)],
     db: Annotated[AsyncSession, Depends(get_session)],
 ) -> dict:
-    detail = await get_session_detail(db, session_id)
+    detail = await get_session_detail(db, actor=actor, session_id=session_id)
     if detail is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
