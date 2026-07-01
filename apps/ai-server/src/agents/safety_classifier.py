@@ -196,12 +196,15 @@ class SafetyClassifierAgent(BaseAgent):
                 classification = SafetyClassification.model_validate(data)
             except (json.JSONDecodeError, Exception) as parse_exc:
                 logger.warning(
-                    "Failed to parse LLM safety response: %s", parse_exc
+                    "Failed to parse LLM safety response: %s — failing closed to high",
+                    parse_exc,
                 )
+                # Fail CLOSED (ISS-019): an unparsable safety response must not be
+                # treated as safe. RiskLevel.high maps to CTRS 2 -> crisis flow.
                 classification = SafetyClassification(
-                    risk_level=RiskLevel.none,
+                    risk_level=RiskLevel.high,
                     confidence=0.0,
-                    reason_summary="LLM response parse failure — defaulting to none",
+                    reason_summary="LLM response parse failure — fail-closed to high",
                 )
 
             return classification, resp.model, resp.latency_ms
@@ -237,15 +240,17 @@ class SafetyClassifierAgent(BaseAgent):
                 except Exception as fb_exc:
                     logger.error("Fallback safety classification also failed: %s", fb_exc)
 
-            # All LLM paths failed — return none for LLM path.
-            # The merge with rule_classify result preserves any danger the rules found.
-            # If BOTH rule + LLM fail to detect anything, the orchestrator's safety
-            # timeout handler defaults to CTRS 2 as the safe-side fallback.
+            # All LLM paths failed (ISS-019). Fail CLOSED, not open: an
+            # unavailable LLM safety path must NOT downgrade risk to `none`.
+            # RiskLevel.high maps to CTRS 2 -> crisis flow, matching the
+            # orchestrator's own safety-failure default (CTRS 2 / HIGH_RISK).
+            # The danger-takes-priority merge still lets a higher rule-based
+            # risk (e.g. critical) win.
             return (
                 SafetyClassification(
-                    risk_level=RiskLevel.none,
+                    risk_level=RiskLevel.high,
                     confidence=0.0,
-                    reason_summary="LLM classification unavailable — using rule engine only",
+                    reason_summary="LLM classification unavailable — fail-closed to high",
                 ),
                 "none",
                 0.0,
