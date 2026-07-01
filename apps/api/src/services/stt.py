@@ -3,9 +3,10 @@
 Platform owns consent / storage / retention; the AI server is a pure
 transcription function (PRD §0.3, FR-033~037).
 
-Storage: object storage (S3 SSE-KMS) is Phase 2. The demo writes encrypted-at-
-rest-by-the-OS local files under `settings.audio_storage_dir`; `file_url` holds
-the path. Swapping in S3 is confined to `store_audio` / `delete_audio_file`.
+Storage: object storage (S3 SSE-KMS) is Phase 2. Local files under
+`settings.audio_storage_dir` are encrypted at rest with AES-256-GCM via
+`core.encryption` (ISS-023); `file_url` holds the path. Swapping in S3 is
+confined to `store_audio` / `delete_audio_file`.
 """
 
 from __future__ import annotations
@@ -22,7 +23,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import Settings
-from src.core.encryption import encrypt_str
+from src.core.encryption import encrypt_bytes, encrypt_str
 from src.models.audio import AudioRecording, STTTranscription
 from src.services.ai_client import AIClient, AIClientError
 
@@ -63,13 +64,24 @@ def validate_audio(data: bytes, encoding: str, *, settings: Settings) -> None:
         raise STTError("INVALID_AUDIO", f"지원하지 않는 인코딩이에요: {encoding}", 400)
 
 
+def _audio_aad(recording_id: uuid.UUID) -> bytes:
+    """AAD binding the encrypted audio blob to its recording row (ISS-023)."""
+    return f"audio_recordings.file:{recording_id}".encode()
+
+
 def store_audio(data: bytes, *, recording_id: uuid.UUID, encoding: str, settings: Settings) -> str:
-    """Persist bytes to local storage, return the file_url (path). S3 later."""
+    """Persist bytes to local storage ENCRYPTED AT REST (ISS-023), return file_url (path).
+
+    The stored audio is never read back by application code (transcription uses
+    the in-memory upload; purge only deletes the path), so no decrypt path is
+    needed in production — the ciphertext is written and later purged. S3 later.
+    """
     ext = "ogg" if encoding == "opus" else "wav"
     os.makedirs(settings.audio_storage_dir, exist_ok=True)
     path = os.path.join(settings.audio_storage_dir, f"{recording_id}.{ext}")
+    ciphertext = encrypt_bytes(data, aad=_audio_aad(recording_id), settings=settings)
     with open(path, "wb") as fh:
-        fh.write(data)
+        fh.write(ciphertext)
     return path
 
 
