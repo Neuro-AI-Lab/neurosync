@@ -33,15 +33,15 @@ class DialogueInput(AgentInput):
 
 
 class DialogueLLMResponse(BaseModel):
-    """Expected JSON structure from the Dialogue LLM call."""
+    """Expected JSON structure from the Dialogue LLM call.
+
+    Dialogue Agent는 응답 생성만 담당한다.
+    slot_updates, risk_level 등은 다른 Agent의 역할이므로 여기서 요구하지 않는다.
+    LLM이 extra 필드를 보내더라도 무시한다 (model_config).
+    """
+    model_config = {"extra": "ignore"}
 
     assistant_response: str = Field(..., description="Patient-facing response text")
-    slot_updates: dict[str, str] = Field(
-        default_factory=dict,
-        description="Newly extracted slot values from this turn",
-    )
-    risk_level: RiskLevel = Field(default=RiskLevel.none)
-    requires_human_review: bool = Field(default=False)
     reason_summary: str = Field(default="")
 
 

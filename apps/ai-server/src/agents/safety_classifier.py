@@ -1,10 +1,22 @@
-"""Safety Classifier agent — dual rule + LLM classification with danger-takes-priority merge."""
+"""Safety Classifier agent — Rule screening + LLM contextual judgment.
+
+Architecture (C 방식):
+  1. Rule Engine: 빠른 1차 키워드 스크리닝 (위험 후보 감지)
+  2. LLM Engine: 문맥 기반 최종 판정 (부정, 시제, 뉘앙스 이해)
+
+Merge 전략:
+  - Rule이 medium 이하 → LLM 결과를 최종 판정으로 사용
+  - Rule이 high/critical → Rule이 감지한 키워드를 LLM에 전달, LLM이 최종 판정
+  - LLM 장애 시 → Rule 결과를 safety net으로 사용
+  - LLM이 독립적으로 감지한 위험은 Rule 미감지여도 반영
+"""
 
 from __future__ import annotations
 
 import asyncio
 import json
 import logging
+import re as _re
 import time
 from typing import Any
 
@@ -18,7 +30,7 @@ from src.schemas.safety import SafetyClassification, SafetyInput, SafetyOutput
 logger = logging.getLogger(__name__)
 
 # ── Korean crisis keyword dictionary ──────────────────────────────────
-# Ordered by severity — critical phrases first.
+
 _CRITICAL_KEYWORDS: list[tuple[str, str]] = [
     ("자살", "suicidal_ideation"),
     ("죽고 싶", "suicidal_ideation"),
@@ -64,7 +76,8 @@ _MEDIUM_KEYWORDS: list[tuple[str, str]] = [
     ("의미가 없", "despair"),
 ]
 
-# Risk level ordering for comparison
+# ── Risk level ordering ─────────────────────────────────────────────
+
 _RISK_ORDER = {
     RiskLevel.none: 0,
     RiskLevel.low: 1,
@@ -73,33 +86,41 @@ _RISK_ORDER = {
     RiskLevel.critical: 4,
 }
 
-_SAFETY_SYSTEM_PROMPT = """당신은 Neuro-Sync 안전 분류 AI입니다.
-환자의 메시지를 분석하여 위험 수준을 분류합니다.
+# ── LLM Prompt ─────────────────────────────────────────────────────
 
-위험 수준:
-- none: 위험 신호 없음
-- low: 경미한 스트레스 표현
-- medium: 주의가 필요한 정서적 고통 표현
-- high: 자해/자살 암시 또는 타해 암시
-- critical: 명시적 자살/자해 의도 또는 계획
+_LLM_FALLBACK_PROMPT = (
+    "환자 메시지의 위험 수준을 분류하세요. "
+    "risk_level: none|low|medium|high|critical. "
+    "JSON 출력: {risk_level, categories, flagged_phrases, confidence, reason_summary}"
+)
 
-반드시 아래 JSON 형식으로만 응답하세요:
-{
-  "risk_level": "none|low|medium|high|critical",
-  "categories": ["카테고리"],
-  "flagged_phrases": ["관련 문구"],
-  "confidence": 0.0~1.0,
-  "reason_summary": "한 줄 설명"
-}"""
+_LLM_RULE_CONTEXT_TEMPLATE = """
+[키워드 스크리닝 결과]
+1차 스크리닝에서 아래 키워드가 감지되었습니다. 하지만 키워드만으로는 실제 위험을 정확히 판단할 수 없습니다.
+전체 대화 문맥을 고려하여 최종 위험도를 판정해 주세요.
+
+감지된 키워드: {flagged_phrases}
+스크리닝 위험 수준: {rule_level}
+감지 카테고리: {categories}
+
+특히 다음을 확인하세요:
+- 환자가 해당 키워드를 부정하는 맥락에서 사용했는가? (예: "~없어요", "~아니에요")
+- 과거 경험을 이야기하는 것인가, 현재 의도를 표현하는 것인가?
+- 상담사의 질문을 반복하는 것인가, 자신의 생각을 표현하는 것인가?
+
+문맥 판단 결과가 키워드 스크리닝과 다르면, 문맥 판단을 우선하세요."""
 
 
 def _max_risk(a: RiskLevel, b: RiskLevel) -> RiskLevel:
-    """Return the higher of two risk levels."""
     return a if _RISK_ORDER[a] >= _RISK_ORDER[b] else b
 
 
 class SafetyClassifierAgent(BaseAgent):
-    """Dual-path safety classifier: rule-based + LLM, merged with danger-takes-priority."""
+    """Safety classifier: Rule screening → LLM contextual judgment.
+
+    Rule Engine = 빠른 1차 스크리닝 (위험 후보 감지)
+    LLM Engine = 문맥 기반 최종 판정 (최종 결정권)
+    """
 
     def __init__(
         self,
@@ -113,11 +134,13 @@ class SafetyClassifierAgent(BaseAgent):
     def agent_name(self) -> str:
         return "safety_classifier"
 
-    def _rule_classify(self, text: str) -> tuple[RiskLevel, list[str], list[str]]:
-        """Keyword-based classification — fast, deterministic, zero-latency.
+    # ── Rule Engine (1차 스크리닝) ──────────────────────────────────
 
-        Returns:
-            (risk_level, categories, flagged_phrases)
+    def _rule_classify(self, text: str) -> tuple[RiskLevel, list[str], list[str]]:
+        """Keyword-based 1st-pass screening.
+
+        Returns (risk_level, categories, flagged_phrases).
+        This is a CANDIDATE, not the final judgment.
         """
         text_lower = text.lower().replace(" ", "")
         text_original = text.lower()
@@ -126,9 +149,12 @@ class SafetyClassifierAgent(BaseAgent):
         categories: list[str] = []
         flagged: list[str] = []
 
-        for keyword, category in _CRITICAL_KEYWORDS:
+        def _match(keyword: str) -> bool:
             normalized = keyword.replace(" ", "")
-            if normalized in text_lower or keyword in text_original:
+            return normalized in text_lower or keyword in text_original
+
+        for keyword, category in _CRITICAL_KEYWORDS:
+            if _match(keyword):
                 level = _max_risk(level, RiskLevel.critical)
                 if category not in categories:
                     categories.append(category)
@@ -136,8 +162,7 @@ class SafetyClassifierAgent(BaseAgent):
 
         if level == RiskLevel.none:
             for keyword, category in _HIGH_KEYWORDS:
-                normalized = keyword.replace(" ", "")
-                if normalized in text_lower or keyword in text_original:
+                if _match(keyword):
                     level = _max_risk(level, RiskLevel.high)
                     if category not in categories:
                         categories.append(category)
@@ -145,8 +170,7 @@ class SafetyClassifierAgent(BaseAgent):
 
         if level == RiskLevel.none:
             for keyword, category in _MEDIUM_KEYWORDS:
-                normalized = keyword.replace(" ", "")
-                if normalized in text_lower or keyword in text_original:
+                if _match(keyword):
                     level = _max_risk(level, RiskLevel.medium)
                     if category not in categories:
                         categories.append(category)
@@ -154,24 +178,44 @@ class SafetyClassifierAgent(BaseAgent):
 
         return level, categories, flagged
 
-    async def _llm_classify(
-        self, text: str, conversation_history: list[dict[str, str]]
-    ) -> tuple[SafetyClassification, str, float]:
-        """LLM-based classification — nuanced understanding of context.
+    # ── LLM Engine (최종 판정) ─────────────────────────────────────
 
-        Returns:
-            (classification, model_used, latency_ms)
+    async def _llm_classify(
+        self,
+        text: str,
+        conversation_history: list[dict[str, str]],
+        rule_context: str | None = None,
+    ) -> tuple[SafetyClassification, str, float]:
+        """LLM-based contextual classification — final arbiter.
+
+        Args:
+            rule_context: Optional rule screening results to inject into prompt.
+                          When provided, LLM sees the flagged keywords and is asked
+                          to make a contextual judgment.
         """
         selection = self._router.select_model(
             self.agent_name, require_json=True
         )
         adapter = self._router.get_adapter(selection.adapter_name)
 
-        messages = [ChatMessage(role="system", content=_SAFETY_SYSTEM_PROMPT)]
+        # Load prompt from MD file (PromptLoader), fallback to minimal
+        try:
+            system_prompt = self._prompt_loader.load_system_prompt("safety_classifier", "v1")
+        except FileNotFoundError:
+            logger.warning("Safety classifier prompt not found, using fallback")
+            system_prompt = _LLM_FALLBACK_PROMPT
 
-        # Add recent conversation context (last 4 turns max)
-        for turn in conversation_history[-4:]:
-            messages.append(ChatMessage(role=turn.get("role", "user"), content=turn["content"]))
+        if rule_context:
+            system_prompt += "\n\n" + rule_context
+
+        messages = [ChatMessage(role="system", content=system_prompt)]
+
+        # Add recent conversation context
+        for turn in conversation_history[-6:]:
+            messages.append(ChatMessage(
+                role=turn.get("role", "user"),
+                content=turn["content"],
+            ))
 
         messages.append(ChatMessage(role="user", content=text))
 
@@ -190,18 +234,15 @@ class SafetyClassifierAgent(BaseAgent):
             )
             self._router.record_success(selection.adapter_name)
 
-            # Parse response
             try:
                 data = json.loads(resp.content)
                 classification = SafetyClassification.model_validate(data)
             except (json.JSONDecodeError, Exception) as parse_exc:
-                logger.warning(
-                    "Failed to parse LLM safety response: %s", parse_exc
-                )
+                logger.warning("Failed to parse LLM safety response: %s", parse_exc)
                 classification = SafetyClassification(
                     risk_level=RiskLevel.none,
                     confidence=0.0,
-                    reason_summary="LLM response parse failure — defaulting to none",
+                    reason_summary="LLM response parse failure",
                 )
 
             return classification, resp.model, resp.latency_ms
@@ -210,7 +251,7 @@ class SafetyClassifierAgent(BaseAgent):
             logger.error("LLM safety classification failed: %s", exc)
             self._router.record_failure(selection.adapter_name, exc)
 
-            # Try fallback
+            # Try fallback adapter
             fallback = self._router.get_fallback(
                 self.agent_name, selection.adapter_name, str(exc)
             )
@@ -235,75 +276,106 @@ class SafetyClassifierAgent(BaseAgent):
                     classification = SafetyClassification.model_validate(data)
                     return classification, resp.model, resp.latency_ms
                 except Exception as fb_exc:
-                    logger.error("Fallback safety classification also failed: %s", fb_exc)
+                    logger.error("Fallback safety also failed: %s", fb_exc)
 
-            # All LLM paths failed — return none for LLM path.
-            # The merge with rule_classify result preserves any danger the rules found.
-            # If BOTH rule + LLM fail to detect anything, the orchestrator's safety
-            # timeout handler defaults to CTRS 2 as the safe-side fallback.
+            # All LLM unavailable — return None so caller uses rule fallback
             return (
                 SafetyClassification(
                     risk_level=RiskLevel.none,
                     confidence=0.0,
-                    reason_summary="LLM classification unavailable — using rule engine only",
+                    reason_summary="LLM unavailable",
                 ),
                 "none",
                 0.0,
             )
 
+    # ── Main: Rule screening → LLM judgment ────────────────────────
+
     async def run(self, inp: AgentInput, **kwargs: Any) -> SafetyOutput:
-        """Execute dual-path classification and merge results."""
+        """Rule screening → LLM contextual judgment.
+
+        Flow:
+          1. Rule engine scans for crisis keywords (fast, deterministic)
+          2. If rule detects high/critical:
+             - Pass flagged keywords + context to LLM for final judgment
+             - LLM can downgrade (부정 문맥) or confirm
+          3. If rule detects medium or less:
+             - LLM independently classifies (may catch things rules miss)
+          4. If LLM unavailable:
+             - Fall back to rule result (safety net)
+        """
         start = time.perf_counter()
 
         if not isinstance(inp, SafetyInput):
             raise TypeError(f"Expected SafetyInput, got {type(inp).__name__}")
 
-        # Run rule and LLM in parallel
-        rule_result, llm_result = await asyncio.gather(
-            asyncio.to_thread(
-                self._rule_classify, inp.user_message
-            ),
-            self._llm_classify(inp.user_message, inp.conversation_history),
+        # Step 1: Rule screening (synchronous, fast)
+        rule_level, rule_categories, rule_flagged = self._rule_classify(
+            inp.user_message
         )
 
-        rule_level, rule_categories, rule_flagged = rule_result
-        llm_classification, model_used, llm_latency = llm_result
+        logger.info(
+            "Rule screening: level=%s, flagged=%s",
+            rule_level, rule_flagged,
+        )
 
-        # ── Merge: danger-takes-priority ──────────────────────────────
-        merged_level = _max_risk(rule_level, llm_classification.risk_level)
-
-        # Special rule: if rule hits but LLM says none → keep at least medium
-        if rule_level != RiskLevel.none and llm_classification.risk_level == RiskLevel.none:
-            merged_level = _max_risk(merged_level, RiskLevel.medium)
-            logger.info(
-                "Rule hit (%s) but LLM=none → elevated to at least medium",
-                rule_level,
+        # Step 2: LLM classification
+        rule_context = None
+        if _RISK_ORDER[rule_level] >= _RISK_ORDER[RiskLevel.high]:
+            # Rule detected high/critical → pass keywords to LLM for contextual review
+            rule_context = _LLM_RULE_CONTEXT_TEMPLATE.format(
+                flagged_phrases=", ".join(rule_flagged),
+                rule_level=rule_level.value,
+                categories=", ".join(rule_categories),
             )
 
-        # Merge categories and flagged phrases
-        all_categories = list(dict.fromkeys(rule_categories + llm_classification.categories))
-        all_flagged = list(dict.fromkeys(rule_flagged + llm_classification.flagged_phrases))
+        llm_classification, model_used, llm_latency = await self._llm_classify(
+            inp.user_message, inp.conversation_history, rule_context,
+        )
 
-        # Confidence: prefer LLM confidence, boost if rule agrees
-        confidence = llm_classification.confidence
-        if rule_level != RiskLevel.none and llm_classification.risk_level != RiskLevel.none:
-            confidence = min(1.0, confidence + 0.15)  # dual agreement boost
+        llm_available = model_used != "none"
+
+        # Step 3: Determine final level
+        if llm_available:
+            if _RISK_ORDER[rule_level] >= _RISK_ORDER[RiskLevel.high]:
+                # Rule flagged high/critical → LLM is the final arbiter
+                final_level = llm_classification.risk_level
+                logger.info(
+                    "Rule=%s → LLM judgment=%s (LLM is final arbiter)",
+                    rule_level, final_level,
+                )
+            else:
+                # Rule didn't flag high → use LLM result directly
+                # But if LLM catches something rules missed, respect it
+                final_level = llm_classification.risk_level
+        else:
+            # LLM unavailable → rule result is the safety net
+            final_level = rule_level
+            logger.warning("LLM unavailable — using rule result as fallback: %s", rule_level)
+
+        # Merge categories and flagged phrases
+        all_categories = list(dict.fromkeys(
+            rule_categories + llm_classification.categories
+        ))
+        all_flagged = list(dict.fromkeys(
+            rule_flagged + llm_classification.flagged_phrases
+        ))
+
+        confidence = llm_classification.confidence if llm_available else 0.5
 
         latency_ms = (time.perf_counter() - start) * 1000
 
-        # Map merged risk level to CTRS
-        ctrs = RISK_TO_CTRS.get(merged_level, CTRSLevel.STABLE)
-
-        # CTRS 1-2 = crisis (not just critical)
-        crisis_activated = ctrs <= CTRSLevel.HIGH_RISK
+        # Map to CTRS
+        ctrs = RISK_TO_CTRS.get(final_level, CTRSLevel.STABLE)
+        crisis_activated = ctrs <= CTRSLevel.HIGH_RISK  # CTRS 1-2
         needs_review = ctrs <= CTRSLevel.ACUTE  # CTRS 1-3
 
         return SafetyOutput(
             model_used=model_used,
             prompt_version="v1",
             latency_ms=latency_ms,
-            reason_summary=llm_classification.reason_summary or "Dual-path safety classification",
-            risk_level=merged_level,
+            reason_summary=llm_classification.reason_summary or "Rule screening + LLM judgment",
+            risk_level=final_level,
             categories=all_categories,
             flagged_phrases=all_flagged,
             confidence=confidence,

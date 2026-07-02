@@ -45,5 +45,3 @@ class ClinicalSlotOutput(AgentOutput):
         le=1.0,
         description="Fraction of all slots filled",
     )
-    safety_flag: bool = Field(default=False)
-    safety_flag_reason: Optional[str] = Field(default=None)

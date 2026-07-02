@@ -13,22 +13,36 @@
 
 대화 내용, STT transcript, OCR 추출 텍스트 등의 비정형 텍스트에서 구조화된 임상 정보를 JSON 형태로 추출한다. 추출된 각 슬롯에는 source, confidence, evidence를 반드시 연결한다.
 
-## 슬롯 스키마
+## 슬롯 스키마 (12 Standard Clinical Slots)
 
-| 슬롯 | 타입 | 설명 |
-|---|---|---|
-| `chief_complaint` | `string` | 주요 호소 |
-| `hpi` | `string` | 현병력 (History of Present Illness) |
-| `past_history` | `object` | 과거 병력 (정신과/내과) |
-| `medications` | `array<object>` | 현재 복용 약물 (약명, 용량, 빈도) |
-| `risk_factors` | `array<string>` | 위험 요인 목록 |
-| `symptoms.sleep` | `object` | 수면 패턴 (입면, 유지, 조기각성, 과수면) |
-| `symptoms.appetite` | `object` | 식욕 변화 (감소/증가, 체중 변화) |
-| `symptoms.mood` | `object` | 기분 상태 (우울, 불안, 초조, 무감동) |
-| `symptoms.concentration` | `object` | 집중력 변화 |
-| `symptoms.energy` | `object` | 에너지/활력 수준 |
-| `symptoms.psychomotor` | `object` | 정신운동 변화 (지연/초조) |
-| `psychosocial_context` | `object` | 사회심리적 맥락 (직업, 가족, 스트레스원, 지지체계) |
+정신과 차팅 표준에 맞춘 12개 슬롯. DialogueAgent, HandoffGenerator와 동일 체계를 사용한다.
+
+| No | 슬롯 | 한국어 차팅 항목 | 필수도 | 포함 내용 |
+|-:|---|---|:-:|---|
+| 1 | `encounter_metadata` | 진료 기본정보 | E | 진료일시, 진료유형, 초진/재진, 정보제공자, 신뢰도 |
+| 2 | `chief_complaint` | 주호소 | E | 환자 표현 원문, 가장 힘든 문제, 내원 이유 |
+| 3 | `history_of_present_illness` | 현병력 | E | 발생 시점, 기간, 경과, 악화/완화 요인, 심각도, 기능 영향, 관련 증상 |
+| 4 | `past_psychiatric_history` | 정신과 과거력 | E | 과거 진단, 외래/상담/입원, 응급실, 자살시도/자해 과거력, 과거 약물반응 |
+| 5 | `medical_history` | 신체질환/신경학적 병력 | E | 주요 내과질환, 신경계 병력, 발작, 두부외상, 만성통증, 알레르기 |
+| 6 | `personal_social_history` | 개인사/사회력 | E | 성장·교육·직업·학업, 동거, 가족/대인관계, 경제·법적 스트레스, 지지체계 |
+| 7 | `family_history` | 가족력 | O/E | 가족 정신질환, 자살, 물질사용, 주요 가족관계 |
+| 8 | `substance_use_history` | 음주·흡연·물질사용 | E | 음주, 흡연, 카페인, 수면제/진정제, 대마, 각성제, 사용량·빈도 |
+| 9 | `mental_status_exam` | 정신상태검사 | E | 외모/행동, 말, 기분, 정동, 사고과정, 사고내용, 지각, 인지, 병식, 판단력 |
+| 10 | `risk_assessment` | 위험평가 | E | 자살사고, 자해, 타해, 명령환청, 조증성 충동, 중독/금단, 학대/폭력, 보호요인 |
+| 11 | `clinical_assessment` | 평가/진단적 인상 | E | 요약, 진단적 인상, 감별진단, 위험 formulation, 기능 수준, 임상적 판단 |
+| 12 | `treatment_plan` | 치료계획/치료내용 | E | 약물계획, 상담/심리치료, 검사/의뢰, 안전계획, 교육, 추적진료, 응급 안내 |
+
+**E** = Essential (필수), **O/E** = 초진 시 필수에 가까움
+
+### Essential Slots (Coverage 계산 대상)
+
+| Slot | 우선순위 |
+|---|---|
+| `chief_complaint` | 1 (최우선) |
+| `history_of_present_illness` | 2 |
+| `risk_assessment` | 3 |
+| `mental_status_exam` | 4 |
+| `clinical_assessment` | 5 |
 
 ## 입력
 
