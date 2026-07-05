@@ -6,8 +6,8 @@ import asyncio
 import json
 import logging
 import re
-import time
-from typing import Any, Optional, Sequence, Type
+from collections.abc import Sequence
+from typing import Any
 
 import openai
 from pydantic import BaseModel, ValidationError
@@ -73,11 +73,11 @@ class AkLlmAdapter(LLMAdapter):
         self,
         messages: Sequence[ChatMessage],
         *,
-        model: Optional[str] = None,
+        model: str | None = None,
         temperature: float = 0.3,
         max_tokens: int = 2048,
-        response_format: Optional[dict[str, Any]] = None,
-        extra_params: Optional[dict[str, Any]] = None,
+        response_format: dict[str, Any] | None = None,
+        extra_params: dict[str, Any] | None = None,
     ) -> ChatResponse:
         """Send chat completion with rate limiting and exponential backoff.
 
@@ -168,12 +168,12 @@ class AkLlmAdapter(LLMAdapter):
     async def chat_json(
         self,
         messages: Sequence[ChatMessage],
-        schema_cls: Type[BaseModel],
+        schema_cls: type[BaseModel],
         *,
-        model: Optional[str] = None,
+        model: str | None = None,
         temperature: float = 0.3,
         max_tokens: int = 2048,
-        extra_params: Optional[dict[str, Any]] = None,
+        extra_params: dict[str, Any] | None = None,
     ) -> tuple[BaseModel, ChatResponse]:
         """Chat + parse + validate as *schema_cls*, with 1 repair retry.
 
@@ -229,7 +229,7 @@ class AkLlmAdapter(LLMAdapter):
 
     @staticmethod
     def _try_parse(
-        raw: str, schema_cls: Type[BaseModel]
+        raw: str, schema_cls: type[BaseModel]
     ) -> tuple[BaseModel | None, str | None]:
         """Attempt to extract JSON from raw text and validate against schema."""
         # Strip markdown code fences if present

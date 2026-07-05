@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from typing import Any, Optional
+from typing import Any
 
 from src.adapters.base import ChatMessage, LLMAdapter
 from src.agents.base import AgentInput, BaseAgent
@@ -76,7 +76,11 @@ class ClinicalSlotAgent(BaseAgent):
         if inp.current_slots:
             filled = [k for k, v in inp.current_slots.items() if v]
             if filled:
-                slot_context = f"\n\n[이미 수집된 슬롯: {', '.join(filled)}. 이미 수집된 슬롯은 건너뛰고 미수집 슬롯에 집중하세요.]"
+                slot_context = (
+                    "\n\n[이미 수집된 슬롯: "
+                    f"{', '.join(filled)}. 이미 수집된 슬롯은 건너뛰고 "
+                    "미수집 슬롯에 집중하세요.]"
+                )
 
         messages: list[ChatMessage] = [
             ChatMessage(role="system", content=system_prompt + slot_context),

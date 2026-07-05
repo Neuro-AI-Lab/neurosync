@@ -7,27 +7,23 @@ No LLM calls — SafetyClassifier is mocked.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
 from src.agents.orchestrator import (
-    OrchestratorAgent,
-    _CRISIS_CTRS,
     _MAX_DIALOGUE_TURNS,
-    _SLOT_COVERAGE_THRESHOLD,
+    OrchestratorAgent,
 )
 from src.schemas.common import CTRSLevel, RiskLevel
 from src.schemas.orchestrator import (
     InputType,
     OrchestratorInput,
-    SafetyStatus,
     SessionStage,
     SessionState,
     StageRecord,
 )
 from src.schemas.safety import SafetyOutput
-
 
 # ── Fixtures ────────────────────────────────────────────────────────
 

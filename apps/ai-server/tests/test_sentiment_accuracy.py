@@ -13,7 +13,6 @@ from src.agents.sentiment_analyzer import SentimentAnalyzerAgent
 from src.schemas.sentiment import (
     EmotionScore,
     SentimentSessionInput,
-    SentimentSessionOutput,
     SentimentUtteranceOutput,
 )
 

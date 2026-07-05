@@ -3,7 +3,6 @@
 import pytest
 
 from src.agents.evidence_verifier import EvidenceVerifierAgent, EvidenceVerifierInput
-from src.schemas.common import EvidencePacket
 
 
 def _make_report(*section_nums: int, ctrs_action_text: str = "") -> str:
@@ -106,7 +105,11 @@ class TestDanglingReferences:
         )
         inp = EvidenceVerifierInput(session_id="test", report_markdown=report)
         result = await _agent().run(inp)
-        ref_issues = [i for i in result.issues if i.issue_type in ("dangling_reference", "orphan_evidence")]
+        ref_issues = [
+            i
+            for i in result.issues
+            if i.issue_type in ("dangling_reference", "orphan_evidence")
+        ]
         assert len(ref_issues) == 0
 
     @pytest.mark.asyncio

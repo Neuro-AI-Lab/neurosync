@@ -19,9 +19,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.agents.temporal_summary import TemporalSummaryAgent, SCALE_THRESHOLD
+from src.agents.temporal_summary import SCALE_THRESHOLD, TemporalSummaryAgent
 from src.schemas.temporal import DomainDirection, TemporalSummaryInput
-
 
 # ═══════════════════════════════════════════════════════════════════════
 # VP-002: 이준호 (35M, mild revisit, IMPROVING)
