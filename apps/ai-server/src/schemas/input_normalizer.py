@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -29,7 +29,7 @@ class InputNormalizerInput(AgentInput):
     input_type: Literal["stt_transcript", "user_text", "ocr_document"] = Field(
         default="user_text", description="Input modality"
     )
-    dialect_hint: Optional[str] = Field(
+    dialect_hint: str | None = Field(
         default=None, description="Regional dialect hint, e.g. 경상, 전라, 충청"
     )
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class PromptLoader:
         logger.debug("Loaded system prompt %s/%s (%d chars)", agent_name, version, len(content))
         return content
 
-    def load_schema(self, agent_name: str, version: str = "v1") -> Optional[dict[str, Any]]:
+    def load_schema(self, agent_name: str, version: str = "v1") -> dict[str, Any] | None:
         """Read an optional JSON schema for *agent_name* at *version*.
 
         Returns:

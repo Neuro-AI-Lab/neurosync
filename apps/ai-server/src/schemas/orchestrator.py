@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -51,7 +51,7 @@ class SafetyStatus(BaseModel):
     ctrs_level: CTRSLevel = CTRSLevel.STABLE
     risk_level: RiskLevel = RiskLevel.none
     crisis_triggered: bool = False
-    last_checked_at: Optional[datetime] = None
+    last_checked_at: datetime | None = None
 
 
 class SessionState(BaseModel):
@@ -88,7 +88,7 @@ class OrchestratorInput(BaseModel):
     patient_id: str = ""
     input_type: InputType = InputType.text
     raw_input: str = ""
-    session_state: Optional[SessionState] = None
+    session_state: SessionState | None = None
     # For first turn, session_state may be None → orchestrator creates it.
 
 
@@ -107,7 +107,7 @@ class OrchestratorTurnResult(BaseModel):
     crisis_triggered: bool = False
     requires_human_review: bool = False
     handoff_ready: bool = False
-    handoff_report: Optional[dict[str, Any]] = None
+    handoff_report: dict[str, Any] | None = None
     session_state: SessionState
     stage_history: list[StageRecord] = Field(default_factory=list)
-    error: Optional[str] = None
+    error: str | None = None

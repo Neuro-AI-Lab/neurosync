@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 from src.agents.base import AgentInput, AgentOutput
@@ -16,23 +14,23 @@ class SlotData(BaseModel):
     Fields map to ALL_SLOT_KEYS in clinical_slot.py.
     """
 
-    chief_complaint: Optional[str] = None
-    history_of_present_illness: Optional[str] = None
-    onset: Optional[str] = None
-    duration: Optional[str] = None
-    triggers: Optional[str] = None
-    sleep: Optional[str] = None
-    appetite: Optional[str] = None
-    mood: Optional[str] = None
-    anxiety: Optional[str] = None
-    concentration: Optional[str] = None
-    energy: Optional[str] = None
-    functional_impairment: Optional[str] = None
-    medication: Optional[str] = None
-    past_psychiatric_history: Optional[str] = None
-    risk_factors: Optional[str] = None
-    psychosocial_context: Optional[str] = None
-    substance_use: Optional[str] = None
+    chief_complaint: str | None = None
+    history_of_present_illness: str | None = None
+    onset: str | None = None
+    duration: str | None = None
+    triggers: str | None = None
+    sleep: str | None = None
+    appetite: str | None = None
+    mood: str | None = None
+    anxiety: str | None = None
+    concentration: str | None = None
+    energy: str | None = None
+    functional_impairment: str | None = None
+    medication: str | None = None
+    past_psychiatric_history: str | None = None
+    risk_factors: str | None = None
+    psychosocial_context: str | None = None
+    substance_use: str | None = None
 
 
 class ScaleScore(BaseModel):
@@ -57,7 +55,7 @@ class HandoffInput(AgentInput):
         default_factory=list,
         description="OCR-parsed document blocks",
     )
-    prior_handoff: Optional[str] = Field(
+    prior_handoff: str | None = Field(
         default=None,
         description="Previous handoff report markdown (for longitudinal delta)",
     )
@@ -71,15 +69,15 @@ class HandoffOutput(AgentOutput):
         ...,
         description="Full handoff report in Markdown format",
     )
-    report_json: Optional[dict] = Field(
+    report_json: dict | None = Field(
         default=None,
         description="Structured JSON parsed from the 12-section report",
     )
-    report_pdf_base64: Optional[str] = Field(
+    report_pdf_base64: str | None = Field(
         default=None,
         description="Base64-encoded PDF of the report (None if unavailable)",
     )
-    trend_plot_base64: Optional[str] = Field(
+    trend_plot_base64: str | None = Field(
         default=None,
         description="Base64-encoded PNG of longitudinal trend line chart",
     )

@@ -22,10 +22,8 @@ from src.schemas.common import CTRSLevel, RiskLevel
 from src.schemas.handoff import HandoffOutput
 from src.schemas.orchestrator import (
     OrchestratorInput,
-    SessionStage,
     SessionState,
 )
-
 
 # ── VP profiles ────────────────────────────────────────────────────
 
@@ -120,7 +118,9 @@ def _build_vp_orchestrator(profile: dict) -> OrchestratorAgent:
     safety_mock = AsyncMock()
     sr = MagicMock()
     sr.ctrs_level = ctrs
-    sr.risk_level = RiskLevel.high if ctrs <= 2 else (RiskLevel.medium if ctrs == 3 else RiskLevel.none)
+    sr.risk_level = (
+        RiskLevel.high if ctrs <= 2 else (RiskLevel.medium if ctrs == 3 else RiskLevel.none)
+    )
     sr.crisis_protocol_activated = is_crisis
     safety_mock.run = AsyncMock(return_value=sr)
     agent._safety_agent = safety_mock

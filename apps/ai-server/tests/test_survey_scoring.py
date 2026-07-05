@@ -5,8 +5,7 @@ Tests every severity boundary for PHQ-9, GAD-7, PHQ-4, WHO-5, AUDIT-C.
 
 import pytest
 
-from src.scoring.survey_scorer import ScoreResult, score_survey
-
+from src.scoring.survey_scorer import score_survey
 
 # ── PHQ-9 (T1-F3-VER-001) ───────────────────────────────────────────
 

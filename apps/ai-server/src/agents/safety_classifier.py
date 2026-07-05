@@ -12,7 +12,7 @@ from src.adapters.base import ChatMessage, LLMAdapter
 from src.agents.base import AgentInput, BaseAgent
 from src.prompts.loader import PromptLoader
 from src.routing.model_router import ModelRouter
-from src.schemas.common import CTRSLevel, RISK_TO_CTRS, RiskLevel
+from src.schemas.common import RISK_TO_CTRS, CTRSLevel, RiskLevel
 from src.schemas.safety import SafetyClassification, SafetyInput, SafetyOutput
 
 logger = logging.getLogger(__name__)

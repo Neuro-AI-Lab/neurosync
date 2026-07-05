@@ -36,19 +36,25 @@ def _print_summary(r: SimulationResult) -> None:
     print(f"  {r.persona_id} ({r.persona_name}) — Simulation Summary")
     print("=" * 70)
     print(f"  Turns:           {r.total_turns}")
-    print(f"  Crisis:          {'YES (turn {})'.format(r.crisis_turn) if r.crisis_triggered else 'No'}")
+    print(f"  Crisis:          {f'YES (turn {r.crisis_turn})' if r.crisis_triggered else 'No'}")
     print(f"  Final CTRS:      {r.final_ctrs_level} (expected: {r.expected_ctrs})")
     print(f"  Final Risk:      {r.final_risk_level}")
-    print(f"  Slot Coverage:   {r.slot_coverage:.0%} (dialogue) / {r.clinical_slot_coverage:.0%} (ClinicalSlot)")
+    print(
+        f"  Slot Coverage:   {r.slot_coverage:.0%} (dialogue) / "
+        f"{r.clinical_slot_coverage:.0%} (ClinicalSlot)"
+    )
     print(f"  Total Latency:   {r.total_latency_ms:.0f}ms")
     print(f"  Errors:          {len(r.errors)}")
 
     if r.clinical_slot_result:
         cs = r.clinical_slot_result
-        print(f"\n  ClinicalSlot Agent:")
+        print("\n  ClinicalSlot Agent:")
         print(f"    Filled:    {cs.get('filled_slots', [])}")
         print(f"    Missing:   {cs.get('missing_slots', [])}")
-        print(f"    Essential: {cs.get('essential_filled', [])} filled / {cs.get('essential_missing', [])} missing")
+        print(
+            f"    Essential: {cs.get('essential_filled', [])} filled / "
+            f"{cs.get('essential_missing', [])} missing"
+        )
         print(f"    Safety:    {cs.get('safety_flag', False)}")
 
     if r.errors:

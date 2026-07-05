@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import abc
 import time
-from typing import Any, Optional, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -21,10 +22,10 @@ class ChatResponse(BaseModel):
 
     content: str
     model: str
-    finish_reason: Optional[str] = None
-    usage: Optional[dict[str, int]] = None
+    finish_reason: str | None = None
+    usage: dict[str, int] | None = None
     latency_ms: float = 0.0
-    raw_response: Optional[Any] = None
+    raw_response: Any | None = None
 
 
 class VendorAdapter(abc.ABC):
@@ -52,11 +53,11 @@ class LLMAdapter(VendorAdapter):
         self,
         messages: Sequence[ChatMessage],
         *,
-        model: Optional[str] = None,
+        model: str | None = None,
         temperature: float = 0.3,
         max_tokens: int = 2048,
-        response_format: Optional[dict[str, Any]] = None,
-        extra_params: Optional[dict[str, Any]] = None,
+        response_format: dict[str, Any] | None = None,
+        extra_params: dict[str, Any] | None = None,
     ) -> ChatResponse:
         """Send a chat completion request and return a unified response."""
 

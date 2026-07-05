@@ -7,8 +7,6 @@ the safety concern. No LLM calls.
 
 from __future__ import annotations
 
-import pytest
-
 from src.agents.orchestrator import OrchestratorAgent
 from src.schemas.orchestrator import SessionState
 from src.scoring.survey_scorer import score_survey

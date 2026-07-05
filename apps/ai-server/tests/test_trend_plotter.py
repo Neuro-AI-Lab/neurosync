@@ -8,15 +8,12 @@ from __future__ import annotations
 
 import base64
 
-import pytest
-
 from src.services.trend_plotter import (
     ClinicalEvent,
     TrendDataPoint,
     generate_trend_plot,
     generate_trend_plot_base64,
 )
-
 
 # ── VP-002 이준호: 8 visits over 6 months, improving ─────────────────
 
@@ -58,7 +55,11 @@ VP004_EVENTS = [
     ClinicalEvent(date="2026-04-01", label="Severe nausea/vomiting", event_type="other"),
     ClinicalEvent(date="2026-04-14", label="Switch: Escitalopram 10mg", event_type="medication"),
     ClinicalEvent(date="2026-05-10", label="ER: Panic attack (119)", event_type="crisis"),
-    ClinicalEvent(date="2026-05-20", label="Escitalopram 20mg + Alprazolam", event_type="medication"),
+    ClinicalEvent(
+        date="2026-05-20",
+        label="Escitalopram 20mg + Alprazolam",
+        event_type="medication",
+    ),
     ClinicalEvent(date="2026-07-15", label="Referral: treatment resistance", event_type="other"),
 ]
 
@@ -141,7 +142,14 @@ class TestClinicalEventTypes:
 
     def test_custom_color_event(self):
         data = VP002_SHORT
-        events = [ClinicalEvent(date="2026-06-01", label="Custom", event_type="other", color="#FF5722")]
+        events = [
+            ClinicalEvent(
+                date="2026-06-01",
+                label="Custom",
+                event_type="other",
+                color="#FF5722",
+            )
+        ]
         result = generate_trend_plot(data, events=events)
         assert result is not None
 

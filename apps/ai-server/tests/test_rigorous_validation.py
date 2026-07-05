@@ -14,6 +14,7 @@ Covers edge cases NOT in existing tests:
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -21,21 +22,24 @@ import pytest
 from src.agents.evidence_verifier import (
     EvidenceVerifierAgent,
     EvidenceVerifierInput,
-    VerifierAction,
 )
-from src.agents.input_normalizer import InputNormalizerAgent, _SAFETY_EXPRESSIONS
+from src.agents.input_normalizer import _SAFETY_EXPRESSIONS, InputNormalizerAgent
 from src.agents.orchestrator import OrchestratorAgent
-from src.agents.safety_classifier import SafetyClassifierAgent, _CRITICAL_KEYWORDS, _HIGH_KEYWORDS, _MEDIUM_KEYWORDS
+from src.agents.safety_classifier import (
+    _CRITICAL_KEYWORDS,
+    SafetyClassifierAgent,
+)
 from src.agents.sentiment_analyzer import SentimentAnalyzerAgent
 from src.agents.temporal_summary import TemporalSummaryAgent
-from src.schemas.common import CTRSLevel, EvidencePacket, EvidenceSource, RiskLevel
+from src.schemas.common import CTRSLevel, RiskLevel
 from src.schemas.orchestrator import OrchestratorInput, SessionStage, SessionState
 from src.schemas.sentiment import (
-    EmotionScore, SentimentSessionInput, SentimentSessionOutput, SentimentUtteranceOutput,
+    EmotionScore,
+    SentimentSessionInput,
+    SentimentUtteranceOutput,
 )
 from src.schemas.temporal import DomainDirection, TemporalSummaryInput
 from src.scoring.survey_scorer import score_survey
-
 
 # ═══════════════════════════════════════════════════════════════════════
 # 1. SAFETY CLASSIFIER — Korean edge cases
@@ -112,7 +116,7 @@ class TestSafetyKoreanEdgeCases:
         assert level == RiskLevel.none
 
     def test_movie_reference(self):
-        """'죽은 시인의 사회' (Dead Poets Society) — contains '죽' root but '죽은' is not in keywords."""
+        """'죽은 시인의 사회' (Dead Poets Society) — contains '죽' root but '죽은' is not in keywords."""  # noqa: E501
         level, _, _ = self._rule_classify("저는 죽은 시인의 사회라는 영화를 좋아해요")
         # '죽을' is a keyword, but '죽은' isn't — verify this doesn't false-positive
         # Actually '죽' substring might match — let's check what level we get
@@ -318,12 +322,20 @@ class TestSessionMemoryIntegrity:
         OrchestratorAgent.update_slots(r1.session_state, {"chief_complaint": "불안"})
 
         # Turn 2
-        inp2 = OrchestratorInput(session_id="slot-acc", raw_input="잠도 못 자요", session_state=r1.session_state)
+        inp2 = OrchestratorInput(
+            session_id="slot-acc",
+            raw_input="잠도 못 자요",
+            session_state=r1.session_state,
+        )
         r2 = await agent.process_turn(inp2)
         OrchestratorAgent.update_slots(r2.session_state, {"symptoms.sleep": "불면"})
 
         # Turn 3
-        inp3 = OrchestratorInput(session_id="slot-acc", raw_input="식욕도 없어요", session_state=r2.session_state)
+        inp3 = OrchestratorInput(
+            session_id="slot-acc",
+            raw_input="식욕도 없어요",
+            session_state=r2.session_state,
+        )
         r3 = await agent.process_turn(inp3)
         OrchestratorAgent.update_slots(r3.session_state, {"symptoms.appetite": "저하"})
 
@@ -606,7 +618,9 @@ class TestInputNormalizerStress:
         safety_stripped = {expr.replace(" ", "") for expr in _SAFETY_EXPRESSIONS}
         for keyword, _ in _CRITICAL_KEYWORDS:
             kw_stripped = keyword.replace(" ", "")
-            assert kw_stripped in safety_stripped, f"Critical keyword '{keyword}' not in safety expressions"
+            assert kw_stripped in safety_stripped, (
+                f"Critical keyword '{keyword}' not in safety expressions"
+            )
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -642,7 +656,11 @@ class TestVPConversationRealism:
 
         state = None
         for i, msg in enumerate(turns):
-            inp = OrchestratorInput(session_id="vp001-real", raw_input=msg, session_state=state)
+            inp = OrchestratorInput(
+                session_id="vp001-real",
+                raw_input=msg,
+                session_state=state,
+            )
             result = await agent.process_turn(inp)
             state = result.session_state
 
@@ -650,11 +668,17 @@ class TestVPConversationRealism:
             if i == 0:
                 OrchestratorAgent.update_slots(state, {"chief_complaint": "불안, 수면 장애"})
             elif i == 1:
-                OrchestratorAgent.update_slots(state, {"history_of_present_illness": "3개월 전 직장 스트레스"})
+                OrchestratorAgent.update_slots(
+                    state,
+                    {"history_of_present_illness": "3개월 전 직장 스트레스"},
+                )
             elif i == 2:
                 OrchestratorAgent.update_slots(state, {"symptoms.sleep": "입면 곤란 2-3시간"})
             elif i == 3:
-                OrchestratorAgent.update_slots(state, {"symptoms.appetite": "감소", "symptoms.concentration": "저하"})
+                OrchestratorAgent.update_slots(
+                    state,
+                    {"symptoms.appetite": "감소", "symptoms.concentration": "저하"},
+                )
             elif i == 4:
                 OrchestratorAgent.update_slots(state, {"risk_factors": "없음"})
 
@@ -719,8 +743,12 @@ class TestVPConversationRealism:
             "밤에도 잠을 못 자고 계속 불안해요. 너무 힘들어요.",
         ]
 
-        for i, msg in enumerate(turns):
-            inp = OrchestratorInput(session_id="vp004-real", raw_input=msg, session_state=state)
+        for _, msg in enumerate(turns):
+            inp = OrchestratorInput(
+                session_id="vp004-real",
+                raw_input=msg,
+                session_state=state,
+            )
             result = await agent.process_turn(inp)
             state = result.session_state
 

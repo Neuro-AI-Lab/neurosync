@@ -1,7 +1,8 @@
 """T1-F4-VER-003 + T1-F4-DEV-003: Temporal direction classification tests."""
 import pytest
+
 from src.agents.temporal_summary import TemporalSummaryAgent
-from src.schemas.temporal import TemporalSummaryInput, DomainDirection
+from src.schemas.temporal import DomainDirection, TemporalSummaryInput
 
 agent = TemporalSummaryAgent()
 

@@ -11,7 +11,7 @@ import logging
 import time
 from typing import Any
 
-from src.adapters.base import ChatMessage, LLMAdapter
+from src.adapters.base import ChatMessage
 from src.agents.base import BaseAgent
 from src.prompts.loader import PromptLoader
 from src.routing.model_router import ModelRouter
@@ -92,7 +92,8 @@ class InputNormalizerAgent(BaseAgent):
                 "당신은 한국어 텍스트 정규화 시스템입니다. "
                 "STT 전사 오류, 구어체, 방언을 표준어로 교정합니다. "
                 "임상적 의미와 위험 표현은 절대 변경하지 않습니다. "
-                "JSON으로 응답하세요: {normalized_text, changes: [{original, normalized, type, position}]}"
+                "JSON으로 응답하세요: "
+                "{normalized_text, changes: [{original, normalized, type, position}]}"
             )
 
         # Build user message

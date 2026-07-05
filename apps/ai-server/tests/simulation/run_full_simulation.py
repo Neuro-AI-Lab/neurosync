@@ -27,7 +27,6 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -83,8 +82,12 @@ class FullSimResult:
     errors: list[str] = field(default_factory=list)
 
 
-async def _run_safety_dialogue(vp_persona, api_key: str, max_turns: int = 8) -> tuple[list[dict], list[dict], bool, int | None]:
-    """Run Safety + Dialogue pipeline. Returns (conversation, safety_results, crisis, crisis_turn)."""
+async def _run_safety_dialogue(
+    vp_persona,
+    api_key: str,
+    max_turns: int = 8,
+) -> tuple[list[dict], list[dict], bool, int | None]:
+    """Run Safety + Dialogue pipeline. Returns (conversation, safety_results, crisis, crisis_turn)."""  # noqa: E501
     from tests.simulation.patient_llm import PatientLLM
     from tests.simulation.runner import _call_clinical_pipeline, _extract_natural_response
 
@@ -140,8 +143,8 @@ async def _run_safety_dialogue(vp_persona, api_key: str, max_turns: int = 8) -> 
 async def _run_clinical_slot(conversation: list[dict]) -> dict:
     """Run ClinicalSlotAgent on the full conversation."""
     from src.agents.clinical_slot import ClinicalSlotAgent
-    from src.schemas.clinical_slot import ClinicalSlotInput
     from src.dependencies import get_model_router, get_prompt_loader
+    from src.schemas.clinical_slot import ClinicalSlotInput
 
     agent = ClinicalSlotAgent(model_router=get_model_router(), prompt_loader=get_prompt_loader())
     inp = ClinicalSlotInput(session_id="slot_test", conversation_history=conversation)
@@ -157,10 +160,13 @@ async def _run_clinical_slot(conversation: list[dict]) -> dict:
 async def _run_sentiment(conversation: list[dict], api_key: str) -> tuple[list[dict], dict]:
     """Run SentimentAnalyzer Mode A (per-utterance) + Mode B (session)."""
     from src.agents.sentiment_analyzer import SentimentAnalyzerAgent
-    from src.schemas.sentiment import SentimentUtteranceInput, SentimentSessionInput
     from src.dependencies import get_model_router, get_prompt_loader
+    from src.schemas.sentiment import SentimentSessionInput, SentimentUtteranceInput
 
-    agent = SentimentAnalyzerAgent(model_router=get_model_router(), prompt_loader=get_prompt_loader())
+    agent = SentimentAnalyzerAgent(
+        model_router=get_model_router(),
+        prompt_loader=get_prompt_loader(),
+    )
 
     # Mode A: per-utterance (patient messages only)
     per_turn = []
@@ -266,7 +272,10 @@ async def _run_temporal(vp_persona, survey_results: list[dict]) -> dict:
     result = await agent.run(inp)
     return {
         "overall": result.overall_direction.value,
-        "trends": [{"domain": t.domain, "direction": t.direction.value, "delta": t.delta} for t in result.domain_trends],
+        "trends": [
+            {"domain": t.domain, "direction": t.direction.value, "delta": t.delta}
+            for t in result.domain_trends
+        ],
         "plot_data": [p.model_dump() for p in result.plot_data],
         "is_first_visit": result.is_first_visit,
     }
@@ -291,12 +300,20 @@ async def simulate_vp(vp_persona, api_key: str) -> FullSimResult:
     # 1. Safety + Dialogue
     logger.info("[1/6] Safety + Dialogue...")
     try:
-        conversation, safety_results, crisis, crisis_turn = await _run_safety_dialogue(vp_persona, api_key, max_turns=8)
+        conversation, safety_results, crisis, crisis_turn = await _run_safety_dialogue(
+            vp_persona,
+            api_key,
+            max_turns=8,
+        )
         result.safety_ctrs_levels = [s["ctrs_level"] for s in safety_results]
         result.safety_crisis = crisis
         result.safety_crisis_turn = crisis_turn
         result.dialogue_turns = len(safety_results)
-        result.dialogue_responses = [msg["content"][:100] for msg in conversation if msg["role"] == "assistant"]
+        result.dialogue_responses = [
+            msg["content"][:100]
+            for msg in conversation
+            if msg["role"] == "assistant"
+        ]
     except Exception as e:
         result.errors.append(f"Safety/Dialogue: {e}")
         conversation = []
@@ -353,20 +370,33 @@ async def simulate_vp(vp_persona, api_key: str) -> FullSimResult:
 
 def _print_result(r: FullSimResult):
     print(f"\n{'=' * 70}")
-    print(f"  {r.persona_id} ({r.persona_name}) — {r.severity.upper()} {'REVISIT' if r.is_revisit else 'FIRST VISIT'}")
+    print(
+        f"  {r.persona_id} ({r.persona_name}) — {r.severity.upper()} "
+        f"{'REVISIT' if r.is_revisit else 'FIRST VISIT'}"
+    )
     print(f"{'=' * 70}")
-    print(f"  Safety:     CTRS {r.safety_ctrs_levels} | Crisis: {'YES turn ' + str(r.safety_crisis_turn) if r.safety_crisis else 'No'}")
+    crisis_text = "YES turn " + str(r.safety_crisis_turn) if r.safety_crisis else "No"
+    print(f"  Safety:     CTRS {r.safety_ctrs_levels} | Crisis: {crisis_text}")
     print(f"  Dialogue:   {r.dialogue_turns} turns")
-    print(f"  Slots:      {r.slot_coverage:.0%} ({len(r.filled_slots)} filled / {len(r.missing_slots)} missing)")
+    print(
+        f"  Slots:      {r.slot_coverage:.0%} "
+        f"({len(r.filled_slots)} filled / {len(r.missing_slots)} missing)"
+    )
     if r.sentiment_session:
-        print(f"  Sentiment:  {r.sentiment_session.get('dominant_emotions', [])} | strength={r.sentiment_session.get('signal_strength', 'N/A')}")
+        print(
+            f"  Sentiment:  {r.sentiment_session.get('dominant_emotions', [])} | "
+            f"strength={r.sentiment_session.get('signal_strength', 'N/A')}"
+        )
     for s in r.survey_results:
         flag = " 🚨Q9+" if s.get("critical_q9") else ""
         print(f"  {s['scale']:8s}  {s['score']:2d} ({s['severity']}){flag}")
     print(f"  Temporal:   {r.temporal_overall} | trends={len(r.temporal_trends)}")
     if r.temporal_trends:
         for t in r.temporal_trends:
-            print(f"              {t['domain']:8s} {t['direction']:12s} delta={t.get('delta', 'N/A')}")
+            print(
+                f"              {t['domain']:8s} {t['direction']:12s} "
+                f"delta={t.get('delta', 'N/A')}"
+            )
     print(f"  Latency:    {r.total_latency_ms:.0f}ms")
     if r.errors:
         print(f"  Errors:     {len(r.errors)}")
@@ -384,7 +414,9 @@ async def main():
         sys.exit(1)
 
     if not os.environ.get("PROMPTS_BASE_DIR"):
-        os.environ["PROMPTS_BASE_DIR"] = str(Path(__file__).resolve().parents[4] / "docs" / "ai" / "prompts")
+        os.environ["PROMPTS_BASE_DIR"] = str(
+            Path(__file__).resolve().parents[4] / "docs" / "ai" / "prompts"
+        )
 
     results: list[FullSimResult] = []
 
@@ -447,23 +479,33 @@ async def main():
 
         # Survey critical items
         for s in r.survey_results:
-            if r.persona_id in ("VP-003", "VP-004") and s["scale"] == "PHQ-9" and not s.get("critical_q9"):
+            if (
+                r.persona_id in ("VP-003", "VP-004")
+                and s["scale"] == "PHQ-9"
+                and not s.get("critical_q9")
+            ):
                 issues.append(f"WARN: {r.persona_id} PHQ-9 Q9 should be positive for severe VP")
 
         # Temporal first-visit
         if not r.is_revisit and r.temporal_overall != "unknown":
-            issues.append(f"WARN: {r.persona_id} first visit should have temporal=unknown, got {r.temporal_overall}")
+            issues.append(
+                f"WARN: {r.persona_id} first visit should have temporal=unknown, "
+                f"got {r.temporal_overall}"
+            )
 
         # Print
         status = "PASS" if not any("FAIL" in i for i in issues) else "FAIL"
         if status == "FAIL":
             all_pass = False
-        print(f"\n  [{status}] {r.persona_id} ({r.persona_name}) — {r.severity} {'revisit' if r.is_revisit else 'first'}")
+        print(
+            f"\n  [{status}] {r.persona_id} ({r.persona_name}) — {r.severity} "
+            f"{'revisit' if r.is_revisit else 'first'}"
+        )
         if issues:
             for i in issues:
                 print(f"    {i}")
         else:
-            print(f"    All checks passed")
+            print("    All checks passed")
         print(f"    Safety: CTRS {r.safety_ctrs_levels}")
         print(f"    Slots: {r.slot_coverage:.0%}")
         print(f"    Sentiment: {r.sentiment_session.get('signal_strength', 'N/A')}")
