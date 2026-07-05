@@ -18,7 +18,6 @@ from src.routing.model_router import ModelRouter
 from src.schemas.dialogue import DialogueInput, DialogueLLMResponse, DialogueOutput
 from src.schemas.orchestrator import (
     OrchestratorInput,
-    SessionStage,
     SessionState,
 )
 
@@ -128,7 +127,8 @@ async def respond(
         system_prompt = (
             "당신은 Neuro-Sync 정신건강 사전 문진 AI입니다. "
             "환자의 이야기를 경청하고, 100자 이내의 따뜻한 한국어로 응답합니다. "
-            "JSON으로 응답하세요: {assistant_response, slot_updates, risk_level, requires_human_review, reason_summary}"
+            "JSON으로 응답하세요: {assistant_response, slot_updates, risk_level, "
+            "requires_human_review, reason_summary}"
         )
 
     # Build slot context from orchestrator state

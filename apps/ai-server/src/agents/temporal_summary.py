@@ -1,14 +1,21 @@
 """Temporal Summary agent — rule-based longitudinal state comparison."""
 from __future__ import annotations
+
 import time
 from typing import Any
+
 from src.agents.base import AgentInput, BaseAgent
 from src.schemas.temporal import (
-    DomainDirection, DomainTrend, PlotPoint, SentimentTrend,
-    TemporalSummaryInput, TemporalSummaryOutput,
+    DomainDirection,
+    DomainTrend,
+    PlotPoint,
+    SentimentTrend,
+    TemporalSummaryInput,
+    TemporalSummaryOutput,
 )
 
 SCALE_THRESHOLD = 5  # PHQ-9/GAD-7: delta >= 5 = clinically significant
+
 
 class TemporalSummaryAgent(BaseAgent):
     @property
@@ -34,14 +41,29 @@ class TemporalSummaryAgent(BaseAgent):
 
         trends = []
         # PHQ-9
-        trends.append(self._compare_scale("PHQ-9", inp.current_scales.get("PHQ-9"), inp.prior_scales.get("PHQ-9")))
+        trends.append(
+            self._compare_scale(
+                "PHQ-9",
+                inp.current_scales.get("PHQ-9"),
+                inp.prior_scales.get("PHQ-9"),
+            )
+        )
         # GAD-7
-        trends.append(self._compare_scale("GAD-7", inp.current_scales.get("GAD-7"), inp.prior_scales.get("GAD-7")))
+        trends.append(
+            self._compare_scale(
+                "GAD-7",
+                inp.current_scales.get("GAD-7"),
+                inp.prior_scales.get("GAD-7"),
+            )
+        )
         # CTRS (inverted: lower = worse)
         trends.append(self._compare_ctrs(inp.current_ctrs, inp.prior_ctrs))
 
         # Sentiment
-        sentiment = self._compare_sentiment(inp.current_sentiment_polarity, inp.prior_sentiment_polarity)
+        sentiment = self._compare_sentiment(
+            inp.current_sentiment_polarity,
+            inp.prior_sentiment_polarity,
+        )
 
         # Overall direction: worsened takes priority, then majority vote
         directions = [t.direction for t in trends if t.direction != DomainDirection.unknown]
@@ -93,7 +115,11 @@ class TemporalSummaryAgent(BaseAgent):
     @staticmethod
     def _compare_scale(name: str, current: int | None, prior: int | None) -> DomainTrend:
         if current is None or prior is None:
-            return DomainTrend(domain=name, direction=DomainDirection.unknown, evidence=[f"{name} 이전/현재 데이터 없음"])
+            return DomainTrend(
+                domain=name,
+                direction=DomainDirection.unknown,
+                evidence=[f"{name} 이전/현재 데이터 없음"],
+            )
         delta = current - prior
         if delta <= -SCALE_THRESHOLD:
             direction = DomainDirection.improved
@@ -102,14 +128,23 @@ class TemporalSummaryAgent(BaseAgent):
         else:
             direction = DomainDirection.unchanged
         return DomainTrend(
-            domain=name, direction=direction, previous_value=prior, current_value=current,
-            delta=delta, confidence=0.95, evidence=[f"{name} {prior} → {current} (delta {delta:+d})"],
+            domain=name,
+            direction=direction,
+            previous_value=prior,
+            current_value=current,
+            delta=delta,
+            confidence=0.95,
+            evidence=[f"{name} {prior} → {current} (delta {delta:+d})"],
         )
 
     @staticmethod
     def _compare_ctrs(current: int | None, prior: int | None) -> DomainTrend:
         if current is None or prior is None:
-            return DomainTrend(domain="CTRS", direction=DomainDirection.unknown, evidence=["CTRS 이전/현재 데이터 없음"])
+            return DomainTrend(
+                domain="CTRS",
+                direction=DomainDirection.unknown,
+                evidence=["CTRS 이전/현재 데이터 없음"],
+            )
         # CTRS: lower number = MORE dangerous. 5→4 = worsened, 3→4 = improved
         if current < prior:  # number decreased = risk increased = worsened
             direction = DomainDirection.worsened
@@ -117,10 +152,21 @@ class TemporalSummaryAgent(BaseAgent):
             direction = DomainDirection.improved
         else:
             direction = DomainDirection.unchanged
+        direction_note = (
+            "위험도 상승"
+            if direction == DomainDirection.worsened
+            else "위험도 감소"
+            if direction == DomainDirection.improved
+            else "변동 없음"
+        )
         return DomainTrend(
-            domain="CTRS", direction=direction, previous_value=prior, current_value=current,
-            delta=current - prior, confidence=0.90,
-            evidence=[f"CTRS {prior} → {current} ({'위험도 상승' if direction == DomainDirection.worsened else '위험도 감소' if direction == DomainDirection.improved else '변동 없음'})"],
+            domain="CTRS",
+            direction=direction,
+            previous_value=prior,
+            current_value=current,
+            delta=current - prior,
+            confidence=0.90,
+            evidence=[f"CTRS {prior} → {current} ({direction_note})"],
         )
 
     @staticmethod
@@ -135,6 +181,8 @@ class TemporalSummaryAgent(BaseAgent):
         else:
             direction = DomainDirection.unchanged
         return SentimentTrend(
-            current_polarity=current, previous_polarity=prior,
-            direction=direction, note=f"Polarity {prior:.2f} → {current:.2f} (delta {delta:+.2f})",
+            current_polarity=current,
+            previous_polarity=prior,
+            direction=direction,
+            note=f"Polarity {prior:.2f} → {current:.2f} (delta {delta:+.2f})",
         )

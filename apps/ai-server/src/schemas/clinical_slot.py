@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import Field
 
@@ -46,4 +46,4 @@ class ClinicalSlotOutput(AgentOutput):
         description="Fraction of all slots filled",
     )
     safety_flag: bool = Field(default=False)
-    safety_flag_reason: Optional[str] = Field(default=None)
+    safety_flag_reason: str | None = Field(default=None)

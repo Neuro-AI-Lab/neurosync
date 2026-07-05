@@ -10,7 +10,7 @@ import base64
 import io
 import logging
 import re
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ def markdown_to_json(
     }
 
 
-def markdown_to_pdf(report_markdown: str) -> Optional[bytes]:
+def markdown_to_pdf(report_markdown: str) -> bytes | None:
     """Convert a handoff report markdown to PDF bytes.
 
     Uses reportlab if available. Returns None if reportlab is not installed
@@ -99,7 +99,7 @@ def markdown_to_pdf(report_markdown: str) -> Optional[bytes]:
         return None
 
 
-def markdown_to_pdf_base64(report_markdown: str) -> Optional[str]:
+def markdown_to_pdf_base64(report_markdown: str) -> str | None:
     """Convert markdown to base64-encoded PDF string."""
     pdf_bytes = markdown_to_pdf(report_markdown)
     if pdf_bytes is None:

@@ -27,7 +27,10 @@ class VerifierAction(StrEnum):
 class VerifierIssue(BaseModel):
     """A single issue found during verification."""
 
-    issue_type: str = Field(..., description="unsupported_claim | diagnosis_violation | treatment_violation")
+    issue_type: str = Field(
+        ...,
+        description="unsupported_claim | diagnosis_violation | treatment_violation",
+    )
     description: str
     location: str = Field(default="", description="Section or line reference in the report")
     severity: str = Field(default="warning", description="warning | error")
@@ -111,7 +114,10 @@ class EvidenceVerifierAgent(BaseAgent):
 
         # ── Check 4: 12-section completeness ─────────────────────────
         section_issues = self._check_section_completeness(
-            inp.report_markdown, inp.is_first_visit, inp.has_scale_scores, inp.has_ocr_documents
+            inp.report_markdown,
+            inp.is_first_visit,
+            inp.has_scale_scores,
+            inp.has_ocr_documents,
         )
         issues.extend(section_issues)
 
@@ -141,7 +147,10 @@ class EvidenceVerifierAgent(BaseAgent):
             model_used="rule-engine",
             prompt_version="v1",
             latency_ms=latency_ms,
-            reason_summary=f"Verification: {action.value} ({error_count} errors, {warning_count} warnings)",
+            reason_summary=(
+                f"Verification: {action.value} "
+                f"({error_count} errors, {warning_count} warnings)"
+            ),
             action=action,
             issues=issues,
             unsupported_claim_count=len(unsupported),
@@ -179,7 +188,10 @@ class EvidenceVerifierAgent(BaseAgent):
                 issues.append(
                     VerifierIssue(
                         issue_type="unsupported_claim",
-                        description=f"Section '{section_title}' contains clinical content without evidence citations",
+                        description=(
+                            f"Section '{section_title}' contains clinical content "
+                            "without evidence citations"
+                        ),
                         location=section_title,
                         severity="warning",
                     )
@@ -193,7 +205,10 @@ class EvidenceVerifierAgent(BaseAgent):
                 issues.append(
                     VerifierIssue(
                         issue_type="unsupported_claim",
-                        description=f"Evidence ID {cited} referenced but not found in evidence packets",
+                        description=(
+                            f"Evidence ID {cited} referenced but not found "
+                            "in evidence packets"
+                        ),
                         location="report",
                         severity="warning",
                     )
@@ -258,7 +273,8 @@ class EvidenceVerifierAgent(BaseAgent):
                     severity="error",
                 ))
 
-        # Conditional: section 6 (scales), 7 (past history — always include), 8 (OCR), 9 (longitudinal)
+        # Conditional: section 6 (scales), 7 (past history — always include),
+        # section 8 (OCR), and section 9 (longitudinal).
         if has_scale_scores and 6 not in found_sections:
             issues.append(VerifierIssue(
                 issue_type="missing_section",

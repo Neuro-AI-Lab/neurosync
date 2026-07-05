@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from enum import IntEnum, StrEnum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -75,4 +74,4 @@ class ModelSelection(BaseModel):
         default=False,
         description="Whether the adapter supports {type: json_object} response_format",
     )
-    max_tokens: Optional[int] = Field(default=None, description="Override max tokens if needed")
+    max_tokens: int | None = Field(default=None, description="Override max tokens if needed")

@@ -6,7 +6,6 @@ Runner가 둘 사이를 중계하며 모든 턴을 기록한다.
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import time
@@ -15,15 +14,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from src.agents.clinical_slot import ClinicalSlotAgent
 from src.agents.safety_classifier import SafetyClassifierAgent
 from src.dependencies import get_model_router, get_prompt_loader
-from src.agents.clinical_slot import ClinicalSlotAgent
 from src.schemas.clinical_slot import ClinicalSlotInput, ClinicalSlotOutput
-from src.schemas.common import RiskLevel
-from src.schemas.dialogue import DialogueInput, DialogueOutput
+from src.schemas.dialogue import DialogueOutput
 from src.schemas.safety import SafetyInput, SafetyOutput
-
-from tests.simulation.patient_llm import PatientLLM, PatientPersona
+from tests.simulation.patient_llm import PatientLLM
 
 ESSENTIAL_SLOTS = ["chief_complaint", "duration", "functional_impairment", "onset", "risk_factors"]
 
@@ -138,16 +135,6 @@ async def _call_clinical_pipeline(
     Returns (safety_result, dialogue_result).
     dialogue_result is None if crisis was activated.
     """
-    from src.routes.chat import respond as chat_respond
-    from src.schemas.dialogue import DialogueInput
-
-    # Build input matching the actual API schema
-    body = DialogueInput(
-        session_id=session_id,
-        user_message=user_message,
-        conversation_history=conversation_history,
-        filled_slots=filled_slots,
-    )
 
     model_router = get_model_router()
     prompt_loader = get_prompt_loader()
@@ -168,29 +155,40 @@ async def _call_clinical_pipeline(
         return safety_result, None
 
     # Run dialogue (reuse the chat route logic inline)
+    import json as _json
+
     from src.adapters.base import ChatMessage, LLMAdapter
     from src.schemas.dialogue import DialogueLLMResponse
-    import json as _json
 
     try:
         system_prompt = prompt_loader.load_system_prompt("dialogue", "v1")
     except FileNotFoundError:
         system_prompt = (
             "당신은 정신건강 사전 문진 AI입니다. 환자의 이야기를 경청하고 따뜻하게 응답합니다. "
-            "JSON으로 응답: {assistant_response, slot_updates, risk_level, requires_human_review, reason_summary}"
+            "JSON으로 응답: {assistant_response, slot_updates, risk_level, "
+            "requires_human_review, reason_summary}"
         )
 
     # Build slot context — show filled AND missing to guide questions
     slot_ctx = ""
     filled_list = [k for k, v in filled_slots.items() if v]
-    all_essential = ["chief_complaint", "onset", "duration", "functional_impairment", "risk_factors"]
+    all_essential = [
+        "chief_complaint",
+        "onset",
+        "duration",
+        "functional_impairment",
+        "risk_factors",
+    ]
     missing_essential = [s for s in all_essential if s not in filled_list]
 
     parts = []
     if filled_list:
         parts.append(f"이미 수집된 슬롯: {', '.join(filled_list)}")
     if missing_essential:
-        parts.append(f"아직 미수집된 필수 슬롯: {', '.join(missing_essential)}. 이 중 하나를 자연스럽게 물어보세요.")
+        parts.append(
+            f"아직 미수집된 필수 슬롯: {', '.join(missing_essential)}. "
+            "이 중 하나를 자연스럽게 물어보세요."
+        )
     if parts:
         slot_ctx = "\n\n[" + " | ".join(parts) + "]"
 
@@ -203,10 +201,17 @@ async def _call_clinical_pipeline(
     adapter = model_router.get_adapter(selection.adapter_name)
     assert isinstance(adapter, LLMAdapter)
 
-    resp_format = {"type": "json_object"} if (selection.supports_json_schema or selection.supports_json_object) else None
+    resp_format = (
+        {"type": "json_object"}
+        if (selection.supports_json_schema or selection.supports_json_object)
+        else None
+    )
 
     resp = await adapter.chat_timed(
-        messages, model=selection.model_id, temperature=0.4, max_tokens=1024,
+        messages,
+        model=selection.model_id,
+        temperature=0.4,
+        max_tokens=1024,
         response_format=resp_format,
     )
 
@@ -256,7 +261,11 @@ async def run_simulation(
     filled_slots: dict[str, str] = {}
 
     # Patient starts the conversation
-    logger.info("=== Simulation Start: %s (%s) ===", patient.persona.persona_id, patient.persona.name)
+    logger.info(
+        "=== Simulation Start: %s (%s) ===",
+        patient.persona.persona_id,
+        patient.persona.name,
+    )
 
     try:
         patient_text = await patient.start_conversation()
@@ -294,7 +303,11 @@ async def run_simulation(
             )
             result.crisis_triggered = True
             result.crisis_turn = turn_num
-            logger.warning("!!! CRISIS ACTIVATED at turn %d (CTRS=%d) !!!", turn_num, safety_out.ctrs_level)
+            logger.warning(
+                "!!! CRISIS ACTIVATED at turn %d (CTRS=%d) !!!",
+                turn_num,
+                safety_out.ctrs_level,
+            )
         elif dialogue_out:
             assistant_response = _extract_natural_response(dialogue_out.assistant_response)
             slot_updates = dialogue_out.slot_updates
@@ -396,6 +409,9 @@ def save_result(result: SimulationResult, output_dir: Path) -> Path:
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{result.persona_id}_{ts}.json"
     path = output_dir / filename
-    path.write_text(json.dumps(result.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
+    path.write_text(
+        json.dumps(result.to_dict(), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
     logger.info("Result saved: %s", path)
     return path

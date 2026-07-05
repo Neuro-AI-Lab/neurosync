@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import openai
 
@@ -60,11 +61,11 @@ class SolarPro3Adapter(LLMAdapter):
         self,
         messages: Sequence[ChatMessage],
         *,
-        model: Optional[str] = None,
+        model: str | None = None,
         temperature: float = 0.3,
         max_tokens: int = 2048,
-        response_format: Optional[dict[str, Any]] = None,
-        extra_params: Optional[dict[str, Any]] = None,
+        response_format: dict[str, Any] | None = None,
+        extra_params: dict[str, Any] | None = None,
     ) -> ChatResponse:
         model_id = model or self._default_model
         params: dict[str, Any] = {

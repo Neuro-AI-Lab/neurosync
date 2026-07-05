@@ -1,7 +1,8 @@
 """T1-F4-VER-001/002/004: Temporal summary verification with VP scenarios."""
 import pytest
+
 from src.agents.temporal_summary import TemporalSummaryAgent
-from src.schemas.temporal import TemporalSummaryInput, DomainDirection
+from src.schemas.temporal import DomainDirection, TemporalSummaryInput
 
 agent = TemporalSummaryAgent()
 

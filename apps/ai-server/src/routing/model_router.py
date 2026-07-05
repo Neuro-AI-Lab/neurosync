@@ -6,7 +6,7 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import yaml
 
@@ -70,7 +70,7 @@ class ModelRouter:
     def select_model(
         self,
         agent_name: str,
-        task_name: Optional[str] = None,
+        task_name: str | None = None,
         risk_level: RiskLevel = RiskLevel.none,
         require_json: bool = False,
     ) -> ModelSelection:

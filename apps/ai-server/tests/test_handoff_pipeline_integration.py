@@ -17,7 +17,6 @@ from src.schemas.common import CTRSLevel, RiskLevel
 from src.schemas.handoff import HandoffOutput
 from src.schemas.orchestrator import (
     OrchestratorInput,
-    SafetyStatus,
     SessionStage,
     SessionState,
 )

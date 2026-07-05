@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 from src.agents.base import AgentInput, AgentOutput
@@ -55,11 +53,11 @@ class SafetyOutput(AgentOutput):
         default=False,
         description="Whether the rule-based classifier fired",
     )
-    llm_risk_level: Optional[RiskLevel] = Field(
+    llm_risk_level: RiskLevel | None = Field(
         default=None,
         description="Risk level from LLM alone (before merge)",
     )
-    rule_risk_level: Optional[RiskLevel] = Field(
+    rule_risk_level: RiskLevel | None = Field(
         default=None,
         description="Risk level from rule engine alone (before merge)",
     )

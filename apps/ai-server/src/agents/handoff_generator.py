@@ -165,7 +165,6 @@ class HandoffGeneratorAgent(BaseAgent):
             self._router.record_success(selection.adapter_name)
             report_markdown = resp.content
             model_used = resp.model
-            llm_latency = resp.latency_ms
 
         except Exception as exc:
             logger.error("Handoff generation failed on %s: %s", selection.adapter_name, exc)
@@ -189,7 +188,6 @@ class HandoffGeneratorAgent(BaseAgent):
             self._router.record_success(fallback.adapter_name)
             report_markdown = resp.content
             model_used = resp.model
-            llm_latency = resp.latency_ms
 
         # Extract evidence packets from the conversation history
         evidence_packets = _extract_evidence_packets(inp)

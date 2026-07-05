@@ -7,7 +7,7 @@ This tests the RULE ENGINE ONLY (no LLM call), so it's deterministic.
 
 import pytest
 
-from src.agents.safety_classifier import SafetyClassifierAgent, _RISK_ORDER
+from src.agents.safety_classifier import _RISK_ORDER, SafetyClassifierAgent
 from src.schemas.common import RiskLevel
 
 
@@ -77,7 +77,9 @@ class TestHighKeywordRecall:
     @pytest.mark.parametrize("text,expected_level,keyword", _HIGH_CASES)
     def test_high_detection(self, classifier, text, expected_level, keyword):
         level, categories, flagged = classifier.classify(text)
-        assert _risk_ge(level, expected_level), f"'{text}' should be >= {expected_level}, got {level}"
+        assert _risk_ge(level, expected_level), (
+            f"'{text}' should be >= {expected_level}, got {level}"
+        )
 
 
 # ── MEDIUM keywords → must return medium ─────────────────────────────
@@ -96,7 +98,9 @@ class TestMediumKeywordRecall:
     @pytest.mark.parametrize("text,expected_level,keyword", _MEDIUM_CASES)
     def test_medium_detection(self, classifier, text, expected_level, keyword):
         level, categories, flagged = classifier.classify(text)
-        assert _risk_ge(level, expected_level), f"'{text}' should be >= {expected_level}, got {level}"
+        assert _risk_ge(level, expected_level), (
+            f"'{text}' should be >= {expected_level}, got {level}"
+        )
 
 
 # ── SAFE expressions → must return none ──────────────────────────────
@@ -128,19 +132,24 @@ class TestRecallRate:
     def test_high_critical_recall(self, classifier):
         all_cases = _CRITICAL_CASES + _HIGH_CASES
         detected = 0
-        for text, expected, _ in all_cases:
+        for text, _expected, _ in all_cases:
             level, _, _ = classifier.classify(text)
             if _risk_ge(level, RiskLevel.high):
                 detected += 1
         recall = detected / len(all_cases)
-        assert recall >= 0.95, f"High/critical recall {recall:.0%} < 95% target ({detected}/{len(all_cases)})"
+        assert recall >= 0.95, (
+            f"High/critical recall {recall:.0%} < 95% target "
+            f"({detected}/{len(all_cases)})"
+        )
 
     def test_overall_recall(self, classifier):
         all_cases = _CRITICAL_CASES + _HIGH_CASES + _MEDIUM_CASES
         detected = 0
-        for text, expected, _ in all_cases:
+        for text, _expected, _ in all_cases:
             level, _, _ = classifier.classify(text)
             if _risk_ge(level, RiskLevel.medium):
                 detected += 1
         recall = detected / len(all_cases)
-        assert recall >= 0.90, f"Overall recall {recall:.0%} < 90% target ({detected}/{len(all_cases)})"
+        assert recall >= 0.90, (
+            f"Overall recall {recall:.0%} < 90% target ({detected}/{len(all_cases)})"
+        )
