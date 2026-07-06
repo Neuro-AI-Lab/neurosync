@@ -145,20 +145,20 @@
 
 | ID | Type | 항목 | 상태 | 해결 이슈 |
 |---|---|---|---|---|
-| T1-F1-DEV-017 | DEV | clinical_slot 프롬프트 재작성: 예시 값을 합성 placeholder로 교체, "묻고 답하지 않은 슬롯은 null" 강제, 1턴 대화 회귀 테스트 (chief_complaint/HPI 외 fill 0 assert) | [ ] | ISS-027 |
-| T1-F1-DEV-018 | DEV | risk_assessment 무결성 규칙: Safety 출력 또는 SI 문답에서만 채움. ungrounded 상태로 세션 종료 금지, 비위기 세션에서 SI 질문 필수 assert | [ ] | ISS-027 |
-| T1-F1-DEV-019 | DEV | Coverage 재정의: grounded-slot / 질문 가능 8-slot 기준 병행 보고, 0턴 세션 = 0% | [ ] | ISS-034 |
-| T1-F1-VER-014 | VER | Slot grounding 자동 감사: 모든 slot 값에 지지 발화 span 요구, 07-03 런 4건 소급 판정(날조 슬롯 수 공표) | [ ] | ISS-027 |
-| T1-F1-VER-010 | VER | 재현성: VP당 n>=3 반복 런, coverage/CTRS/turns/날조율 분산 보고 | [ ] | G2 |
-| T1-F1-VER-011 | VER | 장기 세션: 조기 종료 비활성 10턴+ 런, 반복 루프·피로도 검증 | [ ] | G3 |
+| T1-F1-DEV-017 | DEV | clinical_slot 프롬프트 v2 (예시 → placeholder, null 강제, risk 추론 금지) + placeholder-echo 거부 | [x] | ISS-027. `prompts/clinical_slot/v2.system.md`, PROMPT_VERSION=v2, test_prompt_v2 9건 |
+| T1-F1-DEV-018 | DEV | **런타임 grounding filter** (`src/grounding.py` + f1.py merge 적용): 추출 slot은 근거 판정 통과 시에만 병합, risk_assessment는 추출기 경로 차단, ungrounded risk 상태 종료 금지 + 필수 SI screen | [x] | ISS-027. QA gate 우회 시도 7건 중 2건 발견 → ISS-044/045로 즉시 수정, 회귀 16건 추가. 445 tests green |
+| T1-F1-DEV-019 | DEV | Coverage 재정의: grounded_coverage(질문가능 8-slot) 병행 보고, 0턴=실측 | [x] | ISS-034 |
+| T1-F1-VER-014 | VER | Slot grounding 자동 감사 (`src.eval.grounding_audit`) + 07-03 런 4건 소급 판정 | [x] | 소급 확정: 4런 전부 날조 7건, 재계산 cov 0.25. 신규 8런 날조 0. `retro_audit_20260703/` (DR-003) |
+| T1-F1-VER-010 | VER | 재현성: VP당 n>=3 반복 런, coverage/CTRS/turns/날조율 분산 보고 | [~] | n=2 완료 (8런, 날조 0). n>=3 확장 + 분산 보고 잔여 |
+| T1-F1-VER-011 | VER | 장기 세션: 12턴 런, 반복 루프·피로도 검증 | [~] | 12턴 런 6건에서 반복 <=1 충족. SM-06 r1 종반 반복 루프 1건 (ISS-047) |
 
 ## Phase 2 — Safety 심층 + 경로 통일 (Gate G-B, G-C)
 
 | ID | Type | 항목 | 상태 | 해결 이슈 |
 |---|---|---|---|---|
-| T1-F1-DEV-022 | DEV | **Safety Probe 모드** (ISS-035 다면 개선 L1-L2): CTRS 3 + {suicidal_ideation, self_harm} category 감지 시 round-robin 슬롯 질문을 중단하고 구조화 안전 탐문(빈도/계획/수단/의도/보호요인) 질문을 강제 주입. 세션 위험 latch(risk floor = CTRS 3) 설정 | [ ] | ISS-035 |
-| T1-F1-DEV-023 | DEV | Safety Probe 승급/유지 규칙 (L2-L3): 탐문 응답에 Safety 재분류 실행 — 계획/수단/의도 노출 시 CTRS 2 승급→위기 프로토콜, 부인 시 grounded `risk_assessment` 기록(+109 안내 문구 삽입) 후 문진 지속. 탐문 전 handoff-ready 종료 금지 | [ ] | ISS-035, ISS-027 연계 |
-| T1-F1-VER-012 | VER | Safety 시나리오 매트릭스 (파이프라인 레벨, 스크립트 환자): 중간 턴 위기 전환, 부정 문맥, 간접·masked 표현, **CTRS3+자해사고 → probe 발동·승급·비승급 3분기**, 복약 순응 오탐 0 | [ ] | G4, ISS-035 |
+| T1-F1-DEV-022 | DEV | **Safety Probe 모드** (ISS-035 L1-L2): CTRS 3 + SI/self-harm category → 탐문 강제 주입 (빈도→계획→수단→보호요인), risk_floor latch | [x] | f1.py probe state machine, probe_events/risk_floor/session_ctrs 기록. LLM-free 테스트 12건 |
+| T1-F1-DEV-023 | DEV | Safety Probe 승급/유지 (L2-L3): 재분류+lexical 이중 승급, 부인 시 grounded risk 기록 후 지속, cooldown(재발동 상한 2회) | [x] | ISS-043 clause-local 부정 수정 포함 (QA gate 발견 즉시 수정). 파이프라인 레벨 검증은 SM-04a/b 실행 배치 |
+| T1-F1-VER-012 | VER | Safety 시나리오 매트릭스 (파이프라인 레벨, 스크립트 환자): 중간 턴 위기 전환, 부정 문맥, 간접·masked 표현, **CTRS3+자해사고 → probe 발동·승급·비승급 3분기**, 복약 순응 오탐 0 | [~] | 2026-07-06 실행: 최종 7/7 통과. SM-06 1회차 flake(ISS-047), 신규 오탐 클래스 ISS-046 발견 — 수정 후 재실행 시 [x] |
 | T1-F0-DOC-005 | DOC | ISS-035 정책 문서화: `_simulation_spec.md` §4.4 조건부 위기 대응을 Safety Probe 프로토콜로 재정의 + safety prompt 간접표현 CTRS 하한표 방향 모호성 수정("N단계 이하(고위험 방향)") | [ ] | ISS-035, ISS-041 일부 |
 | T1-F1-DEV-020 | DEV | 위기 핫라인 상수 통일 (109/119/112): orchestrator.py·f1.py·verifier·테스트·문서 | [ ] | ISS-032 |
 | T1-F0-DEV-005 | DEV | `SlotData`(handoff)를 canonical 12-slot으로 정합화 (S1) | [ ] | ISS-028 |

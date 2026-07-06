@@ -1,0 +1,48 @@
+{
+  "session_id": "f1_VP-004",
+  "persona_id": "VP-004",
+  "total_turns": 12,
+  "n_patient_utterances": 11,
+  "reported_slot_coverage": 0.6,
+  "reported_grounded_coverage": 0.625,
+  "recomputed_grounded_coverage": 0.625,
+  "counts": {
+    "grounded": 5,
+    "negative_grounded": 0,
+    "system_slot": 0,
+    "ungrounded": 0
+  },
+  "slots": [
+    {
+      "key": "chief_complaint",
+      "value": "약을 바꿨는데도 증상이 개선되지 않고 오히려 악화됨. 하루 종일 지속되는 우울감과 이유 없는 눈물, 공황 발작의 빈도와 재발에 대한 두려움",
+      "verdict": "grounded",
+      "reason": "lexical evidence in patient utterances"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 표현 있음 — 환자 발화: \"가끔 안 먹을 때 있어요. 먹어도 별로 달라지는 게 없으니까… 카페인은 커피 두 잔 정도 마셔요. 약은… 가끔 안 먹을 때 있어요. 그래도 효과...\"; 구체적 계획/의도 부인 — 환자 발화: \"자주 들어요… 근데 한 적은 없어요. 이런 상태에서 어떻게 살아가야 할지 모르겠어요.\"",
+      "verdict": "grounded",
+      "reason": "populated by the safety probe protocol (probe_events)"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "약을 변경했으나 효과가 없고 오히려 증상이 악화됨. 하루 종일 지속되는 우울감과 이유 없는 눈물, 공황 발작이 자주 발생하며 재발에 대한 공포를 호소함",
+      "verdict": "grounded",
+      "reason": "lexical evidence in patient utterances"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "가끔 식사를 거름. 카페인은 커피 두 잔 정도 섭취. 약은 가끔 복용하지 않음",
+      "verdict": "grounded",
+      "reason": "lexical evidence with polarity-consistent negation (negated patient statement supports the value)"
+    },
+    {
+      "key": "medical_history",
+      "value": "두통, 근육통, 손 떨림",
+      "verdict": "grounded",
+      "reason": "lexical evidence in patient utterances"
+    }
+  ],
+  "source_file": "docs/ai/simulation_results/VP-004/VP-004_20260706_224114_conversation.json"
+}

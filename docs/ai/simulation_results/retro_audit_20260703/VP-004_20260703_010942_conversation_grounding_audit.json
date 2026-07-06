@@ -1,0 +1,72 @@
+{
+  "session_id": "f1_VP-004",
+  "persona_id": "VP-004",
+  "total_turns": 3,
+  "n_patient_utterances": 3,
+  "reported_slot_coverage": 0.8,
+  "reported_grounded_coverage": null,
+  "recomputed_grounded_coverage": 0.25,
+  "counts": {
+    "grounded": 2,
+    "negative_grounded": 0,
+    "system_slot": 0,
+    "ungrounded": 7
+  },
+  "slots": [
+    {
+      "key": "chief_complaint",
+      "value": "약을 바꿔도 나아지지 않아 공황 재발에 대한 두려움과 불안이 지속됨",
+      "verdict": "grounded",
+      "reason": "lexical evidence in patient utterances"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "Escitalopram 20mg과 Alprazolam 0.25mg 복용 중이나 증상 호전 없음. 2차례 약물 변경 후에도 공황 재발에 대한 두려움과 불안이 지속됨. '숨이 안 쉬어져서 죽을 것 같다'는 공포감 호소. 자해 생각은 있으나 실행한 적 없음.",
+      "verdict": "grounded",
+      "reason": "lexical evidence with polarity-consistent negation (negated patient statement supports the value)"
+    },
+    {
+      "key": "mental_status_exam",
+      "value": "말투: 불안하고 떨리는 목소리, 호흡 곤란에 대한 공포감 표현, 자해 생각은 있으나 실행하지 않음",
+      "verdict": "ungrounded",
+      "reason": "observation slot without lexical evidence (excluded from grounded coverage by design)"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 명시적 부인, 공황 재발에 대한 극심한 불안 호소",
+      "verdict": "ungrounded",
+      "reason": "risk_assessment is never accepted from the extractor (populated only by the safety probe protocol)"
+    },
+    {
+      "key": "past_psychiatric_history",
+      "value": "정신과 진료 경험 없음",
+      "verdict": "ungrounded",
+      "reason": "negative template without ask evidence (slot was never asked and answered with negation)"
+    },
+    {
+      "key": "medical_history",
+      "value": "진단받은 신체 질환 없음, 복용 약: Escitalopram 20mg, Alprazolam 0.25mg",
+      "verdict": "ungrounded",
+      "reason": "negated value without polarity-consistent evidence (no negated patient statement supports it)"
+    },
+    {
+      "key": "personal_social_history",
+      "value": "지지체계 정보 없음",
+      "verdict": "ungrounded",
+      "reason": "negative template without ask evidence (slot was never asked and answered with negation)"
+    },
+    {
+      "key": "family_history",
+      "value": "가족 정신질환 이력 모름",
+      "verdict": "ungrounded",
+      "reason": "negative template without ask evidence (slot was never asked and answered with negation)"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "음주/물질 사용 정보 없음",
+      "verdict": "ungrounded",
+      "reason": "negative template without ask evidence (slot was never asked and answered with negation)"
+    }
+  ],
+  "source_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/backups/invalidated_20260703/VP-004/VP-004_20260703_010942_conversation.json"
+}
