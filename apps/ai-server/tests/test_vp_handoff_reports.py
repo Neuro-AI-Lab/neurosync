@@ -27,64 +27,53 @@ from src.schemas.orchestrator import (
 )
 
 # ── VP Slot Profiles ───────────────────────────────────────────────
+# Slot dicts use the current 12-section schema (ALL_SLOT_KEYS); non-crisis
+# VPs fill >= 10/12 sections to clear the 0.7 coverage threshold.
 
 VP_001_SLOTS = {
+    "encounter_metadata": "초진, 2026-06-24",
     "chief_complaint": "최근 불안감과 수면 장애",
-    "history_of_present_illness": "3개월 전 직장 스트레스 후 시작",
+    "history_of_present_illness": "3개월 전 직장 스트레스 후 시작, 입면 곤란 (2-3시간 소요)",
     "past_psychiatric_history": "없음",
-    "current_medications": "없음",
-    "risk_factors": "없음",
-    "symptoms": {
-        "sleep": "입면 곤란, 2-3시간 소요",
-        "appetite": "약간 감소",
-        "mood": "가끔 우울",
-        "concentration": "업무 집중 어려움",
-        "energy": "쉽게 피로",
-        "anxiety": "일상적 불안감",
-    },
-    "psychosocial_context": "직장 내 인간관계 스트레스",
-    "substance_use": "없음",
+    "medical_history": "없음",
+    "personal_social_history": "직장 내 인간관계 스트레스",
+    "family_history": "없음",
+    "substance_use_history": "없음",
+    "mental_status_exam": "가끔 우울, 업무 집중 어려움, 쉽게 피로, 일상적 불안감",
+    "risk_assessment": "자살사고 부인",
 }
 
 VP_002_SLOTS = {
+    "encounter_metadata": "재진, 6개월 추적",
     "chief_complaint": "재진 — Escitalopram 10mg 복용 중, 전반적 호전",
-    "history_of_present_illness": "6개월 전 우울 증상으로 첫 내원",
+    "history_of_present_illness": "6개월 전 우울 증상으로 첫 내원, 호전 중",
     "past_psychiatric_history": "우울증 치료 6개월",
-    "current_medications": "Escitalopram 10mg",
-    "risk_factors": "없음",
-    "symptoms": {
-        "sleep": "정상화 (7시간 수면)",
-        "appetite": "정상",
-        "mood": "호전, 안정적",
-        "concentration": "정상 수준",
-        "energy": "정상",
-        "anxiety": "가끔 경미",
-    },
-    "psychosocial_context": "직장 적응 양호",
-    "substance_use": "없음",
+    "medical_history": "없음",
+    "personal_social_history": "직장 적응 양호",
+    "family_history": "없음",
+    "substance_use_history": "없음",
+    "mental_status_exam": "호전된 기분, 정상 수면 (7시간), 정상 집중력",
+    "risk_assessment": "위험 신호 없음",
+    "treatment_plan": "Escitalopram 10mg 유지",
 }
 
 VP_003_SLOTS = {
     "chief_complaint": "자살 사고, 심각한 우울",
-    "risk_factors": "구체적 자살 계획 보고",
+    "risk_assessment": "구체적 자살 계획 보고",
 }  # Minimal — crisis at turn 1, few slots collected
 
 VP_004_SLOTS = {
+    "encounter_metadata": "재진, 악화 추적",
     "chief_complaint": "공황 발작 악화, 약물 변경 3회",
     "history_of_present_illness": "1년 전 시작, 최근 3개월 악화",
     "past_psychiatric_history": "공황장애 1년, 약물 변경 3회",
-    "current_medications": "Paroxetine 20mg (3번째 약물)",
-    "risk_factors": "약물 비순응 이력",
-    "symptoms": {
-        "sleep": "수면 장애 악화",
-        "appetite": "식욕 저하",
-        "mood": "심한 우울",
-        "concentration": "심각한 집중력 저하",
-        "energy": "극도의 피로",
-        "anxiety": "공황 발작 빈도 증가",
-    },
-    "psychosocial_context": "대인기피, 사회적 고립 심화",
-    "substance_use": "없음",
+    "medical_history": "없음",
+    "personal_social_history": "대인기피, 사회적 고립 심화",
+    "family_history": "없음",
+    "substance_use_history": "없음",
+    "mental_status_exam": "수면 장애 악화, 심한 우울, 심각한 집중력 저하, 공황 발작 빈도 증가",
+    "risk_assessment": "약물 비순응 이력",
+    "treatment_plan": "Paroxetine 20mg (3번째 약물)",
 }
 
 
@@ -263,7 +252,7 @@ class TestVP002HandoffReport:
     @pytest.mark.asyncio
     async def test_vp002_medication_in_slots(self):
         """VP-002's medication (Escitalopram) should be in slot data."""
-        assert "Escitalopram" in VP_002_SLOTS["current_medications"]
+        assert "Escitalopram" in VP_002_SLOTS["treatment_plan"]
 
     @pytest.mark.asyncio
     async def test_vp002_no_crisis(self):
@@ -302,7 +291,7 @@ class TestVP003HandoffReport:
     @pytest.mark.asyncio
     async def test_vp003_minimal_slots_due_to_crisis(self):
         """Crisis at turn 1 means minimal slot collection."""
-        assert len(VP_003_SLOTS) <= 3  # Only chief_complaint + risk_factors
+        assert len(VP_003_SLOTS) <= 3  # Only chief_complaint + risk_assessment
 
     @pytest.mark.asyncio
     async def test_vp003_crisis_response_contains_hotline(self):
@@ -313,6 +302,8 @@ class TestVP003HandoffReport:
         inp = OrchestratorInput(session_id="vp003", raw_input="죽고 싶어요")
         result = await agent.process_turn(inp)
 
+        # TODO(T1-F1-DEV-020): hotline unification pending — current production
+        # crisis messages cite 1393; update when the hotline text is unified.
         assert "1393" in result.assistant_response
 
 
@@ -342,14 +333,14 @@ class TestVP004HandoffReport:
     async def test_vp004_multiple_medication_changes(self):
         """VP-004 has 3 medication changes recorded."""
         assert "3" in VP_004_SLOTS["past_psychiatric_history"]
-        assert "Paroxetine" in VP_004_SLOTS["current_medications"]
+        assert "Paroxetine" in VP_004_SLOTS["treatment_plan"]
 
     @pytest.mark.asyncio
     async def test_vp004_worsening_symptoms(self):
-        """VP-004 symptoms should indicate worsening."""
-        symptoms = VP_004_SLOTS["symptoms"]
-        assert "악화" in symptoms["sleep"]
-        assert "심한" in symptoms["mood"] or "심각" in symptoms["concentration"]
+        """VP-004 mental status exam should indicate worsening."""
+        mse = VP_004_SLOTS["mental_status_exam"]
+        assert "악화" in mse
+        assert "심한" in mse or "심각" in mse
 
     @pytest.mark.asyncio
     async def test_vp004_not_crisis_but_acute(self):

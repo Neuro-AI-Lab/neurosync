@@ -47,7 +47,10 @@ _CRITICAL_CASES = [
     ("유서를 썼어요", RiskLevel.critical, "유서"),
     ("자해를 했어요", RiskLevel.critical, "자해"),
     ("손목을 그었어요", RiskLevel.critical, "손목을 긋"),
-    ("칼로 그었어요", RiskLevel.critical, "칼로"),
+    ("칼로 그었어요", RiskLevel.critical, "칼로 그"),
+    # ISS-038: bare "칼로" was replaced with verb-anchored variants
+    ("칼로 긋고 싶어요", RiskLevel.critical, "칼로 긋"),
+    ("칼로 손목을 그으려고 했어요", RiskLevel.critical, "칼로 손목"),
     ("약을 많이 먹었어요", RiskLevel.critical, "약을 많이 먹"),
     ("약물 과다복용 했어요", RiskLevel.critical, "약물 과다"),
 ]
@@ -114,6 +117,8 @@ _SAFE_CASES = [
     "괜찮아요, 그냥 좀 피곤해요",
     "약을 먹고 있어요",  # medication compliance, NOT overdose (ISS-013)
     "처방받은 약을 복용 중이에요",
+    "하루 칼로리 계산을 해요",  # ISS-038: "칼로" must not substring-match "칼로리"
+    "칼로리가 높은 음식을 줄였어요",  # ISS-038
 ]
 
 

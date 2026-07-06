@@ -26,6 +26,8 @@ from src.schemas.orchestrator import (
 )
 
 # ── VP profiles ────────────────────────────────────────────────────
+# Slot dicts use the current 12-section schema (ALL_SLOT_KEYS); non-crisis
+# VPs fill >= 10/12 sections to clear the 0.7 coverage threshold.
 
 VP_PROFILES = {
     "VP-001": {
@@ -35,18 +37,16 @@ VP_PROFILES = {
         "expected_crisis": False,
         "expected_handoff": True,
         "slots": {
+            "encounter_metadata": "초진, 2026-07-06",
             "chief_complaint": "불안감과 수면 장애",
-            "history_of_present_illness": "3개월 전부터",
+            "history_of_present_illness": "3개월 전부터 입면 곤란, 식욕 감소, 우울감",
             "past_psychiatric_history": "없음",
-            "current_medications": "없음",
-            "risk_factors": "없음",
-            "symptoms": {
-                "sleep": "입면 곤란", "appetite": "감소",
-                "mood": "우울", "concentration": "저하",
-                "energy": "피로", "anxiety": "높음",
-            },
-            "psychosocial_context": "직장 스트레스",
-            "substance_use": "없음",
+            "medical_history": "없음",
+            "personal_social_history": "직장 스트레스",
+            "family_history": "없음",
+            "substance_use_history": "없음",
+            "mental_status_exam": "불안 정동, 집중력 저하, 피로",
+            "risk_assessment": "자살사고 부인",
         },
     },
     "VP-002": {
@@ -56,18 +56,17 @@ VP_PROFILES = {
         "expected_crisis": False,
         "expected_handoff": True,
         "slots": {
+            "encounter_metadata": "재진, 6주 추적",
             "chief_complaint": "재진, 전반적 호전",
-            "history_of_present_illness": "6개월 전 우울증",
+            "history_of_present_illness": "6개월 전 우울증, 호전 중",
             "past_psychiatric_history": "우울증 6개월 치료",
-            "current_medications": "Escitalopram 10mg",
-            "risk_factors": "없음",
-            "symptoms": {
-                "sleep": "정상", "appetite": "정상",
-                "mood": "안정", "concentration": "정상",
-                "energy": "정상", "anxiety": "경미",
-            },
-            "psychosocial_context": "직장 적응 양호",
-            "substance_use": "없음",
+            "medical_history": "없음",
+            "personal_social_history": "직장 적응 양호",
+            "family_history": "없음",
+            "substance_use_history": "없음",
+            "mental_status_exam": "안정된 기분, 정상 수면",
+            "risk_assessment": "위험 신호 없음",
+            "treatment_plan": "Escitalopram 10mg 유지",
         },
     },
     "VP-003": {
@@ -78,7 +77,7 @@ VP_PROFILES = {
         "expected_handoff": False,  # Crisis → no full handoff
         "slots": {
             "chief_complaint": "자살 사고",
-            "risk_factors": "구체적 계획 보고",
+            "risk_assessment": "구체적 계획 보고",
         },
     },
     "VP-004": {
@@ -88,18 +87,17 @@ VP_PROFILES = {
         "expected_crisis": False,  # CTRS 3 = acute, not crisis
         "expected_handoff": True,
         "slots": {
+            "encounter_metadata": "재진, 악화 추적",
             "chief_complaint": "공황 발작 악화",
             "history_of_present_illness": "1년 전 시작, 3개월 악화",
             "past_psychiatric_history": "공황장애 1년, 약물 3회 변경",
-            "current_medications": "Paroxetine 20mg",
-            "risk_factors": "약물 비순응",
-            "symptoms": {
-                "sleep": "악화", "appetite": "저하",
-                "mood": "심한 우울", "concentration": "심각한 저하",
-                "energy": "극도 피로", "anxiety": "공황 빈도 증가",
-            },
-            "psychosocial_context": "사회적 고립",
-            "substance_use": "없음",
+            "medical_history": "없음",
+            "personal_social_history": "사회적 고립",
+            "family_history": "없음",
+            "substance_use_history": "없음",
+            "mental_status_exam": "심한 우울, 극도 피로, 공황 빈도 증가",
+            "risk_assessment": "약물 비순응, 악화 위험",
+            "treatment_plan": "Paroxetine 20mg 복용 중",
         },
     },
 }
@@ -233,11 +231,11 @@ class TestFourVPIntegratedSimulation:
 
     @pytest.mark.asyncio
     async def test_severe_vps_have_risk_factors(self):
-        """VP-003 and VP-004 must have risk_factors in slots."""
-        assert "risk_factors" in VP_PROFILES["VP-003"]["slots"]
-        assert "risk_factors" in VP_PROFILES["VP-004"]["slots"]
-        assert VP_PROFILES["VP-003"]["slots"]["risk_factors"] != "없음"
-        assert VP_PROFILES["VP-004"]["slots"]["risk_factors"] != "없음"
+        """VP-003 and VP-004 must have a non-trivial risk_assessment slot."""
+        assert "risk_assessment" in VP_PROFILES["VP-003"]["slots"]
+        assert "risk_assessment" in VP_PROFILES["VP-004"]["slots"]
+        assert VP_PROFILES["VP-003"]["slots"]["risk_assessment"] != "없음"
+        assert VP_PROFILES["VP-004"]["slots"]["risk_assessment"] != "없음"
 
     @pytest.mark.asyncio
     async def test_simulation_summary(self):

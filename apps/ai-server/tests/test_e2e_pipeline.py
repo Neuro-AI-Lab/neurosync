@@ -105,26 +105,29 @@ class TestE2EFullPipeline:
         assert result.crisis_triggered is True
         assert result.requires_human_review is True
         assert result.handoff_ready is False
+        # TODO(T1-F1-DEV-020): hotline unification pending — current production
+        # crisis messages cite 1393/119; update when the hotline text is unified.
         assert "1393" in result.assistant_response or "119" in result.assistant_response
 
     @pytest.mark.asyncio
     async def test_high_coverage_triggers_full_pipeline(self):
         """When slots are full, pipeline runs: extraction → handoff → verify → deliver."""
         agent = _wire_orchestrator()
+        # Adapted to the current 12-section slot schema (10/12 = 0.83 >= 0.7)
         state = SessionState(
             session_id="e2e-3",
             turn_count=1,
             slot_data={
+                "encounter_metadata": "2026-07-06 초진",
                 "chief_complaint": "불안",
                 "history_of_present_illness": "3개월",
                 "past_psychiatric_history": "없음",
-                "current_medications": "없음",
-                "risk_factors": "없음",
-                "symptoms": {
-                    "sleep": "불면", "appetite": "정상", "mood": "우울",
-                    "concentration": "저하", "energy": "저하",
-                },
-                "psychosocial_context": "직장 스트레스",
+                "medical_history": "없음",
+                "personal_social_history": "직장인",
+                "family_history": "없음",
+                "substance_use_history": "없음",
+                "mental_status_exam": "불안 정동",
+                "risk_assessment": "자살사고 부인",
             },
         )
         inp = OrchestratorInput(session_id="e2e-3", raw_input="네", session_state=state)
@@ -156,7 +159,7 @@ class TestE2EFullPipeline:
         state = r1.session_state
         OrchestratorAgent.update_slots(
             state,
-            {"chief_complaint": "불면", "symptoms.sleep": "불면"},
+            {"chief_complaint": "불면", "mental_status_exam": "피곤한 모습"},
         )
         inp2 = OrchestratorInput(
             session_id="multi",
@@ -166,19 +169,17 @@ class TestE2EFullPipeline:
         r2 = await agent.process_turn(inp2)
         assert r2.current_stage == SessionStage.dialogue_loop
 
-        # Turn 3: fill enough slots to trigger handoff (>=70%)
+        # Turn 3: fill enough slots to trigger handoff (>=70%; 10/12 filled)
         state3 = r2.session_state
         OrchestratorAgent.update_slots(state3, {
+            "encounter_metadata": "2026-07-06 초진",
             "history_of_present_illness": "2주",
             "past_psychiatric_history": "없음",
-            "current_medications": "없음",
-            "risk_factors": "없음",
-            "symptoms.appetite": "저하",
-            "symptoms.mood": "우울",
-            "symptoms.concentration": "저하",
-            "symptoms.energy": "저하",
-            "symptoms.anxiety": "높음",
-            "psychosocial_context": "스트레스",
+            "medical_history": "없음",
+            "personal_social_history": "직장인",
+            "family_history": "없음",
+            "substance_use_history": "없음",
+            "risk_assessment": "자살사고 부인",
         })
         inp3 = OrchestratorInput(session_id="multi", raw_input="네", session_state=state3)
         r3 = await agent.process_turn(inp3)

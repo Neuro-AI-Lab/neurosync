@@ -75,24 +75,24 @@ def _make_orchestrator_with_mocks() -> tuple[OrchestratorAgent, dict]:
 
 
 def _make_high_coverage_state() -> SessionState:
-    """State with enough slots to trigger post-dialogue pipeline."""
+    """State with enough slots to trigger post-dialogue pipeline.
+
+    Uses the current 12-section slot schema (10/12 = 0.83 >= 0.7 threshold).
+    """
     return SessionState(
         session_id="s1",
         turn_count=1,  # not first turn → skip context_retrieval
         slot_data={
+            "encounter_metadata": "2026-07-06 초진",
             "chief_complaint": "불안",
             "history_of_present_illness": "3개월",
             "past_psychiatric_history": "없음",
-            "current_medications": "없음",
-            "risk_factors": "없음",
-            "symptoms": {
-                "sleep": "불면",
-                "appetite": "정상",
-                "mood": "우울",
-                "concentration": "저하",
-                "energy": "저하",
-            },
-            "psychosocial_context": "스트레스",
+            "medical_history": "없음",
+            "personal_social_history": "직장인",
+            "family_history": "없음",
+            "substance_use_history": "없음",
+            "mental_status_exam": "불안 정동",
+            "risk_assessment": "자살사고 부인",
         },
     )
 

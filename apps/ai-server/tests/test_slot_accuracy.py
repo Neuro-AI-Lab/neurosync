@@ -34,9 +34,9 @@ class TestSlotCoverageCalculation:
         assert coverage == 0.0
 
     def test_partial_coverage(self):
-        filled = ["chief_complaint", "history_of_present_illness", "symptoms.sleep"]
+        filled = ["chief_complaint", "history_of_present_illness", "mental_status_exam"]
         coverage = len(filled) / len(ALL_SLOT_KEYS)
-        assert 0.2 < coverage < 0.3  # 3/13
+        assert 0.2 < coverage < 0.3  # 3/12
 
     def test_essential_slots_defined(self):
         assert len(ESSENTIAL_SLOT_KEYS) == 5
@@ -47,25 +47,26 @@ class TestSlotCoverageCalculation:
 class TestExpectedSlotsPerVP:
     """Verify expected slot profiles match VP personas."""
 
+    # Adapted to the current 12-section slot schema (ALL_SLOT_KEYS).
     def test_vp001_expected_slots(self):
-        """VP-001 (mild first): chief_complaint, sleep, anxiety, concentration expected."""
+        """VP-001 (mild first): complaint, HPI, MSE, psychosocial context expected."""
         vp001_expected = {
-            "chief_complaint", "symptoms.sleep", "symptoms.anxiety",
-            "symptoms.concentration", "psychosocial_context",
+            "chief_complaint", "history_of_present_illness",
+            "mental_status_exam", "personal_social_history",
         }
         # All should be in the global slot list
         for s in vp001_expected:
             assert s in ALL_SLOT_KEYS, f"VP-001 expected slot '{s}' not in ALL_SLOT_KEYS"
 
     def test_vp003_expected_slots(self):
-        """VP-003 (severe first): risk_factors must be present."""
-        assert "risk_factors" in ALL_SLOT_KEYS
-        assert "risk_factors" in ESSENTIAL_SLOT_KEYS
+        """VP-003 (severe first): risk assessment must be present."""
+        assert "risk_assessment" in ALL_SLOT_KEYS
+        assert "risk_assessment" in ESSENTIAL_SLOT_KEYS
 
     def test_vp004_expected_slots(self):
-        """VP-004 (severe revisit): medication history expected via current_medications."""
-        assert "current_medications" in [k.split(".")[0] for k in ALL_SLOT_KEYS] or \
-               any("medication" in k for k in ALL_SLOT_KEYS)
+        """VP-004 (severe revisit): medication history lives in past history/treatment plan."""
+        assert "past_psychiatric_history" in ALL_SLOT_KEYS
+        assert "treatment_plan" in ALL_SLOT_KEYS
 
 
 class TestSlotAgentInterface:
@@ -91,4 +92,5 @@ class TestSlotAgentInterface:
         assert out.slot_coverage == 0.0
         assert out.filled_slots == []
         assert out.missing_slots == []
-        assert out.safety_flag is False
+        assert out.essential_filled == []
+        assert out.essential_missing == []

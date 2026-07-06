@@ -138,6 +138,8 @@ class TestStageTransitions:
         assert result.current_stage == SessionStage.crisis_flow
         assert result.crisis_triggered is True
         assert result.requires_human_review is True
+        # TODO(T1-F1-DEV-020): hotline unification pending — current production
+        # crisis messages cite 1393; update when the hotline text is unified.
         assert "1393" in result.assistant_response
 
     @pytest.mark.asyncio
@@ -194,38 +196,36 @@ class TestSlotCoverage:
         assert state.slot_coverage == 0.0
         assert len(state.filled_slots) == 0
 
+    # Adapted to the current 12-section slot schema (ALL_SLOT_KEYS).
     def test_partial_slots_coverage(self):
         agent = _make_orchestrator()
         state = SessionState(
             session_id="s1",
             slot_data={
                 "chief_complaint": "불안",
-                "risk_factors": "없음",
-                "symptoms": {"sleep": "불면"},
+                "risk_assessment": "자살사고 부인",
+                "mental_status_exam": "불안 정동",
             },
         )
         agent._update_slot_coverage(state)
         assert len(state.filled_slots) == 3
-        assert state.slot_coverage == 3 / 13  # 13 total slots
+        assert state.slot_coverage == 3 / 12  # 12 total slots
 
     def test_full_slots_coverage(self):
         agent = _make_orchestrator()
         slot_data = {
+            "encounter_metadata": "2026-07-06 초진",
             "chief_complaint": "불안",
             "history_of_present_illness": "3개월 전부터",
             "past_psychiatric_history": "없음",
-            "current_medications": "없음",
-            "risk_factors": "없음",
-            "symptoms": {
-                "sleep": "불면",
-                "appetite": "정상",
-                "mood": "우울",
-                "concentration": "저하",
-                "energy": "저하",
-                "anxiety": "높음",
-            },
-            "psychosocial_context": "직장 스트레스",
-            "substance_use": "없음",
+            "medical_history": "없음",
+            "personal_social_history": "직장인",
+            "family_history": "없음",
+            "substance_use_history": "없음",
+            "mental_status_exam": "불안 정동",
+            "risk_assessment": "자살사고 부인",
+            "clinical_assessment": "불안장애 의증",
+            "treatment_plan": "외래 추적",
         }
         state = SessionState(session_id="s1", slot_data=slot_data)
         agent._update_slot_coverage(state)
@@ -240,7 +240,7 @@ class TestSlotCoverage:
         )
         agent._update_slot_coverage(state)
         assert "chief_complaint" not in state.missing_essential_slots
-        assert "risk_factors" in state.missing_essential_slots
+        assert "risk_assessment" in state.missing_essential_slots
 
     def test_slot_filled_checks_nested(self):
         assert OrchestratorAgent._slot_is_filled(
@@ -271,21 +271,18 @@ class TestSlotCoverage:
         agent._safety_agent = AsyncMock()
         agent._safety_agent.run = AsyncMock(return_value=_make_safe_safety_output())
 
-        # Pre-fill enough slots to exceed threshold
+        # Pre-fill enough slots to exceed threshold (10/12 = 0.83 >= 0.7)
         slot_data = {
+            "encounter_metadata": "2026-07-06 초진",
             "chief_complaint": "불안",
             "history_of_present_illness": "3개월",
             "past_psychiatric_history": "없음",
-            "current_medications": "없음",
-            "risk_factors": "없음",
-            "symptoms": {
-                "sleep": "불면",
-                "appetite": "정상",
-                "mood": "우울",
-                "concentration": "저하",
-                "energy": "저하",
-            },
-            "psychosocial_context": "스트레스",
+            "medical_history": "없음",
+            "personal_social_history": "직장인",
+            "family_history": "없음",
+            "substance_use_history": "없음",
+            "mental_status_exam": "불안 정동",
+            "risk_assessment": "자살사고 부인",
         }
         state = SessionState(
             session_id="s1",
