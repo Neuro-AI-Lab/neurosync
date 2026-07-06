@@ -11,9 +11,10 @@ from src.core.encryption import encrypt_str
 from src.core.security import hash_password
 from src.models.audit_log import AuditLog
 from src.models.consent import ConsentSnapshot
+from src.models.handoff import HandoffReport
 from src.models.patient_profile import PatientProfile
 from src.models.session import Message, RiskEvent, Session
-from src.models.user import User
+from src.models.user import Organization, User
 
 PATIENTS_URL = "/api/v1/clinician/patients"
 
@@ -26,11 +27,19 @@ def _message_aad(session_id, message_id):
     return f"messages.content:{session_id}:{message_id}".encode()
 
 
-async def _create_clinician(db_session, test_settings) -> User:
+async def _create_org(db_session, name: str = "Hospital") -> Organization:
+    org = Organization(name=name, type="hospital")
+    db_session.add(org)
+    await db_session.flush()
+    return org
+
+
+async def _create_clinician(db_session, test_settings, *, organization_id=None) -> User:
     user = User(
         email=f"doc-{uuid.uuid4().hex[:8]}@hospital.example",
         password_hash=hash_password("Doctor!Password-2026", test_settings),
         role="clinician",
+        organization_id=organization_id,
     )
     db_session.add(user)
     await db_session.flush()
@@ -38,7 +47,12 @@ async def _create_clinician(db_session, test_settings) -> User:
 
 
 async def _create_patient_with_session(
-    db_session, test_settings, *, name: str = "홍길동", with_risk: bool = False
+    db_session,
+    test_settings,
+    *,
+    name: str = "홍길동",
+    with_risk: bool = False,
+    target_hospital_id=None,
 ) -> tuple[User, Session, RiskEvent | None]:
     user = User(
         email=f"pt-{uuid.uuid4().hex[:8]}@example.com",
@@ -55,6 +69,7 @@ async def _create_patient_with_session(
         ),
         birth_year=datetime.now(tz=UTC).year - 30,
         gender="female",
+        target_hospital_id=target_hospital_id,
         phone_encrypted=encrypt_str(
             "01011112222",
             aad=_profile_aad(user.id, "phone"),
@@ -167,9 +182,12 @@ async def test_no_token_returns_401(client):
 async def test_list_patients_returns_decrypted_name_and_risk_badge(
     client, db_session, test_settings
 ):
-    clinician = await _create_clinician(db_session, test_settings)
+    org = await _create_org(db_session)
+    clinician = await _create_clinician(
+        db_session, test_settings, organization_id=org.id
+    )
     await _create_patient_with_session(
-        db_session, test_settings, name="홍길동", with_risk=True
+        db_session, test_settings, name="홍길동", with_risk=True, target_hospital_id=org.id
     )
 
     from src.core.security import create_token
@@ -189,9 +207,12 @@ async def test_list_patients_returns_decrypted_name_and_risk_badge(
 
 @pytest.mark.asyncio
 async def test_get_patient_detail_decrypts_pii(client, db_session, test_settings):
-    clinician = await _create_clinician(db_session, test_settings)
+    org = await _create_org(db_session)
+    clinician = await _create_clinician(
+        db_session, test_settings, organization_id=org.id
+    )
     patient, _, _ = await _create_patient_with_session(
-        db_session, test_settings, name="김선영"
+        db_session, test_settings, name="김선영", target_hospital_id=org.id
     )
     from src.core.security import create_token
 
@@ -213,9 +234,12 @@ async def test_get_patient_detail_decrypts_pii(client, db_session, test_settings
 async def test_get_session_detail_includes_messages_and_risks(
     client, db_session, test_settings
 ):
-    clinician = await _create_clinician(db_session, test_settings)
+    org = await _create_org(db_session)
+    clinician = await _create_clinician(
+        db_session, test_settings, organization_id=org.id
+    )
     _, sess, _ = await _create_patient_with_session(
-        db_session, test_settings, with_risk=True
+        db_session, test_settings, with_risk=True, target_hospital_id=org.id
     )
     from src.core.security import create_token
 
@@ -263,3 +287,81 @@ async def test_clinician_read_writes_audit_log(client, db_session, test_settings
     )
     actions = [r.action for r in rows.scalars().all()]
     assert "clinician.patients.list" in actions
+
+
+# ────────── org-scoped authorization (ISS-022) ──────────
+
+
+async def _token(clinician, test_settings) -> str:
+    from src.core.security import create_token
+
+    return create_token(clinician.id, "access", role="clinician", settings=test_settings)
+
+
+@pytest.mark.asyncio
+async def test_clinician_cannot_list_other_org_patient(client, db_session, test_settings):
+    org_a = await _create_org(db_session, "Hospital A")
+    org_b = await _create_org(db_session, "Hospital B")
+    clinician_a = await _create_clinician(db_session, test_settings, organization_id=org_a.id)
+    await _create_patient_with_session(
+        db_session, test_settings, name="다른병원환자", target_hospital_id=org_b.id
+    )
+
+    token = await _token(clinician_a, test_settings)
+    res = client.get(PATIENTS_URL, headers={"Authorization": f"Bearer {token}"})
+    assert res.status_code == 200
+    names = [p["name"] for p in res.json()["data"]]
+    assert "다른병원환자" not in names, "clinician saw another org's patient (PHI leak)"
+
+
+@pytest.mark.asyncio
+async def test_clinician_cannot_read_other_org_patient_detail(client, db_session, test_settings):
+    org_a = await _create_org(db_session, "Hospital A")
+    org_b = await _create_org(db_session, "Hospital B")
+    clinician_a = await _create_clinician(db_session, test_settings, organization_id=org_a.id)
+    patient_b, _, _ = await _create_patient_with_session(
+        db_session, test_settings, target_hospital_id=org_b.id
+    )
+
+    token = await _token(clinician_a, test_settings)
+    res = client.get(
+        f"/api/v1/clinician/patients/{patient_b.id}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res.status_code == 404, "clinician read another org's patient detail (PHI leak)"
+
+
+@pytest.mark.asyncio
+async def test_clinician_cannot_read_other_org_session(client, db_session, test_settings):
+    org_a = await _create_org(db_session, "Hospital A")
+    org_b = await _create_org(db_session, "Hospital B")
+    clinician_a = await _create_clinician(db_session, test_settings, organization_id=org_a.id)
+    _, sess_b, _ = await _create_patient_with_session(
+        db_session, test_settings, with_risk=True, target_hospital_id=org_b.id
+    )
+
+    token = await _token(clinician_a, test_settings)
+    res = client.get(
+        f"/api/v1/clinician/sessions/{sess_b.id}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res.status_code == 404, "clinician read another org's session (PHI leak)"
+
+
+@pytest.mark.asyncio
+async def test_clinician_cannot_read_other_org_report(client, db_session, test_settings):
+    org_a = await _create_org(db_session, "Hospital A")
+    org_b = await _create_org(db_session, "Hospital B")
+    clinician_a = await _create_clinician(db_session, test_settings, organization_id=org_a.id)
+    _, sess_b, _ = await _create_patient_with_session(
+        db_session, test_settings, target_hospital_id=org_b.id
+    )
+    db_session.add(HandoffReport(session_id=sess_b.id, status="generating"))
+    await db_session.commit()
+
+    token = await _token(clinician_a, test_settings)
+    res = client.get(
+        f"/api/v1/sessions/{sess_b.id}/report",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res.status_code == 404, "clinician read another org's handoff report (PHI leak)"

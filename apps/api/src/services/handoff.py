@@ -36,6 +36,7 @@ from src.models.handoff import HandoffReport
 from src.models.patient_profile import PatientProfile
 from src.models.questionnaire import QuestionnaireResult
 from src.models.session import Message, RiskEvent, Session
+from src.models.user import User
 from src.schemas.handoff import (
     HandoffReportOut,
     QuestionnaireScore,
@@ -43,6 +44,7 @@ from src.schemas.handoff import (
     ReportRiskSignal,
 )
 from src.services.ai_client import AIClient, AIClientError, get_ai_client
+from src.services.clinician import _can_access_patient  # ISS-022: shared org-access rule
 
 logger = logging.getLogger(__name__)
 
@@ -211,9 +213,10 @@ async def _mark_failed(
 
 
 async def build_report_response(
-    db: AsyncSession, session_id: uuid.UUID
+    db: AsyncSession, *, actor: User, session_id: uuid.UUID
 ) -> HandoffReportOut | None:
-    """Compose the GET /report payload. Returns None if no report row exists."""
+    """Compose the GET /report payload. Returns None if no report row exists,
+    or if the session's patient is outside the actor's organization (ISS-022)."""
     row = await db.execute(
         select(HandoffReport).where(HandoffReport.session_id == session_id)
     )
@@ -224,6 +227,15 @@ async def build_report_response(
     sess_row = await db.execute(select(Session).where(Session.id == session_id))
     sess = sess_row.scalar_one_or_none()
     if sess is None:
+        return None
+
+    # ISS-022: org-scope — the session's patient must belong to the actor's org.
+    hosp_row = await db.execute(
+        select(PatientProfile.target_hospital_id).where(
+            PatientProfile.user_id == sess.patient_id
+        )
+    )
+    if not _can_access_patient(actor, hosp_row.scalar_one_or_none()):
         return None
 
     # Deterministic facts — always composed server-side (not AI output).
