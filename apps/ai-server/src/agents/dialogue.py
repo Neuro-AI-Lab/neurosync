@@ -51,6 +51,14 @@ _ALL_SLOTS = [
 _SLOT_COVERAGE_THRESHOLD = 0.7
 _MAX_HISTORY_TURNS = 8
 
+# 직접 질문하지 않는 슬롯 (관찰/자동생성/의료진 영역)
+_NO_QUESTION_SLOTS = {
+    "encounter_metadata",   # 시스템 자동
+    "mental_status_exam",   # 관찰 기반 — 환자에게 질문 안 함
+    "clinical_assessment",  # 대화 종료 후 자동 생성
+    "treatment_plan",       # 의료진 영역
+}
+
 # Per-slot question guides — 대화 중 각 슬롯 수집을 위한 구체적 질문 예시
 _SLOT_QUESTION_GUIDE: dict[str, str] = {
     "encounter_metadata":         "(시스템 자동 수집 — 질문 불필요)",
@@ -233,6 +241,77 @@ class DialogueAgent(BaseAgent):
             handoff_ready=False,      # Coverage 판단은 f1.py orchestrator의 역할
         )
 
+    @classmethod
+    def missing_questionable_slots(cls, filled_slots: dict[str, str]) -> list[str]:
+        """Return question-able slots not yet filled, essential slots first."""
+        filled_keys = {k for k, v in filled_slots.items() if v and k in _ALL_SLOTS}
+        questionable_essential = [s for s in _ESSENTIAL_SLOTS if s not in _NO_QUESTION_SLOTS]
+        missing_essential = [s for s in questionable_essential if s not in filled_keys]
+        missing_other = [
+            s for s in _ALL_SLOTS
+            if s not in _ESSENTIAL_SLOTS and s not in filled_keys
+            and s not in _NO_QUESTION_SLOTS
+        ]
+        return missing_essential + missing_other
+
+    @classmethod
+    def compute_target_slot(
+        cls,
+        filled_slots: dict[str, str],
+        conversation_history: list[dict[str, str]] | None,
+    ) -> str | None:
+        """Deterministic round-robin target slot for this turn (None = all filled).
+
+        Exposed so the F1 pipeline can record which slot the dialogue targeted
+        each turn (needed by the grounding filter's ask-evidence rule). The
+        result matches _build_slot_context exactly for the same inputs.
+        """
+        all_missing = cls.missing_questionable_slots(filled_slots)
+        if not all_missing:
+            return None
+
+        n_agent_turns = 0
+        if conversation_history:
+            n_agent_turns = sum(
+                1 for m in conversation_history if m.get("role") == "assistant"
+            )
+
+        idx = n_agent_turns % len(all_missing)
+        target = all_missing[idx]
+
+        # 직전 타겟 재타겟 방지
+        if len(all_missing) > 1:
+            last_ai = ""
+            if conversation_history:
+                ai_msgs = [m for m in conversation_history if m.get("role") == "assistant"]
+                if ai_msgs:
+                    last_ai = ai_msgs[-1]["content"].lower()
+            guide_text = _SLOT_QUESTION_GUIDE.get(target, "").lower()
+            if guide_text and any(kw in last_ai for kw in guide_text.split()[:3]):
+                idx = (idx + 1) % len(all_missing)
+                target = all_missing[idx]
+
+        return target
+
+    @staticmethod
+    def _build_probe_context(probe_instruction: str) -> str:
+        """Directive context for safety-probe turns — round-robin suspended."""
+        lines = [
+            "=" * 50,
+            "아래 지시를 반드시 따르세요. (안전 탐색 모드)",
+            "=" * 50,
+            "",
+            "## 이번 턴: 안전 탐색 — 슬롯 문진 중단",
+            probe_instruction,
+            "",
+            "## 형식 규칙",
+            "- 따뜻한 공감 1문장 + 위에 지시된 질문 **한 개**만.",
+            "- 다른 문진 주제(수면, 가족력, 음주 등)를 질문하지 마세요.",
+            "- 환자를 판단하거나 설교하지 마세요.",
+            "",
+        ]
+        return "\n\n" + "\n".join(lines)
+
     def _build_slot_context(
         self,
         filled_slots: dict[str, str],
@@ -245,27 +324,16 @@ class DialogueAgent(BaseAgent):
         - 이미 수집된 슬롯의 KEY+VALUE를 보여줘서 재질문 방지
         - 미수집 슬롯 중 이번 턴 타겟을 명시
         - 응답 형식 규칙 강제
+
+        session_state["probe_instruction"]이 있으면 안전 탐색 모드 —
+        round-robin 슬롯 타겟팅을 중단하고 probe 지시만 전달한다.
         """
-        # 직접 질문하지 않는 슬롯 (관찰/자동생성/의료진 영역)
-        _NO_QUESTION_SLOTS = {
-            "encounter_metadata",   # 시스템 자동
-            "mental_status_exam",   # 관찰 기반 — 환자에게 질문 안 함
-            "clinical_assessment",  # 대화 종료 후 자동 생성
-            "treatment_plan",       # 의료진 영역
-        }
+        if session_state and session_state.get("probe_instruction"):
+            return self._build_probe_context(str(session_state["probe_instruction"]))
 
         filled_with_values = {k: v for k, v in filled_slots.items() if v and k in _ALL_SLOTS}
-        filled_keys = set(filled_with_values.keys())
 
-        # 질문 가능한 미수집 슬롯만 추출
-        _QUESTIONABLE_ESSENTIAL = [s for s in _ESSENTIAL_SLOTS if s not in _NO_QUESTION_SLOTS]
-        missing_essential = [s for s in _QUESTIONABLE_ESSENTIAL if s not in filled_keys]
-        missing_other = [
-            s for s in _ALL_SLOTS
-            if s not in _ESSENTIAL_SLOTS and s not in filled_keys
-            and s not in _NO_QUESTION_SLOTS
-        ]
-        all_missing = missing_essential + missing_other
+        all_missing = self.missing_questionable_slots(filled_slots)
 
         lines: list[str] = []
 
@@ -313,24 +381,9 @@ class DialogueAgent(BaseAgent):
 
         # ── 4. 이번 턴 행동 ──
         if all_missing:
-            n_agent_turns = 0
-            if conversation_history:
-                n_agent_turns = sum(1 for m in conversation_history if m.get("role") == "assistant")
-
-            idx = n_agent_turns % len(all_missing)
-            target = all_missing[idx]
-
-            # 직전 타겟 재타겟 방지
-            if len(all_missing) > 1:
-                last_ai = ""
-                if conversation_history:
-                    ai_msgs = [m for m in conversation_history if m.get("role") == "assistant"]
-                    if ai_msgs:
-                        last_ai = ai_msgs[-1]["content"].lower()
-                guide_text = _SLOT_QUESTION_GUIDE.get(target, "").lower()
-                if guide_text and any(kw in last_ai for kw in guide_text.split()[:3]):
-                    idx = (idx + 1) % len(all_missing)
-                    target = all_missing[idx]
+            target = self.compute_target_slot(filled_slots, conversation_history)
+            if target is None:  # defensive — all_missing non-empty implies a target
+                target = all_missing[0]
 
             guide = _SLOT_QUESTION_GUIDE.get(target, target)
             lines.append(f"## 이번 턴: {target}에 대해 질문하세요")

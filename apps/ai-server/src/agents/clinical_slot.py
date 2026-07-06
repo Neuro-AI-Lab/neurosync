@@ -46,6 +46,10 @@ ESSENTIAL_SLOT_KEYS = [
     "clinical_assessment",           # 11. 평가/진단적 인상
 ]
 
+# T1-F1-DEV-017: v2 replaces realistic example values with synthetic
+# placeholders after the 2026-07-03 prompt-echo fabrication incident.
+PROMPT_VERSION = "v2"
+
 
 class ClinicalSlotAgent(BaseAgent):
     """Extracts 12 standard clinical slots from conversation via LLM."""
@@ -66,13 +70,16 @@ class ClinicalSlotAgent(BaseAgent):
 
         # 1. Load system prompt
         try:
-            system_prompt = self._prompt_loader.load_system_prompt("clinical_slot", "v1")
+            system_prompt = self._prompt_loader.load_system_prompt(
+                "clinical_slot", PROMPT_VERSION
+            )
         except FileNotFoundError:
             logger.warning("clinical_slot prompt not found, using fallback")
             system_prompt = (
                 "대화에서 임상 정보를 추출하세요. 12개 표준 슬롯 key로만 출력. "
                 "값은 flat string 또는 null. 진단명 사용 금지. "
-                "부정 응답(없다, 아니다)도 유의미한 값으로 기록."
+                "묻고 답하지 않은 슬롯은 반드시 null. 추론/날조 금지. "
+                "risk_assessment는 명시적 위험 문답이 없으면 null."
             )
 
         # 2. Context: already collected slots
@@ -118,7 +125,7 @@ class ClinicalSlotAgent(BaseAgent):
             latency_ms = (time.perf_counter() - start) * 1000
             return ClinicalSlotOutput(
                 model_used="none",
-                prompt_version="v1",
+                prompt_version=PROMPT_VERSION,
                 latency_ms=latency_ms,
                 reason_summary=f"LLM call failed: {exc}",
                 missing_slots=ALL_SLOT_KEYS,
@@ -180,7 +187,7 @@ class ClinicalSlotAgent(BaseAgent):
 
         return ClinicalSlotOutput(
             model_used=resp.model,
-            prompt_version="v1",
+            prompt_version=PROMPT_VERSION,
             latency_ms=latency_ms,
             reason_summary=f"Extracted {len(filled)}/{len(ALL_SLOT_KEYS)} slots",
             extracted_slots=extracted,
