@@ -1,9 +1,13 @@
 """Schemas for the Temporal Summary agent."""
 from __future__ import annotations
+
 from enum import StrEnum
-from typing import Any, Optional
+from typing import Any
+
 from pydantic import BaseModel, Field
+
 from src.agents.base import AgentInput, AgentOutput
+
 
 class DomainDirection(StrEnum):
     improved = "improved"

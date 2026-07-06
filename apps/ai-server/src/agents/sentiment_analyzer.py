@@ -52,7 +52,10 @@ class SentimentAnalyzerAgent(BaseAgent):
         elif isinstance(inp, SentimentSessionInput):
             return await self._analyze_session(inp)
         else:
-            raise TypeError(f"Expected SentimentUtteranceInput or SentimentSessionInput, got {type(inp).__name__}")
+            raise TypeError(
+                "Expected SentimentUtteranceInput or SentimentSessionInput, "
+                f"got {type(inp).__name__}"
+            )
 
     async def _analyze_utterance(self, inp: SentimentUtteranceInput) -> SentimentUtteranceOutput:
         """Mode A: Analyze a single patient utterance."""
@@ -63,7 +66,8 @@ class SentimentAnalyzerAgent(BaseAgent):
         except FileNotFoundError:
             system_prompt = (
                 "환자 발화의 감정을 분석하세요. JSON 출력: "
-                "{turn_index, emotions: [{label, intensity}], polarity, arousal, evidence_phrase, risk_signal}"
+                "{turn_index, emotions: [{label, intensity}], polarity, arousal, "
+                "evidence_phrase, risk_signal}"
             )
 
         mode_instruction = (
@@ -83,11 +87,18 @@ class SentimentAnalyzerAgent(BaseAgent):
         adapter = self._router.get_adapter(selection.adapter_name)
         assert isinstance(adapter, LLMAdapter)
 
-        resp_format = {"type": "json_object"} if (selection.supports_json_schema or selection.supports_json_object) else None
+        resp_format = (
+            {"type": "json_object"}
+            if (selection.supports_json_schema or selection.supports_json_object)
+            else None
+        )
 
         try:
             resp = await adapter.chat_timed(
-                messages, model=selection.model_id, temperature=0.2, max_tokens=512,
+                messages,
+                model=selection.model_id,
+                temperature=0.2,
+                max_tokens=512,
                 response_format=resp_format,
             )
             self._router.record_success(selection.adapter_name)
@@ -96,7 +107,13 @@ class SentimentAnalyzerAgent(BaseAgent):
             logger.warning("Sentiment utterance analysis failed: %s", exc)
             data = {}
 
-        emotions = [EmotionScore(**e) for e in data.get("emotions", [{"label": "neutral", "intensity": 0.5}])]
+        emotions = [
+            EmotionScore(**emotion)
+            for emotion in data.get(
+                "emotions",
+                [{"label": "neutral", "intensity": 0.5}],
+            )
+        ]
         latency_ms = (time.perf_counter() - start) * 1000
 
         return SentimentUtteranceOutput(
@@ -147,13 +164,19 @@ class SentimentAnalyzerAgent(BaseAgent):
 
         # Compute distribution
         total_emotion_mentions = sum(emotion_counts.values()) or 1
-        distribution = {k: round(v / total_emotion_mentions, 2) for k, v in emotion_counts.most_common()}
+        distribution = {
+            k: round(v / total_emotion_mentions, 2)
+            for k, v in emotion_counts.most_common()
+        }
 
         # Dominant emotions (top 2)
         dominant = [k for k, _ in emotion_counts.most_common(2)]
 
         # Signal strength
-        negative_count = sum(emotion_counts.get(e, 0) for e in ("anxiety", "sadness", "anger", "despair", "fear"))
+        negative_count = sum(
+            emotion_counts.get(e, 0)
+            for e in ("anxiety", "sadness", "anger", "despair", "fear")
+        )
         if negative_count == 0:
             strength = "none"
         elif max_negative_intensity < 0.5:
@@ -167,15 +190,29 @@ class SentimentAnalyzerAgent(BaseAgent):
         shift_detected = False
         shift_desc = ""
         if len(trajectory) >= 3:
-            first_half = sum(p.polarity for p in trajectory[:len(trajectory)//2]) / max(len(trajectory)//2, 1)
-            second_half = sum(p.polarity for p in trajectory[len(trajectory)//2:]) / max(len(trajectory) - len(trajectory)//2, 1)
+            midpoint = len(trajectory) // 2
+            first_half = sum(p.polarity for p in trajectory[:midpoint]) / max(
+                midpoint,
+                1,
+            )
+            second_half = sum(p.polarity for p in trajectory[midpoint:]) / max(
+                len(trajectory) - midpoint,
+                1,
+            )
             if abs(first_half - second_half) > 0.3:
                 shift_detected = True
                 direction = "악화" if second_half < first_half else "호전"
-                shift_desc = f"대화 전반부 polarity {first_half:.1f} → 후반부 {second_half:.1f} ({direction})"
+                shift_desc = (
+                    f"대화 전반부 polarity {first_half:.1f} → "
+                    f"후반부 {second_half:.1f} ({direction})"
+                )
 
         # Repeated patterns
-        repeated = [f"{label} 표현 {count}회 반복" for label, count in emotion_counts.most_common() if count >= 3]
+        repeated = [
+            f"{label} 표현 {count}회 반복"
+            for label, count in emotion_counts.most_common()
+            if count >= 3
+        ]
 
         latency_ms = (time.perf_counter() - start) * 1000
 

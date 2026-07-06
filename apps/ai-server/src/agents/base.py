@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -12,7 +12,7 @@ class AgentInput(BaseModel):
     """Base input shared by every agent."""
 
     session_id: str = Field(..., description="Session identifier")
-    request_id: Optional[str] = Field(default=None, description="Trace/request ID")
+    request_id: str | None = Field(default=None, description="Trace/request ID")
     extra: dict[str, Any] = Field(default_factory=dict, description="Agent-specific payload")
 
 

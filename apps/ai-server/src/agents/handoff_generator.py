@@ -10,7 +10,7 @@ from src.adapters.base import ChatMessage, LLMAdapter
 from src.agents.base import AgentInput, BaseAgent
 from src.prompts.loader import PromptLoader
 from src.routing.model_router import ModelRouter
-from src.schemas.common import EvidencePacket, EvidenceSource, RiskLevel
+from src.schemas.common import CTRS_TO_RISK, CTRSLevel, EvidencePacket, EvidenceSource, RiskLevel
 from src.schemas.handoff import HandoffInput, HandoffOutput, SlotData
 
 logger = logging.getLogger(__name__)
@@ -74,11 +74,45 @@ def _find_missing_slots(slots: SlotData) -> list[str]:
     return [k for k, v in data.items() if v is None]
 
 
+_RISK_ORDER: dict[RiskLevel, int] = {
+    RiskLevel.none: 0,
+    RiskLevel.low: 1,
+    RiskLevel.medium: 2,
+    RiskLevel.high: 3,
+    RiskLevel.critical: 4,
+}
+_RISK_BY_VALUE: dict[str, RiskLevel] = {r.value: r for r in RiskLevel}
+
+
+def _event_risk(evt: object) -> RiskLevel:
+    """Best-effort severity of a single risk event.
+
+    Prefers an explicit ``risk_level``; otherwise maps ``ctrs_level`` via
+    CTRS_TO_RISK; a present-but-unlabelled event keeps the "at least medium"
+    floor.
+    """
+    if not isinstance(evt, dict):
+        return RiskLevel.medium
+    raw = str(evt.get("risk_level", "")).strip().lower()
+    if raw in _RISK_BY_VALUE:
+        return _RISK_BY_VALUE[raw]
+    ctrs_raw = str(evt.get("ctrs_level", "")).strip()
+    if ctrs_raw.isdigit():
+        try:
+            return CTRS_TO_RISK.get(CTRSLevel(int(ctrs_raw)), RiskLevel.medium)
+        except ValueError:
+            pass
+    return RiskLevel.medium
+
+
 def _detect_risk_level(risk_events: list[dict[str, str]]) -> RiskLevel:
-    """Simple heuristic: if any risk events exist, at least medium."""
+    """Return the maximum severity across all risk events (none if empty)."""
     if not risk_events:
         return RiskLevel.none
-    return RiskLevel.medium
+    return max(
+        (_event_risk(evt) for evt in risk_events),
+        key=lambda r: _RISK_ORDER[r],
+    )
 
 
 class HandoffGeneratorAgent(BaseAgent):
@@ -131,7 +165,6 @@ class HandoffGeneratorAgent(BaseAgent):
             self._router.record_success(selection.adapter_name)
             report_markdown = resp.content
             model_used = resp.model
-            llm_latency = resp.latency_ms
 
         except Exception as exc:
             logger.error("Handoff generation failed on %s: %s", selection.adapter_name, exc)
@@ -155,7 +188,6 @@ class HandoffGeneratorAgent(BaseAgent):
             self._router.record_success(fallback.adapter_name)
             report_markdown = resp.content
             model_used = resp.model
-            llm_latency = resp.latency_ms
 
         # Extract evidence packets from the conversation history
         evidence_packets = _extract_evidence_packets(inp)

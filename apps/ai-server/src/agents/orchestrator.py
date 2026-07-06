@@ -11,13 +11,16 @@ All routing decisions are rule-based — no LLM call in this agent.
 from __future__ import annotations
 
 import logging
-import time
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from src.agents.base import BaseAgent
-from src.agents.clinical_slot import ALL_SLOT_KEYS, ClinicalSlotAgent, ESSENTIAL_SLOT_KEYS
-from src.agents.evidence_verifier import EvidenceVerifierAgent, EvidenceVerifierInput, VerifierAction
+from src.agents.clinical_slot import ALL_SLOT_KEYS, ESSENTIAL_SLOT_KEYS, ClinicalSlotAgent
+from src.agents.evidence_verifier import (
+    EvidenceVerifierAgent,
+    EvidenceVerifierInput,
+    VerifierAction,
+)
 from src.agents.handoff_generator import HandoffGeneratorAgent
 from src.agents.safety_classifier import SafetyClassifierAgent
 from src.prompts.loader import PromptLoader
@@ -25,9 +28,7 @@ from src.routing.model_router import ModelRouter
 from src.schemas.clinical_slot import ClinicalSlotInput
 from src.schemas.common import CTRSLevel, RiskLevel
 from src.schemas.handoff import HandoffInput, SlotData
-from src.services.trend_plotter import TrendDataPoint, generate_trend_plot_base64
 from src.schemas.orchestrator import (
-    InputType,
     OrchestratorInput,
     OrchestratorTurnResult,
     SafetyStatus,
@@ -37,6 +38,7 @@ from src.schemas.orchestrator import (
 )
 from src.schemas.safety import SafetyInput
 from src.scoring.survey_scorer import ScoreResult, score_survey
+from src.services.trend_plotter import TrendDataPoint, generate_trend_plot_base64
 
 logger = logging.getLogger(__name__)
 
@@ -81,10 +83,10 @@ class OrchestratorAgent(BaseAgent):
         self._model_router = model_router
         self._prompt_loader = prompt_loader
         # Sub-agents are created lazily
-        self._safety_agent: Optional[SafetyClassifierAgent] = None
-        self._slot_agent: Optional[ClinicalSlotAgent] = None
-        self._handoff_agent: Optional[HandoffGeneratorAgent] = None
-        self._verifier_agent: Optional[EvidenceVerifierAgent] = None
+        self._safety_agent: SafetyClassifierAgent | None = None
+        self._slot_agent: ClinicalSlotAgent | None = None
+        self._handoff_agent: HandoffGeneratorAgent | None = None
+        self._verifier_agent: EvidenceVerifierAgent | None = None
 
     @property
     def agent_name(self) -> str:
@@ -138,8 +140,6 @@ class OrchestratorAgent(BaseAgent):
         When slot coverage reaches threshold or max turns, transitions to
         slot_extraction → handoff pipeline automatically.
         """
-        start = time.perf_counter()
-
         # Initialize or restore session state
         state = inp.session_state or SessionState(
             session_id=inp.session_id,
@@ -409,7 +409,9 @@ class OrchestratorAgent(BaseAgent):
 
                     handoff_report = {
                         "report_markdown": handoff_result.report_markdown,
-                        "evidence_packets": [p.model_dump() for p in handoff_result.evidence_packets],
+                        "evidence_packets": [
+                            p.model_dump() for p in handoff_result.evidence_packets
+                        ],
                         "missing_slots": handoff_result.missing_slots,
                         "risk_level": str(handoff_result.risk_level),
                         "trend_plot_base64": trend_plot_b64,
@@ -460,7 +462,11 @@ class OrchestratorAgent(BaseAgent):
     def _build_handoff_input(self, state: SessionState) -> HandoffInput:
         """Construct HandoffInput from the current session state."""
         slot_data = state.slot_data
-        symptoms = slot_data.get("symptoms", {}) if isinstance(slot_data.get("symptoms"), dict) else {}
+        symptoms = (
+            slot_data.get("symptoms", {})
+            if isinstance(slot_data.get("symptoms"), dict)
+            else {}
+        )
         return HandoffInput(
             session_id=state.session_id,
             slots=SlotData(
@@ -486,7 +492,7 @@ class OrchestratorAgent(BaseAgent):
             is_first_visit=state.is_first_visit,
         )
 
-    def _generate_trend_plot(self, state: SessionState) -> Optional[str]:
+    def _generate_trend_plot(self, state: SessionState) -> str | None:
         """Generate longitudinal trend plot from session state scale data.
 
         Builds TrendDataPoints from prior + current scale scores stored in
@@ -499,8 +505,16 @@ class OrchestratorAgent(BaseAgent):
         # Build current data point from session state
         current = TrendDataPoint(
             date=datetime.now().strftime("%Y-%m-%d"),
-            phq9=scale_scores.get("PHQ-9", {}).get("total_score") if isinstance(scale_scores.get("PHQ-9"), dict) else None,
-            gad7=scale_scores.get("GAD-7", {}).get("total_score") if isinstance(scale_scores.get("GAD-7"), dict) else None,
+            phq9=(
+                scale_scores.get("PHQ-9", {}).get("total_score")
+                if isinstance(scale_scores.get("PHQ-9"), dict)
+                else None
+            ),
+            gad7=(
+                scale_scores.get("GAD-7", {}).get("total_score")
+                if isinstance(scale_scores.get("GAD-7"), dict)
+                else None
+            ),
             ctrs=int(state.safety_status.ctrs_level) if state.safety_status.ctrs_level else None,
             sentiment=None,  # Sentiment is computed per-session, not stored as a single score
             label="Current",
@@ -521,7 +535,10 @@ class OrchestratorAgent(BaseAgent):
         else:
             data_points = [current]
 
-        if not any(dp.phq9 is not None or dp.gad7 is not None or dp.ctrs is not None for dp in data_points):
+        if not any(
+            dp.phq9 is not None or dp.gad7 is not None or dp.ctrs is not None
+            for dp in data_points
+        ):
             return None
 
         patient_name = state.patient_id or ""
