@@ -9,17 +9,17 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from pydantic import ValidationError
 
 from src.agents.input_normalizer import (
-    InputNormalizerAgent,
     _SAFETY_EXPRESSIONS,
+    InputNormalizerAgent,
 )
 from src.schemas.input_normalizer import (
     InputNormalizerInput,
     InputNormalizerOutput,
     NormalizationChange,
 )
-
 
 # ── Schema tests ────────────────────────────────────────────────────
 
@@ -58,7 +58,7 @@ class TestInputNormalizerSchemas:
             assert c.type == t
 
     def test_invalid_change_type_rejected(self):
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             NormalizationChange(original="a", normalized="b", type="invalid_type")
 
     def test_input_type_ocr(self):

@@ -1,5 +1,6 @@
 """T1-F5-VER-006: Evidence citation coverage verification."""
 import pytest
+
 from src.agents.evidence_verifier import EvidenceVerifierAgent, EvidenceVerifierInput
 from src.schemas.common import EvidencePacket
 
@@ -28,12 +29,31 @@ class TestEvidenceCoverage:
             "| [ev_msg_002] | 대화 | 턴2 | 우울 영역 |\n"
         )
         packets = [
-            EvidencePacket(evidence_id="ev_msg_001", source_type="message", source_ref="turn1", content_summary="불안"),
-            EvidencePacket(evidence_id="ev_msg_002", source_type="message", source_ref="turn2", content_summary="우울"),
+            EvidencePacket(
+                evidence_id="ev_msg_001",
+                source_type="message",
+                source_ref="turn1",
+                content_summary="불안",
+            ),
+            EvidencePacket(
+                evidence_id="ev_msg_002",
+                source_type="message",
+                source_ref="turn2",
+                content_summary="우울",
+            ),
         ]
-        inp = EvidenceVerifierInput(session_id="t", report_markdown=report, evidence_packets=packets, ctrs_level=5)
+        inp = EvidenceVerifierInput(
+            session_id="t",
+            report_markdown=report,
+            evidence_packets=packets,
+            ctrs_level=5,
+        )
         result = await agent.run(inp)
-        dangling = [i for i in result.issues if i.issue_type in ("dangling_reference", "orphan_evidence")]
+        dangling = [
+            i
+            for i in result.issues
+            if i.issue_type in ("dangling_reference", "orphan_evidence")
+        ]
         assert len(dangling) == 0, f"Unexpected dangling issues: {dangling}"
 
     @pytest.mark.asyncio
@@ -68,7 +88,8 @@ class TestEvidenceCoverage:
     async def test_no_evidence_in_clinical_section(self):
         """Clinical section with content but no evidence → unsupported claim."""
         report = (
-            "## 섹션 3. 주호소 및 현병력\n환자가 심한 우울감과 불면을 호소하며 일상 기능이 저하됨\n\n"
+            "## 섹션 3. 주호소 및 현병력\n"
+            "환자가 심한 우울감과 불면을 호소하며 일상 기능이 저하됨\n\n"
             "## 섹션 12. 근거 레지스트리\n(없음)\n"
         )
         inp = EvidenceVerifierInput(session_id="t", report_markdown=report)

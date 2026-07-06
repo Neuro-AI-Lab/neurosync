@@ -19,9 +19,8 @@ from __future__ import annotations
 import base64
 import io
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +31,7 @@ class ClinicalEvent:
 
     date: str                                          # ISO date
     label: str                                         # e.g. "Escitalopram 10mg started"
-    event_type: str = "medication"                     # medication | crisis | hospitalization | other
+    event_type: str = "medication"  # medication | crisis | hospitalization | other
     color: str = ""                                    # auto-assigned if empty
 
 
@@ -41,10 +40,10 @@ class TrendDataPoint:
     """Single visit data point for trend plotting."""
 
     date: str                                          # ISO date string, e.g. "2026-04-14"
-    phq9: Optional[int] = None
-    gad7: Optional[int] = None
-    ctrs: Optional[int] = None
-    sentiment: Optional[float] = None
+    phq9: int | None = None
+    gad7: int | None = None
+    ctrs: int | None = None
+    sentiment: float | None = None
     label: str = ""                                    # e.g. "Visit 1", "F/U 3"
 
 
@@ -98,7 +97,7 @@ def generate_trend_plot(
     events: list[ClinicalEvent] | None = None,
     figsize: tuple[float, float] = (14, 12),
     dpi: int = 150,
-) -> Optional[TrendPlotResult]:
+) -> TrendPlotResult | None:
     """Generate a multi-panel longitudinal trend chart.
 
     Args:
@@ -126,7 +125,7 @@ def generate_trend_plot_base64(
     data_points: list[TrendDataPoint],
     patient_name: str = "",
     events: list[ClinicalEvent] | None = None,
-) -> Optional[str]:
+) -> str | None:
     """Convenience wrapper returning just the base64 string."""
     result = generate_trend_plot(data_points, patient_name, events=events)
     return result.base64_str if result else None
@@ -153,10 +152,8 @@ def _render_plot(
 ) -> TrendPlotResult:
     import matplotlib
     matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    import matplotlib.dates as mdates
-    import matplotlib.ticker as ticker
     import matplotlib.font_manager as fm
+    import matplotlib.pyplot as plt
 
     # Korean font
     for fpath in [
@@ -186,13 +183,21 @@ def _render_plot(
 
     panels: list[tuple] = []
     if has_phq9:
-        panels.append(("PHQ-9 (Depression)", [dp.phq9 for dp in data_points], _PHQ9_ZONES, 0, 27, False))
+        panels.append(
+            ("PHQ-9 (Depression)", [dp.phq9 for dp in data_points], _PHQ9_ZONES, 0, 27, False)
+        )
     if has_gad7:
-        panels.append(("GAD-7 (Anxiety)", [dp.gad7 for dp in data_points], _GAD7_ZONES, 0, 21, False))
+        panels.append(
+            ("GAD-7 (Anxiety)", [dp.gad7 for dp in data_points], _GAD7_ZONES, 0, 21, False)
+        )
     if has_ctrs:
-        panels.append(("CTRS (Crisis Triage)", [dp.ctrs for dp in data_points], _CTRS_ZONES, 1, 5, True))
+        panels.append(
+            ("CTRS (Crisis Triage)", [dp.ctrs for dp in data_points], _CTRS_ZONES, 1, 5, True)
+        )
     if has_sentiment:
-        panels.append(("Sentiment Polarity", [dp.sentiment for dp in data_points], [], -1.0, 1.0, False))
+        panels.append(
+            ("Sentiment Polarity", [dp.sentiment for dp in data_points], [], -1.0, 1.0, False)
+        )
 
     if not panels:
         raise ValueError("No plottable data")
@@ -270,10 +275,10 @@ def _draw_panel(
         ax.axhspan(-1.0, 0, alpha=0.06, color="#F44336")
 
     # Plot line
-    valid_pairs = [(x, v) for x, v in zip(x_vals, values) if v is not None]
+    valid_pairs = [(x, v) for x, v in zip(x_vals, values, strict=False) if v is not None]
     if not valid_pairs:
         return
-    vx, vy = zip(*valid_pairs)
+    vx, vy = zip(*valid_pairs, strict=False)
 
     ax.plot(
         vx, vy,
@@ -284,7 +289,7 @@ def _draw_panel(
 
     # Data labels — smart placement to avoid overlap on dense charts
     show_all_labels = len(vx) <= 8
-    for i, (xi, yi) in enumerate(zip(vx, vy)):
+    for i, (xi, yi) in enumerate(zip(vx, vy, strict=False)):
         if show_all_labels or i == 0 or i == len(vx) - 1 or i % 3 == 0:
             label = f"{yi}" if isinstance(yi, int) else f"{yi:.2f}"
             offset_y = 10 if not invert else -14
@@ -340,7 +345,7 @@ def _draw_panel(
         )
 
     # Event markers on this panel (vertical dashed lines)
-    for ev, ed in zip(events, event_dates):
+    for ev, ed in zip(events, event_dates, strict=False):
         ev_x = ed if use_date_axis else _find_nearest_x(dates, ed, list(range(len(dates))))
         c = ev.color or _EVENT_COLORS.get(ev.event_type, "#607D8B")
         ax.axvline(x=ev_x, color=c, linestyle=":", alpha=0.5, linewidth=1, zorder=2)
@@ -399,7 +404,7 @@ def _draw_event_timeline(ax, dates, events, event_dates, use_date_axis):
 
     # Draw events as colored markers with labels
     y_positions = [0.7, 0.4, 0.7, 0.4]  # Alternate heights to reduce overlap
-    for i, (ev, ed) in enumerate(zip(events, event_dates)):
+    for i, (ev, ed) in enumerate(zip(events, event_dates, strict=False)):
         c = ev.color or _EVENT_COLORS.get(ev.event_type, "#607D8B")
         x_pos = ed if use_date_axis else _find_nearest_x(dates, ed, list(range(len(dates))))
         y_pos = y_positions[i % len(y_positions)]
@@ -416,7 +421,13 @@ def _draw_event_timeline(ax, dates, events, event_dates, use_date_axis):
             xytext=(5, 8 if y_pos > 0.5 else -14),
             fontsize=7, color=c, fontweight="bold",
             ha="left", va="bottom" if y_pos > 0.5 else "top",
-            bbox=dict(boxstyle="round,pad=0.15", facecolor="white", edgecolor=c, alpha=0.8, linewidth=0.6),
+            bbox=dict(
+                boxstyle="round,pad=0.15",
+                facecolor="white",
+                edgecolor=c,
+                alpha=0.8,
+                linewidth=0.6,
+            ),
             zorder=10,
         )
 

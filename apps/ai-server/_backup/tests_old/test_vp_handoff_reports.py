@@ -22,11 +22,9 @@ from src.schemas.common import CTRSLevel, EvidencePacket, EvidenceSource, RiskLe
 from src.schemas.handoff import HandoffOutput
 from src.schemas.orchestrator import (
     OrchestratorInput,
-    SafetyStatus,
     SessionStage,
     SessionState,
 )
-
 
 # ── VP Slot Profiles ───────────────────────────────────────────────
 

@@ -1,6 +1,5 @@
 """T1-F3-DEV-004: Survey scoring HTTP route tests."""
 
-import pytest
 from fastapi.testclient import TestClient
 
 from src.main import app

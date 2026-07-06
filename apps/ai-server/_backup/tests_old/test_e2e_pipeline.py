@@ -72,7 +72,7 @@ _SAMPLE_REPORT = "\n".join(
 
 
 class TestE2EFullPipeline:
-    """Complete pipeline: input → safety → context → dialogue → extraction → handoff → verify → deliver."""
+    """Complete pipeline: input → safety → context → dialogue → extraction → handoff → verify → deliver."""  # noqa: E501
 
     @pytest.mark.asyncio
     async def test_safe_first_turn_reaches_dialogue(self):
@@ -154,8 +154,15 @@ class TestE2EFullPipeline:
 
         # Turn 2: add slots externally, still low
         state = r1.session_state
-        OrchestratorAgent.update_slots(state, {"chief_complaint": "불면", "symptoms.sleep": "불면"})
-        inp2 = OrchestratorInput(session_id="multi", raw_input="네, 2주 정도요", session_state=state)
+        OrchestratorAgent.update_slots(
+            state,
+            {"chief_complaint": "불면", "symptoms.sleep": "불면"},
+        )
+        inp2 = OrchestratorInput(
+            session_id="multi",
+            raw_input="네, 2주 정도요",
+            session_state=state,
+        )
         r2 = await agent.process_turn(inp2)
         assert r2.current_stage == SessionStage.dialogue_loop
 
@@ -203,7 +210,11 @@ class TestE2EFullPipeline:
         assert len(r1.session_state.conversation_history) == 1
 
         state = r1.session_state
-        inp2 = OrchestratorInput(session_id="persist", raw_input="두 번째 메시지", session_state=state)
+        inp2 = OrchestratorInput(
+            session_id="persist",
+            raw_input="두 번째 메시지",
+            session_state=state,
+        )
         r2 = await agent.process_turn(inp2)
         assert r2.session_state.turn_count == 2
         assert len(r2.session_state.conversation_history) == 2

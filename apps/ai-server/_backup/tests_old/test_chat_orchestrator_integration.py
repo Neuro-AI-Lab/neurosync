@@ -7,11 +7,6 @@ No LLM calls — orchestrator and dialogue LLM are mocked.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
-
-from src.agents.orchestrator import OrchestratorAgent
 from src.schemas.common import CTRSLevel, RiskLevel
 from src.schemas.dialogue import DialogueInput, DialogueOutput
 from src.schemas.orchestrator import (

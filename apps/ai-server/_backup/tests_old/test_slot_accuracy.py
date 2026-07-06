@@ -5,9 +5,8 @@ conversations matching each VP's expected profile.
 No LLM call — uses the agent's JSON parse + coverage logic on mock data.
 """
 
-import pytest
 
-from src.agents.clinical_slot import ClinicalSlotAgent, ALL_SLOT_KEYS, ESSENTIAL_SLOT_KEYS
+from src.agents.clinical_slot import ALL_SLOT_KEYS, ESSENTIAL_SLOT_KEYS
 from src.schemas.clinical_slot import ClinicalSlotInput, ClinicalSlotOutput
 
 
@@ -16,7 +15,6 @@ class TestSlotCoverageCalculation:
 
     def test_full_coverage(self):
         """All slots filled → 100%."""
-        data = {k: {"value": "test", "evidence": ["[ev_msg_001]"]} for k in ALL_SLOT_KEYS}
         # Flatten nested keys
         flat = {}
         for k in ALL_SLOT_KEYS:
@@ -84,7 +82,12 @@ class TestSlotAgentInterface:
         assert inp.current_slots["chief_complaint"] == "불안"
 
     def test_output_schema_defaults(self):
-        out = ClinicalSlotOutput(model_used="test", prompt_version="v1", latency_ms=0, reason_summary="test")
+        out = ClinicalSlotOutput(
+            model_used="test",
+            prompt_version="v1",
+            latency_ms=0,
+            reason_summary="test",
+        )
         assert out.slot_coverage == 0.0
         assert out.filled_slots == []
         assert out.missing_slots == []
