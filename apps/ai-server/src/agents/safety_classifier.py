@@ -238,11 +238,16 @@ class SafetyClassifierAgent(BaseAgent):
                 data = json.loads(resp.content)
                 classification = SafetyClassification.model_validate(data)
             except (json.JSONDecodeError, Exception) as parse_exc:
-                logger.warning("Failed to parse LLM safety response: %s", parse_exc)
+                logger.warning(
+                    "Failed to parse LLM safety response: %s — fail-closed to high",
+                    parse_exc,
+                )
+                # ISS-019: Fail CLOSED — unparsable safety response must not
+                # be treated as safe. RiskLevel.high → CTRS 2 → crisis flow.
                 classification = SafetyClassification(
-                    risk_level=RiskLevel.none,
+                    risk_level=RiskLevel.high,
                     confidence=0.0,
-                    reason_summary="LLM response parse failure",
+                    reason_summary="LLM response parse failure — fail-closed to high",
                 )
 
             return classification, resp.model, resp.latency_ms
@@ -278,12 +283,13 @@ class SafetyClassifierAgent(BaseAgent):
                 except Exception as fb_exc:
                     logger.error("Fallback safety also failed: %s", fb_exc)
 
-            # All LLM unavailable — return None so caller uses rule fallback
+            # ISS-019: All LLM paths failed. Fail CLOSED — an unavailable
+            # LLM safety path must NOT default to safe (none).
             return (
                 SafetyClassification(
-                    risk_level=RiskLevel.none,
+                    risk_level=RiskLevel.high,
                     confidence=0.0,
-                    reason_summary="LLM unavailable",
+                    reason_summary="LLM unavailable — fail-closed to high",
                 ),
                 "none",
                 0.0,
