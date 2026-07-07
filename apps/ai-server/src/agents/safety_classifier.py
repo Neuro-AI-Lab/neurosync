@@ -79,6 +79,12 @@ _MEDIUM_KEYWORDS: list[tuple[str, str]] = [
     ("포기하고 싶", "despair"),
     ("희망이 없", "despair"),
     ("의미가 없", "despair"),
+    # BUG-007: rule-engine backstop for the v1/v2 indirect-SI calibration
+    # anchor "내가 없으면 다 편할 텐데" (perceived-burdensomeness ideation),
+    # which otherwise had zero code-level coverage — the LLM prompt table
+    # was the only line of defense. Matches v1's CTRS>=3/medium floor.
+    ("내가 없으면", "despair"),
+    ("내가없으면", "despair"),
 ]
 
 # ── Risk level ordering ─────────────────────────────────────────────
@@ -95,6 +101,10 @@ _RISK_ORDER = {
 # RiskLevel.high maps to CTRS 2 → crisis flow, matching the orchestrator's
 # own safety-failure default.
 _FAIL_CLOSED_LEVEL = RiskLevel.high
+
+# PLAN-2026-W28 C1: v2 (prompt_redesign_v3.md §2.1) — ISS-046/048/050 fixes;
+# v1's 7 핵심 규칙 preserved (5 verbatim + 2 merged), none deleted.
+PROMPT_VERSION = "v2"
 
 # ── LLM Prompt ─────────────────────────────────────────────────────
 
@@ -231,7 +241,7 @@ class SafetyClassifierAgent(BaseAgent):
             # Load prompt from MD file (PromptLoader), fallback to minimal
             try:
                 system_prompt = self._prompt_loader.load_system_prompt(
-                    "safety_classifier", "v1"
+                    "safety_classifier", PROMPT_VERSION
                 )
             except FileNotFoundError:
                 logger.warning("Safety classifier prompt not found, using fallback")
@@ -422,7 +432,7 @@ class SafetyClassifierAgent(BaseAgent):
 
         return SafetyOutput(
             model_used=model_used,
-            prompt_version="v1",
+            prompt_version=PROMPT_VERSION,
             latency_ms=latency_ms,
             reason_summary=llm_classification.reason_summary or "Rule screening + LLM judgment",
             risk_level=final_level,

@@ -27,7 +27,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/ai/chat", tags=["chat"])
 
 _DIALOGUE_AGENT_NAME = "dialogue"
-_PROMPT_VERSION = "v1"
+# PLAN-2026-W28 C1: labels DialogueOutput.prompt_version on the two bypass
+# paths below (crisis / handoff-ready) where the real DialogueAgent LLM call
+# is skipped (model_used="orchestrator") — kept in sync with the dialogue
+# prompt pin in agents/dialogue.py (prompt_redesign_v3.md §2.2). Pin only,
+# no orchestration logic changed.
+_PROMPT_VERSION = "v2"
 
 
 def _get_orchestrator(

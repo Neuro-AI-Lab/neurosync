@@ -33,6 +33,12 @@ from src.schemas.sentiment import (
 
 logger = logging.getLogger(__name__)
 
+# PLAN-2026-W28 C1: v2 (prompt_redesign_v3.md §2.5) — applies to utterance mode
+# only. Session mode (_analyze_session) never calls the LLM / loads a prompt
+# file, so its "v1" literal below is a dead-path label, not a real prompt pin;
+# it is intentionally left unchanged (out of this bump's scope).
+PROMPT_VERSION = "v2"
+
 
 class SentimentAnalyzerAgent(BaseAgent):
     """Dual-mode sentiment analyzer for mental health conversations."""
@@ -62,7 +68,9 @@ class SentimentAnalyzerAgent(BaseAgent):
         start = time.perf_counter()
 
         try:
-            system_prompt = self._prompt_loader.load_system_prompt("sentiment_analyzer", "v1")
+            system_prompt = self._prompt_loader.load_system_prompt(
+                "sentiment_analyzer", PROMPT_VERSION
+            )
         except FileNotFoundError:
             system_prompt = (
                 "환자 발화의 감정을 분석하세요. JSON 출력: "
@@ -118,7 +126,7 @@ class SentimentAnalyzerAgent(BaseAgent):
 
         return SentimentUtteranceOutput(
             model_used=getattr(resp, "model", "unknown") if "resp" in dir() else "fallback",
-            prompt_version="v1",
+            prompt_version=PROMPT_VERSION,
             latency_ms=latency_ms,
             reason_summary=f"Utterance sentiment: {emotions[0].label if emotions else 'unknown'}",
             turn_index=inp.turn_index,

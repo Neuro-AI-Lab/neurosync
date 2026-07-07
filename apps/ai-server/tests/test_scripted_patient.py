@@ -21,7 +21,13 @@ from src.safety_matrix import (
 )
 from tests.simulation.scripted_patient import ScriptedPatient
 
-_EXPECTED_SCENARIOS = {"SM-01", "SM-02", "SM-03", "SM-04a", "SM-04b", "SM-05", "SM-06"}
+_EXPECTED_SCENARIOS = {
+    "SM-01", "SM-02", "SM-03", "SM-04a", "SM-04b", "SM-05", "SM-06",
+    # PLAN-2026-W28 C1 (prompt_redesign_v3.md §4.2, ISS-046): SM-07a (panic
+    # idiom must NOT trigger crisis) + SM-07b (mandatory adversarial control —
+    # genuine SI phrasing near the same idiom must still trigger crisis).
+    "SM-07a", "SM-07b",
+}
 
 
 class TestScriptedPatient:
@@ -93,7 +99,7 @@ class TestScriptedPatient:
 
 
 class TestScenarioFiles:
-    def test_all_six_scenarios_present(self):
+    def test_all_nine_scenarios_present(self):
         assert set(list_scenario_ids()) == _EXPECTED_SCENARIOS
 
     def test_scenarios_load_with_required_fields(self):

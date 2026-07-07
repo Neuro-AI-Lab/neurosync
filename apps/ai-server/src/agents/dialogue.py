@@ -51,6 +51,10 @@ _ALL_SLOTS = [
 _SLOT_COVERAGE_THRESHOLD = 0.7
 _MAX_HISTORY_TURNS = 8
 
+# PLAN-2026-W28 C1: v2 (prompt_redesign_v3.md §2.2) — absolute rules 8→6,
+# Safety section 5→1 line (P12 dedup vs runtime-injected slot/safety context).
+PROMPT_VERSION = "v2"
+
 # 직접 질문하지 않는 슬롯 (관찰/자동생성/의료진 영역)
 _NO_QUESTION_SLOTS = {
     "encounter_metadata",   # 시스템 자동
@@ -107,7 +111,7 @@ class DialogueAgent(BaseAgent):
 
         # 1. Load system prompt
         try:
-            system_prompt = self._prompt_loader.load_system_prompt("dialogue", "v1")
+            system_prompt = self._prompt_loader.load_system_prompt("dialogue", PROMPT_VERSION)
         except FileNotFoundError:
             logger.warning("Dialogue prompt not found, using fallback")
             system_prompt = (
@@ -230,7 +234,7 @@ class DialogueAgent(BaseAgent):
         # Dialogue는 응답만 반환 — slot 추출/coverage/risk 판단은 하지 않음
         return DialogueOutput(
             model_used=resp.model,
-            prompt_version="v1",
+            prompt_version=PROMPT_VERSION,
             latency_ms=latency_ms,
             reason_summary=llm_resp.reason_summary,
             assistant_response=llm_resp.assistant_response,

@@ -48,7 +48,9 @@ ESSENTIAL_SLOT_KEYS = [
 
 # T1-F1-DEV-017: v2 replaces realistic example values with synthetic
 # placeholders after the 2026-07-03 prompt-echo fabrication incident.
-PROMPT_VERSION = "v2"
+# PLAN-2026-W28 C1: v3 (prompt_redesign_v3.md §2.3) — hold budget, no content
+# change; REV-002 #3 cross-reference note deliberately NOT added.
+PROMPT_VERSION = "v3"
 
 
 class ClinicalSlotAgent(BaseAgent):
