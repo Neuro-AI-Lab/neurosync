@@ -17,6 +17,7 @@ import logging
 from fastapi import FastAPI
 
 from src import __version__
+from src.rag.route import router as rag_router
 from src.routes.chat import router as chat_router
 from src.routes.handoff import router as handoff_router
 from src.routes.safety import router as safety_router
@@ -41,6 +42,7 @@ app.include_router(slots_router)
 app.include_router(survey_router)
 app.include_router(sentiment_router)
 app.include_router(temporal_router)
+app.include_router(rag_router)
 
 
 @app.get("/health")

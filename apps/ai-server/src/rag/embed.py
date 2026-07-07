@@ -24,7 +24,9 @@ except ImportError:  # pydantic-settings 가 .env 처리 — dotenv 없어도 OK
 EMBED_DIM = 4096  # solar-embedding-1-large. schema vector(4096)와 일치해야 함.
 
 UPSTAGE_API_KEY = os.getenv("UPSTAGE_API_KEY", "")
-UPSTAGE_BASE_URL = os.getenv("UPSTAGE_BASE_URL", "https://api.upstage.ai/v1/solar")
+# 임베딩 전용 base URL. ai-server config의 채팅용 UPSTAGE_BASE_URL(.../v1)과 충돌 방지 —
+# 임베딩은 반드시 /solar 접미가 필요하므로 독립 env(EMBED_BASE_URL)로 분리.
+UPSTAGE_BASE_URL = os.getenv("EMBED_BASE_URL", "https://api.upstage.ai/v1/solar")
 PASSAGE_MODEL = os.getenv("UPSTAGE_PASSAGE_MODEL", "solar-embedding-1-large-passage")
 QUERY_MODEL = os.getenv("UPSTAGE_QUERY_MODEL", "solar-embedding-1-large-query")
 USE_DUMMY = os.getenv("EMBED_DUMMY", "0") == "1" or not UPSTAGE_API_KEY

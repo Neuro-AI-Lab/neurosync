@@ -64,7 +64,11 @@ async def _build_grounding(
 ) -> Grounding | None:
     """pgvector RAG grounding (best-effort — 검색 실패해도 대화는 계속 진행).
 
-    rag 의존성/스키마/임베딩이 아직 없으면 조용히 None (대화 비크리티컬)."""
+    rag 의존성/스키마/임베딩이 아직 없으면 조용히 None (대화 비크리티컬).
+
+    NOTE: RAG 코드(src.rag)가 ai-server로 이전됨 → api에는 더 이상 없으므로
+    아래 `from src.rag.retrieval import ...`가 ImportError → grounding은 항상 None.
+    즉 현재 api 라이브챗은 grounding 없이 동작(degrade). RAG는 ai-server에서만 구동."""
     last_user = next((m.content for m in reversed(context) if m.role == "user"), None)
     if not last_user:
         return None

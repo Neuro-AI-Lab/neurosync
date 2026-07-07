@@ -38,7 +38,6 @@ from src.schemas.orchestrator import (
 )
 from src.schemas.safety import SafetyInput
 from src.scoring.survey_scorer import ScoreResult, score_survey
-from src.services.trend_plotter import TrendDataPoint, generate_trend_plot_base64
 
 logger = logging.getLogger(__name__)
 
@@ -404,9 +403,6 @@ class OrchestratorAgent(BaseAgent):
                         state, SessionStage.evidence_verification, "11_evidence_verifier",
                         "pass", f"verified on attempt {attempt + 1}"
                     )
-                    # Generate trend plot for longitudinal data
-                    trend_plot_b64 = self._generate_trend_plot(state)
-
                     handoff_report = {
                         "report_markdown": handoff_result.report_markdown,
                         "evidence_packets": [
@@ -414,7 +410,8 @@ class OrchestratorAgent(BaseAgent):
                         ],
                         "missing_slots": handoff_result.missing_slots,
                         "risk_level": str(handoff_result.risk_level),
-                        "trend_plot_base64": trend_plot_b64,
+                        # trend_plot은 58db676에서 제거됨(F1 범위 밖). 계약 유지 위해 키만 남김.
+                        "trend_plot_base64": None,
                     }
                     break
 
@@ -491,58 +488,6 @@ class OrchestratorAgent(BaseAgent):
             conversation_history=state.conversation_history,
             is_first_visit=state.is_first_visit,
         )
-
-    def _generate_trend_plot(self, state: SessionState) -> str | None:
-        """Generate longitudinal trend plot from session state scale data.
-
-        Builds TrendDataPoints from prior + current scale scores stored in
-        state.scale_scores. Returns base64 PNG string, or None if insufficient data.
-        """
-        scale_scores = state.scale_scores
-        if not scale_scores:
-            return None
-
-        # Build current data point from session state
-        current = TrendDataPoint(
-            date=datetime.now().strftime("%Y-%m-%d"),
-            phq9=(
-                scale_scores.get("PHQ-9", {}).get("total_score")
-                if isinstance(scale_scores.get("PHQ-9"), dict)
-                else None
-            ),
-            gad7=(
-                scale_scores.get("GAD-7", {}).get("total_score")
-                if isinstance(scale_scores.get("GAD-7"), dict)
-                else None
-            ),
-            ctrs=int(state.safety_status.ctrs_level) if state.safety_status.ctrs_level else None,
-            sentiment=None,  # Sentiment is computed per-session, not stored as a single score
-            label="Current",
-        )
-
-        # Check if we have prior data (stored as "prior_scales" in state)
-        prior_data = state.scale_scores.get("_prior", {})
-        if prior_data:
-            prior = TrendDataPoint(
-                date=prior_data.get("date", "Prior"),
-                phq9=prior_data.get("PHQ-9"),
-                gad7=prior_data.get("GAD-7"),
-                ctrs=prior_data.get("CTRS"),
-                sentiment=prior_data.get("sentiment"),
-                label="Prior",
-            )
-            data_points = [prior, current]
-        else:
-            data_points = [current]
-
-        if not any(
-            dp.phq9 is not None or dp.gad7 is not None or dp.ctrs is not None
-            for dp in data_points
-        ):
-            return None
-
-        patient_name = state.patient_id or ""
-        return generate_trend_plot_base64(data_points, patient_name)
 
     # ── Crisis flow ─────────────────────────────────────────────────
 

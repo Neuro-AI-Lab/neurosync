@@ -61,3 +61,17 @@ def get_prompt_loader() -> PromptLoader:
     """Return the PromptLoader singleton."""
     settings = get_settings()
     return PromptLoader(settings.resolve_prompts_dir())
+
+
+@functools.lru_cache(maxsize=1)
+def get_sessionmaker():
+    """RAG DB 접속용 async sessionmaker 싱글턴 (RAG 이전으로 추가).
+
+    retrieval.retrieve_grounding(db, ...)에 넘길 AsyncSession을 만든다.
+    지연 import — sqlalchemy는 RAG를 쓸 때만 필요.
+    """
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+    settings = get_settings()
+    engine = create_async_engine(settings.database_url, pool_pre_ping=True)
+    return async_sessionmaker(engine, expire_on_commit=False)
