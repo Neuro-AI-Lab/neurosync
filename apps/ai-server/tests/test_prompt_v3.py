@@ -19,6 +19,12 @@ Design-doc §4.1 offline assertions:
 
 v1/v2 files are never edited or deleted (rollback policy) — only asserted to
 still exist on disk.
+
+PLAN-2026-W28-B / ADR-010 (2026-07-07, ISS-049 resolved): safety_classifier
+v3 layered on top of v2 above — passive SI (수동적 자살사고) now escalates to
+immediate high/CTRS 2 instead of routing through CTRS 3 → Safety Probe
+(supersedes ADR-006). The agent pin moves v2 → v3; v2's static-content tests
+above stay green (the v2 file itself is unmodified, kept for rollback).
 """
 
 from __future__ import annotations
@@ -55,6 +61,7 @@ def _read(agent: str, version: str) -> str:
 
 
 SAFETY_V2 = _read("safety_classifier", "v2")
+SAFETY_V3 = _read("safety_classifier", "v3")
 DIALOGUE_V2 = _read("dialogue", "v2")
 CLINICAL_SLOT_V2 = _read("clinical_slot", "v2")
 CLINICAL_SLOT_V3 = _read("clinical_slot", "v3")
@@ -63,6 +70,7 @@ SENTIMENT_V2 = _read("sentiment_analyzer", "v2")
 
 _ALL_NEW_FILES = {
     "safety_classifier/v2": SAFETY_V2,
+    "safety_classifier/v3": SAFETY_V3,
     "dialogue/v2": DIALOGUE_V2,
     "clinical_slot/v3": CLINICAL_SLOT_V3,
     "handoff_generator/v2": HANDOFF_V2,
@@ -158,6 +166,101 @@ class TestSafetyClassifierV2File:
         1900-char aspiration — it still guards against unbounded growth.
         """
         assert len(SAFETY_V2) <= 2600
+
+
+class TestSafetyClassifierV3File:
+    """PLAN-2026-W28-B / ADR-010 (2026-07-07): ISS-049 resolved — passive SI
+    (수동적 자살사고) escalates to immediate high/CTRS 2, no longer routed
+    through CTRS 3 → Safety Probe. v2 stays on disk and its static-content
+    tests above stay green unmodified; this class covers the new v3 file.
+
+    v3 = rolled-back candidate (ADR-012, EXP-003 SM-04 regression); file kept
+    for the v4 iteration.
+    """
+
+    def test_v1_and_v2_kept_per_versioning_policy(self) -> None:
+        assert (_PROMPTS_DIR / "safety_classifier" / "v1.system.md").exists()
+        assert (_PROMPTS_DIR / "safety_classifier" / "v2.system.md").exists()
+
+    def test_output_schema_keys_documented(self) -> None:
+        for key in ["risk_level", "categories", "flagged_phrases", "confidence", "reason_summary"]:
+            assert key in SAFETY_V3, f"missing output key: {key}"
+
+    def test_absolute_rules_present(self) -> None:
+        for phrase in [
+            "진단명을 출력하지 않는다",
+            "환자 대면 응답을 생성하지 않는다",
+            "지정된 5개 필드 외의 필드를 출력하지 않는다",
+            "관용구",  # ISS-046, unchanged
+        ]:
+            assert phrase in SAFETY_V3, f"missing absolute rule text: {phrase!r}"
+
+    def test_adr010_passive_si_immediate_ctrs2(self) -> None:
+        """design brief item 1 — passive SI escalates to high/CTRS 2, no probe."""
+        assert "ADR-010" in SAFETY_V3
+        assert "CTRS 2" in SAFETY_V3
+        assert "즉시" in SAFETY_V3
+        assert "Safety Probe를 경유하지 않는다" in SAFETY_V3
+
+    def test_adr006_provisional_routing_removed(self) -> None:
+        """The old CTRS-3-floor-only routing text for passive SI must be gone
+        (superseded, not merely appended alongside)."""
+        assert "CTRS 2로 임의 상향하지 않는다" not in SAFETY_V3
+
+    def test_calibration_table_passive_si_rows_floor_ctrs2(self) -> None:
+        """간접 표현 CTRS 하한표: passive-SI rows now floor at CTRS 2, not 3."""
+        assert '"살고 싶지 않다", "사라지고 싶다", "죽고 싶다" | **최소 2단계' in SAFETY_V3
+        assert '"내가 없으면 다 편할 텐데", "사는 게 의미가 없다" | **최소 2단계' in SAFETY_V3
+        # No row for this expression class may still claim a level-3 floor.
+        assert '살고 싶지 않다", "사라지고 싶다", "죽고 싶다" | 최소 3단계' not in SAFETY_V3
+        assert '내가 없으면 다 편할 텐데", "사는 게 의미가 없다" | 최소 3단계' not in SAFETY_V3
+
+    def test_self_harm_urge_without_si_keeps_probe_scope(self) -> None:
+        """ADR-010 scope carve-out (c): SM-04-class self-harm urge without SI
+        keeps CTRS 3 → Safety Probe — the passive-SI class alone leaves the
+        probe trigger set."""
+        assert "CTRS 3 → Safety Probe 경로를 유지한다" in SAFETY_V3
+
+    def test_negation_rule_present(self) -> None:
+        """design brief item 1 — SM-02 negation rule (rule 7) preserved verbatim."""
+        assert "죽고 싶다거나 그런 생각은 없어요" in SAFETY_V3
+        assert "부정 문맥 확인" in SAFETY_V3
+
+    def test_idiom_rule_present(self) -> None:
+        """design brief item 1 — SM-07a panic-idiom rule (rule 4, ISS-046) preserved verbatim."""
+        assert "정말 죽는 줄 알았어요" in SAFETY_V3
+        assert "관용구/회고 우선 판단" in SAFETY_V3
+
+    def test_iss050_consistency_rule_present(self) -> None:
+        assert "ISS-050" in SAFETY_V3
+        assert "재상향 금지" in SAFETY_V3
+
+    def test_v1_core_rules_survive_verbatim(self) -> None:
+        for phrase in ["문맥", "부정", "시제 확인", "상담사", "상향 분류"]:
+            assert phrase in SAFETY_V3, f"v1 핵심 규칙 phrase missing: {phrase!r}"
+
+    def test_merged_rule_56_intent_survives(self) -> None:
+        assert "명시적 자살/자해 의도가 아니면" in SAFETY_V3
+
+    def test_line_budget(self) -> None:
+        """Measured 2026-07-07: 61 lines (v2 ceiling was 60). The new rule 5
+        (ADR-010) plus its two calibration-table row annotations added
+        substantive, load-bearing content — the deviation is documented, not
+        a silent overshoot, mirroring the v2 ADR-008 precedent below.
+        """
+        assert len(SAFETY_V3.splitlines()) <= 62
+
+    def test_char_budget_documented_deviation(self) -> None:
+        """Measured 2026-07-07: 3060 chars (v2 ceiling was 2600). Content
+        added: rule 5 rewritten for ADR-010 (still 1 rule, replacing the old
+        ADR-006 rule 5 verbatim-for-verbatim), 2 calibration-table rows
+        re-annotated, and a 2-line header changelog note. No rule was cut —
+        all 5 absolute rules + 7 judgment principles + 8 calibration rows
+        survive (12 rules total, same count as v2). Ceiling set with modest
+        headroom over the measured size, same discipline as v2's ADR-008
+        acceptance of a documented overshoot.
+        """
+        assert len(SAFETY_V3) <= 3150
 
 
 class TestDialogueV2File:
@@ -375,6 +478,9 @@ def _wire_adapter(agent: object, resp_content: str) -> AsyncMock:
 
 class TestAgentPinsAndRuntimeVersion:
     def test_safety_classifier_pin(self) -> None:
+        """ADR-012: rolled back v3 -> v2 after EXP-003's SM-04 probe
+        regression (ADR-010's policy stands; the v3 implementation attempt
+        does not, pending a v4 iteration)."""
         assert SAFETY_VERSION == "v2"
 
     def test_dialogue_pin(self) -> None:
@@ -391,6 +497,7 @@ class TestAgentPinsAndRuntimeVersion:
 
     @pytest.mark.asyncio
     async def test_safety_classifier_loads_and_reports_v2(self) -> None:
+        """ADR-012: agent requests and reports v2 again (rollback from v3)."""
         agent = SafetyClassifierAgent.__new__(SafetyClassifierAgent)
         agent._prompt_loader = MagicMock()
         agent._prompt_loader.load_system_prompt.return_value = "안전 분류 프롬프트"

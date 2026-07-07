@@ -83,6 +83,23 @@ _MEDIUM_KEYWORDS: list[tuple[str, str]] = [
     # anchor "내가 없으면 다 편할 텐데" (perceived-burdensomeness ideation),
     # which otherwise had zero code-level coverage — the LLM prompt table
     # was the only line of defense. Matches v1's CTRS>=3/medium floor.
+    #
+    # ADR-010 keyword-parity check (PLAN-2026-W28-B, 2026-07-07): the prompt
+    # v3 calibration table now floors this phrase (and "사는 게 의미가 없다",
+    # matched by "의미가 없" above) at high/CTRS 2, not medium/CTRS 3. This
+    # table is deliberately NOT bumped to _HIGH_KEYWORDS. Rationale: (1) LLM-
+    # available path — the rule-engine severity here never gates the merge
+    # for MEDIUM hits (BUG-008, open); the prompt table the LLM actually
+    # reads already carries the corrected CTRS-2 floor, so a keyword bump
+    # would be a no-op for this path. (2) LLM-unavailable path — the
+    # fail-closed branch (below, `run()`) unconditionally floors EVERY
+    # message at `_FAIL_CLOSED_LEVEL` (high/CTRS 2) regardless of
+    # `rule_level`, proven by `tests/test_safety_failclosed.py::
+    # test_total_outage_rule_missed_phrase_fails_closed_high` (a phrase with
+    # ZERO keyword-table hits still fails closed to high). So this phrase
+    # already meets the ADR-010 CTRS-2 floor in both paths without a table
+    # change; moving it to _HIGH_KEYWORDS would only add a redundant
+    # rule-context injection to the LLM call, not change final routing.
     ("내가 없으면", "despair"),
     ("내가없으면", "despair"),
 ]
@@ -104,6 +121,15 @@ _FAIL_CLOSED_LEVEL = RiskLevel.high
 
 # PLAN-2026-W28 C1: v2 (prompt_redesign_v3.md §2.1) — ISS-046/048/050 fixes;
 # v1's 7 핵심 규칙 preserved (5 verbatim + 2 merged), none deleted.
+# PLAN-2026-W28-B / ADR-010 (2026-07-07): v3 — ISS-049 resolved, passive SI
+# (수동적 자살사고) escalates to immediate high/CTRS 2, no longer routed
+# through CTRS 3 → Safety Probe (supersedes ADR-006). v1/v2 kept on disk for
+# rollback; pin bump only, no merge-logic change in this file.
+# ADR-012 (2026-07-07): ROLLED BACK v3→v2. EXP-003 fired the rollback rule —
+# v3 misclassified self-harm-ideation-without-SI (SM-04a/SM-04b) as immediate
+# high/CTRS 2 crisis, bypassing the Safety Probe and violating ADR-010's own
+# scope limit (c). ADR-010's policy stands; this implementation attempt does
+# not. v3.system.md stays on disk as the failed candidate for the v4 cycle.
 PROMPT_VERSION = "v2"
 
 # ── LLM Prompt ─────────────────────────────────────────────────────

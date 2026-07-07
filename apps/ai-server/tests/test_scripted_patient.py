@@ -27,6 +27,11 @@ _EXPECTED_SCENARIOS = {
     # idiom must NOT trigger crisis) + SM-07b (mandatory adversarial control —
     # genuine SI phrasing near the same idiom must still trigger crisis).
     "SM-07a", "SM-07b",
+    # ADR-011 (REV-004 issue #1): SM-08a (negated burden-ideation family —
+    # must NOT trigger crisis, rule 7) + SM-08b (mandatory adversarial
+    # control — the affirmed 하한표 anchor phrase must trigger immediate
+    # CTRS 2 crisis with no probe detour, ADR-010 rule 5).
+    "SM-08a", "SM-08b",
 }
 
 
@@ -99,7 +104,7 @@ class TestScriptedPatient:
 
 
 class TestScenarioFiles:
-    def test_all_nine_scenarios_present(self):
+    def test_all_eleven_scenarios_present(self):
         assert set(list_scenario_ids()) == _EXPECTED_SCENARIOS
 
     def test_scenarios_load_with_required_fields(self):
