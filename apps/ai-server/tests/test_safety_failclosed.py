@@ -27,7 +27,12 @@ _RULE_MISSED = "오늘 밤 한강에서 뛰어내릴 거예요"
 def _make_agent() -> SafetyClassifierAgent:
     agent = SafetyClassifierAgent.__new__(SafetyClassifierAgent)
     agent._router = MagicMock()
+    # PromptLoader.load_system_prompt must return a real str: ChatMessage
+    # (pydantic) rejects a bare MagicMock as `content`.
     agent._prompt_loader = MagicMock()
+    agent._prompt_loader.load_system_prompt.return_value = (
+        "당신은 안전 분류 AI입니다. JSON으로만 응답하세요."
+    )
     return agent
 
 
@@ -107,3 +112,69 @@ async def test_benign_message_stays_safe_when_llm_ok() -> None:
 
     assert out.crisis_protocol_activated is False
     assert out.risk_level == RiskLevel.none
+
+
+# ── ISS-026: total-outage merge semantics ────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_total_outage_rule_missed_phrase_fails_closed_high() -> None:
+    """ISS-026: all adapters fail + phrase NOT in keyword lists.
+
+    Rule engine returns none; the old merge fell back to the rule result
+    (risk=none, crisis=False). The final result must instead be at least the
+    fail-closed default: risk high/critical, CTRS <= 2, crisis True.
+    """
+    agent = _make_agent()
+    adapter = AsyncMock(spec=LLMAdapter)
+    adapter.chat_timed = AsyncMock(side_effect=RuntimeError("total outage"))
+    _wire(agent, adapter)
+
+    out = await agent.run(
+        SafetyInput(session_id="t", user_message=_RULE_MISSED, conversation_history=[])
+    )
+
+    assert out.risk_level in (RiskLevel.high, RiskLevel.critical), (
+        f"fail-open: outage + rule-missed phrase produced risk={out.risk_level}"
+    )
+    assert int(out.ctrs_level) <= 2
+    assert out.crisis_protocol_activated is True
+    assert out.model_used == "none"
+
+
+@pytest.mark.asyncio
+async def test_total_outage_rule_critical_stays_critical() -> None:
+    """ISS-026: outage must not cap a rule-critical hit at the fail-closed high."""
+    agent = _make_agent()
+    adapter = AsyncMock(spec=LLMAdapter)
+    adapter.chat_timed = AsyncMock(side_effect=RuntimeError("total outage"))
+    _wire(agent, adapter)
+
+    out = await agent.run(
+        SafetyInput(session_id="t", user_message="자살하고 싶어요", conversation_history=[])
+    )
+
+    assert out.risk_level == RiskLevel.critical, (
+        f"rule critical must win the fail-closed merge, got {out.risk_level}"
+    )
+    assert out.crisis_protocol_activated is True
+
+
+@pytest.mark.asyncio
+async def test_pre_adapter_failure_fails_closed() -> None:
+    """ISS-026: exceptions before the adapter call (prompt loader, model
+    selection, message construction) must produce the fail-closed
+    classification, not propagate out of the safety agent."""
+    agent = _make_agent()
+    # Non-FileNotFoundError from the prompt loader — previously propagated.
+    agent._prompt_loader.load_system_prompt.side_effect = RuntimeError("loader broken")
+    adapter = AsyncMock(spec=LLMAdapter)
+    _wire(agent, adapter)
+
+    out = await agent.run(
+        SafetyInput(session_id="t", user_message=_RULE_MISSED, conversation_history=[])
+    )
+
+    assert out.crisis_protocol_activated is True
+    assert out.risk_level in (RiskLevel.high, RiskLevel.critical)
+    assert int(out.ctrs_level) <= int(CTRSLevel.HIGH_RISK)

@@ -27,7 +27,7 @@ from src.prompts.loader import PromptLoader
 from src.routing.model_router import ModelRouter
 from src.schemas.clinical_slot import ClinicalSlotInput
 from src.schemas.common import CTRSLevel, RiskLevel
-from src.schemas.handoff import HandoffInput, SlotData
+from src.schemas.handoff import HandoffInput, ScaleScore, SlotData
 from src.schemas.orchestrator import (
     OrchestratorInput,
     OrchestratorTurnResult,
@@ -464,6 +464,34 @@ class OrchestratorAgent(BaseAgent):
             if isinstance(slot_data.get("symptoms"), dict)
             else {}
         )
+
+        # ISS-020: carry collected scale scores + safety/risk events into the
+        # handoff so the clinician-facing report never loses PHQ-9/GAD-7 severity
+        # or suicide-risk indicators collected during the session.
+        scale_scores: list[ScaleScore] = []
+        for name, data in state.scale_scores.items():
+            if name.startswith("_"):  # skip meta keys (e.g. "_prior" trend data)
+                continue
+            if isinstance(data, dict) and data.get("total_score") is not None:
+                scale_scores.append(
+                    ScaleScore(
+                        scale_name=name,
+                        total_score=int(data["total_score"]),
+                        severity=str(data.get("severity", "")),
+                    )
+                )
+
+        risk_events: list[dict[str, str]] = []
+        ss = state.safety_status
+        if ss is not None and ss.risk_level != RiskLevel.none:
+            risk_events.append(
+                {
+                    "ctrs_level": str(int(ss.ctrs_level)),
+                    "risk_level": ss.risk_level.value,
+                    "crisis": str(ss.crisis_triggered),
+                }
+            )
+
         return HandoffInput(
             session_id=state.session_id,
             slots=SlotData(
@@ -486,6 +514,8 @@ class OrchestratorAgent(BaseAgent):
                 substance_use=slot_data.get("substance_use"),
             ),
             conversation_history=state.conversation_history,
+            scale_scores=scale_scores,
+            risk_events=risk_events,
             is_first_visit=state.is_first_visit,
         )
 

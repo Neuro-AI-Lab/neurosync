@@ -7,16 +7,14 @@ Architecture (C 방식):
 Merge 전략:
   - Rule이 medium 이하 → LLM 결과를 최종 판정으로 사용
   - Rule이 high/critical → Rule이 감지한 키워드를 LLM에 전달, LLM이 최종 판정
-  - LLM 장애 시 → Rule 결과를 safety net으로 사용
+  - LLM 장애 시 → fail-closed: max(Rule 결과, high/CTRS 2) — 절대 none으로 강등 금지
   - LLM이 독립적으로 감지한 위험은 Rule 미감지여도 반영
 """
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
-import re as _re
 import time
 from typing import Any
 
@@ -47,7 +45,14 @@ _CRITICAL_KEYWORDS: list[tuple[str, str]] = [
     ("손목을긋", "self_harm"),
     ("손목을 그", "self_harm"),
     ("손목을그", "self_harm"),
-    ("칼로", "self_harm"),
+    # ISS-038: "칼로" alone substring-matches benign words ("칼로리").
+    # Use verb-anchored variants; _match() also checks space-stripped forms.
+    ("칼로 긋", "self_harm"),
+    ("칼로긋", "self_harm"),
+    ("칼로 그", "self_harm"),
+    ("칼로그", "self_harm"),
+    ("칼로 손목", "self_harm"),
+    ("칼로손목", "self_harm"),
     ("약을 많이 먹", "self_harm_overdose"),
     ("약을많이먹", "self_harm_overdose"),
     ("약물 과다", "self_harm_overdose"),
@@ -74,6 +79,29 @@ _MEDIUM_KEYWORDS: list[tuple[str, str]] = [
     ("포기하고 싶", "despair"),
     ("희망이 없", "despair"),
     ("의미가 없", "despair"),
+    # BUG-007: rule-engine backstop for the v1/v2 indirect-SI calibration
+    # anchor "내가 없으면 다 편할 텐데" (perceived-burdensomeness ideation),
+    # which otherwise had zero code-level coverage — the LLM prompt table
+    # was the only line of defense. Matches v1's CTRS>=3/medium floor.
+    #
+    # ADR-010 keyword-parity check (PLAN-2026-W28-B, 2026-07-07): the prompt
+    # v3 calibration table now floors this phrase (and "사는 게 의미가 없다",
+    # matched by "의미가 없" above) at high/CTRS 2, not medium/CTRS 3. This
+    # table is deliberately NOT bumped to _HIGH_KEYWORDS. Rationale: (1) LLM-
+    # available path — the rule-engine severity here never gates the merge
+    # for MEDIUM hits (BUG-008, open); the prompt table the LLM actually
+    # reads already carries the corrected CTRS-2 floor, so a keyword bump
+    # would be a no-op for this path. (2) LLM-unavailable path — the
+    # fail-closed branch (below, `run()`) unconditionally floors EVERY
+    # message at `_FAIL_CLOSED_LEVEL` (high/CTRS 2) regardless of
+    # `rule_level`, proven by `tests/test_safety_failclosed.py::
+    # test_total_outage_rule_missed_phrase_fails_closed_high` (a phrase with
+    # ZERO keyword-table hits still fails closed to high). So this phrase
+    # already meets the ADR-010 CTRS-2 floor in both paths without a table
+    # change; moving it to _HIGH_KEYWORDS would only add a redundant
+    # rule-context injection to the LLM call, not change final routing.
+    ("내가 없으면", "despair"),
+    ("내가없으면", "despair"),
 ]
 
 # ── Risk level ordering ─────────────────────────────────────────────
@@ -85,6 +113,24 @@ _RISK_ORDER = {
     RiskLevel.high: 3,
     RiskLevel.critical: 4,
 }
+
+# ISS-019/ISS-026: fail-closed floor when the LLM safety path is unavailable.
+# RiskLevel.high maps to CTRS 2 → crisis flow, matching the orchestrator's
+# own safety-failure default.
+_FAIL_CLOSED_LEVEL = RiskLevel.high
+
+# PLAN-2026-W28 C1: v2 (prompt_redesign_v3.md §2.1) — ISS-046/048/050 fixes;
+# v1's 7 핵심 규칙 preserved (5 verbatim + 2 merged), none deleted.
+# PLAN-2026-W28-B / ADR-010 (2026-07-07): v3 — ISS-049 resolved, passive SI
+# (수동적 자살사고) escalates to immediate high/CTRS 2, no longer routed
+# through CTRS 3 → Safety Probe (supersedes ADR-006). v1/v2 kept on disk for
+# rollback; pin bump only, no merge-logic change in this file.
+# ADR-012 (2026-07-07): ROLLED BACK v3→v2. EXP-003 fired the rollback rule —
+# v3 misclassified self-harm-ideation-without-SI (SM-04a/SM-04b) as immediate
+# high/CTRS 2 crisis, bypassing the Safety Probe and violating ADR-010's own
+# scope limit (c). ADR-010's policy stands; this implementation attempt does
+# not. v3.system.md stays on disk as the failed candidate for the v4 cycle.
+PROMPT_VERSION = "v2"
 
 # ── LLM Prompt ─────────────────────────────────────────────────────
 
@@ -180,6 +226,23 @@ class SafetyClassifierAgent(BaseAgent):
 
     # ── LLM Engine (최종 판정) ─────────────────────────────────────
 
+    @staticmethod
+    def _fail_closed_result(reason: str) -> tuple[SafetyClassification, str, float]:
+        """Build the fail-closed classification returned whenever the LLM path fails.
+
+        ISS-019/ISS-026: an unavailable or broken LLM safety path must NOT
+        default to safe. model_used="none" signals unavailability to run().
+        """
+        return (
+            SafetyClassification(
+                risk_level=_FAIL_CLOSED_LEVEL,
+                confidence=0.0,
+                reason_summary=reason,
+            ),
+            "none",
+            0.0,
+        )
+
     async def _llm_classify(
         self,
         text: str,
@@ -193,35 +256,48 @@ class SafetyClassifierAgent(BaseAgent):
                           When provided, LLM sees the flagged keywords and is asked
                           to make a contextual judgment.
         """
-        selection = self._router.select_model(
-            self.agent_name, require_json=True
-        )
-        adapter = self._router.get_adapter(selection.adapter_name)
-
-        # Load prompt from MD file (PromptLoader), fallback to minimal
+        # ISS-026: everything before the adapter call (model selection, prompt
+        # loading, message construction) must also fail CLOSED, not propagate.
         try:
-            system_prompt = self._prompt_loader.load_system_prompt("safety_classifier", "v1")
-        except FileNotFoundError:
-            logger.warning("Safety classifier prompt not found, using fallback")
-            system_prompt = _LLM_FALLBACK_PROMPT
+            selection = self._router.select_model(
+                self.agent_name, require_json=True
+            )
+            adapter = self._router.get_adapter(selection.adapter_name)
 
-        if rule_context:
-            system_prompt += "\n\n" + rule_context
+            # Load prompt from MD file (PromptLoader), fallback to minimal
+            try:
+                system_prompt = self._prompt_loader.load_system_prompt(
+                    "safety_classifier", PROMPT_VERSION
+                )
+            except FileNotFoundError:
+                logger.warning("Safety classifier prompt not found, using fallback")
+                system_prompt = _LLM_FALLBACK_PROMPT
 
-        messages = [ChatMessage(role="system", content=system_prompt)]
+            if rule_context:
+                system_prompt += "\n\n" + rule_context
 
-        # Add recent conversation context
-        for turn in conversation_history[-6:]:
-            messages.append(ChatMessage(
-                role=turn.get("role", "user"),
-                content=turn["content"],
-            ))
+            messages = [ChatMessage(role="system", content=system_prompt)]
 
-        messages.append(ChatMessage(role="user", content=text))
+            # Add recent conversation context
+            for turn in conversation_history[-6:]:
+                messages.append(ChatMessage(
+                    role=turn.get("role", "user"),
+                    content=turn["content"],
+                ))
 
-        response_format = None
-        if selection.supports_json_schema or selection.supports_json_object:
-            response_format = {"type": "json_object"}
+            messages.append(ChatMessage(role="user", content=text))
+
+            response_format = None
+            if selection.supports_json_schema or selection.supports_json_object:
+                response_format = {"type": "json_object"}
+        except Exception as exc:
+            logger.error(
+                "Safety LLM pre-adapter setup failed: %s — fail-closed to %s",
+                exc, _FAIL_CLOSED_LEVEL,
+            )
+            return self._fail_closed_result(
+                f"LLM pre-adapter setup failure — fail-closed to {_FAIL_CLOSED_LEVEL.value}"
+            )
 
         try:
             assert isinstance(adapter, LLMAdapter)
@@ -245,7 +321,7 @@ class SafetyClassifierAgent(BaseAgent):
                 # ISS-019: Fail CLOSED — unparsable safety response must not
                 # be treated as safe. RiskLevel.high → CTRS 2 → crisis flow.
                 classification = SafetyClassification(
-                    risk_level=RiskLevel.high,
+                    risk_level=_FAIL_CLOSED_LEVEL,
                     confidence=0.0,
                     reason_summary="LLM response parse failure — fail-closed to high",
                 )
@@ -285,15 +361,7 @@ class SafetyClassifierAgent(BaseAgent):
 
             # ISS-019: All LLM paths failed. Fail CLOSED — an unavailable
             # LLM safety path must NOT default to safe (none).
-            return (
-                SafetyClassification(
-                    risk_level=RiskLevel.high,
-                    confidence=0.0,
-                    reason_summary="LLM unavailable — fail-closed to high",
-                ),
-                "none",
-                0.0,
-            )
+            return self._fail_closed_result("LLM unavailable — fail-closed to high")
 
     # ── Main: Rule screening → LLM judgment ────────────────────────
 
@@ -307,8 +375,9 @@ class SafetyClassifierAgent(BaseAgent):
              - LLM can downgrade (부정 문맥) or confirm
           3. If rule detects medium or less:
              - LLM independently classifies (may catch things rules miss)
-          4. If LLM unavailable:
-             - Fall back to rule result (safety net)
+          4. If LLM unavailable (ISS-026):
+             - Fail CLOSED: final = max(rule result, fail-closed default high)
+             - Never less severe than the fail-closed default
         """
         start = time.perf_counter()
 
@@ -355,9 +424,20 @@ class SafetyClassifierAgent(BaseAgent):
                 # But if LLM catches something rules missed, respect it
                 final_level = llm_classification.risk_level
         else:
-            # LLM unavailable → rule result is the safety net
-            final_level = rule_level
-            logger.warning("LLM unavailable — using rule result as fallback: %s", rule_level)
+            # ISS-026: LLM unavailable → fail CLOSED. The final result is the
+            # MORE SEVERE of (rule screening result, fail-closed default high).
+            # It must never be less severe than the fail-closed default: a rule
+            # miss (none) with a dead LLM previously produced risk=none for
+            # phrasings outside the keyword lists — a life-threatening false
+            # negative.
+            final_level = _max_risk(
+                rule_level,
+                _max_risk(llm_classification.risk_level, _FAIL_CLOSED_LEVEL),
+            )
+            logger.warning(
+                "LLM unavailable — fail-closed merge: rule=%s → final=%s",
+                rule_level, final_level,
+            )
 
         # Merge categories and flagged phrases
         all_categories = list(dict.fromkeys(
@@ -378,7 +458,7 @@ class SafetyClassifierAgent(BaseAgent):
 
         return SafetyOutput(
             model_used=model_used,
-            prompt_version="v1",
+            prompt_version=PROMPT_VERSION,
             latency_ms=latency_ms,
             reason_summary=llm_classification.reason_summary or "Rule screening + LLM judgment",
             risk_level=final_level,

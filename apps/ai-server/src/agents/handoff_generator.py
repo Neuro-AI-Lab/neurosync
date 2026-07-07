@@ -16,7 +16,9 @@ from src.schemas.handoff import HandoffInput, HandoffOutput, SlotData
 logger = logging.getLogger(__name__)
 
 _PROMPT_AGENT_NAME = "handoff_generator"
-_PROMPT_VERSION = "v1"
+# PLAN-2026-W28 C1 / ADR-007: v2 (prompt_redesign_v3.md §2.4) removes the dead
+# ctrs_level output instruction and placeholder-izes all example values.
+_PROMPT_VERSION = "v2"
 
 
 def _build_user_content(inp: HandoffInput) -> str:

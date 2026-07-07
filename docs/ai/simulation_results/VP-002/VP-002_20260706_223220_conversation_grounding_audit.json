@@ -1,0 +1,60 @@
+{
+  "session_id": "f1_VP-002",
+  "persona_id": "VP-002",
+  "total_turns": 12,
+  "n_patient_utterances": 12,
+  "reported_slot_coverage": 0.6,
+  "reported_grounded_coverage": 0.875,
+  "recomputed_grounded_coverage": 0.875,
+  "counts": {
+    "grounded": 6,
+    "negative_grounded": 1,
+    "system_slot": 0,
+    "ungrounded": 0
+  },
+  "slots": [
+    {
+      "key": "history_of_present_illness",
+      "value": "6주 전 정신건강의학과 첫 진료 후 에스시탈로프람 복용 시작, 초기 위장 부작용 있었으나 현재는 호전됨. 수업 준비 능력 회복, 기분 개선, 수면 패턴 개선(잠들기 시간 1시간 이상에서 30분 이내로 단축, 새벽 각성 감소), 일상 복귀 및 사회적 연결 회복",
+      "verdict": "grounded",
+      "reason": "lexical evidence in patient utterances"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"자해나 타인에게 해를 끼치고 싶은 생각은 전혀 없어요. 지금은 그런 생각보다는, 다시 일상으로 돌아가고 싶다는 마음이 더 큽니다. 아내도 그런 ...\"",
+      "verdict": "grounded",
+      "reason": "populated by the safety probe protocol (probe_events)"
+    },
+    {
+      "key": "chief_complaint",
+      "value": "약 복용 6주 후 증상 호전 확인",
+      "verdict": "grounded",
+      "reason": "lexical evidence in patient utterances"
+    },
+    {
+      "key": "medical_history",
+      "value": "특별한 신체질환 없음",
+      "verdict": "negative_grounded",
+      "reason": "negative template with ask evidence (utterance 2 answered a question targeting 'medical_history' with negation)"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "술 거의 안 마심, 카페인은 평소대로 섭취하나 저녁에 주의함, 수면제/진정제 복용 없음",
+      "verdict": "grounded",
+      "reason": "lexical evidence with polarity-consistent negation (negated patient statement supports the value)"
+    },
+    {
+      "key": "personal_social_history",
+      "value": "아내 지원, 동료와 점심 모임 재개",
+      "verdict": "grounded",
+      "reason": "lexical evidence in patient utterances"
+    },
+    {
+      "key": "past_psychiatric_history",
+      "value": "처음 정신건강의학과 진료, 경도 우울 진단",
+      "verdict": "grounded",
+      "reason": "lexical evidence in patient utterances"
+    }
+  ],
+  "source_file": "docs/ai/simulation_results/VP-002/VP-002_20260706_223220_conversation.json"
+}

@@ -29,7 +29,10 @@ _SAFETY_EXPRESSIONS: frozenset[str] = frozenset([
     # CRITICAL tier
     "자살", "죽고 싶", "죽고싶", "목숨", "끝내고 싶", "끝내고싶",
     "죽을", "죽어버리", "세상을 떠나", "유서",
-    "자해", "손목을 긋", "손목을긋", "손목을 그", "손목을그", "칼로",
+    # ISS-038: bare "칼로" substring-matched benign words ("칼로리") — use
+    # verb-anchored variants matching safety_classifier._CRITICAL_KEYWORDS.
+    "자해", "손목을 긋", "손목을긋", "손목을 그", "손목을그",
+    "칼로 긋", "칼로긋", "칼로 그", "칼로그", "칼로 손목", "칼로손목",
     "약을 많이 먹", "약을많이먹", "약물 과다", "약물과다",
     # HIGH tier
     "죽고", "살고 싶지 않", "살고싶지않", "사라지고 싶", "사라지고싶",

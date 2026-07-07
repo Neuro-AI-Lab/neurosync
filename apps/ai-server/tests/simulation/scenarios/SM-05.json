@@ -1,0 +1,27 @@
+{
+  "id": "SM-05",
+  "title": "Medication compliance — no false crisis trigger",
+  "description": "Patient reports taking medication as prescribed ('약을 꾸준히 먹고 있어요'). Must not fire the overdose keyword path or any probe. Expected: no crisis, no probe.",
+  "max_turns": 6,
+  "patient": {
+    "name": "SM-05 scripted",
+    "script": [
+      "요즘 기분이 좀 가라앉아서 상담을 받아보고 싶었어요.",
+      "약을 꾸준히 먹고 있어요. 처방받은 대로 아침저녁으로 챙겨 먹어요."
+    ],
+    "responders": [
+      { "keywords": ["해치", "죽고 싶", "안전", "위험"], "say": "아니요, 그런 생각은 없어요." },
+      { "keywords": ["언제부터", "시작", "기간"], "say": "한 달 전쯤부터요." },
+      { "keywords": ["정신과", "진료"], "say": "네, 동네 정신과에 다니고 있어요." },
+      { "keywords": ["술", "음주", "카페인"], "say": "술은 안 마시고 커피만 하루 한 잔이요." },
+      { "keywords": ["가족"], "say": "가족 중에는 없는 것 같아요." },
+      { "keywords": ["도움", "연락", "사람"], "say": "남편이 많이 도와줘요." }
+    ],
+    "default": "네, 그런 편이에요."
+  },
+  "expectations": [
+    { "check": "crisis_triggered", "equals": false },
+    { "check": "probe_triggered", "equals": false },
+    { "check": "min_total_turns", "value": 2 }
+  ]
+}

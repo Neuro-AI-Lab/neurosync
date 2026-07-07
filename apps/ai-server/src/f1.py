@@ -5,6 +5,11 @@ Agent 협업:
 
 목표: 12 Standard Clinical Slot을 대화로 수집.
 Safety: 매 턴 CTRS 분류, CTRS 1-2 시 위기 대응 + 세션 종료.
+       CTRS 3 + 자살/자해 카테고리 시 단계적 Safety Probe (T1-F1-DEV-022/023).
+
+Grounding (T1-F1-DEV-018): ClinicalSlotAgent가 추출한 값은 grounding filter를
+통과한 경우에만 세션 상태에 반영된다. 근거 없는 값은 폐기되고 턴 로그에 기록된다.
+risk_assessment는 추출기에서 절대 수용하지 않는다 — Safety Probe만 채운다.
 
 Usage (시뮬레이션):
     cd apps/ai-server
@@ -21,20 +26,31 @@ import asyncio
 import json
 import logging
 import os
+import re
 import sys
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Awaitable
+from typing import Any
 
-from src.agents.safety_classifier import SafetyClassifierAgent
+from src.agents.clinical_slot import ALL_SLOT_KEYS, ESSENTIAL_SLOT_KEYS, ClinicalSlotAgent
 from src.agents.dialogue import DialogueAgent
-from src.agents.clinical_slot import ClinicalSlotAgent
+from src.agents.safety_classifier import SafetyClassifierAgent
 from src.dependencies import get_model_router, get_prompt_loader
-from src.schemas.safety import SafetyInput
-from src.schemas.dialogue import DialogueInput
+from src.grounding import (
+    QUESTIONABLE_SLOT_KEYS,
+    RISK_SLOT_KEY,
+    evaluate_slot_grounding,
+    reply_has_negation,
+)
+from src.grounding import (
+    grounded_coverage as _grounded_coverage,
+)
 from src.schemas.clinical_slot import ClinicalSlotInput
+from src.schemas.dialogue import DialogueInput
+from src.schemas.safety import SafetyInput, SafetyOutput
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +61,75 @@ CRISIS_RESPONSE = (
     "지금 많이 힘드시군요. 당신의 이야기를 듣고 있습니다. "
     "자살예방상담전화 109, 응급전화 119로 연락해 주세요."
 )
+
+# ── Safety Probe protocol (T1-F1-DEV-022/023, DR-002) ────────────────
+
+_PROBE_TRIGGER_CTRS = 3
+_PROBE_TRIGGER_CATEGORIES = {"suicidal_ideation", "self_harm"}
+
+# Graduated probe stages: 사고 빈도 → 구체적 계획 → 수단/의도 → 보호 요인
+_PROBE_STAGES: list[tuple[str, str]] = [
+    ("frequency", "최근에 그런 생각이 얼마나 자주 드는지"),
+    ("plan", "혹시 구체적인 계획을 생각해 본 적이 있는지"),
+    ("means_intent", "혹시 방법이나 수단을 생각해 두었는지, 실행할 생각이 있는지"),
+    ("protective", "그런 순간에 버틸 수 있게 해 주는 것(가족, 친구, 소중한 일 등)이 있는지"),
+]
+
+# Belt-and-braces lexical check for plan/means disclosure in probe answers.
+_PLAN_DISCLOSURE_MARKERS = (
+    "계획", "방법", "준비", "사놨", "사 놨", "사뒀", "사 뒀", "유서", "날짜",
+    "수단", "정해뒀", "정해 뒀", "정했", "구해놨", "구해뒀", "모아뒀", "모아놨",
+)
+
+_SOFT_SAFETY_NOTE = (
+    " 그리고 혹시 마음이 많이 힘들어질 때는 언제든 자살예방상담전화 109에서 "
+    "도움을 받으실 수 있다는 것도 기억해 주세요."
+)
+
+_SI_SCREEN_INSTRUCTION = (
+    "필요한 문진 정보는 대부분 수집되었습니다. 상담을 마무리하기 전에 안전 확인이 "
+    "필요합니다. 공감 1문장 후, 최근에 스스로를 해치고 싶다거나 죽고 싶다는 생각이 "
+    "든 적이 있는지 부드럽게 **한 가지만** 질문하세요. 다른 주제는 질문하지 마세요."
+)
+
+
+# ISS-043: the negation veto must be clause-local, not sentence-global.
+# Clauses are split on sentence punctuation and common contrastive
+# connectives (는데/지만) so "계획을 세워뒀어요. 근데 아직 실행은 않았어요"
+# still escalates: the disclosure clause is affirmative even though a later
+# clause carries a negation morpheme.
+_CLAUSE_SPLIT_RE = re.compile(r"[.!?…~\n,;]|(?:는데|지만)\s")
+
+
+def _has_plan_disclosure(text: str) -> bool:
+    """Lexical check: some CLAUSE discloses a plan/means without clause-local
+    negation (ISS-043). Legitimate denials ("계획 같은 건 없어요") keep the
+    marker and the negation in the same clause and do not escalate."""
+    for clause in _CLAUSE_SPLIT_RE.split(text):
+        if not clause or not clause.strip():
+            continue
+        if any(marker in clause for marker in _PLAN_DISCLOSURE_MARKERS):
+            if not reply_has_negation(clause):
+                return True
+    return False
+
+
+def _clip(text: str, limit: int = 80) -> str:
+    text = " ".join(text.split())
+    return text if len(text) <= limit else text[:limit] + "..."
+
+
+@dataclass
+class _ProbeState:
+    """Pipeline-side safety probe state (kept by the pipeline, not the LLM)."""
+
+    active: bool = False
+    awaiting_answer: bool = False
+    stage_idx: int = 0  # index into _PROBE_STAGES for the NEXT question
+    trigger_utterance: str = ""
+    answers: list[str] = field(default_factory=list)
+    protective_answer: str = ""
+
 
 # ── Data structures ──────────────────────────────────────────────────
 
@@ -64,6 +149,10 @@ class F1TurnLog:
     slot_coverage: float
     latency_ms: float
     timestamp: str
+    # T1-F1-DEV-018/019 — grounding filter + coverage redefinition
+    targeted_slot: str | None = None
+    slot_discards: dict[str, str] = field(default_factory=dict)
+    grounded_coverage: float = 0.0
 
 
 @dataclass
@@ -80,6 +169,13 @@ class F1Result:
     errors: list[str] = field(default_factory=list)
     started_at: str = ""
     ended_at: str = ""
+    # T1-F1-DEV-019 — grounded coverage over the 8 question-able slots
+    grounded_coverage: float = 0.0
+    # T1-F1-DEV-022/023 — safety probe protocol
+    risk_floor: int | None = None
+    probe_events: list[dict] = field(default_factory=list)
+    # min CTRS over ALL turns INCLUDING turn 0 (ISS-036 partial fix)
+    session_ctrs: int = 5
 
 
 def _extract_text(response: str) -> str:
@@ -92,11 +188,51 @@ def _extract_text(response: str) -> str:
                 return data["assistant_response"]
         except json.JSONDecodeError:
             pass
-        import re
         match = re.search(r'"assistant_response"\s*:\s*"((?:[^"\\]|\\.)*)"', stripped)
         if match:
             return match.group(1).replace('\\"', '"').replace('\\n', '\n')
     return stripped
+
+
+def _filter_and_merge_slots(
+    raw_slots: dict[str, Any],
+    filled_slots: dict[str, str],
+    patient_utterances: list[str],
+    asked_slots: list[str | None],
+) -> tuple[dict[str, str], dict[str, str]]:
+    """Apply the grounding filter to extractor output and merge accepted values.
+
+    Returns (updates, discards) where discards maps slot key → "verdict: reason".
+    """
+    updates: dict[str, str] = {}
+    discards: dict[str, str] = {}
+    for key, raw in raw_slots.items():
+        if key not in ALL_SLOT_KEYS:
+            continue
+        value = raw
+        if isinstance(value, dict) and isinstance(value.get("value"), str):
+            value = value["value"]
+        if not isinstance(value, str) or not value.strip():
+            continue
+        value = value.strip()
+
+        verdict = evaluate_slot_grounding(key, value, patient_utterances, asked_slots)
+        if verdict.accepted:
+            filled_slots[key] = value
+            updates[key] = value
+        else:
+            discards[key] = f"{verdict.verdict}: {verdict.reason}"
+            logger.info(
+                "Slot '%s' DISCARDED (%s): %r — %s",
+                key, verdict.verdict, value, verdict.reason,
+            )
+    return updates, discards
+
+
+def _legacy_essential_coverage(filled_slots: dict[str, str]) -> float:
+    """Legacy essential-slot coverage — kept for comparability (T1-F1-DEV-019)."""
+    filled_essential = [s for s in ESSENTIAL_SLOT_KEYS if filled_slots.get(s)]
+    return len(filled_essential) / len(ESSENTIAL_SLOT_KEYS) if ESSENTIAL_SLOT_KEYS else 0.0
 
 
 # ── F1 Pipeline ──────────────────────────────────────────────────────
@@ -125,7 +261,6 @@ class F1Pipeline:
         - Markdown table: | `chief_complaint` | "우울감과 불면" |
         - Section header: ### 주호소 (with content on next line)
         """
-        import re
         lines = handoff.split("\n")
         chief = ""
         risk_info = ""
@@ -176,6 +311,72 @@ class F1Pipeline:
 
         return " ".join(summary_parts) + "."
 
+    # ── Safety probe helpers (pipeline-side state machine) ──────────
+
+    @staticmethod
+    def _probe_should_trigger(safety_out: SafetyOutput) -> bool:
+        """CTRS 3 + suicidal_ideation/self_harm category → enter probe mode."""
+        if int(safety_out.ctrs_level) != _PROBE_TRIGGER_CTRS:
+            return False
+        return bool(set(safety_out.categories) & _PROBE_TRIGGER_CATEGORIES)
+
+    @staticmethod
+    def _build_probe_instruction(stage_idx: int) -> str:
+        stage_idx = min(stage_idx, len(_PROBE_STAGES) - 1)
+        _, question_hint = _PROBE_STAGES[stage_idx]
+        return (
+            "환자가 자살/자해 관련 사고를 표현했습니다. 지금은 안전 탐색 단계입니다. "
+            "따뜻한 공감 1문장을 먼저 말한 뒤, 아래 주제를 부드럽게 한 가지만 "
+            f"질문하세요. 질문 주제: {question_hint}."
+        )
+
+    @staticmethod
+    def _process_probe_answer(probe: _ProbeState, patient_message: str) -> str:
+        """Process the answer to the previously asked probe question.
+
+        Returns "escalate" | "deescalate" | "continue".
+        The per-turn safety call is the primary escalation path (CTRS <= 2 is
+        handled by the caller before this method); this adds the belt-and-braces
+        lexical check and the graduated de-escalation rule.
+
+        Note: probe.stage_idx is the stage of the question that was JUST
+        answered — it is only advanced after this method returns "continue".
+        """
+        answered_idx = min(probe.stage_idx, len(_PROBE_STAGES) - 1)
+        stage_name = _PROBE_STAGES[answered_idx][0]
+
+        if _has_plan_disclosure(patient_message):
+            return "escalate"
+
+        negated = reply_has_negation(patient_message)
+        if stage_name in ("plan", "means_intent") and negated:
+            return "deescalate"
+        if stage_name == "protective":
+            probe.protective_answer = patient_message
+            return "deescalate"
+        return "continue"
+
+    @staticmethod
+    def _compose_probe_risk_assessment(probe: _ProbeState, final_answer: str) -> str:
+        """Compose risk_assessment from the ACTUAL probe exchange (no templates)."""
+        parts = [f'자살/자해 사고 표현 있음 — 환자 발화: "{_clip(probe.trigger_utterance)}"']
+        if final_answer and reply_has_negation(final_answer):
+            parts.append(f'구체적 계획/의도 부인 — 환자 발화: "{_clip(final_answer)}"')
+        elif final_answer:
+            parts.append(f'탐색 질문에 대한 환자 응답: "{_clip(final_answer)}"')
+        if probe.protective_answer and probe.protective_answer != final_answer:
+            parts.append(f'보호 요인 — 환자 발화: "{_clip(probe.protective_answer)}"')
+        return "; ".join(parts)
+
+    @staticmethod
+    def _compose_screen_risk_assessment(patient_message: str) -> str:
+        """Compose risk_assessment from the SI screening answer (actual words)."""
+        if reply_has_negation(patient_message):
+            return f'자살/자해 사고 탐색 질문에 부인 — 환자 발화: "{_clip(patient_message)}"'
+        return f'자살/자해 사고 탐색 질문에 대한 환자 응답: "{_clip(patient_message)}"'
+
+    # ── Session loop ─────────────────────────────────────────────────
+
     async def run_session(
         self,
         patient_input_fn: Callable[[str], Awaitable[str]],
@@ -210,6 +411,27 @@ class F1Pipeline:
         filled_slots: dict[str, str] = dict(prior_slots) if prior_slots else {}
         prev_agent_response = ""
         repeat_count = 0
+
+        # Grounding filter context: patient utterances + which slot the AI's
+        # question targeted for each utterance (aligned by index).
+        patient_utterances: list[str] = []
+        asked_slots: list[str | None] = []
+
+        # Safety probe state (pipeline-side, per DR-002).
+        probe = _ProbeState()
+        # risk_assessment is grounded only via probe/SI-screen in THIS session.
+        # Carried prior values do not count — every session re-screens.
+        risk_grounded = False
+        risk_question_pending = False  # AI's last question targeted risk_assessment
+        pending_soft_safety = False    # append 109 note to next AI response
+
+        def _finalize() -> F1Result:
+            result.session_ctrs = min(
+                (t.safety_ctrs for t in result.turns), default=5
+            )
+            result.grounded_coverage = _grounded_coverage(filled_slots)
+            result.ended_at = datetime.now().isoformat()
+            return result
 
         # ── Turn 0: DialogueAgent 첫 인사 ──
         # 재상담(prior_handoff 있음)과 초진/재진(visit_type)은 별개 개념.
@@ -248,8 +470,11 @@ class F1Pipeline:
             patient_message = await patient_input_fn(greeting)
         except Exception as e:
             result.errors.append(f"Patient start failed: {e}")
-            result.ended_at = datetime.now().isoformat()
-            return result
+            return _finalize()
+
+        # The opening question targets the chief complaint.
+        patient_utterances.append(patient_message)
+        asked_slots.append("chief_complaint")
 
         # Turn 0: Safety + Slot extraction on patient's first response
         turn0_history = [{"role": "assistant", "content": greeting}]
@@ -265,8 +490,9 @@ class F1Pipeline:
             logger.warning("Turn 0 safety failed: %s", e)
             turn0_safety = None
 
-        # Slot extraction on first patient message
+        # Slot extraction on first patient message — grounding filter applied
         turn0_slots: dict[str, str] = {}
+        turn0_discards: dict[str, str] = {}
         try:
             turn0_slot_out = await self.clinical_slot.run(ClinicalSlotInput(
                 session_id=session_id,
@@ -276,16 +502,16 @@ class F1Pipeline:
                 current_slots=filled_slots,
             ))
             if turn0_slot_out.extracted_slots:
-                from src.agents.clinical_slot import ALL_SLOT_KEYS as _ALL_KEYS
-                for k, v in turn0_slot_out.extracted_slots.items():
-                    if k not in _ALL_KEYS:
-                        continue
-                    if isinstance(v, dict) and "value" in v and isinstance(v["value"], str):
-                        turn0_slots[k] = v["value"]
-                    elif isinstance(v, str) and v:
-                        turn0_slots[k] = v
-                filled_slots.update(turn0_slots)
-                logger.info("Turn 0 slot extraction: %d slots", len(turn0_slots))
+                turn0_slots, turn0_discards = _filter_and_merge_slots(
+                    turn0_slot_out.extracted_slots,
+                    filled_slots,
+                    patient_utterances,
+                    asked_slots,
+                )
+                logger.info(
+                    "Turn 0 slot extraction: %d accepted, %d discarded",
+                    len(turn0_slots), len(turn0_discards),
+                )
         except Exception as e:
             logger.warning("Turn 0 slot extraction failed: %s", e)
 
@@ -298,9 +524,24 @@ class F1Pipeline:
             turn0_risk = str(turn0_safety.risk_level)
             turn0_crisis = turn0_safety.crisis_protocol_activated
 
-        from src.agents.clinical_slot import ESSENTIAL_SLOT_KEYS
-        filled_essential = [s for s in ESSENTIAL_SLOT_KEYS if filled_slots.get(s)]
-        turn0_coverage = len(filled_essential) / len(ESSENTIAL_SLOT_KEYS) if ESSENTIAL_SLOT_KEYS else 0
+        # Safety probe trigger check on turn 0 (CTRS 3 + SI/self-harm).
+        if turn0_safety and not turn0_crisis and self._probe_should_trigger(turn0_safety):
+            probe.active = True
+            probe.awaiting_answer = False
+            probe.stage_idx = 0
+            probe.trigger_utterance = patient_message
+            result.risk_floor = _PROBE_TRIGGER_CTRS
+            result.probe_events.append({
+                "type": "trigger",
+                "turn": 0,
+                "ctrs": int(turn0_safety.ctrs_level),
+                "categories": list(turn0_safety.categories),
+                "utterance": _clip(patient_message, 200),
+            })
+            logger.warning("Safety probe triggered at turn 0 (CTRS=3, SI/self-harm)")
+
+        turn0_coverage = _legacy_essential_coverage(filled_slots)
+        turn0_grounded = _grounded_coverage(filled_slots)
 
         turn0_latency = (time.perf_counter() - turn0_start) * 1000
         turn0_log = F1TurnLog(
@@ -317,6 +558,9 @@ class F1Pipeline:
             slot_coverage=turn0_coverage,
             latency_ms=turn0_latency,
             timestamp=datetime.now().isoformat(),
+            targeted_slot="chief_complaint",
+            slot_discards=turn0_discards,
+            grounded_coverage=turn0_grounded,
         )
         result.turns.append(turn0_log)
 
@@ -326,8 +570,7 @@ class F1Pipeline:
             result.total_turns = 0
             result.final_slots = [{"key": k, "value": v} for k, v in filled_slots.items() if v]
             result.slot_coverage = turn0_coverage
-            result.ended_at = datetime.now().isoformat()
-            return result
+            return _finalize()
 
         # Record opening in history
         conversation_history.append({"role": "assistant", "content": greeting})
@@ -343,6 +586,7 @@ class F1Pipeline:
         for turn in range(1, max_turns + 1):
             turn_start = time.perf_counter()
             logger.info("Turn %d | Patient: %s", turn, patient_message)
+            targeted_slot: str | None = None
 
             # ── Step 1: Safety classification (매 턴 필수) ──
             try:
@@ -359,16 +603,139 @@ class F1Pipeline:
             crisis = safety_out.crisis_protocol_activated
             agent_response = ""
             slot_updates: dict[str, str] = {}
+            slot_discards: dict[str, str] = {}
+            probe_just_concluded = False  # QA finding 8: probe cooldown
+
+            # ── Step 1b: Safety probe state machine (T1-F1-DEV-022/023) ──
+            if not crisis and probe.active and probe.awaiting_answer:
+                probe.awaiting_answer = False
+                probe.answers.append(patient_message)
+                outcome = self._process_probe_answer(probe, patient_message)
+                answered_stage = _PROBE_STAGES[
+                    min(probe.stage_idx, len(_PROBE_STAGES) - 1)
+                ][0]
+
+                if outcome == "escalate":
+                    crisis = True
+                    probe.active = False
+                    result.probe_events.append({
+                        "type": "escalation",
+                        "turn": turn,
+                        "stage": answered_stage,
+                        "reason": "plan/means disclosure (lexical check)",
+                        "utterance": _clip(patient_message, 200),
+                    })
+                    logger.warning(
+                        "Probe ESCALATION at turn %d (stage=%s, lexical)",
+                        turn, answered_stage,
+                    )
+                elif outcome == "deescalate":
+                    risk_value = self._compose_probe_risk_assessment(probe, patient_message)
+                    filled_slots[RISK_SLOT_KEY] = risk_value
+                    risk_grounded = True
+                    slot_updates[RISK_SLOT_KEY] = risk_value
+                    probe.active = False
+                    pending_soft_safety = True
+                    probe_just_concluded = True
+                    result.probe_events.append({
+                        "type": "deescalation",
+                        "turn": turn,
+                        "stage": answered_stage,
+                        "risk_assessment_written": True,
+                        "risk_assessment": risk_value,
+                    })
+                    logger.info("Probe de-escalated at turn %d — risk grounded", turn)
+                else:
+                    probe.stage_idx += 1
+                    if probe.stage_idx >= len(_PROBE_STAGES):
+                        # Stages exhausted without denial or disclosure —
+                        # compose from the full exchange and exit probe.
+                        risk_value = self._compose_probe_risk_assessment(
+                            probe, patient_message
+                        )
+                        filled_slots[RISK_SLOT_KEY] = risk_value
+                        risk_grounded = True
+                        slot_updates[RISK_SLOT_KEY] = risk_value
+                        probe.active = False
+                        pending_soft_safety = True
+                        probe_just_concluded = True
+                        result.probe_events.append({
+                            "type": "deescalation",
+                            "turn": turn,
+                            "stage": answered_stage,
+                            "risk_assessment_written": True,
+                            "risk_assessment": risk_value,
+                            "note": "probe stages exhausted",
+                        })
+                    else:
+                        result.probe_events.append({
+                            "type": "progress",
+                            "turn": turn,
+                            "stage": answered_stage,
+                            "next_stage": _PROBE_STAGES[probe.stage_idx][0],
+                        })
+            elif not crisis and risk_question_pending:
+                # Answer to an SI screening question (mandatory probe or
+                # round-robin risk targeting).
+                risk_question_pending = False
+                if self._probe_should_trigger(safety_out):
+                    # The screening answer itself revealed CTRS-3 SI —
+                    # the generic trigger check below enters probe mode.
+                    pass
+                else:
+                    risk_value = self._compose_screen_risk_assessment(patient_message)
+                    filled_slots[RISK_SLOT_KEY] = risk_value
+                    risk_grounded = True
+                    slot_updates[RISK_SLOT_KEY] = risk_value
+                    result.probe_events.append({
+                        "type": "si_screen_result",
+                        "turn": turn,
+                        "risk_assessment_written": True,
+                        "risk_assessment": risk_value,
+                    })
+
+            # ── Step 1c: Probe trigger check (CTRS 3 + SI/self-harm) ──
+            # QA finding 8 (cooldown): never re-trigger on the turn that just
+            # concluded a probe (the concluding answer would immediately
+            # restart the full SI questioning), and cap probes at 2 triggers
+            # per session — an escalation ends the session anyway.
+            prior_triggers = sum(
+                1 for e in result.probe_events if e["type"] == "trigger"
+            )
+            if (
+                not crisis
+                and not probe.active
+                and not probe_just_concluded
+                and prior_triggers < 2
+                and self._probe_should_trigger(safety_out)
+            ):
+                probe.active = True
+                probe.awaiting_answer = False
+                probe.stage_idx = 0
+                probe.trigger_utterance = patient_message
+                probe.answers = []
+                probe.protective_answer = ""
+                risk_grounded = False  # new risk episode — re-ground
+                result.risk_floor = _PROBE_TRIGGER_CTRS
+                result.probe_events.append({
+                    "type": "trigger",
+                    "turn": turn,
+                    "ctrs": int(safety_out.ctrs_level),
+                    "categories": list(safety_out.categories),
+                    "utterance": _clip(patient_message, 200),
+                })
+                logger.warning("Safety probe triggered at turn %d", turn)
 
             if crisis:
-                # ── CTRS 1-2: Crisis → 세션 종료 ──
+                # ── CTRS 1-2 (or probe escalation): Crisis → 세션 종료 ──
                 agent_response = CRISIS_RESPONSE
                 result.crisis_triggered = True
                 result.crisis_turn = turn
                 logger.warning("CRISIS at turn %d (CTRS=%d)", turn, safety_out.ctrs_level)
             else:
                 # ── Step 2: Slot extraction FIRST (매 턴, Dialogue 전에) ──
-                # Dialogue가 최신 slot 정보를 보고 질문할 수 있도록
+                # Dialogue가 최신 slot 정보를 보고 질문할 수 있도록.
+                # 추출 결과는 grounding filter를 통과한 값만 반영된다.
                 try:
                     slot_history = conversation_history + [
                         {"role": "user", "content": patient_message},
@@ -379,27 +746,47 @@ class F1Pipeline:
                         current_slots=filled_slots,
                     ))
                     if slot_out.extracted_slots:
-                        from src.agents.clinical_slot import ALL_SLOT_KEYS
-                        for k, v in slot_out.extracted_slots.items():
-                            # 12 Standard Slots만 허용 — 비표준 키 차단
-                            if k not in ALL_SLOT_KEYS:
-                                continue
-                            if isinstance(v, dict) and "value" in v and isinstance(v["value"], str):
-                                filled_slots[k] = v["value"]
-                                slot_updates[k] = v["value"]
-                            elif isinstance(v, str) and v:
-                                filled_slots[k] = v
-                                slot_updates[k] = v
+                        extract_updates, extract_discards = _filter_and_merge_slots(
+                            slot_out.extracted_slots,
+                            filled_slots,
+                            patient_utterances,
+                            asked_slots,
+                        )
+                        slot_updates.update(extract_updates)
+                        slot_discards.update(extract_discards)
                     logger.info(
-                        "Turn %d slots: +%d new, %d total",
-                        turn, len(slot_updates), len(filled_slots),
+                        "Turn %d slots: +%d accepted, %d discarded, %d total",
+                        turn, len(slot_updates), len(slot_discards), len(filled_slots),
                     )
                 except Exception as e:
                     logger.warning("Slot extraction failed: %s", e)
 
                 # ── Step 3: Dialogue agent (최신 filled_slots + Safety 결과 사용) ──
                 # Dialogue는 응답 생성만 담당.
-                # Slot 추출은 Step 2(ClinicalSlotAgent)가, 위험도는 Step 1(SafetyAgent)가 전담.
+                # Probe mode에서는 round-robin을 중단하고 probe 지시를 주입한다.
+                other_missing = [
+                    s for s in QUESTIONABLE_SLOT_KEYS
+                    if s != RISK_SLOT_KEY and not filled_slots.get(s)
+                ]
+                session_state: dict[str, Any] | None = None
+                forced_si_screen = False
+
+                if probe.active:
+                    session_state = {
+                        "probe_instruction": self._build_probe_instruction(probe.stage_idx),
+                    }
+                    targeted_slot = RISK_SLOT_KEY
+                elif not risk_grounded and not other_missing:
+                    # Mandatory SI probe: all other question-able slots are
+                    # collected — session may NOT end until risk is grounded.
+                    session_state = {"probe_instruction": _SI_SCREEN_INSTRUCTION}
+                    targeted_slot = RISK_SLOT_KEY
+                    forced_si_screen = True
+                else:
+                    targeted_slot = DialogueAgent.compute_target_slot(
+                        filled_slots, conversation_history
+                    )
+
                 try:
                     safety_result_for_dialogue = {
                         "risk_level": str(safety_out.risk_level),
@@ -411,6 +798,7 @@ class F1Pipeline:
                         conversation_history=conversation_history,
                         filled_slots=filled_slots,
                         safety_result=safety_result_for_dialogue,
+                        session_state=session_state,
                     ))
                     agent_response = _extract_text(dialogue_out.assistant_response)
                 except Exception as e:
@@ -418,14 +806,28 @@ class F1Pipeline:
                     logger.error("Dialogue failed: %s", e)
                     break
 
+                if pending_soft_safety:
+                    # One-time 109 안내 after probe de-escalation (non-terminating).
+                    agent_response = agent_response.rstrip() + _SOFT_SAFETY_NOTE
+                    pending_soft_safety = False
+
+                if probe.active:
+                    probe.awaiting_answer = True
+                elif targeted_slot == RISK_SLOT_KEY:
+                    risk_question_pending = True
+                    result.probe_events.append({
+                        "type": "si_screen",
+                        "turn": turn,
+                        "forced": forced_si_screen,
+                    })
+
             # 턴 종료 후 history에 현재 턴의 대화 추가
             conversation_history.append({"role": "user", "content": patient_message})
             conversation_history.append({"role": "assistant", "content": agent_response})
 
-            # ── Calculate slot coverage (orchestrator 역할) ──
-            from src.agents.clinical_slot import ESSENTIAL_SLOT_KEYS
-            filled_essential = [s for s in ESSENTIAL_SLOT_KEYS if filled_slots.get(s)]
-            coverage = len(filled_essential) / len(ESSENTIAL_SLOT_KEYS) if ESSENTIAL_SLOT_KEYS else 0
+            # ── Calculate coverage (orchestrator 역할) ──
+            coverage = _legacy_essential_coverage(filled_slots)
+            g_coverage = _grounded_coverage(filled_slots)
 
             # ── Log turn ──
             latency = (time.perf_counter() - turn_start) * 1000
@@ -443,29 +845,36 @@ class F1Pipeline:
                 slot_coverage=coverage,
                 latency_ms=latency,
                 timestamp=datetime.now().isoformat(),
+                targeted_slot=targeted_slot,
+                slot_discards=slot_discards,
+                grounded_coverage=g_coverage,
             )
             result.turns.append(turn_log)
             result.total_turns = turn
             result.final_slots = [{"key": k, "value": v} for k, v in filled_slots.items() if v]
             result.slot_coverage = coverage
+            result.grounded_coverage = g_coverage
 
             logger.info(
-                "Turn %d | CTRS=%d | slots=%d | coverage=%.0f%% | %.0fms",
-                turn, safety_out.ctrs_level, len(filled_slots), coverage * 100, latency,
+                "Turn %d | CTRS=%d | slots=%d | coverage=%.0f%% | grounded=%.0f%% | %.0fms",
+                turn, safety_out.ctrs_level, len(filled_slots),
+                coverage * 100, g_coverage * 100, latency,
             )
 
             if crisis:
                 break
 
-            # ── Handoff ready: 질문 가능 슬롯 모두 수집 시 세션 종료 ──
-            _NO_Q = {"encounter_metadata", "mental_status_exam", "clinical_assessment", "treatment_plan"}
-            from src.agents.clinical_slot import ALL_SLOT_KEYS as _ALL
-            questionable_missing = [
-                s for s in _ALL
-                if s not in _NO_Q and s not in filled_slots
+            # ── Handoff ready: 질문 가능 슬롯 모두 수집 + risk grounded 시 종료 ──
+            # Termination gate (T1-F1-DEV-018/022): 세션은 risk_assessment가
+            # grounded되기 전에는 slot-completion으로 종료될 수 없다.
+            other_missing = [
+                s for s in QUESTIONABLE_SLOT_KEYS
+                if s != RISK_SLOT_KEY and not filled_slots.get(s)
             ]
-            if not questionable_missing and turn >= 3:
-                logger.info("All questionable slots collected — ending session (handoff ready)")
+            if not other_missing and risk_grounded and turn >= 3:
+                logger.info(
+                    "All questionable slots grounded — ending session (handoff ready)"
+                )
                 break
 
             # ── Repetition detection — stop after 2 consecutive repeats ──
@@ -487,8 +896,11 @@ class F1Pipeline:
                 result.errors.append(f"Turn {turn} patient error: {e}")
                 break
 
-        result.ended_at = datetime.now().isoformat()
-        return result
+            # Record the new utterance + which slot this turn's question targeted.
+            patient_utterances.append(patient_message)
+            asked_slots.append(targeted_slot)
+
+        return _finalize()
 
 
 # ── Output: save results + report + checklist ────────────────────────
@@ -532,6 +944,7 @@ def save_f1_result(result: F1Result, output_dir: Path | None = None) -> dict[str
 
 
 def _build_checklist(r: F1Result) -> str:
+    n_discards = sum(len(t.slot_discards) for t in r.turns)
     lines = [
         f"# F1 Agent Call Checklist — {r.persona_id or r.session_id}",
         "",
@@ -544,11 +957,16 @@ def _build_checklist(r: F1Result) -> str:
         f"{sum(1 for t in r.turns if not t.safety_crisis)}턴 호출 |",
         f"| ClinicalSlotAgent 호출 | {'PASS' if any(t.slot_updates for t in r.turns) else 'WARN'} | "
         f"slot extraction 실행 |",
-        f"| System prompt 주입 | PASS | 모든 agent에 PromptLoader로 주입 |",
-        f"| 대화 기록 append | PASS | 매 턴 conversation_history 누적 |",
-        f"| Full text 저장 (no truncation) | PASS | 모든 턴 전문 저장 |",
+        "| System prompt 주입 | PASS | 모든 agent에 PromptLoader로 주입 |",
+        "| 대화 기록 append | PASS | 매 턴 conversation_history 누적 |",
+        "| Full text 저장 (no truncation) | PASS | 모든 턴 전문 저장 |",
         f"| Crisis 대응 (CTRS 1-2) | {'PASS — 109/119 안내' if r.crisis_triggered else 'N/A — crisis 미발생'} |",
-        f"| Slot coverage | {r.slot_coverage:.0%} | {len(r.final_slots)} slots filled |",
+        f"| Grounding filter 적용 | PASS | {n_discards}개 값 폐기 (ungrounded/system/risk) |",
+        f"| Safety probe events | {len(r.probe_events)}건 | risk_floor={r.risk_floor} |",
+        f"| Session CTRS (turn 0 포함 최솟값) | {r.session_ctrs} | |",
+        f"| Slot coverage (legacy, essential 5) | {r.slot_coverage:.0%} | "
+        f"{len(r.final_slots)} slots filled |",
+        f"| Grounded coverage (questionable 8) | {r.grounded_coverage:.0%} | filter 통과 값만 |",
         "",
     ]
 
@@ -558,9 +976,13 @@ def _build_checklist(r: F1Result) -> str:
         lines.append(f"### Turn {t.turn}")
         lines.append(f"- Safety: CTRS={t.safety_ctrs}, risk={t.safety_risk}, "
                       f"categories={t.safety_categories}, crisis={t.safety_crisis}")
-        lines.append(f"- Dialogue: response_length={len(t.agent_response)}chars")
+        lines.append(f"- Dialogue: response_length={len(t.agent_response)}chars, "
+                      f"targeted_slot={t.targeted_slot or 'none'}")
         lines.append(f"- Slots updated: {list(t.slot_updates.keys()) if t.slot_updates else 'none'}")
-        lines.append(f"- Cumulative coverage: {t.slot_coverage:.0%}")
+        if t.slot_discards:
+            lines.append(f"- Slots discarded: {list(t.slot_discards.keys())}")
+        lines.append(f"- Coverage: legacy={t.slot_coverage:.0%}, "
+                     f"grounded={t.grounded_coverage:.0%}")
         lines.append(f"- Latency: {t.latency_ms:.0f}ms")
         lines.append("")
 
@@ -582,7 +1004,9 @@ def _build_report(r: F1Result) -> str:
         f"# F1 Simulation Report — {r.persona_id or r.session_id}",
         "",
         f"> Persona: {r.persona_name or 'N/A'} | Turns: {r.total_turns} | "
-        f"Crisis: {r.crisis_triggered} | Coverage: {r.slot_coverage:.0%}",
+        f"Crisis: {r.crisis_triggered} | Coverage: {r.slot_coverage:.0%} (legacy) / "
+        f"{r.grounded_coverage:.0%} (grounded)",
+        f"> Session CTRS (incl. turn 0): {r.session_ctrs} | Risk floor: {r.risk_floor}",
         f"> Started: {r.started_at} | Ended: {r.ended_at}",
         "",
         "## Full Conversation",
@@ -600,6 +1024,11 @@ def _build_report(r: F1Result) -> str:
             lines.append("")
             lines.append(f"**Patient**: {t.patient_message}")
             lines.append("")
+            if t.slot_discards:
+                lines.append(
+                    f"**Slot Discards**: {json.dumps(t.slot_discards, ensure_ascii=False)}"
+                )
+                lines.append("")
         else:
             # Turn N: AI 응답 → Patient 응답 (다음 턴 입력)
             crisis_tag = " **[CRISIS]**" if t.safety_crisis else ""
@@ -623,6 +1052,18 @@ def _build_report(r: F1Result) -> str:
             if t.slot_updates:
                 lines.append(f"**Slot Updates**: {json.dumps(t.slot_updates, ensure_ascii=False)}")
                 lines.append("")
+            if t.slot_discards:
+                lines.append(
+                    f"**Slot Discards**: {json.dumps(t.slot_discards, ensure_ascii=False)}"
+                )
+                lines.append("")
+
+    # Probe events
+    if r.probe_events:
+        lines.extend(["## Safety Probe Events", ""])
+        for e in r.probe_events:
+            lines.append(f"- {json.dumps(e, ensure_ascii=False)}")
+        lines.append("")
 
     # Errors
     if r.errors:
@@ -633,7 +1074,11 @@ def _build_report(r: F1Result) -> str:
 
     # Final slots
     lines.extend(["## Final Slots", ""])
-    lines.append(f"Coverage: {r.slot_coverage:.0%} ({len(r.final_slots)} slots filled)")
+    lines.append(
+        f"Coverage: {r.slot_coverage:.0%} legacy (essential 5) / "
+        f"{r.grounded_coverage:.0%} grounded (questionable 8) — "
+        f"{len(r.final_slots)} slots filled"
+    )
     lines.append("")
     for slot in r.final_slots:
         lines.append(f"- **{slot['key']}**: {slot['value']}")
@@ -663,8 +1108,11 @@ def generate_handoff_from_result(result: F1Result) -> str:
     ]
 
     if result.turns:
-        max_ctrs = min(t.safety_ctrs for t in result.turns if t.turn > 0) if any(t.turn > 0 for t in result.turns) else 5
-        lines.append(f"- CTRS: {max_ctrs}단계")
+        # ISS-036 partial fix: session CTRS = min over ALL turns INCLUDING
+        # turn 0. Previously turn 0 was excluded and fell back to 5, so a
+        # turn-0 crisis session was recorded as stable.
+        session_ctrs = min(t.safety_ctrs for t in result.turns)
+        lines.append(f"- CTRS: {session_ctrs}단계")
         lines.append(f"- 위기 프로토콜 발동: {'예' if result.crisis_triggered else '아니오'}")
     else:
         lines.append("- CTRS: N/A")
@@ -696,7 +1144,7 @@ def generate_handoff_from_result(result: F1Result) -> str:
     if risk_val:
         lines.append(risk_val)
     else:
-        lines.append("명시적 자살/자해 사고 확인 안 됨")
+        lines.append("위험 평가 미수행 (근거 있는 위험 문답 없음)")
 
     lines.extend(["", "[6. 기타 수집 정보]"])
     other_keys = [
@@ -710,8 +1158,9 @@ def generate_handoff_from_result(result: F1Result) -> str:
 
     lines.extend([
         "",
-        f"[7. Slot Coverage]",
-        f"- Coverage: {result.slot_coverage:.0%} ({len(result.final_slots)} slots)",
+        "[7. Slot Coverage]",
+        f"- Coverage (legacy): {result.slot_coverage:.0%} ({len(result.final_slots)} slots)",
+        f"- Grounded coverage: {result.grounded_coverage:.0%} (questionable 8)",
         "",
         "[8. 대화 요약]",
         f"- 총 턴 수: {result.total_turns}",
@@ -727,21 +1176,9 @@ def generate_handoff_from_result(result: F1Result) -> str:
     return "\n".join(lines)
 
 
-def _load_latest_result(persona_id: str) -> F1Result | None:
-    """Load the latest simulation result JSON for a persona."""
-    import glob as _glob
-    pattern_sub = str(OUTPUT_DIR / persona_id / f"{persona_id}_*_conversation.json")
-    pattern_flat = str(OUTPUT_DIR / f"{persona_id}_*_conversation.json")
-    files = sorted(_glob.glob(pattern_sub) + _glob.glob(pattern_flat))
-    if not files:
-        return None
-    with open(files[-1], encoding="utf-8") as f:
-        data = json.load(f)
-
-    turns = []
-    for t in data.get("turns", []):
-        turns.append(F1TurnLog(**t))
-
+def _result_from_dict(data: dict) -> F1Result:
+    """Build an F1Result from a saved conversation.json dict (old or new format)."""
+    turns = [F1TurnLog(**t) for t in data.get("turns", [])]
     return F1Result(
         session_id=data["session_id"],
         persona_id=data.get("persona_id"),
@@ -755,7 +1192,24 @@ def _load_latest_result(persona_id: str) -> F1Result | None:
         errors=data.get("errors", []),
         started_at=data.get("started_at", ""),
         ended_at=data.get("ended_at", ""),
+        grounded_coverage=data.get("grounded_coverage", 0.0),
+        risk_floor=data.get("risk_floor"),
+        probe_events=data.get("probe_events", []),
+        session_ctrs=data.get("session_ctrs", 5),
     )
+
+
+def _load_latest_result(persona_id: str) -> F1Result | None:
+    """Load the latest simulation result JSON for a persona."""
+    import glob as _glob
+    pattern_sub = str(OUTPUT_DIR / persona_id / f"{persona_id}_*_conversation.json")
+    pattern_flat = str(OUTPUT_DIR / f"{persona_id}_*_conversation.json")
+    files = sorted(_glob.glob(pattern_sub) + _glob.glob(pattern_flat))
+    if not files:
+        return None
+    with open(files[-1], encoding="utf-8") as f:
+        data = json.load(f)
+    return _result_from_dict(data)
 
 
 # ── CLI entry point ──────────────────────────────────────────────────
@@ -773,7 +1227,7 @@ async def _run_simulation(
             - persona ID (e.g. "VP-001") → 해당 VP의 최신 결과에서 handoff 생성
             - JSON file path → 해당 파일에서 handoff 생성
     """
-    from tests.simulation.patient_llm import load_persona, PatientLLM
+    from tests.simulation.patient_llm import PatientLLM, load_persona
 
     try:
         persona = load_persona(persona_id)
@@ -796,18 +1250,7 @@ async def _run_simulation(
         if followup_from.endswith(".json"):
             with open(followup_from, encoding="utf-8") as f:
                 prior_data = json.load(f)
-            prior_result = F1Result(
-                session_id=prior_data["session_id"],
-                persona_id=prior_data.get("persona_id"),
-                persona_name=prior_data.get("persona_name"),
-                final_slots=prior_data.get("final_slots", []),
-                slot_coverage=prior_data.get("slot_coverage", 0),
-                total_turns=prior_data.get("total_turns", 0),
-                crisis_triggered=prior_data.get("crisis_triggered", False),
-                turns=[F1TurnLog(**t) for t in prior_data.get("turns", [])],
-                started_at=prior_data.get("started_at", ""),
-                ended_at=prior_data.get("ended_at", ""),
-            )
+            prior_result = _result_from_dict(prior_data)
         else:
             prior_result = _load_latest_result(followup_from)
             if prior_result is None:
@@ -859,11 +1302,14 @@ async def _run_simulation(
     print(f"\n{'='*60}")
     print(f"  F1 Result: {persona_id} ({persona.name})")
     if followup_from:
-        print(f"  Mode: Follow-up (재상담)")
+        print("  Mode: Follow-up (재상담)")
     print(f"{'='*60}")
     print(f"  Turns: {result.total_turns}")
-    print(f"  Crisis: {'YES (turn {})'.format(result.crisis_turn) if result.crisis_triggered else 'No'}")
-    print(f"  Slot Coverage: {result.slot_coverage:.0%}")
+    print(f"  Crisis: {f'YES (turn {result.crisis_turn})' if result.crisis_triggered else 'No'}")
+    print(f"  Slot Coverage (legacy): {result.slot_coverage:.0%}")
+    print(f"  Grounded Coverage: {result.grounded_coverage:.0%}")
+    print(f"  Session CTRS: {result.session_ctrs} | Risk floor: {result.risk_floor}")
+    print(f"  Probe events: {len(result.probe_events)}")
     print(f"  Errors: {len(result.errors)}")
     print(f"  Files: {', '.join(p.name for p in paths.values())}")
     print(f"{'='*60}")

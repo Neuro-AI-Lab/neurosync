@@ -85,6 +85,7 @@ discussion.md
 error.md
 result.md
 version.md
+.mcp.json
 
 #backups
 docs/ai/simulation_results/backups/
@@ -95,3 +96,12 @@ docs/ai/simulation_results/backups/
 
 # Source materials (large originals, stored separately)
 references/
+papers
+
+# system prompts reference
+system_prompts_reference
+ai-prompts-reference
+
+# Experiment artifacts (per-run, gitignored per CLAUDE.md layout)
+/experiments/
+

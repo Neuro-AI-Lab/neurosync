@@ -46,12 +46,15 @@ async def extract(
         logger.error("Slot extraction failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail="Slot extraction failed") from exc
 
+    # ISS-042: log only fields that exist on ClinicalSlotOutput. The former
+    # `safety_flag` was removed — safety judgment belongs to SafetyClassifier.
     logger.info(
-        "Slot extract result: coverage=%.2f filled=%d missing=%d safety=%s latency=%.0fms",
+        "Slot extract result: coverage=%.2f filled=%d missing=%d "
+        "essential_missing=%d latency=%.0fms",
         result.slot_coverage,
         len(result.filled_slots),
         len(result.missing_slots),
-        result.safety_flag,
+        len(result.essential_missing),
         result.latency_ms,
     )
     return result
