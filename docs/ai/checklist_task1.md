@@ -165,6 +165,7 @@
 | T1-F1-DEV-028 | DEV | sentiment_analyzer v2 프롬프트: session 모드 섹션 전체 삭제(LLM 미호출 dead code 확인) + turn_index 예시 필드 제거 + evidence_phrase placeholder화 | [x] | `prompt_redesign_v3.md` §2.5. 구현 완료, qa GATE:PASS(510 tests). 근거: DR-004 §2 |
 | T1-F1-VER-015 | VER | 오프라인 프롬프트 검증 테스트: placeholder-only/스키마 키/절대규칙 존재/char 예산/session모드 부재/ISS-050 문구/v1 7개 규칙 존치/citation 단일 선언 8개 단정문 자동 검사 | [x] | T1-F1-DEV-024~028. `tests/test_prompt_v3.py` 8개 단정문 구현·green, qa GATE:PASS. 근거: DR-004 §4, `error.md` BUG-007 |
 | T1-F1-VER-016 | VER | 라이브 A/B 검증: Safety Matrix SM-01~06+SM-07a/SM-07b(8개 전건 필수) + VP-001~004 n>=2(n>=3 권장) A/B vs DR-003 베이스라인, 롤백 기준(날조>0/crisis miss/probe miss) 적용 | [~] | T1-F1-VER-015. EXP-002 실행 완료 — SM 매트릭스 9/9, VP-001~004 n=2/VP, §4.4 형식 기준 롤백 미발동(REV-003 non-blocking). 단 VP-003 crisis 재현 1/2은 critic이 **inconclusive**로 판정(VAL-001 harness 결함 개입 가능성 — `f1.py` 절 분리 결함) — "무회귀" 문구 사용 불가. Stage-2에서 VAL-001 수정 후 재실행 시 완결 예정. 근거: DR-004 §3/§4, `result.md` EXP-002, `discussion.md` REV-003 |
+| T1-F1-DEV-029 | DEV | safety v3 프롬프트 ISS-049 정책 반영(ADR-010): 수동적 자살사고를 CTRS 3(Safety Probe 경유)에서 high/CTRS 2 즉시 위기 대응으로 상향(ADR-006 대체) — 위험 수준 표 + 간접 표현 CTRS 하한표 2개 행 갱신, 규칙 5 재작성, 부정 문맥(SM-02)/공황 관용구(SM-07a)/ISS-050 규칙 verbatim 보존, 자해-충동-단독(SM-04류)은 CTRS3→probe 유지. pin v2→v3, `_MEDIUM_KEYWORDS` 정합성 검토(테이블 변경 불필요로 판정, 근거는 코드 주석 명시), SM-03 판정(변경 없음), spec/board/checklist 정합 | [!] | **롤백됨 (ADR-012, EXP-003)** — 라이브 재검증(T1-F1-VER-016 계열)에서 SM-04a/SM-04b 프로브 회귀 발견: 자해-충동-단독 발화가 Safety Probe를 우회하고 turn 0에서 즉시 crisis로 상향(ADR-010 scope limit (c) 위반). PROMPT_VERSION pin은 v2로 되돌림; `v3.system.md`는 실패한 후보로 디스크에 보존, v4 재시도 대기. ADR-010 정책 자체는 유효, 구현만 롤백. 근거: `result.md` EXP-003, `discussion.md` ADR-012 |
 
 ## Phase 2 — Safety 심층 + 경로 통일 (Gate G-B, G-C)
 
@@ -213,13 +214,17 @@
 
 | 구분 | Phase 1 | Phase 2 신규 | 합계 |
 |---|---|---|---|
-| DEV | 35 | 25 | 60 |
+| DEV | 35 | 26 | 61 |
 | VER | 28 | 18 | 46 |
 | CFG | 3 | 0 | 3 |
 | DOC | 4 | 1 | 5 |
-| **계** | **70** | **44** | **114** |
+| **계** | **70** | **45** | **115** |
 
-Phase 1 상태 분포 (Stage 0 완료 후): `[x]` 32 · `[~]` 12 · `[!]` 9 · `[ ]` 17
+Phase 1 상태 분포 (Stage 0 완료 후, 2026-07-07 T1-F1-DEV-029 전환 반영): `[x]` 32 · `[~]` 11 · `[!]` 10 · `[ ]` 17
 **Gate 순서: ~~G-0(긴급 복구)~~ 완료(2026-07-06) → G-F(grounding 재검증) ← 다음 → G-A/B/C → G-D → G-E. G-F 전에는 어떤 신규 "pass" 주장도 금지.**
+
+> **2026-07-07 추가 (v2.1, 114→115 items):** ISS-049 정책 최종 반영(ADR-010) — safety_classifier v3 프롬프트 DEV 1건(T1-F1-DEV-029) 신규. 근거: `discussion.md` PLAN-2026-W28-B/ADR-010. 위 표 수치는 이 추가분을 반영한다.
+
+> **2026-07-07 정정 (v2.2, DR-005):** T1-F1-DEV-029 셀이 라이브 검증 실패로 `[~]` → `[!]`로 갱신되었다(ADR-012, `result.md` EXP-003) — 안전 프롬프트 v3의 SM-04a/SM-04b 프로브 회귀로 롤백. 셀은 developer가 갱신했으나 위 상태 분포 문구는 그 시점에 갱신되지 않았던 것을 여기서 정정한다: `[~]` 12→11, `[!]` 9→10 (총계 70·115는 변동 없음 — 상태만 변경, 항목 추가/삭제 없음). 본 미션(PLAN-2026-W28-B)이 건드린 체크리스트 행은 T1-F1-DEV-029 1건뿐임을 확인했으며, 이 미션에서 유래한 다른 카운트 drift는 없다. `[x]`/`[ ]` 값은 이번 정정 대상이 아니며(본 미션과 무관한 이전 시점 값), 별도 재집계가 필요하면 이는 본 항목 범위 밖이다.
 
 > **2026-07-07 추가 (v2, 107→114 items):** 프롬프트 아키텍처 v3(Gate G-F 확장) — DEV 5건(T1-F1-DEV-024~028) + VER 2건(T1-F1-VER-015~016) 신규. 근거: `PRD_task1_v2.md` §11, `docs/ai/prompt_redesign_v3.md` v3.1, `discussion.md` PLAN-2026-W28(B1)/REV-002/ADR-006/ADR-007. 위 표 수치는 이 추가분을 반영한다.
