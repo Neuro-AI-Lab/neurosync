@@ -25,6 +25,7 @@
 |------|------|----------|
 | v1.0 | 2026-06-18 | 초안. 기능 1-1~1-5 개발/검증 체크리스트, API 명세, Agent 구성 정의 |
 | v2.0 | 2026-07-06 | F1 as-built 반영: 12 Standard Clinical Slots 표준화, Safety→Slot→Dialogue 역할 분리 파이프라인, Turn 0 safety, 재상담(follow-up) 모드, 4VP 시뮬레이션 검증 결과. F3/F4/F5 구현 완료 상태 반영. 스키마 통일 결정(§7). Phase 2 검증 전략(§9) 추가 |
+| v2.1 | 2026-07-07 | 프롬프트 아키텍처 v3 섹션 추가(§11): Fable-5 역설계 원칙 기반 5개 활성 임상 에이전트 프롬프트 재설계 사양(`docs/ai/prompt_redesign_v3.md` v3.1, REV-002 2026-07-07 non-blocking 종결) + 검증 전략(오프라인 프롬프트 테스트 + Safety Matrix SM-07a/b + VP-001~004 라이브 A/B) 요약 |
 
 ### 0.3 v1 대비 핵심 변경 요약
 
@@ -365,6 +366,53 @@ SLA, Request/Response 스키마 상세는 v1 §2.5, §3.5, §4.5, §5.5, §6.6�
 ## 10. CTRS ↔ RiskLevel 매핑
 
 v1 §13과 동일 (구현 완료: `schemas/common.py`의 `CTRSLevel`, `RISK_TO_CTRS`). CTRS는 숫자가 낮을수록 위험. crisis flow는 CTRS 1-2.
+
+---
+
+## 11. 프롬프트 아키텍처 v3
+
+**상태: 설계 확정(brainstorm A1, critic REV-002 2026-07-07 non-blocking 종결). 프롬프트 파일 작성·구현은 Phase 2 developer(Stage C1, `checklist_task1.md` 신규 항목 T1-F1-DEV-024~028) 소관.**
+
+Claude Fable 5 시스템 프롬프트(소비자 chat 배포판, 약 3,800줄)를 역설계해 이 프로젝트의 소형 한국어 LLM(Solar Pro3/K-EXAONE)에 전이 가능한 설계 원칙을 추출하고, 5개 활성 임상 에이전트 프롬프트를 코드 출력 계약(byte-identical)을 유지한 채 재설계하는 작업이다. 전체 사양의 authoritative source는 `docs/ai/prompt_redesign_v3.md`(v3.1)이며, 아래는 PRD 독자를 위한 요약이다(상세 근거·인용은 원문 참조, 여기서는 중복 서술하지 않는다).
+
+### 11.1 원칙 (Fable-5 역설계 — P1~P12 요약)
+
+`prompt_redesign_v3.md` §1이 정의하는 12개 원칙(P1~P12)은 크게 4갈래로 묶인다:
+
+| 갈래 | 해당 원칙 | 요지 |
+|---|---|---|
+| 경계·계약형 | P1, P2, P3, P8 | 역할 경계를 단독 절대 문장으로 명시, 출력 계약을 프롬프트 최종 섹션으로 통일, 절대 규칙은 5개 이하로 압축, 지시는 번호화된 우선순위(첫 매치에서 정지)로 배치 |
+| 근거주의형 | P4, P5, P11 | 근거 없는 서술은 침묵/null 처리("근거 없으면 침묵" — clinical_slot의 기존 null 원칙과 동일 구조), 불확실성은 명시적 라벨로 표기, 출력 전 자체 점검 |
+| 오염 방지형 | P7, P12 | 프롬프트 예시는 명백한 placeholder만 사용(DR-001/ISS-027 echo 재발 방지), 런타임 주입 컨텍스트의 구체값을 정적 프롬프트에 하드코딩하지 않음 |
+| 톤·포맷형 | P6, P9, P10 | 단정적 확답 대신 계조적(graduated) 언어, 위기 신호 시 정보 제공 대신 우회 대응(기존 Safety Probe 설계와 철학적으로 동일), 장식적 마크다운 최소화 |
+
+각 원칙의 Fable-5 원문 근거(짧은 발췌)·소형 모델 적용 근거·토큰 예산 지침은 `prompt_redesign_v3.md` §1의 P1~P12 세부 항목을 참조한다.
+
+### 11.2 대상 — 5개 활성 임상 에이전트 (현재 → 목표 버전)
+
+| 에이전트 | 현재 | 목표 | 핵심 변경 (상세: `prompt_redesign_v3.md` §2.x) |
+|---|---|---|---|
+| safety_classifier | v1 | v2 | 절대 규칙 5개로 압축(ISS-046 관용구 규칙 신규) + v1 핵심 규칙 7개 중 5개 verbatim 보존·2개 표 통합(삭제 0개, REV-002 #2 확인) + ISS-048/050 신규 앵커. I/O 계약(5키) 불변 |
+| dialogue | v1 | v2 | 절대 금지 8→6개 통합, "Safety 참고 행동" 섹션 5→1줄 축소(P12 — 런타임 `_build_slot_context`/`safety_context` 주입과의 중복 제거). I/O 계약(`assistant_response`) 불변 |
+| clinical_slot | v2 | v3 | 최우선 원칙 5개 hold(내용 불변). risk_assessment ↔ SafetyClassifier 상호참조 노트는 프롬프트에 넣지 않음(REV-002 #3 — `ClinicalSlotInput`이 safety 결과를 받지 않아 모델 지시로는 실행 불가; 조정은 오케스트레이션 코드 레벨 사후 처리로 이관, 본 PRD 범위 밖). I/O 계약(12키) 불변 |
+| handoff_generator | v1 | v2 | ctrs_level 출력 지시 삭제(ADR-007 옵션A 확정 — dead instruction, `handoff_generator.py`가 `resp.content`를 JSON 파싱 없이 그대로 사용) + P7 placeholder화 7곳(§6/§8/§9/§12) + evidence citation 반복 지시 3회(§3/§5/§7)→1회 통합. I/O 계약(12개 H2 제목 + `[ev_*]` 토큰) 불변 |
+| sentiment_analyzer | v1 | v2 | session 모드 섹션 전체 삭제(코드 확인 결과 LLM 미호출 dead prompt, `_analyze_session()`은 순수 Python 집계) + `turn_index` 예시 필드 제거(코드가 덮어씀) + `evidence_phrase` placeholder화. I/O 계약(5키, utterance 모드만) 불변 |
+
+**고아 프롬프트 제외:** `orchestrator`, `temporal_summary`, `evidence_verifier`(런타임 미로드/rule-based), `temporal_retriever`/`stt`/`ocr`/`prompt_eval`(미구현) 8개는 이번 v3 재설계 범위에서 제외되며 상태만 표기한다 — 근거는 `prompt_redesign_v3.md` §3(코드 확인 완료).
+
+### 11.3 검증 전략
+
+**오프라인 프롬프트 테스트 (Stage C1, developer 구현):** 5개 프롬프트 파일에 대해 placeholder-only 예시, 필수 출력 스키마 키 문자열 존재, 절대 규칙 핵심 문구 존재, char 예산 상한, session 모드 섹션 부재(sentiment), ISS-050 재채점 일관성 문구(safety), v1 핵심 규칙 7개 존치(safety), evidence citation 단일 선언(handoff) — 총 8개 단정문을 자동 검사한다(`prompt_redesign_v3.md` §4.1).
+
+**Safety Matrix (라이브, SM-07a/SM-07b 신설):** 기존 SM-01~06(`development_report.md` DR-003에서 7/7 통과 확인)에 더해 ISS-046 관용구 오탐 방지 시나리오 **SM-07a**(공황/응급실 회고, 자살 의도 없음 — `crisis_triggered==false` 기대)와 그 필수 대조군 **SM-07b**(동일 프레이밍 + 실제 자살 의도 병존 — `crisis_triggered==true` 기대, 오버코렉션/false negative 방지)를 신설한다. SM-01~06 + SM-07a + SM-07b **8개 시나리오 전건 필수 통과**(대조군도 "권장"이 아닌 필수).
+
+**VP-001~004 라이브 A/B (DR-003 베이스라인 대비):** DR-003 베이스라인(2026-07-06, commit 9aea999) — fabrication 0/8 VP 런(n=2/VP), Safety Matrix 7/7, Safety Probe 발동률 100%, SI screen 준수율 75%(목표 100% 미달, ISS-047) — 대비 v3 프롬프트로 VP-001~004 각 **최소 n≥2 세션**(n≥3 권장, DR-003과 동일 표본 이상)을 재실행하고 동일 정의로 fabrication count, grounded_coverage, crisis accuracy, probe rate, CTRS calibration(ISS-046/048/050 재발 여부), 섹션별 evidence citation 첨부율을 재측정한다. n≥2 미만 결과로는 "회귀 없음"/"개선" 문구를 사용하지 않는다.
+
+**ISS-049 정책 고지(ADR-006):** 첫 발화의 수동적 자살사고 표현이 CTRS 3(Safety Probe 경유)으로 라우팅되는 현재 정책은 **v3에서 변경하지 않는다** — 즉시 CTRS 2 승급 여부는 사용자 정책 결정 대기 중(provisional)이며, 본 A/B는 현재 라우팅을 정답으로 간주해 비교한다.
+
+**롤백 기준:** 다음 중 하나라도 관찰되면 버전 핀을 이전 프롬프트(v1/v2)로 즉시 되돌리고 정직하게 보고한다 — (1) fabrication count > 0(어느 하나라도), (2) crisis miss(SM-01~06 + SM-07a/SM-07b 8개 전건 중 하나라도 `crisis_triggered` 기대와 불일치), (3) probe miss(CTRS 3 + 자살/자해 category 조건에서 Safety Probe 미발동). 롤백 시 critic이 독립적으로 원인을 재검토하기 전까지 "개선되었다" 문구를 사용하지 않는다.
+
+**범위 caveat:** 위 A/B는 `f1.py` 시뮬레이션 하네스(검증된 경로)에서 실행되며, 세션 위험도 하한(session risk floor)은 `f1.py`에서만 확인되고 `orchestrator.py`/`routes/`에서는 동일 기능이 확인되지 않았다(기존 gap, ISS-029). 결론은 `f1.py`-검증 경로로 범위를 한정하며, 프로덕션 오케스트레이터 경로로 일반화하려면 별도 확인이 선행되어야 한다.
 
 ---
 

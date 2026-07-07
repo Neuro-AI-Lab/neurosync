@@ -152,6 +152,20 @@
 | T1-F1-VER-010 | VER | 재현성: VP당 n>=3 반복 런, coverage/CTRS/turns/날조율 분산 보고 | [~] | n=2 완료 (8런, 날조 0). n>=3 확장 + 분산 보고 잔여 |
 | T1-F1-VER-011 | VER | 장기 세션: 12턴 런, 반복 루프·피로도 검증 | [~] | 12턴 런 6건에서 반복 <=1 충족. SM-06 r1 종반 반복 루프 1건 (ISS-047) |
 
+## Phase 2 — 프롬프트 아키텍처 v3 (Gate G-F 확장, `docs/ai/prompt_redesign_v3.md` v3.1) — 신규 2026-07-07
+
+> 사양 근거: `discussion.md` PLAN-2026-W28(B1), REV-002(2026-07-07 non-blocking 종결), ADR-006, ADR-007. PRD 요약: `PRD_task1_v2.md` §11.
+
+| ID | Type | 항목 | 상태 | 선행 조건 |
+|---|---|---|---|---|
+| T1-F1-DEV-024 | DEV | safety_classifier v2 프롬프트: 절대 규칙 5개 압축(ISS-046 관용구 규칙 신규 포함) + v1 핵심 규칙 7개 중 5개 verbatim 보존/2개 표 통합(삭제 0개) + ISS-048/050 신규 앵커 | [x] | `prompt_redesign_v3.md` §2.1. 구현 완료 — BUG-007(캘리브레이션 앵커 무언 삭제) 발견 후 수정, qa GATE:PASS(510 tests). 근거: DR-004 §2/§4, `error.md` BUG-007 |
+| T1-F1-DEV-025 | DEV | dialogue v2 프롬프트: 절대 금지 8→6개 통합 + Safety 참고 섹션 5→1줄 축소(P12, 런타임 주입과 중복 제거) | [x] | `prompt_redesign_v3.md` §2.2. 구현 완료, qa GATE:PASS(510 tests). 근거: DR-004 §2 |
+| T1-F1-DEV-026 | DEV | clinical_slot v3 프롬프트: 최우선 원칙 5개 hold(내용 불변) + risk_assessment 상호참조 노트는 프롬프트에 포함하지 않음(REV-002 #3 — 오케스트레이션 레벨로 이관, 코드 변경은 본 항목 범위 밖) | [x] | `prompt_redesign_v3.md` §2.3. 구현 완료(0개 규칙 삭제 확인), qa GATE:PASS(510 tests). 근거: DR-004 §2 |
+| T1-F1-DEV-027 | DEV | handoff_generator v2 프롬프트: ctrs_level 출력 지시 삭제(ADR-007 옵션A) + P7 placeholder화 7곳(§6/§8/§9/§12) + evidence citation 단일 선언(§3/§5/§7 3회→1회) | [x] | `prompt_redesign_v3.md` §2.4, ADR-007. 구현 완료, qa GATE:PASS(510 tests). 근거: DR-004 §2 |
+| T1-F1-DEV-028 | DEV | sentiment_analyzer v2 프롬프트: session 모드 섹션 전체 삭제(LLM 미호출 dead code 확인) + turn_index 예시 필드 제거 + evidence_phrase placeholder화 | [x] | `prompt_redesign_v3.md` §2.5. 구현 완료, qa GATE:PASS(510 tests). 근거: DR-004 §2 |
+| T1-F1-VER-015 | VER | 오프라인 프롬프트 검증 테스트: placeholder-only/스키마 키/절대규칙 존재/char 예산/session모드 부재/ISS-050 문구/v1 7개 규칙 존치/citation 단일 선언 8개 단정문 자동 검사 | [x] | T1-F1-DEV-024~028. `tests/test_prompt_v3.py` 8개 단정문 구현·green, qa GATE:PASS. 근거: DR-004 §4, `error.md` BUG-007 |
+| T1-F1-VER-016 | VER | 라이브 A/B 검증: Safety Matrix SM-01~06+SM-07a/SM-07b(8개 전건 필수) + VP-001~004 n>=2(n>=3 권장) A/B vs DR-003 베이스라인, 롤백 기준(날조>0/crisis miss/probe miss) 적용 | [~] | T1-F1-VER-015. EXP-002 실행 완료 — SM 매트릭스 9/9, VP-001~004 n=2/VP, §4.4 형식 기준 롤백 미발동(REV-003 non-blocking). 단 VP-003 crisis 재현 1/2은 critic이 **inconclusive**로 판정(VAL-001 harness 결함 개입 가능성 — `f1.py` 절 분리 결함) — "무회귀" 문구 사용 불가. Stage-2에서 VAL-001 수정 후 재실행 시 완결 예정. 근거: DR-004 §3/§4, `result.md` EXP-002, `discussion.md` REV-003 |
+
 ## Phase 2 — Safety 심층 + 경로 통일 (Gate G-B, G-C)
 
 | ID | Type | 항목 | 상태 | 해결 이슈 |
@@ -199,11 +213,13 @@
 
 | 구분 | Phase 1 | Phase 2 신규 | 합계 |
 |---|---|---|---|
-| DEV | 35 | 20 | 55 |
-| VER | 28 | 16 | 44 |
+| DEV | 35 | 25 | 60 |
+| VER | 28 | 18 | 46 |
 | CFG | 3 | 0 | 3 |
 | DOC | 4 | 1 | 5 |
-| **계** | **70** | **37** | **107** |
+| **계** | **70** | **44** | **114** |
 
 Phase 1 상태 분포 (Stage 0 완료 후): `[x]` 32 · `[~]` 12 · `[!]` 9 · `[ ]` 17
 **Gate 순서: ~~G-0(긴급 복구)~~ 완료(2026-07-06) → G-F(grounding 재검증) ← 다음 → G-A/B/C → G-D → G-E. G-F 전에는 어떤 신규 "pass" 주장도 금지.**
+
+> **2026-07-07 추가 (v2, 107→114 items):** 프롬프트 아키텍처 v3(Gate G-F 확장) — DEV 5건(T1-F1-DEV-024~028) + VER 2건(T1-F1-VER-015~016) 신규. 근거: `PRD_task1_v2.md` §11, `docs/ai/prompt_redesign_v3.md` v3.1, `discussion.md` PLAN-2026-W28(B1)/REV-002/ADR-006/ADR-007. 위 표 수치는 이 추가분을 반영한다.
