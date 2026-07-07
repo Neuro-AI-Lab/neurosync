@@ -73,6 +73,16 @@ class Settings(BaseSettings):
         description="Base directory for prompt templates (relative to project root)",
     )
 
+    # ── Database (RAG 이전으로 ai-server가 직접 접속) ───────────────────
+    database_url: str = Field(
+        default="postgresql+asyncpg://neurosync:dev@localhost:5432/neurosync",
+        description="Postgres DSN (async: +asyncpg). RAG 검색·시뮬 적재에 사용",
+    )
+    encryption_key: str = Field(
+        default="",
+        description="AES-256-GCM 키 (base64-urlsafe 32B). **api와 동일 값**이어야 앱이 복호화 가능",
+    )
+
     # ── Application ───────────────────────────────────────────────────
     log_level: str = Field(default="INFO", description="Logging level")
     debug: bool = Field(default=False, description="Enable debug mode")

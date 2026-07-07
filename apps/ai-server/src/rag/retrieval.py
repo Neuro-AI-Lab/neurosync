@@ -23,7 +23,6 @@ from contracts.chat import (
     GroundingCase,
     GroundingFollowup,
     GroundingKnowledge,
-    GroundingPast,
 )
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -97,8 +96,11 @@ def _dec(v: Any) -> str:
 
 async def retrieve_grounding(
     db: AsyncSession, utterance: str, *, patient_id: UUID | None = None, k: int = 3
-) -> Grounding:
-    """사용자 발화 → grounding. embed_query는 동기(Upstage SDK)라 thread로 오프로드."""
+) -> dict[str, Any]:
+    """사용자 발화 → grounding(dict). embed_query는 동기(Upstage SDK)라 thread로 오프로드.
+
+    my_past만 공유 계약(GroundingPast) 밖 필드(phq9/gad7/자살플래그/slots)를 담으므로
+    계약을 건드리지 않고 dict로 반환 — 나머지 슬롯은 계약 모델로 만들어 model_dump."""
     qlit = to_pgvector(await asyncio.to_thread(embed_query, utterance))
 
     cases = await _topk(db, "case_card", "class, situation", {"q": qlit}, k)
@@ -109,7 +111,9 @@ async def retrieve_grounding(
         past = await _topk(
             db,
             "session_insights",
-            "class, situation_encrypted",
+            # FK(session_id/patient_id)·임베딩·미사용 컬럼(flags/intervention/embedding_model/
+            # flag_source/generated_at)은 제외. slots(JSONB)에 임상 슬롯 전체가 들어있음.
+            "class, situation_encrypted, phq9_score, gad7_score, flag_suicidal, slots",
             {"q": qlit, "pid": str(patient_id)},
             k,
             where="AND patient_id = :pid",
@@ -118,14 +122,11 @@ async def retrieve_grounding(
     mentioned = await _detect_symptoms(db, utterance)
     followup = await _followup(db, [m[0] for m in mentioned])
 
-    return Grounding(
+    # my_past를 제외한 슬롯은 공유 계약 모델로 만들고 dict로 직렬화.
+    grounding = Grounding(
         similar_cases=[
             GroundingCase(disease_class=c, situation=s, score=round(float(sc), 3))
             for c, s, sc in cases
-        ],
-        my_past=[
-            GroundingPast(disease_class=c, situation=_dec(s), score=round(float(sc), 3))
-            for c, s, sc in past
         ],
         knowledge=[
             GroundingKnowledge(question=q, answer=a, score=round(float(sc), 3)) for q, a, sc in qa
@@ -133,3 +134,19 @@ async def retrieve_grounding(
         mentioned_symptoms=[m[1] for m in mentioned],
         follow_up=followup,
     )
+    payload = grounding.model_dump()
+    # my_past는 계약(GroundingPast: disease_class/situation/score) 밖 필드까지 담아
+    # ai-server 로컬에서 dict로 확장(공유 contracts.chat 미변경).
+    payload["my_past"] = [
+        {
+            "disease_class": c,
+            "situation": _dec(s),
+            "score": round(float(sc), 3),
+            "phq9_score": phq,
+            "gad7_score": gad,
+            "flag_suicidal": sui,
+            "slots": slots,
+        }
+        for c, s, phq, gad, sui, slots, sc in past
+    ]
+    return payload
