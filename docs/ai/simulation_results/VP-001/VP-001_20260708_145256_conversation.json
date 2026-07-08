@@ -1,0 +1,263 @@
+{
+  "session_id": "f1_VP-001_stt_replay",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 7,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "잠을 잘 못 자고 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨며 총 수면 시간이 너댓 시간 정도임"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됨. 업무 압박이 심한 편이며, 퇴근 후에는 거의 아무것도 안 하고 싶고 운동도 거의 못하고 있음. 가족 중에 정신과 치료를 받은 사람은 없고, 어머니는 걱정을 하시지만 특별한 경험은 없음. 술은 주일 지회 맥주 한 캔 정도 마시며, 수면제나 카페인 같은 것은 전혀 사용하지 않음"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "술은 주일 지회 맥주 한 캔 정도 마심"
+    }
+  ],
+  "slot_coverage": 0.4,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "요즘 잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요 총 수면 시간은 너댓 시간 정도인 것 같아요",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자고 있어요",
+        "새벽에도 두세 번 깨요",
+        "총 수면 시간은 너댓 시간 정도"
+      ],
+      "agent_response": "안녕하세요! 저는 정신건강 사전문진을 도와드리는 AI 상담 도우미입니다. 실제 의사 선생님과의 대화가 아니니, 너무 긴장하지 마시고 편하게 느끼시는 그대로 말씀해 주시면 됩니다.\n\n지금부터 대화를 시작하겠습니다. 오늘 가장 도움받고 싶은 문제나 증상은 무엇인가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3976.339153945446,
+      "timestamp": "2026-07-08T14:52:26.377349",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25
+    },
+    {
+      "turn": 1,
+      "patient_message": "요즘 잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요 총 수면 시간은 너댓 시간 정도인 것 같아요",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자고 있어요",
+        "새벽에도 두세 번 깨요",
+        "총 수면 시간은 너댓 시간 정도"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 수면 문제로 인해 일상생활에 어떤 영향을 받고 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 누우면 생각이 많아 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨며 총 수면 시간이 너댓 시간 정도임",
+        "history_of_present_illness": "잠을 잘 못 자고 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨며 총 수면 시간이 너댓 시간 정도임"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 누우면 생각이 많아 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨며 총 수면 시간이 너댓 시간 정도임",
+        "history_of_present_illness": "잠을 잘 못 자고 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨며 총 수면 시간이 너댓 시간 정도임"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3892.3233808018267,
+      "timestamp": "2026-07-08T14:52:30.269693",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25
+    },
+    {
+      "turn": 2,
+      "patient_message": "아직 병원은 가지 않았어요. 이번이 처음이라서요. 그냥 랩으로 한번 살펴보는 수준이에요",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자고 있어요",
+        "새벽에도 두세 번 깨요",
+        "총 수면 시간은 너댓 시간 정도"
+      ],
+      "agent_response": "수면 문제로 인해 일상생활에 어떤 영향을 받고 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5334.434668999165,
+      "timestamp": "2026-07-08T14:52:35.604248",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25
+    },
+    {
+      "turn": 3,
+      "patient_message": "아니요. 그런 건 없어요. 평소 건강 검진에서 특별한 문제는 없다고 했고, 약도 먹고 있지 않아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자고 있어요",
+        "새벽에도 두세 번 깨요",
+        "총 수면 시간은 너댓 시간 정도"
+      ],
+      "agent_response": "힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있나요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3879.985654260963,
+      "timestamp": "2026-07-08T14:52:39.484347",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25
+    },
+    {
+      "turn": 4,
+      "patient_message": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됐어요. 요즘 업무 압박이 좀 심한 편이에요",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 가족분들 중에 비슷한 어려움을 겪으셨던 분이 계신지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됐어요. 요즘 업무 압박이 좀 심한 편이에요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됐어요. 요즘 업무 압박이 좀 심한 편이에요."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3626.2787599116564,
+      "timestamp": "2026-07-08T14:52:43.110730",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25
+    },
+    {
+      "turn": 5,
+      "patient_message": "가족 중에 정신과 치료를 받은 사람은 없어요. 어머니는 제가 요즘 힘들어하는 걸 아시고 걱정하시지만, 특별히 같은 경험은 없으신 것 같아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 최근 술이나 수면제, 진정제, 카페인 같은 것들을 사용하신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됨. 업무 압박이 심한 편임. 평소 건강 검진에서 특별한 문제는 없고 약도 복용하지 않음. 가족 중에 정신과 치료를 받은 사람은 없으나 어머니가 걱정을 하고 있음."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됨. 업무 압박이 심한 편임. 평소 건강 검진에서 특별한 문제는 없고 약도 복용하지 않음. 가족 중에 정신과 치료를 받은 사람은 없으나 어머니가 걱정을 하고 있음."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4197.2376252524555,
+      "timestamp": "2026-07-08T14:52:47.308034",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25
+    },
+    {
+      "turn": 6,
+      "patient_message": "술은 주일 지회 맥주 한 캔 정도 마셔요. 수면제나 카페인 같은 건 전혀 없어요. 퇴근 후에는 거의 아무것도 안 하고 싶고 운동도 거의 못하고 있어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 현재 정신건강의학과 진료를 받고 계신지, 또는 심리상담을 받은 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됨. 업무 압박으로 인해 수면 시작 어려움, 새벽 2-3회 각성, 총 수면 시간 4-5시간 정도로 감소",
+        "substance_use_history": "술은 주일 지회 맥주 한 캔 정도 마셔요. 수면제나 카페인 같은 건 전혀 없어요"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됨. 업무 압박으로 인해 수면 시작 어려움, 새벽 2-3회 각성, 총 수면 시간 4-5시간 정도로 감소",
+        "substance_use_history": "술은 주일 지회 맥주 한 캔 정도 마셔요. 수면제나 카페인 같은 건 전혀 없어요"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4105.219834949821,
+      "timestamp": "2026-07-08T14:52:51.413342",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요. 약도 안 먹고, 정신과 진료도 한 번도 안 받아봤어요. 처음이라서 잘 몰라서 앱으로 한번 살펴보는 거예요",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 현재 복용 중인 약이 있으신가요? 혹시 기존에 진단받은 신체 질환이 있다면 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨며 총 수면 시간이 너댓 시간 정도임",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됨. 업무 압박이 심한 편이며, 퇴근 후에는 거의 아무것도 안 하고 싶고 운동도 거의 못하고 있음. 가족 중에 정신과 치료를 받은 사람은 없고, 어머니는 걱정을 하시지만 특별한 경험은 없음. 술은 주일 지회 맥주 한 캔 정도 마시며, 수면제나 카페인 같은 것은 전혀 사용하지 않음",
+        "substance_use_history": "술은 주일 지회 맥주 한 캔 정도 마심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨며 총 수면 시간이 너댓 시간 정도임",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됨. 업무 압박이 심한 편이며, 퇴근 후에는 거의 아무것도 안 하고 싶고 운동도 거의 못하고 있음. 가족 중에 정신과 치료를 받은 사람은 없고, 어머니는 걱정을 하시지만 특별한 경험은 없음. 술은 주일 지회 맥주 한 캔 정도 마시며, 수면제나 카페인 같은 것은 전혀 사용하지 않음",
+        "substance_use_history": "술은 주일 지회 맥주 한 캔 정도 마심"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4824.582390021533,
+      "timestamp": "2026-07-08T14:52:56.238034",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375
+    }
+  ],
+  "errors": [
+    "Turn 7 patient error: Ran out of STT transcripts after 7 turns"
+  ],
+  "started_at": "2026-07-08T14:52:22.400933",
+  "ended_at": "2026-07-08T14:52:56.238160",
+  "grounded_coverage": 0.375,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "ocr_documents": []
+}

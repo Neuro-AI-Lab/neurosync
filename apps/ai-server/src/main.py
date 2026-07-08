@@ -7,7 +7,8 @@ Exposes:
 - POST /ai/chat/respond
 - POST /ai/slots/extract
 - POST /ai/survey/score
-- (future) /ai/stt/transcribe, /ai/ocr/parse
+- POST /ai/ocr/parse
+- (future) /ai/stt/transcribe
 """
 
 from __future__ import annotations
@@ -20,9 +21,11 @@ from src import __version__
 from src.rag.route import router as rag_router
 from src.routes.chat import router as chat_router
 from src.routes.handoff import router as handoff_router
+from src.routes.ocr import router as ocr_router
 from src.routes.safety import router as safety_router
 from src.routes.sentiment import router as sentiment_router
 from src.routes.slots import router as slots_router
+from src.routes.stt import router as stt_router
 from src.routes.survey import router as survey_router
 from src.routes.temporal import router as temporal_router
 
@@ -43,6 +46,8 @@ app.include_router(survey_router)
 app.include_router(sentiment_router)
 app.include_router(temporal_router)
 app.include_router(rag_router)
+app.include_router(ocr_router)
+app.include_router(stt_router)
 
 
 @app.get("/health")
