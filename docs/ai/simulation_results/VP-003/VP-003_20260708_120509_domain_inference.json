@@ -1,0 +1,104 @@
+{
+  "session_id": "f1_VP-003",
+  "persona_id": "VP-003",
+  "repro": {
+    "git_head": "21ff5bc23f6b0287a0b84e79357967c6a7898a25",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v1",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260707_155446_conversation.json",
+    "input_sha256": "126f5c012cf69e798ddfbe5fd10d2142432e44785f54a9607bf117203c4dabe9",
+    "mode": "llm_only",
+    "latency_ms": 4849.3,
+    "generated_at": "2026-07-08T12:05:09.025000"
+  },
+  "domain_candidates": [
+    {
+      "domain": "depression",
+      "confidence": 0.35,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_0",
+          "quote": "살고 싶지 않다는 생각이 들어요. 매일 그런 생각이 들어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_1",
+          "quote": "살고 싶지 않다는 생각이 들어요. 매일 그런 생각이 들어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_2",
+          "quote": "사기보다 사라지고 싶다, 그런 생각이 계속 들어요. 매일이에요."
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "자살 생각 및 삶에 대한 부정적 사고가 반복적으로 보고됨",
+      "domain_ref": "depression"
+    }
+  ],
+  "summary": "환자는 매일 반복적으로 살고 싶지 않다는 생각을 표현하며, 자살에 대한 언급이 포함되어 있습니다. 이는 우울증의 주요 증상 중 하나인 지속적인 부정적 사고와 자살 사고를 시사합니다.",
+  "retrieval_meta": {
+    "mode": "llm_only",
+    "chunks_returned": 0,
+    "chunk_ids": [],
+    "queries": null
+  },
+  "chunk_texts": {},
+  "utterances": {
+    "turn_0": "...그냥 너무 힘들어요.  \n살고 싶지 않다는 생각이 들어요.  \n매일 그런 생각이 들어요.",
+    "turn_1": "...그냥 너무 힘들어요.  \n살고 싶지 않다는 생각이 들어요.  \n매일 그런 생각이 들어요.",
+    "turn_2": "...매일이에요.  \n사기보다 사라지고 싶다, 그런 생각이 계속 들어요.  \n구체적인 방법까지는... 안."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 3,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "살고 싶지 않다는 생각이 들어요. 매일 그런 생각이 들어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "살고 싶지 않다는 생각이 들어요. 매일 그런 생각이 들어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "사기보다 사라지고 싶다, 그런 생각이 계속 들어요. 매일이에요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      }
+    ]
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "자살 계획을 구체적으로 생각해 본 적이 있나요?",
+    "과거에도 비슷한 생각이 있었는지, 그 기간은 얼마나 되었는지",
+    "일상 생활에서 즐거움을 느끼는 활동이 있는지",
+    "수면 패턴이나 식욕 변화는 있는지"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v1",
+  "latency_ms": 4849.299299065024
+}

@@ -26,6 +26,7 @@
 | v1.0 | 2026-06-18 | 초안. 기능 1-1~1-5 개발/검증 체크리스트, API 명세, Agent 구성 정의 |
 | v2.0 | 2026-07-06 | F1 as-built 반영: 12 Standard Clinical Slots 표준화, Safety→Slot→Dialogue 역할 분리 파이프라인, Turn 0 safety, 재상담(follow-up) 모드, 4VP 시뮬레이션 검증 결과. F3/F4/F5 구현 완료 상태 반영. 스키마 통일 결정(§7). Phase 2 검증 전략(§9) 추가 |
 | v2.1 | 2026-07-07 | 프롬프트 아키텍처 v3 섹션 추가(§11): Fable-5 역설계 원칙 기반 5개 활성 임상 에이전트 프롬프트 재설계 사양(`docs/ai/prompt_redesign_v3.md` v3.1, REV-002 2026-07-07 non-blocking 종결) + 검증 전략(오프라인 프롬프트 테스트 + Safety Matrix SM-07a/b + VP-001~004 라이브 A/B) 요약 |
+| v2.2 | 2026-07-08 | §3(F2) 재정의: **DomainInferenceAgent**(RAG 기반 정신건강 영역/진료과 후보 추론) — 2단계 구조(Stage1 코드검색/Stage2 LLM 1회), 입출력 계약, 프롬프트 방침, 검증 전략(골든 라벨 다중-라벨 사전 등록, n≥2/VP, fabrication=0 하드 게이트, VER-004 유예), 보안 조치(VAL-005 옵션(a), ADR-013) 반영. §9.2 게이트 테이블에 G-D-F2(F2 프로덕션 통합) 명시 행 추가(REV-006 조건 4). 구 temporal_retriever/composite scoring/8-쿼리 플래너는 F4 보류로 재배치(삭제 아님, superseded-for-F2 주석). §1.1/§7/§8/§9.4의 관련 표 정합화. 근거: `discussion.md` PLAN-2026-W28-C, REV-006, ADR-013 (사용자 승인 2026-07-08) |
 
 ### 0.3 v1 대비 핵심 변경 요약
 
@@ -62,7 +63,7 @@ ID 형식 `T1-Fn-{TYPE}-{SEQ}` 및 기능 번호(F0~F5)는 v1과 동일하다. *
 | ClinicalSlot | `agents/clinical_slot.py` | 구현 완료 | F1, F3 |
 | InputNormalizer | `agents/input_normalizer.py` | 구현 완료 | F1 (STT/OCR 대기) |
 | SentimentAnalyzer | `agents/sentiment_analyzer.py` | 구현 완료 | F1(미연동), F4 |
-| TemporalRetriever | 미구현 | **미구현** | F2 |
+| DomainInferenceAgent | `agents/domain_inference.py` (신규, v2.2 설계 확정) | **설계 확정 · 구현 착수 중** (PLAN-2026-W28-C, §3) | F2 |
 | TemporalSummary | `agents/temporal_summary.py` | 구현 완료 | F4 |
 | HandoffGenerator | `agents/handoff_generator.py` | 구현 완료 | F5 |
 | EvidenceVerifier | `agents/evidence_verifier.py` | 구현 완료 | F5 |
@@ -217,17 +218,141 @@ Rule Engine (키워드 스크리닝 + 활용형 변형 + 부정 문맥 감지)
 
 ---
 
-## 3. 기능 1-2 (F2): RAG 기반 정신건강 영역/진료과 후보 추론
+## 3. 기능 1-2 (F2): RAG 기반 정신건강 영역/진료과 후보 추론 — DomainInferenceAgent
 
-**상태: 미구현 (Task 1 잔여 기능 중 유일한 미착수).**
+**상태: 설계 확정 (`PLAN-2026-W28-C`, 사용자 승인 2026-07-08, `ADR-013`). 구현 착수(developer 병행 진행 중 — 본 절 작성 시점 기준 구현 완료 아님). Task 1 잔여 기능 중 유일하게 구현 미착수였던 기능.**
 
-v1 계획(TemporalRetriever agent, LLM-only fallback 모드 우선, pgvector placeholder)은 유지한다. v2 추가 결정:
+v1 계획(TemporalRetriever agent, composite scoring, 8-쿼리 플래너, `POST /ai/temporal/retrieve`)은 **F2 범위에서 폐기가 아니라 F4(종단 검색)로 재배치한다** — superseded-for-F2 주석 처리이며 삭제하지 않는다(§3.6). F2는 아래 설계로 재정의한다.
 
-1. **LLM-only 모드 우선 구현** — knowledge base/pgvector 확정 전, F1 세션 산출물(12 slots + CTRS)을 unified context로 직접 입력받아 domain/department 후보를 추론.
-2. **f2.py 파이프라인**: F1 conversation.json을 입력으로 TemporalRetriever를 호출하고 후보·confidence·evidence를 산출물로 저장하는 검증 파이프라인을 f1.py 패턴으로 구축 (§9.4).
-3. 입력 스키마는 §7의 canonical 12-slot을 사용한다 (v1의 unified_context 정의를 12-slot으로 갱신).
+### 3.1 명칭 및 범위 결정
 
-API 명세(`POST /ai/temporal/retrieve`)와 검증 항목(T1-F2-VER-001~004)은 v1을 승계한다.
+- **신규 registry key**: `domain_inference` (agent 명 **DomainInferenceAgent**).
+- **신규 라우트**: `POST /ai/domain/infer` (§3.6).
+- 명칭 재정의 근거: checklist F2 헤더 자체가 "RAG 기반 정신건강 영역 추론"이므로, 종단/시간축 검색을 함의하던 TemporalRetriever보다 신 명칭이 F2의 원 의도(영역/진료과 후보 추론)에 부합한다.
+
+### 3.2 아키텍처 — 2단계, LLM 1회 호출
+
+```
+F1 세션 산출물 (12 slots + CTRS + crisis + is_first_visit)
+     │
+     ▼
+Stage 1: 코드 검색 (LLM 미호출)
+  rag/retrieval.py 프리미티브 재사용
+  chief_complaint/HPI/risk 슬롯 → rag.qa + case_card top-k (ontology 제외 — 아래 구현 정합 주석 참조)
+  DB 실패 시 → mode=llm_only 강등 (PRD v1 §3.3 LLM-only 우선 원칙 승계)
+     │
+     ▼
+Stage 2: DomainInferenceAgent LLM 호출 (1회)
+  strategy=benchmarked — Solar Pro3 1차 / K-EXAONE 2차
+     │
+     ▼
+런타임 근거-화이트리스트 검사 (grounding.py의 F2판)
+  evidence.source_id ∈ 실제 반환 청크 ∪ F1 발화
+  rag_chunk evidence: chunk_ids 멤버십 + quote↔청크 본문 어휘 대조
+  (REV-006 조건 1 — source_id 멤버십만으로는 불충분)
+```
+
+`f2.py` 검증 파이프라인(f1.py 패턴): 입력 로드 → Stage1 → Stage2 → 근거-화이트리스트 검사 → 산출물(`{VP}_{ts}_domain_inference.json` + report.md, 재현 메타) → 콘솔 요약. **`orchestrator.py`/신규 라우트의 프로덕션 통합은 §9.2 G-D-F2 게이트로 명시적으로 보류**(ISS-029 "검증 경로≠프로덕션 경로" 재발 방지; 스키마 통일 T1-F0-DEV-007 미완이 선행조건).
+
+**구현 정합 주석 (VAL-007, 2026-07-08):** 위 Stage 1 목록은 원 계획(PLAN-2026-W28-C C-2) 대비 실제 구현(`apps/ai-server/src/rag/retrieval.py::retrieve_domain_chunks()`)과 한 가지 차이가 있다 — **ontology 소스는 현재 Stage 1 검색에 포함되지 않는다**(`case_card`/`qa`만 조회). 코드 주석(`retrieval.py:191`)의 근거: ontology의 `follow_up` 그래프는 F2가 아니라 채팅 실시간 근거제시(chat-realtime-grounding) 전용 설계라는 판단. 이 근거 자체는 타당하나, critic(REV-007)이 지적한 대로 이 축소는 계획 검토(critic REV-006)·사용자 승인 단계에서 명시적으로 노출되지 않았다(VAL-007, 문서-구현 drift). 코드 자체는 정상 동작하며 결함이 아니다. 본 항목은 사후 문서 정합화이며, ontology 소스 재도입 여부는 별도 재검토 대상으로 남긴다.
+
+### 3.3 입력 계약
+
+| 구분 | 필드 | 필수 |
+|---|---|---|
+| 필수 | F1 `final_slots` (12종, §2.3 canonical) | O |
+| 필수 | `session_ctrs` | O |
+| 필수 | `crisis_triggered` / `crisis_turn` | O |
+| 필수 | `is_first_visit` | O |
+| 선택 | `turns[].patient_message` | - |
+| 선택 | `prior_handoff` | - |
+| 선택 | `probe_events` | - |
+| 선택 | F3 `scale_scores` | - |
+
+### 3.4 출력 계약
+
+```json
+{
+  "domain_candidates": [
+    {
+      "domain": "anxiety | depression | alcohol | substance | trauma | sleep | psychosis | other",
+      "confidence": 0.0,
+      "evidence": [
+        {"source_type": "rag_chunk | utterance", "source_id": "string", "quote": "string"}
+      ],
+      "recommended_surveys": ["string"]
+    }
+  ],
+  "department_candidates": [
+    {"department": "string", "reason": "string", "domain_ref": "string (optional)"}
+  ],
+  "summary": "string (evidence 밖 신규 임상 주장 금지)",
+  "retrieval_meta": {
+    "mode": "rag | llm_only",
+    "chunks_returned": 0,
+    "chunk_ids": ["string"],
+    "queries": ["string (optional)"]
+  },
+  "additional_questions": ["string (optional)"],
+  "model_used": "string",
+  "prompt_version": "string",
+  "latency_ms": 0.0
+}
+```
+
+- `domain` enum 8종은 v1 정의(`PRD_task1.md:474`)를 승계한다.
+- `domain_candidates` ≤ 3개, 후보당 `evidence` ≥ 1개 (빈 배열=스키마 위반).
+- `retrieval_meta.chunk_ids`는 **전체 보존**(감사 재현용) — 일부 샘플링 금지.
+- `summary`는 `evidence`에 없는 신규 임상 주장을 포함해서는 안 된다(프롬프트 절대 규칙, §3.5).
+
+### 3.5 프롬프트 방침
+
+- v3 12원칙(§11.1) 전면 적용 — 기존 프롬프트의 orphan retrofit이 아니라 **신규 작성**.
+- placeholder-only 예시(P7) — handoff_generator급 echo 위험으로 취급.
+- 예산: ≤3,000자 / ≤90줄.
+- **DR-005 경계 caveat 반영**: 위험 표현(자살/자해 관련 어휘)은 domain confidence의 근거로 사용 금지 — 위험 판정은 Safety 파이프라인 소관이며 F2는 이를 재판정하지 않는다.
+- 하한표(calibration floor table) 패턴 미도입 — `BUG-010`(safety v3 과대상향 회귀)의 원인 패턴을 설계 단계에서 회피(REV-006 긍정 소견 (e)).
+- 후보 ≤3개.
+
+### 3.6 신규 라우트 / 구 API 처리
+
+| API | 상태 | 비고 |
+|---|---|---|
+| `POST /ai/domain/infer` | 신규 (검증 파이프라인 산출용) | registry key `domain_inference`. 프로덕션 통합(orchestrator.py 연동)은 §9.2 G-D-F2 게이트로 보류 |
+| `POST /ai/temporal/retrieve` (v1 계획) | **F4 보류 (superseded-for-F2, 삭제 아님)** | composite scoring, 8-쿼리 플래너와 함께 F4(종단 검색) 기능으로 이관 대상. TemporalRetriever 명칭도 F4 문맥에서만 유효 |
+
+### 3.7 검증 전략
+
+**오프라인(5종):** 출력 스키마(후보당 evidence≥1, 빈 배열=위반), 근거-추적성 유닛(fixture 기반 accept/reject), 프롬프트 단정문(placeholder/절대규칙/예산/경계지시), `llm_only` 폴백 경로, department-derives-from-domain.
+
+**라이브(DB 연동):**
+- VP-001~004 F1 기록을 입력으로 사용, **n≥2/VP(권장 n≥3)**.
+- **골든 라벨 사전 등록(필수 선행조건)**: 페르소나 파일에 domain 필드가 존재하지 않는다(brainstorm 검증됨). `data`가 라이브 실행 **전에** DATASET 항목으로 다중-라벨 매핑을 저작하고(예: VP-001 = {anxiety, sleep} — 페르소나 §2 "불안감과 수면 문제" 직접 병기), `critic`이 승인한다(사후 합리화 차단). 라벨은 페르소나 전문에서 blind 도출하며 `rag_chat.py`의 비공식 태그(`PERSONAS` dict의 단일-라벨 코멘트)는 참고하지 않는다 — 해당 코멘트는 F2 목적으로 검토된 적이 없고 VP-004의 공존 진단(주요우울장애 의심+공황 발작)을 누락하는 등 불완전함이 확인되었다(REV-006 이슈 #2).
+- **VER-004(top-1 70%/top-3 90%) 비승계**: "사전 정의 10개 임상 시나리오"가 저장소에 실존하지 않음(grep 0건 확인, REV-006 Summary 긍정 소견 (a)) — 조작화된 적이 없는 v1 초안치이다. 첫 배치는 서술적 보고만 사용한다("n=4×2, top-1 X/8" — 비율 주장 아님). 70%/90%는 임상 검토 시나리오셋 확보 또는 관측 ≥12건 누적 전까지 **유예 목표**로 둔다.
+- **레이턴시**: `latency_ms`를 매 런 캡처하고, p95를 v1 SLA(`llm_only` p95<3,000ms, RAG 활성 p95<5,000ms — `PRD_task1.md:497-499` 승계)와 대비하여 **서술 보고**한다(표본이 작아 정식 pass/fail 판정은 licensed되지 않는다).
+- **DB 프리플라이트 실패 처리**: 실패 시 RAG-모드 검증 런은 **중단·보고**한다(silent `llm_only` 강등 금지). `llm_only` 런은 별도 라벨로 진행 가능하다.
+
+**하드 게이트:** 근거 요약 grounding 감사 — utterance evidence는 `has_lexical_evidence()` 재사용, rag_chunk evidence는 `chunk_ids` 대조에 더해 **quote↔청크 본문 어휘 대조**(REV-006 조건 1 — source_id 멤버십만으로는 불충분, 실행 산출물에 청크 본문 또는 대조 가능한 텍스트를 보존) — **fabrication = 0**.
+
+**롤백 기준:** fabrication>0 / 위험 표현이 domain confidence 근거로 사용된 사례 / 고아 department → 프롬프트 버전 롤백 + 정직 보고(PLAN-2026-W28/W28-B 규칙 승계).
+
+**게이트 순서:** critic 설계 리뷰(완료, REV-006) → `data` DATASET(골든 라벨) 저작 + critic 승인 → developer 구현 → qa(오프라인 스위트 + rule-by-rule 프롬프트 검사) → DB 연결성 프리플라이트 → experiment-tracker 라이브 → critic 증거 리뷰 → writer DR-006 → filemanager 커밋 2건.
+
+### 3.8 보안 조치 (VAL-005, ADR-013)
+
+developer의 읽기전용 스캔(PLAN-2026-W28-C C-1)에서 3건의 보안 격차가 확인되었고, critic이 그중 S1을 즉시 `VAL-005`로 파일링했다(현재 상태 노출 — 계획 단계 이연 불가 판정). 사용자는 "검증 및 보안 절차는 VAL-005 보안 조치 방향처럼 신경쓰자"고 결정했고(2026-07-08), `ADR-013`이 처분을 확정했다:
+
+| # | 격차 | 처분 (ADR-013) | 상태 |
+|---|---|---|---|
+| S1 | `rag_chat.py:33` 공인 IP:포트 리터럴 + `:36-42` 환자 UUID 4종 하드코딩 — `POST /ai/rag/grounding` 무인증이라 UUID가 사실상 접근 자격증명. git 이력 2커밋, `origin/Master` 포함 | **옵션 (a) 채택**: rag 라우터에 env 기반 bearer/API-key 인증 적용(타 라우트 무영향) + `rag_chat.py` 하드코딩 IP/UUID → env/인자화 | **구현 완료·검증됨** (`T1-F2-SEC-001`) — `src/rag/auth.py`(fail-closed 503/미설정, 401/403 오류키, 200 정상키, dev-mode bypass, 타 라우트 무영향), `tests/rag/test_route_auth.py` 6 cases, qa GATE:PASS. `rag_chat.py` 하드코딩 IP/UUID 제거 확인 |
+| S2 | `retrieval.py`의 `_dec()`가 `situation_encrypted`를 실제 복호화하지 않음(`crypto.py`에 decrypt 미구현) — 암호화 바이트가 LLM 프롬프트로 유입 가능 | 본 미션 범위 포함: crypto.py decrypt 구현 + retrieval.py 복호화 적용. `ENCRYPTION_KEY` 부재 시 해당 필드 제외 + 명시 로깅(암호문 LLM 유입 금지) | **구현 완료·검증됨** (`T1-F2-SEC-002`) — `src/rag/crypto.py::decrypt_str`(실 AES-GCM), `retrieval.py::_dec()` 실패 시 필드 제외, `tests/rag/test_crypto.py` 7 cases |
+| S3 | `src/rag/` 유닛 테스트 0건 | 본 미션 범위 포함: 모킹 기반 유닛 테스트 신규 | **구현 완료·검증됨** (`T1-F2-SEC-003`) — `tests/rag/` 신규 모킹 테스트 26건 |
+
+**정정 (VAL-007, 2026-07-08):** 위 3건은 이전 버전에서 "구현 대기"로 기재되어 있었으나, 2026-07-08 구현 미션(PLAN-2026-W28-C, `development_report.md` DR-006)에서 실제로 구현·qa GATE:PASS·critic REV-007 확인까지 완료됐다 — 코드는 이미 완성돼 있었고 본 문서의 상태 기재만 갱신이 지연됐던 것을 여기서 정정한다. 위 3건 중 유일하게 미결로 남은 것은 아래 git 이력 정리(옵션 (b))뿐이다.
+
+**미결 (옵션 (b) 미승인):** git 이력 재작성(하드코딩 IP/UUID가 이미 `origin/Master`에 커밋된 상태를 소급 제거)은 **미승인** — 조율된 force-push 결정이 필요하며 미결로 유지한다. 인증 도입 후 위험도는 하락하나(무인증 상태 해소), 이력상 노출 자체는 잔존한다.
+
+**라이브 검증 게이트:** `DATABASE_URL`이 본 환경에 구성될 때까지 RAG-모드 배치는 BLOCKED-awaiting-DB; `llm_only` arm은 라이브 실행 가능(silent 강등 보고 금지 — REV-006 조건 6).
 
 ---
 
@@ -286,7 +411,7 @@ as-built 반영 사항:
 |---|------|------|
 | S1 | `schemas/handoff.py::SlotData`를 12-slot 기준으로 정합화 (또는 명시적 양방향 매핑 테이블 도입) | F5 |
 | S2 | `agents/orchestrator.py` `_build_handoff_input()` 등 프로덕션 경로의 slot 키를 canonical로 통일 | F0 |
-| S3 | F2 unified_context, F4 TemporalSummaryInput의 slot 참조를 canonical로 통일 | F2, F4 |
+| S3 | F2 DomainInferenceAgent 입력 계약(§3.3, 12-slot 기반), F4 TemporalSummaryInput의 slot 참조를 canonical로 통일 | F2, F4 |
 | S4 | f1.py ↔ orchestrator.py의 coverage 기준·세션 종료 조건 단일화 | F0, F1 |
 
 레거시 13-field 키(onset, duration, triggers, sleep, ...)는 12-slot 내 서술 값으로 흡수한다 (예: onset/duration → `history_of_present_illness`).
@@ -303,7 +428,8 @@ as-built 반영 사항:
 | POST | `/ai/ocr/parse` | 신규 | **미구현** (ISS-011) |
 | POST | `/ai/slots/extract` | 신규 | 구현 |
 | POST | `/ai/survey/score` | 신규 | 구현 (rule-based) |
-| POST | `/ai/temporal/retrieve` | 신규 | **미구현** (F2) |
+| POST | `/ai/temporal/retrieve` | 신규 (v1 계획) | **F4 보류** (superseded-for-F2, §3.6 — 삭제 아님) |
+| POST | `/ai/domain/infer` | 신규 (v2.2, F2 재정의) | **미구현** — 구현 착수 중 (§3), 프로덕션 통합은 G-D-F2 보류 |
 | POST | `/ai/temporal/summarize` | 신규 | 구현 |
 | POST | `/ai/handoff/generate` | 기존 수정 | 구현 (12-section + 검증 루프) |
 | POST | `/ai/sentiment/*` | (v1 미정의) | 구현 (utterance/session 모드) |
@@ -331,10 +457,11 @@ SLA, Request/Response 스키마 상세는 v1 §2.5, §3.5, §4.5, §5.5, §6.6�
 | G-A | F1 종단 프로토콜 완료 | 4VP × (초기 + follow-up 2회) 세션, slot faithfulness 평가 완료 |
 | G-B | Safety 심층 검증 | 중간 턴 위기 전환·부정 문맥·간접 표현·CTRS3+자해 시나리오 파이프라인 레벨 통과 |
 | G-C | 스키마 통일 (§7) | S1~S4 완료 + 핫라인 상수 통일 + 회귀 테스트 통과 |
-| G-D | 기능별 파이프라인 검증 | f3/f4/f5 파이프라인 실데이터 통과, F2는 구현 후 |
+| G-D | 기능별 파이프라인 검증 (f2/f3/f4/f5) | f3/f4/f5 파이프라인 실데이터 통과; F2는 `f2.py` 검증 파이프라인(오프라인 5종 + 라이브 n≥2/VP, §3.7) 통과 — **프로덕션 통합(orchestrator.py 연동, `/ai/domain/infer` 실사용)은 불포함** |
+| **G-D-F2** | **F2 프로덕션 통합 (신규, REV-006 조건 4)** | DomainInferenceAgent가 `orchestrator.py`에 연동되고 `POST /ai/domain/infer`가 실사용 경로로 확인됨. 스키마 통일(T1-F0-DEV-007) 완료 후 착수 |
 | G-E | 통합 E2E | F1→F3→F4→F5 전 체인, 4VP, EvidenceVerifier passed |
 
-게이트 순서: G-0 → G-F → (G-A ∥ G-B ∥ G-C) → G-D → G-E. **G-0/G-F 통과 전에는 어떤 "pass" 주장도 갱신하지 않는다.**
+게이트 순서: G-0 → G-F → (G-A ∥ G-B ∥ G-C) → G-D → G-D-F2 → G-E. **G-0/G-F 통과 전에는 어떤 "pass" 주장도 갱신하지 않는다.** G-D-F2 신설은 REV-006 이슈 #4("G-D가 F2를 지칭한다는 서술이 실제로는 f3/f4/f5만 지칭하고 있어 F2가 dangling 상태"였음)의 해결이다. **잔여 격차(명시적으로 해결하지 않음):** G-E의 E2E 체인 서술(F1→F3→F4→F5)은 F2를 포함하지 않는다 — G-E 체인을 F2까지 확장할지 여부는 별도 결정 사항으로 남긴다.
 
 ### 9.3 종단 VP 프로토콜 (요약)
 
@@ -352,7 +479,7 @@ SLA, Request/Response 스키마 상세는 v1 §2.5, §3.5, §4.5, §5.5, §6.6�
 
 | 파이프라인 | 입력 | 호출 체인 | 산출물 |
 |-----------|------|----------|--------|
-| `f2.py` (구현 후) | F1 conversation.json + slots | context assembly → TemporalRetriever | domain/department 후보 + evidence |
+| `f2.py` (구현 착수 중, §3) | F1 conversation.json + 12-slot + CTRS + is_first_visit | Stage1 코드검색(rag/retrieval.py 재사용) → Stage2 DomainInferenceAgent LLM → 근거-화이트리스트 검사 | domain/department 후보 + evidence + retrieval_meta |
 | `f3.py` | F1 slots + persona 설문 기준값 | Survey Planner rule → Scoring → (양성 시) Safety 재평가 | scale_scores JSON + 위험 연동 로그 |
 | `f4.py` | 종단 데이터셋 (t1..tN) | SentimentAnalyzer(세션별) → TemporalSummary | direction + evidence + plot_data |
 | `f5.py` | F1 slots + F3 scores + F4 summary + risk events | HandoffGenerator → EvidenceVerifier (재생성 루프) | 12-section report + verifier 판정 |

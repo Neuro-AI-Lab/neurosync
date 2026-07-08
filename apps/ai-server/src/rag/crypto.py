@@ -41,6 +41,22 @@ def encrypt_str(plaintext: str, *, aad: bytes | None = None) -> bytes:
     return nonce + blob
 
 
+def decrypt_str(blob: bytes, *, aad: bytes | None = None) -> str:
+    """encrypt_str의 역함수 (S2, ADR-013). api decrypt_str와 바이트 호환.
+
+    blob = nonce(12) + ciphertext+tag. 태그 불일치/형식 오류/ENCRYPTION_KEY
+    미설정 시 예외를 던진다 — 호출자(예: retrieval._dec)가 반드시 이를 잡아
+    해당 필드를 응답에서 제외해야 한다("복호화 실패 = 절대 원문 노출 금지").
+    """
+    if len(blob) <= NONCE_BYTES:
+        raise ValueError(
+            f"ciphertext too short ({len(blob)}B) — expected > {NONCE_BYTES}B nonce prefix"
+        )
+    nonce, ct = blob[:NONCE_BYTES], blob[NONCE_BYTES:]
+    plaintext = AESGCM(_key()).decrypt(nonce, ct, aad)
+    return plaintext.decode("utf-8")
+
+
 def hash_password(plaintext: str) -> str:
     """argon2 해시 (api security.hash_password와 같은 계열, 기본 파라미터).
     argon2 해시는 파라미터를 자체 기술하므로 앱의 verify와 호환."""
@@ -54,3 +70,8 @@ def profile_aad(user_id: str, column: str) -> bytes:
 
 def message_aad(session_id: str, message_id: str) -> bytes:
     return f"messages.content:{session_id}:{message_id}".encode()
+
+
+def session_insights_aad(session_id: str, column: str) -> bytes:
+    """AAD for rag.session_insights.<column> (S2) — same convention as message_aad."""
+    return f"session_insights.{column}:{session_id}".encode()
