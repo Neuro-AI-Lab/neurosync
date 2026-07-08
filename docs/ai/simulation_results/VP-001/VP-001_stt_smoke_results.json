@@ -8,7 +8,7 @@
     "word_similarity": 0.8301886792452831,
     "safety_preserved": true,
     "safety_lost": [],
-    "latency_ms": 997.2236352041364,
+    "latency_ms": 1095.1727177016437,
     "raw": {
       "message_id": "vp001-smoke-001",
       "audio_duration": 13847,
@@ -270,7 +270,7 @@
     "word_similarity": 0.8181818181818182,
     "safety_preserved": true,
     "safety_lost": [],
-    "latency_ms": 843.7365498393774,
+    "latency_ms": 845.5572463572025,
     "raw": {
       "message_id": "vp001-smoke-002",
       "audio_duration": 8711,
@@ -395,7 +395,7 @@
     "word_similarity": 0.9333333333333333,
     "safety_preserved": true,
     "safety_lost": [],
-    "latency_ms": 879.1803419589996,
+    "latency_ms": 1007.5155501253903,
     "raw": {
       "message_id": "vp001-smoke-003",
       "audio_duration": 8711,
@@ -543,7 +543,7 @@
     "word_similarity": 0.9230769230769231,
     "safety_preserved": true,
     "safety_lost": [],
-    "latency_ms": 874.531430657953,
+    "latency_ms": 934.1780967079103,
     "raw": {
       "message_id": "vp001-smoke-004",
       "audio_duration": 9095,
@@ -684,7 +684,7 @@
     "word_similarity": 0.9,
     "safety_preserved": true,
     "safety_lost": [],
-    "latency_ms": 929.9112721346319,
+    "latency_ms": 928.5992970690131,
     "raw": {
       "message_id": "vp001-smoke-005",
       "audio_duration": 11352,
@@ -872,7 +872,7 @@
     "word_similarity": 0.8235294117647058,
     "safety_preserved": true,
     "safety_lost": [],
-    "latency_ms": 927.4979378096759,
+    "latency_ms": 945.3560700640082,
     "raw": {
       "message_id": "vp001-smoke-006",
       "audio_duration": 13463,
@@ -1100,7 +1100,7 @@
     "word_similarity": 0.7878787878787878,
     "safety_preserved": true,
     "safety_lost": [],
-    "latency_ms": 906.886154320091,
+    "latency_ms": 905.25658801198,
     "raw": {
       "message_id": "vp001-smoke-007",
       "audio_duration": 9815,
