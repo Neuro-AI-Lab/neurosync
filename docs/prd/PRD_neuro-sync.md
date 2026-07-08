@@ -1056,7 +1056,6 @@ flowchart LR
     API[FastAPI 서버]
     WS[WebSocket Gateway]
     Worker[Celery Worker<br/>리포트 생성/OCR]
-    Queue[(Redis)]
   end
 
   subgraph AI
@@ -1078,7 +1077,6 @@ flowchart LR
   WAF --> API
   WAF --> WS
   API --> PG
-  API --> Queue
   API --> STT
   STT --> S3
   STT --> PG

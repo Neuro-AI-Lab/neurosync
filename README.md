@@ -50,7 +50,6 @@ neuro-sync/
 Mobile / Web ──HTTPS──> apps/api ──HTTP(internal)──> apps/ai-server ──> 외부 LLM/STT/OCR
                               │
                               ├──> PostgreSQL (Platform 단독 소유)
-                              ├──> Redis (Celery)
                               └──> S3 SSE-KMS (오디오·문서)
 ```
 

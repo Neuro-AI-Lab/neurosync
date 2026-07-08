@@ -27,7 +27,7 @@
 - [ ] 백엔드: FastAPI + Python 3.12 + uv 셋업
 - [ ] 모바일: React Native (Expo) + TypeScript
 - [ ] 웹: Next.js 16 + TypeScript + Tailwind
-- [ ] PostgreSQL 16 + pgvector + Redis 로컬 Docker 컴포즈
+- [ ] PostgreSQL 16 + pgvector 로컬 Docker 컴포즈
 - [ ] 환경변수 관리 (`.env.example`, secrets: 1Password/Doppler)
 - [ ] GitHub Actions CI 기본 (lint + test) — Platform + AI 별도 파이프라인
 
