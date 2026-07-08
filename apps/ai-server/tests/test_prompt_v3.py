@@ -36,9 +36,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from src.adapters.base import LLMAdapter
-from src.agents.clinical_slot import ALL_SLOT_KEYS
+from src.agents.clinical_slot import ALL_SLOT_KEYS, ClinicalSlotAgent
 from src.agents.clinical_slot import PROMPT_VERSION as CLINICAL_SLOT_VERSION
-from src.agents.clinical_slot import ClinicalSlotAgent
 from src.agents.dialogue import PROMPT_VERSION as DIALOGUE_VERSION
 from src.agents.dialogue import DialogueAgent
 from src.agents.handoff_generator import _PROMPT_VERSION as HANDOFF_VERSION
