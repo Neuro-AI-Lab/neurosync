@@ -25,7 +25,7 @@ bootstrap:
 
 dev:
 	@echo "→ Starting full stack via docker-compose..."
-	docker compose -f infra/deploy/docker-compose.yml up -d postgres redis
+	docker compose -f infra/deploy/docker-compose.yml up -d postgres
 	@echo "→ Starting api, ai-server, web, mobile (Ctrl+C to stop)..."
 	pnpm turbo run dev --parallel
 

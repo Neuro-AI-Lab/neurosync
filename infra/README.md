@@ -8,12 +8,11 @@
 ```
 infra/
 ├── deploy/
-│   ├── docker-compose.yml      # 로컬 개발 (api, ai-server, db, redis, s3-mock)
+│   ├── docker-compose.yml      # 로컬 개발 (api, ai-server, postgres)
 │   ├── k8s/                    # 배포 매니페스트 (Phase 2~)
 │   │   ├── api/
 │   │   ├── ai-server/
-│   │   ├── postgres/
-│   │   └── redis/
+│   │   └── postgres/
 │   └── terraform/              # AWS/GCP IaC (Phase 3~)
 └── ci/
     ├── github-actions/
