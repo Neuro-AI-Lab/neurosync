@@ -13,15 +13,19 @@ from __future__ import annotations
 import logging
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from src.dependencies import get_sessionmaker
+from src.rag.auth import require_rag_api_key
 from src.rag.retrieval import retrieve_grounding
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/ai/rag", tags=["rag"])
+# ADR-013/VAL-005: bearer-token auth applied to THIS router only (src/rag/auth.py).
+router = APIRouter(
+    prefix="/ai/rag", tags=["rag"], dependencies=[Depends(require_rag_api_key)]
+)
 
 
 class GroundingQuery(BaseModel):

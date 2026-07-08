@@ -72,19 +72,21 @@
 | T1-F1-VER-007 | VER | SentimentAnalyzer per-utterance 정확도 | [x] | RPT-018 |
 | T1-F1-VER-008 | VER | SentimentAnalyzer session-level 정합성 | [x] | RPT-018 |
 
-### F2: RAG 기반 정신건강 영역 추론 (T1-F2-*) — 미착수 (정직하게 [ ] 유지됨)
+### F2: RAG 기반 정신건강 영역/진료과 후보 추론 — DomainInferenceAgent (T1-F2-*) — 구현·llm_only 라이브 배치 완료, risk≠domain 규칙 위반으로 비인증 처분 (설계 확정 2026-07-08, 구현 미션 완료 2026-07-08)
+
+> 사양 근거: `discussion.md` PLAN-2026-W28-C(Step 2 C-1~C-5, Step 3 REV-006, 구현 미션 REV-007/REV-008), ADR-013/ADR-014, 2026-07-08 사용자 승인. PRD: `PRD_task1_v2.md` §3(v2.2). 아래 5개 DEV 항목은 2026-07-08 구현 미션(`development_report.md` DR-006)에서 실제 구현 완료 여부에 따라 상태를 갱신했다 — 상세는 각 행의 근거 인용 참조.
 
 | ID | Type | 항목 | 상태 | 비고 |
 |---|---|---|---|---|
-| T1-F2-DEV-001 | DEV | TemporalRetrieverAgent 구현 (LLM-only 모드 우선) | [ ] | agent/schema 파일 자체가 없음. 프롬프트만 존재 (orphan) |
-| T1-F2-DEV-002 | DEV | pgvector embedding 저장/검색 모듈 | [ ] | DB 확정 대기 |
-| T1-F2-DEV-003 | DEV | POST /ai/temporal/retrieve 라우트 | [ ] | - |
-| T1-F2-DEV-004 | DEV | RAG scoring formula | [ ] | - |
+| T1-F2-DEV-001 | DEV | **DomainInferenceAgent** 구현 (Stage 2, LLM 1회 호출, strategy=benchmarked: Solar Pro3 1차/K-EXAONE 2차) + I/O 스키마 정의 + 프롬프트 신규 작성(v3 12원칙 적용, placeholder-only) | [x] | PRD §3.1/§3.4/§3.5. **구 TemporalRetrieverAgent 정의는 F4(종단 검색)로 보류 — superseded-for-F2, 삭제 아님**(구 명칭·`/ai/temporal/retrieve`·composite scoring·8-쿼리 플래너는 F4 이관 대상). 구현 완료(2026-07-08): `agents/domain_inference.py`, `schemas/domain_inference.py`, `docs/ai/prompts/domain_inference/v1.system.md`(2382자/74줄, echo-risk audit clean — REV-007). qa GATE:PASS. 근거: DR-006 §1 |
+| T1-F2-DEV-002 | DEV | 근거-화이트리스트(evidence whitelist) 런타임 검사 모듈 신규 구현 — `evidence.source_id ∈ 실제 반환 청크 ∪ F1 발화`; rag_chunk evidence는 `chunk_ids` 멤버십뿐 아니라 quote↔청크 본문 어휘 대조 포함(`grounding.py`의 F2판, REV-006 조건 1) | [x] | 구 "pgvector embedding 저장/검색 모듈"은 이미 PR #31로 `rag/retrieval.py`에 구현·병합됨(Master) — 본 항목은 대체 범위(F2 fabrication=0 하드 게이트의 전제 조건). PRD §3.2. 구현 완료: `src/eval/f2_grounding.py` — REV-006 조건 1 genuinely closed(REV-007 Part B #1: rag_chunk evidence 어휘 대조 code-verified). 근거: DR-006 §1 |
+| T1-F2-DEV-003 | DEV | `POST /ai/domain/infer` 라우트 신규(registry key `domain_inference`) — 프로덕션 통합(orchestrator.py 연동)은 G-D-F2 게이트로 보류 | [x] | 구 `POST /ai/temporal/retrieve`는 F4 보류(superseded-for-F2). 인증은 이 신규 라우트가 아니라 기존 rag 라우터 대상(T1-F2-SEC-001 참조). PRD §3.6, §9.2. **정정(2026-07-08):** 직전 판정("미착수")은 증거 부족에 따른 오류였다. 직접 확인 결과 `apps/ai-server/src/routes/domain.py`가 존재하며(`POST /ai/domain/infer` 구현, standalone route), `apps/ai-server/src/main.py:24`가 이를 import(`from src.routes.domain import router as domain_router`)하고 `main.py:51`이 `app.include_router(domain_router)`로 등록해 서버 부팅 시 실제로 마운트된다(`main.py:11` 문서화: "POST /ai/domain/infer (F2, standalone — not wired into orchestrator.py)"). 항목 텍스트 자체가 명시하듯 orchestrator.py 11-state machine 프로덕션 연동은 별도 범위(G-D-F2 게이트 보류)이며 본 항목(라우트 신규 구현·등록)의 완료 여부와 무관 — 라우트는 완료. qa GATE:PASS(구현 전체 게이트, 라우트 파일 포함 검증 범위). 근거: `src/routes/domain.py`, `src/main.py:24,51`, `docs/ai/development_report.md` DR-006 §1 |
+| T1-F2-DEV-004 | DEV | 오프라인 테스트 5종 구현: 출력 스키마(evidence≥1/후보), 근거-추적성 유닛(fixture accept/reject), 프롬프트 단정문(placeholder/절대규칙/예산/경계지시), `llm_only` 폴백 경로, department-derives-from-domain | [x] | 구 "RAG scoring formula"는 composite scoring/8-쿼리 플래너와 함께 F4 보류. PRD §3.7. 구현 완료: `tests/test_domain_inference.py`, `tests/test_f2_grounding.py`, `tests/test_f2_pipeline.py`, `tests/test_prompt_domain_inference.py`(5종 커버). qa GATE:PASS. 근거: DR-006 §1, REV-007 Part B |
 | T1-F2-CFG-001 | CFG | pgvector extension (placeholder) | [ ] | - |
-| T1-F2-VER-001 | VER | VP-002 재진 데이터 retrieval 테스트 | [ ] | 종단 데이터셋 필요 (T1-F1-VER-009) |
-| T1-F2-VER-002 | VER | VP-004 재진 데이터 retrieval 테스트 | [ ] | 상동 |
-| T1-F2-VER-003 | VER | 초진 empty retrieval 테스트 | [ ] | - |
-| T1-F2-VER-004 | VER | Retrieval ranking 품질 검증 | [ ] | - |
+| T1-F2-VER-001 | VER | VP-002 domain/department 후보 라이브 검증 (재진) | [ ] | 골든 라벨(DATASET, multi-label, critic 승인) 대비 n≥2 세션(권장 n≥3), 서술적 보고(비율 주장 아님). 선행: T1-F2-VER-005. PLAN-2026-W28-C C-4, REV-006 조건 2 |
+| T1-F2-VER-002 | VER | VP-004 domain/department 후보 라이브 검증 (중증 재진) | [ ] | 상동 + 위험≠도메인 근거 사용 금지 부정 fixture 결과 포함(REV-006 조건 3) |
+| T1-F2-VER-003 | VER | VP-001 domain/department 후보 라이브 검증 (초진, 최소 정보) | [ ] | 상동. DB 프리플라이트 실패 시 `llm_only` 런으로 별도 라벨(REV-006 조건 6, ADR-013 (4)) |
+| T1-F2-VER-004 | VER | Retrieval ranking 품질 (top-1/top-3 정량 검증) | [ ] | **유예 목표**: "사전 정의 10개 임상 시나리오"가 저장소에 실존하지 않음(grep 0건, REV-006 Summary 긍정 소견 (a)) — 70%/90%는 임상 검토 시나리오셋 확보 또는 관측 ≥12건 누적 전까지 보류. PLAN-2026-W28-C C-4 |
 
 ### F3: 구조화된 사전문진 설문 (T1-F3-*)
 
@@ -199,7 +201,21 @@
 | T1-F5-DEV-006 | DEV | `f5.py` 파이프라인: 12-slot→SlotData 매핑, risk_events 추출(CTRS<=3 턴), verifier 루프, handoff.md/json 저장. f1 --followup-from이 이 산출물을 우선 소비 | [ ] | T1-F0-DEV-005 |
 | T1-F5-VER-007 | VER | 실데이터 handoff: Section 9 종단 변화 = F4 출력 일치 | [ ] | T1-F5-DEV-006, T1-F4-VER-005 |
 | T1-F5-VER-008 | VER | Evidence 원문 추적성: Section 12 registry ↔ 대화 원문 자동 대조 | [ ] | T1-F5-DEV-006 |
-| T1-F2-DEV-005 | DEV | `f2.py` 파이프라인 (T1-F2-DEV-001 구현 후) | [ ] | T1-F2-DEV-001 |
+| T1-F2-DEV-005 | DEV | `f2.py` 검증 파이프라인 구현(f1.py 패턴): 입력 로드 → Stage1 코드검색(실패 시 `mode=llm_only` 강등) → Stage2 DomainInferenceAgent LLM → 근거-화이트리스트 검사(T1-F2-DEV-002) → 산출물(`{VP}_{ts}_domain_inference.json`+report.md) → 콘솔 요약 | [x] | T1-F2-DEV-001, T1-F2-DEV-002, T1-F2-CFG-002. PRD §3.2. 구현 완료: `src/f2.py`. EXP-004 라이브 배치로 실행 확인(8/8 런, llm_only arm). 근거: DR-006 §2, `result.md` EXP-004 |
+
+## Phase 2 — F2 도메인 추론(DomainInferenceAgent) 구현 (PLAN-2026-W28-C 승인, ADR-013) — 구현·llm_only 라이브 배치 완료, risk≠domain 위반으로 비인증 처분(ADR-014) — 2026-07-08
+
+> 사양 근거: `discussion.md` PLAN-2026-W28-C(Step 2 C-1~C-5, Step 3 REV-006, 2026-07-08 승인 상태 업데이트, 구현 미션 REV-007/REV-008), ADR-013/ADR-014, REV-006(구속 조건 1/2/3/4/5/6). PRD: `PRD_task1_v2.md` §3.7, §3.8. 구현 미션 완료 보고: `development_report.md` DR-006.
+
+| ID | Type | 항목 | 상태 | 선행 조건 |
+|---|---|---|---|---|
+| T1-F2-CFG-002 | CFG | `DATABASE_URL`/`ENCRYPTION_KEY` env 배선 + DB 연결성 프리플라이트(SELECT 1/스모크, 쓰기 없음) | [~] | ADR-013 (4). PLAN-2026-W28-C C-1 — DB 프로브 FAIL 확인됨(`.env`에 `DATABASE_URL` 부재), 구현 착수 선행조건. **부분(2026-07-08):** 프리플라이트 스모크 메커니즘 자체는 구현·검증됨(`SELECT 1`, 10s timeout, 결과 정직 보고 — `experiments/EXP-004/preflight.log`). `DATABASE_URL`/`ENCRYPTION_KEY` env 배선은 여전히 미완(`.env`에 `DATABASE_URL` 키 부재, grep 0건) — RAG arm 차단의 직접 원인. 근거: DR-006 §2 |
+| T1-F2-SEC-001 | SEC | rag 라우터(`POST /ai/rag/grounding` 등) env 기반 bearer/API-key 인증 적용 + `rag_chat.py` 하드코딩 공인 IP/환자 UUID → env화 | [x] | VAL-005 옵션(a) 채택, ADR-013 (1). 구현 완료·검증됨: `src/rag/auth.py`(fail-closed 503) + `rag_chat.py` 하드코딩 IP/UUID 제거. `tests/rag/test_route_auth.py` 6 cases, qa GATE:PASS. git 이력 정리(옵션 (b))는 별도 미결(ADR-013(3)). 근거: DR-006 §4 |
+| T1-F2-SEC-002 | SEC | `retrieval.py` `_dec()` 복호화 갭 수정: crypto.py decrypt 구현 + `situation_encrypted` 실복호화 적용, `ENCRYPTION_KEY` 부재 시 해당 필드 제외 + 명시 로깅 | [x] | VAL-005 cross-ref (S2), ADR-013 (2). 구현 완료·검증됨: `crypto.py::decrypt_str`(AES-GCM), `retrieval.py::_dec()` 실패 시 필드 제외. `tests/rag/test_crypto.py` 7 cases. 부수 발견: `load_simulations.py`의 사전 존재 결함(BUG-012, situation 필드 평문 기록)은 본 항목 범위 밖(retrieval.py 측은 정상 동작). 근거: DR-006 §4 |
+| T1-F2-SEC-003 | SEC | `apps/ai-server/src/rag/` 모킹 기반 유닛 테스트 커버리지 신규 | [x] | VAL-005 cross-ref (S3), ADR-013 (2). 구현 완료: `tests/rag/` 신규 모킹 테스트 26건(이전 0건). 근거: DR-006 §4 |
+| T1-F2-VER-005 | VER | 골든 라벨 DATASET 저작(VP-001~004, 다중-라벨 집합 — 예: VP-001={anxiety,sleep}) — persona 전문에서 blind 도출, `rag_chat.py` 비공식 태그 비의존 명시 + critic 승인 | [x] | REV-006 조건(2), PLAN-2026-W28-C C-4 — 라이브 실행(T1-F2-VER-001~003) 선행조건. 완료: DATASET-004 **APPROVED with amendments**(REV-007 Part A, 2026-07-08). 근거: `discussion.md` DATASET-004/REV-007 |
+| T1-F2-VER-006 | VER | 라이브 n≥2/VP 배치 실행, `llm_only`/RAG arm 구분 라벨 — DB 프리플라이트 실패 시 RAG-arm 검증 런 중단·보고(silent `llm_only` 강등 금지) + `latency_ms` 캡처·p95 서술 보고(REV-006 조건 5) | [~] | REV-006 조건(6), ADR-013 (4). 선행: T1-F2-CFG-002, T1-F2-VER-005. **부분(2026-07-08, EXP-004):** llm_only arm 완료(VP-001~004 n=2, 8런). RAG arm은 DB 프리플라이트 FAIL(`DATABASE_URL` 미설정)로 **BLOCKED-awaiting-DB**(ADR-013(4)) — 미실행, silent 강등 아님. 근거: `result.md` EXP-004, DR-006 §2 |
+| T1-F2-VER-007 | VER | 근거 요약 grounding 감사: utterance→`has_lexical_evidence()` 재사용, rag_chunk→`chunk_ids` 멤버십 + quote↔청크 본문 어휘 대조 — fabrication=0 하드 게이트 | [x] | REV-006 조건(1), PLAN-2026-W28-C C-3/C-4 — 하드 게이트, 위반 시 프롬프트 버전 롤백. **완료(하드 게이트 자체는 충족, 2026-07-08 EXP-004):** fabrication 0/32 evidence entries(정정치, VAL-008), whitelist reject 0건 — 본 항목 고유 범위(evidence 근거성 검사)는 위반 없음. **단, 별도 규칙인 risk≠domain 절대 규칙(prompt rule 2)이 VP-003 2/2 런에서 라이브 위반 확인**(VAL-006/REV-008) — 롤백 트리거 발동, `domain_inference` v1 **비인증** 처분(ADR-014). 근거: `result.md` EXP-004, `error.md` VAL-006/VAL-008, `discussion.md` REV-008/ADR-014 |
 
 ## Phase 2 — 통합 (Gate G-E)
 
@@ -214,17 +230,24 @@
 
 | 구분 | Phase 1 | Phase 2 신규 | 합계 |
 |---|---|---|---|
-| DEV | 35 | 26 | 61 |
-| VER | 28 | 18 | 46 |
-| CFG | 3 | 0 | 3 |
+| DEV | 35 | 28 | 63 |
+| VER | 28 | 19 | 47 |
+| CFG | 3 | 1 | 4 |
 | DOC | 4 | 1 | 5 |
-| **계** | **70** | **45** | **115** |
+| SEC | 0 | 3 | 3 |
+| **계** | **70** | **52** | **122** |
 
 Phase 1 상태 분포 (Stage 0 완료 후, 2026-07-07 T1-F1-DEV-029 전환 반영): `[x]` 32 · `[~]` 11 · `[!]` 10 · `[ ]` 17
-**Gate 순서: ~~G-0(긴급 복구)~~ 완료(2026-07-06) → G-F(grounding 재검증) ← 다음 → G-A/B/C → G-D → G-E. G-F 전에는 어떤 신규 "pass" 주장도 금지.**
+**Gate 순서: ~~G-0(긴급 복구)~~ 완료(2026-07-06) → G-F(grounding 재검증) ← 다음 → G-A/B/C → G-D → G-D-F2 → G-E. G-F 전에는 어떤 신규 "pass" 주장도 금지. G-D-F2는 추가로 ADR-014에 따라 v2 remediation 통과 전까지 진행 불가(아래 2026-07-08 갱신 참조).**
+
+> **2026-07-08 갱신 (DR-006 반영, F2 구현 미션 완료):** T1-F2-DEV-001/002/004/005·SEC-001~003·VER-005 `[x]`로 전환(구현 완료·qa GATE:PASS 확인, DR-006 §1/§4). T1-F2-DEV-003(신규 프로덕션 라우트)도 `[x]`로 전환 — **정정:** 이전 버전의 "본 미션 범위에 포함되지 않아 `[ ]` 유지" 판정은 증거 부족에 따른 오류였다. 직접 확인 결과 `apps/ai-server/src/routes/domain.py`가 존재하고 `apps/ai-server/src/main.py:24`가 이를 import, `main.py:51`이 `app.include_router(domain_router)`로 등록해 서버 부팅 시 실제 마운트된다(qa GATE:PASS, DR-006 §1). 라우트 신규 구현·등록 자체는 완료이며, orchestrator.py 프로덕션 연동만 항목 텍스트가 명시한 대로 G-D-F2 게이트로 계속 보류된다(범위 밖, 미착수와 다름). T1-F2-CFG-002 `[~]`(프리플라이트 메커니즘은 구현·검증됐으나 `DATABASE_URL`/`ENCRYPTION_KEY` env 배선 자체는 미완 — RAG arm 차단의 직접 원인). T1-F2-VER-006 `[~]`(llm_only arm만 라이브 완료, RAG arm은 BLOCKED-awaiting-DB). T1-F2-VER-007 `[x]`이나 **중요 단서 포함**: fabrication=0 하드 게이트(본 항목 고유 범위)는 충족했으나, 별도의 risk≠domain 절대 규칙(prompt rule 2)이 VP-003 2/2 런에서 라이브 위반이 확인됐다(VAL-006, REV-008) — 롤백 트리거가 발동해 `domain_inference` v1이 **비인증(non-certification)** 처분됐다(ADR-014). **G-D-F2 게이트 진행 및 RAG-arm 활성화는 v2 remediation(코드 강제 risk-lexicon evidence filter + 프롬프트 정교화 + 재검토)이 전체 게이트 체인을 통과할 때까지 불가**(ADR-014 (1)). 본 갱신 어디에도 risk≠domain 규칙에 대해 "통과"/"유지" 표현을 사용하지 않는다. 근거: `docs/ai/development_report.md` DR-006, `discussion.md` REV-007/REV-008/ADR-013/ADR-014, `error.md` VAL-006/VAL-007/VAL-008/BUG-012.
 
 > **2026-07-07 추가 (v2.1, 114→115 items):** ISS-049 정책 최종 반영(ADR-010) — safety_classifier v3 프롬프트 DEV 1건(T1-F1-DEV-029) 신규. 근거: `discussion.md` PLAN-2026-W28-B/ADR-010. 위 표 수치는 이 추가분을 반영한다.
 
 > **2026-07-07 정정 (v2.2, DR-005):** T1-F1-DEV-029 셀이 라이브 검증 실패로 `[~]` → `[!]`로 갱신되었다(ADR-012, `result.md` EXP-003) — 안전 프롬프트 v3의 SM-04a/SM-04b 프로브 회귀로 롤백. 셀은 developer가 갱신했으나 위 상태 분포 문구는 그 시점에 갱신되지 않았던 것을 여기서 정정한다: `[~]` 12→11, `[!]` 9→10 (총계 70·115는 변동 없음 — 상태만 변경, 항목 추가/삭제 없음). 본 미션(PLAN-2026-W28-B)이 건드린 체크리스트 행은 T1-F1-DEV-029 1건뿐임을 확인했으며, 이 미션에서 유래한 다른 카운트 drift는 없다. `[x]`/`[ ]` 값은 이번 정정 대상이 아니며(본 미션과 무관한 이전 시점 값), 별도 재집계가 필요하면 이는 본 항목 범위 밖이다.
+
+> **2026-07-08 추가 (v2.3, 115→122 items):** F2를 DomainInferenceAgent로 재정의(PLAN-2026-W28-C 승인, ADR-013) — 기존 T1-F2-DEV-001~005 및 VER-001~004는 문구만 신 정의 기준으로 갱신(카운트 불변, 상태는 착수 전 `[ ]` 유지). 신규 항목: CFG 1건(T1-F2-CFG-002, DB env 배선/프리플라이트), SEC 3건(T1-F2-SEC-001~003, VAL-005/ADR-013 보안 조치 — 본 문서 최초의 SEC 타입), VER 3건(T1-F2-VER-005~007, 골든라벨 DATASET/라이브 n≥2 배치/grounding 감사). §9.2 게이트 테이블에 G-D-F2 신설(REV-006 조건 4) 반영해 위 Gate 순서 문구에도 추가. 근거: `discussion.md` PLAN-2026-W28-C, REV-006, ADR-013; `PRD_task1_v2.md` §3(v2.2), §9.2. 신규 ID 7종(T1-F2-CFG-002/SEC-001/SEC-002/SEC-003/VER-005/VER-006/VER-007 — CFG 1 + SEC 3 + VER 3)은 grep으로 기존 ID와 충돌 없음을 확인했다.
+>
+> **부수 정정 (본 항목과 별개, 신규 추가분과 무관):** 표 갱신 과정에서 전 항목을 실제로 행 단위 재계수(grep)한 결과, 기존 "Phase 2 신규" 열의 DEV/VER 분배가 부정확했음을 발견했다 — 기존 표는 DEV 26 / VER 18로 표기했으나 실제 물리적 행 수는 DEV 28 / VER 16이다(두 오차가 서로 상쇄되어 기존 대분류 합계 115는 우연히 정확했다). 본 갱신에서 DEV/VER Phase 2 분배를 실측치(28/16, 본 미션 VER 신규 3건 반영 후 19)로 정정했다 — Phase 1 열과 전체 합계(122)는 실측과 일치하며 이번 정정으로 변하지 않는다. 이 오차의 발생 시점은 특정하지 않는다(본 미션 범위 밖).
 
 > **2026-07-07 추가 (v2, 107→114 items):** 프롬프트 아키텍처 v3(Gate G-F 확장) — DEV 5건(T1-F1-DEV-024~028) + VER 2건(T1-F1-VER-015~016) 신규. 근거: `PRD_task1_v2.md` §11, `docs/ai/prompt_redesign_v3.md` v3.1, `discussion.md` PLAN-2026-W28(B1)/REV-002/ADR-006/ADR-007. 위 표 수치는 이 추가분을 반영한다.

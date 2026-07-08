@@ -191,6 +191,24 @@ agents:
       supports_json_schema: false
       supports_json_object: false
 
+  domain_inference:
+    strategy: benchmarked
+    primary:
+      adapter: solar-pro3
+      model: "solar-pro3"
+      supports_json_schema: true
+      supports_json_object: true
+    secondary:
+      adapter: k-exaone
+      model: "${LG_K_EXAONE_ENDPOINT_ID}"
+      supports_json_schema: false
+      supports_json_object: true
+    fallback:
+      adapter: ak-llm
+      model: "A.X-K1"
+      supports_json_schema: false
+      supports_json_object: false
+
   # ── Offline (not called at runtime) ─────────────────────────────────
 
   prompt_eval:

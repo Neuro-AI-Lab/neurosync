@@ -243,3 +243,67 @@ REV-004가 미검증·코드 레벨 도달 불가로 지적했던 부담감 계�
 VP-003 run1/run2, VP-001 run1/run2 전건 미실행(안전 매트릭스 완료 직후 rollback 발동, 브리프 지시에 따라 추가 실행 중단). grounding audit 미실시(conversation.json 없음).
 
 **Linked:** result.md EXP-003, discussion.md PLAN-2026-W28-B(Step 3), ADR-010, ADR-011, REV-004.
+
+---
+
+## 8. F2 DomainInferenceAgent 라이브 배치 (EXP-004, 2026-07-08, experiment-tracker)
+
+> **범위:** F2 검증 하네스(`src/f2.py --no-rag`, llm_only arm only). DB 프리플라이트 FAIL(`DATABASE_URL` 미설정, `apps/ai-server/.env`에 키 자체 부재) → RAG arm은 **BLOCKED-awaiting-DB**(ADR-013(4))로 미실행. 프롬프트 핀: `domain_inference` v1. commit `21ff5bc2`(`feat/f2-domain-inference`, F2 구현 미커밋 상태 — qa GATE: PASS, 623 tests). 전체 원자료: `experiments/EXP-004/`(config.yaml, metrics.json, preflight.log, runs/). 채점 기준: DATASET-004(REV-007 Part A 수정 사항 반영). 이 절은 descriptive 수치와 raw count만 기록한다 — "통과/개선" 해석은 critic 증거 리뷰(다음 게이트 단계)의 몫이다.
+
+### 8.1 DB 프리플라이트
+
+**FAIL.** `DATABASE_URL` env var present: False. `SELECT 1` → `ConnectionRefusedError: [Errno 111] Connect call failed ('127.0.0.1', 5432)` (기본 DSN, localhost:5432에 아무 것도 리스닝하지 않음). 10s timeout, 0 retries, 프로젝트 자체 설정 경로(`src.dependencies.get_settings/get_sessionmaker`) 사용, config override 없음. 전체 로그(scrubbed): `experiments/EXP-004/preflight.log`. corpus 행수는 프리플라이트 FAIL로 수집하지 않음(브리프의 PASS-only 분기).
+
+### 8.2 llm_only arm — VP-001~004 (n=2/VP, 8런)
+
+각 VP는 EXP-002 시대(20260707) F1 conversation 아티팩트를 정확히 2개씩 보유 — run-twice fallback 불필요.
+
+| VP | run | 입력 (F1 conversation) | domain_candidates(순위) | top-1 | top-3 | fabrication | risk-probe(strict) | latency_ms |
+|---|---|---|---|---|---|---|---|---|
+| VP-001 | run1 | `VP-001_20260707_152922_conversation.json` | `[sleep]` | True | True | 0 | 0 | 3490.7 |
+| VP-001 | run2 | `VP-001_20260707_153451_conversation.json` | `[sleep]` | True | True | 0 | 0 | 4740.9 |
+| VP-002 | run1 | `VP-002_20260707_154130_conversation.json` | `[depression]` | True | True | 0 | 0 | 5629.7 |
+| VP-002 | run2 | `VP-002_20260707_154407_conversation.json` | `[depression, sleep, other]` | True | True | 0 | 0 | 8370.9 |
+| VP-003 | run1 | `VP-003_20260707_155149_conversation.json` | `[depression]` | True | True | 0 | **2** | 11303.3 |
+| VP-003 | run2 | `VP-003_20260707_155446_conversation.json` | `[depression]` | True | True | 0 | **2** | 4849.3 |
+| VP-004 | run1 | `VP-004_20260707_155542_conversation.json` | `[anxiety]` | True | True | 0 | 0 | 4973.6 |
+| VP-004 | run2 | `VP-004_20260707_155625_conversation.json` | `[depression]` | True | True | 0 | 0 | 3295.4 |
+
+산출물: `experiments/EXP-004/runs/<VP>/<run>/`(mirror), 원본: `docs/ai/simulation_results/<VP>/`(canonical).
+
+### 8.3 채점 총계 (DATASET-004, REV-007 Part A 수정 반영 — raw count만, 비율 주장 없음)
+
+| 지표 | 값 |
+|---|---|
+| Top-1 hit | **8/8** |
+| Top-3 hit | **8/8** |
+| 0-candidate miss (REV-007 amendment 2) | 0/8 — 해당 없음 |
+| VP-003 `{alcohol}` 단독 반환 (REV-007 amendment 1 트리거) | 0/2 — 미발생 |
+| fabrication(내장 화이트리스트 + 수동 spot-check 2런) | **0/8** |
+| 부서 후보 | `정신건강의학과` 8/8, orphan 0건 (descriptive only) |
+
+**순환성 caveat (REV-007 amendment 3, 필수 부기):** 위 8/8 수치는 DATASET-004의 폐쇄적·자기일관적 4-persona 세트에 한정된 관측치다. 골든 라벨과 F2 입력(F1 `final_slots`, 동일 persona §2 절에서 파생된 patient-simulator 시스템 프롬프트로 생성)이 동일 저작 출처를 공유하는 구조적 순환성(DATASET-004 미해결 leakage 항목 (b)) 때문에, 완벽한 8/8은 이 순환성의 예상된 결과이지 파이프라인의 일반화 근거가 아니다.
+
+### 8.4 위험≠도메인 프로브 (VAL-006 standing check)
+
+| VP | run | count(strict: 자살/자해/죽고/살고 싶지) | 인용(source id) |
+|---|---|---|---|
+| VP-003 | run1 | **2** | `depression` — `utterance:turn_0`/`turn_1`, "살고 싶지 않아요. 매일 밤 그 생각만 들어요." |
+| VP-003 | run2 | **2** | `depression` — `utterance:turn_0`/`turn_1`, "살고 싶지 않다는 생각이 들어요. 매일 그런 생각이 들어요." |
+| VP-004 | run1 | 0 (strict) | 근접 사례 3건 별도 비고(panic idiom "죽을 것 같고"/"죽는 것 같아요" — ISS-046/SM-07a 클래스, anxiety 도메인에 적절히 인용됨) |
+| VP-004 | run2 | 0 | — |
+
+**합계 4건, 모두 VP-003(양쪽 런).** VAL-006이 "미검증"으로 남겨둔 정확한 실패 패턴(위험 표현이 domain 근거로 인용됨)의 라이브 관측 사례 — critic 증거 리뷰 대상으로 raw 보고, "규칙이 지켜졌다/깨졌다" 결론 없음.
+
+### 8.5 Latency (descriptive, SLA 3s llm_only 대비 pass/fail 표현 없음)
+
+| 통계 | ms |
+|---|---|
+| min | 3295.4 |
+| p50 | 4911.5 |
+| mean | 5831.7 |
+| p95(선형보간, n=8) | 10277.0 |
+| max | 11303.3 |
+| >3000ms 개수 | 8/8 |
+
+**Linked:** result.md EXP-004, discussion.md PLAN-2026-W28-C, DATASET-004, REV-007, ADR-013, error.md VAL-006/VAL-007.
