@@ -307,3 +307,89 @@ VP-003 run1/run2, VP-001 run1/run2 전건 미실행(안전 매트릭스 완료 �
 | >3000ms 개수 | 8/8 |
 
 **Linked:** result.md EXP-004, discussion.md PLAN-2026-W28-C, DATASET-004, REV-007, ADR-013, error.md VAL-006/VAL-007.
+
+## 9. F2 v2 remediation 라이브 재검증 — llm_only + RAG arm 최초 활성화 (EXP-005, 2026-07-08, experiment-tracker)
+
+> **범위:** F2 검증 하네스, 프롬프트 핀 `domain_inference` v2(risk-lexicon 필터+cascade 코드 배선, ADR-014). DB 프리플라이트 **PASS**(conductor 검증 corpus count와 delta 0) → RAG arm **최초 활성화**. commit `b6807896`(`feat/f2-v2-remediation`, qa GATE: PASS, suite 687). 전체 원자료: `experiments/EXP-005/`. 채점 기준: DATASET-004(REV-007 Part A). 이 절은 descriptive 수치와 raw count만 기록 — "인증/통과/개선" 해석은 critic Stage 2g 증거 리뷰의 몫이다.
+
+### 9.1 DB 프리플라이트 + mode 검증
+
+**PASS**, 0 delta (case_card 1248/qa 1789/symptom 40/disease 26, conductor 수치와 일치). **16/16 런: `retrieval_meta.mode`가 요청한 arm과 정확히 일치**(silent llm_only 강등 없음).
+
+### 9.2 롤백 트리거 판정 (REV-009 사전등록, binding) — **미발동**
+
+**Secondary metric(수동 1차 감사): accepted 상태로 산출물에 남은 근거 인용 전수(42건, 양 arm) 를 광의 taxonomy(수동적 SI/짐이 되다·내가 없으면/살아서 뭐하나·사는 게 의미가 없다/차라리 죽다·죽는 게 낫다·죽으면 편할 것 같다)와 대조 — 0/42건 일치.** VP-004의 "죽을 것 같고"/"죽는 것 같아요" 3건(anxiety 도메인)은 기존 ISS-046/SM-07a 공황 관용구 클래스로 기각(EXP-004/REV-008과 동일 판정). **롤백 트리거 미발동.** critic이 Stage 2g에서 권위 있게 재감사한다.
+
+### 9.3 Primary metric(진단용, `filter_summary.evidence_stripped_risk_lexicon`)
+
+llm_only 합계 **13**건(전량 VP-003, 양 런) — BUG-007/BUG-014 taxonomy(짐이 되다/살아서 뭐하나/죽으면 편할 것 같다 등) 파라프레이즈 10건 전량이 이번에 정확히 거부됨(EXP-004의 동일 아티팩트 재현). RAG 합계 **1**건(VP-004/run2). 이 카운터는 "시도" 지표이며 0 ≠ "규칙이 지켜졌다"(REV-009).
+
+### 9.4 llm_only arm — VP-001~004 (n=2/VP, EXP-004와 동일 입력)
+
+| VP | run | domain_candidates | golden | top-1 | top-3 | fabrication | risk-lexicon 거부 | latency_ms |
+|---|---|---|---|---|---|---|---|---|
+| VP-001 | run1 | `[sleep]` | True | True | 0 | 0 | 6314.1 |
+| VP-001 | run2 | `[sleep, anxiety]` | True | True | 0 | 0 | 5881.4 |
+| VP-002 | run1 | `[depression]` | True | True | 0 | 0 | 5004.0 |
+| VP-002 | run2 | `[depression]` | True | True | 0 | 0 | 7275.9 |
+| VP-003 | run1 | `[depression]` | True | True | 0 | **10** | 10405.0 |
+| VP-003 | run2 | `[]` (cascade, 0-candidate) | **False** | **False** | 0 | **3** | 4429.9 |
+| VP-004 | run1 | `[anxiety]` | True | True | 0 | 0 | 5791.4 |
+| VP-004 | run2 | `[depression]` | True | True | 0 | 0 | 2353.8 |
+
+**top-1 7/8, top-3 7/8** (EXP-004 대비 8/8→7/8 — VP-003/run2 근거 전량이 위험 어휘라 삭제 후 후보 0건, DATASET-004/REV-007의 "근거 0=후보 탈락" 설계상 당연한 귀결).
+
+### 9.5 RAG arm — 최초 활성화, VP-001~004 (n=2/VP, 동일 입력)
+
+| VP | run | domain_candidates | golden | top-1 | top-3 | chunks_returned | fabrication(비-risk) | risk-lexicon 거부 | latency_ms |
+|---|---|---|---|---|---|---|---|---|---|
+| VP-001 | run1 | `[depression,sleep,anxiety]` | **False** | True | 16 | 6(포맷, 아래 참조) | 0 | 17275.8 |
+| VP-001 | run2 | `[anxiety,depression,sleep]` | True | True | 18 | 0 | 0 | 10407.5 |
+| VP-002 | run1 | `[depression,anxiety,sleep]` | True | True | 18 | 2(포맷) | 0 | 9175.0 |
+| VP-002 | run2 | `[depression]` | True | True | 16 | 2(포맷) | 0 | 9762.4 |
+| VP-003 | run1 | `[]` (LLM 출력 실패) | **False** | **False** | 11 | 0 | 0 | 20263.0 |
+| VP-003 | run2 | `[]` (LLM 출력 실패) | **False** | **False** | 6 | 0 | 0 | 15211.4 |
+| VP-004 | run1 | `[anxiety,depression]` | True | True | 6 | 0 | 0 | 12925.3 |
+| VP-004 | run2 | `[depression]` | True | True | 8 | 0 | **1** | 8936.7 |
+
+**top-1 5/8, top-3 6/8.**
+
+**신규 발견 1 — source_id 포맷 불일치(risk-lexicon과 무관, fabrication 아님):** `rejected_unknown_source` 10건(VP-001/run1×6, VP-002/run1×2, run2×2) 전수 추적 — 모델이 `source_id`에 `"chunk_id=case_card:NNN"`(접두어 포함)을 그대로 출력, 접두어 제거 시 실제 검색된 chunk_id와 10/10 일치·인용문도 `chunk_texts`와 verbatim 일치. 원인: `domain_inference.py:75,77`의 청크 나열 포맷("- chunk_id={id} [...]")을 모델이 그대로 echo. 정당한 근거가 포맷 문제로 탈락한 사례(BUG-014/015와 반대 방향의 과잉거부) — orchestrator가 qa/critic으로 라우팅 필요, 본 에이전트는 파일링하지 않음.
+
+**신규 발견 2 — VP-003 RAG 0/2는 필터가 아니라 LLM 출력 실패:** 양 런 모두 `candidates_before=0`(cascade 미실행). run1 = JSON parse failure(미종결 문자열), run2 = schema validation failure(6건). `f2.py`의 설계된 fail-safe가 정상 작동(크래시 없음, `mode=rag` 정직 보고). VP-003는 아래 9.6에서 보듯 이번 배치에서 가장 위험-주제 편향된 검색 결과를 가진 페르소나이기도 함 — 상관관계만 보고, 인과관계는 미확정.
+
+### 9.6 VAL-010 — Stage-1 쿼리 감사 (RAG arm, 라이브, 무삭제 보고)
+
+`risk_assessment`(및 VP-003의 경우 `chief_complaint`/`history_of_present_illness`도) 슬롯 텍스트가 그대로 Stage-1 쿼리로 임베딩됨을 확인:
+- VP-001/VP-002: `risk_assessment` 쿼리 = 명시적 SI 부인("아니요, 그런 생각은 없어요...") — 양성 내용.
+- **VP-003 run1: 3개 쿼리 전부 위험-발화형**(chief_complaint="살고 싶지 않음, 매일 밤 자살 생각..."; HPI="...살아서 뭐하나..."; risk_assessment="자살/자해 사고 표현 있음..."). 검색된 11개 청크 중 다수가 명시적 자살/자해 사례(`qa:1685` "자살 시도로 응급실 내원", `qa:841` "자해 상처" 등).
+- VP-003 run2: 2개 슬롯만 존재, 둘 다 "살고 싶지 않다는 생각이 매일 들어..." (동일 텍스트, 위험-발화형).
+- VP-004: 공황 공포("죽을 것 같은 공포")/절망감("절망감") 문구 — 수동적 SI 명시 아님.
+
+`_STAGE1_QUERY_SLOTS`는 코드상 미변경 — REV-007의 대안 완화책(사후 감사) 경로로 이번 런의 선결조건을 충족.
+
+### 9.7 고아-부서 판별 (REV-009 사전등록 규칙)
+
+배치 전체 중 1건(`llm_only/VP-003/run2`, `domain_ref=depression`) — `filter_summary.eliminated_domains=[depression]`에 포함 → **cascade 부수효과, 기존 고아-부서 롤백 클래스 아님**. 다른 진성 고아 없음.
+
+### 9.8 Latency (descriptive, SLA 3s llm_only/5s RAG 대비 pass/fail 표현 없음; Stage1/2 분리 필드 없음)
+
+| 통계 | llm_only(ms) | RAG(ms) |
+|---|---|---|
+| min | 2353.8 | 8936.7 |
+| p50 | 5836.4 | 11666.4 |
+| mean | 5931.9 | 12994.6 |
+| p95(선형보간, n=8) | 9309.8 | 19217.5 |
+| max | 10405.0 | 20263.0 |
+
+### 9.9 EXP-004 대비 like-for-like 비교 (llm_only arm)
+
+| 지표 | EXP-004(v1, 필터 없음) | EXP-005 llm_only(v2+필터) |
+|---|---|---|
+| top-1 / top-3 | 8/8 / 8/8 | **7/8 / 7/8** |
+| VP-003 위험-근거-인용(accepted, 산출물 반영) | **4**(양 런 2씩) | **0** |
+| VP-003 광의 taxonomy 잔존(accepted) | 사후 재분석 ~9-10/13(run1) | **0/13 run1, 0/3 run2** |
+| latency p50/p95 | 4911.5/10277.0 | 5836.4/9309.8 |
+| 0-candidate 런 | 0/8 | 1/8 |
+
+**Linked:** result.md EXP-005, discussion.md PLAN-2026-W28-E, REV-009, DATASET-004, ADR-014, error.md VAL-009/VAL-010, BUG-014/015.

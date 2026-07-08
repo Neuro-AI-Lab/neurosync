@@ -1,0 +1,123 @@
+{
+  "session_id": "f1_VP-002",
+  "persona_id": "VP-002",
+  "repro": {
+    "git_head": "b68078965e7320919572f13e05c9bc1168a56ccf",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-002/VP-002_20260707_154407_conversation.json",
+    "input_sha256": "f292e5622a81688780c6b370d5ae641b276a319d3749d09e5291918b876baf09",
+    "mode": "llm_only",
+    "latency_ms": 7275.9,
+    "generated_at": "2026-07-08T20:02:03.895425"
+  },
+  "domain_candidates": [
+    {
+      "domain": "depression",
+      "confidence": 0.35,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_0",
+          "quote": "예전엔 수업 준비도 힘들었는데, 요즘은 수업 준비는 하고 있고, 주말엔 아내와 외식도 하다 보니 기분이 예전보다 나아졌다는 걸 느껴요. 아직 완전히 괜찮은 건 아니지만, 그래도 나아지고 있다는 걸 말씀드리고 싶었어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_1",
+          "quote": "예전엔 수업 준비도 힘들었는데, 요즘은 수업 준비는 하고 있고, 주말엔 아내와 외식도 하다 보니 기분이 예전보다 나아졌다는 걸 느껴요. 아직 완전히 괜찮은 건 아니지만, 그래도 나아지고 있다는 걸 말씀드리고 싶었어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_12",
+          "quote": "다만 새로운 일을 시작할 땐 아직 집중력이 좀 떨어져서, 수업 준비는 되지만 다른 건 아직 부담스러워요."
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "우울감, 집중력 저하, 수면 개선 등 우울증 관련 증상이 지속되고 있으며, 항우울제 복용 후 호전 경과를 보이고 있음",
+      "domain_ref": "depression"
+    }
+  ],
+  "summary": "환자는 항우울제 복용 6주 후 수업 준비 가능, 주말 외식 가능, 수면 개선(잠들기 30분 이내, 6~7시간 수면), 간헐적 야간 각성, 식욕 정상화 등의 호전된 상태를 보고함. 그러나 새로운 일에 대한 집중력 저하가 지속되고 있으며, 여전히 피로감과 무기력함이 남아 있음. 자살/자해 사고는 부인함.",
+  "retrieval_meta": {
+    "mode": "llm_only",
+    "chunks_returned": 0,
+    "chunk_ids": [],
+    "queries": null
+  },
+  "chunk_texts": {},
+  "utterances": {
+    "turn_0": "아, 안녕하세요. 사실 약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 온 거예요.  \n예전엔 수업 준비도 힘들었는데, 요즘은 수업 준비는 하고 있고, 주말엔 아내와 외식도 하다 보니 기분이 예전보다 나아졌다는 걸 느껴요.  \n아직 완전히 괜찮은 건 아니지만, 그래도 나아지고 있다는 걸 말씀드리고 싶었어요.",
+    "turn_1": "아, 안녕하세요. 사실 약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 온 거예요.  \n예전엔 수업 준비도 힘들었는데, 요즘은 수업 준비는 하고 있고, 주말엔 아내와 외식도 하다 보니 기분이 예전보다 나아졌다는 걸 느껴요.  \n아직 완전히 괜찮은 건 아니지만, 그래도 나아지고 있다는 걸 말씀드리고 싶었어요.",
+    "turn_2": "아니요, 그런 생각은 전혀 없었어요.  \n아내가 많이 도와줘서 그런지, 그런 생각은 한 번도 안 들었어요.  \n지금은 그냥 피곤하긴 해도, 마음이 무겁거나 그런 건 없어요.",
+    "turn_3": "지금 복용하는 건 에시탈... 에스시탈로프람이요? 매일 아침에 먹고 있어요.  \n한두 번 깜빡한 적은 있지만, 약 부작용은 처음에 속이 좀 안 좋았는데 지금은 괜찮아요.  \n다른 약은 따로 안 먹고 있어요.",
+    "turn_4": "특별히 가족 중에선 그런 적은 없어요.  \n아내는 제가 힘들어할 때 많이 신경 써주긴 했지만, 본인도 정신건강 문제를 겪은 적은 없다고 해요.  \n그래도 지금은 저 스스로 조금씩 회복되고 있어서 다행이라고 생각해요.",
+    "turn_5": "저는 중학교 국어 교사로 일하고 있어요.  \n아내와 경기도 성남시에서 함께 살고 있고요.  \n아내가 병원 동행도 해주시고, 일상에서도 많이 도와줘서 회복에 큰 힘이 됐어요.",
+    "turn_6": "예전엔 퇴근 후가 제일 힘들었는데, 요즘은 저녁에 아내랑 산책 나가면 기분이 좀 나아져요.  \n주말엔 거의 괜찮고, 월요일 아침에 가끔 우울한 기분이 들긴 해요.  \n수업 중엔 학생을 가르치는 데 집중하다 보니 감정이 덜 드러나는 것 같아요.",
+    "turn_7": "아니요, 다른 약은 따로 없어요.  \n에시탈로프람만 아침에 먹고 있고, 부작용은 처음엔 속이 좀 안 좋았는데 지금은 괜찮아요.  \n아내가 챙겨주다 보니 복용도 거의 빠짐없이 하고 있어요.",
+    "turn_8": "아니요, 다른 약은 따로 없어요.  \n에시탈로프람만 아침에 먹고 있고, 부작용은 처음엔 속이 좀 안 좋았는데 지금은 괜찮아요.  \n아내가 챙겨주다 보니 복용도 거의 빠짐없이 하고 있어요.",
+    "turn_9": "아니요, 다른 약은 따로 없어요.  \n에시탈로프람만 아침에 먹고 있고, 부작용은 처음엔 속이 좀 안 좋았는데 지금은 괜찮아요.  \n아내가 챙겨주다 보니 복용도 거의 빠짐없이 하고 있어요.",
+    "turn_10": "예전엔 퇴근 후 소파에 누워만 있었는데, 요즘은 아내와 산책도 가고 동료랑 점심도 먹어요.  \n아직 완전히 괜찮아진 건 아니지만, 무기력함은 확실히 줄었고, 수업 준비도 예전처럼 힘들진 않아요.  \n아내가 많이 도와줘서 그런지, 하루하루가 조금 더 버틸 만해졌어요.",
+    "turn_11": "아니요, 이전에 정신과 진료는 처음이에요.  \n아내가 걱정해서 오게 됐고, 진단받고 약도 처음 먹기 시작한 거라서요.  \n처음엔 ‘내가 왜 약을 먹어야 하지?’ 싶기도 했는데, 지금은 조금씩 나아지는 걸 느끼니까 괜찮아지는 것 같아요.",
+    "turn_12": "수면은 확실히 나아졌어요. 예전엔 잠들기 한 시간 넘게 뒤척였는데, 요즘은 30분 안에 잠들고 6~7시간 정도 자요.  \n간헐적으로 밤중에 깨는 건 아직 있지만, 예전만큼 힘들진 않아요.  \n식욕도 정상으로 돌아왔고, 점심도 거르지 않아요.  \n다만 새로운 일을 시작할 땐 아직 집중력이 좀 떨어져서, 수업 준비는 되지만 다른 건 아직 부담스러워요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 3,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 0
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "예전엔 수업 준비도 힘들었는데, 요즘은 수업 준비는 하고 있고, 주말엔 아내와 외식도 하다 보니 기분이 예전보다 나아졌다는 걸 느껴요. 아직 완전히 괜찮은 건 아니지만, 그래도 나아지고 있다는 걸 말씀드리고 싶었어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "예전엔 수업 준비도 힘들었는데, 요즘은 수업 준비는 하고 있고, 주말엔 아내와 외식도 하다 보니 기분이 예전보다 나아졌다는 걸 느껴요. 아직 완전히 괜찮은 건 아니지만, 그래도 나아지고 있다는 걸 말씀드리고 싶었어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_12",
+        "quote": "다만 새로운 일을 시작할 땐 아직 집중력이 좀 떨어져서, 수업 준비는 되지만 다른 건 아직 부담스러워요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 1,
+    "candidates_after": 1,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 0,
+    "evidence_stripped_risk_lexicon": 0
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "집중력 저하가 일상생활에 미치는 구체적인 영향은 무엇인가요?",
+    "무기력함이 완전히 사라졌는지, 혹은 여전히 남아 있는지요?",
+    "현재 복용 중인 항우울제의 용량은 어떻게 되나요?",
+    "수면 중 간헐적 각성이 얼마나 자주 발생하는지요?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 7275.879943277687
+}

@@ -27,6 +27,8 @@
 | v2.0 | 2026-07-06 | F1 as-built 반영: 12 Standard Clinical Slots 표준화, Safety→Slot→Dialogue 역할 분리 파이프라인, Turn 0 safety, 재상담(follow-up) 모드, 4VP 시뮬레이션 검증 결과. F3/F4/F5 구현 완료 상태 반영. 스키마 통일 결정(§7). Phase 2 검증 전략(§9) 추가 |
 | v2.1 | 2026-07-07 | 프롬프트 아키텍처 v3 섹션 추가(§11): Fable-5 역설계 원칙 기반 5개 활성 임상 에이전트 프롬프트 재설계 사양(`docs/ai/prompt_redesign_v3.md` v3.1, REV-002 2026-07-07 non-blocking 종결) + 검증 전략(오프라인 프롬프트 테스트 + Safety Matrix SM-07a/b + VP-001~004 라이브 A/B) 요약 |
 | v2.2 | 2026-07-08 | §3(F2) 재정의: **DomainInferenceAgent**(RAG 기반 정신건강 영역/진료과 후보 추론) — 2단계 구조(Stage1 코드검색/Stage2 LLM 1회), 입출력 계약, 프롬프트 방침, 검증 전략(골든 라벨 다중-라벨 사전 등록, n≥2/VP, fabrication=0 하드 게이트, VER-004 유예), 보안 조치(VAL-005 옵션(a), ADR-013) 반영. §9.2 게이트 테이블에 G-D-F2(F2 프로덕션 통합) 명시 행 추가(REV-006 조건 4). 구 temporal_retriever/composite scoring/8-쿼리 플래너는 F4 보류로 재배치(삭제 아님, superseded-for-F2 주석). §1.1/§7/§8/§9.4의 관련 표 정합화. 근거: `discussion.md` PLAN-2026-W28-C, REV-006, ADR-013 (사용자 승인 2026-07-08) |
+| v2.3 | 2026-07-08 | §3(F2) 상태 갱신: v1 구현·`EXP-004` llm_only 라이브 배치 결과 반영 — 위험≠도메인 절대 규칙(rule 2) 라이브 위반 확인으로 **EXPERIMENTAL/UNCERTIFIED** 처분(`ADR-014`, `REV-008`) 명시, 프롬프트 문구만으로는 라이브 위반을 막지 못함이 실증됐음을 기록(`VAL-006`). v2 remediation 계획(코드 강제 risk-lexicon evidence filter `src/eval/f2_grounding.py` + 프롬프트 v2, ISS-046 공황 관용구 예외 유지) 추가. §3.8 RAG-arm 게이트 갱신: 본 개발 워크스테이션에서 DB 연결 라이브 검증 완료(conductor 확인, corpus 행수 포함) 반영 — "BLOCKED-awaiting-DB"를 "검증 가능(`EXP-005`에서 RAG arm 실행 예정)"으로 갱신, v2 remediation 게이트 통과 전까지 활성화는 별도 보류(`ADR-014`). 근거: `discussion.md` PLAN-2026-W28-E, ADR-014, REV-008, VAL-006 |
+| v2.4 | 2026-07-08 | F2 v2 remediation 완료(`PLAN-2026-W28-E`): `EXP-005` 양 arm(llm_only + RAG, 16런) 라이브 재검증 결과 반영 — **llm_only arm 비인증 해제**(`ADR-015` (1), critic REV-010 채택, 조건부: 상시 수동 taxonomy 감사; REV-008 위반 재발 0/42), **RAG arm은 EXPERIMENTAL 잔류**(`ADR-015` (2), 결함 2건: `chunk_id=` source_id 포맷 과잉거부 ~29%·VP-003 RAG 2/2 출력 실패, `VAL-010` 상시화 미비). §1.1 agent 표/§3.6/§8 API 표/§9.2 G-D 행/§9.4 파이프라인 표의 DomainInferenceAgent 상태 표기를 "설계 확정·구현 착수 중/미구현"에서 현행(구현 완료·llm_only 비인증 해제·RAG EXPERIMENTAL)으로 정합화. RAG arm에 대해서는 어디에도 "인증"/"통과"/"개선" 서술을 쓰지 않는다. 근거: `discussion.md` PLAN-2026-W28-E, REV-009/REV-010, ADR-015; `result.md` EXP-005; `error.md` VAL-006(resolved)/VAL-009(open)/VAL-010(open-narrowed)/BUG-016/BUG-017; `development_report.md` DR-007 |
 
 ### 0.3 v1 대비 핵심 변경 요약
 
@@ -63,7 +65,7 @@ ID 형식 `T1-Fn-{TYPE}-{SEQ}` 및 기능 번호(F0~F5)는 v1과 동일하다. *
 | ClinicalSlot | `agents/clinical_slot.py` | 구현 완료 | F1, F3 |
 | InputNormalizer | `agents/input_normalizer.py` | 구현 완료 | F1 (STT/OCR 대기) |
 | SentimentAnalyzer | `agents/sentiment_analyzer.py` | 구현 완료 | F1(미연동), F4 |
-| DomainInferenceAgent | `agents/domain_inference.py` (신규, v2.2 설계 확정) | **설계 확정 · 구현 착수 중** (PLAN-2026-W28-C, §3) | F2 |
+| DomainInferenceAgent | `agents/domain_inference.py` | **구현 완료 · llm_only 경로 비인증 해제**(`ADR-015`, 상시 수동감사 조건부) · **RAG 경로 EXPERIMENTAL 잔류**(§3.8) | F2 |
 | TemporalSummary | `agents/temporal_summary.py` | 구현 완료 | F4 |
 | HandoffGenerator | `agents/handoff_generator.py` | 구현 완료 | F5 |
 | EvidenceVerifier | `agents/evidence_verifier.py` | 구현 완료 | F5 |
@@ -220,7 +222,22 @@ Rule Engine (키워드 스크리닝 + 활용형 변형 + 부정 문맥 감지)
 
 ## 3. 기능 1-2 (F2): RAG 기반 정신건강 영역/진료과 후보 추론 — DomainInferenceAgent
 
-**상태: 설계 확정 (`PLAN-2026-W28-C`, 사용자 승인 2026-07-08, `ADR-013`). 구현 착수(developer 병행 진행 중 — 본 절 작성 시점 기준 구현 완료 아님). Task 1 잔여 기능 중 유일하게 구현 미착수였던 기능.**
+**상태(당초, `PLAN-2026-W28-C` 승인 시점 기준): 설계 확정, 구현 착수(developer 병행 진행 중 — 본 절 작성 시점 기준 구현 완료 아님). Task 1 잔여 기능 중 유일하게 구현 미착수였던 기능.** — 아래 갱신 참조.
+
+**상태 갱신 (2026-07-08, `PLAN-2026-W28-E` 착수 — v1 결과 및 비인증 처분 반영):** domain_inference v1은 구현이 완료되었고 `llm_only` arm 라이브 배치(`EXP-004`, VP-001~004 n=2, 8런)까지 실행되었다. 그러나 critic 증거 리뷰(`REV-008`)에서 §3.5의 프롬프트 절대 규칙(rule 2, "위험 표현을 domain confidence의 근거로 사용하지 않는다")이 라이브에서 위반된 것이 확인되어 사전 등록된 롤백 트리거가 발동했다(`ADR-014`). **v1은 현재 EXPERIMENTAL/UNCERTIFIED로 코드베이스에 남아 있으며, RAG-arm 활성화와 §9.2 G-D-F2 게이트 진행이 v2 remediation 통과 전까지 차단된다.**
+
+- **위반 내용:** 규칙은 8/8 배치 중 2/8 런(VP-003의 양쪽 run)에서 위반됨(`REV-008`) — VP-003 2/2 라이브 런에서 수동적 자살사고(passive SI) 발화("살고 싶지 않아요" 원문)가 `depression` 도메인의 `evidence[].quote`로 그대로 인용되어 코드 화이트리스트를 통과·채택됨. 엄격 substring 기준 4건, 이 프로젝트 자체의 기존 passive-SI/burdensomeness 어휘 분류(`BUG-007`/`ADR-010`)를 적용하면 ~9-10건(`REV-008`).
+- **핵심 교훈(프롬프트만으로는 불충분함이 라이브 입증):** 프롬프트 rule 2는 텍스트로는 항상 존재했고, REV-006 조건 3에 따라 이를 검증할 오프라인 "부정 fixture"(`test_f2_grounding.py::TestRiskNotDomainNegativeFixture`)도 준비되어 있었다. 그러나 REV-007 재검토에서 이 fixture는 갭을 폐쇄하는 테스트가 아니라 갭이 열려 있음을 실증하는 테스트였음이 드러났고(`VAL-006`), EXP-004 라이브 배치에서 그 갭이 실제로 발생했다(`REV-008`) — 이 프로젝트에서 "프롬프트 문구만으로 구조적 보장을 강제"하려다 실패한 네 번째 반복 사례다(`BUG-007`/`BUG-010`/`REV-004` issue #1과 동일 계열).
+- **fabrication=0 게이트와는 독립:** §3.7의 근거-화이트리스트 검사(fabrication=0 하드 게이트)는 이 배치에서 위반 없음(`EXP-004`, 0/32 evidence entries) — risk≠domain 규칙 위반은 이와 독립적인 별도의 절대 규칙 위반이다.
+- **VP-004 공황 관용구는 별개의 정당한 클래스로 확정:** VP-004의 "죽을 것 같고" 류 공황/응급실 회고 인용은 `anxiety` 도메인의 정당한 근거로 판정되어 제외되었다(`ISS-046` 선례, `REV-008` 항목 (c)) — v2 remediation에서도 이 예외는 유지한다(아래 참조).
+
+**v2 remediation 계획 (`PLAN-2026-W28-E`, 진행 중):** domain_inference v1은 최초 버전이라 되돌릴 이전 안전 버전이 없다(`ADR-014` (2)). 대신 다음 조치로 재검증한다:
+1. **코드 강제 risk-lexicon evidence filter** — `src/eval/f2_grounding.py`에 evidence quote가 프로젝트의 passive-SI/자해/burdensomeness 어휘를 포함하면 해당 evidence를 수용 거부(reject)하는 코드 레벨 검사를 추가한다. `rag_chunk` evidence에 이미 적용된 "프롬프트만으로는 불충분 → 코드 레벨 백스톱" 원칙(REV-006 조건 1)을 risk≠domain 규칙에도 동일하게 적용하는 것이다.
+2. **프롬프트 v2 개정** — v1은 디스크에 보존, 규칙 문구를 강화한다.
+3. **라이브 재검증** n≥8(위반 재발 0 확인) + critic 재심(REV-008 사유 해소 여부, ADR-014 비인증 해제 판정 — 판정 명시 전까지 "인증/통과" 문구 금지).
+4. **ISS-046 공황 관용구 예외 유지** — risk-lexicon evidence filter는 공황/응급실 회고 관용구(예: "죽을 것 같고")를 별도 클래스로 취급해 오차단하지 않도록 설계한다(위 VP-004 판정과 동일 기조); 관용구 오차단 여부는 qa/critic 사전리뷰(1g) 항목이다.
+
+**상태 갱신 (2026-07-08 (2), `PLAN-2026-W28-E` 완료 — `ADR-015`):** 위 v2 remediation 계획이 실행 완료됐다. `EXP-005`(양 arm, VP-001~004 n=2, 16런)에서 llm_only arm은 REV-008 위반 재발 0/42(critic REV-010, accepted evidence 42건 전수 재감사)로 확인되어 **비인증 해제**되었다(`ADR-015` (1), 조건부: 매 라이브 배치 상시 수동 taxonomy 감사). top-1/top-3는 7/8(`EXP-004`의 8/8 대비 1건 하락은 필터가 100% 위험-근거였던 VP-003/run2 후보를 정당하게 탈락시킨 결과 — critic이 intended-cost로 프레이밍, 회귀 아님). **RAG arm은 이번 배치가 첫 라이브 가동이었고, EXPERIMENTAL로 잔류한다**(`ADR-015` (2)) — risk≠domain 위반은 없었으나(RAG accepted 인용문 25건 중 taxonomy 매치 0건), 신규 결함 2건(`chunk_id=` 포맷 과잉거부 ~29%, VP-003 RAG 2/2 LLM 출력 실패)과 `VAL-010`(risk_assessment-as-query 채널)의 상시 완화 미비가 EXPERIMENTAL 유지 사유다. 상세: `docs/ai/development_report.md` DR-007.
 
 v1 계획(TemporalRetriever agent, composite scoring, 8-쿼리 플래너, `POST /ai/temporal/retrieve`)은 **F2 범위에서 폐기가 아니라 F4(종단 검색)로 재배치한다** — superseded-for-F2 주석 처리이며 삭제하지 않는다(§3.6). F2는 아래 설계로 재정의한다.
 
@@ -318,7 +335,7 @@ Stage 2: DomainInferenceAgent LLM 호출 (1회)
 
 | API | 상태 | 비고 |
 |---|---|---|
-| `POST /ai/domain/infer` | 신규 (검증 파이프라인 산출용) | registry key `domain_inference`. 프로덕션 통합(orchestrator.py 연동)은 §9.2 G-D-F2 게이트로 보류 |
+| `POST /ai/domain/infer` | 신규 (검증 파이프라인 산출용) | registry key `domain_inference`. **llm_only 경로는 비인증 해제됨**(`ADR-015`, 2026-07-08, 상시 수동감사 조건부), **RAG 경로는 EXPERIMENTAL**(§3.8). 프로덕션 통합(orchestrator.py 연동)은 §9.2 G-D-F2 게이트로 보류 |
 | `POST /ai/temporal/retrieve` (v1 계획) | **F4 보류 (superseded-for-F2, 삭제 아님)** | composite scoring, 8-쿼리 플래너와 함께 F4(종단 검색) 기능으로 이관 대상. TemporalRetriever 명칭도 F4 문맥에서만 유효 |
 
 ### 3.7 검증 전략
@@ -352,7 +369,9 @@ developer의 읽기전용 스캔(PLAN-2026-W28-C C-1)에서 3건의 보안 격�
 
 **미결 (옵션 (b) 미승인):** git 이력 재작성(하드코딩 IP/UUID가 이미 `origin/Master`에 커밋된 상태를 소급 제거)은 **미승인** — 조율된 force-push 결정이 필요하며 미결로 유지한다. 인증 도입 후 위험도는 하락하나(무인증 상태 해소), 이력상 노출 자체는 잔존한다.
 
-**라이브 검증 게이트:** `DATABASE_URL`이 본 환경에 구성될 때까지 RAG-모드 배치는 BLOCKED-awaiting-DB; `llm_only` arm은 라이브 실행 가능(silent 강등 보고 금지 — REV-006 조건 6).
+**라이브 검증 게이트 (당초, `PLAN-2026-W28-C`/`ADR-013` 시점 기준):** `DATABASE_URL`이 본 환경에 구성될 때까지 RAG-모드 배치는 BLOCKED-awaiting-DB; `llm_only` arm은 라이브 실행 가능(silent 강등 보고 금지 — REV-006 조건 6).
+
+**갱신 (2026-07-08, `PLAN-2026-W28-E`) — RAG-arm 차단 해제:** 본 개발 워크스테이션에서 외부 포트 개설이 완료되어 DB 연결이 라이브로 검증되었다(conductor 확인: `SELECT 1` OK, pgvector 익스텐션 설치 확인, corpus 행수 `rag.case_card` 1,248 / `rag.qa` 1,789 / `rag.symptom` 40 / `rag.disease` 26 — [`PLAN-2026-W28-E` 기재 conductor 검증치]). 이에 따라 "BLOCKED-awaiting-DB" 상태는 **검증 가능(verifiable)**으로 갱신된다 — `EXP-005`에서 RAG arm 라이브 실행이 예정되어 있다. 단, DB 연결성 확보와 v2 remediation 게이트 통과는 독립적인 조건이다: v2 remediation(§3 상태 갱신 참조)이 qa/critic 게이트를 통과하기 전까지는 RAG-arm 활성화 자체가 `ADR-014` (1)에 의해 별도로 보류된다.
 
 ---
 
@@ -429,7 +448,7 @@ as-built 반영 사항:
 | POST | `/ai/slots/extract` | 신규 | 구현 |
 | POST | `/ai/survey/score` | 신규 | 구현 (rule-based) |
 | POST | `/ai/temporal/retrieve` | 신규 (v1 계획) | **F4 보류** (superseded-for-F2, §3.6 — 삭제 아님) |
-| POST | `/ai/domain/infer` | 신규 (v2.2, F2 재정의) | **미구현** — 구현 착수 중 (§3), 프로덕션 통합은 G-D-F2 보류 |
+| POST | `/ai/domain/infer` | 신규 (v2.2, F2 재정의) | **구현 완료** — llm_only 경로 비인증 해제(`ADR-015`), RAG 경로는 EXPERIMENTAL 잔류(§3.8). 프로덕션 통합은 G-D-F2 보류 |
 | POST | `/ai/temporal/summarize` | 신규 | 구현 |
 | POST | `/ai/handoff/generate` | 기존 수정 | 구현 (12-section + 검증 루프) |
 | POST | `/ai/sentiment/*` | (v1 미정의) | 구현 (utterance/session 모드) |
@@ -457,7 +476,7 @@ SLA, Request/Response 스키마 상세는 v1 §2.5, §3.5, §4.5, §5.5, §6.6�
 | G-A | F1 종단 프로토콜 완료 | 4VP × (초기 + follow-up 2회) 세션, slot faithfulness 평가 완료 |
 | G-B | Safety 심층 검증 | 중간 턴 위기 전환·부정 문맥·간접 표현·CTRS3+자해 시나리오 파이프라인 레벨 통과 |
 | G-C | 스키마 통일 (§7) | S1~S4 완료 + 핫라인 상수 통일 + 회귀 테스트 통과 |
-| G-D | 기능별 파이프라인 검증 (f2/f3/f4/f5) | f3/f4/f5 파이프라인 실데이터 통과; F2는 `f2.py` 검증 파이프라인(오프라인 5종 + 라이브 n≥2/VP, §3.7) 통과 — **프로덕션 통합(orchestrator.py 연동, `/ai/domain/infer` 실사용)은 불포함** |
+| G-D | 기능별 파이프라인 검증 (f2/f3/f4/f5) | f3/f4/f5 파이프라인 실데이터 통과; F2는 `f2.py` 검증 파이프라인(오프라인 5종 + 라이브 n≥2/VP, §3.7) 통과 — **프로덕션 통합(orchestrator.py 연동, `/ai/domain/infer` 실사용)은 불포함**. **갱신(2026-07-08, `ADR-015`):** F2의 llm_only 경로는 이 조건을 충족(`EXP-005`, 비인증 해제 조건부)했다. RAG 경로는 EXPERIMENTAL로 잔류해 미충족 상태다 |
 | **G-D-F2** | **F2 프로덕션 통합 (신규, REV-006 조건 4)** | DomainInferenceAgent가 `orchestrator.py`에 연동되고 `POST /ai/domain/infer`가 실사용 경로로 확인됨. 스키마 통일(T1-F0-DEV-007) 완료 후 착수 |
 | G-E | 통합 E2E | F1→F3→F4→F5 전 체인, 4VP, EvidenceVerifier passed |
 
@@ -479,7 +498,7 @@ SLA, Request/Response 스키마 상세는 v1 §2.5, §3.5, §4.5, §5.5, §6.6�
 
 | 파이프라인 | 입력 | 호출 체인 | 산출물 |
 |-----------|------|----------|--------|
-| `f2.py` (구현 착수 중, §3) | F1 conversation.json + 12-slot + CTRS + is_first_visit | Stage1 코드검색(rag/retrieval.py 재사용) → Stage2 DomainInferenceAgent LLM → 근거-화이트리스트 검사 | domain/department 후보 + evidence + retrieval_meta |
+| `f2.py` (구현 완료 — llm_only 비인증 해제·RAG EXPERIMENTAL, §3) | F1 conversation.json + 12-slot + CTRS + is_first_visit | Stage1 코드검색(rag/retrieval.py 재사용) → Stage2 DomainInferenceAgent LLM → 근거-화이트리스트 검사 | domain/department 후보 + evidence + retrieval_meta |
 | `f3.py` | F1 slots + persona 설문 기준값 | Survey Planner rule → Scoring → (양성 시) Safety 재평가 | scale_scores JSON + 위험 연동 로그 |
 | `f4.py` | 종단 데이터셋 (t1..tN) | SentimentAnalyzer(세션별) → TemporalSummary | direction + evidence + plot_data |
 | `f5.py` | F1 slots + F3 scores + F4 summary + risk events | HandoffGenerator → EvidenceVerifier (재생성 루프) | 12-section report + verifier 판정 |
