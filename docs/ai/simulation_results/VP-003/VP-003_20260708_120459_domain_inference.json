@@ -1,0 +1,243 @@
+{
+  "session_id": "f1_VP-003",
+  "persona_id": "VP-003",
+  "repro": {
+    "git_head": "21ff5bc23f6b0287a0b84e79357967c6a7898a25",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v1",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260707_155149_conversation.json",
+    "input_sha256": "fbabd8202367322d338ea99eb154cf818f43de1094278b3e85340b5da02ccb96",
+    "mode": "llm_only",
+    "latency_ms": 11303.3,
+    "generated_at": "2026-07-08T12:04:59.100905"
+  },
+  "domain_candidates": [
+    {
+      "domain": "depression",
+      "confidence": 0.35,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_0",
+          "quote": "살고 싶지 않아요. 매일 밤 그 생각만 들어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_1",
+          "quote": "살고 싶지 않아요. 매일 밤 그 생각만 들어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_2",
+          "quote": "잠도 못 자고... 그냥 사라지고 싶어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_3",
+          "quote": "어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_4",
+          "quote": "도움이 되나요? 뭘 해도 안 될 것 같은데."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_5",
+          "quote": "형이 있긴 한데... 연락은 못 해요. 짐이 되기 싫어서."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_6",
+          "quote": "어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_7",
+          "quote": "기분은... 계속만 나빠져요. 처음엔 술 안 마시면 못 버틴다 했지... 고혈압 약은 안 먹어요. 의사도 안 가봤어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_8",
+          "quote": "다른 약은... 없어요. 병원도 안 가봤어요. 의사... 만나기 싫어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_9",
+          "quote": "형. 연락 안 해요. 짐이 되기 싫어서. 다른 약은... 없어요. 병원도 안 가봤어요. 의사... 만나기 싫어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_10",
+          "quote": "잠도 못 자고. 새벽에 깨면 그냥... 천장만 봐요. 살아서 뭐하나."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_11",
+          "quote": "매일 밤 그 생각이 들어요. 사라지고 싶다. 죽으면 편할 것 같다. 하지만 어떻게까지는... 생각 안 했어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_12",
+          "quote": "3시에 깨요. 다시는 못 자요. 천장만 봐요. 살아서 뭐하나."
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "자살 사고, 수면 장애, 무기력감, 사회적 고립 등 우울증의 주요 증상이 지속적으로 보고되었으며, 초진 환자로서 정신건강의학과 진료가 필요함.",
+      "domain_ref": "depression"
+    }
+  ],
+  "summary": "환자는 지속적인 자살 사고, 수면 장애(새벽 3시 기상 후 재입면 불가), 무기력감, 사회적 고립(형과의 연락 회피) 등을 호소하고 있으며, 이는 우울증의 전형적인 증상과 일치합니다. 모든 발화에서 자살 관련 표현이 확인되었으나 구체적 계획이나 의도는 부인되었습니다.",
+  "retrieval_meta": {
+    "mode": "llm_only",
+    "chunks_returned": 0,
+    "chunk_ids": [],
+    "queries": null
+  },
+  "chunk_texts": {},
+  "utterances": {
+    "turn_0": "...  \n살고 싶지 않아요.  \n매일 밤 그 생각만 들어요.",
+    "turn_1": "...  \n살고 싶지 않아요.  \n매일 밤 그 생각만 들어요.",
+    "turn_2": "매일요.  \n잠도 못 자고... 그냥 사라지고 싶어요.",
+    "turn_3": "...  \n어떻게까지는... 생각 안 했어요.  \n그냥 사라지고 싶은 거예요.",
+    "turn_4": "...  \n도움이 되나요?  \n뭘 해도 안 될 것 같은데.",
+    "turn_5": "형이 있긴 한데...  \n연락은 못 해요.  \n짐이 되기 싫어서.",
+    "turn_6": "...  \n어떻게까지는...  \n생각 안 했어요.  \n그냥 사라지고 싶은 거예요.",
+    "turn_7": "기분은...  \n계속만 나빠져요.  \n처음엔 술 안 마시면 못 버틴다 했지...  \n고혈압 약은 안 먹어요.  \n의사도 안 가봤어요.",
+    "turn_8": "다른 약은... 없어요.  \n병원도 안 가봤어요.  \n의사... 만나기 싫어요.",
+    "turn_9": "...  \n형.  \n연락 안 해요.  \n짐이 되기 싫어서.  \n다른 약은... 없어요.  \n병원도 안 가봤어요.  \n의사... 만나기 싫어요.",
+    "turn_10": "...  \n잠도 못 자고.  \n새벽에 깨면 그냥...  \n천장만 봐요.  \n살아서 뭐하나.",
+    "turn_11": "...  \n매일 밤 그 생각이 들어요.  \n사라지고 싶다.  \n죽으면 편할 것 같다.  \n하지만 어떻게까지는...  \n생각 안 했어요.",
+    "turn_12": "3시에 깨요.  \n다시는 못 자요.  \n천장만 봐요.  \n살아서 뭐하나."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 13,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "살고 싶지 않아요. 매일 밤 그 생각만 들어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "살고 싶지 않아요. 매일 밤 그 생각만 들어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "잠도 못 자고... 그냥 사라지고 싶어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_3",
+        "quote": "어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_4",
+        "quote": "도움이 되나요? 뭘 해도 안 될 것 같은데.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_5",
+        "quote": "형이 있긴 한데... 연락은 못 해요. 짐이 되기 싫어서.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_6",
+        "quote": "어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_7",
+        "quote": "기분은... 계속만 나빠져요. 처음엔 술 안 마시면 못 버틴다 했지... 고혈압 약은 안 먹어요. 의사도 안 가봤어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_8",
+        "quote": "다른 약은... 없어요. 병원도 안 가봤어요. 의사... 만나기 싫어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_9",
+        "quote": "형. 연락 안 해요. 짐이 되기 싫어서. 다른 약은... 없어요. 병원도 안 가봤어요. 의사... 만나기 싫어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_10",
+        "quote": "잠도 못 자고. 새벽에 깨면 그냥... 천장만 봐요. 살아서 뭐하나.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_11",
+        "quote": "매일 밤 그 생각이 들어요. 사라지고 싶다. 죽으면 편할 것 같다. 하지만 어떻게까지는... 생각 안 했어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_12",
+        "quote": "3시에 깨요. 다시는 못 자요. 천장만 봐요. 살아서 뭐하나.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      }
+    ]
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "자살 사고를 완화하기 위해 현재 어떤 대처 방법을 시도하고 계신가요?",
+    "가족이나 친구와의 관계에서 최근 변화가 있었나요?",
+    "과거에 정신건강의학과 진료를 받은 경험이 있나요?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v1",
+  "latency_ms": 11303.343778010458
+}

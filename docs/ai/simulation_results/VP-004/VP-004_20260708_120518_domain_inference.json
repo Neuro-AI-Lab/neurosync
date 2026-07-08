@@ -1,0 +1,105 @@
+{
+  "session_id": "f1_VP-004",
+  "persona_id": "VP-004",
+  "repro": {
+    "git_head": "21ff5bc23f6b0287a0b84e79357967c6a7898a25",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v1",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-004/VP-004_20260707_155542_conversation.json",
+    "input_sha256": "8ad65b5b25dfae9dde75a342ed3981126e68966b9e87d90ed99e9ba681e54901",
+    "mode": "llm_only",
+    "latency_ms": 4973.6,
+    "generated_at": "2026-07-08T12:05:18.247598"
+  },
+  "domain_candidates": [
+    {
+      "domain": "anxiety",
+      "confidence": 0.35,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_0",
+          "quote": "공황 발작이 오면 진짜 죽을 것 같고, 그 생각만 하면 또 올까 봐 무서워요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_1",
+          "quote": "공황 발작이 오면 진짜 죽을 것 같고, 그 생각만 하면 또 올까 봐 무서워요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_2",
+          "quote": "진짜로... 이제는 숨이 안 쉬어져서 죽는 것 같아요."
+        }
+      ],
+      "recommended_surveys": [
+        "GAD-7",
+        "PDSS-SR"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "공황 발작, 죽음에 대한 공포, 재발에 대한 두려움, 약물 치료 실패 등 불안 장애 관련 증상이 반복적으로 보고됨",
+      "domain_ref": "anxiety"
+    }
+  ],
+  "summary": "환자는 약물 치료에도 불구하고 공황 발작 시 죽음에 대한 공포와 재발에 대한 두려움을 호소하고 있으며, 호흡 곤란 및 정서적 고통을 경험하고 있음. 불안 장애(anxiety) 관련 증상이 주요 임상적 특징으로 판단됨.",
+  "retrieval_meta": {
+    "mode": "llm_only",
+    "chunks_returned": 0,
+    "chunk_ids": [],
+    "queries": null
+  },
+  "chunk_texts": {},
+  "utterances": {
+    "turn_0": "약을 두 번이나 바꿨는데도 안 나아져요. 오히려 더 나빠진 것 같아요.  \n공황 발작이 오면 진짜 죽을 것 같고, 그 생각만 하면 또 올까 봐 무서워요.  \n근데 이게 나을 수 있는 건가요…?",
+    "turn_1": "약을 두 번이나 바꿨는데도 안 나아져요. 오히려 더 나빠진 것 같아요.  \n공황 발작이 오면 진짜 죽을 것 같고, 그 생각만 하면 또 올까 봐 무서워요.  \n근데 이게 나을 수 있는 건가요…?",
+    "turn_2": "가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요. 근데 한 적은 없어요.  \n근데 진짜로... 이제는 숨이 안 쉬어져서 죽는 것 같아요.  \n어머니가 전화하시면 울고 있는 목소리 들릴까 봐 받기도 싫고..."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 3,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0
+    },
+    "verdicts": [
+      {
+        "domain": "anxiety",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "공황 발작이 오면 진짜 죽을 것 같고, 그 생각만 하면 또 올까 봐 무서워요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "공황 발작이 오면 진짜 죽을 것 같고, 그 생각만 하면 또 올까 봐 무서워요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "진짜로... 이제는 숨이 안 쉬어져서 죽는 것 같아요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      }
+    ]
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "공황 발작이 발생하는 구체적인 상황이나 유발 요인은 무엇인가요?",
+    "현재 복용 중인 약물의 이름과 변경 이력을 확인할 수 있나요?",
+    "일상 생활에서의 회피 행동이나 제한 사항이 있는지 알려주세요.",
+    "가족력이나 과거 정신과 치료 이력이 있는지 궁금합니다."
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v1",
+  "latency_ms": 4973.632757086307
+}
