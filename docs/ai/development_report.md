@@ -585,3 +585,99 @@ EXP-004 원문의 "31 evidence quotes total"은 `metrics.json` `runs[].n_evidenc
 4. G-D-F2 게이트 진행과 RAG-arm 활성화는 (1)의 v2 remediation이 전체 게이트 체인을 통과할 때까지 보류한다(ADR-014 (1)).
 
 ---
+
+## DR-007 | 2026-07-08 | F2 v2 remediation 완료 — llm_only arm 비인증 해제(조건부), RAG arm EXPERIMENTAL 잔류 (PLAN-2026-W28-E)
+
+> **범위 및 출처:** 본 엔트리가 인용하는 모든 수치·서술은 `discussion.md`(PLAN-2026-W28-E 및 상태갱신, REV-009/REV-010, ADR-015), `result.md`(EXP-005), `error.md`(VAL-006/VAL-009/VAL-010, BUG-014/015/016/017)에 이미 기록된 값이다. 신규 계측·재해석은 없다. **RAG arm에 대해서는 원시 수치와 결함 공시만 서술하며, 어떤 문장에서도 RAG arm이 "인증"/"개선"/"통과"되었다는 판정은 내리지 않는다**(REV-010 wording license, ADR-015 준수 — 아래 §4/§6에서 이 제약 자체를 서술하는 문장은 규칙 인용이지 판정이 아니다). llm_only arm에 대해서는 REV-010이 licensed한 범위 내에서만 "해소" 표현을 사용한다.
+
+### 1. 미션 요약
+
+사용자 지시(원문 일부, orchestrator 경유 전달): **"...계획대로 진행 착수"**. 이 지시에 따라 `PLAN-2026-W28-E`("F2 v2 remediation → RAG-arm 검증")를 착수했다. 실행 순서는 계획 문서 그대로다: **문서(Stage 0, PRD/checklist 정합화) → v2 구현(Stage 1, 코드 강제 risk-lexicon evidence filter + prompt v2) → `EXP-005`(Stage 2, 양 arm 라이브 재검증)**. 목표는 `VAL-006`/`REV-008`이 지적한 risk≠domain 규칙의 라이브 위반(`EXP-004`, `ADR-014` 비인증 처분)을 해소하고, `DATABASE_URL`이 본 워크스테이션에서 라이브로 검증된 것을 계기로 RAG arm을 처음으로 가동하는 것이었다.
+
+### 2. Stage 0/1 요약
+
+**Stage 0 (문서, 2026-07-08):** `PRD_task1_v2.md` v2.3(§3 당초/갱신 서술 + RAG-arm 차단 해제 기재) + `checklist_task1.md` 122→126항목(T1-F2-DEV-006/007, VER-008/009 신설) — writer 완료. 근거: `discussion.md` PLAN-2026-W28-E 상태갱신(2026-07-08).
+
+**Stage 1 (v2 구현: 필터 + cascade + prompt v2) — 3회 반복의 게이트 이력을 정직하게 기록한다:**
+
+| 반복 | 내용 | 결과 |
+|:--|:--|:--|
+| ① | developer가 위험-어휘 필터 + cascade(수용 거부 → 후보 탈락 로직) + prompt v2를 구현하고 pin, cascade를 `f2.py` 라이브 파이프라인에 배선(산출물 = post-cascade 결과 + `filter_summary`). 스위트 627→671 | qa GATE:PASS(8/8, mutation 검증, orphan-post-cascade 설계 수용) ∥ critic REV-009 **non-blocking, 조건부** — **REV-009가 EXP-004의 실제 인용문을 다시 재생(replay)한 결과 13건 중 9건만 차단**됨(4건 미차단) → **VAL-009 파일링**. 재발 판정 기준을 이 단계에서 사전 등록: primary 지표는 `evidence_stripped_risk_lexicon`(진단용, 그 자체로는 롤백 조건 아님), **롤백 트리거는 수동감사에서 accepted된 인용문이 광의 taxonomy에 매치되는 건수 >0**. VAL-010(RAG-arm `retrieval_meta.queries` 감사 조건) 및 orphan-department와 cascade-elimination 구분 규칙도 이 단계에서 확정. qa가 별도로 BUG-014(어휘 커버리지 부족)와 BUG-015(bare "손목"/"목숨" 과대차단) 파일링 |
+| ② | developer가 어휘 수정 — EXP-004의 실제 아티팩트 재생 시 13/13 광의 taxonomy 인용문 전부 차단, 무해 인용문은 그대로 수용됨을 확인 | qa 재게이트 **FAIL** — 잔여 1개 stem("죽는 게 낫"/"차라리 죽" 계열, REV-009 Attack 4가 지적했으나 개발자가 범위 밖으로 남긴 항목)을 qa가 차단 사유로 지목 |
+| ③ | developer가 해당 1-stem 추가(VP-004 실제 아티팩트에 그 표현이 실재함을 확인 후) | qa **GATE: PASS** — BUG-014/BUG-015 모두 resolved, 스위트 **687** |
+
+이 시점(스위트 687)에서 Stage 2(`EXP-005`)가 REV-009의 사전 등록 지표를 binding으로 하여 dispatch됐다(`discussion.md` PLAN-2026-W28-E 상태갱신). `EXP-005` 실행 이후 REV-010 증거 리뷰 과정에서 qa가 RAG arm 신규 결함 2건(`BUG-016`/`BUG-017`)을 각각 4개 repro 테스트와 함께 파일링해 스위트는 **687→695**로 늘었다(`error.md` BUG-016/BUG-017 "Minimal repro" 섹션, 각 4/4 pass — 이 4개 테스트는 원문에 "currently PASS"로 기록되어 있으며 본 문서 작성 시점에 재실행하지 않았다).
+
+**수치 불일치 공시(정정 없이 원문 그대로 병기 — 그라운딩 규율):** `discussion.md` PLAN-2026-W28-E 상태갱신은 반복①의 prompt v2를 **"2,948자/84줄"**로 기록하는 반면, `result.md` EXP-005 Setup은 실행 시점에 사용된 pin을 **"5,004자/84줄"**로 기록한다(줄 수는 일치, 글자 수는 불일치). 두 값 모두 각 문서에 이미 기록된 값을 그대로 인용했으며, 어느 쪽이 정확한지 본 문서 범위에서는 확인하지 않았다(3회 반복 중 추가 편집이 있었을 가능성이 있으나 근거 없음). orchestrator 확인을 권고한다(§6).
+
+### 3. EXP-005 결과 — 양 arm
+
+**Setup:** `src/f2.py`, VP-001~004 × n=2, llm_only arm(`--no-rag`) + RAG arm(무플래그), 총 16런. 모델 `solar-pro3-260323`. DB 프리플라이트 **PASS**(corpus 델타 0: `rag.case_card` 1,248 / `rag.qa` 1,789 / `rag.symptom` 40 / `rag.disease` 26, conductor 검증치와 정확히 일치). 채점 기준 `DATASET-004`(REV-007 Part A 수정 반영, `EXP-004`와 동일).
+
+| 지표 | llm_only | RAG | 근거 |
+|:--|:--|:--|:--|
+| 런수 | 8 | 8 (총 16/16) | `result.md` EXP-005 Setup |
+| mode 검증(`retrieval_meta.mode`가 요청 arm과 정확히 일치) | 8/8 | 8/8 (16/16, silent 강등 없음) | `result.md` EXP-005 "Mode verification" |
+| 필터 1차 차단(primary counter, `evidence_stripped_risk_lexicon`) | **13**(전량 VP-003 — run1 10건 + run2 3건) | 1(VP-004/run2) | `result.md` EXP-005 primary metric table |
+| 수동감사(2차, REV-009 사전등록 — accepted 인용문 전수의 광의 taxonomy 매치) | 0/17(accepted) | 0/25(accepted) | 합산 **0/42** — `error.md` VAL-006 REV-010 상태갱신 |
+| top-1 | **7/8** | **5/8** | `result.md` EXP-005 DATASET-004 scoring |
+| top-3 | **7/8** | **6/8** | 상동 |
+| fabrication(non-risk-lexicon 거부) | 0/17 | 명목 10/35 → 확정 **0/35**(10건 전부 BUG-016 source_id 포맷 결함으로 판명, content fabrication 아님) | `result.md` EXP-005 Fabrication 표 |
+| latency p50 / p95 (ms) | 5836.4 / 9309.8 | 11666.4 / 19217.5 | `result.md` EXP-005 Latency 표 |
+
+**llm_only arm 7/8(top-1·top-3 동일) — 의도된 비용, 회귀 아님:** VP-003/run2의 유일한 후보(`depression`)가 100% 위험-근거 인용문으로만 구성되어 있어, 필터가 그 근거 전량을 정당하게 탈락시켰다("no evidence, no candidate" 설계, REV-006 조건 1). `EXP-004`(8/8, 비인증 처분 이전 수치)와 비교해 1건 하락하지만, critic이 이를 **"intended-cost trade-off, not regression"**으로 프레이밍했고(REV-009 사전등록 + REV-010 채택) 이 문서도 동일 프레이밍을 따른다.
+
+**RAG arm — 원시 수치·결함 공시만:** 이번 배치가 RAG arm의 첫 라이브 가동이었다. 신규 결함 2건이 확인됐다(§5): (1) `chunk_id=` 접두어 echo로 RAG evidence의 약 29%가 `rejected_unknown_source`로 과잉거부됨(보수적 방향, fabrication 아님 — BUG-016). (2) VP-003 RAG 2/2 런이 LLM 출력 파싱에 실패함(run1 JSON parse failure, run2 schema validation failure 6건) — cascade가 실행되기도 전에 실패해 0-candidate로 귀결(BUG-017). VP-003는 이 프로젝트가 가장 정밀하게 감시하는 페르소나이므로, 위 표의 수치는 있는 그대로 보고하되 그 이상의 판정은 §4/ADR-015로 넘긴다.
+
+### 4. 판정 — REV-010(critic) + ADR-015(orchestrator)
+
+REV-010(critic, `EXP-005` 16런 전수 재감사 — 샘플링 아님) 판정 4개가 그대로 채택되어 `ADR-015`로 처분됐다:
+
+1. **llm_only arm 비인증 해제**(옵션 i만 LIFT) — `VAL-006` resolved. 조건부: 매 라이브 배치마다 **상시 수동 taxonomy 감사**를 수행한다(고정 어휘 필터는 구조적으로 불완전하다는 전제 — 이번 미션에서 표준 조건으로 확정됨).
+2. **RAG arm은 EXPERIMENTAL 잔류** — 사유는 위험≠도메인 위반이 아니라(RAG accepted 인용문 25건 중 광의 taxonomy 매치 0건) ① `chunk_id=` 포맷 결함(~29% 과잉거부) ② VP-003 RAG 2/2 출력 실패(가장 정밀한 감시 대상 페르소나를 RAG 모드로 평가할 수 없는 상태) ③ `VAL-010`(risk_assessment-as-query 채널)의 상시 완화가 아직 없음.
+3. 신규 결함 2건은 qa가 BUG로 정식 파일링(권고 심각도 각 major) — 수정은 차기 미션.
+4. **본 문서(DR-007)의 문구 표준**: llm_only arm은 REV-010이 licensed한 범위 내에서 "해소"(resolved) 서술이 가능하다. RAG arm은 원시 수치 + 결함 공시만 서술하며, RAG arm이 어떤 판정("인증"/"개선"/"통과")을 받았다는 문장은 어디에도 쓰지 않는다. llm_only arm의 7/8은 intended-cost 프레이밍으로만 서술한다(critic 승인).
+
+**ADR-015 원문 인용 핵심(`discussion.md`):** "LIFT for the `llm_only` arm only (option i). The RAG arm remains EXPERIMENTAL/UNCERTIFIED."
+
+### 5. 이슈 정리
+
+**resolved(이번 미션):**
+
+| ID | 요지 | 상태 | 근거 |
+|:--|:--|:--|:--|
+| VAL-006 | REV-006 조건 3(위험≠도메인) 종결 주장이 실제로는 gap을 문서화할 뿐이었고, `EXP-004` 라이브에서 확인된 위반으로 에스컬레이트됨 | **resolved**(코드 강제 필터가 42건 전수 재감사에서 0건 재발 확인 — 조건부: 상시 수동감사) | `error.md` VAL-006, REV-010 상태갱신 |
+| BUG-014 | `_RISK_PHRASES` 어휘 커버리지 부족(부담감/무의미함 계열 + "죽는 게 낫"/"차라리 죽" 잔여 stem) | **resolved**(3회 반복 끝에 13/13 광의 taxonomy 차단 확인, 스위트 687) | `error.md` BUG-014 |
+| BUG-015 | `_RISK_PHRASES`의 bare "손목"/"목숨" 과대차단(양성 임상 인용 오탐) | **resolved** | `error.md` BUG-015 |
+
+**VAL-009 흡수 여부(error.md 실상 확인, 판정 선취 아님):** `VAL-009`("F2 v2's risk lexicon misses the burdensomeness/meaninglessness paraphrase families")는 `BUG-014`와 동일한 근본 원인을 독립적으로 발견한 항목이지만, `error.md`의 `VAL-009` 엔트리 자체에는 별도의 "Status update" 서브섹션이나 흡수·종결 기록이 **없다** — 엔트리 헤더 필드(`Status: open`)도 파일 최상단 트래커 요약 표도 모두 **"open"**으로 남아 있다. `BUG-014`의 resolved 처리가 `VAL-009`의 근본 원인을 실질적으로 해소한 것으로 보이나, 이는 본 문서가 관찰한 사실이지 `error.md` 자체가 기록한 처분이 아니다 — 따라서 `VAL-009`는 **여전히 open으로 기재된 그대로 보고한다**. critic이 `VAL-009`에 별도 상태 업데이트를 남길 것을 권고한다(§6).
+
+**open(이번 미션에서 신규 발견):**
+
+| ID | 요지 | 심각도 | 권고 |
+|:--|:--|:--|:--|
+| BUG-016 | `chunk_id=` source_id 접두어 echo — RAG evidence 과잉거부(~29%) | major | `check_evidence`에서 `source_id`의 `chunk_id=` 접두어를 룩업 전 정규화(코드 레벨 — 프롬프트 단독 강제 실패 이력과 동일 교훈) |
+| BUG-017 | VP-003 RAG-mode LLM 출력 신뢰성 — 2/2 런 파싱 실패(JSON/schema) | major | `max_tokens` 상향 가설(미확정) + `finish_reason`/`usage` 미로깅으로 인한 진단 갭 — 우선 로깅 추가(저비용), 이후 VP-003 RAG n≥2 재검증 |
+| VAL-010 | risk_assessment-as-Stage-1-query 채널의 상시 완화 미비 | major | **open — narrowed**(post-hoc 감사는 이번 배치에서 실행됨; 코드 수정 또는 상시 감사 의무화 중 하나가 아직 없음) |
+
+### 6. 다음 단계
+
+1. **RAG-arm 잔류 사유 해소 미션**: `BUG-016`(`chunk_id=` 정규화) + `BUG-017`(`max_tokens`/로깅) 수정 → VP-003 RAG n≥2 클린 재검증 → `VAL-010` 완화를 상시 프로토콜로 격상. `ADR-015` (2)가 정의한 이 3조건이 RAG arm의 EXPERIMENTAL 해제 조건이다.
+2. critic이 `VAL-009`에 별도 상태 업데이트(open→resolved-by-BUG-014 또는 유지)를 남길 것을 권고한다.
+3. §2에서 공시한 prompt v2 chars 수치 불일치(2,948 vs 5,004)를 orchestrator가 확인해 어느 문서를 정정할지 결정할 것을 권고한다.
+4. **기타 이월(carried, `error.md` 트래커 기준, 이번 미션 범위 밖):**
+
+| ID | 요지 | 상태(트래커 기준) |
+|:--|:--|:--|
+| BUG-008 | BUG-007 MEDIUM 키워드가 LLM 경로에서 최종 risk_level을 올리지 못함 | open |
+| BUG-009 | 프로덕션 orchestrator.py가 구 핫라인 "1393"만 사용 | open |
+| BUG-010 | safety v3 과승격 회귀 | open(ADR-012 롤백으로 완화) |
+| BUG-011 | `f1.py` turn-0 crisis early-return이 CRISIS_RESPONSE 미치환 | open |
+| BUG-012 | `load_simulations.py` situation_encrypted 평문 기록 | open |
+| BUG-013 | `docs/dev-environment.md` make dev-py cwd 오기 | 문서 차원 resolved, 코드 차원 open |
+| VAL-001 | `f1.py` `_has_plan_disclosure()` 절 분리 결함 | open |
+| VAL-004 | EXP-003 Key finding #4 과소 서술(SM-03/SM-08b 범위) | open |
+| VAL-005 | `rag_chat.py`/`route.py` 무인증 노출(이력) | open(git 이력 정리만 미결) |
+| VAL-007 | PRD §3.2/§3.8 문서-구현 drift | open(§3.2/§3.8은 이전 수정으로 부분 해소, git 이력 정리 등 잔여) |
+
+---

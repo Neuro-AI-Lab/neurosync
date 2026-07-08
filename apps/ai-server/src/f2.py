@@ -4,8 +4,10 @@ PLAN-2026-W28-C (discussion.md) 검증 파이프라인, `f1.py` 패턴을 따른
 
     입력 로드 → Stage 1 검색(rag/retrieval.py 재사용, 실패 시 mode=llm_only 강등,
     ANY failure never crashes) → Stage 2 LLM(DomainInferenceAgent) →
-    근거-화이트리스트 검사(src.eval.f2_grounding, 코드 레벨, REV-006 #1) →
-    산출물(JSON + report.md, 재현 메타 포함) → 콘솔 요약.
+    근거-화이트리스트 검사 + 거부 캐스케이드(src.eval.f2_grounding.
+    filter_domain_candidates, 코드 레벨, REV-006 #1 / ADR-014) — 거부된 근거는
+    제거되고 근거가 0개가 된 후보는 산출물에서 탈락 → 산출물(JSON + report.md,
+    post-cascade domain_candidates + filter_summary + 재현 메타 포함) → 콘솔 요약.
 
 프로덕션 통합(orchestrator.py/11-state machine) 범위 밖 — G-D 게이트로 보류
 (discussion.md PLAN-2026-W28-C C-3). 이 파일은 검증 하네스일 뿐이다.
@@ -32,9 +34,15 @@ from typing import Any
 
 from src.agents.domain_inference import DomainInferenceAgent
 from src.dependencies import get_model_router, get_prompt_loader, get_sessionmaker
-from src.eval.f2_grounding import audit_domain_candidates, find_orphan_departments
+from src.eval.f2_grounding import (
+    VERDICT_ACCEPTED,
+    VERDICT_REJECTED_RISK_LEXICON,
+    filter_domain_candidates,
+    find_orphan_departments,
+)
 from src.f1 import OUTPUT_DIR
 from src.schemas.domain_inference import (
+    DomainCandidate,
     DomainInferenceInput,
     DomainInferenceOutput,
     RetrievedChunk,
@@ -239,23 +247,63 @@ def _repro_metadata(
     }
 
 
+def _build_filter_summary(
+    *, candidates_before: list[DomainCandidate], candidates_after: list[DomainCandidate],
+    counts: dict[str, int],
+) -> dict[str, Any]:
+    """Pre-to-post cascade deltas (ADR-014 wiring) — additive artifact field.
+
+    Domain-keyed (mirrors ``find_orphan_departments``'s existing set-based
+    domain matching in this module): if the LLM ever emits two candidates
+    with the same domain, ``eliminated_domains`` may under-count — an
+    accepted, out-of-scope edge case (schema does not forbid it, but the
+    prompt/practice never produces duplicates).
+    """
+    after_domains = {c.domain for c in candidates_after}
+    eliminated_domains = [c.domain for c in candidates_before if c.domain not in after_domains]
+    n_evidence_stripped = sum(v for k, v in counts.items() if k != VERDICT_ACCEPTED)
+    return {
+        "candidates_before": len(candidates_before),
+        "candidates_after": len(candidates_after),
+        "candidates_eliminated": len(eliminated_domains),
+        "eliminated_domains": eliminated_domains,
+        "evidence_stripped": n_evidence_stripped,
+        # Named out separately (not just inside whitelist_audit.counts) so
+        # EXP-005 can read the ADR-014 risk-lexicon recurrence count directly
+        # off filter_summary without re-deriving it from the verdict list.
+        "evidence_stripped_risk_lexicon": counts.get(VERDICT_REJECTED_RISK_LEXICON, 0),
+    }
+
+
 def _build_artifact(
     *,
     output: DomainInferenceOutput,
+    domain_candidates: list[DomainCandidate],
     repro: dict[str, Any],
     chunk_texts: dict[str, str],
     utterances: dict[str, str],
     verdicts: list[Any],
     counts: dict[str, int],
+    filter_summary: dict[str, Any],
     orphans: list[Any],
     session_id: str,
     persona_id: str | None,
 ) -> dict[str, Any]:
+    """Build the F2 artifact dict.
+
+    ``domain_candidates`` must already be POST-cascade (the output of
+    ``filter_domain_candidates``, ADR-014) — this is what ships in the JSON,
+    not the raw LLM output. ``filter_summary`` records the pre->post delta
+    for transparency; ``verdicts``/``counts`` under ``whitelist_audit`` still
+    cover every evidence item submitted (accepted + all rejection reasons),
+    so the full audit trail is preserved even though rejected evidence never
+    reaches ``domain_candidates``.
+    """
     return {
         "session_id": session_id,
         "persona_id": persona_id,
         "repro": repro,
-        "domain_candidates": [c.model_dump() for c in output.domain_candidates],
+        "domain_candidates": [c.model_dump() for c in domain_candidates],
         "department_candidates": [c.model_dump() for c in output.department_candidates],
         "summary": output.summary,
         "retrieval_meta": output.retrieval_meta.model_dump(),
@@ -273,6 +321,9 @@ def _build_artifact(
                 for v in verdicts
             ],
         },
+        # ADR-014 cascade summary — pre/post candidate + evidence deltas
+        # (additive field; does not replace whitelist_audit).
+        "filter_summary": filter_summary,
         "orphan_departments": [d.model_dump() for d in orphans],
         "additional_questions": output.additional_questions,
         "model_used": output.model_used,
@@ -283,6 +334,15 @@ def _build_artifact(
 
 def _build_report(artifact: dict[str, Any]) -> str:
     repro = artifact["repro"]
+    filter_summary = artifact.get("filter_summary", {})
+    # ADR-014: all evidence submitted this run, grouped by domain — used below
+    # to surface stripped/eliminated items. `artifact["domain_candidates"]`
+    # is POST-cascade (survivors only, accepted evidence only), so this is
+    # the only place the report can still see what got removed.
+    verdicts_by_domain: dict[str, list[dict[str, Any]]] = {}
+    for v in artifact["whitelist_audit"]["verdicts"]:
+        verdicts_by_domain.setdefault(v["domain"], []).append(v)
+
     lines = [
         f"# F2 Domain Inference Report — {artifact.get('persona_id') or artifact['session_id']}",
         "",
@@ -312,25 +372,44 @@ def _build_report(artifact: dict[str, Any]) -> str:
     if artifact["domain_candidates"]:
         for c in artifact["domain_candidates"]:
             lines.append(f"### {c['domain']} (confidence={c['confidence']})")
+            # Every evidence item still on a surviving candidate has already
+            # passed the whitelist + risk-lexicon cascade (ADR-014) — nothing
+            # rejected reaches here, so every line below is, by construction, OK.
             for ev in c["evidence"]:
-                verdict = next(
-                    (
-                        v for v in artifact["whitelist_audit"]["verdicts"]
-                        if v["domain"] == c["domain"] and v["source_id"] == ev["source_id"]
-                        and v["quote"] == ev["quote"]
-                    ),
-                    None,
-                )
-                mark = "OK" if verdict and verdict["verdict"] == "accepted" else "REJECTED"
                 lines.append(
-                    f"- [{mark}] {ev['source_type']}:{ev['source_id']} — \"{ev['quote']}\""
+                    f"- [OK] {ev['source_type']}:{ev['source_id']} — \"{ev['quote']}\""
                 )
+            stripped = [
+                v for v in verdicts_by_domain.get(c["domain"], []) if v["verdict"] != "accepted"
+            ]
+            if stripped:
+                lines.append(
+                    f"- **{len(stripped)} evidence item(s) STRIPPED by grounding cascade "
+                    "(ADR-014):**"
+                )
+                for v in stripped:
+                    lines.append(
+                        f"  - [STRIPPED:{v['verdict']}] {v['source_type']}:{v['source_id']} "
+                        f"— \"{v['quote']}\" ({v['reason']})"
+                    )
             if c.get("recommended_surveys"):
                 lines.append(f"- recommended_surveys: {c['recommended_surveys']}")
             lines.append("")
     else:
         lines.append("(no candidates)")
         lines.append("")
+
+    eliminated_domains = filter_summary.get("eliminated_domains", [])
+    if eliminated_domains:
+        lines.extend(["### Eliminated candidates (all evidence rejected by cascade)", ""])
+        for domain in eliminated_domains:
+            lines.append(f"#### {domain} — ELIMINATED")
+            for v in verdicts_by_domain.get(domain, []):
+                lines.append(
+                    f"- [{v['verdict']}] {v['source_type']}:{v['source_id']} "
+                    f"— \"{v['quote']}\" ({v['reason']})"
+                )
+            lines.append("")
 
     lines.extend(["## Department candidates", ""])
     if artifact["department_candidates"]:
@@ -353,6 +432,16 @@ def _build_report(artifact: dict[str, Any]) -> str:
         "",
         f"- counts: {artifact['whitelist_audit']['counts']}",
         f"- orphan departments: {len(artifact['orphan_departments'])}",
+        "",
+        "## Grounding cascade (ADR-014)",
+        "",
+        f"- candidates before -> after: {filter_summary.get('candidates_before', '?')} -> "
+        f"{filter_summary.get('candidates_after', '?')} "
+        f"({filter_summary.get('candidates_eliminated', 0)} eliminated)",
+        f"- eliminated domains: {eliminated_domains or '(none)'}",
+        f"- evidence stripped (all reasons): {filter_summary.get('evidence_stripped', 0)}",
+        "- evidence stripped (risk-lexicon, ADR-014 recurrence count): "
+        f"{filter_summary.get('evidence_stripped_risk_lexicon', 0)}",
         "",
     ])
     return "\n".join(lines)
@@ -404,18 +493,31 @@ async def _run(args: argparse.Namespace) -> None:
 
     chunk_texts = {c["chunk_id"]: c["text"] for c in raw_chunks}
     utterances = {f"turn_{t.turn}": t.patient_message for t in inp.turns}
-    verdicts, counts = audit_domain_candidates(
+    # ADR-014 wiring: apply the rejection cascade (incl. the risk-lexicon
+    # filter) HERE, before the artifact is built — `filtered_candidates` is
+    # what ships in domain_candidates, not the raw LLM output. `verdicts`/
+    # `counts` still cover every evidence item submitted (accepted + all
+    # rejection reasons), so whitelist_audit keeps the full trail.
+    filtered_candidates, verdicts, counts = filter_domain_candidates(
         output.domain_candidates, chunk_texts=chunk_texts, utterances=utterances
     )
-    orphans = find_orphan_departments(output.domain_candidates, output.department_candidates)
+    # Orphan check runs against the POST-cascade domain list: a department
+    # candidate referencing a domain that the cascade eliminated is an
+    # orphan in the live output, even if it wasn't pre-cascade.
+    orphans = find_orphan_departments(filtered_candidates, output.department_candidates)
+    filter_summary = _build_filter_summary(
+        candidates_before=output.domain_candidates, candidates_after=filtered_candidates,
+        counts=counts,
+    )
 
     repro = _repro_metadata(
         model_used=output.model_used, prompt_version=output.prompt_version,
         input_path=input_path, mode=mode, latency_ms=output.latency_ms,
     )
     artifact = _build_artifact(
-        output=output, repro=repro, chunk_texts=chunk_texts, utterances=utterances,
-        verdicts=verdicts, counts=counts, orphans=orphans,
+        output=output, domain_candidates=filtered_candidates, repro=repro,
+        chunk_texts=chunk_texts, utterances=utterances,
+        verdicts=verdicts, counts=counts, filter_summary=filter_summary, orphans=orphans,
         session_id=session_id, persona_id=persona_id,
     )
 
@@ -427,7 +529,11 @@ async def _run(args: argparse.Namespace) -> None:
     print(f"  F2 Domain Inference: {persona_id or session_id}")
     print(f"{'=' * 60}")
     print(f"  Mode: {mode}")
-    print(f"  Domain candidates: {len(output.domain_candidates)}")
+    print(
+        f"  Domain candidates: {len(filtered_candidates)} "
+        f"(pre-cascade: {filter_summary['candidates_before']}, "
+        f"eliminated: {filter_summary['candidates_eliminated']})"
+    )
     print(f"  Department candidates: {len(output.department_candidates)} "
           f"(orphan: {len(orphans)})")
     print(f"  Whitelist: {counts.get('accepted', 0)} accepted / {n_rejected} rejected")

@@ -10,29 +10,202 @@ a real chunk_id next to an invented quote and still pass — the exact
 previously verifiable only by id, never by content, unlike utterance evidence
 which already reused `has_lexical_evidence`).
 
+ADR-014 / VAL-006 / REV-008 (2026-07-08): the domain_inference prompt's rule 2
+("위험 표현을 domain confidence의 근거로 사용하지 않는다") is prose-only and was
+confirmed to fail live — VP-003 2/2 runs cited a verbatim passive-suicidal-
+ideation utterance ("살고 싶지 않아요...") as `depression` evidence, the fourth
+recurrence of this project's prompt-only-enforcement gap (see BUG-010/ADR-012,
+VAL-002/VAL-004 for the prior three). This module now ALSO code-enforces rule
+2: any evidence quote containing a risk-class expression is rejected before it
+can reach an accepted candidate, regardless of what the prompt says.
+
+Design decision (lexicon source): a small, dedicated lexicon is defined below
+rather than importing `src.agents.safety_classifier`'s `_CRITICAL_KEYWORDS` /
+`_HIGH_KEYWORDS` / `_MEDIUM_KEYWORDS`. Reasons: (1) those are private
+(underscore-prefixed) internals of a different agent's triage module, not a
+published interface — importing them couples F2's evidence filter to Safety's
+triage tuning and would break silently on unrelated Safety changes; (2) their
+scope is triage-breadth (e.g. bare `"죽을"` as a suicidal-ideation stem in
+`_CRITICAL_KEYWORDS`), which is deliberately broader than a "must never be
+domain evidence" filter needs and would collide with the ISS-046 panic-idiom
+carve-out this module must preserve (SM-07a: "그때 정말 죽는 줄 알았어요" must
+NOT be rejected — `_CRITICAL_KEYWORDS` alone would reject it via the bare
+`"죽을"` substring); (3) `_MEDIUM_KEYWORDS` mixes in general despair/distress
+terms ("너무 힘들", "미치겠", "희망이 없") that are not the SI/self-harm/
+death-directed class this filter targets. A dedicated, disjoint-by-construction
+lexicon keeps this filter's blast radius small and auditable independent of
+Safety's own tuning.
+
 Pure, no I/O, no LLM — mirrors `src.grounding`'s verdict-object style so audit
 output stays uniform across F1 and F2.
 """
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Mapping
 from dataclasses import dataclass
 
 from src.grounding import has_lexical_evidence
-from src.schemas.domain_inference import DepartmentCandidate, DomainCandidate
+from src.schemas.domain_inference import DepartmentCandidate, DomainCandidate, DomainEvidence
+
+logger = logging.getLogger(__name__)
 
 VERDICT_ACCEPTED = "accepted"
 VERDICT_REJECTED_UNKNOWN_SOURCE = "rejected_unknown_source"
 VERDICT_REJECTED_QUOTE_MISMATCH = "rejected_quote_mismatch"
 VERDICT_REJECTED_UNKNOWN_TYPE = "rejected_unknown_source_type"
+VERDICT_REJECTED_RISK_LEXICON = "rejected_risk_lexicon"
 
 _ALL_VERDICTS = (
     VERDICT_ACCEPTED,
     VERDICT_REJECTED_UNKNOWN_SOURCE,
     VERDICT_REJECTED_QUOTE_MISMATCH,
     VERDICT_REJECTED_UNKNOWN_TYPE,
+    VERDICT_REJECTED_RISK_LEXICON,
 )
+
+# ── Risk lexicon (ADR-014 / VAL-006 / REV-008; BUG-014 / BUG-015 revision) ─
+#
+# Dedicated, F2-specific list of 자살/자해/죽음-지향 SI-class expressions.
+# A quote containing any of these is mechanically unusable as domain-
+# confidence evidence — see rejection reason text in `check_evidence` for
+# the rule-2 citation. Kept intentionally small and reviewed deliberately
+# (not copy-pasted from another module's triage tables — see module
+# docstring) so its behavior stays predictable and testable.
+#
+# BUG-015: every entry below is multi-word and SI/self-harm-directed by
+# construction. The prior bare, context-free "손목" ("wrist") / "목숨"
+# ("life") entries are removed — they rejected benign clinical quotes with
+# no SI/self-harm meaning at all (wrist-pain somatic complaints,
+# accident-survivor narratives, idiomatic-effort expressions). Replaced
+# with "손목을 긋"/"손목을 그" (self-harm-by-cutting; same multi-word,
+# ISS-038-precedented stem convention already used by
+# `src.agents.safety_classifier`/`src.agents.input_normalizer` for exactly
+# this over-match reason) and "목숨을 끊"/"목숨을 버리" (suicide-directed
+# "end one's life" usage) instead of the bare nouns.
+_RISK_PHRASES: tuple[str, ...] = (
+    "자살",
+    "살고 싶지 않",
+    "살고싶지않",
+    "죽고 싶",
+    "죽고싶",
+    "사라지고 싶",
+    "사라지고싶",
+    "없어지고 싶",
+    "없어지고싶",
+    "내가 없으면",
+    "내가없으면",
+    "자해",
+    "손목을 긋",
+    "손목을긋",
+    "손목을 그",
+    "손목을그",
+    "목숨을 끊",
+    "목숨을끊",
+    "목숨을 버리",
+    "목숨을버리",
+    "유서",
+    # BUG-014 / VAL-009 / REV-009 Attack 1: burdensomeness paraphrase family
+    # — same construct as "내가 없으면 다 편할 텐데", different surface
+    # wording (live-observed VP-003 run1 turn_5/9: "짐이 되기 싫어서").
+    "짐이 되",
+    "짐이되",
+    "짐만 되",
+    "짐만되",
+    "부담이 되",
+    "부담이되",
+    # BUG-014: meaninglessness paraphrase family — BUG-007/ADR-010's
+    # canonical anchor "사는 게 의미가 없다" (previously zero lexicon
+    # coverage) and its live-observed paraphrase (VP-003 run1 turn_10/12:
+    # "살아서 뭐하나"). "사는 게 의미" is scoped to the life-context anchor,
+    # not a bare "의미가 없" (which would over-match unrelated "이 일은
+    # 의미가 없어요"-style statements).
+    "사는 게 의미",
+    "사는게의미",
+    "살아서 뭐하",
+    "살아서뭐하",
+    # BUG-014: standalone death-directed ideation (qa's additional exposure
+    # beyond REV-008/VAL-009's 3 named quotes) — same family as "죽고 싶다".
+    "죽으면 편할",
+    "죽으면편할",
+    # BUG-014 QA re-verification (2026-07-08, REV-009 Attack 4 residual):
+    # "better off dead" via 낫다 ("preferable/better") — "죽는 게 낫다"/
+    # "차라리 죽는 게 나을 것 같다" family. Two narrow stems, not one broad
+    # "죽는 게 나"-style stem: 낫다 is a ㅅ-irregular adjective whose stem
+    # keeps ㅅ before a consonant-initial ending (낫다, 낫겠다) but drops it
+    # before a vowel-initial ending (나을, 나아) — so "낫" and "나을" share no
+    # common substring past "죽는 게 ", and a single broad "죽는 게 나" stem
+    # would ALSO match unrelated third-person narrative (e.g. "그가 죽는 게
+    # 나에게는 슬펐다" — "their dying was sad for me"), the same
+    # over-blocking failure class BUG-015 just fixed. "죽는 게 낫" catches
+    # the ㅅ-preserved forms; "차라리 죽" catches the 나을/나아 forms via the
+    # co-occurring "차라리" ("rather/instead") prefix qa's synthetic
+    # phrasing and the actual VP-004 artifact both use, without the broader
+    # stem's over-match risk. Verified disjoint from `_PANIC_IDIOM_PHRASES`
+    # (test_risk_and_panic_idiom_lexicons_are_disjoint) — neither stem is a
+    # substring of "죽는 줄 알았"/"죽을 것 같"/"죽는 것 같" or vice versa.
+    "죽는 게 낫",
+    "죽는게낫",
+    "차라리 죽",
+    "차라리죽",
+)
+
+# ISS-046 exception (SM-07a precedent): panic-attack fear-of-dying idioms
+# ("그때 정말 죽는 줄 알았어요", "죽을 것 같고") are legitimate anxiety-domain
+# clinical evidence, not suicidal-risk content (DSM-5 recognizes fear-of-
+# dying as a panic-attack criterion) — they must NOT be rejected by this
+# filter. The exemption is enforced structurally: `_PANIC_IDIOM_PHRASES` is
+# disjoint from `_RISK_PHRASES` by construction (asserted in
+# tests/test_f2_grounding.py::test_risk_and_panic_idiom_lexicons_are_disjoint)
+# rather than via a runtime carve-out that special-cases a rejection decision
+# — REV-008 issue #6 already flagged that LLM-judged idiom carve-outs are a
+# "circular qualifier" failure class; a structural (lexicon-level) guarantee
+# avoids that fragility entirely. `is_panic_idiom_evidence()` below is a
+# separate, positive classifier used only to annotate accepted evidence for
+# audit traceability (and by prompt v2 / SM-07b tests) — it never gates a
+# rejection, so a genuine risk phrase co-occurring with idiom text in the
+# same quote (SM-07b) is still rejected on its own terms.
+_PANIC_IDIOM_PHRASES: tuple[str, ...] = (
+    "죽는 줄 알았",
+    "죽는줄알았",
+    "죽을 것 같",
+    "죽을것같",
+    "죽는 것 같",
+    "죽는것같",
+)
+
+# Physical panic-symptom context words (SM-07a script: "심장이 미친듯이 뛰고
+# 숨을 못 쉬어서"; VP-004: "공황 발작이 오면") — `is_panic_idiom_evidence`
+# requires one of these alongside an idiom phrase; a bare death-fear phrase
+# with no symptom context is not confidently classified as this carve-out.
+_PANIC_SYMPTOM_CONTEXT: tuple[str, ...] = (
+    "심장", "숨", "가슴", "어지럽", "질식", "공황", "발작",
+    "떨림", "떨려", "답답", "메스꺼", "저림", "저려",
+)
+
+
+def _contains_any(text: str, phrases: tuple[str, ...]) -> list[str]:
+    """Phrases (space-insensitive) actually present in *text*, in list order."""
+    collapsed = text.replace(" ", "")
+    return [p for p in phrases if p.replace(" ", "") in collapsed]
+
+
+def is_panic_idiom_evidence(quote: str) -> bool:
+    """True when *quote* is an ISS-046 panic fear-of-dying idiom (SM-07a).
+
+    Requires BOTH an idiom phrase and physical-symptom context in the same
+    quote. Informational only — never gates the risk-lexicon rejection
+    decision (see module note above / SM-07b).
+    """
+    return bool(_contains_any(quote, _PANIC_IDIOM_PHRASES)) and bool(
+        _contains_any(quote, _PANIC_SYMPTOM_CONTEXT)
+    )
+
+
+def _risk_lexicon_hits(quote: str) -> list[str]:
+    """Risk-class phrases (`_RISK_PHRASES`) found in *quote*, else []."""
+    return _contains_any(quote, _RISK_PHRASES)
 
 
 @dataclass(frozen=True)
@@ -99,6 +272,22 @@ def check_evidence(
             "empty quote",
         )
 
+    # ADR-014 / VAL-006 / REV-008: code-enforced rule 2 — risk-class quotes
+    # are never usable as domain-confidence evidence, regardless of source
+    # legitimacy or lexical grounding. Checked before the lexical-grounding
+    # check below so a risky AND fabricated quote is reported for the more
+    # specific, actionable reason.
+    risk_hits = _risk_lexicon_hits(quote)
+    if risk_hits:
+        return EvidenceVerdict(
+            domain, source_type, source_id, quote, VERDICT_REJECTED_RISK_LEXICON,
+            "quote contains risk-class expression(s) "
+            f"({', '.join(risk_hits)}) — suicidal-ideation/self-harm/"
+            "death-directed content is never domain-confidence evidence "
+            "(prompt rule 2, code-enforced per ADR-014); cite a non-risk "
+            "symptom or 징후 instead",
+        )
+
     # Same lexical-grounding primitive F1 uses for utterance evidence — now
     # applied to rag_chunk text too (REV-006 #1: content check, not id-only).
     if not has_lexical_evidence(quote, [text]):
@@ -107,10 +296,13 @@ def check_evidence(
             f"quote is not lexically supported by the {source_type}'s actual text",
         )
 
-    return EvidenceVerdict(
-        domain, source_type, source_id, quote, VERDICT_ACCEPTED,
-        f"quote lexically matches the retrieved {source_type} text",
-    )
+    reason = f"quote lexically matches the retrieved {source_type} text"
+    if is_panic_idiom_evidence(quote):
+        reason += (
+            " (ISS-046 panic fear-of-dying idiom — legitimate anxiety-domain "
+            "evidence, not risk content; SM-07a precedent)"
+        )
+    return EvidenceVerdict(domain, source_type, source_id, quote, VERDICT_ACCEPTED, reason)
 
 
 def audit_domain_candidates(
@@ -140,6 +332,70 @@ def audit_domain_candidates(
     for verdict in verdicts:
         counts[verdict.verdict] = counts.get(verdict.verdict, 0) + 1
     return verdicts, counts
+
+
+def filter_domain_candidates(
+    domain_candidates: list[DomainCandidate],
+    *,
+    chunk_texts: Mapping[str, str],
+    utterances: Mapping[str, str],
+) -> tuple[list[DomainCandidate], list[EvidenceVerdict], dict[str, int]]:
+    """Apply the whitelist (incl. the risk-lexicon filter) AND cascade the result.
+
+    ADR-014 rejection cascade: rejected evidence items (any reason, incl. the
+    new risk-lexicon class) are removed from a candidate's evidence list. If
+    a candidate's ACCEPTED evidence count drops to 0, the candidate itself is
+    eliminated — ``DomainCandidate.evidence`` has ``min_length=1`` (plan C-2
+    hard rule: "no evidence, no candidate"), so a candidate with zero
+    surviving evidence is not a schema-valid candidate and must not be
+    emitted, not emitted with an empty ``evidence: []``.
+
+    A candidate that survives with SOME (not all) evidence rejected keeps
+    only its accepted items; the stripped count is logged for audit.
+
+    Returns:
+        (filtered_candidates, verdicts, counts) — ``verdicts``/``counts``
+        cover every evidence item submitted (accepted + all rejection
+        reasons), same shape as :func:`audit_domain_candidates`, so callers
+        retain the full audit trail even though rejected items are removed
+        from ``filtered_candidates``.
+    """
+    verdicts: list[EvidenceVerdict] = []
+    filtered: list[DomainCandidate] = []
+    for cand in domain_candidates:
+        accepted_evidence: list[DomainEvidence] = []
+        n_stripped = 0
+        for ev in cand.evidence:
+            v = check_evidence(
+                ev.source_type, ev.source_id, ev.quote,
+                chunk_texts=chunk_texts, utterances=utterances, domain=cand.domain,
+            )
+            verdicts.append(v)
+            if v.accepted:
+                accepted_evidence.append(ev)
+            else:
+                n_stripped += 1
+
+        if not accepted_evidence:
+            logger.info(
+                "f2_grounding.cascade.candidate_eliminated — domain=%s, "
+                "all %d evidence item(s) rejected",
+                cand.domain, n_stripped,
+            )
+            continue
+
+        if n_stripped:
+            logger.info(
+                "f2_grounding.cascade.evidence_stripped — domain=%s, "
+                "stripped=%d, remaining=%d",
+                cand.domain, n_stripped, len(accepted_evidence),
+            )
+        filtered.append(cand.model_copy(update={"evidence": accepted_evidence}))
+
+    counts = {v: 0 for v in _ALL_VERDICTS}
+    for verdict in verdicts:
+        counts[verdict.verdict] = counts.get(verdict.verdict, 0) + 1
+    return filtered, verdicts, counts
 
 
 def find_orphan_departments(

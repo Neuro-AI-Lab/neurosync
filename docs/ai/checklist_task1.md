@@ -37,7 +37,7 @@
 | T1-F0-DEV-002 | DEV | CTRS <-> RiskLevel 매핑 enum 구현 | [x] | RPT-001 |
 | T1-F0-DEV-003 | DEV | agent_model_registry.yaml 전체 agent 등록 확인 | [x] | 13 agent 키 확인 |
 | T1-F0-DEV-004 | DEV | PromptLoader 경로 설정 및 검증 | [x] | RPT-008 |
-| T1-F0-CFG-001 | CFG | Docker Compose AI server 개발 환경 확인 | [ ] | - |
+| T1-F0-CFG-001 | CFG | Docker Compose AI server 개발 환경 확인 | [x] | **갱신(2026-07-08):** `PLAN-2026-W28-D` 산출물(`docs/dev-environment.md`, PR #36 Master 병합)로 충족 — qa 사실검증 게이트가 서비스명·포트·env 키·경로를 실제 compose/Makefile 대비 검증(1차 FAIL → BUG-013 발견·수정 후 재게이트 PASS, suite 627). redis 관련 compose 블록 제거(PR #35)도 동일 게이트에서 grep 0건으로 검증됨. 근거: `discussion.md` PLAN-2026-W28-D, `error.md` BUG-013 |
 | T1-F0-CFG-002 | CFG | shared-contracts 패키지 동기화 | [ ] | - |
 | T1-F0-DOC-001 | DOC | PRD_task1 작성 | [x] | v2: `PRD_task1_v2.md` |
 | T1-F0-DOC-002 | DOC | checklist_task1 작성 | [x] | 본 문서 (v2) |
@@ -214,8 +214,19 @@
 | T1-F2-SEC-002 | SEC | `retrieval.py` `_dec()` 복호화 갭 수정: crypto.py decrypt 구현 + `situation_encrypted` 실복호화 적용, `ENCRYPTION_KEY` 부재 시 해당 필드 제외 + 명시 로깅 | [x] | VAL-005 cross-ref (S2), ADR-013 (2). 구현 완료·검증됨: `crypto.py::decrypt_str`(AES-GCM), `retrieval.py::_dec()` 실패 시 필드 제외. `tests/rag/test_crypto.py` 7 cases. 부수 발견: `load_simulations.py`의 사전 존재 결함(BUG-012, situation 필드 평문 기록)은 본 항목 범위 밖(retrieval.py 측은 정상 동작). 근거: DR-006 §4 |
 | T1-F2-SEC-003 | SEC | `apps/ai-server/src/rag/` 모킹 기반 유닛 테스트 커버리지 신규 | [x] | VAL-005 cross-ref (S3), ADR-013 (2). 구현 완료: `tests/rag/` 신규 모킹 테스트 26건(이전 0건). 근거: DR-006 §4 |
 | T1-F2-VER-005 | VER | 골든 라벨 DATASET 저작(VP-001~004, 다중-라벨 집합 — 예: VP-001={anxiety,sleep}) — persona 전문에서 blind 도출, `rag_chat.py` 비공식 태그 비의존 명시 + critic 승인 | [x] | REV-006 조건(2), PLAN-2026-W28-C C-4 — 라이브 실행(T1-F2-VER-001~003) 선행조건. 완료: DATASET-004 **APPROVED with amendments**(REV-007 Part A, 2026-07-08). 근거: `discussion.md` DATASET-004/REV-007 |
-| T1-F2-VER-006 | VER | 라이브 n≥2/VP 배치 실행, `llm_only`/RAG arm 구분 라벨 — DB 프리플라이트 실패 시 RAG-arm 검증 런 중단·보고(silent `llm_only` 강등 금지) + `latency_ms` 캡처·p95 서술 보고(REV-006 조건 5) | [~] | REV-006 조건(6), ADR-013 (4). 선행: T1-F2-CFG-002, T1-F2-VER-005. **부분(2026-07-08, EXP-004):** llm_only arm 완료(VP-001~004 n=2, 8런). RAG arm은 DB 프리플라이트 FAIL(`DATABASE_URL` 미설정)로 **BLOCKED-awaiting-DB**(ADR-013(4)) — 미실행, silent 강등 아님. 근거: `result.md` EXP-004, DR-006 §2 |
+| T1-F2-VER-006 | VER | 라이브 n≥2/VP 배치 실행, `llm_only`/RAG arm 구분 라벨 — DB 프리플라이트 실패 시 RAG-arm 검증 런 중단·보고(silent `llm_only` 강등 금지) + `latency_ms` 캡처·p95 서술 보고(REV-006 조건 5) | [~] | REV-006 조건(6), ADR-013 (4). 선행: T1-F2-CFG-002, T1-F2-VER-005. **부분(2026-07-08, EXP-004):** llm_only arm 완료(VP-001~004 n=2, 8런). RAG arm은 당시 DB 프리플라이트 FAIL(`DATABASE_URL` 미설정)로 BLOCKED-awaiting-DB(ADR-013(4)) — 미실행, silent 강등 아님. **갱신(2026-07-08, `PLAN-2026-W28-E` 착수):** 본 개발 워크스테이션에서 외부 포트 개설 완료로 DB 연결이 라이브로 검증됨(conductor 확인 — `SELECT 1` OK, pgvector 설치, corpus 행수 `rag.case_card` 1,248/`rag.qa` 1,789/`rag.symptom` 40/`rag.disease` 26) — **BLOCKED-awaiting-DB 해제**, RAG arm은 `EXP-005`에서 실행 예정(T1-F2-VER-009). 상태는 `[~]` 유지(RAG arm 자체는 v2 remediation 게이트 통과 후 실행 — 아직 미실행). 근거: `result.md` EXP-004, DR-006 §2, `discussion.md` PLAN-2026-W28-E |
 | T1-F2-VER-007 | VER | 근거 요약 grounding 감사: utterance→`has_lexical_evidence()` 재사용, rag_chunk→`chunk_ids` 멤버십 + quote↔청크 본문 어휘 대조 — fabrication=0 하드 게이트 | [x] | REV-006 조건(1), PLAN-2026-W28-C C-3/C-4 — 하드 게이트, 위반 시 프롬프트 버전 롤백. **완료(하드 게이트 자체는 충족, 2026-07-08 EXP-004):** fabrication 0/32 evidence entries(정정치, VAL-008), whitelist reject 0건 — 본 항목 고유 범위(evidence 근거성 검사)는 위반 없음. **단, 별도 규칙인 risk≠domain 절대 규칙(prompt rule 2)이 VP-003 2/2 런에서 라이브 위반 확인**(VAL-006/REV-008) — 롤백 트리거 발동, `domain_inference` v1 **비인증** 처분(ADR-014). 근거: `result.md` EXP-004, `error.md` VAL-006/VAL-008, `discussion.md` REV-008/ADR-014 |
+
+## Phase 2 — F2 v2 remediation → RAG-arm 검증 (`PLAN-2026-W28-E`) — 완료(llm_only arm 비인증 해제 조건부; RAG arm EXPERIMENTAL 잔류), 2026-07-08
+
+> 사양 근거: `discussion.md` PLAN-2026-W28-E, ADR-014, REV-008, VAL-006. PRD: `PRD_task1_v2.md` §3(v2.3 갱신). 목표: VAL-006/REV-008 해소(코드 강제 risk-lexicon evidence filter + prompt v2) 후 `EXP-005` 양 arm(llm_only + RAG) 재검증, ADR-014 비인증 해제 여부는 critic이 판정한다(본 문서는 판정을 선취하지 않는다). **갱신(2026-07-08, DR-007):** 판정 완료 — critic REV-010 채택, `ADR-015`: llm_only arm 비인증 해제(조건부, 상시 수동 taxonomy 감사), RAG arm은 EXPERIMENTAL 잔류(결함 2건 + VAL-010 상시화 미비, 아래 각 행 참조). RAG arm에 대해 "인증"/"통과" 문구는 사용하지 않는다.
+
+| ID | Type | 항목 | 상태 | 선행 조건 |
+|---|---|---|---|---|
+| T1-F2-DEV-006 | DEV | `f2_grounding.py` 위험-어휘 필터(risk-lexicon evidence filter) 코드 강제 구현 — evidence quote가 프로젝트의 passive-SI/자해/burdensomeness 어휘(BUG-007/ADR-010 taxonomy)를 포함하면 해당 evidence 수용 거부(reject), 수용 거부→후보 탈락 동작 명시 테스트 | [x] | ADR-014 (2), REV-008. PLAN-2026-W28-E Step 1. **완료(2026-07-08):** `src/eval/f2_grounding.py`에 필터+cascade(수용거부→후보탈락) 구현, 3회 게이트 반복(BUG-014 어휘 커버리지 부족, BUG-015 과대차단 발견·수정) 끝에 qa 최종 GATE:PASS(스위트 687) — EXP-004 실제 아티팩트 재생 시 13/13 광의 taxonomy 인용문 전량 차단 확인. 근거: `discussion.md` PLAN-2026-W28-E, `error.md` BUG-014/BUG-015(resolved), `development_report.md` DR-007 §2 |
+| T1-F2-DEV-007 | DEV | domain_inference 프롬프트 v2 — v1 보존, rule 2(위험≠도메인) 문구 강화, **ISS-046 공황 관용구 예외 유지**, VP-003 실패 fixture 추가 | [x] | ADR-014 (2), PLAN-2026-W28-E Step 1. **완료(2026-07-08):** `docs/ai/prompts/domain_inference/v2.system.md` 작성, v1 보존, `EXP-005`에서 pin으로 사용 확인(84줄; 자수는 문서 간 불일치 있음 — DR-007 §2 참조). 근거: `result.md` EXP-005 Setup, `development_report.md` DR-007 §2 |
+| T1-F2-VER-008 | VER | **EXP-005** llm_only arm 재검증 — VP-001~004 n≥2, REV-008 위반(위험 표현의 domain evidence 인용) 재발 0 확인 | [x] | T1-F2-DEV-006/007, qa GATE:PASS + critic 사전리뷰(1g). PLAN-2026-W28-E Step 1g/2. **완료(2026-07-08, EXP-005):** llm_only arm 8런(4VP×n=2) — REV-008 위반 재발 0/42(accepted 인용문 전수 수동감사, critic REV-010). top-1/top-3 7/8(VP-003/run2는 100% 위험-근거로 정당 탈락 — intended-cost, 회귀 아님). critic REV-010 채택 → `ADR-015` (1) llm_only 비인증 해제(상시 수동감사 조건부). 근거: `result.md` EXP-005, `discussion.md` REV-010/ADR-015, `development_report.md` DR-007 §3/§4 |
+| T1-F2-VER-009 | VER | **EXP-005** RAG arm 검증 — DB 프리플라이트→n≥2, `mode=rag` 확인, fabrication=0, DATASET-004 채점, latency 캡처 | [~] | T1-F2-VER-008, DB 연결 라이브 검증 완료(§3.8 갱신 참조). PLAN-2026-W28-E Step 2. **실행·측정 완료, 인증 아님(2026-07-08, EXP-005):** RAG arm 8런, DB 프리플라이트 PASS(corpus 델타 0), `mode=rag` 8/8, fabrication 0/35(명목 10건은 BUG-016 source_id 포맷 결함으로 판명 — content fabrication 아님), top-1 5/8·top-3 6/8, latency p50 11666ms/p95 19218ms(서술 보고만). **RAG arm은 `ADR-015` (2)에 따라 EXPERIMENTAL로 잔류한다** — 잔류 사유: BUG-016(`chunk_id=` 포맷 과잉거부 ~29%), BUG-017(VP-003 RAG 2/2 LLM 출력 실패), VAL-010(risk_assessment-as-query 채널 상시 완화 미비). 이 3항목 해소가 EXPERIMENTAL 해제 경로다. 근거: `result.md` EXP-005, `discussion.md` REV-010/ADR-015, `error.md` BUG-016/BUG-017/VAL-010, `development_report.md` DR-007 §3/§4/§5 |
 
 ## Phase 2 — 통합 (Gate G-E)
 
@@ -230,15 +241,19 @@
 
 | 구분 | Phase 1 | Phase 2 신규 | 합계 |
 |---|---|---|---|
-| DEV | 35 | 28 | 63 |
-| VER | 28 | 19 | 47 |
+| DEV | 35 | 30 | 65 |
+| VER | 28 | 21 | 49 |
 | CFG | 3 | 1 | 4 |
 | DOC | 4 | 1 | 5 |
 | SEC | 0 | 3 | 3 |
-| **계** | **70** | **52** | **122** |
+| **계** | **70** | **56** | **126** |
 
-Phase 1 상태 분포 (Stage 0 완료 후, 2026-07-07 T1-F1-DEV-029 전환 반영): `[x]` 32 · `[~]` 11 · `[!]` 10 · `[ ]` 17
+Phase 1 상태 분포 (Stage 0 완료 후, 2026-07-08 T1-F0-CFG-001 전환 반영): `[x]` 33 · `[~]` 11 · `[!]` 10 · `[ ]` 16
 **Gate 순서: ~~G-0(긴급 복구)~~ 완료(2026-07-06) → G-F(grounding 재검증) ← 다음 → G-A/B/C → G-D → G-D-F2 → G-E. G-F 전에는 어떤 신규 "pass" 주장도 금지. G-D-F2는 추가로 ADR-014에 따라 v2 remediation 통과 전까지 진행 불가(아래 2026-07-08 갱신 참조).**
+
+> **2026-07-08 갱신 (DR-007 반영, `PLAN-2026-W28-E` 완료):** T1-F2-DEV-006/007 `[ ]`→`[x]`(코드 강제 위험-어휘 필터+cascade, prompt v2 — 3회 게이트 반복 후 qa GATE:PASS, 스위트 687). T1-F2-VER-008 `[ ]`→`[x]`(`EXP-005` llm_only arm, REV-008 위반 재발 0/42 — critic REV-010, `ADR-015` (1) llm_only 비인증 해제 조건부[상시 수동감사]). T1-F2-VER-009 `[ ]`→`[~]`(`EXP-005` RAG arm 실행·측정 완료 — mode=rag 8/8, fabrication 0/35, top-1 5/8·top-3 6/8 — 그러나 인증 판정은 아니다: RAG arm은 `ADR-015` (2)에 따라 EXPERIMENTAL 잔류, 해제 경로는 BUG-016/BUG-017 수정 + VP-003 RAG 재검증 + VAL-010 상시화 3조건). 4항목 모두 상태 변경만이며 항목 신설·삭제 없음 — 요약 통계 표의 항목 합계(126)는 불변이다. 근거: `docs/ai/development_report.md` DR-007, `discussion.md` PLAN-2026-W28-E/REV-009/REV-010/ADR-015, `result.md` EXP-005, `error.md` VAL-006(resolved)/VAL-009(open, 별도 흡수 기록 없음)/VAL-010(open-narrowed)/BUG-014·BUG-015(resolved)/BUG-016·BUG-017(open).
+
+> **2026-07-08 추가 (v2.4, 122→126 items):** F2 v2 remediation(`PLAN-2026-W28-E`) — DEV 2건(T1-F2-DEV-006/007) + VER 2건(T1-F2-VER-008/009) 신규. 신규 ID 4종은 grep으로 기존 ID와 충돌 없음을 확인했다(기존 F2 최대 ID: DEV-005, VER-007). 동일 갱신에서 T1-F0-CFG-001을 `[ ]`→`[x]`로 전환(`PLAN-2026-W28-D`/PR #36 반영, 근거는 해당 행 참조) — Phase 1 상태 분포 `[x]` 32→33, `[ ]` 17→16으로 갱신. T1-F2-VER-006의 "RAG arm BLOCKED-awaiting-DB" 주석에도 DB 연결 라이브 검증 완료 갱신을 추가했다(상태 `[~]` 자체는 불변 — RAG arm 미실행). PR #35(redis 제거)/#37(ai-server lint 21건)에 직접 대응하는 기존 체크리스트 항목은 확인되지 않아 신규 항목을 만들지 않았다. 근거: `discussion.md` PLAN-2026-W28-E, ADR-014, REV-008, VAL-006, PLAN-2026-W28-D; `error.md` BUG-013. 위 표 수치는 이 추가분을 반영한다.
 
 > **2026-07-08 갱신 (DR-006 반영, F2 구현 미션 완료):** T1-F2-DEV-001/002/004/005·SEC-001~003·VER-005 `[x]`로 전환(구현 완료·qa GATE:PASS 확인, DR-006 §1/§4). T1-F2-DEV-003(신규 프로덕션 라우트)도 `[x]`로 전환 — **정정:** 이전 버전의 "본 미션 범위에 포함되지 않아 `[ ]` 유지" 판정은 증거 부족에 따른 오류였다. 직접 확인 결과 `apps/ai-server/src/routes/domain.py`가 존재하고 `apps/ai-server/src/main.py:24`가 이를 import, `main.py:51`이 `app.include_router(domain_router)`로 등록해 서버 부팅 시 실제 마운트된다(qa GATE:PASS, DR-006 §1). 라우트 신규 구현·등록 자체는 완료이며, orchestrator.py 프로덕션 연동만 항목 텍스트가 명시한 대로 G-D-F2 게이트로 계속 보류된다(범위 밖, 미착수와 다름). T1-F2-CFG-002 `[~]`(프리플라이트 메커니즘은 구현·검증됐으나 `DATABASE_URL`/`ENCRYPTION_KEY` env 배선 자체는 미완 — RAG arm 차단의 직접 원인). T1-F2-VER-006 `[~]`(llm_only arm만 라이브 완료, RAG arm은 BLOCKED-awaiting-DB). T1-F2-VER-007 `[x]`이나 **중요 단서 포함**: fabrication=0 하드 게이트(본 항목 고유 범위)는 충족했으나, 별도의 risk≠domain 절대 규칙(prompt rule 2)이 VP-003 2/2 런에서 라이브 위반이 확인됐다(VAL-006, REV-008) — 롤백 트리거가 발동해 `domain_inference` v1이 **비인증(non-certification)** 처분됐다(ADR-014). **G-D-F2 게이트 진행 및 RAG-arm 활성화는 v2 remediation(코드 강제 risk-lexicon evidence filter + 프롬프트 정교화 + 재검토)이 전체 게이트 체인을 통과할 때까지 불가**(ADR-014 (1)). 본 갱신 어디에도 risk≠domain 규칙에 대해 "통과"/"유지" 표현을 사용하지 않는다. 근거: `docs/ai/development_report.md` DR-006, `discussion.md` REV-007/REV-008/ADR-013/ADR-014, `error.md` VAL-006/VAL-007/VAL-008/BUG-012.
 
