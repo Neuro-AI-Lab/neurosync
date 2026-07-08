@@ -1,19 +1,18 @@
-"""Smoke test — SKT A.X STT Batch API on VP-001 mp3 files.
+"""Smoke test — SKT A.X STT Batch API on VP-XXX mp3 files.
 
-STT adapter (T1-F1-DEV-003) is not implemented yet. This script exercises the
-vendor API directly to prove:
+Exercises the vendor API directly to verify:
   1. Batch pipeline (upload-token → upload → transcript) works end-to-end.
-  2. Transcribed text matches the original patient utterances that produced
-     the audio (i.e. the F1 pipeline would consume STT input the same way it
-     consumed the original text).
+  2. Transcribed text matches the original patient utterances (patient_tts_index).
 
-Run:
+Usage:
     cd apps/ai-server
-    .venv/bin/python -m tests.smoke_stt_skt
+    .venv/bin/python -m tests.smoke_stt_skt              # defaults to VP-001
+    .venv/bin/python -m tests.smoke_stt_skt --vp VP-002
 """
 
 from __future__ import annotations
 
+import argparse
 import difflib
 import json
 import os
@@ -26,8 +25,8 @@ import httpx
 from dotenv import load_dotenv
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-VP_DIR = REPO_ROOT / "docs" / "ai" / "simulation_results" / "VP-001"
-TTS_INDEX = REPO_ROOT / "docs" / "ai" / "simulation_results" / "tts_scripts" / "patient_tts_index.json"
+SIM_ROOT = REPO_ROOT / "docs" / "ai" / "simulation_results"
+TTS_INDEX = SIM_ROOT / "tts_scripts" / "patient_tts_index.json"
 
 # ── SKT env — the .env uses SKT_A_X_K1, docs expect SKT_A_X_API_KEY ─────
 # Accept both.
@@ -147,37 +146,45 @@ def _safety_preserved(original: str, hypothesis: str) -> tuple[bool, list[str]]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="SKT A.X STT Batch smoke test")
+    parser.add_argument("--vp", default="VP-001", help="Persona ID (VP-001~004)")
+    args = parser.parse_args()
+    vp_id: str = args.vp
+
     load_dotenv(REPO_ROOT / "apps" / "ai-server" / ".env")
     api_key = _get_api_key()
     if not api_key:
         print("[ERR] SKT API key not found (SKT_A_X_API_KEY or SKT_A_X_K1)", file=sys.stderr)
         return 1
 
-    # Load expected texts from TTS index
-    if not TTS_INDEX.exists():
-        print(f"[ERR] TTS index missing: {TTS_INDEX}", file=sys.stderr)
-        return 1
-    idx = json.loads(TTS_INDEX.read_text(encoding="utf-8"))
-    vp001 = idx["personas"].get("VP-001", {})
-    utterances = vp001.get("utterances", [])
-    # utterance_index is 1-based, mp3 files also 001, 002, ...
-    expected_by_idx = {u["utterance_index"]: u for u in utterances}
+    vp_dir = SIM_ROOT / vp_id
 
-    audio_files = sorted(VP_DIR.glob("VP-001-*.mp3"))
+    # Load expected texts from TTS index (if available for this VP)
+    expected_by_idx: dict[int, dict] = {}
+    if TTS_INDEX.exists():
+        idx = json.loads(TTS_INDEX.read_text(encoding="utf-8"))
+        persona = idx["personas"].get(vp_id, {})
+        utterances = persona.get("utterances", [])
+        expected_by_idx = {u["utterance_index"]: u for u in utterances}
+
+    audio_files = sorted(vp_dir.glob(f"{vp_id}-*.mp3"))
     if not audio_files:
-        print(f"[ERR] no mp3 files in {VP_DIR}", file=sys.stderr)
+        print(f"[ERR] no mp3 files in {vp_dir}", file=sys.stderr)
         return 1
 
-    print(f"=== SKT A.X STT Batch Smoke Test — VP-001 ===")
+    print(f"=== SKT A.X STT Batch Smoke Test — {vp_id} ===")
     print(f"API base:    {BASE_URL}")
     print(f"Batch model: {os.environ.get('SKT_A_X_STT_BATCH_MODEL', 'A.X_STT_note_batch')}")
     print(f"Audio files: {len(audio_files)}")
-    print(f"Expected utterances: {len(utterances)}")
+    print(f"Expected utterances: {len(expected_by_idx)}")
     print()
+
+    file_re = re.compile(rf"{re.escape(vp_id)}-(\d{{3}})\.mp3")
+    vp_slug = vp_id.lower().replace("-", "")
 
     results = []
     for path in audio_files:
-        m = re.match(r"VP-001-(\d{3})\.mp3", path.name)
+        m = file_re.match(path.name)
         if not m:
             continue
         idx_num = int(m.group(1))
@@ -185,7 +192,7 @@ def main() -> int:
         expected_text = expected["full"] if expected else ""
 
         audio = path.read_bytes()
-        message_id = f"vp001-smoke-{idx_num:03d}"
+        message_id = f"{vp_slug}-smoke-{idx_num:03d}"
 
         print(f"[{path.name}] {len(audio):,} bytes")
         started = time.perf_counter()
@@ -229,7 +236,7 @@ def main() -> int:
         })
 
     # Save
-    out = VP_DIR / "VP-001_stt_smoke_results.json"
+    out = vp_dir / f"{vp_id}_stt_smoke_results.json"
     out.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
 
     if results:

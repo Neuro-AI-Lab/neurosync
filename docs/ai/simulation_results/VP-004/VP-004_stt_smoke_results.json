@@ -1,0 +1,558 @@
+[
+  {
+    "file": "VP-004-001.mp3",
+    "utterance_index": 1,
+    "expected": "약을 먹는데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고... 진짜 이 감정에서 벗어날 수 있을까요?",
+    "hypothesis": "약을 먹는 데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고 진짜 이 감정에서 벗어날 수 있을까요?",
+    "char_similarity": 1.0,
+    "word_similarity": 0.8484848484848485,
+    "safety_preserved": true,
+    "safety_lost": [],
+    "latency_ms": 910.0651140324771,
+    "raw": {
+      "message_id": "vp004-smoke-001",
+      "audio_duration": 9743,
+      "transcript_duration": 9.74369,
+      "utterance_count": 1,
+      "utterances": [
+        {
+          "text": "약을 먹는 데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고 진짜 이 감정에서 벗어날 수 있을까요?",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 0.0,
+          "end_time": 9.72,
+          "words": [
+            {
+              "text": "약을",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.281157,
+              "end_time": 0.642645,
+              "speaker": 1
+            },
+            {
+              "text": "먹는",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.68281,
+              "end_time": 0.923802,
+              "speaker": 1
+            },
+            {
+              "text": "데도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.963967,
+              "end_time": 1.60661,
+              "speaker": 1
+            },
+            {
+              "text": "전혀",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.64678,
+              "end_time": 2.00826,
+              "speaker": 1
+            },
+            {
+              "text": "나아지지",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.04843,
+              "end_time": 2.61074,
+              "speaker": 0
+            },
+            {
+              "text": "않아요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.65091,
+              "end_time": 3.61488,
+              "speaker": 0
+            },
+            {
+              "text": "오히려",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.65504,
+              "end_time": 4.09686,
+              "speaker": 1
+            },
+            {
+              "text": "더",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.13702,
+              "end_time": 4.33785,
+              "speaker": 1
+            },
+            {
+              "text": "나빠진",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.37802,
+              "end_time": 4.90017,
+              "speaker": 1
+            },
+            {
+              "text": "것",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.94033,
+              "end_time": 5.14116,
+              "speaker": 1
+            },
+            {
+              "text": "같고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.18132,
+              "end_time": 6.18545,
+              "speaker": 1
+            },
+            {
+              "text": "진짜",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.22562,
+              "end_time": 6.66744,
+              "speaker": 1
+            },
+            {
+              "text": "이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.7076,
+              "end_time": 6.90843,
+              "speaker": 1
+            },
+            {
+              "text": "감정에서",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.9486,
+              "end_time": 7.59124,
+              "speaker": 1
+            },
+            {
+              "text": "벗어날",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.63141,
+              "end_time": 8.19372,
+              "speaker": 1
+            },
+            {
+              "text": "수",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.23388,
+              "end_time": 8.51504,
+              "speaker": 0
+            },
+            {
+              "text": "있을까요?",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.55521,
+              "end_time": 9.67984,
+              "speaker": 0
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "file": "VP-004-002.mp3",
+    "utterance_index": 2,
+    "expected": "아니요, 근데 그런 생각이 자꾸 들어요. 갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요. 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요.",
+    "hypothesis": "아니요 근데 그런 생각이 자꾸 들어요 갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요.",
+    "char_similarity": 1.0,
+    "word_similarity": 0.8888888888888888,
+    "safety_preserved": true,
+    "safety_lost": [],
+    "latency_ms": 1013.3994920179248,
+    "raw": {
+      "message_id": "vp004-smoke-002",
+      "audio_duration": 14498,
+      "transcript_duration": 14.498,
+      "utterance_count": 1,
+      "utterances": [
+        {
+          "text": "아니요 근데 그런 생각이 자꾸 들어요 갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요.",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 0.03,
+          "end_time": 14.12,
+          "words": [
+            {
+              "text": "아니요",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.35114,
+              "end_time": 1.31456,
+              "speaker": 0
+            },
+            {
+              "text": "근데",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.3547,
+              "end_time": 1.83641,
+              "speaker": 1
+            },
+            {
+              "text": "그런",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.87655,
+              "end_time": 2.15755,
+              "speaker": 1
+            },
+            {
+              "text": "생각이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.19769,
+              "end_time": 2.71954,
+              "speaker": 1
+            },
+            {
+              "text": "자꾸",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.75969,
+              "end_time": 3.12097,
+              "speaker": 1
+            },
+            {
+              "text": "들어요",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.16111,
+              "end_time": 4.2851,
+              "speaker": 1
+            },
+            {
+              "text": "갑자기",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.32524,
+              "end_time": 4.76681,
+              "speaker": 0
+            },
+            {
+              "text": "심장이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.80695,
+              "end_time": 5.16823,
+              "speaker": 0
+            },
+            {
+              "text": "뛰고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.20838,
+              "end_time": 5.97108,
+              "speaker": 0
+            },
+            {
+              "text": "숨이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.01122,
+              "end_time": 6.33236,
+              "speaker": 0
+            },
+            {
+              "text": "안",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.37251,
+              "end_time": 6.53308,
+              "speaker": 0
+            },
+            {
+              "text": "쉬어지면",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.57322,
+              "end_time": 7.29578,
+              "speaker": 0
+            },
+            {
+              "text": "진짜",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.33593,
+              "end_time": 7.81763,
+              "speaker": 0
+            },
+            {
+              "text": "죽을",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.85778,
+              "end_time": 8.17892,
+              "speaker": 0
+            },
+            {
+              "text": "것",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.21906,
+              "end_time": 8.37963,
+              "speaker": 0
+            },
+            {
+              "text": "같아요",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.41977,
+              "end_time": 9.46348,
+              "speaker": 0
+            },
+            {
+              "text": "그런데",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.50362,
+              "end_time": 9.90504,
+              "speaker": 0
+            },
+            {
+              "text": "또",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.94518,
+              "end_time": 10.1058,
+              "speaker": 0
+            },
+            {
+              "text": "그런",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.1459,
+              "end_time": 10.3065,
+              "speaker": 0
+            },
+            {
+              "text": "게",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.3466,
+              "end_time": 10.5072,
+              "speaker": 0
+            },
+            {
+              "text": "올까",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.5473,
+              "end_time": 10.9086,
+              "speaker": 0
+            },
+            {
+              "text": "봐",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.9487,
+              "end_time": 11.6312,
+              "speaker": 0
+            },
+            {
+              "text": "하루",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.6713,
+              "end_time": 11.872,
+              "speaker": 0
+            },
+            {
+              "text": "종일",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.9122,
+              "end_time": 12.2734,
+              "speaker": 0
+            },
+            {
+              "text": "그",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.3136,
+              "end_time": 12.4742,
+              "speaker": 0
+            },
+            {
+              "text": "생각만",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.5143,
+              "end_time": 12.996,
+              "speaker": 0
+            },
+            {
+              "text": "맴돌아요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.0362,
+              "end_time": 14.0799,
+              "speaker": 1
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "file": "VP-004-003.mp3",
+    "utterance_index": 3,
+    "expected": "그런 계획은... 가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요. 근데... 한 적은 없어요.",
+    "hypothesis": "그런 계획은 가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요. 근데 한 적은 없어요.",
+    "char_similarity": 1.0,
+    "word_similarity": 0.8666666666666667,
+    "safety_preserved": true,
+    "safety_lost": [],
+    "latency_ms": 885.0951408967376,
+    "raw": {
+      "message_id": "vp004-smoke-003",
+      "audio_duration": 8777,
+      "transcript_duration": 8.77713,
+      "utterance_count": 1,
+      "utterances": [
+        {
+          "text": "그런 계획은 가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요. 근데 한 적은 없어요.",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 0.02,
+          "end_time": 8.75,
+          "words": [
+            {
+              "text": "그런",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.382074,
+              "end_time": 0.663687,
+              "speaker": 1
+            },
+            {
+              "text": "계획은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.703917,
+              "end_time": 1.79014,
+              "speaker": 1
+            },
+            {
+              "text": "가끔",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.83037,
+              "end_time": 2.23267,
+              "speaker": 0
+            },
+            {
+              "text": "아프면",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.2729,
+              "end_time": 2.7959,
+              "speaker": 0
+            },
+            {
+              "text": "이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.83613,
+              "end_time": 2.99705,
+              "speaker": 0
+            },
+            {
+              "text": "느낌이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.03728,
+              "end_time": 3.39935,
+              "speaker": 0
+            },
+            {
+              "text": "좀",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.43959,
+              "end_time": 3.56028,
+              "speaker": 0
+            },
+            {
+              "text": "멈출까",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.60051,
+              "end_time": 4.24419,
+              "speaker": 1
+            },
+            {
+              "text": "싶을",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.28442,
+              "end_time": 4.56604,
+              "speaker": 1
+            },
+            {
+              "text": "때가",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.60627,
+              "end_time": 5.0488,
+              "speaker": 1
+            },
+            {
+              "text": "있어요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.08903,
+              "end_time": 5.93387,
+              "speaker": 1
+            },
+            {
+              "text": "근데",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.9741,
+              "end_time": 6.97986,
+              "speaker": 0
+            },
+            {
+              "text": "한",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.02009,
+              "end_time": 7.14078,
+              "speaker": 0
+            },
+            {
+              "text": "적은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.18101,
+              "end_time": 7.54309,
+              "speaker": 0
+            },
+            {
+              "text": "없어요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.58332,
+              "end_time": 8.70977,
+              "speaker": 1
+            }
+          ]
+        }
+      ]
+    }
+  }
+]
