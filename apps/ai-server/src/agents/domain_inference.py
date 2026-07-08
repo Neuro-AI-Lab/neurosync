@@ -33,8 +33,12 @@ from src.schemas.domain_inference import (
 logger = logging.getLogger(__name__)
 
 _PROMPT_AGENT_NAME = "domain_inference"
-# PLAN-2026-W28-C — new agent, first version.
-PROMPT_VERSION = "v1"
+# PLAN-2026-W28-C — new agent, first version (v1 kept on disk, rollback policy).
+# PLAN-2026-W28-E / ADR-014 (2026-07-08): v2 remediation — VAL-006/REV-008
+# confirmed v1's rule 2 (위험≠도메인) fails live under prompt-only enforcement;
+# v2 adds a code-enforcement disclosure + ISS-046 carve-out. The actual
+# mechanical enforcement lives in src.eval.f2_grounding, not this pin.
+PROMPT_VERSION = "v2"
 
 _LLM_FALLBACK_PROMPT = (
     "환자 슬롯/근거를 바탕으로 정신건강 영역 후보(최대 3개, evidence 필수)와 "

@@ -147,7 +147,8 @@ def _base_input(**overrides) -> DomainInferenceInput:
 
 class TestAgentRuntime:
     def test_prompt_version_pin(self) -> None:
-        assert PROMPT_VERSION == "v1"
+        """PLAN-2026-W28-E / ADR-014 v2 remediation — pin moves v1 -> v2."""
+        assert PROMPT_VERSION == "v2"
 
     @pytest.mark.asyncio
     async def test_run_parses_valid_llm_output(self) -> None:
@@ -163,9 +164,9 @@ class TestAgentRuntime:
         out = await agent.run(_base_input())
 
         agent._prompt_loader.load_system_prompt.assert_called_once_with(
-            "domain_inference", "v1"
+            "domain_inference", "v2"
         )
-        assert out.prompt_version == "v1"
+        assert out.prompt_version == "v2"
         assert len(out.domain_candidates) == 1
         assert out.domain_candidates[0].domain == "sleep"
         assert out.retrieval_meta.mode == "llm_only"

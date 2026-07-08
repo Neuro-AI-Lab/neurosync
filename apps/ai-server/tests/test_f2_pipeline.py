@@ -11,12 +11,17 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 from unittest.mock import AsyncMock
 
 import pytest
 
 import src.f2 as f2
-from src.eval.f2_grounding import VERDICT_REJECTED_UNKNOWN_SOURCE, audit_domain_candidates
+from src.eval.f2_grounding import (
+    VERDICT_REJECTED_UNKNOWN_SOURCE,
+    audit_domain_candidates,
+    filter_domain_candidates,
+)
 from src.schemas.domain_inference import (
     DepartmentCandidate,
     DomainCandidate,
@@ -173,35 +178,48 @@ class TestArtifactAndReport:
         output = self._output()
         chunk_texts: dict[str, str] = {}
         utterances = {"turn_0": "요즘 잠을 잘 못 자요"}
-        verdicts, counts = audit_domain_candidates(
+        filtered, verdicts, counts = filter_domain_candidates(
             output.domain_candidates, chunk_texts=chunk_texts, utterances=utterances
         )
-        orphans = f2.find_orphan_departments(output.domain_candidates, output.department_candidates)
+        orphans = f2.find_orphan_departments(filtered, output.department_candidates)
+        filter_summary = f2._build_filter_summary(
+            candidates_before=output.domain_candidates, candidates_after=filtered, counts=counts
+        )
         repro = {
             "git_head": "deadbeef", "model_used": "test-model", "prompt_version": "v1",
             "input_file": "x.json", "input_sha256": "abc", "mode": "llm_only",
             "latency_ms": 12.3, "generated_at": "2026-07-08T00:00:00",
         }
         artifact = f2._build_artifact(
-            output=output, repro=repro, chunk_texts=chunk_texts, utterances=utterances,
-            verdicts=verdicts, counts=counts, orphans=orphans,
+            output=output, domain_candidates=filtered, repro=repro,
+            chunk_texts=chunk_texts, utterances=utterances,
+            verdicts=verdicts, counts=counts, filter_summary=filter_summary, orphans=orphans,
             session_id="t", persona_id="VP-001",
         )
         assert artifact["domain_candidates"][0]["domain"] == "sleep"
         assert artifact["whitelist_audit"]["counts"]["accepted"] == 1
+        assert artifact["filter_summary"]["candidates_before"] == 1
+        assert artifact["filter_summary"]["candidates_after"] == 1
         report = f2._build_report(artifact)
         assert "sleep" in report
         assert "git HEAD" in report
+        assert "Grounding cascade" in report
 
     def test_save_f2_result_writes_json_and_report(self, tmp_path) -> None:
         output = self._output()
+        filter_summary = f2._build_filter_summary(
+            candidates_before=output.domain_candidates,
+            candidates_after=output.domain_candidates,
+            counts={"accepted": 0},
+        )
         artifact = f2._build_artifact(
-            output=output, repro={
+            output=output, domain_candidates=output.domain_candidates, repro={
                 "git_head": "x", "model_used": "m", "prompt_version": "v1",
                 "input_file": "x.json", "input_sha256": "y", "mode": "llm_only",
                 "latency_ms": 1.0, "generated_at": "now",
             },
             chunk_texts={}, utterances={}, verdicts=[], counts={"accepted": 0},
+            filter_summary=filter_summary,
             orphans=[], session_id="t", persona_id="VP-TEST",
         )
         paths = f2.save_f2_result(artifact, output_dir=tmp_path)
@@ -292,3 +310,258 @@ class TestFullCliSmoke:
         assert artifact["whitelist_audit"]["counts"]["accepted"] == 1
         assert artifact["orphan_departments"] == []
         assert artifact["repro"]["input_file"] == str(conv_path)
+
+
+class TestCascadeWiredIntoArtifact:
+    """ADR-014 remediation — the artifact's `domain_candidates` must be the
+    POST-cascade list (this is the open item the prior developer session
+    escalated: `filter_domain_candidates` existed but `f2.py` still shipped
+    raw, unstripped evidence in the saved JSON). Pipeline-level (stubbed
+    agent, `f2._run` end-to-end), not just the pure-function unit tests in
+    test_f2_grounding.py.
+    """
+
+    @staticmethod
+    def _conversation(tmp_path, *, turns: list[dict]) -> Path:
+        conversation = {
+            "session_id": "f2_cascade",
+            "persona_id": "VP-CASCADE",
+            "persona_name": "테스트",
+            "final_slots": [{"key": "chief_complaint", "value": "우울감 호소"}],
+            "session_ctrs": 5,
+            "crisis_triggered": False,
+            "crisis_turn": None,
+            "turns": turns,
+            "probe_events": [],
+        }
+        conv_path = Path(tmp_path) / "VP-CASCADE_20260708_000000_conversation.json"
+        conv_path.write_text(json.dumps(conversation, ensure_ascii=False), encoding="utf-8")
+        return conv_path
+
+    @staticmethod
+    def _run_args(conv_path, out_dir) -> argparse.Namespace:
+        return argparse.Namespace(
+            conversation=str(conv_path), persona=None, no_rag=True, k=3,
+            out=str(out_dir), scale_scores=None, first_visit=False, revisit=False,
+        )
+
+    @pytest.mark.asyncio
+    async def test_only_risk_evidence_candidate_absent_from_artifact_not_just_flagged(
+        self, tmp_path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A candidate whose ONLY evidence is risk-lexicon content must be
+        eliminated from the artifact's `domain_candidates` entirely — not
+        merely flagged inline (that was the pre-wiring behavior, and is
+        exactly the gap ADR-014 requires fixed in the LIVE pipeline output).
+        The removal must be traceable via `filter_summary`, not silent.
+        """
+        risk_quote = "살고 싶지 않아요. 매일 밤 그 생각만 들어요."
+        conv_path = self._conversation(
+            tmp_path,
+            turns=[{"turn": 0, "patient_message": risk_quote, "agent_response": "안녕"}],
+        )
+
+        class _StubAgent:
+            def __init__(self, model_router: object, prompt_loader: object) -> None:
+                pass
+
+            async def run(self, inp: object) -> DomainInferenceOutput:
+                return DomainInferenceOutput(
+                    model_used="stub", prompt_version="v1", latency_ms=5.0,
+                    reason_summary="stub",
+                    domain_candidates=[
+                        DomainCandidate(
+                            domain="depression", confidence=0.6,
+                            evidence=[
+                                DomainEvidence(
+                                    source_type="utterance", source_id="turn_0", quote=risk_quote
+                                )
+                            ],
+                        )
+                    ],
+                    department_candidates=[],
+                    summary="우울 호소",
+                    retrieval_meta=RetrievalMeta(mode="llm_only", chunks_returned=0, chunk_ids=[]),
+                )
+
+        monkeypatch.setattr(f2, "DomainInferenceAgent", _StubAgent)
+        monkeypatch.setattr(f2, "get_model_router", lambda: None)
+        monkeypatch.setattr(f2, "get_prompt_loader", lambda: None)
+
+        out_dir = tmp_path / "out"
+        await f2._run(self._run_args(conv_path, out_dir))
+
+        json_files = list((out_dir / "VP-CASCADE").glob("*_domain_inference.json"))
+        report_files = list((out_dir / "VP-CASCADE").glob("*_report.md"))
+        artifact = json.loads(json_files[0].read_text(encoding="utf-8"))
+
+        # NEITHER present in domain_candidates...
+        assert artifact["domain_candidates"] == []
+        assert not any(c["domain"] == "depression" for c in artifact["domain_candidates"])
+        # ...NOR silently dropped: the delta is recorded in filter_summary.
+        fs = artifact["filter_summary"]
+        assert fs["candidates_before"] == 1
+        assert fs["candidates_after"] == 0
+        assert fs["candidates_eliminated"] == 1
+        assert fs["eliminated_domains"] == ["depression"]
+        assert fs["evidence_stripped"] == 1
+        assert fs["evidence_stripped_risk_lexicon"] == 1
+        # Full audit trail (incl. the specific reject reason) still preserved.
+        assert artifact["whitelist_audit"]["counts"]["rejected_risk_lexicon"] == 1
+        assert any(
+            v["verdict"] == "rejected_risk_lexicon" and v["domain"] == "depression"
+            for v in artifact["whitelist_audit"]["verdicts"]
+        )
+
+        report = report_files[0].read_text(encoding="utf-8")
+        assert "ELIMINATED" in report
+        assert "depression" in report
+
+    @pytest.mark.asyncio
+    async def test_mixed_evidence_candidate_survives_with_risk_item_stripped(
+        self, tmp_path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A candidate with both risk and non-risk evidence must survive in
+        the artifact, but with the risk-lexicon item removed from its
+        evidence list — not merely flagged."""
+        risk_quote = "살고 싶지 않아요. 매일 밤 그 생각만 들어요."
+        clean_quote = "요즘 잠을 잘 못 자고 계속 불안해요."
+        conv_path = self._conversation(
+            tmp_path,
+            turns=[
+                {"turn": 0, "patient_message": risk_quote, "agent_response": "안녕"},
+                {"turn": 1, "patient_message": clean_quote, "agent_response": "그렇군요"},
+            ],
+        )
+
+        class _StubAgent:
+            def __init__(self, model_router: object, prompt_loader: object) -> None:
+                pass
+
+            async def run(self, inp: object) -> DomainInferenceOutput:
+                return DomainInferenceOutput(
+                    model_used="stub", prompt_version="v1", latency_ms=5.0,
+                    reason_summary="stub",
+                    domain_candidates=[
+                        DomainCandidate(
+                            domain="depression", confidence=0.6,
+                            evidence=[
+                                DomainEvidence(
+                                    source_type="utterance", source_id="turn_0", quote=risk_quote
+                                ),
+                                DomainEvidence(
+                                    source_type="utterance", source_id="turn_1", quote=clean_quote
+                                ),
+                            ],
+                        )
+                    ],
+                    department_candidates=[],
+                    summary="우울 호소",
+                    retrieval_meta=RetrievalMeta(mode="llm_only", chunks_returned=0, chunk_ids=[]),
+                )
+
+        monkeypatch.setattr(f2, "DomainInferenceAgent", _StubAgent)
+        monkeypatch.setattr(f2, "get_model_router", lambda: None)
+        monkeypatch.setattr(f2, "get_prompt_loader", lambda: None)
+
+        out_dir = tmp_path / "out"
+        await f2._run(self._run_args(conv_path, out_dir))
+
+        json_files = list((out_dir / "VP-CASCADE").glob("*_domain_inference.json"))
+        report_files = list((out_dir / "VP-CASCADE").glob("*_report.md"))
+        artifact = json.loads(json_files[0].read_text(encoding="utf-8"))
+
+        assert len(artifact["domain_candidates"]) == 1
+        cand = artifact["domain_candidates"][0]
+        assert cand["domain"] == "depression"
+        # Only the clean, non-risk evidence item survives.
+        assert len(cand["evidence"]) == 1
+        assert cand["evidence"][0]["source_id"] == "turn_1"
+        assert all(risk_quote not in ev["quote"] for ev in cand["evidence"])
+
+        fs = artifact["filter_summary"]
+        assert fs["candidates_before"] == 1
+        assert fs["candidates_after"] == 1
+        assert fs["candidates_eliminated"] == 0
+        assert fs["eliminated_domains"] == []
+        assert fs["evidence_stripped"] == 1
+        assert fs["evidence_stripped_risk_lexicon"] == 1
+        assert artifact["whitelist_audit"]["counts"]["rejected_risk_lexicon"] == 1
+
+        report = report_files[0].read_text(encoding="utf-8")
+        assert "STRIPPED" in report
+
+    @pytest.mark.asyncio
+    async def test_department_referencing_cascade_eliminated_domain_is_orphan(
+        self, tmp_path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """QA gate 1g (PLAN-2026-W28-E) adjudication of the developer's
+        post-cascade orphan-check wiring (`f2.py::_run`, `find_orphan_departments
+        (filtered_candidates, ...)` not `output.domain_candidates`): a
+        department_candidate whose domain_ref points to a domain the cascade
+        eliminated (all evidence rejected as risk-lexicon) must be flagged as
+        an orphan in the live artifact, even though it was NOT an orphan in
+        the LLM's raw pre-cascade output.
+
+        This closes a real gap: checking orphan status against the raw
+        pre-cascade domain list would silently miss this case (a "masked
+        orphan" -- the domain_ref pointed at something real when the LLM
+        emitted it, but the artifact's actual domain_candidates no longer
+        contains it after the cascade runs). Verified by QA to regress
+        (reverting the wiring to `output.domain_candidates` passes the full
+        671-test suite with zero failures) before this test was added.
+        """
+        risk_quote = "살고 싶지 않아요. 매일 밤 그 생각만 들어요."
+        conv_path = self._conversation(
+            tmp_path,
+            turns=[{"turn": 0, "patient_message": risk_quote, "agent_response": "안녕"}],
+        )
+
+        class _StubAgent:
+            def __init__(self, model_router: object, prompt_loader: object) -> None:
+                pass
+
+            async def run(self, inp: object) -> DomainInferenceOutput:
+                return DomainInferenceOutput(
+                    model_used="stub", prompt_version="v1", latency_ms=5.0,
+                    reason_summary="stub",
+                    domain_candidates=[
+                        DomainCandidate(
+                            domain="depression", confidence=0.6,
+                            evidence=[
+                                DomainEvidence(
+                                    source_type="utterance", source_id="turn_0", quote=risk_quote
+                                )
+                            ],
+                        )
+                    ],
+                    department_candidates=[
+                        DepartmentCandidate(
+                            department="정신건강의학과", domain_ref="depression",
+                            reason="우울 증상 호소",
+                        )
+                    ],
+                    summary="우울 호소",
+                    retrieval_meta=RetrievalMeta(mode="llm_only", chunks_returned=0, chunk_ids=[]),
+                )
+
+        monkeypatch.setattr(f2, "DomainInferenceAgent", _StubAgent)
+        monkeypatch.setattr(f2, "get_model_router", lambda: None)
+        monkeypatch.setattr(f2, "get_prompt_loader", lambda: None)
+
+        out_dir = tmp_path / "out"
+        await f2._run(self._run_args(conv_path, out_dir))
+
+        json_files = list((out_dir / "VP-CASCADE").glob("*_domain_inference.json"))
+        artifact = json.loads(json_files[0].read_text(encoding="utf-8"))
+
+        # The "depression" domain candidate was eliminated by the cascade...
+        assert artifact["domain_candidates"] == []
+        assert artifact["filter_summary"]["eliminated_domains"] == ["depression"]
+        # ...so the department that referenced it is now an orphan in the
+        # live artifact, even though department_candidates itself is untouched
+        # by the evidence cascade (department_candidates has no evidence field).
+        assert len(artifact["department_candidates"]) == 1
+        assert artifact["department_candidates"][0]["domain_ref"] == "depression"
+        assert len(artifact["orphan_departments"]) == 1
+        assert artifact["orphan_departments"][0]["department"] == "정신건강의학과"
