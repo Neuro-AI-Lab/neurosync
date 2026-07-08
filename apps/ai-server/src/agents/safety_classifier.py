@@ -140,9 +140,11 @@ _LLM_FALLBACK_PROMPT = (
     "JSON 출력: {risk_level, categories, flagged_phrases, confidence, reason_summary}"
 )
 
-_LLM_RULE_CONTEXT_TEMPLATE = """
+_LLM_RULE_CONTEXT_TEMPLATE = (
+    """
 [키워드 스크리닝 결과]
-1차 스크리닝에서 아래 키워드가 감지되었습니다. 하지만 키워드만으로는 실제 위험을 정확히 판단할 수 없습니다.
+1차 스크리닝에서 아래 키워드가 감지되었습니다. 하지만 키워드만으로는 실제 위험을 """
+    """정확히 판단할 수 없습니다.
 전체 대화 문맥을 고려하여 최종 위험도를 판정해 주세요.
 
 감지된 키워드: {flagged_phrases}
@@ -155,6 +157,7 @@ _LLM_RULE_CONTEXT_TEMPLATE = """
 - 상담사의 질문을 반복하는 것인가, 자신의 생각을 표현하는 것인가?
 
 문맥 판단 결과가 키워드 스크리닝과 다르면, 문맥 판단을 우선하세요."""
+)
 
 
 def _max_risk(a: RiskLevel, b: RiskLevel) -> RiskLevel:

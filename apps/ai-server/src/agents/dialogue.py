@@ -67,14 +67,14 @@ _NO_QUESTION_SLOTS = {
 _SLOT_QUESTION_GUIDE: dict[str, str] = {
     "encounter_metadata":         "(시스템 자동 수집 — 질문 불필요)",
     "chief_complaint":            "오늘 가장 도움받고 싶은 문제나 증상이 무엇인지",
-    "history_of_present_illness": "증상이 언제부터 시작되었고 최근 좋아지는지 악화되는지, 일상생활(수면/식사/일/대인관계)에서 가장 영향 받은 부분",
-    "risk_assessment":            "안전 확인: 최근 스스로를 해치고 싶거나 죽고 싶다는 생각, 타해 충동 여부 (반드시 물어야 함)",
-    "substance_use_history":      "최근 술, 수면제, 진정제, 카페인 등 증상에 영향 줄 수 있는 것 사용 여부",
-    "past_psychiatric_history":   "현재 정신건강의학과 진료나 심리상담 여부, 진단받은 병명이 있는지, 기존 진료기록 확인",
-    "medical_history":            "진단받은 신체질환이 있는지, 기존 처방 약 외 새로 복용 중인 약이나 변경된 약 여부",
+    "history_of_present_illness": "증상이 언제부터 시작되었고 최근 좋아지는지 악화되는지, 일상생활(수면/식사/일/대인관계)에서 가장 영향 받은 부분",  # noqa: E501
+    "risk_assessment":            "안전 확인: 최근 스스로를 해치고 싶거나 죽고 싶다는 생각, 타해 충동 여부 (반드시 물어야 함)",  # noqa: E501
+    "substance_use_history":      "최근 술, 수면제, 진정제, 카페인 등 증상에 영향 줄 수 있는 것 사용 여부",  # noqa: E501
+    "past_psychiatric_history":   "현재 정신건강의학과 진료나 심리상담 여부, 진단받은 병명이 있는지, 기존 진료기록 확인",  # noqa: E501
+    "medical_history":            "진단받은 신체질환이 있는지, 기존 처방 약 외 새로 복용 중인 약이나 변경된 약 여부",  # noqa: E501
     "personal_social_history":    "힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있는지",
     "family_history":             "가족분들 중에 비슷한 어려움을 겪으셨던 분이 계신지",
-    "mental_status_exam":         "(관찰 기반: 대화 중 외모, 말투, 기분, 사고과정 관찰하여 기록. 직접 질문 불필요)",
+    "mental_status_exam":         "(관찰 기반: 대화 중 외모, 말투, 기분, 사고과정 관찰하여 기록. 직접 질문 불필요)",  # noqa: E501
     "clinical_assessment":        "(대화 종료 후 수집 정보 종합하여 생성. 직접 질문 불필요)",
     "treatment_plan":             "(의료진 영역. AI는 생성하지 않음. 질문 불필요)",
 }
@@ -213,7 +213,11 @@ class DialogueAgent(BaseAgent):
 
         if is_repeated:
             logger.warning("DialogueAgent repeated — retrying with stronger hint")
-            missing = [s for s in _ESSENTIAL_SLOTS if s not in inp.filled_slots or not inp.filled_slots.get(s)]
+            missing = [
+                s
+                for s in _ESSENTIAL_SLOTS
+                if s not in inp.filled_slots or not inp.filled_slots.get(s)
+            ]
             hint = (
                 f"\n\n[주의: 이전과 동일한 응답입니다. 반드시 다른 질문을 하세요. "
                 f"미수집 슬롯: {', '.join(missing)}]"
@@ -360,7 +364,7 @@ class DialogueAgent(BaseAgent):
         lines.append("- 공감은 1문장으로 끝내고, 바로 새 질문을 하세요.")
         lines.append("- 환자 말을 장황하게 반복하지 마세요.")
         if used_empathy:
-            lines.append("- 아래 표현은 이전 턴에서 이미 사용했으므로 **절대 다시 사용하지 마세요**:")
+            lines.append("- 아래 표현은 이전 턴에서 이미 사용했으므로 **절대 다시 사용하지 마세요**:")  # noqa: E501
             for e in used_empathy[-5:]:
                 lines.append(f'  X "{e}..."')
             lines.append("- 대신 다른 표현을 사용하세요:")
