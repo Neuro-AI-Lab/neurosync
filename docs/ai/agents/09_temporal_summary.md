@@ -7,11 +7,11 @@
 | **Agent ID** | `09` |
 | **Agent Name** | `TemporalSummaryAgent` |
 | **역할** | 종단적 상태 변화 추적 및 비교 분석. SentimentAnalyzer(13) 출력을 소비하여 sentiment 추이 시각화 데이터 생성 |
-| **LLM Routing** | benchmarked (Primary: Upstage Solar Pro 3 / Secondary: LG K-EXAONE / Fallback: SKT A.X K1) |
+| **LLM Routing** | **100% rule-based — 실제로는 LLM을 전혀 호출하지 않는다.** `agents/temporal_summary.py`에는 router/adapter/prompt_loader 참조가 전혀 없다. `agent_model_registry.yaml`은 이 에이전트를 `benchmarked`로 등록해 두었으나 이는 코드 현실과 어긋난 등록 상태다(알려진 드리프트, 별도 BUG 예정 — 본 미션 범위에서는 registry 파일 자체를 수정하지 않는다). 출력의 `prompt_version: "v1"`은 프롬프트가 실제로 로드되지 않는 cosmetic 라벨이다 |
 
 ## 목적
 
-환자의 현재 상태를 과거 기록(baseline)과 비교하여 임상 도메인별 변화 방향을 분류한다. 근거 불충분 시 반드시 "unknown"으로 표기하며, 추측하지 않는다. Handoff report의 "종단적 상태 변화" 섹션의 데이터를 생성한다.
+환자의 현재 상태를 과거 기록(baseline)과 비교하여 임상 도메인별 변화 방향을 분류한다. 근거 불충분 시 반드시 "unknown"으로 표기하며, 추측하지 않는다. Handoff report의 "종단적 상태 변화" 섹션의 데이터를 생성한다. **비교/분류 로직은 전량 rule-based다** — "정성적 비교에만 LLM을 사용한다"는 아래 "핵심 동작" 절의 과거 서술은 as-built 상태와 다르다(코드에 LLM 호출 경로 자체가 없음).
 
 ## 추적 도메인
 
@@ -115,7 +115,7 @@
 
 1. **도메인별 비교**: 각 임상 도메인을 독립적으로 비교한다. 한 도메인의 판정이 다른 도메인에 영향을 주지 않는다.
 2. **Unknown 적극 사용**: 비교할 이전 데이터가 없거나, 현재 데이터가 불충분하면 반드시 `"unknown"`으로 분류한다. 추측하지 않는다.
-3. **구조화 척도 점수는 rule-based**: PHQ-9, GAD-7 점수 차이 계산과 severity 분류는 rule-based로 수행한다. LLM은 정성적 비교에만 사용한다.
+3. **전량 rule-based**: PHQ-9/GAD-7 점수 차이 계산과 severity 분류뿐 아니라 증상/약물 등 정성적 비교 판정까지 모두 rule-based로 수행한다. 이 에이전트는 LLM을 호출하지 않는다(위 "개요" 상태 참조).
 4. **Evidence 필수 기재**: 모든 변화 판정에 근거 텍스트를 포함한다.
 5. **Plot-ready data 생성**: 시각화 가능한 시계열 데이터를 별도로 생성한다 (예: PHQ-9 추이 차트용).
 6. **Baseline 명시**: 비교 기준이 된 과거 기록의 날짜와 출처를 명시한다.
@@ -203,6 +203,6 @@ Frontend에서 시계열 그래프 렌더링에 직접 사용 가능한 구조�
 | 실패 유형 | 대응 |
 |---|---|
 | 과거 데이터 없음 (초진) | 모든 도메인 `"unknown"`. 종단 비교 섹션에 "초진 환자, 비교 기준 없음" 표기 |
-| LLM 비교 실패 | Rule-based 비교만 수행 (PHQ-9/GAD-7 점수 비교 등). 정성적 비교는 "비교 불가" 표기 |
 | 데이터 불일치 | 양쪽 데이터를 모두 기록하고 "불일치 확인 필요" 플래그 부착 |
-| LLM primary timeout | Secondary → Fallback 시도 |
+
+**정정:** 이 에이전트는 LLM을 호출하지 않으므로 "LLM 비교 실패"/"LLM primary timeout" 같은 LLM 장애 대응 경로는 as-built 상태에 존재하지 않는다(과거 버전 문서의 서술 제거).

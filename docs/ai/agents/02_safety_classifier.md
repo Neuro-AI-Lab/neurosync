@@ -8,19 +8,31 @@
 | **Agent Name** | `SafetyClassifierAgent` |
 | **역할** | 환자 메시지의 자살/자해/타해/응급 위험도 분류 |
 | **LLM Routing** | benchmarked (Primary: Upstage Solar Pro 3 / Secondary: LG K-EXAONE / Fallback: SKT A.X K1) |
+| **프롬프트 pin** | v2 (`agents/safety_classifier.py:133` `PROMPT_VERSION`) — v3는 SM-04 계열 과잉-escalation 회귀로 롤백됨(ADR-012), 디스크에는 남아있으나 비활성 |
 
 ## 목적
 
-모든 환자 메시지에 대해 위험도를 실시간 분류한다. Dual-path 구조(keyword rule + LLM classification)를 병렬 실행하고, **danger-takes-priority** 정책으로 병합한다. CTRS 1-2에 대한 recall >= 95%를 목표로 한다. 이 에이전트는 **매 턴마다** 실행된다.
+모든 환자 메시지에 대해 위험도를 실시간 분류한다. **순차(sequential) 2단계 구조**(rule screening → LLM 최종 판정)로 동작하며, **LLM이 최종 판정자(final arbiter)** 다 — rule이 high/critical을 감지해도 LLM이 문맥(부정문, 과거형 등)을 근거로 그보다 낮게 하향 조정할 수 있다. **"danger-takes-priority"(더 위험한 쪽 채택 = `max`) 병합은 LLM이 사용 불가능한 fail-closed 분기에서만 적용된다**(`agents/safety_classifier.py:417-443`). CTRS 1-2에 대한 recall >= 95%를 목표로 한다. 이 에이전트는 **매 턴마다** 실행된다.
 
-## Dual-Path 아키텍처
+## 순차 아키텍처 (Rule Screening → LLM 최종 판정)
 
 ```
 patient_message
-    ├─ [Path A] Keyword Rules (Aho-Corasick) ─── ~50ms ──┐
-    │                                                      ├─ Merge (danger-takes-priority) → CTRS level
-    └─ [Path B] LLM Classification ──────────── ~600ms ──┘
+    │
+    ▼
+[Step 1] Keyword Rule Screening (동기, 결정적) ── rule_level 산출
+    │
+    ▼
+[Step 2] LLM Classification ── rule이 high/critical 감지 시 flagged keyword를 LLM에 함께 전달
+    │       LLM은 rule 결과를 하향(부정 문맥 등) 또는 확정할 수 있음
+    ▼
+[Step 3] 최종 판정
+    ├─ LLM 사용 가능 → final = LLM 판정 결과 (LLM이 최종 판정자)
+    └─ LLM 사용 불가(전체 실패) → final = max(rule_level, LLM 부분결과, fail-closed 기본값 high)
+                                    ("danger-takes-priority"는 이 분기에서만 적용)
 ```
+
+`agents/safety_classifier.py:371-384` (`run()` docstring)이 이 흐름을 그대로 기술한다. 두 경로는 **병렬이 아니라 순차** 실행된다 — rule screening이 먼저 완료된 뒤 그 결과(및 flagged keyword)가 LLM 호출의 입력으로 전달되기 때문이다.
 
 ### Path A: Keyword Rules (Aho-Corasick)
 
@@ -41,14 +53,13 @@ patient_message
 - 출력: CTRS level (1-5) + confidence score + reasoning
 - 문맥적 위험 감지 (키워드에 없는 간접 표현 포착)
 
-### Merge Policy: Danger-Takes-Priority
+### 최종 판정 규칙 — 정정: 병렬 merge가 아니라 "LLM이 최종 판정자"
 
-```
-final_ctrs = min(path_a_ctrs, path_b_ctrs)  // 더 위험한 쪽 채택
-```
+**과거 버전 문서는 이 절에서 Path A/B를 병렬 실행 후 `min(ctrs)`(danger-takes-priority)로 항상 병합한다고 기술했으나, 실제 구현은 다르다.**
 
-- 두 경로 중 하나라도 CTRS 1-2를 반환하면 최종 결과는 CTRS 1-2
-- Path A 결과가 먼저 도착하고 CTRS 1-2이면 Path B 완료를 기다리지 않고 즉시 trigger
+- **LLM 사용 가능 시(정상 경로): LLM 판정이 곧 최종 결과다.** rule이 CTRS 1-2를 감지해도, LLM이 문맥(부정문 "죽고 싶다는 생각은 없어요" 등)을 근거로 그보다 낮게 판정하면 그 낮은 값이 채택된다 — Path A는 그 결과를 덮어쓰지 못한다(`agents/safety_classifier.py:417-428`).
+- **`danger-takes-priority`(`max(rule, llm 부분결과, fail-closed 기본값)`) 병합은 LLM을 아예 사용할 수 없는 fail-closed 분기에서만 적용된다**(`:429-443`). 이 분기 밖에서는 "더 위험한 쪽 채택"이 일반 원칙이 아니다.
+- Path A(keyword)가 먼저 실행되어 rule_level을 산출하지만, 이는 **LLM 호출의 입력**(flagged phrase + rule_level을 LLM에 컨텍스트로 제공)으로 쓰일 뿐, Path A만으로 조기 확정하지 않는다.
 
 ## 입력
 
@@ -59,37 +70,30 @@ final_ctrs = min(path_a_ctrs, path_b_ctrs)  // 더 위험한 쪽 채택
 | `patient_id` | `string` | 환자 식별자 |
 | `session_id` | `string` | 세션 ID |
 
-## 출력
+## 출력 (`SafetyOutput`, `schemas/safety.py`)
+
+**정정:** 과거 버전 문서는 이 절에서 `classification`/`paths` 중첩 구조와 `merge_policy` 필드를 가진 예시를 실었으나, 실제 `SafetyOutput`은 **flat 구조**다 — 중첩 서브객체가 없고, `merge_policy` 필드 자체가 스키마에 존재하지 않는다(병합 정책은 위 "최종 판정 규칙" 절의 코드 동작으로만 존재하며, 출력 필드로 노출되지 않는다). 아래는 `SafetyOutput`(`AgentOutput` 상속 4필드 + 자체 10필드, 총 14필드) 그대로의 flat 예시다. 값은 모두 placeholder다.
 
 ```json
 {
-  "session_id": "sess_20260618_001",
-  "patient_id": "pt_12345",
-  "classification": {
-    "ctrs_level": 2,
-    "ctrs_label": "고위험",
-    "risk_level": "high",
-    "crisis_triggered": true,
-    "confidence": 0.93
-  },
-  "paths": {
-    "keyword": {
-      "ctrs_level": 2,
-      "matched_keywords": ["죽고싶"],
-      "latency_ms": 42
-    },
-    "llm": {
-      "ctrs_level": 2,
-      "confidence": 0.91,
-      "reasoning": "환자가 직접적으로 죽고 싶다는 의사를 표현함. 구체적 계획 여부 확인 필요.",
-      "latency_ms": 580,
-      "model_used": "upstage-solar-pro-3"
-    }
-  },
-  "merge_policy": "danger-takes-priority",
-  "timestamp": "2026-06-18T14:30:01.042+09:00"
+  "risk_level": "high",
+  "categories": ["<risk category (placeholder)>"],
+  "flagged_phrases": ["<flagged phrase (placeholder)>"],
+  "confidence": 0.0,
+  "rule_triggered": true,
+  "llm_risk_level": "high",
+  "rule_risk_level": "high",
+  "ctrs_level": 2,
+  "requires_human_review": true,
+  "crisis_protocol_activated": true,
+  "model_used": "solar-pro3",
+  "prompt_version": "v2",
+  "latency_ms": 0.0,
+  "reason_summary": "risk classification completed (rule+LLM)"
 }
 ```
+
+`session_id`/`patient_id`/`timestamp`는 `SafetyOutput`/`AgentOutput`(`agents/base.py`)에 존재하지 않는 필드다 — 세션/환자 식별은 호출자 쪽(Orchestrator)이 `SafetyInput.session_id`로 관리하며, 이 에이전트의 출력 자체에는 포함되지 않는다.
 
 ## CTRS 위험도 분류 기준
 
@@ -141,8 +145,8 @@ CTRS_TO_RISK = {
 ## 핵심 동작
 
 1. **매 턴 실행**: 환자의 모든 메시지에 대해 예외 없이 실행된다. Orchestrator가 이를 보장한다.
-2. **병렬 실행**: Path A(keyword)와 Path B(LLM)를 동시에 실행한다.
-3. **조기 반환**: Path A에서 CTRS 1-2 감지 시 Path B 완료를 기다리지 않고 즉시 반환한다.
+2. **순차 실행**: Path A(keyword rule screening)가 먼저 완료되고, 그 결과(rule_level, flagged keyword)가 Path B(LLM classification) 호출의 입력 컨텍스트로 전달된다. 병렬 실행이 아니다.
+3. **LLM이 최종 판정자**: LLM 사용이 가능한 한 최종 CTRS는 LLM 판정 결과다. Path A 결과만으로 조기 확정·반환하지 않는다. `danger-takes-priority`(max 병합)는 LLM을 사용할 수 없는 fail-closed 분기에서만 적용된다.
 4. **Escalation 단방향**: 대화 중 CTRS level은 악화 방향으로만 변경된다. 한 번 CTRS 2가 되면 해당 세션에서 CTRS 5로 내려가지 않는다.
 5. **Source/timestamp 기록**: 모든 분류 결과에 source(keyword/llm), timestamp, confidence를 기록한다.
 6. **LLM reasoning 저장**: LLM의 분류 근거를 handoff report evidence로 활용하기 위해 저장한다.

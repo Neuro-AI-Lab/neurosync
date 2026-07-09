@@ -681,3 +681,82 @@ REV-010(critic, `EXP-005` 16런 전수 재감사 — 샘플링 아님) 판정 4�
 | VAL-007 | PRD §3.2/§3.8 문서-구현 drift | open(§3.2/§3.8은 이전 수정으로 부분 해소, git 이력 정리 등 잔여) |
 
 ---
+
+## DR-008 | 2026-07-09 | Agent spec 총검증·정비 완료 — 14종 3-way 감사, `14_domain_inference.md` 신규 저작, qa 사실검증 게이트 PASS, registry drift 발견(BUG-018) (PLAN-2026-W28-F)
+
+> **범위 및 출처:** 본 엔트리가 인용하는 모든 수치·서술은 `discussion.md`(PLAN-2026-W28-F 및 상태갱신 (1)/(2)), `error.md`(BUG-018), ADR-015(F2 인증 사실 인용)에 이미 기록된 값이다. 신규 계측·재해석은 없다. 본 미션은 문서 전용(docs-only)이다 — `src/`, 프롬프트, `agent_model_registry.yaml`은 무변경이며, 이 엔트리 자체도 코드를 변경하지 않는다.
+
+### 1. 미션 요약
+
+사용자 지시(원문 인용, `discussion.md` PLAN-2026-W28-F): **"그럼 docs/ai/agents에 agent spec 추가해야지 않니? issue 총검증 하라"**. 이 지시에 따라 `docs/ai/agents/` 스펙 14종(00~13)을 구현(`src/agents` + f1.py/f2.py)과 현재 프롬프트 pin에 대해 전수(3-way) 감사하고, 신규 `14_domain_inference.md`를 저작하며, 드리프트가 확인된 스펙을 as-built로 정정했다. 4단계로 진행: Stage 1(developer 3-way 감사) → Stage 2(writer 신규 저작 + 정정) → Stage 3(qa 사실검증 게이트) → Stage 4(본 문서, 본건).
+
+### 2. 수행 작업
+
+| Stage | 담당 | 내용 | 산출물 |
+|:--|:--|:--|:--|
+| 0 | filemanager | `docs/agent-specs-sync` 브랜치를 fresh `origin/Master`에서 분기 | clean tree |
+| 1 | developer | 스펙 14종 ↔ 구현(`src/agents` + f1/f2) ↔ 프롬프트(현 pin) 3-way 감사, file:line 단위 검증. ISS-039/041 재확인 + 신규 드리프트 분리 | 감사 표(RESULT) |
+| 2 | writer | 신규 `14_domain_inference.md`(as-built, placeholder-only) 저작 + 11개 기존 스펙 as-built 정정 | 12 files(신규 1 + 정정 11) |
+| 3 | qa | 갱신 스펙 전건 사실검증(file:line, I/O byte-match, pin 일치) | GATE 판정(2회) |
+| 4 | writer | 본 DR-008 + checklist DOC 항목 + ISS-041 처분 | 본 문서, `checklist_task1.md` |
+
+### 3. 스펙 감사 마스터 표
+
+12개 파일(신규 1 + 정정 11)이 이번 미션에서 실제로 변경됐다. 03(dialogue)/10(handoff_generator)/12(prompt_eval)는 Stage 1 감사에서 드리프트가 확인되지 않아 무변경으로 남았다(qa가 12의 미구현 배너를 grep으로 별도 재확인 — 아래 §4 참조).
+
+| Agent(spec) | 상태 분류 | Stage 2 정정 내용 | Stage 3 bounce 정정 |
+|:--|:--|:--|:--|
+| 00_patient_simulator | as-built | vendor를 K-EXAONE으로 정정(`patient_llm.py:189-205`) | — |
+| 01_orchestrator | as-built | 11-state, no-LLM rule-based로 정정(`schemas/orchestrator.py:14-27`) | crisis hotline을 as-built(1393/1577-0199)로 정정, BUG-009 인용 |
+| 02_safety_classifier | as-built | sequential rule→LLM-final-arbiter, max-merge fail-closed-only로 정정(`safety_classifier.py:371-443`) | 구버전 nested JSON 예시 → 14-key flat `SafetyOutput` 예시로 교체 |
+| 03_dialogue | 무변경(드리프트 없음, Stage 1 확인) | — | — |
+| 04_clinical_slot | as-built | flat 12-key placeholder 예시로 정정, pin v3 반영 | — |
+| 05_input_normalizer | as-built + dead-code 배너 | dead-code 배너 + ISS-039 드리프트 표 추가 | — |
+| 06_stt | 미구현 배너 | 미구현 배너(변경 없음, qa grep 재확인) | — |
+| 07_ocr | 미구현 배너 | 미구현 배너(변경 없음, qa grep 재확인) | — |
+| 08_temporal_retriever | superseded | superseded-for-F2 → domain_inference(14)로 재배치, F4-repositioning 배너 | — |
+| 09_temporal_summary | as-built | 100% rule-based로 정정 | — |
+| 10_handoff_generator | 무변경(드리프트 없음, Stage 1 확인) | — | — |
+| 11_evidence_verifier | as-built | 100% rule-based, V-01~V-12 구현 상태(V-04/06/10/11/12 미구현) 명시 | V-07 하위표 미구현 5행을 design-intent-only로 표기 |
+| 12_prompt_eval | 미구현 배너(변경 없음, qa grep 재확인) | — | — |
+| 13_sentiment_analyzer | as-built | Mode B 순수 rule-based 집계로 정정, pin v2 = Mode A 전용 명시 | — |
+| 14_domain_inference | 신규(as-built) | 신규 저작, placeholder-only. ADR-015 정합(llm_only 조건부 인증/RAG EXPERIMENTAL) — 과대주장 없음, BUG-016/017 인용 | — |
+
+09_temporal_summary와 11_evidence_verifier의 as-built 정정 과정에서 registry drift가 확인됐다 — §5 참조.
+
+### 4. 게이트 이력
+
+| 게이트 | 대상 | 판정 | 근거 |
+|:--|:--|:--|:--|
+| qa GATE 1 | Stage-2 산출 12 files | **GATE: PASS-WITH-NOTES** | 12개 스펙의 Stage-2 변경분 전건 code-true(file:line byte-exact) — risk-lexicon stem 37 확정(`f2_grounding.py` `_RISK_PHRASES`); domain_inference pin v2(2,948 chars/5,004 bytes/84 lines — DR-007이 병기했던 char-count 불일치는 char↔byte 단위 차이로 해소); 14가 ADR-015에 정합(llm_only 조건부 인증/RAG EXPERIMENTAL, 과대주장 없음); 미구현 배너(stt/ocr/temporal_retriever/prompt_eval) grep 부재 확인; 02의 sequential rule→LLM-final-arbiter/fail-closed-only max-merge(`safety_classifier.py:371-443`) 정확. **신규 발견**: registry drift(§5) → qa가 BUG-018 파일 |
+| — bounce | Stage-2 미접촉 기존 오류 3건 | writer 정정 | 02의 구버전 nested JSON 예시, 11 V-07 하위표 미구현 표기, 01 crisis hotline as-built 정정(BUG-009 인용) |
+| qa 재게이트 | 3건 정정분 | **GATE: PASS** | 3/3 code-true |
+
+### 5. BUG-018(registry drift)
+
+qa가 이번 게이트에서 신규 발견해 `error.md`에 **BUG-018**(minor)로 파일링했다: `agent_model_registry.yaml`이 `temporal_summary`/`evidence_verifier`를 `strategy: benchmarked`(3-tier LLM adapter 구성)로 선언하나, 두 에이전트 모두 코드 100% rule-based이며 `router`/`adapter`/`prompt_loader` 참조가 grep 0건 — 런타임에서 두 에이전트는 라우터를 전혀 호출하지 않아 이 레지스트리 엔트리는 현재 inert(실질적 오라우팅 없음)하나, 레지스트리 자체는 부정확한 머신 리더블 기술로 남는다. 수정은 `agent_model_registry.yaml` 코드 변경이 필요해 본 문서-전용 미션 범위 밖 — 차기 developer 미션으로 이월. 근거: `error.md` BUG-018.
+
+### 6. ISS-041 처분
+
+ISS-041(DR-001 §4 register, "문서 무결성 스위프")의 6개 서브 항목을 docs/ai/agents/ 범위에서 판정한다:
+
+| 서브 항목 | 처분 | 근거 |
+|:--|:--|:--|
+| orchestrator/temporal_summary/evidence_verifier 프롬프트가 LLM 사양을 기술하나 구현은 rule-based(프롬프트 미로드) | **resolved** — 01/09/11이 이제 as-built(rule-based)를 정확히 문서화 | 본 DR-008 §3 |
+| temporal_retriever 프롬프트가 orphan | **resolved(문서 차원)** — 08이 superseded-for-F2/F4-repositioning 배너로 상태를 정확히 공시 | 본 DR-008 §3 |
+| agent 문서 04/01 구버전 | **resolved** — 04/01 as-built 정정 완료(01은 Stage 3 bounce에서 핫라인까지 추가 정정) | 본 DR-008 §3 |
+| `_simulation_spec.md` ↔ f1.py 불일치 | **잔존(out of scope)** — code/other-doc scope, 본 docs-agents 미션 범위 밖 | — |
+| `backups/report.md`에 RPT-020 중복 ID | **잔존(out of scope)** — 본 docs-agents 미션 범위 밖 | — |
+| f1.py dead 파라미터(is_revisit, slot_extraction_interval) | **잔존(out of scope)** — code scope, 본 docs-agents 미션 범위 밖 | — |
+
+이번 감사 과정에서 신규로 발견된 registry drift(§5)는 ISS-041 원 항목에 없던 추가 발견이며, 별도로 **BUG-018**로 파일링됐다 — ISS-041의 "잔존" 항목으로 재분류하지 않는다.
+
+**종합:** ISS-041은 `docs/ai/agents/` 차원에서 **resolved**로 처분한다 — 14개 스펙(신규 1 + 기존 13)이 구현과 동기화되고 qa가 code-true로 검증했다. 잔존 서브 항목 3건(위 표)은 코드/타 문서 범위이며 본 미션의 out-of-scope로 명시적으로 남긴다.
+
+### 7. 다음 단계
+
+1. **BUG-018 수정**: `agent_model_registry.yaml`의 `temporal_summary`/`evidence_verifier` 엔트리를 `strategy: fixed`(또는 신규 `rule_based` 값)로 정정 — developer 미션.
+2. **잔존 ISS-041 서브 항목**: `_simulation_spec.md`↔f1.py drift, backups/report.md RPT-020 중복 ID, f1.py dead 파라미터 — 코드/타 문서 담당 agent(developer/qa) 배정 필요, 본 미션 범위 밖.
+3. **PR**: filemanager가 커밋 1건(무 trailer)으로 브랜치 `docs/agent-specs-sync`를 push하고 base Master PR을 연다 — 본 DR-008 및 checklist 갱신 완료가 그 전제조건이다.
+
+---

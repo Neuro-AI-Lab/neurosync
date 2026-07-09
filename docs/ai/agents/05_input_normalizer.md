@@ -1,5 +1,7 @@
 # Agent 05: Input Normalizer Agent
 
+> **상태 배너 — dead code**: `InputNormalizerAgent`는 3-way 감사 기준, `agents/orchestrator.py`를 포함한 **어느 프로덕션 코드 경로에서도 호출되지 않는다**(참조는 자기 자신의 모듈과 `tests/test_input_normalizer.py`, `tests/test_rigorous_validation.py`뿐). `01_orchestrator.md`의 "STT/OCR 입력 시 InputNormalizer(05) 호출" 기술은 설계 의도이며, 현재 as-built 상태와 다르다.
+
 ## 개요
 
 | 항목 | 내용 |
@@ -8,10 +10,22 @@
 | **Agent Name** | `InputNormalizerAgent` |
 | **역할** | STT 전사 오류 및 오타 교정, 구어체/방언 정규화 |
 | **LLM Routing** | benchmarked (Primary: Upstage Solar Pro 3 / Secondary: LG K-EXAONE / Fallback: SKT A.X K1) |
+| **프롬프트 pin** | v1 (`agents/input_normalizer.py:43`) |
 
 ## 목적
 
 STT transcript와 텍스트 입력의 전사 오류, 오타, 구어체/방언 표현을 정규화한다. **원래 의미를 절대 변경하지 않으며**, 임상적으로 유의미한 내용을 보존한다. 모든 변경 사항은 change log에 기록한다.
+
+**ISS-039 — 프롬프트/스키마 불일치(구체화)**: v1 시스템 프롬프트(`docs/ai/prompts/input_normalizer/v1.system.md`)와 실제 출력 스키마(`schemas/input_normalizer.py` `NormalizationChange`)가 아래와 같이 서로 다른 계약을 지시한다:
+
+| 항목 | 프롬프트가 지시하는 형식 | 스키마가 요구하는 형식 |
+|---|---|---|
+| `type` 값 집합 | 7종 (`stt_misrecognition`, `ocr_misrecognition`, `typo_correction`, `dialect_correction`, `colloquial_normalization`, `filler_removal`, `sentence_completion`) | `Literal` 5종 (`stt_error`, `colloquial`, `dialect`, `typo`, `spacing`) |
+| 변경 후 값 필드명 | `corrected` | `normalized` |
+| `position` 타입 | `int` (단일 오프셋) | `dict[str, int]` (`{start, end}`) |
+| `confidence`/`applied` 필드 | 각 변경 항목에 포함 | 스키마에 필드 자체가 없음 |
+
+코드(`agents/input_normalizer.py:134-141`)는 LLM 응답의 `normalized`/`position`(dict) 키를 읽어 `NormalizationChange`를 구성한다. 프롬프트가 지시한 대로 LLM이 `type`에 7종 중 스키마에 없는 값(예: `stt_misrecognition`)을 출력하면 `Literal` 필드 검증이 실패하고, `position`에 `int`를 출력하면 `dict[str, int]` 필드 검증이 실패한다 — 둘 중 하나만 어긋나도 `NormalizationChange(...)` 생성이 `pydantic.ValidationError`를 던지고, 이는 `run()`의 바깥쪽 `try/except`(`:77-81`)에 잡혀 `_safe_fallback()`으로 떨어진다(원문을 그대로 반환, `changes: []`). 즉 현재 프롬프트/스키마 조합에서는 LLM이 프롬프트 지시를 충실히 따를수록 오히려 폴백 경로로 빠질 가능성이 높다.
 
 ## 입력
 
@@ -22,6 +36,8 @@ STT transcript와 텍스트 입력의 전사 오류, 오타, 구어체/방언 �
 | `dialect_hint` | `string \| null` | 방언 힌트 (예: `경상`, `전라`, `충청`) |
 
 ## 출력
+
+아래 예시는 **스키마(`NormalizationChange`)가 요구하는 목표 형태**다. 위 ISS-039 불일치가 살아있는 동안, LLM이 프롬프트 지시(7-값 `type`/`corrected`/int `position`)를 그대로 따르면 이 형태로 정상 도달하지 못하고 `_safe_fallback()`(원문 그대로, `changes: []`)으로 떨어질 가능성이 높다.
 
 ```json
 {

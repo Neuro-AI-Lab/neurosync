@@ -176,7 +176,7 @@
 | T1-F1-DEV-022 | DEV | **Safety Probe 모드** (ISS-035 L1-L2): CTRS 3 + SI/self-harm category → 탐문 강제 주입 (빈도→계획→수단→보호요인), risk_floor latch | [x] | f1.py probe state machine, probe_events/risk_floor/session_ctrs 기록. LLM-free 테스트 12건 |
 | T1-F1-DEV-023 | DEV | Safety Probe 승급/유지 (L2-L3): 재분류+lexical 이중 승급, 부인 시 grounded risk 기록 후 지속, cooldown(재발동 상한 2회) | [x] | ISS-043 clause-local 부정 수정 포함 (QA gate 발견 즉시 수정). 파이프라인 레벨 검증은 SM-04a/b 실행 배치 |
 | T1-F1-VER-012 | VER | Safety 시나리오 매트릭스 (파이프라인 레벨, 스크립트 환자): 중간 턴 위기 전환, 부정 문맥, 간접·masked 표현, **CTRS3+자해사고 → probe 발동·승급·비승급 3분기**, 복약 순응 오탐 0 | [~] | 2026-07-06 실행: 최종 7/7 통과. SM-06 1회차 flake(ISS-047), 신규 오탐 클래스 ISS-046 발견 — 수정 후 재실행 시 [x] |
-| T1-F0-DOC-005 | DOC | ISS-035 정책 문서화: `_simulation_spec.md` §4.4 조건부 위기 대응을 Safety Probe 프로토콜로 재정의 + safety prompt 간접표현 CTRS 하한표 방향 모호성 수정("N단계 이하(고위험 방향)") | [ ] | ISS-035, ISS-041 일부 |
+| T1-F0-DOC-005 | DOC | ISS-035 정책 문서화: `_simulation_spec.md` §4.4 조건부 위기 대응을 Safety Probe 프로토콜로 재정의 + safety prompt 간접표현 CTRS 하한표 방향 모호성 수정("N단계 이하(고위험 방향)") | [ ] | ISS-035, ISS-041 일부. **정정(2026-07-09, DR-008):** ISS-041의 `docs/ai/agents/` 차원(agent 문서 04/01 구버전 등)은 `PLAN-2026-W28-F`(T1-F0-DOC-006)로 resolved — 본 항목이 다루는 `_simulation_spec.md` §4.4 서브 항목은 별개이며 여전히 `[ ]` 미결 |
 | T1-F1-DEV-020 | DEV | 위기 핫라인 상수 통일 (109/119/112): orchestrator.py·f1.py·verifier·테스트·문서 | [ ] | ISS-032 |
 | T1-F0-DEV-005 | DEV | `SlotData`(handoff)를 canonical 12-slot으로 정합화 (S1) | [ ] | ISS-028 |
 | T1-F0-DEV-006 | DEV | orchestrator.py slot 키 canonical 통일 + dialogue loop 내 ClinicalSlot 매 턴 호출 (S2) | [ ] | ISS-028/029 |
@@ -228,6 +228,14 @@
 | T1-F2-VER-008 | VER | **EXP-005** llm_only arm 재검증 — VP-001~004 n≥2, REV-008 위반(위험 표현의 domain evidence 인용) 재발 0 확인 | [x] | T1-F2-DEV-006/007, qa GATE:PASS + critic 사전리뷰(1g). PLAN-2026-W28-E Step 1g/2. **완료(2026-07-08, EXP-005):** llm_only arm 8런(4VP×n=2) — REV-008 위반 재발 0/42(accepted 인용문 전수 수동감사, critic REV-010). top-1/top-3 7/8(VP-003/run2는 100% 위험-근거로 정당 탈락 — intended-cost, 회귀 아님). critic REV-010 채택 → `ADR-015` (1) llm_only 비인증 해제(상시 수동감사 조건부). 근거: `result.md` EXP-005, `discussion.md` REV-010/ADR-015, `development_report.md` DR-007 §3/§4 |
 | T1-F2-VER-009 | VER | **EXP-005** RAG arm 검증 — DB 프리플라이트→n≥2, `mode=rag` 확인, fabrication=0, DATASET-004 채점, latency 캡처 | [~] | T1-F2-VER-008, DB 연결 라이브 검증 완료(§3.8 갱신 참조). PLAN-2026-W28-E Step 2. **실행·측정 완료, 인증 아님(2026-07-08, EXP-005):** RAG arm 8런, DB 프리플라이트 PASS(corpus 델타 0), `mode=rag` 8/8, fabrication 0/35(명목 10건은 BUG-016 source_id 포맷 결함으로 판명 — content fabrication 아님), top-1 5/8·top-3 6/8, latency p50 11666ms/p95 19218ms(서술 보고만). **RAG arm은 `ADR-015` (2)에 따라 EXPERIMENTAL로 잔류한다** — 잔류 사유: BUG-016(`chunk_id=` 포맷 과잉거부 ~29%), BUG-017(VP-003 RAG 2/2 LLM 출력 실패), VAL-010(risk_assessment-as-query 채널 상시 완화 미비). 이 3항목 해소가 EXPERIMENTAL 해제 경로다. 근거: `result.md` EXP-005, `discussion.md` REV-010/ADR-015, `error.md` BUG-016/BUG-017/VAL-010, `development_report.md` DR-007 §3/§4/§5 |
 
+## Phase 2 — Agent spec 문서 총검증·정비 (`PLAN-2026-W28-F`) — 완료, 2026-07-09
+
+> 사양 근거: `discussion.md` PLAN-2026-W28-F, `docs/ai/development_report.md` DR-008, `error.md` BUG-018. 사용자 지시(원문 인용): "그럼 docs/ai/agents에 agent spec 추가해야지 않니? issue 총검증 하라". 목표: `docs/ai/agents/` 스펙 14종 ↔ 구현(src/agents + f1/f2) ↔ 프롬프트(현재 pin) 3-way 전수 감사, 신규 `14_domain_inference.md` 저작, 드리프트 스펙 정정, qa 사실검증 게이트. 코드/프롬프트/`agent_model_registry.yaml` 무변경(docs-only 미션).
+
+| ID | Type | 항목 | 상태 | 근거/비고 |
+|---|---|---|---|---|
+| T1-F0-DOC-006 | DOC | `docs/ai/agents/` 스펙 3-way 감사(스펙↔코드↔프롬프트, file:line) + 신규 `14_domain_inference.md`(as-built, placeholder-only) 저작 + 기존 11개 스펙 as-built 정정(00/01/02/04/05/06/07/08/09/11/13) + qa 사실검증 게이트 | [x] | PLAN-2026-W28-F. Stage 1 developer 3-way 감사(file:line) → Stage 2 writer 신규 저작+정정(12 files) → Stage 3 qa **GATE: PASS-WITH-NOTES**(registry drift 신규 발견 → BUG-018) → Stage-2 미접촉 기존 오류 3건(02/11/01) bounce 정정 → qa 재게이트 **GATE: PASS**. ISS-041의 docs/ai/agents/ 차원은 resolved(잔존 3항목은 code/타 문서 scope, out of scope). 근거: `development_report.md` DR-008, `error.md` BUG-018 |
+
 ## Phase 2 — 통합 (Gate G-E)
 
 | ID | Type | 항목 | 상태 | 선행 조건 |
@@ -244,12 +252,14 @@
 | DEV | 35 | 30 | 65 |
 | VER | 28 | 21 | 49 |
 | CFG | 3 | 1 | 4 |
-| DOC | 4 | 1 | 5 |
+| DOC | 4 | 2 | 6 |
 | SEC | 0 | 3 | 3 |
-| **계** | **70** | **56** | **126** |
+| **계** | **70** | **57** | **127** |
 
 Phase 1 상태 분포 (Stage 0 완료 후, 2026-07-08 T1-F0-CFG-001 전환 반영): `[x]` 33 · `[~]` 11 · `[!]` 10 · `[ ]` 16
 **Gate 순서: ~~G-0(긴급 복구)~~ 완료(2026-07-06) → G-F(grounding 재검증) ← 다음 → G-A/B/C → G-D → G-D-F2 → G-E. G-F 전에는 어떤 신규 "pass" 주장도 금지. G-D-F2는 추가로 ADR-014에 따라 v2 remediation 통과 전까지 진행 불가(아래 2026-07-08 갱신 참조).**
+
+> **2026-07-09 추가 (v2.5, 126→127 items):** Agent spec 문서 총검증·정비(`PLAN-2026-W28-F`) — DOC 1건(T1-F0-DOC-006) 신규. 신규 ID는 grep으로 기존 ID와 충돌 없음을 확인했다(기존 DOC 최대 ID: T1-F0-DOC-005). T1-F0-DOC-006은 신설과 동시에 `[x]`로 기재한다(Stage 1~3 완료·qa GATE: PASS 확인 후 소급 신설이기 때문 — 다른 항목들처럼 `[ ]`로 먼저 신설한 뒤 나중에 전환한 사례와 다름, 근거: `development_report.md` DR-008). 이 미션은 `docs/ai/agents/` 스펙 14종(00~13) 3-way 감사 + 신규 `14_domain_inference.md` 저작 + 기존 11개 스펙 as-built 정정을 포함하나, 이들은 개별 체크리스트 ID로 분해하지 않고 T1-F0-DOC-006 1건으로 묶어 기재한다(스펙 파일 자체는 어떤 기존 T1-* 항목의 "산출물"로도 명시적으로 지정되어 있지 않았기 때문). 근거: `discussion.md` PLAN-2026-W28-F, `development_report.md` DR-008, `error.md` BUG-018.
 
 > **2026-07-08 갱신 (DR-007 반영, `PLAN-2026-W28-E` 완료):** T1-F2-DEV-006/007 `[ ]`→`[x]`(코드 강제 위험-어휘 필터+cascade, prompt v2 — 3회 게이트 반복 후 qa GATE:PASS, 스위트 687). T1-F2-VER-008 `[ ]`→`[x]`(`EXP-005` llm_only arm, REV-008 위반 재발 0/42 — critic REV-010, `ADR-015` (1) llm_only 비인증 해제 조건부[상시 수동감사]). T1-F2-VER-009 `[ ]`→`[~]`(`EXP-005` RAG arm 실행·측정 완료 — mode=rag 8/8, fabrication 0/35, top-1 5/8·top-3 6/8 — 그러나 인증 판정은 아니다: RAG arm은 `ADR-015` (2)에 따라 EXPERIMENTAL 잔류, 해제 경로는 BUG-016/BUG-017 수정 + VP-003 RAG 재검증 + VAL-010 상시화 3조건). 4항목 모두 상태 변경만이며 항목 신설·삭제 없음 — 요약 통계 표의 항목 합계(126)는 불변이다. 근거: `docs/ai/development_report.md` DR-007, `discussion.md` PLAN-2026-W28-E/REV-009/REV-010/ADR-015, `result.md` EXP-005, `error.md` VAL-006(resolved)/VAL-009(open, 별도 흡수 기록 없음)/VAL-010(open-narrowed)/BUG-014·BUG-015(resolved)/BUG-016·BUG-017(open).
 
