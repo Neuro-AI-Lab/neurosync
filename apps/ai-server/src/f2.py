@@ -248,6 +248,8 @@ def _repro_metadata(
     latency_ms: float,
     finish_reason: str | None = None,
     usage: dict[str, int] | None = None,
+    raw_response: str | None = None,
+    validation_errors: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     git_head = "unknown"
     try:
@@ -273,6 +275,12 @@ def _repro_metadata(
         # falsifiable directly from a saved artifact, not just from logs.
         "finish_reason": finish_reason,
         "usage": usage,
+        # BUG-019: raw LLM response text (present only on a parse/schema
+        # failure) + Pydantic ValidationError.errors() field-level detail
+        # (schema-validation failures only), mirroring finish_reason/usage
+        # above — closes the root-cause-undiagnosable gap BUG-019 found.
+        "raw_response": raw_response,
+        "validation_errors": validation_errors,
     }
 
 
@@ -362,6 +370,10 @@ def _build_artifact(
         # top level too, alongside model_used/prompt_version/latency_ms.
         "finish_reason": output.finish_reason,
         "usage": output.usage,
+        # BUG-019: mirrors repro["raw_response"/"validation_errors"] at the
+        # top level too.
+        "raw_response": output.raw_response,
+        "validation_errors": output.validation_errors,
     }
 
 
@@ -482,6 +494,24 @@ def _build_report(artifact: dict[str, Any]) -> str:
         f"{filter_summary.get('evidence_stripped_risk_lexicon', 0)}",
         "",
     ])
+
+    # BUG-019: only rendered when a parse/schema failure actually occurred
+    # this run — keeps the report unchanged for the (common) clean-success
+    # case, matching this module's own "additive, honest-on-failure-only"
+    # convention already used elsewhere (e.g. filter_summary's eliminated-
+    # domains section above).
+    if artifact.get("raw_response") is not None:
+        lines.extend([
+            "## LLM failure diagnostics (BUG-019)",
+            "",
+            f"- validation_errors: {artifact.get('validation_errors')}",
+            "- raw_response:",
+            "",
+            "```",
+            str(artifact["raw_response"]),
+            "```",
+            "",
+        ])
     return "\n".join(lines)
 
 
@@ -552,6 +582,7 @@ async def _run(args: argparse.Namespace) -> None:
         model_used=output.model_used, prompt_version=output.prompt_version,
         input_path=input_path, mode=mode, latency_ms=output.latency_ms,
         finish_reason=output.finish_reason, usage=output.usage,
+        raw_response=output.raw_response, validation_errors=output.validation_errors,
     )
     artifact = _build_artifact(
         output=output, domain_candidates=filtered_candidates, repro=repro,
