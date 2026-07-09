@@ -14,20 +14,35 @@ the half it owns directly.
 Wiring (this mission, `f2.py`): `_build_artifact` attaches an
 `AIPredictedDiseaseOutput.model_dump()` as a SIBLING top-level key
 (`"ai_predicted_disease"`) in the saved F2 artifact JSON — never nested
-inside `domain_candidates`, `summary`, or any handoff-shaped object. Shipped
-now with `mode="experimental_unpopulated"`, empty `candidates`, and an
-honest `reason_summary`. Live population (`mode="rag_live"`) is GATED on
-RAG-arm certification — currently UNCERTIFIED per ADR-016 (2/3 conditions
-met; VP-003 RAG clean n=2 re-verification unmet, tracked as BUG-019, open;
-no partial/per-persona certification licensed, REV-012 §4). The
-disease-record SOURCE (a `case_card`/`qa` heuristic reuse vs. a future
-`rag.disease` embedding column, DATASET-005 addendum Key finding #0) is NOT
-resolved by this module — it only defines the shape.
+inside `domain_candidates`, `summary`, or any handoff-shaped object.
+
+Live population (`mode="rag_live"`) is now IMPLEMENTED (PLAN-2026-W28-K
+Task 3, ADR-020 — RAG-arm certification, ADR-018, is met): `f2.py`
+derives candidates from the SAME Stage-1 `raw_chunks` DomainInferenceAgent
+already retrieved, via the existing `case_card`/`qa` symptom-keyword ->
+`disease_symptom` ontology join (path1; a `rag.disease` embedding column,
+path2, is filed as a DB-handoff item, not implemented). A `llm_only`-mode
+run (no chunks retrieved) still emits `mode="experimental_unpopulated"`
+with empty `candidates` and an honest `reason_summary` — there is nothing
+to populate from.
 
 Labeling (REV-013 §4, binding): `similarity_score`, never `probability`/
 `confidence`/`확률`. Each candidate's score is independent and
 `[0,1]`-bounded; nothing in this module computes or exposes a
 softmax/normalized view across the top-5.
+
+Provenance (ADR-020 condition 2): `source_id`/`quote` are OPTIONAL at the
+schema level (default `None`) — this preserves backward compatibility with
+pre-existing callers (e.g. `tests/test_hpi_isolation.py`'s synthetic-marker
+fixture, which constructs a candidate with only `disease`/`similarity_score`
+to test HPI isolation, not population correctness) and with the
+`experimental_unpopulated` empty-candidates convention. The "no evidence, no
+candidate" discipline (mirroring `DomainEvidence`) is enforced at the
+POPULATION-CODE level instead (`f2.py`'s live-population path never
+constructs a candidate without both fields set) — every `mode="rag_live"`
+candidate that ships with >=1 entry always carries real provenance in
+practice, checked by `tests/test_ai_predicted_disease.py` and
+`tests/test_f2_pipeline.py`.
 """
 
 from __future__ import annotations
@@ -71,6 +86,30 @@ class AIPredictedDiseaseCandidate(BaseModel):
             "'confidence'/'확률' anywhere it is surfaced (REV-013 §4, "
             "binding). Independent per candidate — no softmax/normalization "
             "is ever computed across the top-5 here."
+        ),
+    )
+    source_id: str | None = Field(
+        default=None,
+        min_length=1,
+        description=(
+            "The winning chunk's chunk_id (e.g. 'case_card:687'), same "
+            "convention as DomainEvidence.source_id. Optional at the schema "
+            "level for backward compat (see module docstring); always set "
+            "by the live-population path (ADR-020 condition 2)."
+        ),
+    )
+    quote: str | None = Field(
+        default=None,
+        min_length=1,
+        description=(
+            "A short verbatim excerpt of the winning chunk's own text, "
+            "around the matched symptom keyword — same auditability "
+            "convention as DomainEvidence.quote. Optional at the schema "
+            "level for backward compat (see module docstring); always set "
+            "by the live-population path, and always cleared through the "
+            "risk-lexicon filter first (VAL-011/ADR-020 condition 1 — a "
+            "candidate is DROPPED, never shipped with a redacted/clipped "
+            "risk-flagged quote)."
         ),
     )
 
