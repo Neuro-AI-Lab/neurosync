@@ -41,6 +41,7 @@ from src.eval.f2_grounding import (
     find_orphan_departments,
 )
 from src.f1 import OUTPUT_DIR
+from src.schemas.ai_predicted_disease import AIPredictedDiseaseOutput
 from src.schemas.domain_inference import (
     DomainCandidate,
     DomainInferenceInput,
@@ -248,6 +249,8 @@ def _repro_metadata(
     latency_ms: float,
     finish_reason: str | None = None,
     usage: dict[str, int] | None = None,
+    raw_response: str | None = None,
+    validation_errors: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     git_head = "unknown"
     try:
@@ -273,6 +276,12 @@ def _repro_metadata(
         # falsifiable directly from a saved artifact, not just from logs.
         "finish_reason": finish_reason,
         "usage": usage,
+        # BUG-019: raw LLM response text (present only on a parse/schema
+        # failure) + Pydantic ValidationError.errors() field-level detail
+        # (schema-validation failures only), mirroring finish_reason/usage
+        # above — closes the root-cause-undiagnosable gap BUG-019 found.
+        "raw_response": raw_response,
+        "validation_errors": validation_errors,
     }
 
 
@@ -304,6 +313,35 @@ def _build_filter_summary(
     }
 
 
+# PLAN-2026-W28-H Track B (REV-013 §3/§4) — the "AI 예상질환" container.
+_AI_PREDICTED_DISEASE_REASON_UNPOPULATED = (
+    "RAG-arm EXPERIMENTAL pending ADR-016 lift — AI-disease container not "
+    "yet live-populated"
+)
+
+
+def _build_ai_predicted_disease() -> AIPredictedDiseaseOutput:
+    """Build the "AI 예상질환" container for this run.
+
+    GATED (ADR-016): live population (``mode="rag_live"``, a real Stage-1
+    ``rag.disease`` retrieval) is blocked on RAG-arm certification, currently
+    UNCERTIFIED — 2/3 conditions met, VP-003 RAG clean n=2 re-verification
+    unmet (BUG-019, open, `error.md`), no partial/per-persona certification
+    licensed (REV-012 §4). This function makes no live RAG query and has no
+    flag/env toggle that flips ``mode`` to ``"rag_live"`` — it always emits
+    ``mode="experimental_unpopulated"`` with empty ``candidates`` and an
+    honest ``reason_summary`` until a future, separately-reviewed change
+    wires live population in behind the certification gate. Standalone
+    (`src.schemas.ai_predicted_disease`) — shares no type with
+    `DomainInferenceOutput`/`DomainCandidate` above (REV-013 §3).
+    """
+    return AIPredictedDiseaseOutput(
+        mode="experimental_unpopulated",
+        candidates=[],
+        reason_summary=_AI_PREDICTED_DISEASE_REASON_UNPOPULATED,
+    )
+
+
 def _build_artifact(
     *,
     output: DomainInferenceOutput,
@@ -317,6 +355,7 @@ def _build_artifact(
     orphans: list[Any],
     session_id: str,
     persona_id: str | None,
+    ai_predicted_disease: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build the F2 artifact dict.
 
@@ -327,6 +366,13 @@ def _build_artifact(
     cover every evidence item submitted (accepted + all rejection reasons),
     so the full audit trail is preserved even though rejected evidence never
     reaches ``domain_candidates``.
+
+    ``ai_predicted_disease`` (PLAN-2026-W28-H Track B, REV-013 §3): the
+    ``AIPredictedDiseaseOutput.model_dump()`` dict, attached as a SIBLING
+    top-level key — never nested inside ``domain_candidates`` or any other
+    key above. Defaults to ``None`` only for backward-compat with call
+    sites/tests that predate this field; ``_run()`` always passes a real
+    value.
     """
     return {
         "session_id": session_id,
@@ -362,6 +408,15 @@ def _build_artifact(
         # top level too, alongside model_used/prompt_version/latency_ms.
         "finish_reason": output.finish_reason,
         "usage": output.usage,
+        # BUG-019: mirrors repro["raw_response"/"validation_errors"] at the
+        # top level too.
+        "raw_response": output.raw_response,
+        "validation_errors": output.validation_errors,
+        # PLAN-2026-W28-H Track B (REV-013 §3) — SIBLING top-level key, not
+        # nested inside domain_candidates/summary/any handoff-shaped object.
+        # `None` only for pre-Track-B artifacts/tests; `_run()` always
+        # supplies a real (possibly experimental_unpopulated) value.
+        "ai_predicted_disease": ai_predicted_disease,
     }
 
 
@@ -482,6 +537,46 @@ def _build_report(artifact: dict[str, Any]) -> str:
         f"{filter_summary.get('evidence_stripped_risk_lexicon', 0)}",
         "",
     ])
+
+    # BUG-019: only rendered when a parse/schema failure actually occurred
+    # this run — keeps the report unchanged for the (common) clean-success
+    # case, matching this module's own "additive, honest-on-failure-only"
+    # convention already used elsewhere (e.g. filter_summary's eliminated-
+    # domains section above).
+    if artifact.get("raw_response") is not None:
+        lines.extend([
+            "## LLM failure diagnostics (BUG-019)",
+            "",
+            f"- validation_errors: {artifact.get('validation_errors')}",
+            "- raw_response:",
+            "",
+            "```",
+            str(artifact["raw_response"]),
+            "```",
+            "",
+        ])
+
+    # PLAN-2026-W28-H Track B (REV-013 §3) — SIBLING section, kept visually
+    # and structurally separate from the domain/department candidates above
+    # (not merged into "## Domain candidates").
+    ai_disease = artifact.get("ai_predicted_disease")
+    if ai_disease is not None:
+        lines.extend([
+            "## AI 예상질환 (experimental, non-diagnostic)",
+            "",
+            f"- mode: **{ai_disease.get('mode')}**",
+            f"- is_diagnostic: {ai_disease.get('is_diagnostic')}",
+            f"- disclaimer: {ai_disease.get('disclaimer')}",
+            f"- reason_summary: {ai_disease.get('reason_summary')}",
+        ])
+        candidates = ai_disease.get("candidates") or []
+        if candidates:
+            for c in candidates:
+                lines.append(f"- {c['disease']} (similarity_score={c['similarity_score']})")
+        else:
+            lines.append("- (no candidates — not yet live-populated)")
+        lines.append("")
+
     return "\n".join(lines)
 
 
@@ -552,12 +647,15 @@ async def _run(args: argparse.Namespace) -> None:
         model_used=output.model_used, prompt_version=output.prompt_version,
         input_path=input_path, mode=mode, latency_ms=output.latency_ms,
         finish_reason=output.finish_reason, usage=output.usage,
+        raw_response=output.raw_response, validation_errors=output.validation_errors,
     )
+    ai_predicted_disease = _build_ai_predicted_disease()
     artifact = _build_artifact(
         output=output, domain_candidates=filtered_candidates, repro=repro,
         chunk_texts=chunk_texts, utterances=utterances,
         verdicts=verdicts, counts=counts, filter_summary=filter_summary, orphans=orphans,
         session_id=session_id, persona_id=persona_id,
+        ai_predicted_disease=ai_predicted_disease.model_dump(),
     )
 
     out_dir = Path(args.out) if args.out else None
