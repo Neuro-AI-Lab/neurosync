@@ -8,10 +8,11 @@
 | **Agent Name** | `ClinicalSlotAgent` |
 | **역할** | 자유 텍스트에서 구조화된 임상 슬롯 추출 |
 | **LLM Routing** | benchmarked (Primary: Upstage Solar Pro 3 / Secondary: LG K-EXAONE / Fallback: SKT A.X K1) |
+| **프롬프트 pin** | v3 (`agents/clinical_slot.py:53` `PROMPT_VERSION`) |
 
 ## 목적
 
-대화 내용, STT transcript, OCR 추출 텍스트 등의 비정형 텍스트에서 구조화된 임상 정보를 JSON 형태로 추출한다. 추출된 각 슬롯에는 source, confidence, evidence를 반드시 연결한다.
+대화 내용, STT transcript, OCR 추출 텍스트 등의 비정형 텍스트에서 구조화된 임상 정보를 JSON 형태로 추출한다. **실제 구현의 추출 결과는 슬롯 키 → flat 문자열 값(`dict[str, str]`)이며, 슬롯별 source/confidence/evidence 서브필드는 이 에이전트의 출력 스키마(`schemas/clinical_slot.py`)에 존재하지 않는다** — 아래 "출력" 절 참조. Evidence 인용(`[ev_*]`) 조립은 별도 단계(HandoffGenerator(10))의 책임이다.
 
 ## 슬롯 스키마 (12 Standard Clinical Slots)
 
@@ -44,114 +45,51 @@
 | `mental_status_exam` | 4 |
 | `clinical_assessment` | 5 |
 
-## 입력
+## 입력 (`ClinicalSlotInput`, `schemas/clinical_slot.py`)
 
 | 필드 | 타입 | 설명 |
 |---|---|---|
-| `source_text` | `string` | 추출 대상 텍스트 |
-| `source_type` | `enum` | `dialogue_transcript`, `stt_transcript`, `ocr_document` |
-| `existing_slots` | `object \| null` | 이전에 추출된 슬롯 (병합용) |
-| `dialogue_turns` | `array<object> \| null` | 대화 턴 이력 (turn 번호 추적용) |
+| `conversation_history` | `list[dict[str, str]]` | 전체 대화 `[{role, content}, ...]` |
+| `current_slots` | `dict[str, Any]` | 이미 수집된 슬롯 값 (병합/컨텍스트용) |
 
-## 출력
+## 출력 (`ClinicalSlotOutput`, `schemas/clinical_slot.py`)
+
+실제 추출 결과는 **12개 슬롯 키 → flat 문자열 값의 단일 dict**다. 중첩 구조, 슬롯별 `confidence`, 슬롯별 `evidence` 서브필드는 이 스키마에 존재하지 않는다.
 
 ```json
 {
-  "session_id": "sess_20260618_001",
-  "extraction_timestamp": "2026-06-18T14:35:00+09:00",
-  "slots": {
-    "chief_complaint": {
-      "value": "2개월간 지속된 우울감과 불면",
-      "confidence": 0.88,
-      "evidence": [
-        { "source": "dialogue_turn_3", "text": "두 달 전부터 계속 우울해요" },
-        { "source": "dialogue_turn_5", "text": "잠도 잘 못 자요" }
-      ]
-    },
-    "hpi": {
-      "value": "2개월 전 직장 스트레스 시작 후 우울감 발생. 수면 장애 동반. 식욕 감소로 3kg 체중 감소.",
-      "confidence": 0.82,
-      "evidence": [
-        { "source": "dialogue_turn_4", "text": "회사에서 힘든 일이 있은 후부터..." },
-        { "source": "dialogue_turn_7", "text": "밥맛도 없고 3키로 빠졌어요" }
-      ]
-    },
-    "medications": [
-      {
-        "name": "에스시탈로프람",
-        "dose": "10mg",
-        "frequency": "1일 1회",
-        "confidence": 0.95,
-        "evidence": [{ "source": "ocr_prescription_001", "text": "Escitalopram 10mg qd" }]
-      }
-    ],
-    "symptoms": {
-      "sleep": {
-        "value": "입면 곤란, 중간 각성",
-        "severity": "moderate",
-        "confidence": 0.78,
-        "evidence": [{ "source": "dialogue_turn_5", "text": "잠들기가 너무 어렵고 자다가도 깨요" }]
-      },
-      "appetite": {
-        "value": "식욕 감소, 체중 3kg 감소",
-        "severity": "moderate",
-        "confidence": 0.85,
-        "evidence": [{ "source": "dialogue_turn_7", "text": "밥맛도 없고 3키로 빠졌어요" }]
-      },
-      "mood": {
-        "value": "지속적 우울감, 흥미 저하",
-        "severity": "moderate-severe",
-        "confidence": 0.80,
-        "evidence": [{ "source": "dialogue_turn_3", "text": "계속 우울해요, 아무것도 하기 싫어요" }]
-      },
-      "concentration": { "value": null, "severity": null, "confidence": null, "evidence": [] },
-      "energy": { "value": "피로감 호소", "severity": "mild", "confidence": 0.65, "evidence": [{ "source": "dialogue_turn_8", "text": "항상 피곤해요" }] },
-      "psychomotor": { "value": null, "severity": null, "confidence": null, "evidence": [] }
-    },
-    "risk_factors": {
-      "value": ["직장 스트레스", "사회적 고립"],
-      "confidence": 0.72,
-      "evidence": [{ "source": "dialogue_turn_9", "text": "친구들도 안 만나게 됐어요" }]
-    },
-    "psychosocial_context": {
-      "occupation": "회사원",
-      "family": "1인 가구",
-      "stressors": ["업무 과중", "대인관계 갈등"],
-      "support_system": "가족 연락 유지",
-      "confidence": 0.70,
-      "evidence": [
-        { "source": "dialogue_turn_4", "text": "회사에서..." },
-        { "source": "dialogue_turn_10", "text": "혼자 살고 있어요. 부모님이랑 전화는 해요" }
-      ]
-    }
+  "model_used": "solar-pro3",
+  "prompt_version": "v3",
+  "latency_ms": 0.0,
+  "reason_summary": "Extracted 5/12 slots",
+  "extracted_slots": {
+    "chief_complaint": "<환자 표현 원문 요약 (placeholder)>",
+    "history_of_present_illness": "<발생 시점/기간/경과 요약 (placeholder)>",
+    "risk_assessment": "<위험평가 관련 서술 (placeholder)>",
+    "mental_status_exam": "<정신상태검사 서술 (placeholder)>",
+    "clinical_assessment": "<평가/진단적 인상 서술 (placeholder)>"
   },
-  "missing_slots": ["concentration", "psychomotor", "past_history"],
-  "model_used": "upstage-solar-pro-3"
+  "filled_slots": ["chief_complaint", "history_of_present_illness", "risk_assessment", "mental_status_exam", "clinical_assessment"],
+  "missing_slots": ["encounter_metadata", "past_psychiatric_history", "medical_history", "personal_social_history", "family_history", "substance_use_history", "treatment_plan"],
+  "essential_filled": ["chief_complaint", "history_of_present_illness", "risk_assessment", "mental_status_exam", "clinical_assessment"],
+  "essential_missing": [],
+  "slot_coverage": 0.42
 }
 ```
 
-## Evidence ID 형식
+값이 없는 슬롯은 `extracted_slots`에 키 자체가 없다(null 값으로 채우지 않는다) — `missing_slots`/`essential_missing` 목록이 결측 여부를 나타낸다.
 
-모든 evidence 인용은 `[ev_{source_type}_{3-digit sequence}]` 형식을 사용한다:
+## Evidence ID 형식 — 이 에이전트에는 미구현
 
-| Source Type | Evidence ID 패턴 | 예시 |
-|---|---|---|
-| 대화 메시지 | `[ev_msg_NNN]` | `[ev_msg_001]`, `[ev_msg_012]` |
-| 구조화 척도 | `[ev_scale_NNN]` | `[ev_scale_001]` |
-| OCR 문서 블록 | `[ev_ocr_NNN]` | `[ev_ocr_001]` |
-| 위험 이벤트 | `[ev_risk_NNN]` | `[ev_risk_001]` |
-| 이전 handoff | `[ev_prior_NNN]` | `[ev_prior_001]` |
-
-**주의:** 이전 `msg_NNN` 형식이 아닌 `[ev_msg_NNN]` 형식을 사용한다. 대괄호와 `ev_` 접두사를 반드시 포함한다.
+**과거 버전 문서는 이 에이전트가 `[ev_{source_type}_{NNN}]` 형식의 evidence ID를 슬롯마다 부여한다고 기술했으나, `ClinicalSlotAgent`/`ClinicalSlotOutput`에는 해당 필드나 로직이 존재하지 않는다.** `[ev_msg_NNN]` 형식의 evidence citation은 `schemas/common.py`의 `EvidencePacket`을 통해 HandoffGenerator(10) 단계에서 별도로 조립된다. 대화 turn 원문에서 evidence를 재구성해야 하는 downstream 소비자는 이 에이전트가 아니라 HandoffGenerator의 evidence 조립 로직을 참조해야 한다.
 
 ## 핵심 동작
 
-1. **Evidence 필수 연결**: 추출된 모든 슬롯 값에는 출처(source)와 원문 인용(text)을 반드시 포함한다. Evidence ID는 `[ev_{source_type}_{NNN}]` 형식이다.
-2. **Confidence 산출**: 각 슬롯의 신뢰도를 0.0-1.0으로 표기한다. 단일 출처 < 복수 출처. 간접 표현 < 직접 표현.
-3. **Null 허용**: 확인되지 않은 슬롯은 `null`로 남긴다. 추론하여 채우지 않는다.
-4. **슬롯 병합**: 기존 추출 결과(`existing_slots`)가 있으면 병합한다. 동일 슬롯에 새로운 evidence가 추가되면 confidence를 재산출한다.
-5. **Source type 구분**: dialogue, STT, OCR 등 출처 유형을 명확히 구분하여 기록한다.
-6. **임상 용어 정규화**: 환자 표현을 임상 용어로 매핑하되, 원문도 함께 보존한다 (예: "잠을 못 자요" → 임상: "입면 곤란", 원문 보존).
+1. **Flat 문자열 추출**: 슬롯 값은 문자열 하나로 추출된다. Evidence 인용/citation은 이 에이전트의 출력에 포함되지 않는다(위 "Evidence ID 형식" 절 참조).
+2. **미확인 슬롯은 키 자체를 생략**: 값을 확인하지 못한 슬롯은 `extracted_slots`에 키를 넣지 않는다(`null` 값으로 채우지 않음). `missing_slots`가 결측 목록을 별도로 제공한다.
+3. **Coverage 산출**: `slot_coverage = len(filled) / 12`. Essential 5개 슬롯에 대해서는 `essential_filled`/`essential_missing`을 별도로 계산한다.
+4. **기존 슬롯은 프롬프트 컨텍스트로만 전달**: `current_slots`에 값이 있는 슬롯 이름은 "이미 수집됨" 안내로 LLM 프롬프트에 주입되어, LLM이 변경분에 집중하도록 유도한다 — 이 에이전트 코드 자체가 이전 결과와 이번 결과를 dict 레벨에서 병합하지는 않는다.
+5. **Key alias 매핑**: LLM이 표준 키가 아닌 변형 키(`substance_use`, `psychosocial_context`, `risk_factors`, `protective_factors`)로 응답하면 표준 12-key 중 하나로 매핑한다(`agents/clinical_slot.py:169-174`).
 
 ## 구조화 척도 점수 참조 (Survey Scoring)
 
@@ -167,7 +105,7 @@ Survey Scoring module에서 `critical_item_positive: true`가 반환되면, Orch
 
 1. **AI는 진단하지 않는다.** 슬롯에 진단명을 기입하지 않는다. "우울증"이 아닌 "우울감 호소"로 기록한다.
 2. **증상 추론 금지**: 환자가 직접 언급하지 않은 증상을 추론하여 슬롯에 기입하지 않는다.
-3. **OCR/STT 신뢰도 전파**: OCR 또는 STT에서 온 정보는 해당 source의 confidence를 상한으로 한다.
+3. **OCR/STT 신뢰도 전파 — 미구현**: `ClinicalSlotOutput`에는 confidence 필드 자체가 없어 source별 confidence 상한 로직은 이 에이전트에 구현되어 있지 않다(설계 의도로 문서에 남겨두되, 코드 반영 여부는 별도 확인 필요).
 4. **구조화 척도 점수는 rule-based**: PHQ-9, GAD-7 등의 점수 계산이 필요한 경우 LLM이 아닌 rule-based 로직으로 수행한다.
 5. **PHQ-9 Q9 safety flag**: PHQ-9 문항 9 >= 1 시 반드시 Safety/Risk Triage로 전달한다.
 
@@ -175,7 +113,6 @@ Survey Scoring module에서 `critical_item_positive: true`가 반환되면, Orch
 
 | 실패 유형 | 대응 |
 |---|---|
-| LLM 추출 실패 | Secondary → Fallback LLM 시도 |
-| 전체 LLM 실패 | 대화 내역 원문을 handoff에 첨부 (비구조화 상태로 전달) |
-| 낮은 confidence 다수 | missing_slots에 포함하고, handoff report에 "추가 확인 필요" 표기 |
-| 슬롯 간 모순 감지 | 양쪽 evidence를 모두 기록하고 "불일치" 플래그 부착 |
+| LLM 호출 실패 | `model_used="none"`, `missing_slots`=전체 12개, `essential_missing`=essential 5개로 반환 (재시도/fallback 로직은 이 에이전트 코드에는 없음) |
+| LLM JSON 파싱 실패 | 빈 `dict`로 처리 → 사실상 모든 슬롯이 missing으로 반환 |
+| LLM 응답 값 타입 불일치(문자열/`{value:...}` 외) | 해당 슬롯을 건너뛰고 로그만 남김(`agents/clinical_slot.py:162-166`) |

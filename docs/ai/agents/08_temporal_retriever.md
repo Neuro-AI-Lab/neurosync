@@ -1,5 +1,7 @@
 # Agent 08: Clinical Context RAG Agent (TemporalRetrieverAgent)
 
+> **상태 배너**: 에이전트 미구현 — F2 범위는 domain_inference(14)로 대체(superseded-for-F2, PRD v2.4). 본 스펙은 F4(종단 검색) 재배치 대기. `apps/ai-server/src/agents/`에 `temporal_retriever` 구현 파일이 존재하지 않는다.
+
 ## 개요
 
 | 항목 | 내용 |

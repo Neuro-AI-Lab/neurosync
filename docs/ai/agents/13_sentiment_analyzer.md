@@ -7,7 +7,7 @@
 | **Agent ID** | `13` |
 | **Agent Name** | `SentimentAnalyzerAgent` |
 | **역할** | 발화 단위 감정 분석 + 세션 통합 sentiment 리포트 |
-| **LLM Routing** | benchmarked (Primary: Solar Pro 3 / Secondary: K-EXAONE / Fallback: A.X K1) |
+| **LLM Routing** | **Mode A(발화 단위)에만 적용.** benchmarked (Primary: Solar Pro 3 / Secondary: K-EXAONE / Fallback: A.X K1), 프롬프트 pin v2(`agents/sentiment_analyzer.py:40`). **Mode B(세션 통합)는 LLM을 전혀 호출하지 않는 순수 rule-based 집계**(Python `Counter`/산술 연산)다 — 아래 "동작 모드" 절 참조 |
 
 ## 목적
 
@@ -50,7 +50,7 @@ Dialogue 진행 중 매 턴마다 호출되어 해당 발화의 감정을 분류
 
 ### Mode B: 세션 통합 리포트 (session-level)
 
-세션 종료(또는 handoff 생성 직전) 시 호출되어, 전체 발화의 sentiment를 종합 분석한다.
+세션 종료(또는 handoff 생성 직전) 시 호출되어, 전체 발화의 sentiment를 종합 분석한다. **LLM을 호출하지 않는다** — Mode A 출력들을 입력으로 받아 감정 빈도 집계, polarity 평균, dominant emotion 산출 등을 순수 rule-based 연산(Python `Counter`/산술)으로 수행한다(`agents/sentiment_analyzer.py:140-` `_analyze_session`). 출력의 `prompt_version: "v1"`은 프롬프트가 로드되지 않는 cosmetic 라벨이다.
 
 **입력:**
 

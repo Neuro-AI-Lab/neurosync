@@ -7,7 +7,8 @@
 | **Agent ID** | `00` |
 | **Agent Name** | `PatientSimulator` |
 | **역할** | 가상 환자 역할 수행 (시뮬레이션 전용) |
-| **LLM Routing** | Solar Pro3 (temperature 0.7) |
+| **LLM Routing** | K-EXAONE (temperature 0.7) — Clinical agent(Solar Pro3)와 의도적으로 분리된 별도 벤더 |
+| **위치** | `apps/ai-server/tests/simulation/` (제품 코드가 아닌 테스트/시뮬레이션 자산) |
 | **용도** | DialogueAgent 검증을 위한 시뮬레이션 상대역 |
 
 ## 목적

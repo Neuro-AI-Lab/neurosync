@@ -7,7 +7,7 @@
 | **Agent ID** | `01` |
 | **Agent Name** | `OrchestratorAgent` |
 | **역할** | Task 1 전체 워크플로우 제어 및 에이전트 간 라우팅 |
-| **LLM Routing** | benchmarked (Primary: Upstage Solar Pro 3 / Secondary: LG K-EXAONE / Fallback: SKT A.X K1) |
+| **LLM Routing** | fixed / rule-based — **이 에이전트 자체는 LLM을 호출하지 않는다.** 모든 라우팅 결정은 rule-based 상태 머신이다(`agents/orchestrator.py:1-9`). "LLM Routing" 표기는 하위 에이전트 호출 시 그 에이전트들의 라우팅 정책을 가리키는 것이지 Orchestrator 자신의 것이 아니다 |
 
 ## 목적
 
@@ -23,7 +23,9 @@ input_received → safety_gate → context_retrieval → dialogue_loop → slot_
                     └─ CTRS 1-2 → crisis_flow (즉시)     └─ slot_coverage < 0.7 → dialogue_loop (반복)
 ```
 
-### 8개 상태 정의
+### 11개 상태 정의
+
+`schemas/orchestrator.py:14-27` (`SessionStage` enum) 기준. 파이프라인 흐름을 구성하는 8개 상태에 더해, 상태 머신의 종결/분기를 명시적으로 표현하는 3개 상태(`crisis_flow`, `completed`, `error`)가 별도 enum 값으로 존재한다.
 
 | 상태 | 설명 | 다음 상태 | 실패 시 |
 |---|---|---|---|
@@ -34,14 +36,17 @@ input_received → safety_gate → context_retrieval → dialogue_loop → slot_
 | `slot_extraction` | ClinicalSlot(04) 호출. 대화 전체에서 구조화된 slot 추출 | `handoff_generation` | 추출 실패 → 대화 원문으로 handoff 생성 시도 |
 | `handoff_generation` | HandoffGenerator(10) 호출. 12-section report 생성 | `evidence_verification` | 생성 실패 → minimal template report 생성 |
 | `evidence_verification` | EvidenceVerifier(11) 호출. release gate | passed → `handoff_delivery`, regenerate → `handoff_generation` (max 2회), reject → HTTP 422 | verifier 실패 → rule-based 검증만 수행 |
-| `handoff_delivery` | report 반환 및 세션 종료 처리 | (종료) | 저장 실패 → 재시도 후 경고 첨부 반환 |
+| `handoff_delivery` | report 반환 및 세션 종료 처리 | `completed` (정상 종료 시) | 저장 실패 → 재시도 후 경고 첨부 반환 |
+| `crisis_flow` | CTRS 1-2 분기 전용 상태. 아래 "Crisis Flow" 절 참조 | `completed` 또는 `handoff_delivery`(긴급 report 생성 후) | — |
+| `completed` | 세션 정상 종료 상태 | (종료) | — |
+| `error` | 상태 머신 자체의 처리 불가 오류를 나타내는 종결 상태 | (종료 또는 복구 재시도) | — |
 
 ### Crisis Flow (CTRS 1-2 분기)
 
 CTRS 1-2 감지 시 별도 crisis_flow 상태로 전환한다:
 
 1. 대화 즉시 중단 (dialogue_loop 중이면 강제 종료)
-2. CTRS level별 위기 대응 메시지 반환 (CTRS 1: 119/112 안내, CTRS 2: 109/119/112 안내)
+2. CTRS level별 위기 대응 메시지 반환 — **정정(BUG-009, open):** 실제 코드(`_CRISIS_MESSAGES`, `agents/orchestrator.py:57-68`)가 반환하는 메시지는 CTRS 1(`EMERGENCY`) "즉시 119 또는 112에 연락해 주세요. 자살예방상담전화 1393도 24시간 운영되고 있습니다", CTRS 2(`HIGH_RISK`) "자살예방상담전화 1393, 정신건강위기상담전화 1577-0199로 연락해 주세요"다. **"109"는 이 프로덕션 경로 어디에도 등장하지 않는다** — `f1.py`/`evidence_verifier.py`(`11_evidence_verifier.md`의 V-07 세부 규칙 참조, CTRS 1: `119|112|응급`, CTRS 2: `109|119|긴급|위기상담`) 등 이미 "109"로 표준화된 다른 위기 대응 표면과 불일치하는, 알려진 미해결 결함이다(BUG-009, `error.md`)
 3. Dashboard critical alert 생성
 4. Human review 즉시 등록
 5. 긴급 handoff report 생성 (수집된 정보 범위 내에서)
@@ -174,7 +179,7 @@ Orchestrator는 `context_retrieval` 단계에서 여러 source의 정보를 단�
 1. **AI는 진단하지 않는다.** Orchestrator는 어떤 단계에서도 진단명을 생성하거나 전달하지 않는다.
 2. **Safety gate 우회 불가.** 어떤 입력이든 SafetyClassifierAgent를 반드시 거친다.
 3. **CTRS 1-2는 모든 기능보다 우선한다.** Crisis flow 발동 시 다른 모든 처리를 즉시 중단한다.
-4. **LLM 판단은 보조 정보로만 사용한다.** Orchestrator의 라우팅 결정은 rule-based 상태 머신 기반이며, LLM은 애매한 상황의 판단 보조에만 사용한다.
+4. **Orchestrator 자신은 LLM을 호출하지 않는다.** 라우팅 결정은 전적으로 rule-based 상태 머신이다(`agents/orchestrator.py:1-9`, `routing/agent_model_registry.yaml`의 `orchestrator: strategy: fixed, adapter: none`). "애매한 상황의 판단 보조"는 하위 에이전트(SafetyClassifier 등)가 개별적으로 수행하는 것이며, Orchestrator 코드 경로 자체에는 LLM 호출이 존재하지 않는다.
 5. **구조화 척도 점수(PHQ-9, GAD-7)는 rule-based로 계산한다.** LLM에 점수 계산을 위임하지 않는다.
 
 ## 실패 시 대응
