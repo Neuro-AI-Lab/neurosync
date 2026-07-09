@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -90,9 +90,9 @@ class SktAkSttAdapter(VendorAdapter):
         audio: bytes,
         *,
         message_id: str,
-        keywords: Optional[list[str]] = None,
+        keywords: list[str] | None = None,
         agreement_of_data_collection: bool = False,
-        speech_model: Optional[str] = None,
+        speech_model: str | None = None,
         timeout_s: float = _TRANSCRIPT_TIMEOUT_S,
     ) -> dict[str, Any]:
         """Full batch pipeline. Returns raw transcript response body.

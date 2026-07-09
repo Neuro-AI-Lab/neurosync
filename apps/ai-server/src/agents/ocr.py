@@ -357,7 +357,10 @@ class OCRAgent(BaseAgent):
         gender_m = _GENDER_PATTERN.search(raw_text)
         if gender_m:
             g = gender_m.group(1)
-            summary.patient_gender = g if g in ("남성", "여성") else ("남성" if g == "남" else "여성")
+            if g in ("남성", "여성"):
+                summary.patient_gender = g
+            else:
+                summary.patient_gender = "남성" if g == "남" else "여성"
 
         return summary
 

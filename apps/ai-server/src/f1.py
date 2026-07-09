@@ -471,7 +471,10 @@ class F1Pipeline:
                         polarity=float(p.get("polarity", 0.0)),
                         arousal=str(p.get("arousal", "medium")),
                         emotions=[
-                            {"label": e.get("label", "neutral"), "intensity": e.get("intensity", 0.0)}
+                            {
+                                "label": e.get("label", "neutral"),
+                                "intensity": e.get("intensity", 0.0),
+                            }
                             for e in (p.get("emotions") or [])
                         ],
                         evidence_phrase=p.get("evidence_phrase", ""),
@@ -1451,14 +1454,23 @@ def _build_checklist(r: F1Result) -> str:
         "| Check | Status | Detail |",
         "|-------|--------|--------|",
         f"| SafetyClassifier 매 턴 호출 | PASS | {r.total_turns}턴 전체 호출 |",
-        f"| DialogueAgent 호출 | {'PASS' if not r.crisis_triggered or r.crisis_turn > 1 else 'N/A'} | "
-        f"{sum(1 for t in r.turns if not t.safety_crisis)}턴 호출 |",
-        f"| ClinicalSlotAgent 호출 | {'PASS' if any(t.slot_updates for t in r.turns) else 'WARN'} | "
-        f"slot extraction 실행 |",
+        (
+            f"| DialogueAgent 호출 | "
+            f"{'PASS' if not r.crisis_triggered or r.crisis_turn > 1 else 'N/A'} | "
+            f"{sum(1 for t in r.turns if not t.safety_crisis)}턴 호출 |"
+        ),
+        (
+            f"| ClinicalSlotAgent 호출 | "
+            f"{'PASS' if any(t.slot_updates for t in r.turns) else 'WARN'} | "
+            f"slot extraction 실행 |"
+        ),
         "| System prompt 주입 | PASS | 모든 agent에 PromptLoader로 주입 |",
         "| 대화 기록 append | PASS | 매 턴 conversation_history 누적 |",
         "| Full text 저장 (no truncation) | PASS | 모든 턴 전문 저장 |",
-        f"| Crisis 대응 (CTRS 1-2) | {'PASS — 109/119 안내' if r.crisis_triggered else 'N/A — crisis 미발생'} |",
+        (
+            f"| Crisis 대응 (CTRS 1-2) | "
+            f"{'PASS — 109/119 안내' if r.crisis_triggered else 'N/A — crisis 미발생'} |"
+        ),
         f"| Grounding filter 적용 | PASS | {n_discards}개 값 폐기 (ungrounded/system/risk) |",
         f"| Safety probe events | {len(r.probe_events)}건 | risk_floor={r.risk_floor} |",
         f"| Session CTRS (turn 0 포함 최솟값) | {r.session_ctrs} | |",
@@ -1480,7 +1492,9 @@ def _build_checklist(r: F1Result) -> str:
                       f"categories={t.safety_categories}, crisis={t.safety_crisis}")
         lines.append(f"- Dialogue: response_length={len(t.agent_response)}chars, "
                       f"targeted_slot={t.targeted_slot or 'none'}")
-        lines.append(f"- Slots updated: {list(t.slot_updates.keys()) if t.slot_updates else 'none'}")
+        lines.append(
+            f"- Slots updated: {list(t.slot_updates.keys()) if t.slot_updates else 'none'}"
+        )
         if t.slot_discards:
             lines.append(f"- Slots discarded: {list(t.slot_discards.keys())}")
         lines.append(f"- Coverage: legacy={t.slot_coverage:.0%}, "
@@ -1534,7 +1548,9 @@ def _build_report(r: F1Result) -> str:
         else:
             # Turn N: AI 응답 → Patient 응답 (다음 턴 입력)
             crisis_tag = " **[CRISIS]**" if t.safety_crisis else ""
-            lines.append(f"### Turn {t.turn} | CTRS={t.safety_ctrs} | risk={t.safety_risk}{crisis_tag}")
+            lines.append(
+                f"### Turn {t.turn} | CTRS={t.safety_ctrs} | risk={t.safety_risk}{crisis_tag}"
+            )
             lines.append("")
             lines.append(f"**AI**: {t.agent_response}")
             lines.append("")
@@ -1629,7 +1645,10 @@ def _build_report(r: F1Result) -> str:
             low_conf = doc.get("low_confidence_items") or []
             if low_conf:
                 lines.append(f"- 확인 필요: {len(low_conf)}개 항목")
-            lines.append(f"- 페이지: {doc.get('page_count', '?')} | 지연: {doc.get('latency_ms', 0):.0f}ms")
+            lines.append(
+                f"- 페이지: {doc.get('page_count', '?')} | "
+                f"지연: {doc.get('latency_ms', 0):.0f}ms"
+            )
             lines.append("")
 
     # STT transcripts (if any)

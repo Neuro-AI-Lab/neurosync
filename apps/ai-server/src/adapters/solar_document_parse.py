@@ -7,7 +7,7 @@ Endpoint: POST /v1/document-digitization with model=document-parse.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -62,7 +62,9 @@ class SolarDocumentParseAdapter(VendorAdapter):
                 redacted[key] = "***REDACTED***"
         # Never log document bytes
         if "document" in redacted:
-            redacted["document"] = f"<binary {len(redacted['document']) if isinstance(redacted['document'], (bytes, bytearray)) else '?'} bytes>"
+            doc = redacted["document"]
+            size = len(doc) if isinstance(doc, (bytes, bytearray)) else "?"
+            redacted["document"] = f"<binary {size} bytes>"
         return redacted
 
     async def parse(
@@ -71,7 +73,7 @@ class SolarDocumentParseAdapter(VendorAdapter):
         filename: str,
         *,
         content_type: str = "application/pdf",
-        output_formats: Optional[list[str]] = None,
+        output_formats: list[str] | None = None,
         coordinates: bool = True,
         chart_recognition: bool = True,
         ocr_mode: str = "auto",

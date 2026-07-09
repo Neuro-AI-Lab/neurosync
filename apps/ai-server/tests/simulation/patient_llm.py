@@ -196,7 +196,9 @@ class PatientLLM:
         _api_key = api_key or os.environ.get("LG_K_EXAONE_API_KEY", "")
         _model = model or os.environ.get("LG_K_EXAONE_ENDPOINT_ID", "")
         if not _api_key or not _model:
-            raise ValueError("LG_K_EXAONE_API_KEY and LG_K_EXAONE_ENDPOINT_ID must be set for Patient LLM")
+            raise ValueError(
+                "LG_K_EXAONE_API_KEY and LG_K_EXAONE_ENDPOINT_ID must be set for Patient LLM"
+            )
 
         self.persona = persona
         self._client = openai.AsyncOpenAI(api_key=_api_key, base_url=base_url)
@@ -213,7 +215,11 @@ class PatientLLM:
 
         # Role confusion check
         if _is_role_confused(patient_text):
-            logger.warning("[%s] Role confusion at turn %d — retrying", self.persona.persona_id, self._turn_count)
+            logger.warning(
+                "[%s] Role confusion at turn %d — retrying",
+                self.persona.persona_id,
+                self._turn_count,
+            )
             patient_text = await self._generate(reinforce=True)
             if _is_role_confused(patient_text):
                 patient_text = self._fallback_response()

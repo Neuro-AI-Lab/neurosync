@@ -98,9 +98,9 @@ def main() -> int:
         print(f"[ERR] PDF 없음 in {SIMULATION_DIR}", file=sys.stderr)
         return 1
 
-    print(f"=== Upstage Document Parse Smoke Test ===")
+    print("=== Upstage Document Parse Smoke Test ===")
     print(f"Base URL: {settings.upstage_base_url}")
-    print(f"Model:    document-parse")
+    print("Model:    document-parse")
     print(f"PDFs:     {len(pdfs)}")
     print()
 

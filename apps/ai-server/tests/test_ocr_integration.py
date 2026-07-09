@@ -126,7 +126,7 @@ async def main() -> int:
         print(f"[ERR] no PDFs found in {SIM_DIR}", file=sys.stderr)
         return 1
 
-    print(f"=== OCR Agent Integration Test ===")
+    print("=== OCR Agent Integration Test ===")
     print(f"Agent:   {agent.agent_name}")
     print(f"Adapter: {agent._adapter.adapter_name}")
     print(f"PDFs:    {len(pdfs)}")
@@ -162,7 +162,7 @@ async def main() -> int:
         print(f"  scale_scores:   {s['scale_scores']}")
         print(f"  dates:          {s['dates']}")
         if violations:
-            print(f"  VIOLATIONS:")
+            print("  VIOLATIONS:")
             for v in violations:
                 print(f"    ✗ {v}")
 

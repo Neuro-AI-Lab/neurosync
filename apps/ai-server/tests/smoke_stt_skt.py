@@ -219,7 +219,7 @@ def main() -> int:
         if not safety_ok:
             print(f"  ⚠️  safety markers lost: {lost}")
         else:
-            print(f"  safety:   preserved")
+            print("  safety:   preserved")
         print()
 
         results.append({

@@ -21,7 +21,6 @@ import asyncio
 import json
 import logging
 import os
-import re
 import sys
 from pathlib import Path
 
@@ -37,7 +36,9 @@ os.environ.setdefault(
 VP_DIR = REPO_ROOT / "docs" / "ai" / "simulation_results" / "VP-001"
 STT_RESULTS = VP_DIR / "VP-001_stt_smoke_results.json"
 ORIGINAL_TEXT_RUN = VP_DIR / "VP-001_20260708_140746_conversation.json"
-TTS_INDEX = REPO_ROOT / "docs" / "ai" / "simulation_results" / "tts_scripts" / "patient_tts_index.json"
+TTS_INDEX = (
+    REPO_ROOT / "docs" / "ai" / "simulation_results" / "tts_scripts" / "patient_tts_index.json"
+)
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +169,7 @@ async def main() -> int:
     # Save
     paths = save_f1_result(result, output_dir=REPO_ROOT / "docs" / "ai" / "simulation_results")
     print()
-    print(f"=== Replay result ===")
+    print("=== Replay result ===")
     print(f"  turns={result.total_turns} crisis={result.crisis_triggered} "
           f"coverage={result.slot_coverage:.0%} grounded={result.grounded_coverage:.0%} "
           f"errors={len(result.errors)}")
@@ -181,9 +182,18 @@ async def main() -> int:
     print("=== 비교: 원본 텍스트 vs STT 재현 ===")
     print(f"  turns:       original={diff['original_turns']} vs replay={diff['replay_turns']}")
     print(f"  crisis:      original={diff['original_crisis']} vs replay={diff['replay_crisis']}")
-    print(f"  coverage:    original={diff['original_coverage']:.0%} vs replay={diff['replay_coverage']:.0%}")
-    print(f"  grounded:    original={diff['original_grounded']:.0%} vs replay={diff['replay_grounded']:.0%}")
-    print(f"  session_ctrs: original={diff['original_ctrs_min']} vs replay={diff['replay_ctrs_min']}")
+    print(
+        f"  coverage:    original={diff['original_coverage']:.0%} "
+        f"vs replay={diff['replay_coverage']:.0%}"
+    )
+    print(
+        f"  grounded:    original={diff['original_grounded']:.0%} "
+        f"vs replay={diff['replay_grounded']:.0%}"
+    )
+    print(
+        f"  session_ctrs: original={diff['original_ctrs_min']} "
+        f"vs replay={diff['replay_ctrs_min']}"
+    )
     print(f"  slot existence match: {diff['slot_existence_match']}")
     print(f"  errors:      original={diff['original_errors']} vs replay={diff['replay_errors']}")
     print()
