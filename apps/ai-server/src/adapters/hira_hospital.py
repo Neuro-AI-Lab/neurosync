@@ -7,7 +7,7 @@ Reference: docs/ai/api/hira_kakao_map_api_usage_guide.md §2
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from src.adapters.hira_base import HiraApiError, HiraBaseAdapter
 from src.config import Settings
@@ -31,14 +31,14 @@ class HiraHospitalAdapter(HiraBaseAdapter):
     async def search(
         self,
         *,
-        lat: Optional[float] = None,
-        lng: Optional[float] = None,
-        radius_m: Optional[int] = None,
-        name: Optional[str] = None,
-        sido_code: Optional[str] = None,
-        sggu_code: Optional[str] = None,
-        subject_code: Optional[str] = None,
-        hospital_type_code: Optional[str] = None,
+        lat: float | None = None,
+        lng: float | None = None,
+        radius_m: int | None = None,
+        name: str | None = None,
+        sido_code: str | None = None,
+        sggu_code: str | None = None,
+        subject_code: str | None = None,
+        hospital_type_code: str | None = None,
         page_no: int = 1,
         num_of_rows: int = 20,
     ) -> tuple[dict, list[dict], dict]:

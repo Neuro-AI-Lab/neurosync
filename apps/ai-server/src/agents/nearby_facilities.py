@@ -20,7 +20,7 @@ from __future__ import annotations
 import logging
 import math
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from src.adapters.hira_base import HiraApiError
@@ -193,7 +193,11 @@ class NearbyFacilitiesAgent(BaseAgent):
                 )
         except HiraApiError as exc:
             logger.error("HIRA %s search failed: %s", inp.entity_type, exc)
-            return self._empty_response(inp.entity_type, inp, reason=f"HIRA {exc.result_code}: {exc.result_msg}")
+            return self._empty_response(
+                inp.entity_type,
+                inp,
+                reason=f"HIRA {exc.result_code}: {exc.result_msg}",
+            )
 
         return self._build_response(
             entity_type=inp.entity_type,
@@ -233,7 +237,11 @@ class NearbyFacilitiesAgent(BaseAgent):
                 )
         except HiraApiError as exc:
             logger.error("HIRA %s report failed: %s", inp.entity_type, exc)
-            return self._empty_response(inp.entity_type, inp, reason=f"HIRA {exc.result_code}: {exc.result_msg}")
+            return self._empty_response(
+                inp.entity_type,
+                inp,
+                reason=f"HIRA {exc.result_code}: {exc.result_msg}",
+            )
 
         return self._build_response(
             entity_type=inp.entity_type,
@@ -312,7 +320,7 @@ class NearbyFacilitiesAgent(BaseAgent):
         )
 
         return NearbyResponse(
-            generated_at=datetime.now(timezone.utc).isoformat(),
+            generated_at=datetime.now(UTC).isoformat(),
             source="HIRA",
             query=query,
             sources={entity_type: source_meta},
@@ -343,12 +351,14 @@ class NearbyFacilitiesAgent(BaseAgent):
             truncated=False,
         )
         return NearbyResponse(
-            generated_at=datetime.now(timezone.utc).isoformat(),
+            generated_at=datetime.now(UTC).isoformat(),
             source="HIRA",
             query=inp.model_dump(),
             sources={entity_type: source_meta},
             places=[],
             map=MapPayload(markers=[]),
-            notice=DEFAULT_NOTICE_HOSPITAL if entity_type == "hospital" else DEFAULT_NOTICE_PHARMACY,
+            notice=(
+                DEFAULT_NOTICE_HOSPITAL if entity_type == "hospital" else DEFAULT_NOTICE_PHARMACY
+            ),
             reason_summary=reason,
         )

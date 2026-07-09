@@ -547,7 +547,10 @@ class F1Pipeline:
                         polarity=float(p.get("polarity", 0.0)),
                         arousal=str(p.get("arousal", "medium")),
                         emotions=[
-                            {"label": e.get("label", "neutral"), "intensity": e.get("intensity", 0.0)}
+                            {
+                                "label": e.get("label", "neutral"),
+                                "intensity": e.get("intensity", 0.0),
+                            }
                             for e in (p.get("emotions") or [])
                         ],
                         evidence_phrase=p.get("evidence_phrase", ""),
@@ -1759,7 +1762,10 @@ def _build_report(r: F1Result) -> str:
             low_conf = doc.get("low_confidence_items") or []
             if low_conf:
                 lines.append(f"- 확인 필요: {len(low_conf)}개 항목")
-            lines.append(f"- 페이지: {doc.get('page_count', '?')} | 지연: {doc.get('latency_ms', 0):.0f}ms")
+            lines.append(
+                f"- 페이지: {doc.get('page_count', '?')} | "
+                f"지연: {doc.get('latency_ms', 0):.0f}ms"
+            )
             lines.append("")
 
     # STT transcripts (if any)

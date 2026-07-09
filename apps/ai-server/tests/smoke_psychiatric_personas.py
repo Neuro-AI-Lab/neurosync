@@ -20,8 +20,8 @@ from dotenv import load_dotenv
 REPO_ROOT = Path(__file__).resolve().parents[3]
 load_dotenv(REPO_ROOT / "apps" / "ai-server" / ".env")
 
-from src.dependencies import get_nearby_agent
-from src.schemas.nearby import NearbySearchInput
+from src.dependencies import get_nearby_agent  # noqa: E402
+from src.schemas.nearby import NearbySearchInput  # noqa: E402
 
 PERSONAS = [
     ("VP-001", "김서연 (28F 초진 경증 · 마포구)", 37.5807, 126.8898),
@@ -57,7 +57,10 @@ async def main() -> int:
         resp = await agent.search(inp)
         meta = resp.sources.get("hospital")
         total = meta.total_count if meta else 0
-        print(f"  🧠 정신과: {len(resp.places)}/{total}개 (반경 {RADIUS_KM}km 내 필터 후 {len(resp.places)}개)")
+        print(
+            f"  🧠 정신과: {len(resp.places)}/{total}개 "
+            f"(반경 {RADIUS_KM}km 내 필터 후 {len(resp.places)}개)"
+        )
         for pl in resp.places[:5]:
             typ = f" ({pl.type_name})" if pl.type_name else ""
             print(f"    - {pl.distance_km:.2f}km  {pl.name}{typ}")
@@ -92,7 +95,7 @@ async def main() -> int:
     print("\n" + "=" * 78)
     print(f"{'VP':<8}{'이름':<30}{'반경 내':<12}{'가장 가까운 곳'}")
     print("-" * 78)
-    for vp_id, name, lat, lng in PERSONAS:
+    for vp_id, name, _lat, _lng in PERSONAS:
         r = all_results[vp_id]
         closest = r["top5"][0] if r["top5"] else None
         cl = f"{closest['distance_km']:.2f}km {closest['name']}" if closest else "-"

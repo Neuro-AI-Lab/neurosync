@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -62,7 +62,7 @@ class KakaoLocalAdapter(VendorAdapter):
         self,
         query: str,
         *,
-        analyze_type: Optional[str] = None,
+        analyze_type: str | None = None,
         page: int = 1,
         size: int = 10,
         timeout_s: float = _DEFAULT_TIMEOUT_S,
@@ -134,7 +134,7 @@ class KakaoLocalAdapter(VendorAdapter):
             f"kakao-local: search_address failed after {_MAX_RETRIES + 1} attempts"
         ) from last_exc
 
-    async def geocode(self, address: str) -> Optional[tuple[float, float]]:
+    async def geocode(self, address: str) -> tuple[float, float] | None:
         """Convenience: return (lat, lng) or None on no result / failure.
 
         Spec §0 규칙: HIRA 좌표가 있으면 항상 우선. Kakao 결과는 fallback.

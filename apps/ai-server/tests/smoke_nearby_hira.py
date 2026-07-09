@@ -24,8 +24,8 @@ from dotenv import load_dotenv
 REPO_ROOT = Path(__file__).resolve().parents[3]
 load_dotenv(REPO_ROOT / "apps" / "ai-server" / ".env")
 
-from src.dependencies import get_nearby_agent
-from src.schemas.nearby import NearbySearchInput
+from src.dependencies import get_nearby_agent  # noqa: E402
+from src.schemas.nearby import NearbySearchInput  # noqa: E402
 
 # 테스트 기준 좌표: 서울시청 근처
 TEST_LAT = 37.5665
@@ -90,7 +90,7 @@ async def test_pharmacies(agent) -> dict:
 
 async def main() -> int:
     agent = get_nearby_agent()
-    print(f"=== HIRA Nearby Facilities Smoke Test ===")
+    print("=== HIRA Nearby Facilities Smoke Test ===")
     print(f"Agent: {agent.agent_name}")
     print(f"Hospital: {agent._hospital.base_url}")
     print(f"Pharmacy: {agent._pharmacy.base_url}")

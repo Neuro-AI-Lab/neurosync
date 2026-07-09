@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 import time
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from src.adapters.skt_ak_stt import SktAkSttAdapter
@@ -93,7 +93,7 @@ class STTAgent(BaseAgent):
 
         # FR-036: mark 48h retention expiry
         expires_at = (
-            datetime.now(timezone.utc) + timedelta(hours=_RETENTION_HOURS)
+            datetime.now(UTC) + timedelta(hours=_RETENTION_HOURS)
         ).isoformat()
 
         latency_ms = (time.perf_counter() - started) * 1000
@@ -123,7 +123,7 @@ class STTAgent(BaseAgent):
 
 def _empty_output(meta: STTInput, reason: str, latency_ms: float) -> STTOutput:
     expires_at = (
-        datetime.now(timezone.utc) + timedelta(hours=_RETENTION_HOURS)
+        datetime.now(UTC) + timedelta(hours=_RETENTION_HOURS)
     ).isoformat()
     return STTOutput(
         session_id=meta.session_id,

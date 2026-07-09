@@ -21,8 +21,8 @@ from dotenv import load_dotenv
 REPO_ROOT = Path(__file__).resolve().parents[3]
 load_dotenv(REPO_ROOT / "apps" / "ai-server" / ".env")
 
-from src.dependencies import get_kakao_local_adapter, get_nearby_agent
-from src.schemas.nearby import NearbySearchInput
+from src.dependencies import get_kakao_local_adapter, get_nearby_agent  # noqa: E402
+from src.schemas.nearby import NearbySearchInput  # noqa: E402
 
 # 3개 검증 케이스: 알려진 주소 + HIRA에서 받은 병원 주소 재검증
 TEST_ADDRESSES = [
@@ -82,7 +82,14 @@ async def test_hira_cross_verification(nearby_agent, kakao_adapter) -> list[dict
         kakao_result = await kakao_adapter.geocode(place.address)
         if kakao_result is None:
             print(f"  ✗ {place.name}: Kakao geocoding returned nothing")
-            results.append({"place": place.name, "hira_lat": place.lat, "hira_lng": place.lng, "kakao": None})
+            results.append(
+                {
+                    "place": place.name,
+                    "hira_lat": place.lat,
+                    "hira_lng": place.lng,
+                    "kakao": None,
+                }
+            )
             continue
         k_lat, k_lng = kakao_result
         # 두 좌표 간 거리 (rough — 100m 정도면 정상)

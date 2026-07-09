@@ -24,7 +24,7 @@ os.environ.setdefault(
     "PROMPTS_BASE_DIR", str(REPO_ROOT / "docs" / "ai" / "prompts")
 )
 
-from src.f1 import PERSONA_LOCATIONS, F1Pipeline, save_f1_result
+from src.f1 import PERSONA_LOCATIONS, F1Pipeline, save_f1_result  # noqa: E402
 
 # Canned 환자 응답 — 반드시 crisis 발동시키는 발화
 CRISIS_UTTERANCES = [
@@ -75,7 +75,7 @@ async def run_persona(vp_id: str, name: str) -> dict:
         (t for t in result.turns if t.safety_crisis), None
     )
     if crisis_turn_log:
-        print(f"\n  📢 CRISIS AI 응답:")
+        print("\n  📢 CRISIS AI 응답:")
         for line in crisis_turn_log.agent_response.split("\n"):
             print(f"    {line}")
 

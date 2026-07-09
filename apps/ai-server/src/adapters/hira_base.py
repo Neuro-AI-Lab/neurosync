@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -83,7 +83,7 @@ class HiraBaseAdapter(VendorAdapter):
         self,
         params: dict[str, Any],
         *,
-        operation: Optional[str] = None,
+        operation: str | None = None,
         timeout_s: float = _DEFAULT_TIMEOUT_S,
     ) -> dict[str, Any]:
         """Fetch a single page. Returns the full HIRA envelope (dict).
