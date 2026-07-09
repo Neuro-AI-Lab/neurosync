@@ -1,10 +1,20 @@
 """Bearer-token auth for the RAG router ONLY (ADR-013 option (a), VAL-005).
 
-VAL-005: `POST /ai/rag/grounding` was reachable unauthenticated at a hardcoded
-public IP, with a patient UUID acting as a de facto access credential. This
-module adds env-based bearer-token auth to `src.rag.route`'s router only —
-every other router (safety/handoff/chat/slots/survey/sentiment/temporal) is
-untouched.
+RETIRED — NOT DELETED (ADR-017/REV-013, 2026-07-09). `src.rag.route`'s router
+(the only consumer of `require_rag_api_key`) is no longer mounted in
+`src.main.app` — RAG HTTP serving is now a permanent, categorical
+out-of-scope decision (in-process only, now and at deployment). VAL-005 is
+structurally closed by the endpoint's absence, not by this auth layer alone.
+This module is kept (not deleted) exactly so that IF the route is ever
+remounted, this fail-closed auth is still here to require re-wiring — but
+remounting requires a fresh ADR + VAL-005 reopening review first (REV-013
+§2's explicit reversal safeguard; unauthorized re-open is prohibited).
+
+VAL-005 (historical): `POST /ai/rag/grounding` was reachable unauthenticated
+at a hardcoded public IP, with a patient UUID acting as a de facto access
+credential. This module added env-based bearer-token auth to
+`src.rag.route`'s router only — every other router
+(safety/handoff/chat/slots/survey/sentiment/temporal) is untouched.
 
 Fail-closed default: if `NS_RAG_API_KEY` is unset, requests are refused with
 503 (service unavailable) — NOT silently allowed through. The only opt-out is
