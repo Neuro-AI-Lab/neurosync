@@ -54,8 +54,25 @@ logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]  # apps/ai-server/src/f2.py → neurosync/
 
-# C-2: Stage 1 queries are drawn from these three F1 slots only.
-_STAGE1_QUERY_SLOTS = ("chief_complaint", "history_of_present_illness", "risk_assessment")
+# C-2: Stage 1 queries are drawn from these F1 slots only.
+# VAL-010 (2026-07-08, code-level mitigation — option a of REV-007
+# finding #3 / REV-010's two named options): `risk_assessment` used to be a
+# third query slot here. It is composed from the Safety Probe/SI-screen
+# exchange (`f1.py:360-373`) — genuinely risk-worded narration by
+# construction, not incidental — and embedding it verbatim as a retrieval
+# query systematically biased Stage 1 toward risk/crisis-topic chunks for
+# higher-risk personas (VP-003/VP-004): EXP-005's live batch showed VP-003's
+# RAG queries were the most risk-topic-saturated in the dataset, retrieving
+# explicit suicide/self-harm case content (e.g. qa:1685/qa:1730/qa:1164).
+# Excluded entirely rather than sanitized/summarized: a lexicon-based
+# sanitizer would only be as complete as its own coverage (the same
+# structural gap class BUG-014/BUG-015 already hit twice in this project's
+# risk-lexicon filter), whereas exclusion removes the bias channel
+# deterministically. chief_complaint/history_of_present_illness — the
+# primary symptom-description slots — continue to drive retrieval unchanged;
+# risk_assessment's SI-screen content does not carry independent
+# domain-retrieval signal beyond what those two slots already provide.
+_STAGE1_QUERY_SLOTS = ("chief_complaint", "history_of_present_illness")
 
 _REVISIT_GREETING_MARKER = "지난번 상담 기록을 확인했습니다"
 
@@ -150,8 +167,8 @@ async def run_stage1(
     queries = [final_slots[k2] for k2 in _STAGE1_QUERY_SLOTS if final_slots.get(k2)]
     if not queries:
         logger.warning(
-            "f2.stage1.no_queries — chief_complaint/HPI/risk_assessment all empty, "
-            "mode=llm_only"
+            "f2.stage1.no_queries — chief_complaint/HPI (VAL-010: risk_assessment "
+            "excluded from Stage-1 query slots) all empty, mode=llm_only"
         )
         return "llm_only", []
 
@@ -223,7 +240,14 @@ def _build_input(
 
 
 def _repro_metadata(
-    *, model_used: str, prompt_version: str, input_path: Path, mode: str, latency_ms: float
+    *,
+    model_used: str,
+    prompt_version: str,
+    input_path: Path,
+    mode: str,
+    latency_ms: float,
+    finish_reason: str | None = None,
+    usage: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     git_head = "unknown"
     try:
@@ -244,6 +268,11 @@ def _repro_metadata(
         "mode": mode,
         "latency_ms": round(latency_ms, 1),
         "generated_at": datetime.now().isoformat(),
+        # BUG-017 phase A: the LLM call's finish_reason/usage, so a future
+        # RAG-mode truncation hypothesis (finish_reason == "length") is
+        # falsifiable directly from a saved artifact, not just from logs.
+        "finish_reason": finish_reason,
+        "usage": usage,
     }
 
 
@@ -329,6 +358,10 @@ def _build_artifact(
         "model_used": output.model_used,
         "prompt_version": output.prompt_version,
         "latency_ms": output.latency_ms,
+        # BUG-017 phase A: mirrors repro["finish_reason"/"usage"] at the
+        # top level too, alongside model_used/prompt_version/latency_ms.
+        "finish_reason": output.finish_reason,
+        "usage": output.usage,
     }
 
 
@@ -358,6 +391,11 @@ def _build_report(artifact: dict[str, Any]) -> str:
         f"| mode | **{repro['mode']}** |",
         f"| latency_ms | {repro['latency_ms']} |",
         f"| generated_at | {repro['generated_at']} |",
+        # BUG-017 phase A diagnostic instrumentation — repro.get(...) (not
+        # repro[...]) so artifacts/tests built from a pre-BUG-017 repro dict
+        # (missing these keys) don't KeyError.
+        f"| finish_reason | {repro.get('finish_reason')} |",
+        f"| usage | {repro.get('usage')} |",
         "",
         "## Retrieval",
         "",
@@ -513,6 +551,7 @@ async def _run(args: argparse.Namespace) -> None:
     repro = _repro_metadata(
         model_used=output.model_used, prompt_version=output.prompt_version,
         input_path=input_path, mode=mode, latency_ms=output.latency_ms,
+        finish_reason=output.finish_reason, usage=output.usage,
     )
     artifact = _build_artifact(
         output=output, domain_candidates=filtered_candidates, repro=repro,

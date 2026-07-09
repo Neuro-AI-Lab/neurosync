@@ -72,9 +72,17 @@ def _build_user_content(inp: DomainInferenceInput) -> str:
             parts.append(f"- {s.scale_name}: {s.total_score} ({s.severity})")
 
     if inp.retrieved_chunks:
-        parts.append("\n## 검색된 근거 청크 (source_type=rag_chunk, source_id=chunk_id)")
+        # BUG-016 (REV-010 finding 1): the literal string "chunk_id=" used to
+        # sit directly adjacent to the id below, and the model sometimes
+        # echoed that literal label into the source_id field it emitted
+        # (e.g. "chunk_id=case_card:687"), which cost genuine evidence at
+        # the exact-match lookup in src.eval.f2_grounding.check_evidence.
+        # Defense in depth only — the deterministic fix is the code-level
+        # normalization in check_evidence itself; this wording change just
+        # removes the easy trigger.
+        parts.append("\n## 검색된 근거 청크 (source_type=rag_chunk, [ ] 안 값이 source_id)")
         for c in inp.retrieved_chunks:
-            parts.append(f"- chunk_id={c.chunk_id} [{c.source_type}]: {c.text}")
+            parts.append(f"- [{c.chunk_id}] ({c.source_type}): {c.text}")
     else:
         parts.append(
             "\n## 검색된 근거 청크: 없음 (mode=llm_only) — rag_chunk 근거를 인용할 수 없습니다."
@@ -131,16 +139,36 @@ class DomainInferenceAgent(BaseAgent):
         adapter: LLMAdapter,
         model_id: str,
         response_format: dict[str, Any] | None,
-    ) -> tuple[str, str, float]:
-        """Return (raw_content, model_used, latency_ms). Raises on transport failure."""
+    ) -> tuple[str, str, float, str | None, dict[str, int] | None]:
+        """Return (raw_content, model_used, latency_ms, finish_reason, usage).
+
+        Raises on transport failure. BUG-017 phase A: `finish_reason`/`usage`
+        (`ChatResponse.finish_reason`/`.usage`, `src/adapters/base.py`) used
+        to be silently discarded here, which made the RAG-mode truncation
+        hypothesis unfalsifiable from this project's own logs —
+        `finish_reason == "length"` is the OpenAI-compatible API's own direct
+        truncation signal. Now captured and threaded through by the caller
+        for logging + persistence.
+
+        BUG-017 phase B (2026-07-09): the diagnostic run confirmed the
+        hypothesis directly — VP-003 RAG run
+        (`docs/ai/simulation_results/VP-003/VP-003_20260709_110457_domain_
+        inference.json`) returned `finish_reason="length"` with
+        `usage.completion_tokens == 1536` (exactly the prior ceiling),
+        `usage.prompt_tokens == 2665`. `max_tokens` raised from 1536 to
+        4096 (global, both `llm_only`/`rag`) — see this dispatch's RESULT
+        for the value/scope rationale. This is the only change BUG-017
+        phase B makes; no retrieval/prompt-size change (that is a separate,
+        held Track-3 item, REV-011 Issue 5).
+        """
         resp = await adapter.chat_timed(
             messages,
             model=model_id,
             temperature=0.2,
-            max_tokens=1536,
+            max_tokens=4096,
             response_format=response_format,
         )
-        return resp.content, resp.model, resp.latency_ms
+        return resp.content, resp.model, resp.latency_ms, resp.finish_reason, resp.usage
 
     async def run(self, inp: AgentInput, **kwargs: Any) -> DomainInferenceOutput:
         """Stage 2 LLM call → parsed candidates. Never crashes: parse/transport
@@ -179,8 +207,10 @@ class DomainInferenceAgent(BaseAgent):
         model_used = "none"
         raw_content = ""
         reason = ""
+        finish_reason: str | None = None
+        usage: dict[str, int] | None = None
         try:
-            raw_content, model_used, _ = await self._call(
+            raw_content, model_used, _, finish_reason, usage = await self._call(
                 messages, adapter, selection.model_id, response_format
             )
             self._router.record_success(selection.adapter_name)
@@ -208,7 +238,7 @@ class DomainInferenceAgent(BaseAgent):
                     if fallback.supports_json_schema or fallback.supports_json_object
                     else None
                 )
-                raw_content, model_used, _ = await self._call(
+                raw_content, model_used, _, finish_reason, usage = await self._call(
                     messages, fb_adapter, fallback.model_id, fb_format
                 )
                 self._router.record_success(fallback.adapter_name)
@@ -226,16 +256,30 @@ class DomainInferenceAgent(BaseAgent):
         parsed, reason = self._parse(raw_content)
         latency_ms = (time.perf_counter() - start) * 1000
 
+        # BUG-017 phase A: log finish_reason/usage on EVERY call outcome
+        # (success and parse/schema failure alike) so a future RAG-mode
+        # truncation hypothesis (finish_reason == "length") is falsifiable
+        # from this project's own logs, not just inferred from a character
+        # offset (REV-010 finding 2 / VAL-010 correlation note).
         if parsed is None:
-            logger.warning("DomainInference parse failure: %s", reason)
+            logger.warning(
+                "DomainInference parse failure: %s (model=%s, finish_reason=%s, usage=%s)",
+                reason, model_used, finish_reason, usage,
+            )
             return DomainInferenceOutput(
                 model_used=model_used,
                 prompt_version=PROMPT_VERSION,
                 latency_ms=latency_ms,
                 reason_summary=reason,
                 retrieval_meta=retrieval_meta,
+                finish_reason=finish_reason,
+                usage=usage,
             )
 
+        logger.info(
+            "DomainInference call ok — model=%s, finish_reason=%s, usage=%s",
+            model_used, finish_reason, usage,
+        )
         return DomainInferenceOutput(
             model_used=model_used,
             prompt_version=PROMPT_VERSION,
@@ -246,4 +290,6 @@ class DomainInferenceAgent(BaseAgent):
             summary=parsed.summary,
             retrieval_meta=retrieval_meta,
             additional_questions=parsed.additional_questions,
+            finish_reason=finish_reason,
+            usage=usage,
         )

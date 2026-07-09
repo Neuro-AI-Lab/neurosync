@@ -88,6 +88,82 @@ class TestRunStage1:
         assert chunks == fake_chunks
 
 
+class TestVal010RiskAssessmentExcludedFromStage1Query:
+    """VAL-010 code-level mitigation (REV-007 finding #3 / REV-010 finding
+    3): `risk_assessment` (composed from the Safety Probe/SI-screen
+    exchange, genuinely risk-worded by construction) must not be embedded
+    verbatim as a Stage-1 retrieval query -- it systematically biased
+    Stage-1 retrieval toward risk/crisis-topic chunks for higher-risk
+    personas. chief_complaint/history_of_present_illness continue to drive
+    retrieval unchanged."""
+
+    def test_stage1_query_slots_excludes_risk_assessment(self) -> None:
+        assert f2._STAGE1_QUERY_SLOTS == ("chief_complaint", "history_of_present_illness")
+        assert "risk_assessment" not in f2._STAGE1_QUERY_SLOTS
+
+    @pytest.mark.asyncio
+    async def test_risk_worded_risk_assessment_not_embedded_as_query(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(f2, "get_sessionmaker", lambda: (lambda: _FakeSession()))
+        mock_retrieve = AsyncMock(return_value=[])
+        monkeypatch.setattr("src.rag.retrieval.retrieve_domain_chunks", mock_retrieve)
+
+        risk_text = "살고 싶지 않다고 표현, 구체적 자살 계획 보고"
+        final_slots = {
+            "chief_complaint": "불안감과 수면 문제",
+            "history_of_present_illness": "2주 전부터 악화",
+            "risk_assessment": risk_text,
+        }
+        mode, chunks = await f2.run_stage1(final_slots, no_rag=False, k=3)
+
+        assert mode == "rag"
+        mock_retrieve.assert_awaited_once()
+        called_queries = mock_retrieve.call_args.args[1]
+        assert risk_text not in called_queries, (
+            "VAL-010 regression: risk_assessment's risk-worded text was "
+            "embedded verbatim as a Stage-1 retrieval query."
+        )
+        assert called_queries == ["불안감과 수면 문제", "2주 전부터 악화"]
+
+    @pytest.mark.asyncio
+    async def test_chief_complaint_only_still_composes_a_query(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Legitimate clinical retrieval relevance is unaffected: a
+        risk_assessment-only run (no chief_complaint/HPI) still falls back
+        to llm_only as before (VAL-010 must not silently create RAG-mode
+        queries out of thin air), and chief_complaint/HPI alone are
+        sufficient to drive mode=rag."""
+        monkeypatch.setattr(f2, "get_sessionmaker", lambda: (lambda: _FakeSession()))
+        mock_retrieve = AsyncMock(return_value=[])
+        monkeypatch.setattr("src.rag.retrieval.retrieve_domain_chunks", mock_retrieve)
+
+        mode, chunks = await f2.run_stage1(
+            {"risk_assessment": "자살사고 있음"}, no_rag=False, k=3
+        )
+        assert mode == "llm_only"
+        mock_retrieve.assert_not_awaited()
+
+        mode, chunks = await f2.run_stage1(
+            {"chief_complaint": "불안감과 수면 문제"}, no_rag=False, k=3
+        )
+        assert mode == "rag"
+
+    def test_queries_used_composition_in_cli_run_excludes_risk_assessment(self) -> None:
+        """Mirrors `f2._run`'s `queries_used` composition (same
+        `_STAGE1_QUERY_SLOTS` source of truth)."""
+        final_slots = {
+            "chief_complaint": "불안감과 수면 문제",
+            "history_of_present_illness": "2주 전부터 악화",
+            "risk_assessment": "자살사고 있음, 구체적 계획 보고",
+        }
+        queries_used = [
+            final_slots[k] for k in f2._STAGE1_QUERY_SLOTS if final_slots.get(k)
+        ]
+        assert queries_used == ["불안감과 수면 문제", "2주 전부터 악화"]
+
+
 class TestIsFirstVisitInference:
     def test_first_visit_default_when_no_marker(self) -> None:
         data = {"turns": [{"turn": 0, "agent_response": "안녕하세요! 사전문진을 시작합니다."}]}

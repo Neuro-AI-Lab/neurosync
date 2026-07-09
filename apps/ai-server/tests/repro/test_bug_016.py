@@ -35,13 +35,28 @@ this file is self-contained.
 
 Severity/fix options: see `error.md` BUG-016 (prompt wording vs. code-level
 source_id normalization in `check_evidence`).
+
+FIXED (2026-07-08, PLAN-2026-W28-G T1-dev): both options landed. Primary
+(deterministic, option b) -- `check_evidence` now strips a leading
+`chunk_id=` prefix (`_normalize_rag_chunk_source_id`,
+`src/eval/f2_grounding.py`) before the `chunk_texts` lookup, once, using the
+normalized id for both the lookup and the recorded verdict. Defense in
+depth (option a) -- `_build_user_content`'s per-chunk listing wording
+(`domain_inference.py`) no longer places the literal string `chunk_id=`
+directly adjacent to the id. Tests 1 and 4 below are inverted accordingly
+(were: reproduce the over-rejection; now: confirm it no longer occurs) per
+the BUG-007/BUG-014/BUG-015 repro-test convention; test 2 (control) is
+unchanged. Test 3 (previously a self-contained inline oracle computed
+WITHOUT calling the still-buggy `check_evidence` for the prefixed case) is
+updated to call `check_evidence` for both the prefixed and unprefixed id
+and confirm they now converge -- the oracle it demonstrated is now the
+real, live code path, not a hypothetical for a future developer to port.
 """
 
 from __future__ import annotations
 
 from src.eval.f2_grounding import (
     VERDICT_ACCEPTED,
-    VERDICT_REJECTED_UNKNOWN_SOURCE,
     check_evidence,
     filter_domain_candidates,
 )
@@ -59,12 +74,17 @@ _REAL_QUOTE = _REAL_CHUNK_TEXT
 
 
 class TestBug016ChunkIdPrefixEcho:
-    def test_prefixed_source_id_rejected_as_unknown_source(self) -> None:
-        """Reproduces the exact production defect: the model's source_id
-        carries the literal `chunk_id=` prefix from the prompt's own
-        per-chunk listing wording (domain_inference.py:75,77);
-        check_evidence's exact-match lookup rejects it even though the
-        chunk and quote are both genuine."""
+    def test_prefixed_source_id_accepted_after_normalization_fix(self) -> None:
+        """BUG-016 fixed (2026-07-08, PLAN-2026-W28-G T1-dev): the exact
+        production defect -- the model's source_id carries the literal
+        `chunk_id=` prefix from the prompt's own per-chunk listing wording
+        (domain_inference.py, now reworded as defense-in-depth) -- no longer
+        causes an over-rejection. `check_evidence` (`f2_grounding.py`,
+        `_normalize_rag_chunk_source_id`) strips the prefix before the
+        `chunk_texts` lookup, so the genuine, well-grounded chunk/quote is
+        accepted. Inverted from the pre-fix assertion
+        (`rejected_unknown_source`) per the BUG-007/BUG-014/BUG-015
+        repro-test convention."""
         v = check_evidence(
             "rag_chunk",
             f"chunk_id={_REAL_CHUNK_ID}",
@@ -73,14 +93,15 @@ class TestBug016ChunkIdPrefixEcho:
             utterances={},
             domain="depression",
         )
-        assert v.verdict == VERDICT_REJECTED_UNKNOWN_SOURCE, (
-            f"BUG-016: expected the prefixed source_id to reproduce "
-            f"rejected_unknown_source (pre-fix behavior); got {v.verdict!r}. "
-            "If this now passes, the source_id lookup may already be "
-            "prefix-tolerant -- update error.md and invert this assertion "
-            "per the BUG-007/BUG-015 precedent."
+        assert v.verdict == VERDICT_ACCEPTED, (
+            f"BUG-016 regression: expected the chunk_id=-prefixed source_id "
+            f"to be normalized and accepted (post-fix behavior); got "
+            f"{v.verdict!r} ({v.reason!r})."
         )
-        assert "not among the chunk_ids actually retrieved" in v.reason
+        # The recorded verdict carries the NORMALIZED id (BUG-016 fix
+        # requirement: normalize once, use for both the lookup and the
+        # recorded verdict), not the raw prefixed one the model emitted.
+        assert v.source_id == _REAL_CHUNK_ID
 
     def test_unprefixed_source_id_is_accepted_control(self) -> None:
         """Control: the SAME chunk_id/quote pair, without the spurious
@@ -97,39 +118,42 @@ class TestBug016ChunkIdPrefixEcho:
         )
         assert v.verdict == VERDICT_ACCEPTED
 
-    def test_stripping_the_prefix_recovers_acceptance(self) -> None:
-        """Demonstrates the normalization-strip fix option (one of the two
-        REV-010/BUG-016 fix options: defensively stripping a literal
-        'chunk_id=' prefix from source_id before the chunk_texts lookup).
-        This is a self-contained oracle computed inline -- it does NOT
-        modify src/eval/f2_grounding.py; qa's charter is repro tests only."""
+    def test_prefixed_and_unprefixed_source_id_now_converge(self) -> None:
+        """BUG-016 fixed: this test used to demonstrate the normalization-
+        strip fix option as a self-contained inline oracle WITHOUT calling
+        into `check_evidence` for the prefixed case (`check_evidence` itself
+        was still buggy at the time). Now that the fix has landed in
+        `check_evidence` (`_normalize_rag_chunk_source_id`), both the
+        prefixed and unprefixed source_id for the SAME chunk/quote converge
+        on the same accepted verdict through the real code path -- there is
+        no longer a behavioral difference to strip manually."""
         prefixed = f"chunk_id={_REAL_CHUNK_ID}"
-        normalized = prefixed.removeprefix("chunk_id=")
-        assert normalized == _REAL_CHUNK_ID
 
-        v_before = check_evidence(
+        v_prefixed = check_evidence(
             "rag_chunk", prefixed, _REAL_QUOTE,
             chunk_texts={_REAL_CHUNK_ID: _REAL_CHUNK_TEXT}, utterances={},
             domain="depression",
         )
-        v_after = check_evidence(
-            "rag_chunk", normalized, _REAL_QUOTE,
+        v_unprefixed = check_evidence(
+            "rag_chunk", _REAL_CHUNK_ID, _REAL_QUOTE,
             chunk_texts={_REAL_CHUNK_ID: _REAL_CHUNK_TEXT}, utterances={},
             domain="depression",
         )
-        assert v_before.verdict == VERDICT_REJECTED_UNKNOWN_SOURCE
-        assert v_after.verdict == VERDICT_ACCEPTED
+        assert v_prefixed.verdict == VERDICT_ACCEPTED
+        assert v_unprefixed.verdict == VERDICT_ACCEPTED
+        assert v_prefixed.source_id == v_unprefixed.source_id == _REAL_CHUNK_ID
 
-    def test_cascade_eliminates_candidate_when_sole_evidence_is_prefixed(self) -> None:
-        """REV-010's flagged downstream risk (not observed in EXP-005 --
-        every affected domain that batch retained >=1 other accepted item
-        -- but a live risk in a sparser-evidence run, per REV-010's own
-        wording: "could push a candidate to 0 accepted evidence and
-        trigger an incorrect elimination"): a domain candidate whose ONLY
-        evidence item carries the chunk_id= prefix is fully eliminated by
-        filter_domain_candidates's "no evidence, no candidate" cascade
-        (DomainCandidate.evidence min_length=1), even though the evidence
-        is genuine and well-grounded."""
+    def test_cascade_no_longer_eliminates_candidate_when_sole_evidence_is_prefixed(
+        self,
+    ) -> None:
+        """BUG-016 fixed: REV-010's flagged downstream risk ("could push a
+        candidate to 0 accepted evidence and trigger an incorrect
+        elimination") no longer materializes. A domain candidate whose ONLY
+        evidence item carries the chunk_id= prefix now SURVIVES
+        filter_domain_candidates's cascade -- the normalization fix means
+        the genuine, well-grounded evidence is accepted, not stripped.
+        Inverted from the pre-fix assertion (`filtered == []`) per the
+        BUG-007/BUG-014/BUG-015 repro-test convention."""
         domain_candidates = [
             DomainCandidate(
                 domain="depression", confidence=0.6,
@@ -145,10 +169,19 @@ class TestBug016ChunkIdPrefixEcho:
             chunk_texts={_REAL_CHUNK_ID: _REAL_CHUNK_TEXT},
             utterances={},
         )
-        assert filtered == [], (
-            "BUG-016 cascade risk: expected the sole-evidence candidate to "
-            "be eliminated (pre-fix). If this now survives, the source_id "
-            "lookup may already be prefix-tolerant -- update error.md."
+        assert len(filtered) == 1, (
+            "BUG-016 regression: expected the sole-evidence candidate to "
+            "survive (post-fix behavior) -- it was eliminated instead."
         )
-        assert counts["rejected_unknown_source"] == 1
-        assert counts["accepted"] == 0
+        assert filtered[0].domain == "depression"
+        assert len(filtered[0].evidence) == 1
+        # NOTE: the normalized id is used for the LOOKUP and the recorded
+        # EvidenceVerdict (see the prior test) -- the surviving
+        # DomainCandidate.evidence item itself is the model's original,
+        # un-mutated DomainEvidence object, so its source_id stays the raw
+        # (prefixed) string the model actually emitted. This preserves full
+        # audit fidelity of what the LLM said, distinct from what was
+        # verified against.
+        assert filtered[0].evidence[0].source_id == f"chunk_id={_REAL_CHUNK_ID}"
+        assert counts["accepted"] == 1
+        assert counts["rejected_unknown_source"] == 0

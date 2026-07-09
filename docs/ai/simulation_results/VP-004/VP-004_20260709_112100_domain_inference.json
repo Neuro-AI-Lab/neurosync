@@ -1,0 +1,125 @@
+{
+  "session_id": "f1_VP-004",
+  "persona_id": "VP-004",
+  "repro": {
+    "git_head": "9d857fe403567fd2c501879e5ab30bbe5a5500e0",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-004/VP-004_20260707_155542_conversation.json",
+    "input_sha256": "8ad65b5b25dfae9dde75a342ed3981126e68966b9e87d90ed99e9ba681e54901",
+    "mode": "llm_only",
+    "latency_ms": 4239.4,
+    "generated_at": "2026-07-09T11:21:00.099788",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 1503,
+      "completion_tokens": 367,
+      "total_tokens": 1870
+    }
+  },
+  "domain_candidates": [
+    {
+      "domain": "anxiety",
+      "confidence": 0.35,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_0",
+          "quote": "공황 발작이 오면 진짜 죽을 것 같고, 그 생각만 하면 또 올까 봐 무서워요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_1",
+          "quote": "공황 발작이 오면 진짜 죽을 것 같고, 그 생각만 하면 또 올까 봐 무서워요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_2",
+          "quote": "이제는 숨이 안 쉬어져서 죽는 것 같아요."
+        }
+      ],
+      "recommended_surveys": [
+        "GAD-7"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "공황 발작과 죽음에 대한 공포, 재발에 대한 두려움, 약물 치료 실패 및 악화 증상이 관찰됨",
+      "domain_ref": "anxiety"
+    }
+  ],
+  "summary": "환자는 약물 치료에도 불구하고 증상이 악화되었으며, 공황 발작 시 죽음에 대한 극심한 공포와 재발에 대한 두려움을 호소하고 있습니다. 호흡 곤란과 죽음에 대한 생각이 반복적으로 나타나며, 약물 치료에 대한 반응이 없어 정신건강의학과 진료가 필요합니다.",
+  "retrieval_meta": {
+    "mode": "llm_only",
+    "chunks_returned": 0,
+    "chunk_ids": [],
+    "queries": null
+  },
+  "chunk_texts": {},
+  "utterances": {
+    "turn_0": "약을 두 번이나 바꿨는데도 안 나아져요. 오히려 더 나빠진 것 같아요.  \n공황 발작이 오면 진짜 죽을 것 같고, 그 생각만 하면 또 올까 봐 무서워요.  \n근데 이게 나을 수 있는 건가요…?",
+    "turn_1": "약을 두 번이나 바꿨는데도 안 나아져요. 오히려 더 나빠진 것 같아요.  \n공황 발작이 오면 진짜 죽을 것 같고, 그 생각만 하면 또 올까 봐 무서워요.  \n근데 이게 나을 수 있는 건가요…?",
+    "turn_2": "가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요. 근데 한 적은 없어요.  \n근데 진짜로... 이제는 숨이 안 쉬어져서 죽는 것 같아요.  \n어머니가 전화하시면 울고 있는 목소리 들릴까 봐 받기도 싫고..."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 3,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 0
+    },
+    "verdicts": [
+      {
+        "domain": "anxiety",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "공황 발작이 오면 진짜 죽을 것 같고, 그 생각만 하면 또 올까 봐 무서워요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text (ISS-046 panic fear-of-dying idiom — legitimate anxiety-domain evidence, not risk content; SM-07a precedent)"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "공황 발작이 오면 진짜 죽을 것 같고, 그 생각만 하면 또 올까 봐 무서워요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text (ISS-046 panic fear-of-dying idiom — legitimate anxiety-domain evidence, not risk content; SM-07a precedent)"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "이제는 숨이 안 쉬어져서 죽는 것 같아요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text (ISS-046 panic fear-of-dying idiom — legitimate anxiety-domain evidence, not risk content; SM-07a precedent)"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 1,
+    "candidates_after": 1,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 0,
+    "evidence_stripped_risk_lexicon": 0
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "공황 발작의 빈도와 지속 시간은 어떻게 되나요?",
+    "현재 복용 중인 약물의 이름과 용량은 무엇인가요?",
+    "공황 발작 외에 다른 신체 증상(예: 심계항진, 떨림, 발한 등)이 동반되나요?",
+    "가족력 중 정신건강 질환이 있나요?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 4239.390469156206,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 1503,
+    "completion_tokens": 367,
+    "total_tokens": 1870
+  }
+}

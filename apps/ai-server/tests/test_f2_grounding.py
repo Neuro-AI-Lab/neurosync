@@ -24,6 +24,7 @@ from src.eval.f2_grounding import (
     VERDICT_REJECTED_RISK_LEXICON,
     VERDICT_REJECTED_UNKNOWN_SOURCE,
     VERDICT_REJECTED_UNKNOWN_TYPE,
+    _normalize_rag_chunk_source_id,
     audit_domain_candidates,
     check_evidence,
     filter_domain_candidates,
@@ -76,6 +77,49 @@ class TestCheckEvidenceRejectsHallucinatedSource:
             chunk_texts=_CHUNK_TEXTS, utterances=_UTTERANCES,
         )
         assert v.verdict == VERDICT_REJECTED_UNKNOWN_TYPE
+
+
+class TestBug016ChunkIdPrefixNormalization:
+    """BUG-016 (REV-010 finding 1) — a rag_chunk source_id carrying a benign
+    `chunk_id=` prefix echo (the model sometimes reflects the prompt's own
+    per-chunk listing label back into source_id) must not cost genuine,
+    well-grounded evidence. See tests/repro/test_bug_016.py for the
+    production-artifact-derived repro; this class covers the normalization
+    primitive and its edge cases directly."""
+
+    def test_normalize_strips_exact_prefix(self) -> None:
+        assert _normalize_rag_chunk_source_id("chunk_id=case_card:687") == "case_card:687"
+
+    def test_normalize_strips_whitespace_variant(self) -> None:
+        assert _normalize_rag_chunk_source_id("chunk_id = case_card:687") == "case_card:687"
+        assert _normalize_rag_chunk_source_id("chunk_id= case_card:687") == "case_card:687"
+        assert _normalize_rag_chunk_source_id("chunk_id =case_card:687") == "case_card:687"
+
+    def test_normalize_leaves_unprefixed_id_unchanged(self) -> None:
+        assert _normalize_rag_chunk_source_id("case_card:687") == "case_card:687"
+
+    def test_normalize_only_strips_leading_prefix(self) -> None:
+        """A chunk_id that legitimately CONTAINS the substring elsewhere
+        (not as a leading prefix) must not be mangled."""
+        assert _normalize_rag_chunk_source_id("qa:chunk_id=5") == "qa:chunk_id=5"
+
+    def test_check_evidence_accepts_prefixed_rag_chunk_source_id(self) -> None:
+        v = check_evidence(
+            "rag_chunk", "chunk_id=case_card:1", "불안감과 수면 문제",
+            chunk_texts=_CHUNK_TEXTS, utterances=_UTTERANCES,
+        )
+        assert v.verdict == VERDICT_ACCEPTED
+        assert v.source_id == "case_card:1"  # normalized id recorded, not raw
+
+    def test_check_evidence_normalization_is_rag_chunk_only(self) -> None:
+        """The `chunk_id=` prefix strip must not apply to `utterance`
+        source_ids (a turn_id like `turn_0` would never legitimately carry
+        this prefix; normalizing it anyway would be scope creep)."""
+        v = check_evidence(
+            "utterance", "chunk_id=turn_0", "잠을 잘 못 자",
+            chunk_texts=_CHUNK_TEXTS, utterances=_UTTERANCES,
+        )
+        assert v.verdict == VERDICT_REJECTED_UNKNOWN_SOURCE
 
 
 class TestCheckEvidenceRejectsQuoteMismatch:

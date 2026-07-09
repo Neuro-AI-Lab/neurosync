@@ -760,3 +760,76 @@ ISS-041(DR-001 §4 register, "문서 무결성 스위프")의 6개 서브 항목
 3. **PR**: filemanager가 커밋 1건(무 trailer)으로 브랜치 `docs/agent-specs-sync`를 push하고 base Master PR을 연다 — 본 DR-008 및 checklist 갱신 완료가 그 전제조건이다.
 
 ---
+
+## DR-009 | 2026-07-09 | F2 RAG-arm remediation (PLAN-2026-W28-G) — BUG-016 resolved, BUG-017 truncation mechanism resolved, RAG-arm certification NOT LIFTED (ADR-016)
+
+> **Scope and sourcing:** every number and claim below is already recorded in `discussion.md` (PLAN-2026-W28-G, REV-011, REV-012, ADR-016), `result.md` (EXP-006), and `error.md` (BUG-016/BUG-017/BUG-019, VAL-010). No new measurement or reinterpretation is performed here. This entry is bound by REV-012 §6's wording-license table: the RAG arm is not described as certified, passed, verified, "거의 다 됐다" (nearly done), or carrying only a "minor residual" gap anywhere below. The `llm_only` arm's existing certification (`ADR-015` (1)) is unaffected by this batch and is reported unchanged.
+
+### 1. Mission and gates
+
+PLAN-2026-W28-G ("F2 RAG-arm 개발·검증·고도화 계획") targeted the three defects `ADR-015` (2) named as the RAG arm's certification path: `BUG-016` (`chunk_id=` source_id prefix echo), `BUG-017` (VP-003 RAG-mode LLM-output reliability), and `VAL-010` (`risk_assessment`-as-Stage-1-query channel), followed by a clean VP-003 RAG n=2 re-verification. The gate sequence followed this project's established two-gate pattern: qa's code gate (W3a, suite green at 707 passed / 0 failed) and critic's plan gate (W3b, `REV-011` — non-blocking, 4 major/3 minor conditions, none blocking the live run). Stage 0 (filemanager) confirmed the working branch `feat/f2-rag-remediation` sits at `9d857fe` (= `origin/Master`; PR #39/#40 were already merged — the HANDOFF premise of "unmerged" was a stale local-ref artifact, no action needed).
+
+### 2. Remediation delivered (developer, qa-verified)
+
+| Item | Fix | qa verification |
+|:--|:--|:--|
+| `BUG-016` | Code-level normalization — `check_evidence` strips a leading `chunk_id=` prefix from `rag_chunk` source_id before the `chunk_texts` lookup (deterministic, option b) + a prompt-wording defense-in-depth line | GATE:PASS; mutation-checked non-vacuous; confirmed `rag_chunk`-scoped only (not applied to `utterance` evidence) |
+| `BUG-017` phase A | `finish_reason`/`usage` captured on every `DomainInferenceAgent` call outcome (success and parse/schema failure), threaded through `DomainInferenceOutput` into the saved artifact JSON and `report.md` | GATE:PASS; verified end-to-end (adapter → schema → artifact → report) |
+| `BUG-017` phase B | `max_tokens` raised 1536→4096 in `domain_inference.py`'s `_call`, single-variable, no retrieval/prompt-content change bundled | GATE:PASS; diff-scope confirmed to exactly this one line; no per-mode conditional |
+| `VAL-010` (code mitigation) | `_STAGE1_QUERY_SLOTS` narrowed to `(chief_complaint, history_of_present_illness)` — `risk_assessment` fully excluded | critic `REV-011` §2: correctly and deterministically implemented, zero legitimate clinical signal lost (`risk_assessment` is 100% risk-topic content by construction, `f1.py:360-376`) |
+
+### 3. EXP-006 — diagnostic + certification batch
+
+`experiment-tracker`'s `EXP-006` (`result.md`) covers two sub-steps: the W4a BUG-017 diagnostic (n=1, pre-phase-B) and the certification batch (n=16, post-phase-B) — 17/17 runs executed, no infra failures, mode verified per run (16/16 `retrieval_meta.mode` matches the requested arm exactly).
+
+| Metric | Value | Source |
+|:--|:--|:--|
+| W4a diagnostic (pre-fix, `max_tokens=1536`) | `finish_reason="length"`, `completion_tokens=1536` exactly at ceiling — truncation confirmed | EXP-006 "W4a — BUG-017 diagnostic" |
+| Post-fix (`max_tokens=4096`), certification batch | 0/16 runs show `finish_reason="length"`; batch-max `completion_tokens=1590` (`rag/VP-001/run1`) | EXP-006 "finish_reason / usage" |
+| `BUG-016` evidence — RAG arm `rejected_unknown_source` | **0/32** this batch, vs `EXP-005`'s 10/35 (~29%) | EXP-006 "BUG-016 evidence" |
+| VP-003 RAG interpretable | **0/2** — both `finish_reason="stop"` (not truncated), Pydantic schema-validation failure (1 and 3 errors respectively) | EXP-006 "finish_reason / usage" |
+| New failure this batch | `rag/VP-001/run1` — identical signature (`finish_reason="stop"`, `completion_tokens=1590`, schema-validation failure: 3 errors); VP-001 was clean in both `EXP-005` RAG runs | EXP-006 Key finding #5 |
+| RAG-arm interpretability | **5/8 clean this batch (3/8 LLM-output failures: `VP-001/run1` new + `VP-003` both), down from `EXP-005`'s 6/8 clean / 2/8 failed** | EXP-006 Key finding #5; REV-012 §3 |
+| Rollback trigger (secondary manual taxonomy audit, all accepted post-cascade quotes, both arms) | **0/49** match the broader taxonomy (17 llm_only + 32 RAG); 14 primary-counter interceptions (13 llm_only `VP-003` both runs + 1 RAG `VP-002/run2`) | EXP-006 "Rollback-trigger verdict"; REV-012 §1 |
+| Fabrication (non-risk-lexicon rejections) | llm_only 0/17, RAG 0/32 | EXP-006 "BUG-016 evidence" |
+| RAG scoring (DATASET-004, raw counts) | top-1 5/8, top-3 5/8 — all 3 misses are 0-candidate LLM-output-failure outcomes, not accuracy misses | EXP-006 "DATASET-004 scoring" |
+| llm_only scoring | top-1 7/8, top-3 7/8 — intended-cost, unchanged from `EXP-005` (same `VP-003/run2` miss) | EXP-006 "DATASET-004 scoring" |
+| Latency (p50/p95, ms) | llm_only 4060.95/6729.2; RAG 8009.45/10426.9 | EXP-006 "Latency" — descriptive only, n=8/arm not powered for a formal claim |
+
+The circularity caveat (`DATASET-004` item (b) — golden labels and F2 input text share one authoring source per persona) binds every scoring number above, per `DATASET-004`/`REV-007` Part A amendment 3.
+
+### 4. Certification disposition — REV-012 (critic) + ADR-016 (orchestrator)
+
+Critic's `REV-012` (the mission's designated W5 authoritative evidence-review gate) independently re-derived every number in §3 from the raw 16 `*_domain_inference.json` artifacts (not accepted from `result.md`'s prose). Scored against `ADR-015` (2)'s three named conditions:
+
+| Condition | Verdict |
+|:--|:--|
+| (1) Fix `chunk_id=` defect (`BUG-016`) | **MET** |
+| (2) Fix VP-003 RAG output reliability, clean n=2 re-verification | **NOT MET** |
+| (3) `VAL-010` mitigation standing-ized | **PARTIALLY MET** — procedural obligation discharged, underlying concern unresolved |
+
+**Ruling (`REV-012` §4, adopted verbatim as `ADR-016`):** "RAG 잔류 EXPERIMENTAL — 2/3 인증조건 충족(BUG-016 해소, 진단된 절단 메커니즘 해소), 1/3 미충족(VP-003 RAG 클린 재검증)." A partial or per-persona certification (e.g. certifying VP-001/VP-002/VP-004 while excluding VP-003) is explicitly not licensed — VP-003 is the persona this project's own governing chain (`VAL-006`→`REV-008`→`DATASET-004`) established as the one whose risk≠domain behavior matters most under RAG mode, and it has never produced a single interpretable RAG-mode result across `EXP-005` and `EXP-006`. Genuine progress is named distinctly and not discounted by the unmet condition: `BUG-016` is a clean, verified win; `BUG-017`'s diagnosed truncation mechanism is a clean, verified win (the diagnostic-run-before-batch design worked exactly as intended); the risk≠domain rule held demonstrably under fire (0/49, 14 active interceptions including a correct RAG-arm catch of unrelated AI-Hub corpus risk content); mode-honesty and like-for-like input integrity are intact across all 16 runs.
+
+### 5. New defect and VAL-010 disposition
+
+**`BUG-019`** (qa, filed 2026-07-09, major, open) — VP-003 RAG's new schema-validation-failure mode is distinct from `BUG-017`'s diagnosed truncation mechanism (`finish_reason="stop"` in all 3 failures this batch, not `"length"`) and its root cause is undiagnosable from current artifacts: `DomainInferenceAgent._parse` discards Pydantic's `ValidationError` down to a bare `exc.error_count()`, never `exc.errors()` (the field-level detail) or the raw LLM response text, and no code path persists either anywhere (artifact JSON, `report.md`, or `stdout.log`). This is the same class of diagnostic gap `BUG-017` phase A closed for the truncation hypothesis, now reopened for a new failure mode. `BUG-019` is the new precondition for any future RAG-arm certification attempt (`ADR-016` (4)).
+
+**`VAL-010`** stays open. The code mitigation is confirmed in effect this batch (`risk_assessment` text absent from all 8 RAG runs' `retrieval_meta.queries`), but the underlying concern is not resolved: VP-003's `chief_complaint`/HPI queries reproduce the exact structural-incompleteness pattern `REV-011` §2 predicted, for a second consecutive batch (`EXP-005`, `EXP-006`) — both risk-worded by persona design, both retrieving explicit suicide/self-harm AI-Hub content (`qa:1685` recurs in both runs' `chunk_ids`). Because both VP-003 RAG runs this batch produced zero domain candidates, there is no shipped evidence to check — the empirical question `VAL-010` exists to answer remains genuinely unanswered, not merely unmonitored. The standing `retrieval_meta.queries` audit continues, unconditionally, on every future RAG batch (`REV-011` §3 rule ii, reaffirmed `REV-012` §5).
+
+### 6. Enhancement (고도화) options — awaiting user decision
+
+`brainstorm`'s Wave-1 result (`PLAN-2026-W28-G` T3-plan) ranked 7 RAG-quality enhancement options; critic's `REV-011` §4 independently re-graded each against the shipped code:
+
+- **Low-risk bucket (4):** k-value sweep (k∈{2,3,5}, pure parameter variation — defer any k>3 diagnostic on VP-003 until `BUG-019` is closed); chunk relevance cap/rerank before prompt (bounded, additive over an existing `score` field, plausible complementary mitigation for output-length pressure); chunk-echo prevention hardening at the prompt level (already shipped as part of the `BUG-016` fix, not a separable future item); RAG-aware prompt improvements + evidence-source-type reporting (the reporting half is purely additive and low-risk; the prompt-improvement half needs a concrete, bounded wording change named before execution).
+- **Hold bucket (3):** better query construction / rule-based clinical-term extraction (shares the exact locus `VAL-010`'s still-unresolved mitigation just changed — stacking a second query-composition change now would make any future result impossible to attribute to one change or the other); domain ontology corpus (`rag.symptom`/`rag.disease`) as a third Stage-1 source (mission-scale — needs its own PLAN/critic review/qa gate, not a Track-3 ride-along); raising the RAG-mode evidence floor to ≥2 (would retroactively change `DATASET-004`'s pre-registered "0-candidate = miss" scoring convention — requires explicit user sign-off).
+
+Options #2 and #4 (reporting half) change default retrieval/metrics behavior and must not ship inside the same batch as any future certification re-run without explicit disclosure (`REV-011` Issue #5). `ADR-016` recommends holding architecture-level enhancement (#5/#6/#7) while the RAG arm remains uncertified. No option has been executed under this mission — all 7 are reported here as ranked, awaiting user decision on execution scope.
+
+### 7. Next steps
+
+1. **`BUG-019` diagnostic → fix → clean re-verification** (the RAG-arm certification precondition, `ADR-016` (4)): persist the raw LLM response text (or at minimum `ValidationError.errors()`) on schema-validation failure, mirroring `BUG-017` phase A's precedent; diagnose the specific field(s)/pattern; fix; then re-run VP-003 (and, given `VP-001/run1`'s new failure, VP-001) RAG n=2 cleanly, passing the secondary taxonomy audit, before any further RAG-arm certification attempt.
+2. **Standing `retrieval_meta.queries` audit** continues on every future RAG batch, unconditionally (`VAL-010`, `REV-011` §3 rule ii).
+3. **Enhancement options** (§6): awaiting user decision on execution scope; the low-risk bucket may proceed independently of the certification question, subject to the sequencing/confound notes above.
+4. **Carried, out of this mission's scope** (unchanged by this batch): `BUG-008/009/011/012/018`, `VAL-001/004/005/007/009` — see `development_report.md` DR-007 §6 / DR-008 §7 for the full historical carry list.
+
+---
