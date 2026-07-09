@@ -181,10 +181,21 @@ REV-010(critic, EXP-005 전수 재감사) 채택 결과, 비인증 범위가 부
 
 | ID | 요지 | 심각도 | 상태 |
 |---|---|---|---|
-| BUG-016 | `domain_inference.py:75,77`의 프롬프트 문구("chunk_id=" 라벨)를 모델이 `source_id`에 그대로 echo하는 경우가 있어, `f2_grounding.py:247-254`의 정확-일치 조회가 실패 → 실제로는 유효한 `rag_chunk` evidence가 `rejected_unknown_source`로 과잉 거부됨. 방향은 보수적(허위 근거 채택이 아닌 정당한 근거의 누락)이며 위험은 evidence가 이 항목 하나뿐인 candidate가 캐스케이드로 통째 탈락할 수 있다는 점 | major | open |
-| BUG-017 | RAG 모드 LLM 출력이 파싱/스키마 검증에 실패하는 사례(`domain_inference.py:117-123` 파싱, `:128-143` `_call`) — `max_tokens=1536` 고정값이 RAG 모드의 더 긴 프롬프트에서 절단을 유발했을 가능성이 유력 가설이나, `finish_reason`/`usage`가 로그·출력 스키마 어디에도 기록되지 않아 현재 아티팩트만으로는 확증/반증이 불가능함 | major | open |
+| BUG-016 | `domain_inference.py:75,77`의 프롬프트 문구("chunk_id=" 라벨)를 모델이 `source_id`에 그대로 echo하는 경우가 있어, `f2_grounding.py:247-254`의 정확-일치 조회가 실패 → 실제로는 유효한 `rag_chunk` evidence가 `rejected_unknown_source`로 과잉 거부됨. 방향은 보수적(허위 근거 채택이 아닌 정당한 근거의 누락)이며 위험은 evidence가 이 항목 하나뿐인 candidate가 캐스케이드로 통째 탈락할 수 있다는 점 | major | **resolved** — 코드 레벨 정규화(`_normalize_rag_chunk_source_id`) 라이브 확인(n=32, 0/32 과잉거부, `EXP-006`) |
+| BUG-017 | RAG 모드 LLM 출력이 파싱/스키마 검증에 실패하는 사례(`domain_inference.py:117-123` 파싱, `:128-143` `_call`) — `max_tokens=1536` 고정값이 RAG 모드의 더 긴 프롬프트에서 절단을 유발했을 가능성이 유력 가설이나, `finish_reason`/`usage`가 로그·출력 스키마 어디에도 기록되지 않아 현재 아티팩트만으로는 확증/반증이 불가능함 | major | 진단된 절단 메커니즘은 해소(`max_tokens` 1536→4096, `finish_reason="length"` 0/16 post-fix) — 실질 증상은 `BUG-019`로 잔존, BUG 자체는 open |
+| BUG-019 | `RetrievedChunk.source_type`(DB 테이블 출처: `case_card`/`qa`)와 `DomainEvidence.source_type`(스키마 provenance enum: `rag_chunk`/`utterance`)가 필드명을 공유해, 프롬프트의 청크 나열 형식이 모델에게 이를 시각적으로 혼동시킴 — `qa`-테이블 청크를 인용할 때 간헐적으로 `source_type`에 `qa`/`qa:NNN` 같은 잘못된 값이 채워져 schema validation 실패(`finish_reason=stop`, 절단 아님, `BUG-017`과 별개 메커니즘) | major | **근본원인 진단·수정·코드검증 완료**(`EXP-007` 라이브 진단, `_normalize_source_type_collision`, qa `GATE:PASS`) — 라이브 clean VP-003/VP-001 RAG n=2 재검증 미실시로 **open 유지** |
 
-두 결함 모두 실패 시 빈 출력 또는 evidence 탈락으로 **보수적으로(fabrication 방향이 아닌 방향으로) 저하**되며, 크래시나 허위 근거 채택을 유발하지 않는다(위 "Stage 2" 절의 never-crash 설계와 일치).
+세 결함 모두 실패 시 빈 출력 또는 evidence 탈락으로 **보수적으로(fabrication 방향이 아닌 방향으로) 저하**되며, 크래시나 허위 근거 채택을 유발하지 않는다(위 "Stage 2" 절의 never-crash 설계와 일치).
+
+## AI 예상질환(AI-predicted-disease) 엔티티 — 별도 컨테이너, sibling key (PLAN-2026-W28-H Track B, 2026-07-09)
+
+이 에이전트(14)의 RAG top-5 disease 후보를 기반으로 하는 새 비진단·비임상 필드다. `f2.py`가 이를 기존 `domain_candidates` 출력에 **병합하지 않고** sibling key로 배선한다 — 즉 F2 산출물에 나란히 존재하는 별개 컨테이너다.
+
+- **스키마:** `AIPredictedDiseaseCandidate`(disease + `similarity_score`) 목록 + `AIPredictedDiseaseOutput`(`is_diagnostic: Literal[False]`, 고정 `disclaimer_ko`).
+- **라벨링(`REV-013` §4, binding):** `similarity_score`("유사도 점수") 외 라벨 금지(`probability`/`확률`/`가능성(%)`/`confidence` 전부 금지). top-5 간 softmax 정규화 없음.
+- **구조적 격리:** 04(`ClinicalSlotAgent`)의 12개 슬롯이나 `HandoffInput`의 어떤 typed field에도 병합되지 않는다 — qa의 9-테스트 adversarial suite(`tests/test_hpi_isolation.py`)가 `AgentInput.extra`/`state.conversation_history` 두 채널을 포함해 이를 확인했다(`REV-013` §3 조건 1 충족). 상세: `docs/ai/agents/04_clinical_slot.md`.
+- **상태:** 컨테이너만 구축됨(`mode="experimental_unpopulated"`) — 라이브 실채움은 이 에이전트의 RAG-arm 인증(아래 "인증 상태" 절)에 게이트된다. RAG arm이 EXPERIMENTAL/UNCERTIFIED로 잔류하는 한 실채움 대상 라이브 데이터가 없다.
+- 근거: `discussion.md` PLAN-2026-W28-H Track B, REV-013 §3/§4; `error.md` BUG-019 "Track B" subsection; `development_report.md` DR-010 §3.
 
 ## 핵심 동작
 
@@ -225,4 +236,7 @@ REV-010(critic, EXP-005 전수 재감사) 채택 결과, 비인증 범위가 부
 | API 라우트 | `apps/ai-server/src/routes/domain.py` |
 | 시스템 프롬프트 | `docs/ai/prompts/domain_inference/v1.system.md`(롤백 대비), `v2.system.md`(라이브) |
 | 라우팅 설정 | `apps/ai-server/src/routing/agent_model_registry.yaml` (`domain_inference` 항목) |
-| 관련 결정/리뷰 | ADR-014, ADR-015, REV-006/007/008/009/010, VAL-006, VAL-010, BUG-016, BUG-017 (`discussion.md`, `error.md`) |
+| 관련 결정/리뷰 | ADR-014, ADR-015, ADR-016, ADR-017, REV-006/007/008/009/010/011/012/013, VAL-006, VAL-010, BUG-016(resolved), BUG-017(open), BUG-019(open) (`discussion.md`, `error.md`) |
+| AI 예상질환 스키마 (Track B) | `apps/ai-server/src/schemas/ai_predicted_disease.py` |
+| HPI 격리 adversarial 테스트 (Track B, qa) | `apps/ai-server/tests/test_hpi_isolation.py` |
+| continuous_test.py 하네스 (Track C) | `apps/ai-server/src/continuous_test.py` |
