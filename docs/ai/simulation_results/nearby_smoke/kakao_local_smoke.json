@@ -1,0 +1,57 @@
+{
+  "direct": [
+    {
+      "query": "서울특별시청",
+      "found": false,
+      "address_name": null,
+      "x_lng": null,
+      "y_lat": null,
+      "total_count": 0
+    },
+    {
+      "query": "서울특별시 종로구 세종대로 172",
+      "found": true,
+      "address_name": "서울 종로구 세종대로 지하 172",
+      "x_lng": "126.976787992565",
+      "y_lat": "37.5716228232824",
+      "total_count": 1
+    },
+    {
+      "query": "경기도 성남시 분당구 판교역로 235",
+      "found": true,
+      "address_name": "경기 성남시 분당구 판교역로 235",
+      "x_lng": "127.108690978068",
+      "y_lat": "37.402048486442",
+      "total_count": 1
+    }
+  ],
+  "cross_verification": [
+    {
+      "place": "아미나요양병원",
+      "address": "서울특별시 종로구 경희궁길 26, 썬타워빌딩 지하1층, 지상2,3,4,5,6,7층 (신문로2가)",
+      "hira_lat": 37.5722735,
+      "hira_lng": 126.9709911,
+      "kakao_lat": 37.572273501222,
+      "kakao_lng": 126.970991105824,
+      "delta_m": 0.0
+    },
+    {
+      "place": "강북삼성병원",
+      "address": "서울특별시 종로구 새문안로 29, (평동)",
+      "hira_lat": 37.5684083,
+      "hira_lng": 126.96775,
+      "kakao_lat": 37.5688677261045,
+      "kakao_lng": 126.967812703696,
+      "delta_m": 51.4
+    },
+    {
+      "place": "서울적십자병원",
+      "address": "서울특별시 종로구 새문안로 9, 적십자병원 (평동)",
+      "hira_lat": 37.5671805,
+      "hira_lng": 126.9669974,
+      "kakao_lat": 37.5667630123693,
+      "kakao_lng": 126.967202493985,
+      "delta_m": 49.8
+    }
+  ]
+}

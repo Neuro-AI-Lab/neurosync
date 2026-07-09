@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -81,6 +81,46 @@ class Settings(BaseSettings):
     encryption_key: str = Field(
         default="",
         description="AES-256-GCM 키 (base64-urlsafe 32B). **api와 동일 값**이어야 앱이 복호화 가능",
+    )
+
+    # ── HIRA (건강보험심사평가원 병원/약국) ────────────────────────────
+    # 공공데이터포털 Open API. Backend only — Service Key는 client에 노출 금지.
+    hira_service_key: str = Field(
+        default="",
+        description="HIRA Open API 일반 인증키 (공공데이터포털 발급)",
+    )
+    hira_hospital_service_url: str = Field(
+        default="https://apis.data.go.kr/B551182/hospInfoServicev2",
+        description="HIRA 병원정보서비스 base endpoint",
+    )
+    hira_pharmacy_service_url: str = Field(
+        default="https://apis.data.go.kr/B551182/pharmacyInfoService",
+        description="HIRA 약국정보서비스 base endpoint",
+    )
+
+    # ── Kakao (좌표 보정 · 지도 SDK) ────────────────────────────────────
+    # .env에서 KAKAO_REST_KEY_ENCODED / KAKAO_JS_KEY_ENCODED 로 저장한
+    # 실제 키 값을 우선 로드. KAKAO_REST_API_KEY / KAKAO_MAP_JAVASCRIPT_KEY
+    # 이름 관례 (docs)도 병행 지원.
+    kakao_rest_api_key: str = Field(
+        default="",
+        description="Kakao Local REST API 키 (backend only). address geocoding용",
+        validation_alias=AliasChoices(
+            "KAKAO_REST_KEY_ENCODED",
+            "KAKAO_REST_API_KEY_ACTUAL",
+        ),
+    )
+    kakao_map_javascript_key: str = Field(
+        default="",
+        description="Kakao Maps JavaScript SDK 키 (Web client에서 사용)",
+        validation_alias=AliasChoices(
+            "KAKAO_JS_KEY_ENCODED",
+            "KAKAO_MAP_JAVASCRIPT_KEY",
+        ),
+    )
+    kakao_local_rest_base_url: str = Field(
+        default="https://dapi.kakao.com",
+        description="Kakao Local REST API base URL",
     )
 
     # ── Application ───────────────────────────────────────────────────

@@ -1,0 +1,82 @@
+[
+  {
+    "vp_id": "VP-003",
+    "name": "박민수",
+    "crisis_triggered": true,
+    "crisis_turn": 2,
+    "nearby_psychiatric": [
+      {
+        "rank": 1,
+        "name": "중앙대학교병원",
+        "distance_km": 3.278,
+        "phone": "1800-1114",
+        "address": "서울특별시 동작구 흑석로 102, (흑석동)",
+        "type_name": "상급종합",
+        "lat": 37.5067481,
+        "lng": 126.9607839
+      },
+      {
+        "rank": 2,
+        "name": "대림성모병원",
+        "distance_km": 4.147,
+        "phone": "02-829-9000",
+        "address": "서울특별시 영등포구 시흥대로 657, (대림동, 대림성모병원)",
+        "type_name": "종합병원",
+        "lat": 37.4906979,
+        "lng": 126.9072208
+      },
+      {
+        "rank": 3,
+        "name": "가톨릭대학교 여의도성모병원",
+        "distance_km": 4.648,
+        "phone": "1661-7575",
+        "address": "서울특별시 영등포구 63로 10, 여의도성모병원 (여의도동)",
+        "type_name": "종합병원",
+        "lat": 37.5183253,
+        "lng": 126.9367517
+      }
+    ],
+    "conversation_path": "/home/seohyun/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260709_145459_conversation.json",
+    "report_path": "/home/seohyun/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260709_145459_report.md"
+  },
+  {
+    "vp_id": "VP-004",
+    "name": "최하은",
+    "crisis_triggered": true,
+    "crisis_turn": 2,
+    "nearby_psychiatric": [
+      {
+        "rank": 1,
+        "name": "이화여자대학교의과대학부속서울병원",
+        "distance_km": 1.359,
+        "phone": "1522-7000",
+        "address": "서울특별시 강서구 공항대로 260, 이화의대부속서울병원 (마곡동)",
+        "type_name": "종합병원",
+        "lat": 37.5572629,
+        "lng": 126.8362668
+      },
+      {
+        "rank": 2,
+        "name": "이화여자대학교의과대학부속목동병원",
+        "distance_km": 3.61,
+        "phone": "02-2650-5114",
+        "address": "서울특별시 양천구 안양천로 1071, (목동)",
+        "type_name": "상급종합",
+        "lat": 37.536602,
+        "lng": 126.8862043
+      },
+      {
+        "rank": 3,
+        "name": "서울특별시서남병원",
+        "distance_km": 4.568,
+        "phone": "1566-6688",
+        "address": "서울특별시 양천구 신정이펜1로 20, (신정동)",
+        "type_name": "종합병원",
+        "lat": 37.5120195,
+        "lng": 126.8331531
+      }
+    ],
+    "conversation_path": "/home/seohyun/neurosync/docs/ai/simulation_results/VP-004/VP-004_20260709_145507_conversation.json",
+    "report_path": "/home/seohyun/neurosync/docs/ai/simulation_results/VP-004/VP-004_20260709_145507_report.md"
+  }
+]
