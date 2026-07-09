@@ -7,10 +7,11 @@ Exposes:
 - POST /ai/chat/respond
 - POST /ai/slots/extract
 - POST /ai/survey/score
+- POST /ai/ocr/parse
+- POST /ai/stt/transcribe
 - POST /ai/rag/grounding (bearer-token auth, NS_RAG_API_KEY — ADR-013)
 - POST /ai/domain/infer (F2, standalone — not wired into orchestrator.py)
-- GET  /ai/nearby/hospitals(/report), /ai/nearby/pharmacies(/report) — HIRA + Kakao
-- (future) /ai/stt/transcribe, /ai/ocr/parse
+- GET  /ai/nearby/hospitals(/report), /ai/nearby/pharmacies(/report), /ai/nearby/ui — HIRA + Kakao
 """
 
 from __future__ import annotations
@@ -25,9 +26,11 @@ from src.routes.chat import router as chat_router
 from src.routes.domain import router as domain_router
 from src.routes.handoff import router as handoff_router
 from src.routes.nearby import router as nearby_router
+from src.routes.ocr import router as ocr_router
 from src.routes.safety import router as safety_router
 from src.routes.sentiment import router as sentiment_router
 from src.routes.slots import router as slots_router
+from src.routes.stt import router as stt_router
 from src.routes.survey import router as survey_router
 from src.routes.temporal import router as temporal_router
 
@@ -48,6 +51,8 @@ app.include_router(survey_router)
 app.include_router(sentiment_router)
 app.include_router(temporal_router)
 app.include_router(rag_router)
+app.include_router(ocr_router)
+app.include_router(stt_router)
 # F2 (PLAN-2026-W28-C) — standalone route, NOT wired into orchestrator.py's
 # 11-state machine (G-D gate defers production integration).
 app.include_router(domain_router)

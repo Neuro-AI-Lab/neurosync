@@ -41,13 +41,20 @@ class Settings(BaseSettings):
     )
 
     # ── SKT A.X ───────────────────────────────────────────────────────
-    skt_a_x_api_key: str = Field(default="", description="SKT A.X API key")
+    # Accept both SKT_A_X_API_KEY (docs canonical) and SKT_A_X_K1 (local .env legacy)
+    # for the same field to keep back-compat.
+    skt_a_x_api_key: str = Field(
+        default="",
+        description="SKT A.X API key (LLM + STT — single key for both)",
+        validation_alias=AliasChoices("SKT_A_X_API_KEY", "SKT_A_X_K1"),
+    )
     skt_a_x_rest_base_url: str = Field(
         default="https://awf-gw.adot.ai",
         description="SKT A.X REST gateway base URL",
+        validation_alias=AliasChoices("SKT_A_X_REST_BASE_URL", "SKT_A_X_BASE_URL"),
     )
     skt_a_x_ws_base_url: str = Field(
-        default="",
+        default="wss://awf-gw.adot.ai",
         description="SKT A.X WebSocket base URL for streaming STT",
     )
     skt_a_x_llm_model: str = Field(
@@ -55,11 +62,11 @@ class Settings(BaseSettings):
         description="SKT A.X LLM model identifier",
     )
     skt_a_x_stt_streaming_model: str = Field(
-        default="",
+        default="A.X_STT_note_streaming",
         description="SKT A.X streaming STT model",
     )
     skt_a_x_stt_batch_model: str = Field(
-        default="",
+        default="A.X_STT_note_batch",
         description="SKT A.X batch STT model",
     )
 
