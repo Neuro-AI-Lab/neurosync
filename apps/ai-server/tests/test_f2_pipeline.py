@@ -641,3 +641,529 @@ class TestCascadeWiredIntoArtifact:
         assert artifact["department_candidates"][0]["domain_ref"] == "depression"
         assert len(artifact["orphan_departments"]) == 1
         assert artifact["orphan_departments"][0]["department"] == "정신건강의학과"
+
+
+# ── PLAN-2026-W28-K Task 3 (ADR-020/ADR-021) — Track B live population ─────
+
+
+class TestExtractQuote:
+    def test_centers_a_short_excerpt_on_the_matched_term(self) -> None:
+        text = "환자가 " + ("가" * 60) + "불면" + ("나" * 60) + "증상을 호소함"
+        quote = f2._extract_quote(text, "불면", window=10)
+        assert "불면" in quote
+        assert len(quote) < len(text)
+
+    def test_no_truncation_marker_when_excerpt_covers_full_text(self) -> None:
+        text = "요즘 잠을 잘 못 자요"
+        quote = f2._extract_quote(text, "잠을", window=40)
+        assert quote == text
+        assert not quote.startswith("...")
+        assert not quote.endswith("...")
+
+    def test_truncation_markers_added_on_both_sides_when_clipped(self) -> None:
+        text = ("가" * 100) + "불면" + ("나" * 100)
+        quote = f2._extract_quote(text, "불면", window=10)
+        assert quote.startswith("...")
+        assert quote.endswith("...")
+        assert "불면" in quote
+
+    def test_defensive_fallback_when_term_not_actually_in_text(self) -> None:
+        """Should not happen on the live path (the term is only ever passed
+        in because it was found as a substring) — kept total for synthetic
+        unit-test inputs."""
+        quote = f2._extract_quote("아무 관련 없는 텍스트", "존재하지않는단어", window=10)
+        assert isinstance(quote, str)
+
+
+class TestClampSimilarityScore:
+    def test_negative_score_clamped_to_zero(self) -> None:
+        assert f2._clamp_similarity_score(-0.05) == 0.0
+
+    def test_above_one_clamped_to_one(self) -> None:
+        assert f2._clamp_similarity_score(1.2) == 1.0
+
+    def test_in_range_score_unchanged(self) -> None:
+        assert f2._clamp_similarity_score(0.734) == 0.734
+
+    def test_boundary_values_unchanged(self) -> None:
+        assert f2._clamp_similarity_score(0.0) == 0.0
+        assert f2._clamp_similarity_score(1.0) == 1.0
+
+
+class TestAggregateDiseaseCandidates:
+    """Pure, DB-free correctness tests for RES-001 §2 steps 4-9 / ADR-020
+    conditions 1/2/4 — no async, no DB, no live LLM."""
+
+    def test_candidate_carries_correct_provenance(self) -> None:
+        chunk = {
+            "chunk_id": "case_card:42", "text": "환자가 불안하고 잠을 잘 못 잔다고 호소함",
+            "score": 0.75,
+        }
+        candidates, n_dropped = f2._aggregate_disease_candidates(
+            [(chunk, "불안장애", "불안")]
+        )
+        assert n_dropped == 0
+        assert len(candidates) == 1
+        c = candidates[0]
+        assert c.disease == "불안장애"
+        assert c.similarity_score == 0.75
+        assert c.source_id == "case_card:42"
+        assert c.quote is not None
+        assert "불안" in c.quote
+
+    def test_max_not_sum_aggregation_across_chunks(self) -> None:
+        """A disease mentioned in multiple chunks keeps the single highest
+        score — never a sum/average of the two (ADR-020 condition to avoid
+        a softmax-adjacent drift, REV-013 §4(b))."""
+        low_chunk = {"chunk_id": "qa:1", "text": "우울한 기분이 든다고 함", "score": 0.4}
+        high_chunk = {"chunk_id": "case_card:9", "text": "심한 우울감을 호소함", "score": 0.9}
+        votes = [
+            (low_chunk, "우울장애", "우울"),
+            (high_chunk, "우울장애", "우울"),
+        ]
+        candidates, n_dropped = f2._aggregate_disease_candidates(votes)
+        assert n_dropped == 0
+        assert len(candidates) == 1
+        c = candidates[0]
+        assert c.similarity_score == 0.9
+        assert c.source_id == "case_card:9"  # the WINNING chunk's provenance
+        assert c.similarity_score != 0.4 + 0.9  # not the sum of both votes' scores
+
+    def test_top_5_cap_no_padding_when_more_than_5(self) -> None:
+        votes = [
+            (
+                {"chunk_id": f"qa:{i}", "text": f"증상{i} 관련 내용", "score": 0.1 * i},
+                f"disease{i}", f"증상{i}",
+            )
+            for i in range(1, 8)  # 7 distinct diseases
+        ]
+        candidates, _ = f2._aggregate_disease_candidates(votes)
+        assert len(candidates) == 5
+        scores = [c.similarity_score for c in candidates]
+        assert scores == sorted(scores, reverse=True)
+
+    def test_no_padding_when_fewer_than_5(self) -> None:
+        votes = [
+            ({"chunk_id": "qa:1", "text": "불안 증상 호소", "score": 0.5}, "불안장애", "불안"),
+        ]
+        candidates, _ = f2._aggregate_disease_candidates(votes)
+        assert len(candidates) == 1  # not padded to 5
+
+    def test_legitimate_zero_candidate_outcome(self) -> None:
+        candidates, n_dropped = f2._aggregate_disease_candidates([])
+        assert candidates == []
+        assert n_dropped == 0
+
+    def test_risk_lexicon_flagged_quote_is_dropped_not_shipped(self) -> None:
+        """VAL-011/ADR-020 condition 1 (blocking-scoped) — a vote whose
+        extracted quote contains a risk-class phrase must be dropped
+        entirely (never clipped/redacted, never shipped)."""
+        risky_chunk = {
+            "chunk_id": "qa:1685",
+            "text": "요즘 살고 싶지 않다는 생각이 들고 잠을 잘 못 자요.",
+            "score": 0.88,
+        }
+        votes = [(risky_chunk, "우울장애", "잠을")]
+        candidates, n_dropped = f2._aggregate_disease_candidates(votes)
+        assert candidates == []
+        assert n_dropped == 1
+
+    def test_risk_lexicon_drop_does_not_eliminate_a_clean_sibling_vote(self) -> None:
+        risky_chunk = {
+            "chunk_id": "qa:1685",
+            "text": "요즘 살고 싶지 않다는 생각이 들어요.",
+            "score": 0.88,
+        }
+        clean_chunk = {
+            "chunk_id": "case_card:3",
+            "text": "환자가 불안 증상을 호소함",
+            "score": 0.6,
+        }
+        votes = [
+            (risky_chunk, "우울장애", "살고"),
+            (clean_chunk, "불안장애", "불안"),
+        ]
+        candidates, n_dropped = f2._aggregate_disease_candidates(votes)
+        assert n_dropped == 1
+        assert len(candidates) == 1
+        assert candidates[0].disease == "불안장애"
+
+    def test_negative_score_clamped_not_crashing(self) -> None:
+        """ADR-020 condition 4 / REV-016 issue #4 — a negative chunk score
+        must not raise an uncaught ValidationError during aggregation."""
+        chunk = {"chunk_id": "qa:1", "text": "불안 증상 호소", "score": -0.02}
+        candidates, _ = f2._aggregate_disease_candidates([(chunk, "불안장애", "불안")])
+        assert len(candidates) == 1
+        assert candidates[0].similarity_score == 0.0
+
+    def test_missing_score_defaults_to_zero_not_crashing(self) -> None:
+        chunk = {"chunk_id": "qa:1", "text": "불안 증상 호소"}  # no "score" key
+        candidates, _ = f2._aggregate_disease_candidates([(chunk, "불안장애", "불안")])
+        assert len(candidates) == 1
+        assert candidates[0].similarity_score == 0.0
+
+
+class TestCollectChunkDiseaseVotes:
+    @pytest.mark.asyncio
+    async def test_collects_votes_across_chunks_skips_blank_text(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        mock_match = AsyncMock(
+            side_effect=[
+                [("불안장애", 2, "불안")],
+                [],  # second chunk (blank text) never actually reaches the mock
+            ]
+        )
+        monkeypatch.setattr("src.rag.retrieval.match_diseases_for_chunk_text", mock_match)
+
+        chunks = [
+            {"chunk_id": "case_card:1", "text": "환자가 불안 증상을 호소함", "score": 0.6},
+            {"chunk_id": "qa:2", "text": "   ", "score": 0.5},  # blank -> skipped
+        ]
+        votes = await f2._collect_chunk_disease_votes(object(), chunks)
+
+        assert len(votes) == 1
+        assert votes[0][0]["chunk_id"] == "case_card:1"
+        assert votes[0][1] == "불안장애"
+        assert votes[0][2] == "불안"
+        mock_match.assert_awaited_once()
+
+
+class TestBuildAiPredictedDiseasePopulated:
+    @pytest.mark.asyncio
+    async def test_populated_mode_rag_live_with_provenance_and_proxy_caveat(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        chunks = [
+            {
+                "chunk_id": "case_card:1", "source_type": "case_card",
+                "text": "환자가 불면과 불안을 호소함", "score": 0.82,
+            }
+        ]
+        monkeypatch.setattr(
+            "src.rag.retrieval.match_diseases_for_chunk_text",
+            AsyncMock(return_value=[("불안장애", 2, "불안")]),
+        )
+
+        out = await f2._build_ai_predicted_disease_populated(object(), chunks)
+
+        assert out.mode == "rag_live"
+        assert len(out.candidates) == 1
+        c = out.candidates[0]
+        assert c.disease == "불안장애"
+        assert c.similarity_score == 0.82
+        assert c.source_id == "case_card:1"
+        assert c.quote is not None
+        assert "불안" in c.quote
+        assert "NOT a patient-to-disease" in out.reason_summary
+        assert "NOT a calibrated probability" in out.reason_summary
+        assert out.is_diagnostic is False
+
+    @pytest.mark.asyncio
+    async def test_legitimate_zero_candidate_when_no_symptom_keyword_matched(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        chunks = [
+            {"chunk_id": "qa:9", "source_type": "qa", "text": "일반적인 상담 내용", "score": 0.5}
+        ]
+        monkeypatch.setattr(
+            "src.rag.retrieval.match_diseases_for_chunk_text", AsyncMock(return_value=[])
+        )
+
+        out = await f2._build_ai_predicted_disease_populated(object(), chunks)
+
+        assert out.mode == "rag_live"
+        assert out.candidates == []
+        assert "legitimate" in out.reason_summary
+        assert "not an error" in out.reason_summary
+
+    @pytest.mark.asyncio
+    async def test_reason_summary_discloses_risk_lexicon_drop_count(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        chunks = [
+            {
+                "chunk_id": "qa:1685", "source_type": "qa",
+                "text": "요즘 살고 싶지 않다는 생각이 들어요.", "score": 0.9,
+            }
+        ]
+        monkeypatch.setattr(
+            "src.rag.retrieval.match_diseases_for_chunk_text",
+            AsyncMock(return_value=[("우울장애", 1, "살고")]),
+        )
+
+        out = await f2._build_ai_predicted_disease_populated(object(), chunks)
+
+        assert out.candidates == []
+        assert "risk-lexicon filter" in out.reason_summary
+        assert "1 candidate vote(s)" in out.reason_summary
+
+
+class TestBuildEvidenceProvenanceSummary:
+    """Enhancement #4 code-side half (ADR-021, REV-016(a))."""
+
+    def test_counts_split_by_db_table_origin_and_utterance(self) -> None:
+        candidates = [
+            DomainCandidate(
+                domain="depression", confidence=0.5,
+                evidence=[
+                    DomainEvidence(
+                        source_type="rag_chunk", source_id="case_card:1", quote="q1"
+                    ),
+                    DomainEvidence(source_type="rag_chunk", source_id="qa:2", quote="q2"),
+                    DomainEvidence(source_type="rag_chunk", source_id="qa:3", quote="q3"),
+                    DomainEvidence(source_type="utterance", source_id="turn_0", quote="q4"),
+                ],
+            ),
+        ]
+        summary = f2._build_evidence_provenance_summary(candidates)
+        assert summary == {
+            "rag_chunk_case_card": 1, "rag_chunk_qa": 2, "rag_chunk_other": 0, "utterance": 1,
+        }
+
+    def test_empty_candidates_all_zero(self) -> None:
+        assert f2._build_evidence_provenance_summary([]) == {
+            "rag_chunk_case_card": 0, "rag_chunk_qa": 0, "rag_chunk_other": 0, "utterance": 0,
+        }
+
+    def test_unrecognized_prefix_falls_into_other_not_silently_dropped(self) -> None:
+        candidates = [
+            DomainCandidate(
+                domain="sleep", confidence=0.4,
+                evidence=[
+                    DomainEvidence(
+                        source_type="rag_chunk", source_id="ontology:99", quote="q"
+                    ),
+                ],
+            ),
+        ]
+        summary = f2._build_evidence_provenance_summary(candidates)
+        assert summary["rag_chunk_other"] == 1
+        assert summary["rag_chunk_case_card"] == 0
+        assert summary["rag_chunk_qa"] == 0
+
+    def test_summary_flows_into_artifact_and_report(self) -> None:
+        candidates = [
+            DomainCandidate(
+                domain="depression", confidence=0.5,
+                evidence=[
+                    DomainEvidence(
+                        source_type="rag_chunk", source_id="case_card:1", quote="근거"
+                    ),
+                ],
+            ),
+        ]
+        output = DomainInferenceOutput(
+            model_used="test-model", prompt_version="v1", latency_ms=1.0,
+            reason_summary="stub", domain_candidates=candidates, department_candidates=[],
+            summary="s",
+            retrieval_meta=RetrievalMeta(
+                mode="rag", chunks_returned=1, chunk_ids=["case_card:1"]
+            ),
+        )
+        filter_summary = f2._build_filter_summary(
+            candidates_before=candidates, candidates_after=candidates, counts={"accepted": 1}
+        )
+        artifact = f2._build_artifact(
+            output=output, domain_candidates=candidates, repro={
+                "git_head": "x", "model_used": "m", "prompt_version": "v1",
+                "input_file": "x.json", "input_sha256": "y", "mode": "rag",
+                "latency_ms": 1.0, "generated_at": "now",
+            },
+            chunk_texts={"case_card:1": "근거 텍스트"}, utterances={}, verdicts=[],
+            counts={"accepted": 1}, filter_summary=filter_summary, orphans=[],
+            session_id="t", persona_id="VP-TEST",
+            evidence_provenance_summary=f2._build_evidence_provenance_summary(candidates),
+        )
+        assert artifact["evidence_provenance_summary"] == {
+            "rag_chunk_case_card": 1, "rag_chunk_qa": 0, "rag_chunk_other": 0, "utterance": 0,
+        }
+        report = f2._build_report(artifact)
+        assert "Evidence provenance (enhancement #4)" in report
+        assert "rag_chunk(case_card): 1" in report
+
+
+class TestRunWiresPopulation:
+    """End-to-end (`f2._run`) wiring — mock-based, no live LLM/DB, per this
+    file's own C-4 convention."""
+
+    @staticmethod
+    def _conversation(tmp_path, *, final_slots: list[dict]) -> Path:
+        conversation = {
+            "session_id": "f2_track_b", "persona_id": "VP-TRACKB", "persona_name": "테스트",
+            "final_slots": final_slots, "session_ctrs": 5, "crisis_triggered": False,
+            "crisis_turn": None, "turns": [], "probe_events": [],
+        }
+        conv_path = Path(tmp_path) / "VP-TRACKB_20260709_000000_conversation.json"
+        conv_path.write_text(json.dumps(conversation, ensure_ascii=False), encoding="utf-8")
+        return conv_path
+
+    @pytest.mark.asyncio
+    async def test_llm_only_mode_stays_experimental_unpopulated(
+        self, tmp_path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        conv_path = self._conversation(
+            tmp_path, final_slots=[{"key": "chief_complaint", "value": "불안감"}]
+        )
+
+        class _StubAgent:
+            def __init__(self, model_router: object, prompt_loader: object) -> None:
+                pass
+
+            async def run(self, inp: object) -> DomainInferenceOutput:
+                return DomainInferenceOutput(
+                    model_used="stub", prompt_version="v1", latency_ms=1.0,
+                    reason_summary="stub", domain_candidates=[], department_candidates=[],
+                    summary="", retrieval_meta=RetrievalMeta(
+                        mode="llm_only", chunks_returned=0, chunk_ids=[]
+                    ),
+                )
+
+        monkeypatch.setattr(f2, "DomainInferenceAgent", _StubAgent)
+        monkeypatch.setattr(f2, "get_model_router", lambda: None)
+        monkeypatch.setattr(f2, "get_prompt_loader", lambda: None)
+
+        out_dir = tmp_path / "out"
+        args = argparse.Namespace(
+            conversation=str(conv_path), persona=None, no_rag=True, k=3,
+            out=str(out_dir), scale_scores=None, first_visit=False, revisit=False,
+        )
+        await f2._run(args)
+
+        json_files = list((out_dir / "VP-TRACKB").glob("*_domain_inference.json"))
+        artifact = json.loads(json_files[0].read_text(encoding="utf-8"))
+        assert artifact["ai_predicted_disease"]["mode"] == "experimental_unpopulated"
+        assert artifact["ai_predicted_disease"]["candidates"] == []
+
+    @pytest.mark.asyncio
+    async def test_rag_mode_populates_candidates_with_provenance_end_to_end(
+        self, tmp_path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        conv_path = self._conversation(
+            tmp_path,
+            final_slots=[
+                {"key": "chief_complaint", "value": "불안감과 수면 문제"},
+                {"key": "history_of_present_illness", "value": "2주 전부터 악화"},
+            ],
+        )
+
+        class _FakeSession:
+            async def __aenter__(self) -> _FakeSession:
+                return self
+
+            async def __aexit__(self, *exc: object) -> bool:
+                return False
+
+        monkeypatch.setattr(f2, "get_sessionmaker", lambda: (lambda: _FakeSession()))
+        monkeypatch.setattr(
+            "src.rag.retrieval.retrieve_domain_chunks",
+            AsyncMock(return_value=[
+                {
+                    "chunk_id": "case_card:5", "source_type": "case_card",
+                    "text": "환자가 불안하고 잠을 설친다고 호소", "score": 0.77,
+                }
+            ]),
+        )
+        monkeypatch.setattr(
+            "src.rag.retrieval.match_diseases_for_chunk_text",
+            AsyncMock(return_value=[("불안장애", 2, "불안")]),
+        )
+
+        class _StubAgent:
+            def __init__(self, model_router: object, prompt_loader: object) -> None:
+                pass
+
+            async def run(self, inp: object) -> DomainInferenceOutput:
+                return DomainInferenceOutput(
+                    model_used="stub", prompt_version="v1", latency_ms=1.0,
+                    reason_summary="stub", domain_candidates=[], department_candidates=[],
+                    summary="", retrieval_meta=RetrievalMeta(
+                        mode="rag", chunks_returned=1, chunk_ids=["case_card:5"]
+                    ),
+                )
+
+        monkeypatch.setattr(f2, "DomainInferenceAgent", _StubAgent)
+        monkeypatch.setattr(f2, "get_model_router", lambda: None)
+        monkeypatch.setattr(f2, "get_prompt_loader", lambda: None)
+
+        out_dir = tmp_path / "out"
+        args = argparse.Namespace(
+            conversation=str(conv_path), persona=None, no_rag=False, k=3,
+            out=str(out_dir), scale_scores=None, first_visit=False, revisit=False,
+        )
+        await f2._run(args)
+
+        json_files = list((out_dir / "VP-TRACKB").glob("*_domain_inference.json"))
+        artifact = json.loads(json_files[0].read_text(encoding="utf-8"))
+        ai_disease = artifact["ai_predicted_disease"]
+        assert ai_disease["mode"] == "rag_live"
+        assert len(ai_disease["candidates"]) == 1
+        c = ai_disease["candidates"][0]
+        assert c["disease"] == "불안장애"
+        assert c["similarity_score"] == 0.77
+        assert c["source_id"] == "case_card:5"
+        assert "불안" in c["quote"]
+
+    @pytest.mark.asyncio
+    async def test_rag_mode_population_db_failure_degrades_not_crashes(
+        self, tmp_path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Population failure (e.g. a transient DB error on the SECOND
+        session, opened after Stage 1's own session already closed cleanly)
+        must not crash the whole F2 run — domain_candidates is unaffected,
+        the AI-disease container degrades to experimental_unpopulated with
+        an honest reason."""
+        conv_path = self._conversation(
+            tmp_path, final_slots=[{"key": "chief_complaint", "value": "불안감과 수면 문제"}]
+        )
+
+        class _FakeSession:
+            async def __aenter__(self) -> _FakeSession:
+                return self
+
+            async def __aexit__(self, *exc: object) -> bool:
+                return False
+
+        monkeypatch.setattr(f2, "get_sessionmaker", lambda: (lambda: _FakeSession()))
+        monkeypatch.setattr(
+            "src.rag.retrieval.retrieve_domain_chunks",
+            AsyncMock(return_value=[
+                {
+                    "chunk_id": "case_card:5", "source_type": "case_card",
+                    "text": "환자가 불안 증상을 호소", "score": 0.7,
+                }
+            ]),
+        )
+        monkeypatch.setattr(
+            "src.rag.retrieval.match_diseases_for_chunk_text",
+            AsyncMock(side_effect=RuntimeError("DB connection lost")),
+        )
+
+        class _StubAgent:
+            def __init__(self, model_router: object, prompt_loader: object) -> None:
+                pass
+
+            async def run(self, inp: object) -> DomainInferenceOutput:
+                return DomainInferenceOutput(
+                    model_used="stub", prompt_version="v1", latency_ms=1.0,
+                    reason_summary="stub", domain_candidates=[], department_candidates=[],
+                    summary="", retrieval_meta=RetrievalMeta(
+                        mode="rag", chunks_returned=1, chunk_ids=["case_card:5"]
+                    ),
+                )
+
+        monkeypatch.setattr(f2, "DomainInferenceAgent", _StubAgent)
+        monkeypatch.setattr(f2, "get_model_router", lambda: None)
+        monkeypatch.setattr(f2, "get_prompt_loader", lambda: None)
+
+        out_dir = tmp_path / "out"
+        args = argparse.Namespace(
+            conversation=str(conv_path), persona=None, no_rag=False, k=3,
+            out=str(out_dir), scale_scores=None, first_visit=False, revisit=False,
+        )
+        await f2._run(args)  # must not raise
+
+        json_files = list((out_dir / "VP-TRACKB").glob("*_domain_inference.json"))
+        artifact = json.loads(json_files[0].read_text(encoding="utf-8"))
+        assert artifact["ai_predicted_disease"]["mode"] == "experimental_unpopulated"
+        assert artifact["ai_predicted_disease"]["candidates"] == []

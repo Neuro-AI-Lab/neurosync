@@ -16,7 +16,14 @@ import pytest
 from sqlalchemy.sql.elements import TextClause
 
 from src.rag import crypto
-from src.rag.retrieval import _dec, _topk, retrieve_domain_chunks
+from src.rag.retrieval import (
+    _dec,
+    _detect_symptoms,
+    _detect_symptoms_with_term,
+    _topk,
+    match_diseases_for_chunk_text,
+    retrieve_domain_chunks,
+)
 
 
 def _make_key() -> str:
@@ -122,6 +129,112 @@ class TestRetrieveDomainChunksSqlShape:
 
         assert len(chunks) == 1
         assert chunks[0]["chunk_id"] == "case_card:1"
+
+
+class TestDetectSymptomsWithTerm:
+    """F2 Track B (PLAN-2026-W28-K, RES-001 §2 step 2) — the matched-term
+    variant `_detect_symptoms` now wraps, plus `_detect_symptoms` itself
+    stays behavior-compatible (returns only (id, name) tuples)."""
+
+    _SYMPTOM_ROWS = [
+        (1, "insomnia", "불면", ["잠을 잘 못 자", "수면 문제"]),
+        (2, "anxiety", "불안", []),
+    ]
+
+    @pytest.mark.asyncio
+    async def test_returns_matched_term_alongside_symptom_id_and_name(self) -> None:
+        db = AsyncMock()
+        result = MagicMock()
+        result.fetchall.return_value = self._SYMPTOM_ROWS
+        db.execute = AsyncMock(return_value=result)
+
+        hits = await _detect_symptoms_with_term(db, "요즘 잠을 잘 못 자고 불안해요.")
+
+        assert (1, "불면", "잠을 잘 못 자") in hits
+        assert (2, "불안", "불안") in hits
+        assert len(hits) == 2
+
+    @pytest.mark.asyncio
+    async def test_synonym_match_returns_the_synonym_as_matched_term(self) -> None:
+        """A synonym match (not the canonical name_ko) still returns the
+        LITERAL matched substring, not the canonical name — needed to build
+        a genuinely verbatim quote excerpt (RES-001 §2 step 8)."""
+        db = AsyncMock()
+        result = MagicMock()
+        result.fetchall.return_value = self._SYMPTOM_ROWS
+        db.execute = AsyncMock(return_value=result)
+
+        hits = await _detect_symptoms_with_term(db, "요즘 수면 문제가 있어요.")
+
+        assert hits == [(1, "불면", "수면 문제")]
+
+    @pytest.mark.asyncio
+    async def test_no_match_returns_empty(self) -> None:
+        db = AsyncMock()
+        result = MagicMock()
+        result.fetchall.return_value = self._SYMPTOM_ROWS
+        db.execute = AsyncMock(return_value=result)
+
+        assert await _detect_symptoms_with_term(db, "아무 증상도 언급 없음") == []
+
+    @pytest.mark.asyncio
+    async def test_detect_symptoms_still_returns_only_id_and_name(self) -> None:
+        """`_detect_symptoms` (used by `retrieve_grounding`'s live-chat path)
+        must be unaffected in shape by this refactor — 2-tuples, no term."""
+        db = AsyncMock()
+        result = MagicMock()
+        result.fetchall.return_value = self._SYMPTOM_ROWS
+        db.execute = AsyncMock(return_value=result)
+
+        hits = await _detect_symptoms(db, "요즘 잠을 잘 못 자고 불안해요.")
+
+        assert hits == [(1, "불면"), (2, "불안")]
+
+
+class TestMatchDiseasesForChunkText:
+    """F2 Track B (PLAN-2026-W28-K, RES-001 §2 step 3, ADR-020 path1)."""
+
+    @pytest.mark.asyncio
+    async def test_no_symptom_match_returns_empty_without_a_second_query(self) -> None:
+        db = AsyncMock()
+        symptom_result = MagicMock()
+        symptom_result.fetchall.return_value = []
+        db.execute = AsyncMock(return_value=symptom_result)
+
+        votes = await match_diseases_for_chunk_text(db, "일반적인 상담 내용입니다.")
+
+        assert votes == []
+        # Only the rag.symptom lookup ran — no disease_symptom JOIN attempted.
+        assert db.execute.await_count == 1
+
+    @pytest.mark.asyncio
+    async def test_widened_limit_can_return_more_than_one_disease(self) -> None:
+        db = AsyncMock()
+        symptom_result = MagicMock()
+        symptom_result.fetchall.return_value = [(1, "insomnia", "불면", [])]
+        disease_result = MagicMock()
+        disease_result.fetchall.return_value = [("우울장애", 3), ("불안장애", 1)]
+        db.execute = AsyncMock(side_effect=[symptom_result, disease_result])
+
+        votes = await match_diseases_for_chunk_text(db, "요즘 불면 증상이 있어요.", limit=2)
+
+        assert votes == [("우울장애", 3, "불면"), ("불안장애", 1, "불면")]
+        disease_sql = str(db.execute.await_args_list[1].args[0])
+        assert "LIMIT :limit" in disease_sql
+        assert db.execute.await_args_list[1].args[1]["limit"] == 2
+
+    @pytest.mark.asyncio
+    async def test_matched_term_is_the_literal_substring_not_the_canonical_name(self) -> None:
+        db = AsyncMock()
+        symptom_result = MagicMock()
+        symptom_result.fetchall.return_value = [(1, "insomnia", "불면", ["잠을 설쳐"])]
+        disease_result = MagicMock()
+        disease_result.fetchall.return_value = [("우울장애", 1)]
+        db.execute = AsyncMock(side_effect=[symptom_result, disease_result])
+
+        votes = await match_diseases_for_chunk_text(db, "요즘 잠을 설쳐서 힘들어요.")
+
+        assert votes == [("우울장애", 1, "잠을 설쳐")]
 
 
 class TestDecFailureFallback:
