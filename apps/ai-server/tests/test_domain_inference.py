@@ -7,6 +7,7 @@ candidates<=3) and the agent pin/runtime path (mirrors test_prompt_v3.py's
 
 from __future__ import annotations
 
+import logging
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -125,6 +126,12 @@ def _wire(agent: DomainInferenceAgent, content: str) -> AsyncMock:
     resp.content = content
     resp.model = "test-model"
     resp.latency_ms = 1.0
+    # BUG-017 phase A: a real ChatResponse always carries these (default
+    # None) — set explicitly rather than relying on MagicMock's
+    # attribute auto-vivification, which would leak a non-str/non-dict
+    # Mock object into DomainInferenceOutput.finish_reason/usage.
+    resp.finish_reason = None
+    resp.usage = None
     adapter = AsyncMock(spec=LLMAdapter)
     adapter.chat_timed = AsyncMock(return_value=resp)
     agent._router.get_adapter.return_value = adapter
@@ -170,6 +177,56 @@ class TestAgentRuntime:
         assert len(out.domain_candidates) == 1
         assert out.domain_candidates[0].domain == "sleep"
         assert out.retrieval_meta.mode == "llm_only"
+
+    @pytest.mark.asyncio
+    async def test_run_captures_and_logs_finish_reason_and_usage_on_success(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """BUG-017 phase A: finish_reason/usage from the adapter's
+        ChatResponse must reach DomainInferenceOutput AND an INFO log line —
+        not silently discarded (the gap TestBug017FinishReasonDiscarded's
+        inverted assertion, tests/repro/test_bug_017.py, now closes)."""
+        agent = _make_agent()
+        adapter = _wire(
+            agent,
+            '{"domain_candidates": [], "department_candidates": [], "summary": ""}',
+        )
+        resp = adapter.chat_timed.return_value
+        resp.finish_reason = "stop"
+        resp.usage = {"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150}
+
+        with caplog.at_level(logging.INFO, logger="src.agents.domain_inference"):
+            out = await agent.run(_base_input())
+
+        assert out.finish_reason == "stop"
+        assert out.usage == {"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150}
+        assert any(
+            "finish_reason=stop" in r.message and "usage=" in r.message for r in caplog.records
+        )
+
+    @pytest.mark.asyncio
+    async def test_run_captures_and_logs_finish_reason_and_usage_on_parse_failure(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Same capture, on the parse-failure path (the path REV-010's
+        truncation hypothesis actually needs — a parse failure with a real,
+        possibly-truncated ChatResponse)."""
+        agent = _make_agent()
+        agent._router.get_fallback.return_value = None
+        adapter = _wire(agent, "not json at all")
+        resp = adapter.chat_timed.return_value
+        resp.finish_reason = "length"
+        resp.usage = {"prompt_tokens": 900, "completion_tokens": 1536, "total_tokens": 2436}
+
+        with caplog.at_level(logging.WARNING, logger="src.agents.domain_inference"):
+            out = await agent.run(_base_input())
+
+        assert out.finish_reason == "length"
+        assert out.usage == {"prompt_tokens": 900, "completion_tokens": 1536, "total_tokens": 2436}
+        assert any(
+            "finish_reason=length" in r.message and "usage=" in r.message
+            for r in caplog.records
+        )
 
     @pytest.mark.asyncio
     async def test_run_reports_retrieval_meta_from_input(self) -> None:

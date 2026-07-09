@@ -130,3 +130,11 @@ class DomainInferenceOutput(AgentOutput):
     summary: str = Field(default="")
     retrieval_meta: RetrievalMeta
     additional_questions: list[str] | None = Field(default=None)
+    # BUG-017 phase A (diagnostic instrumentation, 2026-07-08): the adapter's
+    # raw ChatResponse.finish_reason/.usage (src/adapters/base.py), captured
+    # so a future RAG-mode truncation hypothesis (finish_reason == "length")
+    # is falsifiable from this agent's own output/logs, on success AND on
+    # parse/schema failure alike. None whenever no ChatResponse was ever
+    # obtained (transport failure before any LLM response existed).
+    finish_reason: str | None = Field(default=None)
+    usage: dict[str, int] | None = Field(default=None)
