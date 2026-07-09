@@ -1,11 +1,22 @@
 """POST /ai/rag/grounding — 발화 → RAG grounding (ai-server 내부에서 DB 직접 조회).
 
-RAG가 ai-server로 이전되면서, grounding을 HTTP로 노출하는 엔드포인트도 여기로 온다.
-과거 apps/api의 POST /rag/grounding(삭제됨)을 대체 — 이제 RAG·DB·키를 모두 소유한
-ai-server가 스스로 retrieve_grounding()을 실행한다.
+RETIRED — NOT DELETED (ADR-017/REV-013, 2026-07-09). This router is no longer
+mounted in `src.main.app` — RAG HTTP serving is now a permanent, categorical
+out-of-scope decision (in-process only, now and at deployment; see ADR-017).
+`rag_chat.py` no longer calls this route either — it now calls
+`retrieve_grounding()` in-process, mirroring `src/f2.py:176-180`'s pattern.
 
-rag_chat.py(테스트 클라이언트)가 이 엔드포인트를 때린다. patient_id를 넘겨야
-my_past(내 과거)가 조회된다.
+This file is kept in the tree (not deleted) so the auth-gated HTTP contract
+is still readable/testable in isolation (`tests/rag/test_route_auth.py` now
+mounts this router into a standalone app, not `src.main.app`). Remounting
+this router in `main.py` requires a fresh ADR + VAL-005 reopening review —
+unauthorized re-open is prohibited (REV-013 §2's explicit reversal
+safeguard). If remounted, `src/rag/auth.py`'s `NS_RAG_API_KEY` fail-closed
+bearer auth MUST stay wired via this router's `dependencies=[...]`.
+
+Historical docstring (pre-retirement): grounding을 HTTP로 노출하는 엔드포인트.
+과거 apps/api의 POST /rag/grounding(삭제됨)을 대체 — ai-server가 스스로
+retrieve_grounding()을 실행했다. patient_id를 넘겨야 my_past(내 과거)가 조회된다.
 """
 
 from __future__ import annotations
