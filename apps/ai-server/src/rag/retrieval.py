@@ -7,7 +7,7 @@ ChatRequest.grounding 으로 ai-server에 주입.
   1) similar_cases  남의 유사사례 (case_card)       — 벡터
   2) my_past        내 과거 (session_insights)        — 벡터 + patient 필터
   3) knowledge      정신과 지식 (qa)                  — 벡터
-  4) follow_up      언급 증상 → 후보 질병 → 미확인 증상 — 심볼릭 그래프
+  4) follow_up      발화 임베딩→증상 NN → IDF 가중 후보질병 → 정보이득 후속질문
 
 pgvector 연산은 raw SQL(text())로 — asyncpg 위에서 그대로 동작(추가 의존성 없음).
 """
@@ -33,6 +33,29 @@ from src.rag.embed import embed_query, to_pgvector
 
 logger = logging.getLogger(__name__)
 
+# ── follow_up (증상→후보질병→후속질문) 튜닝 상수 ──────────────────────────
+# ① 증상 감지: 발화 임베딩과 rag.symptom.embedding 코사인 유사도 컷 / 최대 개수.
+#    symptom 임베딩이 solar 'passage' 모델 + 짧은 증상명이라 절대 유사도가 낮은 regime
+#    (실증상 0.18~0.35, 노이즈 0.11~0.14). 실발화 4종 분포 기준 0.18로 튜닝 —
+#    실증상은 잡고 오탐(예: "손이 가요"→"자해" 0.159)은 배제. 코퍼스 갱신 시 재튜닝.
+_SYMPTOM_SIM_THRESHOLD = 0.18
+_SYMPTOM_TOPK = 8
+# ②③ IDF 가중 후보질병 top-N / 반환할 후속질문 개수.
+_DISEASE_TOPN = 5
+_FOLLOWUP_Q = 3
+# 변별력과 무관하게 최우선으로 물어야 하는 안전 증상(ontology BUCKETS의 canonical name).
+_SAFETY_FLAGS = {"suicidal"}
+
+
+def _rank_questions(rows: list[tuple[str, str]], n_q: int) -> list[str]:
+    """③ 후속질문 확정: 안전 증상(자살/자해)을 정보이득과 무관하게 최우선 배치하고,
+    나머지는 split_dist 오름차순(=정보이득 순, rows는 이미 정렬됨)으로 채워 n_q개.
+
+    rows: [(name, name_ko)] — split_dist ASC로 정렬된 미관찰 후보증상."""
+    safety = [nko or name for name, nko in rows if name in _SAFETY_FLAGS]
+    rest = [nko or name for name, nko in rows if name not in _SAFETY_FLAGS]
+    return (safety + rest)[:n_q]
+
 
 async def _topk(
     db: AsyncSession, table: str, cols: str, params: dict[str, Any], k: int, where: str = ""
@@ -47,50 +70,80 @@ async def _topk(
     return (await db.execute(sql, {**params, "k": k})).fetchall()
 
 
-async def _detect_symptoms(db: AsyncSession, utterance: str) -> list[tuple[int, str]]:
-    """발화에 증상 한글명/동의어가 등장하면 해당 증상으로 간주 (LLM 추출의 자리표시).
-    TODO: ai-server 구조화 추출(40 플래그)로 교체하면 정확도↑ (MedRAG 변별자질 확장)."""
+async def _detect_symptoms(
+    db: AsyncSession, qlit: str, *, threshold: float, k: int
+) -> list[tuple[int, str, float]]:
+    """① 발화 임베딩(qlit) 최근접 증상 top-k (코사인 유사도 ≥ threshold).
+
+    이전 구현은 name_ko/synonyms 부분문자열 매칭이라 패러프레이즈·어미변화를 놓치고
+    부정("불안하진 않아요")도 오탐했다. 이제 rag.symptom.embedding과의 벡터 유사도로
+    의미 기반 감지 — LLM/에이전트 불필요, 발화 임베딩(qlit)은 상위에서 재사용."""
     rows = (
-        await db.execute(text("SELECT symptom_id, name, name_ko, synonyms FROM rag.symptom"))
-    ).fetchall()
-    hits: list[tuple[int, str]] = []
-    for sid, name, name_ko, synonyms in rows:
-        terms = [name_ko or name] + list(synonyms or [])
-        if any(t and t in utterance for t in terms):
-            hits.append((sid, name_ko or name))
-    return hits
-
-
-async def _followup(db: AsyncSession, mentioned_ids: list[int]) -> GroundingFollowup | None:
-    if not mentioned_ids:
-        return None
-    row = (
         await db.execute(
             text(
-                """SELECT d.disease_id, d.name_ko, count(*) AS overlap
-                   FROM rag.disease_symptom ds JOIN rag.disease d USING (disease_id)
+                """SELECT symptom_id, name_ko,
+                          1 - (embedding <=> CAST(:q AS vector)) AS sim
+                   FROM rag.symptom
+                   WHERE embedding IS NOT NULL
+                     AND 1 - (embedding <=> CAST(:q AS vector)) >= :th
+                   ORDER BY embedding <=> CAST(:q AS vector)
+                   LIMIT :k"""
+            ),
+            {"q": qlit, "th": threshold, "k": k},
+        )
+    ).fetchall()
+    return [(sid, nko, round(float(sim), 3)) for sid, nko, sim in rows]
+
+
+async def _followup(
+    db: AsyncSession, present_ids: list[int], *, topn: int, n_q: int
+) -> GroundingFollowup | None:
+    """② IDF 가중 후보질병 top-N → ③ 후보를 절반으로 가르는 미관찰 증상(정보이득)."""
+    if not present_ids:
+        return None
+    # ② IDF(specificity) 가중합으로 후보질병 랭킹. 흔한 증상(많은 질병에 걸림)은
+    #    ln(N/df)가 작아 약하게, 희귀 증상은 강하게 → 단순 overlap 개수보다 변별력↑.
+    cand = (
+        await db.execute(
+            text(
+                """WITH w AS (
+                     SELECT symptom_id,
+                            ln((SELECT count(*) FROM rag.disease)::float
+                               / count(*) OVER (PARTITION BY symptom_id)) AS weight
+                     FROM rag.disease_symptom)
+                   SELECT d.disease_id, d.name_ko, sum(w.weight) AS score
+                   FROM rag.disease_symptom ds JOIN w USING (symptom_id)
+                   JOIN rag.disease d USING (disease_id)
                    WHERE ds.symptom_id = ANY(:ids)
                    GROUP BY d.disease_id, d.name_ko
-                   ORDER BY overlap DESC, d.disease_id LIMIT 1"""
+                   ORDER BY score DESC, d.disease_id
+                   LIMIT :n"""
             ),
-            {"ids": mentioned_ids},
+            {"ids": present_ids, "n": topn},
         )
-    ).fetchone()
-    if not row:
+    ).fetchall()
+    if not cand:
         return None
-    did, dname, _ = row
-    unconfirmed = (
+    candidate_disease = cand[0][1]  # top-1 name_ko → 계약 필드
+    cand_ids = [row[0] for row in cand]
+    # ③ top-N 후보를 가장 균등하게 가르는(비율→0.5) 미관찰 증상 = 정보이득 최대 질문.
+    #    LIMIT는 걸지 않고 split_dist 정렬만 — 안전증상 오버라이드를 _rank_questions에서.
+    rows = (
         await db.execute(
             text(
-                """SELECT s.name_ko
+                """SELECT s.name, s.name_ko,
+                          abs(count(*)::float / :ncand - 0.5) AS split_dist
                    FROM rag.disease_symptom ds JOIN rag.symptom s USING (symptom_id)
-                   WHERE ds.disease_id = :did AND ds.symptom_id <> ALL(:ids)"""
+                   WHERE ds.disease_id = ANY(:cids) AND ds.symptom_id <> ALL(:obs)
+                   GROUP BY s.symptom_id, s.name, s.name_ko
+                   ORDER BY split_dist ASC, s.symptom_id"""
             ),
-            {"did": did, "ids": mentioned_ids},
+            {"ncand": len(cand_ids), "cids": cand_ids, "obs": present_ids},
         )
     ).fetchall()
     return GroundingFollowup(
-        candidate_disease=dname, follow_up_symptoms=[r[0] for r in unconfirmed]
+        candidate_disease=candidate_disease,
+        follow_up_symptoms=_rank_questions([(r[0], r[1]) for r in rows], n_q),
     )
 
 
@@ -144,8 +197,12 @@ async def retrieve_grounding(
             where="AND patient_id = :pid",
         )
 
-    mentioned = await _detect_symptoms(db, utterance)
-    followup = await _followup(db, [m[0] for m in mentioned])
+    mentioned = await _detect_symptoms(
+        db, qlit, threshold=_SYMPTOM_SIM_THRESHOLD, k=_SYMPTOM_TOPK
+    )
+    followup = await _followup(
+        db, [m[0] for m in mentioned], topn=_DISEASE_TOPN, n_q=_FOLLOWUP_Q
+    )
 
     # my_past를 제외한 슬롯은 공유 계약 모델로 만들고 dict로 직렬화.
     grounding = Grounding(
