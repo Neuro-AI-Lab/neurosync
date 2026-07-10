@@ -25,9 +25,9 @@ already been correctly (or incorrectly) classified, and only for turn 0.
 from __future__ import annotations
 
 import pytest
-from tests.f1_testkit import StubSafetyAgent, make_patient_fn, make_pipeline
 
 from src.f1 import CRISIS_RESPONSE
+from tests.f1_testkit import StubSafetyAgent, make_patient_fn, make_pipeline
 
 _U_CRISIS_FIRST_MESSAGE = "지금 당장 죽고 싶어요. 방법도 정해뒀어요."
 _U_FOLLOWUP = "그냥 잠을 잘 못 자요."  # never reached if session ends at turn 0
