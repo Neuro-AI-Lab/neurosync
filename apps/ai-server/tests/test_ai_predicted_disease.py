@@ -61,6 +61,47 @@ class TestAIPredictedDiseaseCandidate:
         assert "confidence" not in fields
 
 
+class TestAIPredictedDiseaseCandidateProvenance:
+    """ADR-020 condition 2 (REV-016(b) binding condition 2) — `source_id`/
+    `quote` provenance fields, PLAN-2026-W28-K Task 3."""
+
+    def test_provenance_fields_exist_and_default_to_none(self) -> None:
+        """Optional at the schema level (default None) — see module
+        docstring for the backward-compat rationale (pre-existing callers,
+        e.g. `tests/test_hpi_isolation.py`'s synthetic-marker fixture, and
+        the experimental_unpopulated empty-candidates convention). The "no
+        evidence, no candidate" discipline is enforced at the
+        population-code level in `f2.py`, not by making these fields
+        schema-required."""
+        fields = AIPredictedDiseaseCandidate.model_fields
+        assert "source_id" in fields
+        assert "quote" in fields
+        c = AIPredictedDiseaseCandidate(disease="x", similarity_score=0.5)
+        assert c.source_id is None
+        assert c.quote is None
+
+    def test_provenance_fields_populate_correctly_when_supplied(self) -> None:
+        c = AIPredictedDiseaseCandidate(
+            disease="공황장애", similarity_score=0.82,
+            source_id="case_card:687", quote="발작이 오면 숨을 못 쉬어요",
+        )
+        assert c.source_id == "case_card:687"
+        assert c.quote == "발작이 오면 숨을 못 쉬어요"
+
+    def test_provenance_fields_reject_empty_string(self) -> None:
+        """min_length=1 when a value IS supplied — an empty-string
+        `source_id`/`quote` is not a legitimate 'no provenance' signal
+        (`None` is what represents that)."""
+        with pytest.raises(ValidationError):
+            AIPredictedDiseaseCandidate(
+                disease="x", similarity_score=0.5, source_id="", quote="q"
+            )
+        with pytest.raises(ValidationError):
+            AIPredictedDiseaseCandidate(
+                disease="x", similarity_score=0.5, source_id="case_card:1", quote=""
+            )
+
+
 class TestAIPredictedDiseaseOutput:
     def test_experimental_unpopulated_container(self) -> None:
         out = AIPredictedDiseaseOutput(
