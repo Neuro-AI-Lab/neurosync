@@ -1,0 +1,987 @@
+{
+  "session_id": "f1_VP-001_audio",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 7,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "잠을 잘 못 자고 누우면 생각이 많아져 뒤척이다가 겨우 잠들고 새벽 2-3회 깨며 총 수면 시간이 4-5시간 정도임"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "최근 직장 내 대규모 프로젝트 데드라인 압박으로 인해 수면 장애가 시작됨. 누우면 생각이 많아져 잠들기 어렵고 새벽 2-3회 깨며 총 수면 시간이 4-5시간 정도로 감소함. 이로 인해 피로감과 집중력 저하가 동반되고 있음"
+    },
+    {
+      "key": "family_history",
+      "value": "가족 중 정신과 치료를 받은 사람은 없음. 어머니는 최근 증상 악화에 대해 걱정하고 있으나, 가족 내 정신과적 병력이나 유사 경험은 없음."
+    }
+  ],
+  "slot_coverage": 0.4,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "요즘 잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요 총 수면 시간은 너댓 시간 정도인 것 같아요",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자고 있어요",
+        "새벽에도 두세 번 깨요",
+        "총 수면 시간은 너댓 시간 정도"
+      ],
+      "agent_response": "안녕하세요! 저는 정신건강 사전문진을 도와드리는 AI 상담 도우미입니다. 실제 의사 선생님과의 대화가 아니니, 너무 긴장하지 마시고 편하게 느끼시는 그대로 말씀해 주시면 됩니다.\n\n지금부터 대화를 시작하겠습니다. 오늘 가장 도움받고 싶은 문제나 증상은 무엇인가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 9081.761318724602,
+      "timestamp": "2026-07-08T15:49:39.825244",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "요즘 잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요 총 수면 시간은 너댓 시간 정도인 것 같아요",
+        "normalized": "요즘 잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요 총 수면 시간은 너댓 시간 정도인 것 같아요",
+        "input_type": "stt_transcript",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3503.5951868630946,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "요즘 잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요 총 수면 시간은 너댓 시간 정도인 것 같아요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "요즘 잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요 총 수면 시간은 너댓 시간 정도인 것 같아요",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 이전에 정신건강의학과 진료를 받으신 적이 있거나, 진단받은 병명이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3967.999592423439,
+      "timestamp": "2026-07-08T15:49:43.793269",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "요즘 잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요 총 수면 시간은 너댓 시간 정도인 것 같아요",
+        "normalized": "요즘 잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요 총 수면 시간은 너댓 시간 정도인 것 같아요",
+        "input_type": "stt_transcript",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3503.5951868630946,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "요즘 잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요 총 수면 시간은 너댓 시간 정도인 것 같아요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low"
+    },
+    {
+      "turn": 2,
+      "patient_message": "아직 병원은 가지 않았어요. 이번이 처음이라서요. 그냥 랩으로 한번 살펴보는 수준이에요",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자고 있어요",
+        "누우면 이런저런 생각이 자꾸 들어서",
+        "한참을 뒤척이다가 겨우 잠들고",
+        "새벽에도 두세 번 깨요",
+        "총 수면 시간은 너댓 시간 정도"
+      ],
+      "agent_response": "아직 병원을 가지 않으셨다니, 처음 겪는 상황이라 더 불안하실 수 있겠어요. 혹시 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 주변에 계신가요? 가족, 친구, 혹은 믿을 수 있는 지인 중에서 편하게 이야기할 수 있는 분이 있으신지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3750.3670533187687,
+      "timestamp": "2026-07-08T15:49:51.825005",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아직 병원은 가지 않았어요. 이번이 처음이라서요. 그냥 랩으로 한번 살펴보는 수준이에요",
+        "normalized": "아직 병원은 가지 않았어요. 이번이 처음이라서요. 그냥 랩으로 한번 살펴보는 수준이에요",
+        "input_type": "stt_transcript",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1181.9752748124301,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": -0.2,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아직 병원은 가지 않았어요. 이번이 처음이라서요. 그냥 랩으로 한번 살펴보는 수준이에요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low"
+    },
+    {
+      "turn": 3,
+      "patient_message": "아니요. 그런 건 없어요. 평소 건강 검진에서 특별한 문제는 없다고 했고, 약도 먹고 있지 않아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자고 있어요",
+        "뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요",
+        "총 수면 시간은 너댓 시간 정도"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 가족분들 중에 비슷한 어려움을 겪으셨던 분이 계신지 여쭤봐도 될까요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4396.1453549563885,
+      "timestamp": "2026-07-08T15:50:01.157508",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요. 그런 건 없어요. 평소 건강 검진에서 특별한 문제는 없다고 했고, 약도 먹고 있지 않아요.",
+        "normalized": "아니요. 그런 건 없어요. 평소 건강 검진에서 특별한 문제는 없다고 했고, 약도 먹고 있지 않아요.",
+        "input_type": "stt_transcript",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1456.2755418010056,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요. 그런 건 없어요. 평소 건강 검진에서 특별한 문제는 없다고 했고, 약도 먹고 있지 않아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low"
+    },
+    {
+      "turn": 4,
+      "patient_message": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됐어요. 요즘 업무 압박이 좀 심한 편이에요",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자고 있어요",
+        "뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요",
+        "총 수면 시간은 너댓 시간 정도"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 최근 술이나 수면제, 진정제, 카페인 같은 것들을 자주 섭취하고 계신가요? 이런 것들이 수면에 영향을 줄 수 있어서 한번 확인해 보고 싶어요.",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됨. 업무 압박이 심한 편임."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됨. 업무 압박이 심한 편임."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4443.899568170309,
+      "timestamp": "2026-07-08T15:50:11.351526",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됐어요. 요즘 업무 압박이 좀 심한 편이에요",
+        "normalized": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됐어요. 요즘 업무 압박이 좀 심한 편이에요",
+        "input_type": "stt_transcript",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3354.722509160638,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됐어요. 요즘 업무 압박이 좀 심한 편이에요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low"
+    },
+    {
+      "turn": 5,
+      "patient_message": "가족 중에 정신과 치료를 받은 사람은 없어요? 어머니는 제가 요즘 힘들어하는 걸 아시고 걱정하시지만 특별히 같은 경험은 없으신 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 현재 복용 중인 약이 있거나, 과거 다른 질환으로 치료를 받은 적이 있으신가요? 특히 갑상선 문제, 심장 질환, 만성 통증 같은 신체적 질환이 있으셨다면 말씀해 주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됨. 업무 압박으로 인해 수면 개시 지연 및 중간 각성, 새벽 2-3회 각성, 총 수면 시간 4-5시간 정도로 감소. 이로 인해 낮 시간 집중력 저하 및 피로감 호소.",
+        "family_history": "가족 중에 정신과 치료를 받은 사람은 없음. 어머니는 최근 업무 압박으로 인한 어려움을 알고 걱정하고 있으나, 본인이나 다른 가족 구성원이 정신과 치료를 받은 경험은 없음."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됨. 업무 압박으로 인해 수면 개시 지연 및 중간 각성, 새벽 2-3회 각성, 총 수면 시간 4-5시간 정도로 감소. 이로 인해 낮 시간 집중력 저하 및 피로감 호소.",
+        "family_history": "가족 중에 정신과 치료를 받은 사람은 없음. 어머니는 최근 업무 압박으로 인한 어려움을 알고 걱정하고 있으나, 본인이나 다른 가족 구성원이 정신과 치료를 받은 경험은 없음."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 7015.350820031017,
+      "timestamp": "2026-07-08T15:50:23.381498",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "가족 중에 정신과 치료를 받은 사람은 없어요? 어머니는 제가 요즘 힘들어하는 걸 아시고 걱정하시지만 특별히 같은 경험은 없으신 것 같아요.",
+        "normalized": "가족 중에 정신과 치료를 받은 사람은 없어요? 어머니는 제가 요즘 힘들어하는 걸 아시고 걱정하시지만 특별히 같은 경험은 없으신 것 같아요.",
+        "input_type": "stt_transcript",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1809.1267859563231,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "가족 중에 정신과 치료를 받은 사람은 없어요? 어머니는 제가 요즘 힘들어하는 걸 아시고 걱정하시지만 특별히 같은 경험은 없으신 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low"
+    },
+    {
+      "turn": 6,
+      "patient_message": "술은 주일 지회 맥주 한 캔 정도 마셔요. 수면제나 카페인 같은 건 전혀 없어요. 퇴근 후에는 거의 아무것도 안 하고 싶고 운동도 거의 못하고 있어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "퇴근 후에는 거의 아무것도 안 하고 싶고 운동도 거의 못하고 있어요"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 최근 스트레스나 불안, 우울감을 느낀 정도를 0에서 10까지의 점수로 평가한다면 어느 정도라고 생각하시나요? (0=전혀 없음, 10=매우 심함)",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됨. 업무 압박으로 인해 수면 개시 지연 및 중간 각성, 새벽 2-3회 각성, 총 수면 시간 4-5시간 정도로 감소. 이로 인해 집중력 저하와 일상생활 및 업무 수행에 어려움 호소.",
+        "family_history": "가족 중 정신과 치료를 받은 사람은 없음. 어머니는 최근 증상 악화에 대해 걱정하고 있으나, 가족 내 정신과적 병력이나 유사 경험은 없음."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요. 총 수면 시간은 너댓 시간 정도인 것 같아요.",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됨. 업무 압박으로 인해 수면 개시 지연 및 중간 각성, 새벽 2-3회 각성, 총 수면 시간 4-5시간 정도로 감소. 이로 인해 집중력 저하와 일상생활 및 업무 수행에 어려움 호소.",
+        "family_history": "가족 중 정신과 치료를 받은 사람은 없음. 어머니는 최근 증상 악화에 대해 걱정하고 있으나, 가족 내 정신과적 병력이나 유사 경험은 없음."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5251.7732931301,
+      "timestamp": "2026-07-08T15:50:33.043408",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "술은 주일 지회 맥주 한 캔 정도 마셔요. 수면제나 카페인 같은 건 전혀 없어요. 퇴근 후에는 거의 아무것도 안 하고 싶고 운동도 거의 못하고 있어요.",
+        "normalized": "술은 주일 지회 맥주 한 캔 정도 마셔요. 수면제나 카페인 같은 건 전혀 없어요. 퇴근 후에는 거의 아무것도 안 하고 싶고 운동도 거의 못하고 있어요.",
+        "input_type": "stt_transcript",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1914.0729289501905,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "퇴근 후에는 거의 아무것도 안 하고 싶고 운동도 거의 못하고 있어요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low"
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요. 약도 안 먹고, 정신과 진료도 한 번도 안 받아봤어요. 처음이라서 잘 몰라서 앱으로 한번 살펴보는 거예요",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 최근에 복용 중인 약이 있거나, 기존에 처방받았던 약이 변경된 적이 있으신가요? 특히 고혈압, 당뇨, 갑상선 질환 등 신체질환으로 인한 약이 있다면 말씀해 주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자고 누우면 생각이 많아져 뒤척이다가 겨우 잠들고 새벽 2-3회 깨며 총 수면 시간이 4-5시간 정도임",
+        "history_of_present_illness": "최근 직장 내 대규모 프로젝트 데드라인 압박으로 인해 수면 장애가 시작됨. 누우면 생각이 많아져 잠들기 어렵고 새벽 2-3회 깨며 총 수면 시간이 4-5시간 정도로 감소함. 이로 인해 피로감과 집중력 저하가 동반되고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자고 누우면 생각이 많아져 뒤척이다가 겨우 잠들고 새벽 2-3회 깨며 총 수면 시간이 4-5시간 정도임",
+        "history_of_present_illness": "최근 직장 내 대규모 프로젝트 데드라인 압박으로 인해 수면 장애가 시작됨. 누우면 생각이 많아져 잠들기 어렵고 새벽 2-3회 깨며 총 수면 시간이 4-5시간 정도로 감소함. 이로 인해 피로감과 집중력 저하가 동반되고 있음",
+        "family_history": "가족 중 정신과 치료를 받은 사람은 없음. 어머니는 최근 증상 악화에 대해 걱정하고 있으나, 가족 내 정신과적 병력이나 유사 경험은 없음."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4188.516901340336,
+      "timestamp": "2026-07-08T15:50:41.583136",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "아니요. 약도 안 먹고, 정신과 진료도 한 번도 안 받아봤어요. 처음이라서 잘 몰라서 앱으로 한번 살펴보는 거예요",
+        "normalized": "아니요. 약도 안 먹고, 정신과 진료도 한 번도 안 받아봤어요. 처음이라서 잘 몰라서 앱으로 한번 살펴보는 거예요",
+        "input_type": "stt_transcript",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1672.85694507882,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요. 약도 안 먹고, 정신과 진료도 한 번도 안 받아봤어요. 처음이라서 잘 몰라서 앱으로 한번 살펴보는 거예요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none"
+    }
+  ],
+  "errors": [
+    "Turn 7 patient error: Exhausted STT transcripts after 7 turns (session had 7 audio input(s))"
+  ],
+  "started_at": "2026-07-08T15:49:22.807323",
+  "ended_at": "2026-07-08T15:50:43.711839",
+  "grounded_coverage": 0.375,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "ocr_documents": [
+    {
+      "model_used": "document-parse",
+      "prompt_version": "v1",
+      "latency_ms": 1304.0883680805564,
+      "reason_summary": "parsed 8 elements → 8 blocks, 0 flagged (verify/retry: 0)",
+      "session_id": "f1_VP-001_audio",
+      "patient_id": "VP-001",
+      "document_type": "diagnosis",
+      "ocr_vendor": "upstage_solar_document_parse",
+      "blocks": [
+        {
+          "block_id": "blk_001",
+          "field": "heading1",
+          "value": "# 진 단 서",
+          "confidence": 0.92,
+          "bounding_box": {
+            "x": 0.4627,
+            "y": 0.1479,
+            "width": 0.07199999999999995,
+            "height": 0.01999999999999999,
+            "page": 1
+          },
+          "needs_verification": false,
+          "source": "ocr_extracted",
+          "category": "heading1"
+        },
+        {
+          "block_id": "blk_002",
+          "field": "table",
+          "value": "| 환자 성명 | 김서연 | 성별 | 여성 | 연령 | 만 28세 | 주민번호 |\n| --- | --- | --- | --- | --- | --- | --- |\n| 환자 주소 | 서울특별시 마포구 | 서울특별시 마포구 | 서울특별시 마포구 | 서울특별시 마포구 | 전화번호 | - |",
+          "confidence": 0.92,
+          "bounding_box": {
+            "x": 0.1413,
+            "y": 0.205,
+            "width": 0.7178,
+            "height": 0.10319999999999999,
+            "page": 1
+          },
+          "needs_verification": false,
+          "source": "ocr_extracted",
+          "category": "table"
+        },
+        {
+          "block_id": "blk_003",
+          "field": "table",
+          "value": "| 병명 [ V ] 임상적 추정 [ ] 최종 진단 | 내용 | 내용 | 한국질병분류번호 |\n| --- | --- | --- | --- |\n| 병명 [ V ] 임상적 추정 [ ] 최종 진단 | (주상병) 상세불명의 불안장애 (부상병) 비기질성 불면증 | (주상병) 상세불명의 불안장애 (부상병) 비기질성 불면증 | F419 F510 |\n| 발병연월일 | 2026년 6월 16일 (추정) | 진단연월일 | 2026년 7월 7일 |\n| 치료 내용 및 향후 치료에 대한 소견 | 상기 환자는 최근 직장 내 과도한 업무 스트레스(프로젝트 마감)로 인해 촉발된 불안, 수면 장애(수면 개시 지연 및 중간 각성), 집중력 저하, 식욕 부진 등의 증상으로 2026년 7월 7일 본원에 내원하였습니다. 현 재 경도의 불안(GAD-7 8점) 및 우울(PHQ-9 7점) 증상을 보이며 일상생활과 업무 수행에 다소 어려움을 겪고 있는 상태입니다. 환자의 증상 완화와 심리적 안정을 위해 향후 주기적인 정신건강의학과적 상담 및 필요 시 약물 치료가 필요할 것으로 사료됩니다. 경과 관찰을 요하며, 향후 상태에 따라 재평가가 필요합니다. | 상기 환자는 최근 직장 내 과도한 업무 스트레스(프로젝트 마감)로 인해 촉발된 불안, 수면 장애(수면 개시 지연 및 중간 각성), 집중력 저하, 식욕 부진 등의 증상으로 2026년 7월 7일 본원에 내원하였습니다. 현 재 경도의 불안(GAD-7 8점) 및 우울(PHQ-9 7점) 증상을 보이며 일상생활과 업무 수행에 다소 어려움을 겪고 있는 상태입니다. 환자의 증상 완화와 심리적 안정을 위해 향후 주기적인 정신건강의학과적 상담 및 필요 시 약물 치료가 필요할 것으로 사료됩니다. 경과 관찰을 요하며, 향후 상태에 따라 재평가가 필요합니다. | 상기 환자는 최근 직장 내 과도한 업무 스트레스(프로젝트 마감)로 인해 촉발된 불안, 수면 장애(수면 개시 지연 및 중간 각성), 집중력 저하, 식욕 부진 등의 증상으로 2026년 7월 7일 본원에 내원하였습니다. 현 재 경도의 불안(GAD-7 8점) 및 우울(PHQ-9 7점) 증상을 보이며 일상생활과 업무 수행에 다소 어려움을 겪고 있는 상태입니다. 환자의 증상 완화와 심리적 안정을 위해 향후 주기적인 정신건강의학과적 상담 및 필요 시 약물 치료가 필요할 것으로 사료됩니다. 경과 관찰을 요하며, 향후 상태에 따라 재평가가 필요합니다. |\n| 용도 | 관계기관 제출용 | 관계기관 제출용 | 관계기관 제출용 |",
+          "confidence": 0.92,
+          "bounding_box": {
+            "x": 0.1407,
+            "y": 0.3281,
+            "width": 0.7183999999999999,
+            "height": 0.5543,
+            "page": 1
+          },
+          "needs_verification": false,
+          "source": "ocr_extracted",
+          "category": "table"
+        },
+        {
+          "block_id": "blk_004",
+          "field": "table",
+          "value": "| 비고 |\n| --- |",
+          "confidence": 0.92,
+          "bounding_box": {
+            "x": 0.1418,
+            "y": 0.0904,
+            "width": 0.7172999999999999,
+            "height": 0.051500000000000004,
+            "page": 2
+          },
+          "needs_verification": false,
+          "source": "ocr_extracted",
+          "category": "table"
+        },
+        {
+          "block_id": "blk_005",
+          "field": "paragraph",
+          "value": "「의료법」 제17조 및 같은 법 시행규칙 제9조에 따라 위와 같이 진단합니다.",
+          "confidence": 0.92,
+          "bounding_box": {
+            "x": 0.195,
+            "y": 0.2306,
+            "width": 0.6076999999999999,
+            "height": 0.02059999999999998,
+            "page": 2
+          },
+          "needs_verification": false,
+          "source": "ocr_extracted",
+          "category": "paragraph"
+        },
+        {
+          "block_id": "blk_006",
+          "field": "paragraph",
+          "value": "발행일 : 2026년 7월 7일",
+          "confidence": 0.92,
+          "bounding_box": {
+            "x": 0.3987,
+            "y": 0.2942,
+            "width": 0.20149999999999996,
+            "height": 0.018899999999999972,
+            "page": 2
+          },
+          "needs_verification": false,
+          "source": "ocr_extracted",
+          "category": "paragraph"
+        },
+        {
+          "block_id": "blk_007",
+          "field": "paragraph",
+          "value": "의료기관명: ________________________\n주소: ________________________",
+          "confidence": 0.92,
+          "bounding_box": {
+            "x": 0.3241,
+            "y": 0.3562,
+            "width": 0.34900000000000003,
+            "height": 0.04249999999999998,
+            "page": 2
+          },
+          "needs_verification": false,
+          "source": "ocr_extracted",
+          "category": "paragraph"
+        },
+        {
+          "block_id": "blk_008",
+          "field": "heading1",
+          "value": "# [ V ] 의사 성명 : _______________ (인/서명) 면허번호 : 제 _________ 호",
+          "confidence": 0.92,
+          "bounding_box": {
+            "x": 0.1785,
+            "y": 0.4388,
+            "width": 0.6406000000000001,
+            "height": 0.022999999999999965,
+            "page": 2
+          },
+          "needs_verification": false,
+          "source": "ocr_extracted",
+          "category": "heading1"
+        }
+      ],
+      "extracted_summary": {
+        "diagnoses": [
+          "상세불명의 불안장애",
+          "비기질성 불면증"
+        ],
+        "diagnosis_codes": [
+          "F419",
+          "F510"
+        ],
+        "medications": [],
+        "department": "정신건강의학과",
+        "dates": [
+          "2026년 6월 16일",
+          "2026년 7월 7일",
+          "26년 6월 16일",
+          "26년 7월 7일"
+        ],
+        "scale_scores": {
+          "GAD-7": 8,
+          "PHQ-9": 7
+        },
+        "patient_name": "김서연",
+        "patient_age": "만 28세",
+        "patient_gender": "여성"
+      },
+      "low_confidence_items": [],
+      "raw_markdown": "# 진 단 서\n\n| 환자 성명 | 김서연 | 성별 | 여성 | 연령 | 만 28세 | 주민번호 |\n| --- | --- | --- | --- | --- | --- | --- |\n| 환자 주소 | 서울특별시 마포구 | 서울특별시 마포구 | 서울특별시 마포구 | 서울특별시 마포구 | 전화번호 | - |\n\n\n| 병명 [ V ] 임상적 추정 [ ] 최종 진단 | 내용 | 내용 | 한국질병분류번호 |\n| --- | --- | --- | --- |\n| 병명 [ V ] 임상적 추정 [ ] 최종 진단 | (주상병) 상세불명의 불안장애 (부상병) 비기질성 불면증 | (주상병) 상세불명의 불안장애 (부상병) 비기질성 불면증 | F419 F510 |\n| 발병연월일 | 2026년 6월 16일 (추정) | 진단연월일 | 2026년 7월 7일 |\n| 치료 내용 및 향후 치료에 대한 소견 | 상기 환자는 최근 직장 내 과도한 업무 스트레스(프로젝트 마감)로 인해 촉발된 불안, 수면 장애(수면 개시 지연 및 중간 각성), 집중력 저하, 식욕 부진 등의 증상으로 2026년 7월 7일 본원에 내원하였습니다. 현 재 경도의 불안(GAD-7 8점) 및 우울(PHQ-9 7점) 증상을 보이며 일상생활과 업무 수행에 다소 어려움을 겪고 있는 상태입니다. 환자의 증상 완화와 심리적 안정을 위해 향후 주기적인 정신건강의학과적 상담 및 필요 시 약물 치료가 필요할 것으로 사료됩니다. 경과 관찰을 요하며, 향후 상태에 따라 재평가가 필요합니다. | 상기 환자는 최근 직장 내 과도한 업무 스트레스(프로젝트 마감)로 인해 촉발된 불안, 수면 장애(수면 개시 지연 및 중간 각성), 집중력 저하, 식욕 부진 등의 증상으로 2026년 7월 7일 본원에 내원하였습니다. 현 재 경도의 불안(GAD-7 8점) 및 우울(PHQ-9 7점) 증상을 보이며 일상생활과 업무 수행에 다소 어려움을 겪고 있는 상태입니다. 환자의 증상 완화와 심리적 안정을 위해 향후 주기적인 정신건강의학과적 상담 및 필요 시 약물 치료가 필요할 것으로 사료됩니다. 경과 관찰을 요하며, 향후 상태에 따라 재평가가 필요합니다. | 상기 환자는 최근 직장 내 과도한 업무 스트레스(프로젝트 마감)로 인해 촉발된 불안, 수면 장애(수면 개시 지연 및 중간 각성), 집중력 저하, 식욕 부진 등의 증상으로 2026년 7월 7일 본원에 내원하였습니다. 현 재 경도의 불안(GAD-7 8점) 및 우울(PHQ-9 7점) 증상을 보이며 일상생활과 업무 수행에 다소 어려움을 겪고 있는 상태입니다. 환자의 증상 완화와 심리적 안정을 위해 향후 주기적인 정신건강의학과적 상담 및 필요 시 약물 치료가 필요할 것으로 사료됩니다. 경과 관찰을 요하며, 향후 상태에 따라 재평가가 필요합니다. |\n| 용도 | 관계기관 제출용 | 관계기관 제출용 | 관계기관 제출용 |\n\n\n| 비고 |\n| --- |\n\n\n「의료법」 제17조 및 같은 법 시행규칙 제9조에 따라 위와 같이 진단합니다.\n\n발행일 : 2026년 7월 7일\n\n의료기관명: ________________________\n주소: ________________________\n\n# [ V ] 의사 성명 : _______________ (인/서명) 면허번호 : 제 _________ 호",
+      "raw_text": "진 단 서\n| 환자 성명 | 김서연 | 성별 | 여성 | 연령 | 만 28세 | 주민번호 |\n| --- | --- | --- | --- | --- | --- | --- |\n| 환자 주소 | 서울특별시 마포구 | 서울특별시 마포구 | 서울특별시 마포구 | 서울특별시 마포구 | 전화번호 | - |\n\n| 병명 [ V ] 임상적 추정 [ ] 최종 진단 | 내용 | 내용 | 한국질병분류번호 |\n| --- | --- | --- | --- |\n| 병명 [ V ] 임상적 추정 [ ] 최종 진단 | (주상병) 상세불명의 불안장애 (부상병) 비기질성 불면증 | (주상병) 상세불명의 불안장애 (부상병) 비기질성 불면증 | F419 F510 |\n| 발병연월일 | 2026년 6월 16일 (추정) | 진단연월일 | 2026년 7월 7일 |\n| 치료 내용 및 향후 치료에 대한 소견 | 상기 환자는 최근 직장 내 과도한 업무 스트레스(프로젝트 마감)로 인해 촉발된 불안, 수면 장애(수면 개시 지연 및 중간 각성), 집중력 저하, 식욕 부진 등의 증상으로 2026년 7월 7일 본원에 내원하였습니다. 현 재 경도의 불안(GAD-7 8점) 및 우울(PHQ-9 7점) 증상을 보이며 일상생활과 업무 수행에 다소 어려움을 겪고 있는 상태입니다. 환자의 증상 완화와 심리적 안정을 위해 향후 주기적인 정신건강의학과적 상담 및 필요 시 약물 치료가 필요할 것으로 사료됩니다. 경과 관찰을 요하며, 향후 상태에 따라 재평가가 필요합니다. | 상기 환자는 최근 직장 내 과도한 업무 스트레스(프로젝트 마감)로 인해 촉발된 불안, 수면 장애(수면 개시 지연 및 중간 각성), 집중력 저하, 식욕 부진 등의 증상으로 2026년 7월 7일 본원에 내원하였습니다. 현 재 경도의 불안(GAD-7 8점) 및 우울(PHQ-9 7점) 증상을 보이며 일상생활과 업무 수행에 다소 어려움을 겪고 있는 상태입니다. 환자의 증상 완화와 심리적 안정을 위해 향후 주기적인 정신건강의학과적 상담 및 필요 시 약물 치료가 필요할 것으로 사료됩니다. 경과 관찰을 요하며, 향후 상태에 따라 재평가가 필요합니다. | 상기 환자는 최근 직장 내 과도한 업무 스트레스(프로젝트 마감)로 인해 촉발된 불안, 수면 장애(수면 개시 지연 및 중간 각성), 집중력 저하, 식욕 부진 등의 증상으로 2026년 7월 7일 본원에 내원하였습니다. 현 재 경도의 불안(GAD-7 8점) 및 우울(PHQ-9 7점) 증상을 보이며 일상생활과 업무 수행에 다소 어려움을 겪고 있는 상태입니다. 환자의 증상 완화와 심리적 안정을 위해 향후 주기적인 정신건강의학과적 상담 및 필요 시 약물 치료가 필요할 것으로 사료됩니다. 경과 관찰을 요하며, 향후 상태에 따라 재평가가 필요합니다. |\n| 용도 | 관계기관 제출용 | 관계기관 제출용 | 관계기관 제출용 |\n\n| 비고 |\n| --- |\n\n「의료법」 제17조 및 같은 법 시행규칙 제9조에 따라 위와 같이 진단합니다.\n발행일 : 2026년 7월 7일\n의료기관명: ________________________\n주소: ________________________\n[ V ] 의사 성명 : _______________ (인/서명) 면허번호 : 제 _________ 호",
+      "page_count": 2,
+      "element_count": 8,
+      "timestamp": "2026-07-08T15:49:30.743126"
+    }
+  ],
+  "stt_transcripts": [
+    {
+      "model_used": "A.X_STT_note_batch",
+      "prompt_version": "v1",
+      "latency_ms": 1026.0065225884318,
+      "reason_summary": "batch transcribed: 3 segment(s), 92 chars",
+      "session_id": "f1_VP-001_audio",
+      "patient_id": "VP-001",
+      "text": "요즘 잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요 총 수면 시간은 너댓 시간 정도인 것 같아요",
+      "segments": [
+        {
+          "text": "요즘 잠을 잘 못 자고 있어요.",
+          "start_ms": 0,
+          "end_ms": 2,
+          "speaker": null
+        },
+        {
+          "text": "누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨요",
+          "start_ms": 2,
+          "end_ms": 9,
+          "speaker": null
+        },
+        {
+          "text": "총 수면 시간은 너댓 시간 정도인 것 같아요",
+          "start_ms": 9,
+          "end_ms": 13,
+          "speaker": null
+        }
+      ],
+      "confidence": null,
+      "mode": "batch",
+      "vendor": "skt-ak-stt",
+      "audio_duration_ms": 13,
+      "audio_retention_expires_at": "2026-07-10T06:49:23.833463+00:00",
+      "user_confirmed": false,
+      "timestamp": "2026-07-08T15:49:23.833484"
+    },
+    {
+      "model_used": "A.X_STT_note_batch",
+      "prompt_version": "v1",
+      "latency_ms": 852.5696252472699,
+      "reason_summary": "batch transcribed: 2 segment(s), 48 chars",
+      "session_id": "f1_VP-001_audio",
+      "patient_id": "VP-001",
+      "text": "아직 병원은 가지 않았어요. 이번이 처음이라서요. 그냥 랩으로 한번 살펴보는 수준이에요",
+      "segments": [
+        {
+          "text": "아직 병원은 가지 않았어요. 이번이 처음이라서요.",
+          "start_ms": 0,
+          "end_ms": 4,
+          "speaker": null
+        },
+        {
+          "text": "그냥 랩으로 한번 살펴보는 수준이에요",
+          "start_ms": 4,
+          "end_ms": 8,
+          "speaker": null
+        }
+      ],
+      "confidence": null,
+      "mode": "batch",
+      "vendor": "skt-ak-stt",
+      "audio_duration_ms": 8,
+      "audio_retention_expires_at": "2026-07-10T06:49:24.686271+00:00",
+      "user_confirmed": false,
+      "timestamp": "2026-07-08T15:49:24.686288"
+    },
+    {
+      "model_used": "A.X_STT_note_batch",
+      "prompt_version": "v1",
+      "latency_ms": 882.0875827223063,
+      "reason_summary": "batch transcribed: 1 segment(s), 55 chars",
+      "session_id": "f1_VP-001_audio",
+      "patient_id": "VP-001",
+      "text": "아니요. 그런 건 없어요. 평소 건강 검진에서 특별한 문제는 없다고 했고, 약도 먹고 있지 않아요.",
+      "segments": [
+        {
+          "text": "아니요. 그런 건 없어요. 평소 건강 검진에서 특별한 문제는 없다고 했고, 약도 먹고 있지 않아요.",
+          "start_ms": 0,
+          "end_ms": 8,
+          "speaker": null
+        }
+      ],
+      "confidence": null,
+      "mode": "batch",
+      "vendor": "skt-ak-stt",
+      "audio_duration_ms": 8,
+      "audio_retention_expires_at": "2026-07-10T06:49:25.568538+00:00",
+      "user_confirmed": false,
+      "timestamp": "2026-07-08T15:49:25.568560"
+    },
+    {
+      "model_used": "A.X_STT_note_batch",
+      "prompt_version": "v1",
+      "latency_ms": 903.9705069735646,
+      "reason_summary": "batch transcribed: 2 segment(s), 58 chars",
+      "session_id": "f1_VP-001_audio",
+      "patient_id": "VP-001",
+      "text": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됐어요. 요즘 업무 압박이 좀 심한 편이에요",
+      "segments": [
+        {
+          "text": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됐어요.",
+          "start_ms": 0,
+          "end_ms": 5,
+          "speaker": null
+        },
+        {
+          "text": "요즘 업무 압박이 좀 심한 편이에요",
+          "start_ms": 5,
+          "end_ms": 8,
+          "speaker": null
+        }
+      ],
+      "confidence": null,
+      "mode": "batch",
+      "vendor": "skt-ak-stt",
+      "audio_duration_ms": 8,
+      "audio_retention_expires_at": "2026-07-10T06:49:26.472822+00:00",
+      "user_confirmed": false,
+      "timestamp": "2026-07-08T15:49:26.472835"
+    },
+    {
+      "model_used": "A.X_STT_note_batch",
+      "prompt_version": "v1",
+      "latency_ms": 1009.6784718334675,
+      "reason_summary": "batch transcribed: 1 segment(s), 77 chars",
+      "session_id": "f1_VP-001_audio",
+      "patient_id": "VP-001",
+      "text": "가족 중에 정신과 치료를 받은 사람은 없어요? 어머니는 제가 요즘 힘들어하는 걸 아시고 걱정하시지만 특별히 같은 경험은 없으신 것 같아요.",
+      "segments": [
+        {
+          "text": "가족 중에 정신과 치료를 받은 사람은 없어요? 어머니는 제가 요즘 힘들어하는 걸 아시고 걱정하시지만 특별히 같은 경험은 없으신 것 같아요.",
+          "start_ms": 0,
+          "end_ms": 11,
+          "speaker": null
+        }
+      ],
+      "confidence": null,
+      "mode": "batch",
+      "vendor": "skt-ak-stt",
+      "audio_duration_ms": 11,
+      "audio_retention_expires_at": "2026-07-10T06:49:27.482650+00:00",
+      "user_confirmed": false,
+      "timestamp": "2026-07-08T15:49:27.482665"
+    },
+    {
+      "model_used": "A.X_STT_note_batch",
+      "prompt_version": "v1",
+      "latency_ms": 1012.9541382193565,
+      "reason_summary": "batch transcribed: 1 segment(s), 84 chars",
+      "session_id": "f1_VP-001_audio",
+      "patient_id": "VP-001",
+      "text": "술은 주일 지회 맥주 한 캔 정도 마셔요. 수면제나 카페인 같은 건 전혀 없어요. 퇴근 후에는 거의 아무것도 안 하고 싶고 운동도 거의 못하고 있어요.",
+      "segments": [
+        {
+          "text": "술은 주일 지회 맥주 한 캔 정도 마셔요. 수면제나 카페인 같은 건 전혀 없어요. 퇴근 후에는 거의 아무것도 안 하고 싶고 운동도 거의 못하고 있어요.",
+          "start_ms": 0,
+          "end_ms": 13,
+          "speaker": null
+        }
+      ],
+      "confidence": null,
+      "mode": "batch",
+      "vendor": "skt-ak-stt",
+      "audio_duration_ms": 13,
+      "audio_retention_expires_at": "2026-07-10T06:49:28.495797+00:00",
+      "user_confirmed": false,
+      "timestamp": "2026-07-08T15:49:28.495812"
+    },
+    {
+      "model_used": "A.X_STT_note_batch",
+      "prompt_version": "v1",
+      "latency_ms": 942.711730953306,
+      "reason_summary": "batch transcribed: 2 segment(s), 63 chars",
+      "session_id": "f1_VP-001_audio",
+      "patient_id": "VP-001",
+      "text": "아니요. 약도 안 먹고, 정신과 진료도 한 번도 안 받아봤어요. 처음이라서 잘 몰라서 앱으로 한번 살펴보는 거예요",
+      "segments": [
+        {
+          "text": "아니요. 약도 안 먹고, 정신과 진료도 한 번도 안 받아봤어요.",
+          "start_ms": 0,
+          "end_ms": 5,
+          "speaker": null
+        },
+        {
+          "text": "처음이라서 잘 몰라서 앱으로 한번 살펴보는 거예요",
+          "start_ms": 5,
+          "end_ms": 9,
+          "speaker": null
+        }
+      ],
+      "confidence": null,
+      "mode": "batch",
+      "vendor": "skt-ak-stt",
+      "audio_duration_ms": 9,
+      "audio_retention_expires_at": "2026-07-10T06:49:29.438712+00:00",
+      "user_confirmed": false,
+      "timestamp": "2026-07-08T15:49:29.438728"
+    }
+  ],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.08311588317155838,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.4,
+      "anxiety": 0.33,
+      "neutral": 0.2,
+      "despair": 0.07
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.65
+      },
+      {
+        "turn": 1,
+        "polarity": -0.65
+      },
+      {
+        "turn": 2,
+        "polarity": -0.2
+      },
+      {
+        "turn": 3,
+        "polarity": -0.6
+      },
+      {
+        "turn": 4,
+        "polarity": -0.75
+      },
+      {
+        "turn": 5,
+        "polarity": -0.65
+      },
+      {
+        "turn": 6,
+        "polarity": -0.65
+      },
+      {
+        "turn": 7,
+        "polarity": 0.0
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 6회 반복",
+      "anxiety 표현 5회 반복",
+      "neutral 표현 3회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "anxiety",
+          "neutral"
+        ],
+        "polarity": -0.2
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      }
+    ]
+  }
+}

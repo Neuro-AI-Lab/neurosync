@@ -1,0 +1,53 @@
+{
+  "original_turns": 8,
+  "replay_turns": 7,
+  "original_crisis": false,
+  "replay_crisis": false,
+  "original_coverage": 0.4,
+  "replay_coverage": 0.6,
+  "original_grounded": 0.25,
+  "replay_grounded": 0.75,
+  "original_ctrs_min": 4,
+  "replay_ctrs_min": 4,
+  "slot_existence_match": "2/6",
+  "slot_diff": [
+    {
+      "slot": "chief_complaint",
+      "original": "잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고, 새벽에도 두세 번 깨요. 총 수면 시간은 4~5시간 정도인 것 같아요.",
+      "replay": "잠을 잘 못 자고 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고 새벽에도 두세 번 깨며 총 수면 시간이 너댓 시간 정도임",
+      "existence_match": true
+    },
+    {
+      "slot": "family_history",
+      "original": "",
+      "replay": "가족 중 정신과 치료를 받은 사람은 없음. 어머니는 걱정하시지만 본인이나 다른 가족 구성원이 비슷한 경험을 한 적은 없음",
+      "existence_match": false
+    },
+    {
+      "slot": "history_of_present_illness",
+      "original": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됐어요. 요즘 업무 압박이 좀 심한 편이에요. 퇴근 후에는 거의 아무것도 안 하고 싶고, 운동도 거의 못 하고 있어요.",
+      "replay": "회사 대규모 프로젝트 데드라인이 다가오면서부터 수면 문제가 시작됨. 누우면 생각이 자꾸 떠올라 잠들기 어렵고 새벽에도 2-3회 깨며 총 수면 시간이 4-5시간 정도로 감소함",
+      "existence_match": true
+    },
+    {
+      "slot": "personal_social_history",
+      "original": "",
+      "replay": "주 1회 맥주 1캔 정도 음주. 수면제나 카페인 복용 없음. 퇴근 후 활동량 감소 및 운동 거의 못함.",
+      "existence_match": false
+    },
+    {
+      "slot": "risk_assessment",
+      "original": "",
+      "replay": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요. 약도 안 먹고, 정신과 진료도 한 번도 안 받아봤어요. 처음이라서 잘 몰라서 앱으로 한번 살펴보는 거예요\"",
+      "existence_match": false
+    },
+    {
+      "slot": "substance_use_history",
+      "original": "",
+      "replay": "주 1회 맥주 1캔 정도 음주. 수면제나 카페인 등 약물 사용 없음",
+      "existence_match": false
+    }
+  ],
+  "original_errors": 1,
+  "replay_errors": 1
+}

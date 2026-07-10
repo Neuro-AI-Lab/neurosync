@@ -1,6 +1,12 @@
 # Agent 07: OCR Document Agent
 
-> **상태 배너 — 미구현 (설계 스펙만 존재)**: 3-way 감사 기준, `apps/ai-server/src/agents/`에 `ocr` 관련 에이전트 구현 파일이 존재하지 않는다. 이 문서는 설계 의도를 기술한 스펙이며, as-built 코드가 아니다.
+> **상태 배너 — 구현됨 (PR #38 통합, `feat/f1-stt-ocr-integration`@`5bdd379f6eed9f340a9878edd02bbc0f073fd04a`, 2026-07-10)**: `agents/ocr.py`(`OCRAgent`) + `adapters/solar_document_parse.py`(`SolarDocumentParseAdapter`) + 라우트 `POST /ai/ocr/parse`(`routes/ocr.py`, `main.py`에 마운트됨)가 존재한다. as-built와 이 문서의 델타:
+>
+> - **인증 없음 (VAL-012, `error.md`, major, open, non-blocking).** STT와 동일한 무인증 posture — 유료 벤더 API(Upstage Document Parse)를 프록시하는 multipart 라우트, 비용/DoS 노출. 부분 완화: 50MB 크기 상한(초과 시 413). Content-Type 검사는 관대함. 벤더 자격증명(`UPSTAGE_API_KEY`)은 이 프로젝트가 Solar Pro3(대화 LLM)에도 이미 사용 중이므로 STT의 `SKT_A_X_API_KEY`와 달리 현재 이 환경에서 등록돼 있다 — 즉 `dependencies.get_ocr_agent()`의 fail-fast(`RuntimeError`) 경로는 이 프로젝트의 현재 `.env` 상태에서는 발현되지 않는다(발현 조건 자체는 STT와 동일한 코드 패턴).
+> - **OCR 라이브 경로도 이 통합 미션에서 벤더 호출까지 수반한 검증은 수행되지 않았다.** `continuous_test.py`의 F1→F2 스모크는 STT/OCR을 항상 끈 상태로만 실행된다(`ocr_documents` 미전달). "인증"/"통과"/"검증됨" 등의 표현은 OCR 경로(agent/adapter/route)에 사용하지 않는다.
+> - **Confidence는 벤더 네이티브 값이 아니라 합성값이다.** Upstage Document Parse는 요소별(per-element) confidence를 제공하지 않는다(agent 자체 docstring) — `agents/ocr.py::_synthesize_confidence()`가 Upstage 요소 카테고리(table/heading/paragraph=0.92, caption/footer/header=0.82, figure/chart/equation=0.60, 기타=0.70)를 기준으로 근사값을 만든다. 아래 "출력" 예시의 `confidence: 0.96` 같은 구체값은 예시일 뿐, 벤더가 직접 준 신뢰도가 아니다.
+> - **4-tier confidence gate 임계값이 as-built 기준으로 다르다.** 코드 상수는 `CONFIDENCE_HIGH=0.9`(정상)/`CONFIDENCE_LOW=0.7`(info)/`CONFIDENCE_VERIFY=0.5`(verify, 미만이면 retry+값 null화)이며, 호출자가 넘기는 `confidence_threshold`(기본 0.7)는 legacy override로 mid-range 값에만 추가로 영향을 준다 — 아래 "핵심 동작" 절의 "confidence < 0.8" 단일 임계값 서술은 근사 요약이며 정확한 as-built 로직은 위 4-tier다.
+> - **`document_type` 리터럴 값이 문서 표와 다르다.** as-built enum은 `diagnosis`/`prescription`/`consultation`/`lab_result`/`unknown`이다 — 이 문서의 "지원 문서 유형" 절이 사용하는 "상담기록"/"검사결과"는 개념적으로는 각각 `consultation`/`lab_result`에 대응하지만, 코드 필드명 자체는 다르다.
 
 ## 개요
 

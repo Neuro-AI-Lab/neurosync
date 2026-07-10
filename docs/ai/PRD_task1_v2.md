@@ -32,6 +32,7 @@
 | v2.5 | 2026-07-09 | F2 RAG-arm remediation (`PLAN-2026-W28-G`) completed: `EXP-006` (1 diagnostic + 16 certification runs) reflected. **`BUG-016` resolved** (confirmed live at n=32, `rejected_unknown_source` 0/32 vs `EXP-005`'s 10/35). **`BUG-017`'s diagnosed truncation mechanism resolved** (0/16 `finish_reason="length"` post-fix, `max_tokens` 1536→4096) — but the certification batch's clean VP-003 RAG n=2 deliverable was **not achieved**: VP-003 RAG stays 0/2 interpretable via a new, distinct, undiagnosed schema-validation-failure mode (tracked as new `BUG-019`), and a previously-clean persona (`VP-001/run1`) newly failed with the identical signature. `VAL-010`'s code mitigation (`risk_assessment` excluded from Stage-1 queries) is applied and confirmed live, but does not resolve the underlying concern for VP-003 (`chief_complaint`/HPI remain risk-worded by persona design, reproduced for a 2nd consecutive batch) — the standing query-content audit continues. Critic `REV-012` ruled, and orchestrator adopted as `ADR-016`: **RAG-arm `EXPERIMENTAL/UNCERTIFIED` status is NOT lifted** (2/3 conditions met, 1/3 not met; no partial/per-persona certification licensed). `llm_only` arm's existing certification (`ADR-015` (1)) is unaffected by this batch. §3 status update + §1.1/§3.6 table cells updated; no "인증"/"통과"/"검증됨" wording used for the RAG arm. Source: `discussion.md` PLAN-2026-W28-G, REV-011, REV-012, ADR-016; `result.md` EXP-006; `error.md` BUG-016(resolved)/BUG-017(open)/BUG-019(open, new)/VAL-010(open); `development_report.md` DR-009 |
 | v2.6 | 2026-07-09 | `PLAN-2026-W28-H` completed (Tracks A–D): **Track A — RAG HTTP API permanently out of scope, now and at deployment** (`ADR-017`, `REV-013` §2) — `rag_router` unmounted (RETIRE, not DORMANT), `rag_chat.py` refactored in-process, `NS_RAG_API_KEY` unused; §3.8's S1 status updated, `VAL-005` **structurally resolved** (not merely mitigated). **Track B — new "AI 예상질환" (AI-predicted-disease) entity added** (new §3.9): F2 RAG top-5 disease candidates + `similarity_score` (never `probability`/`confidence`), `is_diagnostic: Literal[False]`, structurally isolated from the 12 canonical clinical slots (§2.3) — isolation evidenced by qa's 9-test adversarial suite (`REV-013` §3 condition 1 met); container built now, live auto-population gated on RAG-arm certification (unchanged `EXPERIMENTAL/UNCERTIFIED`, `ADR-016`). `BUG-019` (RAG-arm certification precondition) diagnosed live (`EXP-007`) and root-cause fixed/code-verified (qa `GATE:PASS`) but stays **open** pending a live clean VP-003/VP-001 RAG n=2 re-verification — no RAG-arm "인증"/"통과"/"검증됨" wording is used. `llm_only` arm's certification (`ADR-015` (1)) unaffected. Source: `discussion.md` PLAN-2026-W28-H, ADR-016, ADR-017, REV-012 §6, REV-013; `result.md` EXP-007; `error.md` BUG-019, VAL-005; `development_report.md` DR-010 |
 | v2.7 | 2026-07-09 | Documentation-drift correction (writer, editorial only — no functional/status change): §9.4 pipeline table gained a `continuous_test.py` row (Track C harness, `PLAN-2026-W28-H`, module `apps/ai-server/src/continuous_test.py`) — previously mentioned only in checklist `T1-F0-DEV-011`, absent from the PRD. §3.9 now cites the AI-predicted-disease container's module path (`apps/ai-server/src/schemas/ai_predicted_disease.py`, checklist `T1-F2-DEV-011`). Companion checklist fix (not this document): `T1-F2-VER-012` row corrected from stale `[ ]` to `[~]` to match its own line-267 status-update note (3/4 sub-items complete: `T1-F2-DEV-012`/`VER-013`/`DEV-013`; sole remaining scope is the clean VP-003/VP-001 RAG n=2 re-verification, `ADR-016`). |
+| v2.9 | 2026-07-10 | **PR #38 (F1 STT+OCR, Seohyunjho) integration merged** (`feat/f1-stt-ocr-integration`@`5bdd379`, true merge onto Master `411d6a1`, PLAN-2026-W28-N): STT (`POST /ai/stt/transcribe`) and OCR (`POST /ai/ocr/parse`) land as **additive input-modality plumbing** feeding TEXT into the existing, unchanged Safety→Slot→Dialogue turn pipeline (§2.10, new) — the certified pipeline itself carries zero verdict regressions (`result.md` EXP-013, 9/9 EXP-002-comparable safety-matrix scenarios match). §1.1 Agent↔code table and §2.9 F1 API status table updated: InputNormalizer/STT-adapter/OCR-adapter rows move from 대기/미구현 to implemented-as-built, each with its own caveat (InputNormalizer's correction feature is a confirmed 100%-conditional no-op, `BUG-020`; both new routes are unauthenticated, `VAL-012`; the STT live vendor path is declared untested, vendor key unprovisioned). §2.8 gap G6 updated accordingly. No "인증"/"통과"/"certified"/"shippable"/"passed" wording is used for the InputNormalizer correction feature or for the merge's overall safety posture (REV-021 binding). Source: `discussion.md` PLAN-2026-W28-N, REV-021; `result.md` EXP-013; `error.md` BUG-020/BUG-021/VAL-012; `development_report.md` DR-014. |
 
 ### 0.3 v1 대비 핵심 변경 요약
 
@@ -66,14 +67,14 @@ ID 형식 `T1-Fn-{TYPE}-{SEQ}` 및 기능 번호(F0~F5)는 v1과 동일하다. *
 | SafetyClassifier | `agents/safety_classifier.py` | 구현 완료 | F1, F3(위험 문항 연동) |
 | Dialogue | `agents/dialogue.py` | 구현 완료 | F1 |
 | ClinicalSlot | `agents/clinical_slot.py` | 구현 완료 | F1, F3 |
-| InputNormalizer | `agents/input_normalizer.py` | 구현 완료 | F1 (STT/OCR 대기) |
+| InputNormalizer | `agents/input_normalizer.py` | **구현 완료 · live-as-of-merge**(PR #38, `feat/f1-stt-ocr-integration`@`5bdd379`, 2026-07-10 — `f1.py`가 모든 환자 입력을 이 agent에 먼저 통과시킴). **Correction 기능은 확인된 100%-conditional no-op**(`BUG-020`, open, major — ISS-039 프롬프트/스키마 불일치, 교정 시도 14/14 fallback, fail-safe는 검증됨). "인증"/"통과" 표현 미사용 | F1 |
 | SentimentAnalyzer | `agents/sentiment_analyzer.py` | 구현 완료 | F1(미연동), F4 |
 | DomainInferenceAgent | `agents/domain_inference.py` | **구현 완료 · llm_only 경로 비인증 해제**(`ADR-015`, 상시 수동감사 조건부) · **RAG 경로 EXPERIMENTAL 잔류**(§3.8, reaffirmed 2026-07-09 `ADR-016` — `BUG-016` resolved, `BUG-017`'s truncation mechanism resolved, VP-003 RAG clean re-verification NOT MET, tracked as `BUG-019`) | F2 |
 | TemporalSummary | `agents/temporal_summary.py` | 구현 완료 | F4 |
 | HandoffGenerator | `agents/handoff_generator.py` | 구현 완료 | F5 |
 | EvidenceVerifier | `agents/evidence_verifier.py` | 구현 완료 | F5 |
-| STT adapter | 미구현 (`adapters/stt_adapter.py` 없음) | **미구현** | F1 |
-| OCR adapter | 미구현 (`adapters/ocr_adapter.py` 없음) | **미구현** | F1 |
+| STT adapter | `adapters/skt_ak_stt.py` + `agents/stt.py` | **구현됨**(PR #38, `feat/f1-stt-ocr-integration`@`5bdd379`) — batch 모드만, streaming은 HTTP 501. **무인증**(`VAL-012`, major, non-blocking). **라이브 벤더 경로는 이 통합 미션에서 미검증**(`SKT_A_X_API_KEY` 비어있음 확인, `result.md` EXP-013 Task 4) | F1 |
+| OCR adapter | `adapters/solar_document_parse.py` + `agents/ocr.py` | **구현됨**(PR #38, `feat/f1-stt-ocr-integration`@`5bdd379`). **무인증**(`VAL-012`, major, non-blocking; `UPSTAGE_API_KEY`는 이미 등록되어 있어 STT와 달리 dependency fail-fast는 발현되지 않음). 이 통합 미션에서 라이브 벤더 호출 검증은 수행되지 않음 | F1 |
 
 **이중 오케스트레이션 주의:** F1 검증용 `f1.py`와 프로덕션용 `agents/orchestrator.py`(11-state)가 병존한다. 두 경로의 slot 스키마·세션 종료 조건·coverage 기준 정합화는 Phase 2 항목이다 (§7, §9).
 
@@ -210,7 +211,7 @@ Rule Engine (키워드 스크리닝 + 활용형 변형 + 부정 문맥 감지)
 | G3 | 3턴 조기 종료 런만 존재 — 장기 세션(10턴+) 품질 미검증 (00:54 VP-004 10턴 런은 4회 반복 루프 포함) | major |
 | G4 | 중간 턴 위기 전환, 간접·부정 문맥, CTRS 3+자해사고(VP-004 spec) 파이프라인 수준 검증 없음 | critical |
 | G5 | slot 값의 발화 근거(grounding)·persona ground-truth 대비 충실도 정량 평가 없음 | major |
-| G6 | STT/OCR 입력 경로 미구현 (ISS-011) | major |
+| G6 | STT/OCR 입력 경로 — **2026-07-10 갱신: 구현됨**(PR #38 통합, §2.10 참조)이나 (a) 무인증(`VAL-012`), (b) STT 라이브 벤더 경로 미검증, (c) InputNormalizer correction 기능 no-op(`BUG-020`) 3개 잔여 결함 보유. ISS-011(벤더 계약)은 해소 — SKT A.X/Upstage 어댑터 코드 자체는 이제 존재한다 | major (하향 아님 — 잔여 결함 3건이 severity를 유지시킴) |
 | G7 | SentimentAnalyzer가 f1.py 루프에 미연동 (F4 입력 생성 불가) | minor |
 | G8 | 검증된 경로(f1.py) ≠ 프로덕션 경로(orchestrator/chat) — 프로덕션 경로는 현재 부팅 불가·slot 누적 불능·구 핫라인(1393) 사용 | critical |
 
@@ -220,7 +221,29 @@ Rule Engine (키워드 스크리닝 + 활용형 변형 + 부정 문맥 감지)
 |------|------|------|
 | `python -m src.f1` (CLI 시뮬레이션) | 운영 중 | 검증 표준 경로 |
 | `POST /ai/chat/respond` | 구현 (orchestrator 경유) | f1.py와의 동작 정합성 검증 필요 (§7) |
-| `POST /ai/stt/transcribe`, `POST /ai/ocr/parse` | 미구현 | 벤더 계약 대기 (ISS-011) |
+| `POST /ai/stt/transcribe`, `POST /ai/ocr/parse` | **구현됨**(2026-07-10, PR #38 통합) | 라우트·agent·adapter 존재, `main.py`에 마운트됨. 무인증(`VAL-012`); STT는 라이브 벤더 경로 미검증(`SKT_A_X_API_KEY` 비어있음); OCR도 이 미션에서 벤더 호출 검증 없음. 상세: §2.10 |
+
+### 2.10 STT/OCR 입력 경로 — as-built (PR #38 통합, 2026-07-10, `PLAN-2026-W28-N`)
+
+**통합 개요:** `add/f1-stt-and-ocr`(Seohyunjho, 6 commits)가 true merge로 `feat/f1-stt-ocr-integration`@`5bdd379f6eed9f340a9878edd02bbc0f073fd04a`(부모: Master `411d6a1` + PR #38 head `15423baf`)에 통합됐다. 근거: `discussion.md` PLAN-2026-W28-N, REV-021; `result.md` EXP-013; `error.md` BUG-020/BUG-021/VAL-012; `development_report.md` DR-014.
+
+**아키텍처 불변 조건 (binding, ADR-012/ADR-018 — 이 통합은 이를 변경하지 않는다):** STT/OCR/InputNormalizer는 §2.2/§2.4의 기존 Safety→Slot→Dialogue 파이프라인에 **텍스트를 공급하는 부가적(additive) 입력 plumbing**일 뿐이다 — grounding filter, Safety Probe 상태 기계, crisis 처리, `session_ctrs` 등 기존 파이프라인 로직은 이 병합으로 변경되지 않았다. 라이브 실측(`result.md` EXP-013): merge된 `f1.py`에서 실행한 11-scenario safety matrix가 `EXP-002`/`EXP-003` 베이스라인 대비 **비교 가능한 9개 시나리오 전부에서 0건의 verdict 회귀**를 보였다(SM-08b는 이번이 v2의 최초 데이터 포인트로 실패하나, 이는 v2 자체가 ADR-010 rule 5를 구현한 적이 없다는 기존에 알려진 사실의 재확인이며 이 병합이 만든 회귀가 아니다 — `BUG-007`/`ADR-010`/`ADR-012` 계열).
+
+**데이터 흐름 (f1.py, `_run_simulation`):**
+1. `audio_inputs`가 주어지면 세션 시작 시점에 STTAgent가 오디오를 일괄 전사한다(batch 모드만; streaming은 미구현, HTTP 501).
+2. `ocr_documents`가 주어지면 OCRAgent가 문서를 파싱하고, 결과가 `result.ocr_documents`에 저장되면서 대화 컨텍스트에 system 메시지로 주입된다 — 이 경로는 turn 1부터 진입하며, turn 0의 slot 추출에는 별도 `turn0_history`가 쓰여 OCR 컨텍스트가 배제된다(REV-021 §1 확인).
+3. (STT 전사든 직접 텍스트든) **모든 환자 발화는 InputNormalizerAgent로 먼저 수렴한 뒤 Safety/Dialogue로 전달된다** — §2.4의 Safety 아키텍처 자체는 입력 소스와 무관하게 동일하게 작동한다.
+
+**잔여 결함 (병합 자체를 막지 않음, PR 본문/사용자 공지 필수 — 완화 표현 금지):**
+
+| 결함 | 심각도 | 상태 |
+|---|---|---|
+| `BUG-020` — InputNormalizer correction 기능이 확인된 100%-conditional no-op(ISS-039 프롬프트/스키마 불일치) | major | open |
+| `BUG-021` — `.env`의 상대경로 `PROMPTS_BASE_DIR`이 unset-only auto-correction guard를 무언으로 우회, 전 prompt-driven agent가 fallback 프롬프트로 저하 (병합 이전부터 Master 자체에 존재 확인, REV-021) | **critical** | open |
+| `VAL-012` — `/ai/stt/transcribe`, `/ai/ocr/parse` 무인증, 유료 벤더 API 프록시(비용/DoS) | major | open, non-blocking |
+| STT 라이브 벤더 경로 | — | **미검증으로 명시(declared untested)** — `SKT_A_X_API_KEY` 비어있음 |
+
+**표현 규율(binding, REV-021):** InputNormalizer correction 기능이나 이 병합의 전반적 안전 posture에 대해 "인증"/"통과"/"certified"/"verified"/"shippable"/"passed" 표현을 사용하지 않는다 — 이 통합은 이미 인증된 안전 파이프라인에 대한 회귀 검증(integration-verification gate)이지, 재인증 이벤트가 아니다.
 
 ---
 

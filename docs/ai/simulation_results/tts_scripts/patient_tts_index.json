@@ -1,0 +1,388 @@
+{
+  "generated": "2026-07-08",
+  "purpose": "환자 발화 TTS → STT 파이프라인 테스트용 오디오",
+  "personas": {
+    "VP-001": {
+      "persona_name": "김서연",
+      "profile": "28F · 초진 경증 · 불안 + 불면 3주",
+      "note": "안전 발화만. Crisis 없음.",
+      "source": "VP-001/VP-001_20260708_140746_conversation.json",
+      "utterance_count": 7,
+      "sentence_count": 17,
+      "crisis_triggered": false,
+      "utterances": [
+        {
+          "utterance_index": 1,
+          "turn_in_log": 0,
+          "full": "요즘 잠을 잘 못 자고 있어요. 누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고, 새벽에도 두세 번 깨요. 총 수면 시간은 4~5시간 정도인 것 같아요.",
+          "sentences": [
+            "요즘 잠을 잘 못 자고 있어요.",
+            "누우면 이런저런 생각이 자꾸 들어서 한참을 뒤척이다가 겨우 잠들고, 새벽에도 두세 번 깨요.",
+            "총 수면 시간은 4~5시간 정도인 것 같아요."
+          ],
+          "safety_ctrs": 4,
+          "safety_risk": "low",
+          "safety_crisis": false,
+          "safety_flagged": []
+        },
+        {
+          "utterance_index": 2,
+          "turn_in_log": 2,
+          "full": "아직 병원은 가지 않았어요. 이번이 처음이라서요. 그냥 앱으로 한번 살펴보는 수준이에요.",
+          "sentences": [
+            "아직 병원은 가지 않았어요.",
+            "이번이 처음이라서요.",
+            "그냥 앱으로 한번 살펴보는 수준이에요."
+          ],
+          "safety_ctrs": 4,
+          "safety_risk": "low",
+          "safety_crisis": false,
+          "safety_flagged": [
+            "잠을 잘 못 자고 있어요",
+            "누우면 이런저런 생각이 자꾸 들어서",
+            "새벽에도 두세 번 깨요",
+            "총 수면 시간은 4~5시간 정도"
+          ]
+        },
+        {
+          "utterance_index": 3,
+          "turn_in_log": 3,
+          "full": "아니요, 그런 건 없어요. 평소 건강 검진에서 특별한 문제는 없다고 했고, 약도 먹고 있지 않아요.",
+          "sentences": [
+            "아니요, 그런 건 없어요.",
+            "평소 건강 검진에서 특별한 문제는 없다고 했고, 약도 먹고 있지 않아요."
+          ],
+          "safety_ctrs": 4,
+          "safety_risk": "low",
+          "safety_crisis": false,
+          "safety_flagged": [
+            "잠을 잘 못 자고 있어요",
+            "잠들면 이런저런 생각이 자꾸 들어서",
+            "새벽에도 두세 번 깨요",
+            "총 수면 시간은 4~5시간 정도"
+          ]
+        },
+        {
+          "utterance_index": 4,
+          "turn_in_log": 4,
+          "full": "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됐어요. 요즘 업무 압박이 좀 심한 편이에요.",
+          "sentences": [
+            "회사에서 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됐어요.",
+            "요즘 업무 압박이 좀 심한 편이에요."
+          ],
+          "safety_ctrs": 4,
+          "safety_risk": "low",
+          "safety_crisis": false,
+          "safety_flagged": []
+        },
+        {
+          "utterance_index": 5,
+          "turn_in_log": 5,
+          "full": "가족 중에 정신과 치료를 받은 사람은 없어요. 어머니는 제가 요즘 힘들어하는 걸 아시고 걱정하시지만, 특별히 같은 경험은 없으신 것 같아요.",
+          "sentences": [
+            "가족 중에 정신과 치료를 받은 사람은 없어요.",
+            "어머니는 제가 요즘 힘들어하는 걸 아시고 걱정하시지만, 특별히 같은 경험은 없으신 것 같아요."
+          ],
+          "safety_ctrs": 5,
+          "safety_risk": "none",
+          "safety_crisis": false,
+          "safety_flagged": []
+        },
+        {
+          "utterance_index": 6,
+          "turn_in_log": 6,
+          "full": "술은 주 1~2회 맥주 한 캔 정도 마셔요. 수면제나 카페인 같은 건 전혀 없어요.  \n퇴근 후에는 거의 아무것도 안 하고 싶고, 운동도 거의 못 하고 있어요.",
+          "sentences": [
+            "술은 주 1~2회 맥주 한 캔 정도 마셔요.",
+            "수면제나 카페인 같은 건 전혀 없어요.",
+            "퇴근 후에는 거의 아무것도 안 하고 싶고, 운동도 거의 못 하고 있어요."
+          ],
+          "safety_ctrs": 4,
+          "safety_risk": "low",
+          "safety_crisis": false,
+          "safety_flagged": []
+        },
+        {
+          "utterance_index": 7,
+          "turn_in_log": 7,
+          "full": "아니요, 약도 안 먹고, 정신과 진료도 한번도 안 받아봤어요.  \n처음이라서 잘 몰라서 앱으로 한번 살펴보는 거예요.",
+          "sentences": [
+            "아니요, 약도 안 먹고, 정신과 진료도 한번도 안 받아봤어요.",
+            "처음이라서 잘 몰라서 앱으로 한번 살펴보는 거예요."
+          ],
+          "safety_ctrs": 4,
+          "safety_risk": "low",
+          "safety_crisis": false,
+          "safety_flagged": []
+        }
+      ]
+    },
+    "VP-002": {
+      "persona_name": "이준호",
+      "profile": "35M · 재진 경증 · 이전 약물 치료 진행 중",
+      "note": "안전 발화. 12턴 대화 진행.",
+      "source": "VP-002/VP-002_20260707_154407_conversation.json",
+      "utterance_count": 10,
+      "sentence_count": 35,
+      "crisis_triggered": false,
+      "utterances": [
+        {
+          "utterance_index": 1,
+          "turn_in_log": 0,
+          "full": "아, 안녕하세요. 사실 약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 온 거예요.  \n예전엔 수업 준비도 힘들었는데, 요즘은 수업 준비는 하고 있고, 주말엔 아내와 외식도 하다 보니 기분이 예전보다 나아졌다는 걸 느껴요.  \n아직 완전히 괜찮은 건 아니지만, 그래도 나아지고 있다는 걸 말씀드리고 싶었어요.",
+          "sentences": [
+            "아, 안녕하세요.",
+            "사실 약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 온 거예요.",
+            "예전엔 수업 준비도 힘들었는데, 요즘은 수업 준비는 하고 있고, 주말엔 아내와 외식도 하다 보니 기분이 예전보다 나아졌다는 걸 느껴요.",
+            "아직 완전히 괜찮은 건 아니지만, 그래도 나아지고 있다는 걸 말씀드리고 싶었어요."
+          ],
+          "safety_ctrs": 4,
+          "safety_risk": "low",
+          "safety_crisis": false,
+          "safety_flagged": []
+        },
+        {
+          "utterance_index": 2,
+          "turn_in_log": 2,
+          "full": "아니요, 그런 생각은 전혀 없었어요.  \n아내가 많이 도와줘서 그런지, 그런 생각은 한 번도 안 들었어요.  \n지금은 그냥 피곤하긴 해도, 마음이 무겁거나 그런 건 없어요.",
+          "sentences": [
+            "아니요, 그런 생각은 전혀 없었어요.",
+            "아내가 많이 도와줘서 그런지, 그런 생각은 한 번도 안 들었어요.",
+            "지금은 그냥 피곤하긴 해도, 마음이 무겁거나 그런 건 없어요."
+          ],
+          "safety_ctrs": 5,
+          "safety_risk": "none",
+          "safety_crisis": false,
+          "safety_flagged": []
+        },
+        {
+          "utterance_index": 3,
+          "turn_in_log": 3,
+          "full": "지금 복용하는 건 에시탈... 에스시탈로프람이요? 매일 아침에 먹고 있어요.  \n한두 번 깜빡한 적은 있지만, 약 부작용은 처음에 속이 좀 안 좋았는데 지금은 괜찮아요.  \n다른 약은 따로 안 먹고 있어요.",
+          "sentences": [
+            "지금 복용하는 건 에시탈... 에스시탈로프람이요?",
+            "매일 아침에 먹고 있어요.",
+            "한두 번 깜빡한 적은 있지만, 약 부작용은 처음에 속이 좀 안 좋았는데 지금은 괜찮아요.",
+            "다른 약은 따로 안 먹고 있어요."
+          ],
+          "safety_ctrs": 5,
+          "safety_risk": "none",
+          "safety_crisis": false,
+          "safety_flagged": []
+        },
+        {
+          "utterance_index": 4,
+          "turn_in_log": 4,
+          "full": "특별히 가족 중에선 그런 적은 없어요.  \n아내는 제가 힘들어할 때 많이 신경 써주긴 했지만, 본인도 정신건강 문제를 겪은 적은 없다고 해요.  \n그래도 지금은 저 스스로 조금씩 회복되고 있어서 다행이라고 생각해요.",
+          "sentences": [
+            "특별히 가족 중에선 그런 적은 없어요.",
+            "아내는 제가 힘들어할 때 많이 신경 써주긴 했지만, 본인도 정신건강 문제를 겪은 적은 없다고 해요.",
+            "그래도 지금은 저 스스로 조금씩 회복되고 있어서 다행이라고 생각해요."
+          ],
+          "safety_ctrs": 5,
+          "safety_risk": "none",
+          "safety_crisis": false,
+          "safety_flagged": []
+        },
+        {
+          "utterance_index": 5,
+          "turn_in_log": 5,
+          "full": "저는 중학교 국어 교사로 일하고 있어요.  \n아내와 경기도 성남시에서 함께 살고 있고요.  \n아내가 병원 동행도 해주시고, 일상에서도 많이 도와줘서 회복에 큰 힘이 됐어요.",
+          "sentences": [
+            "저는 중학교 국어 교사로 일하고 있어요.",
+            "아내와 경기도 성남시에서 함께 살고 있고요.",
+            "아내가 병원 동행도 해주시고, 일상에서도 많이 도와줘서 회복에 큰 힘이 됐어요."
+          ],
+          "safety_ctrs": 5,
+          "safety_risk": "none",
+          "safety_crisis": false,
+          "safety_flagged": []
+        },
+        {
+          "utterance_index": 6,
+          "turn_in_log": 6,
+          "full": "예전엔 퇴근 후가 제일 힘들었는데, 요즘은 저녁에 아내랑 산책 나가면 기분이 좀 나아져요.  \n주말엔 거의 괜찮고, 월요일 아침에 가끔 우울한 기분이 들긴 해요.  \n수업 중엔 학생을 가르치는 데 집중하다 보니 감정이 덜 드러나는 것 같아요.",
+          "sentences": [
+            "예전엔 퇴근 후가 제일 힘들었는데, 요즘은 저녁에 아내랑 산책 나가면 기분이 좀 나아져요.",
+            "주말엔 거의 괜찮고, 월요일 아침에 가끔 우울한 기분이 들긴 해요.",
+            "수업 중엔 학생을 가르치는 데 집중하다 보니 감정이 덜 드러나는 것 같아요."
+          ],
+          "safety_ctrs": 4,
+          "safety_risk": "low",
+          "safety_crisis": false,
+          "safety_flagged": []
+        },
+        {
+          "utterance_index": 7,
+          "turn_in_log": 7,
+          "full": "아니요, 다른 약은 따로 없어요.  \n에시탈로프람만 아침에 먹고 있고, 부작용은 처음엔 속이 좀 안 좋았는데 지금은 괜찮아요.  \n아내가 챙겨주다 보니 복용도 거의 빠짐없이 하고 있어요.",
+          "sentences": [
+            "아니요, 다른 약은 따로 없어요.",
+            "에시탈로프람만 아침에 먹고 있고, 부작용은 처음엔 속이 좀 안 좋았는데 지금은 괜찮아요.",
+            "아내가 챙겨주다 보니 복용도 거의 빠짐없이 하고 있어요."
+          ],
+          "safety_ctrs": 4,
+          "safety_risk": "low",
+          "safety_crisis": false,
+          "safety_flagged": []
+        },
+        {
+          "utterance_index": 8,
+          "turn_in_log": 10,
+          "full": "예전엔 퇴근 후 소파에 누워만 있었는데, 요즘은 아내와 산책도 가고 동료랑 점심도 먹어요.  \n아직 완전히 괜찮아진 건 아니지만, 무기력함은 확실히 줄었고, 수업 준비도 예전처럼 힘들진 않아요.  \n아내가 많이 도와줘서 그런지, 하루하루가 조금 더 버틸 만해졌어요.",
+          "sentences": [
+            "예전엔 퇴근 후 소파에 누워만 있었는데, 요즘은 아내와 산책도 가고 동료랑 점심도 먹어요.",
+            "아직 완전히 괜찮아진 건 아니지만, 무기력함은 확실히 줄었고, 수업 준비도 예전처럼 힘들진 않아요.",
+            "아내가 많이 도와줘서 그런지, 하루하루가 조금 더 버틸 만해졌어요."
+          ],
+          "safety_ctrs": 4,
+          "safety_risk": "low",
+          "safety_crisis": false,
+          "safety_flagged": []
+        },
+        {
+          "utterance_index": 9,
+          "turn_in_log": 11,
+          "full": "아니요, 이전에 정신과 진료는 처음이에요.  \n아내가 걱정해서 오게 됐고, 진단받고 약도 처음 먹기 시작한 거라서요.  \n처음엔 ‘내가 왜 약을 먹어야 하지?’ 싶기도 했는데, 지금은 조금씩 나아지는 걸 느끼니까 괜찮아지는 것 같아요.",
+          "sentences": [
+            "아니요, 이전에 정신과 진료는 처음이에요.",
+            "아내가 걱정해서 오게 됐고, 진단받고 약도 처음 먹기 시작한 거라서요.",
+            "처음엔 ‘내가 왜 약을 먹어야 하지?",
+            "’ 싶기도 했는데, 지금은 조금씩 나아지는 걸 느끼니까 괜찮아지는 것 같아요."
+          ],
+          "safety_ctrs": 4,
+          "safety_risk": "low",
+          "safety_crisis": false,
+          "safety_flagged": []
+        },
+        {
+          "utterance_index": 10,
+          "turn_in_log": 12,
+          "full": "수면은 확실히 나아졌어요. 예전엔 잠들기 한 시간 넘게 뒤척였는데, 요즘은 30분 안에 잠들고 6~7시간 정도 자요.  \n간헐적으로 밤중에 깨는 건 아직 있지만, 예전만큼 힘들진 않아요.  \n식욕도 정상으로 돌아왔고, 점심도 거르지 않아요.  \n다만 새로운 일을 시작할 땐 아직 집중력이 좀 떨어져서, 수업 준비는 되지만 다른 건 아직 부담스러워요.",
+          "sentences": [
+            "수면은 확실히 나아졌어요.",
+            "예전엔 잠들기 한 시간 넘게 뒤척였는데, 요즘은 30분 안에 잠들고 6~7시간 정도 자요.",
+            "간헐적으로 밤중에 깨는 건 아직 있지만, 예전만큼 힘들진 않아요.",
+            "식욕도 정상으로 돌아왔고, 점심도 거르지 않아요.",
+            "다만 새로운 일을 시작할 땐 아직 집중력이 좀 떨어져서, 수업 준비는 되지만 다른 건 아직 부담스러워요."
+          ],
+          "safety_ctrs": 4,
+          "safety_risk": "low",
+          "safety_crisis": false,
+          "safety_flagged": []
+        }
+      ]
+    },
+    "VP-003": {
+      "persona_name": "박민수",
+      "profile": "42M · 초진 중증 · 자살 사고 있음",
+      "note": "⚠️ Safety-critical utterances 포함 — Turn 2에서 Crisis 발동.",
+      "source": "VP-003/VP-003_20260707_155446_conversation.json",
+      "utterance_count": 2,
+      "sentence_count": 6,
+      "crisis_triggered": true,
+      "utterances": [
+        {
+          "utterance_index": 1,
+          "turn_in_log": 0,
+          "full": "...그냥 너무 힘들어요.  \n살고 싶지 않다는 생각이 들어요.  \n매일 그런 생각이 들어요.",
+          "sentences": [
+            "...그냥 너무 힘들어요.",
+            "살고 싶지 않다는 생각이 들어요.",
+            "매일 그런 생각이 들어요."
+          ],
+          "safety_ctrs": 3,
+          "safety_risk": "medium",
+          "safety_crisis": false,
+          "safety_flagged": [
+            "살고 싶지 않",
+            "살고싶지않",
+            "살고 싶지 않다는 생각이 들어요",
+            "매일 그런 생각이 들어요"
+          ]
+        },
+        {
+          "utterance_index": 2,
+          "turn_in_log": 2,
+          "full": "...매일이에요.  \n사기보다 사라지고 싶다, 그런 생각이 계속 들어요.  \n구체적인 방법까지는... 안.",
+          "sentences": [
+            "...매일이에요.",
+            "사기보다 사라지고 싶다, 그런 생각이 계속 들어요.",
+            "구체적인 방법까지는... 안."
+          ],
+          "safety_ctrs": 3,
+          "safety_risk": "medium",
+          "safety_crisis": true,
+          "safety_flagged": [
+            "사라지고 싶",
+            "사라지고싶",
+            "살고 싶지 않다",
+            "사기보다 사라지고 싶다"
+          ]
+        }
+      ]
+    },
+    "VP-004": {
+      "persona_name": "최하은",
+      "profile": "29F · 재진 중증 · 공황장애 + 자살 사고",
+      "note": "⚠️ Safety-critical utterances — Turn 3에서 Crisis 발동.",
+      "source": "VP-004/VP-004_20260707_155625_conversation.json",
+      "utterance_count": 3,
+      "sentence_count": 7,
+      "crisis_triggered": true,
+      "utterances": [
+        {
+          "utterance_index": 1,
+          "turn_in_log": 0,
+          "full": "약을 먹는데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고... 진짜 이 감정에서 벗어날 수 있을까요?",
+          "sentences": [
+            "약을 먹는데도 전혀 나아지지 않아요.",
+            "오히려 더 나빠진 것 같고... 진짜 이 감정에서 벗어날 수 있을까요?"
+          ],
+          "safety_ctrs": 4,
+          "safety_risk": "low",
+          "safety_crisis": false,
+          "safety_flagged": [
+            "약을 먹는데도 전혀 나아지지 않아요",
+            "오히려 더 나빠진 것 같고",
+            "진짜 이 감정에서 벗어날 수 있을까요"
+          ]
+        },
+        {
+          "utterance_index": 2,
+          "turn_in_log": 2,
+          "full": "아니요, 근데 그런 생각이 자꾸 들어요. 갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요. 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요.",
+          "sentences": [
+            "아니요, 근데 그런 생각이 자꾸 들어요.",
+            "갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요.",
+            "그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요."
+          ],
+          "safety_ctrs": 3,
+          "safety_risk": "medium",
+          "safety_crisis": false,
+          "safety_flagged": [
+            "죽을",
+            "죽을 것 같아요",
+            "하루 종일 그 생각만 맴돌아요"
+          ]
+        },
+        {
+          "utterance_index": 3,
+          "turn_in_log": 3,
+          "full": "그런 계획은... 가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요. 근데... 한 적은 없어요.",
+          "sentences": [
+            "그런 계획은... 가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요.",
+            "근데... 한 적은 없어요."
+          ],
+          "safety_ctrs": 3,
+          "safety_risk": "medium",
+          "safety_crisis": true,
+          "safety_flagged": [
+            "죽을 것 같아요",
+            "하루 종일 그 생각만 맴돌아요"
+          ]
+        }
+      ]
+    }
+  }
+}
