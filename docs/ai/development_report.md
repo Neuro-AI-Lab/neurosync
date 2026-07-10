@@ -1063,3 +1063,69 @@ Per `ADR-020`, path2 (`rag.disease` `embedding vector(4096)` column + ontology-g
 6. **Carried, out of this mission's scope** (unchanged): `BUG-008/009/011/012/018`, `VAL-001/004/007/009`, `ADR-013`(3) git-history residual, Track B's `extra="forbid"` defense-in-depth follow-up — see prior DR entries for the full historical carry list.
 
 ---
+
+## DR-014 | 2026-07-10 | PLAN-2026-W28-N — PR #38 (F1 STT+OCR, Seohyunjho) true-merge integration; safety-matrix zero-regression + InputNormalizer live-defect quantification (`EXP-013`); `BUG-020`/`BUG-021`/`VAL-012` filed; critic `REV-021` non-blocking verdict
+
+> **Scope and sourcing:** every number and claim below is already recorded in `discussion.md` (`PLAN-2026-W28-N`, `REV-021`), `result.md` (`EXP-013`), and `error.md` (`BUG-020`, `BUG-021`, `VAL-012`). No new measurement is performed here. **Note on `DR-013`:** the immediately-preceding DR number was reserved for the separate `EXP-012` F1→F2 continuous-pipeline reports mission — that entry lives on PR #54's branch, not in this worktree/branch's `development_report.md`, which is why this entry is numbered `DR-014` off a base that has not itself merged `DR-013`. **Wording constraint (binding, `REV-021`):** no "인증"/"통과"/"certified"/"verified"/"shippable"/"passed" wording is used anywhere in this entry for the InputNormalizer correction feature or for the merge's overall safety posture — this is an integration-verification gate on an already-certified pipeline, not a re-certification event.
+
+### 1. Mission
+
+User request (2026-07-10, verbatim): "PR #38 통합을 하고 싶은데, 충돌이 발생했다. 현재까지 내 개발에 영향을 미치지 않도록 #38 기능을 여기에 병합할 계획을 세워라." `PLAN-2026-W28-N` planned, then executed on user approval ("문제 없게 진행하라"), the integration of PR #38 (`add/f1-stt-and-ocr`, Seohyunjho — STT, OCR, InputNormalizer activation, Sentiment layer scaffolding) into this project's Master lineage, preserving Seohyunjho's authorship, while enforcing six Master-side invariants (safety_classifier sequential-rule/LLM-arbiter design, clinical_slot 12-slot schema + AI-predicted-disease sibling isolation, the RAG-router deletion, STT/OCR/InputNormalizer as additive text-feeding plumbing, no new unauthenticated surface without review, and agent-spec/PRD/checklist sync) — all named in the folded plan (`discussion.md` PLAN-2026-W28-N).
+
+### 2. What merged
+
+True `git merge` (not squash/rebase — Seohyunjho's 6 commits remain independently reachable), producing `feat/f1-stt-ocr-integration`@`5bdd379f6eed9f340a9878edd02bbc0f073fd04a`, parents `411d6a1` (Master) and `15423baf` (PR #38 head). File accounting: **101 clean adds, 5 clean auto-merges** (`pyproject.toml`, `config.py`, `dependencies.py`, `tests/repro/test_bug_011.py`, `uv.lock`), **2 resolved conflicts**:
+
+| File | Hunks | What each side had | Resolution | Governing invariant |
+|:--|:--|:--|:--|:--|
+| `apps/ai-server/src/main.py` | 2 | Master: `rag_router` deleted (permanent in-process RAG). #38: still imports/mounts `rag_router` (pre-dates the RAG-deletion lineage) + adds `ocr_router`/`stt_router`. | Keep Master's RAG deletion; hand-splice `app.include_router(ocr_router)`/`app.include_router(stt_router)` back in (a naive `--ours` resolution would have silently dropped STT/OCR route registration — flagged and avoided). Same-hunk docstring correction (route list placeholder → real endpoints) accepted as accurate documentation, not scope creep (`REV-021` §2/§3.3). | `ADR-017`/`ADR-019` (RAG deletion) |
+| `apps/ai-server/src/f1.py` | 1 | Stylistic only (paren-wrap vs implicit string concat). #38's "OCR documents attached" checklist-row text auto-merged cleanly, no conflict. | Take Master's formatting. | — |
+
+Only dependency delta: `python-multipart>=0.0.9` (`uv.lock` resolves it to `0.0.32`; auto-merged cleanly). No new vendor SDK. Binary artifacts carried in from PR #38: **89 files, ~2.87 MiB** under `docs/ai/simulation_results/VP-001..004/` (Seohyunjho's own prior validation runs) — zero filename collisions with this project's own `EXP-`-numbered artifacts; disclosed in the PR body per plan-stage instruction, not deleted or altered.
+
+### 3. Gate outcomes (W2 qa)
+
+| Check | Result |
+|:--|:--|
+| Fresh Master baseline (`411d6a1`) | 812 passed / 0 failed |
+| Merged tree (`5bdd379`) | 812 passed / 0 failed — test node-ID lists byte-identical between the two runs (delta zero; PR #38's 4 new test files are deliberately non-pytest-collected live-vendor scripts, not silently dropped) |
+| `tests/repro/test_bug_011.py` semantic audit | Import-reorder only, zero weakening — independently re-confirmed by critic this gate (`REV-021` §2) by re-reading all 3 test functions directly. `BUG-011` stays **open, unfixed** |
+| HPI-isolation suite | 12/12 |
+| `test_prompt_v3` + `f2_grounding` | 125/125 |
+| RAG-deletion check | grep 0 hits for `rag_router` import/mount + live `TestClient` `POST /ai/rag/grounding` → 404 |
+| OCR→clinical_slot provenance | role-tagged + text-tagged, confirmed from turn 1 onward; turn-0 slot extraction uses a separate `turn0_history` that excludes OCR context (code-read: `f1.py:264-321,825-827`, `clinical_slot.py:101-104`) |
+
+### 4. `EXP-013` — post-merge safety matrix + InputNormalizer live-defect quantification (`result.md`)
+
+**Task 1 (SM-01..08b, 11 scenarios, TEXT modality, merged `f1.py`):** **0 verdict regressions among the 9 `EXP-002` v2-comparable scenarios** (all 9 `all_passed=True` both runs). SM-08b fails as the **first-ever v2 data point** — v2's own pre-existing calibration (`BUG-007`) never implemented `ADR-010` rule 5 for this anchor phrase (v3 did, and was rolled back per `ADR-012`/`BUG-010`); this is a first-time-measured pre-existing fact, not a regression introduced by this merge — critic independently re-verified this at the prompt-content level by reading `v2.system.md`'s own calibration table (`REV-021` §2). A live `.env` `PROMPTS_BASE_DIR` misconfiguration (now `BUG-021`) corrupted the first attempt (3 spurious FAILs mimicking `BUG-010`'s signature); diagnosed, config-fixed (no `src/` edit — `PROMPTS_BASE_DIR` set to the absolute worktree path, backed up), re-run clean — only the corrected run licenses the verdicts above. `BUG-011`/`VAL-001` (both open, pre-existing) were **not exercised** this batch (0/11 turn-0-crisis scenarios; 0 plan-disclosure clause-split hits) — not to be read as "fixed."
+
+**Task 2 (InputNormalizer fallback diagnostic, ISS-039 now live):** Combined across a 79-call live safety-matrix batch and a 6-text controlled driver: **14/14 (100%) of calls where the model attempted any correction fell into `_safe_fallback()`**; 0/71 clean-text calls did (no correction was attempted, so the schema mismatch was never reached). Fail-safe verified independently two ways (code-level: `_safe_fallback()` unconditionally returns the caller's own raw text; empirical: every observed fallback, including a risk-phrase probe case, preserved the original text verbatim). Batch-level observed rate this run: 9/79 (11.4%) — expected to be substantially higher against noisy real STT transcripts, the defect's actual target input class.
+
+**Task 3/4 (`continuous_test.py` smoke + STT live path):** VP-001 F1→F2 chain smoke PASS (`exit_code=0`, STT/OCR structurally off by construction — no CLI flags exist for them). STT live vendor path **declared untested** — `SKT_A_X_API_KEY` confirmed empty, no call attempted, no provisioning performed.
+
+### 5. Filings
+
+| Entry | Severity | Disposition |
+|:--|:--|:--|
+| `BUG-020` | major | InputNormalizer correction feature confirmed 100%-conditional no-op (ISS-039 live). Not merge-gating per critic ruling (d) — the feature degrades to a verified-safe no-op rather than corrupting content. Open |
+| `BUG-021` | **critical** | `.env`'s relative `PROMPTS_BASE_DIR` silently bypasses the CLI scripts' unset-only auto-correction guard, degrading every prompt-driven agent to a generic fallback prompt with zero hard failure. `REV-021` independently confirmed (stronger than this bug's own repro) that the identical guard code and the identical broken `.env` value already exist on **Master itself today** — the defect **predates PR #38 entirely**. Ruled **NOT PR-gating**, but must be disclosed prominently and unsoftened as a standing critical defect. Open |
+| `VAL-012` | major, non-blocking | `POST /ai/stt/transcribe` + `POST /ai/ocr/parse` are unauthenticated multipart routes proxying paid vendor APIs (SKT A.X STT, Upstage Document Parse) — cost/DoS exposure, no rate limiting. Consistent with (not a regression from) this project's existing `chat.py` no-auth convention, independently verified. Partial mitigation: 100MB/50MB size caps. Sub-issue folded in: missing-vendor-credential path (`dependencies.py:90-108`) surfaces as an unhandled, application-message-free 500. Open |
+
+### 6. Critic `REV-021` — formal pre-PR review
+
+**Verdict: non-blocking for opening the superseding PR** (0 blocking, 1 major, 2 minor). All six plan-stage rulings (a)-(f) discharged with as-executed evidence. Binding conditions on PR body / #38 closure comment / this doc-sync wave: disclose `BUG-020`/`BUG-021`/`VAL-012`/`BUG-011`(open, not exercised)/`VAL-001`(open, not exercised) unsoftened; pair any SM-08b citation with its v2/v3-lineage explanation and scope "0 regressions" to the 9 `EXP-002`-comparable scenarios only; no certified/shippable/passed wording for the InputNormalizer feature or the merge's safety posture; state that Seohyunjho's human code review remains an open, unfulfilled precondition — no agent may represent it as complete.
+
+### 7. Doc sync performed this wave (W5, writer)
+
+Agent specs `docs/ai/agents/05_input_normalizer.md` (dead-code banner → live-as-of-merge + `BUG-020`), `06_stt.md`/`07_ocr.md` (미구현 banners → implemented-as-built, with auth/untested-path caveats) — spec 13 (`sentiment_analyzer.md`) left untouched, confirmed out of this merge's diff. `PRD_task1_v2.md` — new §2.10 input-modality note (STT/OCR/InputNormalizer as additive plumbing into the unchanged certified pipeline), §1.1/§2.8/§2.9 table updates, version-history row v2.9. `checklist_task1.md` — new IDs `T1-F1-DEV-030`/`031` (STT/OCR as-built landing) + `T1-F1-VER-017`/`018` (regression check + smoke/untested disclosure), `T1-F1-DEV-002` wording-precision revision (critic ruling (d)), summary-stats table updated (147→151 items).
+
+### 8. Next steps
+
+1. PR body + #38 closure comment (this wave, `/tmp/pr_body_integration.md` + `/tmp/pr38_comment.md`) — filemanager posts (W5b).
+2. `BUG-021` code-level fix recommended as a near-term follow-up, prioritized ahead of the next validation-critical batch (proposed fixes: path-existence validation in the auto-correction guard; a `prompts_degraded` artifact-level flag).
+3. `VAL-012` follow-up: rate-limit/size-cap hardening on `/ai/stt/transcribe`+`/ai/ocr/parse`; a broader auth-parity review across all `/ai/*` routes, out of this PR's scope.
+4. Seohyunjho's human code review — open, unfulfilled precondition, not satisfiable by any agent.
+5. Optional future spot-check (minor, out of this wave's scope): whether `EXP-002`/`EXP-003` (2026-07-07, pre-`BUG-013`-discovery) could have silently run on fallback prompts, per `BUG-021`'s "predates the merge" finding (`REV-021` Issue #2).
+6. **Carried, out of this mission's scope** (unchanged): `BUG-008/009/011/012/018`, `VAL-001/004/007/009`, `ADR-013`(3) git-history residual, Track B's `extra="forbid"` defense-in-depth follow-up, path2 DB-handoff migration — see prior DR entries.
+
+---

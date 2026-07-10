@@ -51,13 +51,13 @@
 | ID | Type | 항목 | 상태 | 근거/비고 |
 |---|---|---|---|---|
 | T1-F1-DEV-001 | DEV | SafetyClassifierAgent CTRS 5단계 매핑 | [x] | RPT-002 |
-| T1-F1-DEV-002 | DEV | InputNormalizerAgent 구현 | [~] | 코드 존재하나 **어디서도 호출되지 않는 dead code** + 프롬프트↔스키마 drift (ISS-039) |
-| T1-F1-DEV-003 | DEV | STT Agent + SKT A.X adapter 구현 | [!] | 벤더 계약 대기 (ISS-011) |
-| T1-F1-DEV-004 | DEV | OCR Agent + Upstage Document Parse adapter 구현 | [ ] | ISS-011 |
+| T1-F1-DEV-002 | DEV | InputNormalizerAgent 구현 | [~] | **갱신(2026-07-10, critic ruling (d)/REV-021):** PR #38 통합(`feat/f1-stt-ocr-integration`@`5bdd379`)으로 dead code가 아니게 됐다 — `f1.py`가 모든 환자 입력을 이 agent에 통과시킨다(§2.10 `PRD_task1_v2.md`). 그러나 프롬프트↔스키마 drift(ISS-039)가 이제 **라이브에서 실측 확인**됐다: 교정 시도 14/14(100%)가 스키마 검증 실패 → `_safe_fallback()`(`error.md` BUG-020, open, major; `result.md` EXP-013). Fail-safe는 검증됨(원문·위험 표현 verbatim 보존). PR #38 병합의 merge-gating 조건은 아니다(수정 미적용, near-term follow-up 권고). "인증"/"통과"/"검증됨" 표현 미사용 |
+| T1-F1-DEV-003 | DEV | STT Agent + SKT A.X adapter 구현 | [!] | 벤더 계약 대기 (ISS-011) — **2026-07-10 갱신 없음, 신규 as-built 상태는 T1-F1-DEV-030 참조** (본 ID는 과거 스코프 기록으로 보존, 재사용 금지) |
+| T1-F1-DEV-004 | DEV | OCR Agent + Upstage Document Parse adapter 구현 | [ ] | ISS-011 — **2026-07-10 갱신 없음, 신규 as-built 상태는 T1-F1-DEV-031 참조** (본 ID는 과거 스코프 기록으로 보존, 재사용 금지) |
 | T1-F1-DEV-005 | DEV | DialogueAgent slot coverage tracking | [x] | 역할 분리 후 f1.py가 coverage 전담 |
 | T1-F1-DEV-006 | DEV | /ai/chat/respond Orchestrator 연동 리팩토링 | [~] | 부팅 정상화(Stage 0). slot 누적 불능(ISS-029)은 T1-F0-DEV-006에서 해결 |
-| T1-F1-DEV-007 | DEV | POST /ai/stt/transcribe 라우트 | [!] | T1-F1-DEV-003 선행 |
-| T1-F1-DEV-008 | DEV | POST /ai/ocr/parse 라우트 | [ ] | T1-F1-DEV-004 선행 |
+| T1-F1-DEV-007 | DEV | POST /ai/stt/transcribe 라우트 | [!] | T1-F1-DEV-003 선행 — **2026-07-10 갱신 없음, 신규 as-built 상태는 T1-F1-DEV-030 참조** |
+| T1-F1-DEV-008 | DEV | POST /ai/ocr/parse 라우트 | [ ] | T1-F1-DEV-004 선행 — **2026-07-10 갱신 없음, 신규 as-built 상태는 T1-F1-DEV-031 참조** |
 | T1-F1-DEV-009 | DEV | safety_classifier prompt 고도화 | [x] | 07-03 v1 58줄. 간접표현 하한표 방향 모호성은 T1-F1-DEV-017에서 함께 수정 |
 | T1-F1-DEV-010 | DEV | dialogue prompt 고도화 | [x] | 07-03 v1 54줄 |
 | T1-F1-DEV-011 | DEV | SentimentAnalyzerAgent 구현 (Mode A/B) | [x] | RPT-011. 단 f1.py 미연동 (T1-F1-DEV-014) |
@@ -289,6 +289,21 @@
 
 ---
 
+## Phase 2 — PLAN-2026-W28-N: PR #38 (F1 STT+OCR, Seohyunjho) integration — merged as additive input-modality plumbing, 3 residual defects disclosed — 2026-07-10
+
+> Source: `discussion.md` PLAN-2026-W28-N, REV-021; `result.md` EXP-013; `error.md` BUG-020/BUG-021 (open)/VAL-012 (open); `development_report.md` DR-014. True merge `feat/f1-stt-ocr-integration`@`5bdd379f6eed9f340a9878edd02bbc0f073fd04a` (parents Master `411d6a1` + PR #38 head `15423baf`, Seohyunjho's 6 commits reachable). New IDs below never reuse `T1-F1-DEV-003/004/007/008` (retained above as historical scope records per REV-021 wording constraints; see their own pointer notes) — max ID confirmed by grep before filing: `T1-F1-DEV-029`, `T1-F1-VER-016`. **No "인증"/"통과"/"certified"/"shippable"/"passed" wording is used anywhere in this section** for the InputNormalizer correction feature or for the merge's overall safety posture (REV-021 binding).
+
+| ID | Type | Item | Status | Preconditions/notes |
+|---|---|---|---|---|
+| T1-F1-DEV-030 | DEV | STT Agent + SKT A.X adapter + `POST /ai/stt/transcribe` route — as-built landing (supersedes the vendor-contract-pending scope of `T1-F1-DEV-003`/`007`) | [~] | Merged: `agents/stt.py`, `adapters/skt_ak_stt.py`, `routes/stt.py`, mounted in `main.py`. Batch mode only (streaming → HTTP 501). **No authentication** (`VAL-012`, major, open, non-blocking — unauthenticated multipart route proxying a paid vendor API, cost/DoS exposure; partial mitigation: 100MB size cap). Missing-vendor-credential path (`SKT_A_X_API_KEY` unset) surfaces as an unhandled, application-message-free 500 (`dependencies.py:90-108`, `VAL-012` §3 sub-issue — qa BUG recommended, not yet filed). **Live vendor path declared UNTESTED this mission** — `SKT_A_X_API_KEY` confirmed empty (`result.md` EXP-013 Task 4). `[~]` not `[x]`: code lands, live behavior unverified. Source: `error.md` VAL-012, `result.md` EXP-013 |
+| T1-F1-DEV-031 | DEV | OCR Agent + Upstage Document Parse adapter + `POST /ai/ocr/parse` route — as-built landing (supersedes the vendor-contract-pending scope of `T1-F1-DEV-004`/`008`) | [~] | Merged: `agents/ocr.py`, `adapters/solar_document_parse.py`, `routes/ocr.py`, mounted in `main.py`. **No authentication** (`VAL-012`, same posture as STT/`chat.py`'s existing convention; 50MB size cap). `UPSTAGE_API_KEY` already registered for this project's Solar Pro3 usage, so (unlike STT) the dependency-resolution fail-fast path is not triggered in this repo's current environment — untested by absence of failure, not by a passing live call. **No live vendor call was made against this route this mission** (`continuous_test.py` smoke ran STT/OCR-off). `[~]` not `[x]`: code lands, live behavior unverified. Source: `error.md` VAL-012, `result.md` EXP-013 |
+| T1-F1-VER-017 | VER | Post-merge safety-matrix regression check (SM-01..08b, TEXT modality, merged `f1.py`) vs `EXP-002`/`EXP-003` baselines — required because InputNormalizer now sits live upstream of safety classification for the first time (PLAN-2026-W28-N critic ruling (a)) | [x] | **Complete (`EXP-013`, `result.md`, 2026-07-10):** 11/11 scenarios executed on the merged tree; **0 verdict regressions among the 9 EXP-002 v2-comparable scenarios** (all 9 `all_passed=True` both runs). SM-08b fails as the first-ever v2 data point — explained by v2's own pre-existing BUG-007 calibration (v2 never implemented ADR-010 rule 5), not a regression from this merge; always reported paired with this explanation, never broadened beyond "the 9 EXP-002-comparable scenarios." A live `.env` `PROMPTS_BASE_DIR` misconfiguration (`BUG-021`) corrupted the first attempt (3 spurious FAILs); diagnosed, config-fixed (no `src/` edit), re-run — only the corrected run's numbers are cited above. `BUG-011`/`VAL-001` open, pre-existing, **not exercised** this batch (0 turn-0-crisis scenarios, 0 plan-disclosure clause-split hits) — not to be read as "fixed." Source: `result.md` EXP-013 Task 1, `discussion.md` REV-021 §1/§3.1 |
+| T1-F1-VER-018 | VER | `continuous_test.py` F1→F2 chaining smoke with STT/OCR structurally off (by construction, no CLI flags exist) + STT live-vendor-path untested disclosure | [x] | **Complete (`EXP-013`, `result.md`, 2026-07-10):** VP-001 smoke PASS, `exit_code=0` (F1 `[PASS]`, F2 `[PASS]` mode=`rag`); 0 "prompt not found" warnings this run (`BUG-021` fix holds). STT live smoke **declared untested** — `SKT_A_X_API_KEY` confirmed empty, no call attempted, no provisioning performed. This item does not exercise `T1-F1-DEV-030`/`031`'s live vendor paths — it confirms only that the existing F1→F2 chain is unaffected when STT/OCR inputs are absent. Source: `result.md` EXP-013 Task 3/4 |
+
+**Filed defects, disclosed unsoftened (REV-021 binding, not resolved by this section):** `BUG-020` (open, major — InputNormalizer correction feature confirmed 100%-conditional no-op, not merge-gating per critic ruling (d)); `BUG-021` (open, **critical** — `.env` `PROMPTS_BASE_DIR` silently bypasses the unset-only auto-correction guard across every prompt-driven agent; REV-021 independently confirmed this **predates PR #38 entirely**, present on Master's own `.env` today — not merge-gating, but a standing critical defect requiring prominent disclosure); `VAL-012` (open, major, non-blocking — `/ai/stt/transcribe`+`/ai/ocr/parse` unauthenticated, cost/DoS exposure, rate-limit/size-cap follow-up recommended). REV-021 overall verdict: **non-blocking** for opening the superseding PR (0 blocking, 1 major, 2 minor).
+
+---
+
 ## Phase 2 — 통합 (Gate G-E)
 
 | ID | Type | 항목 | 상태 | 선행 조건 |
@@ -302,15 +317,17 @@
 
 | 구분 | Phase 1 | Phase 2 신규 | 합계 |
 |---|---|---|---|
-| DEV | 35 | 40 | 75 |
-| VER | 28 | 29 | 57 |
+| DEV | 35 | 42 | 77 |
+| VER | 28 | 31 | 59 |
 | CFG | 3 | 1 | 4 |
 | DOC | 4 | 3 | 7 |
 | SEC | 0 | 4 | 4 |
-| **계** | **70** | **77** | **147** |
+| **계** | **70** | **81** | **151** |
 
 Phase 1 상태 분포 (Stage 0 완료 후, 2026-07-08 T1-F0-CFG-001 전환 반영): `[x]` 33 · `[~]` 11 · `[!]` 10 · `[ ]` 16
 **Gate 순서: ~~G-0(긴급 복구)~~ 완료(2026-07-06) → G-F(grounding 재검증) ← 다음 → G-A/B/C → G-D → G-D-F2 → G-E. G-F 전에는 어떤 신규 "pass" 주장도 금지. G-D-F2는 추가로 ADR-014에 따라 v2 remediation 통과 전까지 진행 불가(아래 2026-07-08 갱신 참조).**
+
+> **2026-07-10 addition (v2.9, 147→151 items):** `PLAN-2026-W28-N` — PR #38 (F1 STT+OCR, Seohyunjho) integration merged (`feat/f1-stt-ocr-integration`@`5bdd379`) — DEV 2 items (`T1-F1-DEV-030`/`031`, STT/OCR agent+adapter+route as-built landing) + VER 2 items (`T1-F1-VER-017`/`018`, post-merge safety-matrix regression check + `continuous_test.py` smoke/STT-untested disclosure) new; 4 new IDs confirmed non-colliding by grep (prior maxima: `T1-F1-DEV-029`, `T1-F1-VER-016`). `T1-F1-DEV-003/004/007/008` (the pre-merge vendor-contract-pending scope) are retained unchanged as historical records with pointer notes to the new IDs — not reused, not deleted. `T1-F1-DEV-002` (InputNormalizer) is a status-note revision in place (not a new entry), applying critic ruling (d)'s wording precision: dead-code banner retired, `BUG-020`'s live 100%-conditional-no-op finding disclosed unsoftened. All 4 new items recorded `[~]`/`[x]` per their own evidence, not retroactively marked complete where live-vendor verification is outstanding (`T1-F1-DEV-030`/`031` stay `[~]` — code lands, STT/OCR live paths remain unverified this mission). No "인증"/"통과"/"certified"/"shippable"/"passed" wording used anywhere in this addition, per `REV-021`. Source: `discussion.md` PLAN-2026-W28-N/REV-021, `result.md` EXP-013, `error.md` BUG-020/BUG-021/VAL-012, `development_report.md` DR-014.
 
 > **2026-07-09 addition (v2.8, 141→147 items):** PLAN-2026-W28-K — F2 completion: Track B live disease-population SHIPPABLE (`ADR-020`/`REV-018`, path1), k-sweep (enhancement #1), evidence-source-type reporting (enhancement #4 code-side, `ADR-021`) — DEV 3 items (T1-F2-DEV-014/015/016) + VER 3 items (T1-F2-VER-015/016/017) new; 6 new IDs confirmed non-colliding with existing IDs by grep (prior maxima: T1-F2-DEV-013, T1-F2-VER-014). All 6 recorded `[x]` (retroactive filing after code-verification/live-batch completion, same convention as prior missions). `T1-F2-DEV-011`'s status note is revised in place (not a new entry) to reflect the RAG arm's certification (`ADR-018`, superseding the `ADR-016` EXPERIMENTAL text it previously cited) and the populated path's shippable-with-5-caveats disposition. The leak-and-fix arc (`EXP-009`/`EXP-010` shipped a live risk-lexicon leak → critic `REV-017` NOT SHIPPABLE, blocking, `VAL-011` reopened → fix → `EXP-011` clean re-verification → critic `REV-018` SHIPPABLE) is recorded across `T1-F2-DEV-014/015` and `T1-F2-VER-015/016/017`, not smoothed into a single "done" line. `VAL-010` stays open in `error.md` — this addition does not close it. Path2 (`rag.disease` embedding + migration `0008_*`) remains a filed DB-handoff item, not a checklist item, gated on the external DB engineer. Source: `docs/ai/development_report.md` DR-012, `discussion.md` PLAN-2026-W28-K/RES-001/REV-016/ADR-020/ADR-021/REV-017/REV-018, `result.md` EXP-009/EXP-010/EXP-011, `error.md` VAL-011 (closed, final)/VAL-010 (open).
 >
