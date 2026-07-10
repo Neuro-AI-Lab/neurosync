@@ -40,20 +40,21 @@ async def search_hospitals(
     name: str | None = Query(default=None, description="병원명 검색어 (yadmNm)"),
     sido_code: str | None = Query(default=None),
     sggu_code: str | None = Query(default=None),
-    subject_code: str | None = Query(default=None, description="진료과목 코드"),
     hospital_type_code: str | None = Query(default=None, description="의료기관 종별 코드"),
     page_no: int = Query(default=1, ge=1),
     num_of_rows: int = Query(default=20, ge=1, le=1000),
     session_id: str | None = Query(default=None),
     agent: NearbyFacilitiesAgent = Depends(get_nearby_agent),
 ) -> NearbyResponse:
-    """단일 페이지 병원 검색."""
+    """단일 페이지 병원 검색 — 정신건강의학과(dgsbjtCd=03) 고정."""
     request_id = str(uuid.uuid4())
     logger.info(
-        "nearby/hospitals request_id=%s lat=%s lng=%s radius=%s page=%d rows=%d",
+        "nearby/hospitals(psychiatric) request_id=%s lat=%s lng=%s radius=%s page=%d rows=%d",
         request_id, lat, lng, radius_km, page_no, num_of_rows,
     )
 
+    # subject_code는 스키마 필드지만 라우트에서 노출하지 않는다.
+    # Agent가 hospital 분기에서 03으로 강제 설정한다 (nearby_facilities.py).
     inp = NearbySearchInput(
         session_id=session_id or f"nearby-{request_id[:8]}",
         request_id=request_id,
@@ -64,7 +65,6 @@ async def search_hospitals(
         name=name,
         sido_code=sido_code,
         sggu_code=sggu_code,
-        subject_code=subject_code,
         hospital_type_code=hospital_type_code,
         page_no=page_no,
         num_of_rows=num_of_rows,
@@ -86,7 +86,7 @@ async def report_hospitals(
     session_id: str | None = Query(default=None),
     agent: NearbyFacilitiesAgent = Depends(get_nearby_agent),
 ) -> NearbyResponse:
-    """다중 페이지 병원 리포트 (aggregate)."""
+    """다중 페이지 병원 리포트 — 정신건강의학과(dgsbjtCd=03) 고정."""
     request_id = str(uuid.uuid4())
     logger.info(
         "nearby/hospitals/report request_id=%s lat=%s lng=%s radius=%s max_pages=%d",
@@ -276,13 +276,11 @@ _NEARBY_UI_TEMPLATE = r"""<!DOCTYPE html>
         <label>개수: <input id="count" type="number" value="20" min="1" max="100"></label>
       </div>
       <div class="row">
-        <label><input type="checkbox" id="show-hospitals" checked> 병원</label>
+        <label><input type="checkbox" id="show-hospitals" checked> 🧠 정신건강의학과 (dgsbjtCd=03)</label>
         <label><input type="checkbox" id="show-pharmacies" checked> 약국</label>
       </div>
-      <div class="row" style="background:#fff3e0;padding:6px 8px;border-radius:4px;">
-        <label style="font-weight:500;color:#e65100;">
-          <input type="checkbox" id="psychiatric-only"> 🧠 정신건강의학과만 (dgsbjtCd=03)
-        </label>
+      <div class="row" style="font-size:11px;color:#666;">
+        ※ 병원 검색은 정신건강의학과만 반환합니다 (제품 제약).
       </div>
       <button id="search">검색</button>
     </div>
@@ -434,17 +432,15 @@ _NEARBY_UI_TEMPLATE = r"""<!DOCTYPE html>
     const count = parseInt(el('count').value, 10);
     const wantH = el('show-hospitals').checked;
     const wantP = el('show-pharmacies').checked;
-    const psychOnly = el('psychiatric-only').checked;
 
     if (!wantH && !wantP) {
       setStatus('병원 또는 약국을 하나 이상 선택하세요.');
       return;
     }
 
-    // 정신과 전용 모드 시 약국은 표시하지만 병원은 subject_code=03 필터 적용
+    // 병원 검색은 서버(Agent)가 dgsbjtCd=03을 강제. UI는 subject_code 전송 불필요.
     el('search').disabled = true;
-    const psychTag = psychOnly ? ' [🧠 정신건강의학과만]' : '';
-    setStatus(`${p.name} 위치 기준 ${radius}km 반경 검색 중...${psychTag}`);
+    setStatus(`${p.name} 위치 기준 ${radius}km 반경 검색 중... [🧠 정신건강의학과]`);
     clearMarkers();
     state.map.setCenter(new kakao.maps.LatLng(p.lat, p.lng));
     renderUserMarker(p.lat, p.lng);
@@ -458,8 +454,8 @@ _NEARBY_UI_TEMPLATE = r"""<!DOCTYPE html>
       const paramsBase = new URLSearchParams({
         lat: p.lat, lng: p.lng, radius_km: radius, num_of_rows: count,
       });
+      // 병원 요청: 서버가 dgsbjtCd=03을 강제하므로 클라이언트는 별도 파라미터 없음.
       const paramsHosp = new URLSearchParams(paramsBase);
-      if (psychOnly) paramsHosp.set('subject_code', '03');  // 정신건강의학과
       const paramsPharm = new URLSearchParams(paramsBase);
       if (wantH) {
         const r = await fetch(`/ai/nearby/hospitals?${paramsHosp}`);
@@ -493,8 +489,7 @@ _NEARBY_UI_TEMPLATE = r"""<!DOCTYPE html>
       }
 
       if (state.markers.length > 0) state.map.setBounds(bounds, 40, 40, 40, 40);
-      const psychLabel = psychOnly ? '정신과' : '병원';
-      setStatus(`${psychLabel} ${state.markers.filter(m => m.kind === 'hospital').length}/${totalH} · 약국 ${state.markers.filter(m => m.kind === 'pharmacy').length}/${totalP}개 (${p.name})`);
+      setStatus(`정신과 ${state.markers.filter(m => m.kind === 'hospital').length}/${totalH} · 약국 ${state.markers.filter(m => m.kind === 'pharmacy').length}/${totalP}개 (${p.name})`);
     } catch (exc) {
       setStatus('검색 실패: ' + exc.message);
       console.error(exc);

@@ -134,6 +134,66 @@ class KakaoLocalAdapter(VendorAdapter):
             f"kakao-local: search_address failed after {_MAX_RETRIES + 1} attempts"
         ) from last_exc
 
+    async def search_keyword(
+        self,
+        query: str,
+        *,
+        lng: float | None = None,
+        lat: float | None = None,
+        radius_m: int | None = None,
+        category_group_code: str | None = None,
+        page: int = 1,
+        size: int = 15,
+        sort: str = "distance",
+        timeout_s: float = _DEFAULT_TIMEOUT_S,
+    ) -> dict[str, Any]:
+        """Kakao Local keyword search.
+
+        Endpoint: GET /v2/local/search/keyword.json
+        - `category_group_code=HP8`이면 병원 카테고리만.
+        - 응답 document의 `category_name`은 "의료,건강 > 병원 > 정신건강의학과"
+          형태로 세분되어 있어, 정신과 전문 여부 판별에 사용 가능.
+        - `radius_m` 범위 max 20000m.
+        """
+        if not self._api_key:
+            raise RuntimeError("kakao-local: KAKAO_REST_API_KEY not configured")
+
+        url = f"{self._base_url}/v2/local/search/keyword.json"
+        headers = {"Authorization": f"KakaoAK {self._api_key}"}
+        params: dict[str, Any] = {"query": query, "page": page, "size": size, "sort": sort}
+        if lng is not None and lat is not None:
+            params["x"] = f"{lng:.6f}"
+            params["y"] = f"{lat:.6f}"
+            if radius_m is not None:
+                params["radius"] = int(radius_m)
+        if category_group_code:
+            params["category_group_code"] = category_group_code
+
+        last_exc: Exception | None = None
+        for attempt in range(_MAX_RETRIES + 1):
+            try:
+                async with httpx.AsyncClient(timeout=timeout_s) as client:
+                    r = await client.get(url, headers=headers, params=params)
+
+                if r.status_code == 200:
+                    return r.json()
+                if r.status_code in _TRANSIENT_STATUS_CODES and attempt < _MAX_RETRIES:
+                    await asyncio.sleep(_BACKOFF_BASE_S * (2**attempt))
+                    continue
+                logger.error("kakao-local keyword HTTP %d: %s", r.status_code, r.text[:300])
+                r.raise_for_status()
+            except httpx.HTTPStatusError:
+                raise
+            except (httpx.RequestError, httpx.TimeoutException) as exc:
+                last_exc = exc
+                if attempt < _MAX_RETRIES:
+                    await asyncio.sleep(_BACKOFF_BASE_S * (2**attempt))
+                    continue
+
+        raise RuntimeError(
+            f"kakao-local: search_keyword failed after {_MAX_RETRIES + 1} attempts"
+        ) from last_exc
+
     async def geocode(self, address: str) -> tuple[float, float] | None:
         """Convenience: return (lat, lng) or None on no result / failure.
 

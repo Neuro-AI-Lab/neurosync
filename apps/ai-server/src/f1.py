@@ -441,21 +441,28 @@ class F1Pipeline:
         radius_km: float = 5.0,
         top_n: int = 3,
     ) -> tuple[str, list[dict]]:
-        """환자 위치 기반 근처 정신건강의학과 top-N을 조회."""
+        """환자 위치 기반 근처 정신건강의학과 top-N을 조회.
+
+        Note: 가장 가까운 1곳(top-1)은 의도적으로 제외하고 그 다음 top_n을 반환한다.
+        HIRA `dgsbjtCd=03` 필터로 반환되는 최근접 후보는 대형 종합병원인 경우가
+        많아 응급실 대기·접근성 이슈가 있어, 실질적 방문 가능성이 높은
+        차상위 후보들을 안내한다.
+        """
         if lat is None or lng is None:
             return "", []
         agent = self._get_nearby_agent()
         if agent is None:
             return "", []
         try:
+            # Agent가 hospital 분기에서 dgsbjtCd=03 + 종별 필터를 강제한다.
+            # 요양병원 등 제외 후에도 top_n+1개 이상 남도록 넉넉히 요청.
             resp = await agent.search(NearbySearchInput(
                 session_id="crisis-nearby",
                 entity_type="hospital",
                 lat=lat,
                 lng=lng,
                 radius_km=radius_km,
-                subject_code="03",  # 정신건강의학과
-                num_of_rows=top_n,
+                num_of_rows=30,
             ))
         except Exception as exc:
             logger.warning("Crisis nearby search failed: %s", exc)
@@ -463,9 +470,14 @@ class F1Pipeline:
         if not resp.places:
             return "", []
 
-        lines = ["", "📍 가장 가까운 정신건강의학과:"]
+        # 최근접(index 0) 스킵, 다음 top_n 사용
+        chosen = resp.places[1 : top_n + 1]
+        if not chosen:
+            return "", []
+
+        lines = ["", "📍 가까운 정신건강의학과:"]
         records: list[dict] = []
-        for i, pl in enumerate(resp.places[:top_n], 1):
+        for i, pl in enumerate(chosen, 1):
             dist = f"{pl.distance_km:.1f}km" if pl.distance_km is not None else "-"
             phone = f" · ☎ {pl.phone}" if pl.phone else ""
             lines.append(f"{i}. {pl.name} ({dist}){phone}")

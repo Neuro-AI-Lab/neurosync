@@ -7,6 +7,7 @@ import logging
 
 from src.adapters.ak_llm import AkLlmAdapter
 from src.adapters.hira_hospital import HiraHospitalAdapter
+from src.adapters.hira_madm_dtl import HiraMadmDtlAdapter
 from src.adapters.hira_pharmacy import HiraPharmacyAdapter
 from src.adapters.k_exaone import KExaoneAdapter
 from src.adapters.kakao_local import KakaoLocalAdapter
@@ -110,11 +111,31 @@ def get_kakao_local_adapter() -> KakaoLocalAdapter | None:
 
 
 @functools.lru_cache(maxsize=1)
+def get_hira_madm_dtl_adapter() -> HiraMadmDtlAdapter | None:
+    """HIRA MadmDtl 어댑터 (optional). HIRA_SERVICE_KEY 없으면 None.
+
+    호출 시 승인 미완이면 어댑터 내부에서 403을 흡수하고 None을 반환한다.
+    """
+    settings = get_settings()
+    if not settings.hira_service_key:
+        return None
+    return HiraMadmDtlAdapter(settings)
+
+
+@functools.lru_cache(maxsize=1)
 def get_nearby_agent() -> NearbyFacilitiesAgent:
-    """NearbyFacilitiesAgent 싱글턴 (HIRA 병원 + 약국 어댑터 조합)."""
+    """NearbyFacilitiesAgent 싱글턴 (HIRA 병원 + 약국 어댑터 조합).
+
+    - Kakao Local: 정신건강의학과 카테고리 매칭으로 1차 verified.
+    - HIRA MadmDtl 2.8: Kakao로 verified 못한 곳에 대해 진료과별 전문의 수
+      조회 후 정확한 psychiatry_specialist_count와 verified 판정.
+    - 두 소스 모두 실패 시 verified=False (스펙 §4 fallback).
+    """
     return NearbyFacilitiesAgent(
         hospital_adapter=get_hira_hospital_adapter(),
         pharmacy_adapter=get_hira_pharmacy_adapter(),
+        kakao_adapter=get_kakao_local_adapter(),
+        madm_dtl_adapter=get_hira_madm_dtl_adapter(),
     )
 
 

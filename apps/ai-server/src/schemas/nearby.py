@@ -25,6 +25,47 @@ from src.agents.base import AgentInput, AgentOutput
 EntityType = Literal["hospital", "pharmacy"]
 CoordinateSource = Literal["hira", "kakao_geocoded"]
 
+# Product constraint (Neuro-Sync 정신과 사전문진): hospital search is always
+# constrained to 정신건강의학과 (HIRA dgsbjtCd=03). Enforced at the agent
+# boundary so route/F1/UI paths cannot bypass it.
+PSYCHIATRIC_SUBJECT_CODE = "03"
+
+# HIRA 의료기관 종별(clCd) 필터.
+# 정신건강의학과 전문진료 목적에 부합하는 기관만 허용한다.
+ALLOWED_CL_CODES: set[str] = {
+    "01",  # 상급종합병원
+    "11",  # 종합병원
+    "21",  # 병원
+    "29",  # 정신병원
+    "31",  # 의원
+}
+
+EXCLUDED_CL_CODES: set[str] = {
+    "28",  # 요양병원
+}
+
+# clCd 누락 시 clCdNm으로 방어. 정신건강 전문진료 연결 목적에 부적합한 기관.
+EXCLUDED_TYPE_NAMES: set[str] = {
+    "요양병원",
+    "한방병원",
+    "한의원",
+    "치과병원",
+    "치과의원",
+    "보건소",
+    "보건지소",
+    "보건진료소",
+}
+
+# 3그룹 분류 매핑 (clCd → group)
+PROVIDER_GROUP: dict[str, str] = {
+    "01": "generalHospital",  # 상급종합
+    "11": "generalHospital",  # 종합
+    "21": "generalHospital",  # 병원
+    "29": "psychiatricHospital",  # 정신병원
+    "31": "clinic",  # 의원
+}
+ProviderGroup = Literal["clinic", "generalHospital", "psychiatricHospital"]
+
 
 class Location(BaseModel):
     """Geographic point (WGS84)."""
@@ -85,6 +126,27 @@ class Place(BaseModel):
     open_now: bool | None = None
     night_service_available: bool | None = None
     holiday_service_available: bool | None = None
+
+    # Provider classification (hospital only) — set by agent after HIRA fetch
+    group: ProviderGroup | None = Field(
+        default=None,
+        description="clinic | generalHospital | psychiatricHospital",
+    )
+    specialist_verified: bool = Field(
+        default=False,
+        description=(
+            "True only when psychiatry specialist count was confirmed via a "
+            "detail API. False = fallback (clCd + dgsbjtCd=03 필터만 통과)."
+        ),
+    )
+    psychiatry_specialist_count: int | None = Field(
+        default=None,
+        description="정신건강의학과 전문의 수 (상세 API 조회 성공 시).",
+    )
+    is_university_hospital_candidate: bool = Field(
+        default=False,
+        description="병원명이 대학병원 패턴에 부합하는지 (확정 아님).",
+    )
 
     model_config = ConfigDict(extra="ignore")
 

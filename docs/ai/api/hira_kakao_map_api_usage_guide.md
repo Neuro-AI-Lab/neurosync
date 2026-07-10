@@ -225,9 +225,11 @@ XML 응답 형태:
 | `clCd`, `clCdNm` | 의료기관 종별 코드/명 | `type_code`, `type_name` |
 | `sidoCd`, `sidoCdNm` | 시도 코드/명 | `sido_code`, `sido_name` |
 | `sgguCd`, `sgguCdNm` | 시군구 코드/명 | `sggu_code`, `sggu_name` |
-| `dgsbjtCd`, `dgsbjtCdNm` | 진료과목 코드/명 | `subject_code`, `subject_name` |
+| `dgsbjtCd`, `dgsbjtCdNm` | 진료과목 코드/명 (⚠️ 아래 note) | `subject_code`, `subject_name` |
 | `XPos` | 경도 | `lng`, `longitude` |
 | `YPos` | 위도 | `lat`, `latitude` |
+
+> ⚠️ **실측 확인 (2026-07-10)**: `getHospBasisList`는 **응답 item에 `dgsbjtCd`/`dgsbjtCdNm`을 포함하지 않는다.** 응답에는 진료과별 의사 인원수 카운터(`mdeptGdrCnt`, `mdeptResdntCnt`, `cmdcGdrCnt`, `detyGdrCnt`, `pnursCnt` 등)만 있다. 요청 파라미터로는 사용되지만 응답 필드로는 반환되지 않는 필터 파라미터인 셈. 병원별 개별 진료과 상세는 `getDgsbjtInfo2` 등 별도 서비스가 필요. 신경-싱크는 병원 검색을 항상 `dgsbjtCd=03`로 필터하므로, 응답 후처리에서 모든 hospital place에 `subject_code="03"`, `subject_name="정신건강의학과"`를 태그해 (`_build_response` 참조), UI/AI 사용측이 진료과 확정 정보를 받도록 처리한다 (data provenance = filter-derived).
 
 ### Kakao Map 활용
 
