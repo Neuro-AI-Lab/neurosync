@@ -52,8 +52,8 @@ apps/ai-server ──► 외부 LLM/STT 벤더 (Upstage/Friendli/SKT, UPSTAGE_AP
 
 - web/mobile은 `apps/api`만 호출한다. ai-server·DB에 직접 접근하지 않는다(`apps/web/README.md:17-18`, `apps/mobile/README.md:20-21`: "AI는 호출하지 않음... 모든 호출은 Platform API 경유").
 - `apps/api` → `apps/ai-server`는 5개 핵심 인터페이스(chat/safety/stt/ocr/handoff, `packages/shared-contracts`가 계약 단일 소스) 경유. `AI_SERVER_URL` 하나의 env 값으로 지정된다(`infra/deploy/docker-compose.yml:41`: `AI_SERVER_URL: http://ai-server:8001`).
-- **중요:** postgres에 들어가는 연결점은 하나가 아니라 **둘**이다. `apps/api`가 자신의 `DATABASE_URL`로 접속하고(드라이버 `postgresql+psycopg`, `docker-compose.yml:40`), RAG 기능이 이전되면서 `apps/ai-server`도 **자기 자신의 `DATABASE_URL`**로 postgres에 직접 접속한다(드라이버 `postgresql+asyncpg`, `apps/ai-server/src/config.py:77-79`; 세션메이커 구성은 `apps/ai-server/src/dependencies.py:66-77` `get_sessionmaker()`). api를 경유하지 않는다 — `apps/ai-server/src/rag/route.py`의 `POST /ai/rag/grounding`이 `get_sessionmaker()`로 직접 DB 세션을 연다(`route.py:19-21,52-55`).
-  - 참고: `apps/ai-server/src/rag/README.md`와 루트 `README.md:47-59`는 아직 "DB 접근은 apps/api 단독"이라는 예전 아키텍처를 서술하고 있는데, 이는 `route.py`의 자체 주석("RAG가 ai-server로 이전되면서... 과거 apps/api의 POST /rag/grounding(삭제됨)을 대체", `route.py:1-9`)과 `apps/ai-server/pyproject.toml:15` 주석("RAG 이전 — DB 직접 접속 + 컬럼 암호화")이 보여주는 실제 코드와 어긋난다. 이 문서는 코드 기준(현재: ai-server도 DB 직접 접속)으로 작성했다 — 두 README는 이 미션의 쓰기 범위 밖이라 고치지 않았다.
+- **중요:** postgres에 들어가는 연결점은 하나가 아니라 **둘**이다. `apps/api`가 자신의 `DATABASE_URL`로 접속하고(드라이버 `postgresql+psycopg`, `docker-compose.yml:40`), RAG 기능이 이전되면서 `apps/ai-server`도 **자기 자신의 `DATABASE_URL`**로 postgres에 직접 접속한다(드라이버 `postgresql+asyncpg`, `apps/ai-server/src/config.py:77-79`; 세션메이커 구성은 `apps/ai-server/src/dependencies.py:66-77` `get_sessionmaker()`). api를 경유하지 않는다 — F2의 `retrieve_domain_chunks`(`apps/ai-server/src/f2.py:176-180`)와 `src/rag_chat.py`의 `retrieve_grounding()` 호출이 각각 `get_sessionmaker()`로 직접 DB 세션을 연다. **RAG는 이제 HTTP 라우트로 노출되지 않으며, 앞으로도 노출되지 않는다** — 개발·배포 단계 모두 in-process 전용 기능이며, 구 `src/rag/route.py`/`auth.py`(그리고 `POST /ai/rag/grounding`)는 영구 삭제되었다(`ADR-019`, 2026-07-09 — `main.py`에 라우터 마운트 없음, 파일 자체가 트리에 없음).
+  - 참고: `apps/ai-server/src/rag/README.md`와 루트 `README.md:47-59`는 아직 "DB 접근은 apps/api 단독"이라는 예전 아키텍처를 서술하고 있는데, 이는 `apps/ai-server/src/main.py:13-16`의 모듈 docstring("RAG is in-process only, now and at deployment — there is no RAG HTTP API")과 `apps/ai-server/pyproject.toml:15` 주석("RAG 이전 — DB 직접 접속 + 컬럼 암호화")이 보여주는 실제 코드와 어긋난다. 이 문서는 코드 기준(현재: ai-server도 DB 직접 접속, RAG는 in-process 전용)으로 작성했다 — 두 README는 이 미션의 쓰기 범위 밖이라 고치지 않았다.
 
 ### 1.2 "DB를 다른 워크스테이션으로 옮겨도 연결문자열만 바꾸면 된다"의 성립 조건
 
@@ -97,7 +97,7 @@ packages/shared-contracts/
 
 ### 2.3 누가 무엇을 노출/소비하는가
 
-- **A**는 5개 핵심 인터페이스 + `/ai/rag/grounding` + `/ai/domain/infer`(`apps/ai-server/src/main.py:41-51`)를 HTTP로 노출한다. postgres(RAG 전용, §1.1)와 외부 LLM 벤더를 소비한다.
+- **A**는 5개 핵심 인터페이스 + `/ai/domain/infer`(`apps/ai-server/src/main.py:44-53`)를 HTTP로 노출한다. RAG에는 HTTP 라우트가 없다 — 개발·배포 단계 모두 in-process 전용 기능이다(`ADR-019`, §4 참고). postgres(RAG 전용, §1.1)와 외부 LLM 벤더를 소비한다.
 - **C**는 REST/WS 게이트웨이(`apps/api`)를 노출한다. A의 5개 인터페이스(`AI_SERVER_URL` 경유), postgres(자신의 `DATABASE_URL`)를 소비한다. `apps/api/README.md:6`: "AI 팀은 본 폴더에 PR 금지" — 인터페이스 변경은 `packages/shared-contracts`로.
 - **B**는 C가 노출한 REST/WS API만 소비한다. `apps/ai-server/README.md:7`도 대칭으로 "Platform 팀은 본 폴더에 PR 금지"라고 못박는다.
 
@@ -129,10 +129,10 @@ packages/shared-contracts/
 
 - **비밀은 코드/이미지에 절대 넣지 않는다** — env var 또는 secret manager로만 주입한다. k8s는 Secret `ns-db-credentials`(KMS 참조, `infra/deploy/k8s/postgres/postgres.yaml:50-52`)를 쓴다. 로컬은 `.env` 파일이다.
 - **`.env`는 gitignore되어 있다.** 확인: `.gitignore:46-49` — `.env`, `.env.*` 패턴을 무시하되 `!.env.example`만 예외로 살려서 커밋한다. 즉 `apps/ai-server/.env.example`, `apps/api/.env.example`은 **키 이름과 용도만** 적은 템플릿이고, 실제 값은 각자의 `apps/*/​.env`(둘 다 gitignored)에만 채운다.
-- **내부 서비스 간에도 인증이 필요할 수 있다 — RAG 라우터 사례.** `apps/ai-server`의 5개 핵심 인터페이스는 기본적으로 "Platform(api)이 보낸 요청을 신뢰"하는 모델이다(`apps/ai-server/README.md:23`: "인증 검증 — Platform이 보낸 요청은 신뢰(mTLS 또는 내부 토큰)"). 하지만 `POST /ai/rag/grounding`이 실제로 외부에서 무인증으로 도달 가능했던 사건이 있었고(§4 반면교사 참고), 그 후 이 라우터에만 bearer 인증이 추가됐다 — `NS_RAG_API_KEY`, **fail-closed 기본값**: 키가 설정돼 있지 않으면 조용히 통과시키는 게 아니라 503으로 거부한다(`apps/ai-server/src/rag/auth.py:9-11,32-54`). `Authorization` 헤더가 아예 없으면 401, 키 값이 틀리면 403. 로컬 개발에서만 `NS_RAG_DEV_MODE=1`로 이 인증을 끌 수 있는데, 켤 때마다 경고 로그가 남고 로컬 밖에서는 절대 쓰면 안 된다(`auth.py:28-30,41-46`).
+- **내부 서비스 간 인증 사례 — RAG 라우터는 이제 존재하지 않는다(과거형 교훈).** `apps/ai-server`의 5개 핵심 인터페이스는 기본적으로 "Platform(api)이 보낸 요청을 신뢰"하는 모델이다(`apps/ai-server/README.md:23`: "인증 검증 — Platform이 보낸 요청은 신뢰(mTLS 또는 내부 토큰)"). 과거 `POST /ai/rag/grounding`이 실제로 외부에서 무인증으로 도달 가능했던 사건이 있었다(§4 반면교사 참고, `VAL-005`). 한동안 이 라우터에만 bearer 인증(`NS_RAG_API_KEY`, fail-closed 기본값)을 추가해 완화했으나, RAG를 영구·범주적으로 in-process 전용 기능으로 확정하면서(사용자 결정, `ADR-017`→`ADR-019`, 2026-07-09) 이 라우트와 인증 코드 자체를 **전면 삭제**했다 — `apps/ai-server/src/rag/route.py`와 `auth.py` 두 파일이 더 이상 트리에 존재하지 않고(`main.py`에 라우터 마운트도 없음, `git status`로 확인 가능), `NS_RAG_API_KEY`/`NS_RAG_DEV_MODE` env 키도 더 이상 쓰이지 않는다(`.env.example`에서도 제거됨). **현재는 이 인터페이스 자체가 존재하지 않으므로 별도 인증 설정이 필요 없다** — RAG는 F2의 `retrieve_domain_chunks`(`f2.py:176-180`)와 `rag_chat.py`의 `retrieve_grounding()`처럼 DB 세션을 직접 여는 in-process 호출로만 소비된다.
 - **DB 포트를 공인망에 직접 열지 않는다.** postgres는 compose에서 `127.0.0.1:5432`로 호스트 로컬 바인딩만 한다(`docker-compose.yml:22-23`). k8s에서는 `clusterIP: None`인 headless Service라 클러스터 내부에서만 5432가 열린다(`postgres.yaml:11-20`). 원격 DB에 접속해야 하면 SSH 터널을 쓰거나(§5), `apps/api`를 경유한다 — DB로 직접 향하는 새 공인 접속 경로를 만들지 않는다.
 - **`ENCRYPTION_KEY`는 api와 ai-server가 반드시 같은 값이어야 한다.** `apps/ai-server/src/config.py:81-83`: "AES-256-GCM 키(base64-urlsafe 32B). **api와 동일 값**이어야 앱이 복호화 가능." 다르거나 미설정이면 조용히 깨지는 대신 명시적으로 실패한다 — 암호화된 필드는 복호화 없이 응답에서 제외되고 로그가 남는다(`apps/ai-server/.env.example:33`; `retrieval.py`의 `_dec()` 실패 처리).
-- **반면교사 (VAL-005급 재발 방지).** 과거 이 저장소의 한 테스트 클라이언트 스크립트가 접속 대상 주소와 환자 식별자를 코드에 직접 박아 넣은 적이 있었다. 당시 해당 HTTP 엔드포인트가 무인증이었기 때문에, 코드에 박힌 그 식별자가 사실상 접근 자격증명처럼 작동한 셈이었다 — critic 검토에서 지적됐다. 지금은 그 스크립트가 접속 정보를 전부 env var 또는 REPL 명령으로만 받도록 고쳐졌고, 해당 엔드포인트에도 위에서 설명한 bearer 인증이 추가됐다. 이 문서가 모든 예시에 `<placeholder>`만 쓰는 이유가 이 사례다 — 실 IP·UUID·비밀값을 문서나 스크립트에 직접 적지 않는다.
+- **반면교사 (VAL-005급 재발 방지).** 과거 이 저장소의 한 테스트 클라이언트 스크립트(`rag_chat.py`)가 접속 대상 주소와 환자 식별자를 코드에 직접 박아 넣은 적이 있었다. 당시 해당 HTTP 엔드포인트(`POST /ai/rag/grounding`)가 무인증이었기 때문에, 코드에 박힌 그 식별자가 사실상 접근 자격증명처럼 작동한 셈이었다 — critic 검토에서 지적됐다(`VAL-005`). 그 스크립트는 이후 접속 정보를 전부 env var로만 받도록 고쳐졌고, 한동안 해당 엔드포인트에 위에서 설명한 bearer 인증도 추가됐었다 — 그러나 최종적으로는 완화가 아니라 **라이브 노출면 자체의 영구 삭제**로 귀결됐다: RAG를 개발·배포 단계 모두 in-process 전용 기능으로 확정하면서(`ADR-019`, 2026-07-09) 해당 라우트/인증 코드가 트리에서 완전히 제거되었고, `rag_chat.py`도 이제 HTTP 클라이언트가 아니라 `retrieve_grounding()`을 직접 호출하는 in-process 스크립트다(`rag_chat.py:1-20` 모듈 docstring 참고). 이 문서가 모든 예시에 `<placeholder>`만 쓰는 이유가 이 사례다 — 실 IP·UUID·비밀값을 문서나 스크립트에 직접 적지 않는다.
 
 ---
 
@@ -154,11 +154,12 @@ LG_K_EXAONE_API_KEY=<friendli-key>
 LG_K_EXAONE_ENDPOINT_ID=<friendli-endpoint-id>
 DATABASE_URL=postgresql+asyncpg://<user>:<password>@<db-host>:5432/neurosync
 ENCRYPTION_KEY=<32byte-base64-urlsafe-key-must-match-apps-api>
-NS_RAG_API_KEY=<rag-router-bearer-key>
 PROMPTS_BASE_DIR=<repo-root-absolute-path>/docs/ai/prompts
 LOG_LEVEL=INFO
 DEBUG=false
 ```
+
+`NS_RAG_API_KEY`/`NS_RAG_DEV_MODE`는 더 이상 존재하는 env 키가 아니다 — RAG HTTP 라우트/인증 코드 자체가 영구 삭제되었으므로(`ADR-019`, §4 참고) `.env.example`에서도 제거되었다.
 
 `PROMPTS_BASE_DIR`을 비워둬도 되는 경우는 **검증 파이프라인 CLI**(`f1.py`/`f2.py`/`safety_matrix.py`)를 직접 실행할 때뿐이다 — 이 세 스크립트는 실행 시 이 값을 `PROJECT_ROOT` 기준 절대경로로 자동 보정한다(`f1.py:1341-1342`, `f2.py:473-474`, `safety_matrix.py:270-271`).
 
@@ -282,7 +283,6 @@ ssh -N -L 5432:localhost:5432 <user>@<shared-dev-host>
 | 증상 | 원인 | 해법 |
 |:--|:--|:--|
 | 연결 거부 (`Connection refused` / `ECONNREFUSED` on 5432) | `DATABASE_URL`의 host/port가 실제 postgres 위치와 다름; postgres 컨테이너 미기동/unhealthy; Shared-Dev인데 SSH 터널 미연결; postgres는 `127.0.0.1` 호스트로컬 바인딩이라 터널 없이 원격 접근 자체가 불가능(`docker-compose.yml:22-23`) | `docker compose ps`로 postgres `healthy` 확인; SSH 터널 프로세스가 살아있는지 확인; `DATABASE_URL`의 host:port가 터널의 로컬 포트와 정확히 일치하는지 확인 |
-| 인증 503 (`POST /ai/rag/grounding` → 503) | ai-server에 `NS_RAG_API_KEY` 미설정 — fail-closed 기본값(`auth.py:48-54`) | ai-server `.env`에 `NS_RAG_API_KEY` 설정, 호출측도 같은 값을 `NS_RAG_API_KEY`로 설정해 `Authorization: Bearer <key>` 헤더를 보내야 함. 401은 헤더 자체가 없는 경우, 403은 키 값 불일치(`auth.py:56-61`) |
 | 복호화 실패 / 응답에서 암호화 필드가 통째로 빠짐 | `ENCRYPTION_KEY`가 api와 ai-server에서 다르거나 한쪽만 미설정 | 두 서비스의 `.env`에 **동일한** 32바이트 base64-urlsafe `ENCRYPTION_KEY` 값을 넣는다(`config.py:81-83`); 실패해도 서버는 죽지 않고 해당 필드만 제외되며 로그가 남으므로 로그를 먼저 확인 |
 | alembic 0005 이후 마이그레이션 실패 (`vector` extension/type 관련 에러) | postgres 이미지가 `pgvector/pgvector:pg16`이 아니라 plain `postgres` 이미지 | compose/k8s 매니페스트의 이미지가 `pgvector/pgvector:pg16`인지 확인 후 볼륨을 재생성하고 `alembic upgrade head` 재실행 |
 | 컨테이너로 띄운 ai-server가 프롬프트를 못 찾거나 F2 산출물을 못 씀 | `docs/ai/prompts`, `docs/ai/simulation_results`가 Dockerfile에도 compose volume에도 없음(§1.2) | 컨테이너 대신 `make dev-py`로 호스트에서 직접 실행하거나, `PROMPTS_BASE_DIR`을 절대경로로 명시 |
