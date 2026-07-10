@@ -1,0 +1,2935 @@
+[
+  {
+    "file": "VP-002-001.mp3",
+    "utterance_index": 1,
+    "expected": "아, 안녕하세요. 사실 약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 온 거예요.  \n예전엔 수업 준비도 힘들었는데, 요즘은 수업 준비는 하고 있고, 주말엔 아내와 외식도 하다 보니 기분이 예전보다 나아졌다는 걸 느껴요.  \n아직 완전히 괜찮은 건 아니지만, 그래도 나아지고 있다는 걸 말씀드리고 싶었어요.",
+    "hypothesis": "아 안녕하세요. 사실 약 먹은 지 6주 됐는데 좀 나아진 것 같아서 확인 받으러 온 거예요. 예전엔 수업 준비도 힘들었는데, 요즘은 수업 준비는 하고 있고, 주말엔 아내와 외식도 하다 보니 기분이 예전보다 나아졌다는 걸 느껴요. 아직 완전히 괜찮은 건 아니지만 그래도 나아지고 있다는 걸 말씀드리고 싶었어요",
+    "char_similarity": 1.0,
+    "word_similarity": 0.9130434782608695,
+    "safety_preserved": true,
+    "safety_lost": [],
+    "latency_ms": 1231.0905801132321,
+    "raw": {
+      "message_id": "vp002-smoke-001",
+      "audio_duration": 25443,
+      "transcript_duration": 25.4433,
+      "utterance_count": 3,
+      "utterances": [
+        {
+          "text": "아 안녕하세요. 사실 약 먹은 지 6주 됐는데 좀 나아진 것 같아서 확인 받으러 온 거예요.",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 0.0,
+          "end_time": 6.98,
+          "words": [
+            {
+              "text": "아",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.24069,
+              "end_time": 0.521494,
+              "speaker": 0
+            },
+            {
+              "text": "안녕하세요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.561609,
+              "end_time": 1.72494,
+              "speaker": 0
+            },
+            {
+              "text": "사실",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.76506,
+              "end_time": 2.16621,
+              "speaker": 0
+            },
+            {
+              "text": "약",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.20632,
+              "end_time": 2.36678,
+              "speaker": 0
+            },
+            {
+              "text": "먹은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.4069,
+              "end_time": 2.64759,
+              "speaker": 0
+            },
+            {
+              "text": "지",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.6877,
+              "end_time": 2.84816,
+              "speaker": 0
+            },
+            {
+              "text": "6주",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.88828,
+              "end_time": 3.2092,
+              "speaker": 0
+            },
+            {
+              "text": "됐는데",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.24931,
+              "end_time": 4.13184,
+              "speaker": 0
+            },
+            {
+              "text": "좀",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.17195,
+              "end_time": 4.41264,
+              "speaker": 0
+            },
+            {
+              "text": "나아진",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.45276,
+              "end_time": 4.81379,
+              "speaker": 0
+            },
+            {
+              "text": "것",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.85391,
+              "end_time": 4.97425,
+              "speaker": 0
+            },
+            {
+              "text": "같아서",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.01437,
+              "end_time": 5.53586,
+              "speaker": 0
+            },
+            {
+              "text": "확인",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.57598,
+              "end_time": 5.8969,
+              "speaker": 0
+            },
+            {
+              "text": "받으러",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.93701,
+              "end_time": 6.25793,
+              "speaker": 0
+            },
+            {
+              "text": "온",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.29805,
+              "end_time": 6.41839,
+              "speaker": 1
+            },
+            {
+              "text": "거예요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.45851,
+              "end_time": 6.93989,
+              "speaker": 1
+            }
+          ]
+        },
+        {
+          "text": "예전엔 수업 준비도 힘들었는데, 요즘은 수업 준비는 하고 있고, 주말엔 아내와 외식도 하다 보니 기분이 예전보다 나아졌다는 걸 느껴요.",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 8.0,
+          "end_time": 18.24,
+          "words": [
+            {
+              "text": "예전엔",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.32125,
+              "end_time": 8.80314,
+              "speaker": 0
+            },
+            {
+              "text": "수업",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.84329,
+              "end_time": 9.12439,
+              "speaker": 0
+            },
+            {
+              "text": "준비도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.16455,
+              "end_time": 9.60627,
+              "speaker": 0
+            },
+            {
+              "text": "힘들었는데,",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.64643,
+              "end_time": 10.9315,
+              "speaker": 1
+            },
+            {
+              "text": "요즘은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.9716,
+              "end_time": 11.4133,
+              "speaker": 0
+            },
+            {
+              "text": "수업",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.4535,
+              "end_time": 11.7346,
+              "speaker": 0
+            },
+            {
+              "text": "준비는",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.7747,
+              "end_time": 12.1763,
+              "speaker": 0
+            },
+            {
+              "text": "하고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.2165,
+              "end_time": 12.5779,
+              "speaker": 0
+            },
+            {
+              "text": "있고,",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.618,
+              "end_time": 13.0999,
+              "speaker": 0
+            },
+            {
+              "text": "주말엔",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.1401,
+              "end_time": 13.622,
+              "speaker": 0
+            },
+            {
+              "text": "아내와",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.6621,
+              "end_time": 14.144,
+              "speaker": 0
+            },
+            {
+              "text": "외식도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 14.1842,
+              "end_time": 14.6259,
+              "speaker": 0
+            },
+            {
+              "text": "하다",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 14.666,
+              "end_time": 14.907,
+              "speaker": 0
+            },
+            {
+              "text": "보니",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 14.9471,
+              "end_time": 15.5093,
+              "speaker": 0
+            },
+            {
+              "text": "기분이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 15.5495,
+              "end_time": 16.0314,
+              "speaker": 0
+            },
+            {
+              "text": "예전보다",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 16.0715,
+              "end_time": 16.6739,
+              "speaker": 0
+            },
+            {
+              "text": "나아졌다는",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 16.714,
+              "end_time": 17.3565,
+              "speaker": 0
+            },
+            {
+              "text": "걸",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 17.3967,
+              "end_time": 17.5573,
+              "speaker": 0
+            },
+            {
+              "text": "느껴요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 17.5975,
+              "end_time": 18.1998,
+              "speaker": 0
+            }
+          ]
+        },
+        {
+          "text": "아직 완전히 괜찮은 건 아니지만 그래도 나아지고 있다는 걸 말씀드리고 싶었어요",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 19.12,
+          "end_time": 25.42,
+          "words": [
+            {
+              "text": "아직",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 19.4009,
+              "end_time": 19.762,
+              "speaker": 0
+            },
+            {
+              "text": "완전히",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 19.8022,
+              "end_time": 20.2837,
+              "speaker": 0
+            },
+            {
+              "text": "괜찮은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 20.3238,
+              "end_time": 20.685,
+              "speaker": 0
+            },
+            {
+              "text": "건",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 20.7251,
+              "end_time": 20.9257,
+              "speaker": 0
+            },
+            {
+              "text": "아니지만",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 20.9659,
+              "end_time": 21.969,
+              "speaker": 0
+            },
+            {
+              "text": "그래도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 22.0092,
+              "end_time": 22.4907,
+              "speaker": 0
+            },
+            {
+              "text": "나아지고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 22.5308,
+              "end_time": 23.0926,
+              "speaker": 1
+            },
+            {
+              "text": "있다는",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 23.1327,
+              "end_time": 23.3735,
+              "speaker": 0
+            },
+            {
+              "text": "걸",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 23.4136,
+              "end_time": 23.6143,
+              "speaker": 0
+            },
+            {
+              "text": "말씀드리고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 23.6544,
+              "end_time": 24.2563,
+              "speaker": 0
+            },
+            {
+              "text": "싶었어요",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 24.2964,
+              "end_time": 25.3799,
+              "speaker": 0
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "file": "VP-002-002.mp3",
+    "utterance_index": 2,
+    "expected": "아니요, 그런 생각은 전혀 없었어요.  \n아내가 많이 도와줘서 그런지, 그런 생각은 한 번도 안 들었어요.  \n지금은 그냥 피곤하긴 해도, 마음이 무겁거나 그런 건 없어요.",
+    "hypothesis": "아니요. 그런 생각은 전혀 없었어요. 아내가 많이 도와줘서 그런지 그런 생각은 한 번도 안 들었어요. 지금은 그냥 피곤하긴 해도 마음이 무겁거나 그런 건 없어요.",
+    "char_similarity": 1.0,
+    "word_similarity": 0.875,
+    "safety_preserved": true,
+    "safety_lost": [],
+    "latency_ms": 916.5933099575341,
+    "raw": {
+      "message_id": "vp002-smoke-002",
+      "audio_duration": 12355,
+      "transcript_duration": 12.3559,
+      "utterance_count": 1,
+      "utterances": [
+        {
+          "text": "아니요. 그런 생각은 전혀 없었어요. 아내가 많이 도와줘서 그런지 그런 생각은 한 번도 안 들었어요. 지금은 그냥 피곤하긴 해도 마음이 무겁거나 그런 건 없어요.",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 0.0,
+          "end_time": 12.33,
+          "words": [
+            {
+              "text": "아니요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.28114,
+              "end_time": 1.0844,
+              "speaker": 0
+            },
+            {
+              "text": "그런",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.12456,
+              "end_time": 1.32537,
+              "speaker": 0
+            },
+            {
+              "text": "생각은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.36554,
+              "end_time": 1.76717,
+              "speaker": 0
+            },
+            {
+              "text": "전혀",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.80733,
+              "end_time": 2.04831,
+              "speaker": 0
+            },
+            {
+              "text": "없었어요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.08847,
+              "end_time": 3.05238,
+              "speaker": 0
+            },
+            {
+              "text": "아내가",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.09254,
+              "end_time": 3.53433,
+              "speaker": 0
+            },
+            {
+              "text": "많이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.5745,
+              "end_time": 3.81547,
+              "speaker": 0
+            },
+            {
+              "text": "도와줘서",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.85564,
+              "end_time": 4.37775,
+              "speaker": 0
+            },
+            {
+              "text": "그런지",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.41792,
+              "end_time": 5.26134,
+              "speaker": 0
+            },
+            {
+              "text": "그런",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.3015,
+              "end_time": 5.54248,
+              "speaker": 0
+            },
+            {
+              "text": "생각은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.58264,
+              "end_time": 6.02443,
+              "speaker": 0
+            },
+            {
+              "text": "한",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.06459,
+              "end_time": 6.14492,
+              "speaker": 0
+            },
+            {
+              "text": "번도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.18508,
+              "end_time": 6.46622,
+              "speaker": 1
+            },
+            {
+              "text": "안",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.50638,
+              "end_time": 6.62687,
+              "speaker": 1
+            },
+            {
+              "text": "들었어요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.66704,
+              "end_time": 7.55062,
+              "speaker": 1
+            },
+            {
+              "text": "지금은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.59078,
+              "end_time": 8.03257,
+              "speaker": 1
+            },
+            {
+              "text": "그냥",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.07274,
+              "end_time": 8.39404,
+              "speaker": 0
+            },
+            {
+              "text": "피곤하긴",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.4342,
+              "end_time": 9.11697,
+              "speaker": 1
+            },
+            {
+              "text": "해도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.15713,
+              "end_time": 9.71941,
+              "speaker": 1
+            },
+            {
+              "text": "마음이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.75958,
+              "end_time": 10.1612,
+              "speaker": 1
+            },
+            {
+              "text": "무겁거나",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.2014,
+              "end_time": 11.0046,
+              "speaker": 1
+            },
+            {
+              "text": "그런",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.0448,
+              "end_time": 11.2456,
+              "speaker": 1
+            },
+            {
+              "text": "건",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.2858,
+              "end_time": 11.4866,
+              "speaker": 1
+            },
+            {
+              "text": "없어요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.5267,
+              "end_time": 12.2898,
+              "speaker": 1
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "file": "VP-002-003.mp3",
+    "utterance_index": 3,
+    "expected": "지금 복용하는 건 에시탈... 에스시탈로프람이요? 매일 아침에 먹고 있어요.  \n한두 번 깜빡한 적은 있지만, 약 부작용은 처음에 속이 좀 안 좋았는데 지금은 괜찮아요.  \n다른 약은 따로 안 먹고 있어요.",
+    "hypothesis": "지금 복용하는 건 애시탈 에스시탈 로프람이요 매일 아침에 먹고 있어요 한두 번 깜빡한 적은 있지만 약 부작용은 처음에 속이 좀 안 좋았는데 지금은 괜찮아요 다른 약은 따로 안 먹고 있어요",
+    "char_similarity": 0.9866666666666667,
+    "word_similarity": 0.7796610169491526,
+    "safety_preserved": true,
+    "safety_lost": [],
+    "latency_ms": 1001.0786410421133,
+    "raw": {
+      "message_id": "vp002-smoke-003",
+      "audio_duration": 15333,
+      "transcript_duration": 15.3339,
+      "utterance_count": 1,
+      "utterances": [
+        {
+          "text": "지금 복용하는 건 애시탈 에스시탈 로프람이요 매일 아침에 먹고 있어요 한두 번 깜빡한 적은 있지만 약 부작용은 처음에 속이 좀 안 좋았는데 지금은 괜찮아요 다른 약은 따로 안 먹고 있어요",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 0.0,
+          "end_time": 15.31,
+          "words": [
+            {
+              "text": "지금",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.28055,
+              "end_time": 0.601178,
+              "speaker": 0
+            },
+            {
+              "text": "복용하는",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.641257,
+              "end_time": 1.16228,
+              "speaker": 1
+            },
+            {
+              "text": "건",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.20236,
+              "end_time": 1.52298,
+              "speaker": 1
+            },
+            {
+              "text": "애시탈",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.56306,
+              "end_time": 2.6051,
+              "speaker": 1
+            },
+            {
+              "text": "에스시탈",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.64518,
+              "end_time": 3.12613,
+              "speaker": 1
+            },
+            {
+              "text": "로프람이요",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.1662,
+              "end_time": 4.36856,
+              "speaker": 1
+            },
+            {
+              "text": "매일",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.40864,
+              "end_time": 4.72927,
+              "speaker": 0
+            },
+            {
+              "text": "아침에",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.76935,
+              "end_time": 5.25029,
+              "speaker": 0
+            },
+            {
+              "text": "먹고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.29037,
+              "end_time": 5.65107,
+              "speaker": 0
+            },
+            {
+              "text": "있어요",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.69115,
+              "end_time": 6.37249,
+              "speaker": 0
+            },
+            {
+              "text": "한두",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.41257,
+              "end_time": 6.65304,
+              "speaker": 0
+            },
+            {
+              "text": "번",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.69311,
+              "end_time": 6.81335,
+              "speaker": 0
+            },
+            {
+              "text": "깜빡한",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.85343,
+              "end_time": 7.37445,
+              "speaker": 0
+            },
+            {
+              "text": "적은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.41453,
+              "end_time": 7.81531,
+              "speaker": 0
+            },
+            {
+              "text": "있지만",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.85539,
+              "end_time": 8.61689,
+              "speaker": 1
+            },
+            {
+              "text": "약",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.65696,
+              "end_time": 8.81728,
+              "speaker": 1
+            },
+            {
+              "text": "부작용은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.85736,
+              "end_time": 9.61885,
+              "speaker": 1
+            },
+            {
+              "text": "처음에",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.65893,
+              "end_time": 10.0196,
+              "speaker": 1
+            },
+            {
+              "text": "속이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.0597,
+              "end_time": 10.3002,
+              "speaker": 1
+            },
+            {
+              "text": "좀",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.3403,
+              "end_time": 10.4605,
+              "speaker": 1
+            },
+            {
+              "text": "안",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.5006,
+              "end_time": 10.6208,
+              "speaker": 1
+            },
+            {
+              "text": "좋았는데",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.6609,
+              "end_time": 11.6629,
+              "speaker": 1
+            },
+            {
+              "text": "지금은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.7029,
+              "end_time": 12.1037,
+              "speaker": 1
+            },
+            {
+              "text": "괜찮아요",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.1438,
+              "end_time": 13.0656,
+              "speaker": 1
+            },
+            {
+              "text": "다른",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.1057,
+              "end_time": 13.3862,
+              "speaker": 0
+            },
+            {
+              "text": "약은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.4263,
+              "end_time": 13.7069,
+              "speaker": 0
+            },
+            {
+              "text": "따로",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.7469,
+              "end_time": 13.9874,
+              "speaker": 0
+            },
+            {
+              "text": "안",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 14.0275,
+              "end_time": 14.1878,
+              "speaker": 0
+            },
+            {
+              "text": "먹고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 14.2279,
+              "end_time": 14.5886,
+              "speaker": 0
+            },
+            {
+              "text": "있어요",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 14.6287,
+              "end_time": 15.2699,
+              "speaker": 0
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "file": "VP-002-004.mp3",
+    "utterance_index": 4,
+    "expected": "특별히 가족 중에선 그런 적은 없어요.  \n아내는 제가 힘들어할 때 많이 신경 써주긴 했지만, 본인도 정신건강 문제를 겪은 적은 없다고 해요.  \n그래도 지금은 저 스스로 조금씩 회복되고 있어서 다행이라고 생각해요.",
+    "hypothesis": "특별히 가족 중에선 그런 적은 없어요. 아내는 제가 힘들어할 때 많이 신경 써주긴 했지만 본인도 정신건강 문제를 겪은 적은 없다고 해요. 그래도 지금은 저 스스로 조금씩 회복되고 있어서 다행이라고 생각해요.",
+    "char_similarity": 1.0,
+    "word_similarity": 0.9666666666666667,
+    "safety_preserved": true,
+    "safety_lost": [],
+    "latency_ms": 997.4005147814751,
+    "raw": {
+      "message_id": "vp002-smoke-004",
+      "audio_duration": 15569,
+      "transcript_duration": 15.569,
+      "utterance_count": 1,
+      "utterances": [
+        {
+          "text": "특별히 가족 중에선 그런 적은 없어요. 아내는 제가 힘들어할 때 많이 신경 써주긴 했지만 본인도 정신건강 문제를 겪은 적은 없다고 해요. 그래도 지금은 저 스스로 조금씩 회복되고 있어서 다행이라고 생각해요.",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 0.0,
+          "end_time": 15.54,
+          "words": [
+            {
+              "text": "특별히",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.240309,
+              "end_time": 0.640825,
+              "speaker": 0
+            },
+            {
+              "text": "가족",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.680876,
+              "end_time": 0.961237,
+              "speaker": 0
+            },
+            {
+              "text": "중에선",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.00129,
+              "end_time": 1.52196,
+              "speaker": 0
+            },
+            {
+              "text": "그런",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.56201,
+              "end_time": 1.72222,
+              "speaker": 0
+            },
+            {
+              "text": "적은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.76227,
+              "end_time": 2.04263,
+              "speaker": 0
+            },
+            {
+              "text": "없어요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.08268,
+              "end_time": 2.92376,
+              "speaker": 0
+            },
+            {
+              "text": "아내는",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.96381,
+              "end_time": 3.40438,
+              "speaker": 1
+            },
+            {
+              "text": "제가",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.44443,
+              "end_time": 3.76485,
+              "speaker": 1
+            },
+            {
+              "text": "힘들어할",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.8049,
+              "end_time": 4.36562,
+              "speaker": 1
+            },
+            {
+              "text": "때",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.40567,
+              "end_time": 4.68603,
+              "speaker": 1
+            },
+            {
+              "text": "많이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.72608,
+              "end_time": 5.00644,
+              "speaker": 1
+            },
+            {
+              "text": "신경",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.0465,
+              "end_time": 5.36691,
+              "speaker": 1
+            },
+            {
+              "text": "써주긴",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.40696,
+              "end_time": 5.76742,
+              "speaker": 1
+            },
+            {
+              "text": "했지만",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.80747,
+              "end_time": 6.64856,
+              "speaker": 1
+            },
+            {
+              "text": "본인도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.68861,
+              "end_time": 7.36949,
+              "speaker": 0
+            },
+            {
+              "text": "정신건강",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.40954,
+              "end_time": 8.21057,
+              "speaker": 0
+            },
+            {
+              "text": "문제를",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.25062,
+              "end_time": 8.61108,
+              "speaker": 1
+            },
+            {
+              "text": "겪은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.65113,
+              "end_time": 9.0116,
+              "speaker": 1
+            },
+            {
+              "text": "적은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.05165,
+              "end_time": 9.33201,
+              "speaker": 1
+            },
+            {
+              "text": "없다고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.37206,
+              "end_time": 9.73253,
+              "speaker": 1
+            },
+            {
+              "text": "해요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.77258,
+              "end_time": 10.3333,
+              "speaker": 1
+            },
+            {
+              "text": "그래도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.3734,
+              "end_time": 10.7739,
+              "speaker": 1
+            },
+            {
+              "text": "지금은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.8139,
+              "end_time": 11.5348,
+              "speaker": 1
+            },
+            {
+              "text": "저",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.5749,
+              "end_time": 11.7752,
+              "speaker": 1
+            },
+            {
+              "text": "스스로",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.8152,
+              "end_time": 12.2558,
+              "speaker": 1
+            },
+            {
+              "text": "조금씩",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.2958,
+              "end_time": 12.7364,
+              "speaker": 0
+            },
+            {
+              "text": "회복되고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.7764,
+              "end_time": 13.3772,
+              "speaker": 0
+            },
+            {
+              "text": "있어서",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.4173,
+              "end_time": 13.8979,
+              "speaker": 0
+            },
+            {
+              "text": "다행이라고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.9379,
+              "end_time": 14.5387,
+              "speaker": 0
+            },
+            {
+              "text": "생각해요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 14.5788,
+              "end_time": 15.4999,
+              "speaker": 0
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "file": "VP-002-005.mp3",
+    "utterance_index": 5,
+    "expected": "저는 중학교 국어 교사로 일하고 있어요.  \n아내와 경기도 성남시에서 함께 살고 있고요.  \n아내가 병원 동행도 해주시고, 일상에서도 많이 도와줘서 회복에 큰 힘이 됐어요.",
+    "hypothesis": "저는 중학교 국어 교사로 일하고 있어요. 아내와 경기도 성남시에서 함께 살고 있고요. 아내가 병원 동행도 해주시고, 일상에서도 많이 도와줘서 회복에 큰 힘이 됐어요.",
+    "char_similarity": 1.0,
+    "word_similarity": 1.0,
+    "safety_preserved": true,
+    "safety_lost": [],
+    "latency_ms": 1011.8086575530469,
+    "raw": {
+      "message_id": "vp002-smoke-005",
+      "audio_duration": 13061,
+      "transcript_duration": 13.0612,
+      "utterance_count": 1,
+      "utterances": [
+        {
+          "text": "저는 중학교 국어 교사로 일하고 있어요. 아내와 경기도 성남시에서 함께 살고 있고요. 아내가 병원 동행도 해주시고, 일상에서도 많이 도와줘서 회복에 큰 힘이 됐어요.",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 0.0,
+          "end_time": 13.04,
+          "words": [
+            {
+              "text": "저는",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.240738,
+              "end_time": 0.682092,
+              "speaker": 1
+            },
+            {
+              "text": "중학교",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.722215,
+              "end_time": 1.20369,
+              "speaker": 1
+            },
+            {
+              "text": "국어",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.24382,
+              "end_time": 1.52468,
+              "speaker": 1
+            },
+            {
+              "text": "교사로",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.5648,
+              "end_time": 2.00615,
+              "speaker": 0
+            },
+            {
+              "text": "일하고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.04628,
+              "end_time": 2.48763,
+              "speaker": 0
+            },
+            {
+              "text": "있어요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.52775,
+              "end_time": 3.1296,
+              "speaker": 0
+            },
+            {
+              "text": "아내와",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.16972,
+              "end_time": 3.73145,
+              "speaker": 0
+            },
+            {
+              "text": "경기도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.77157,
+              "end_time": 4.29317,
+              "speaker": 0
+            },
+            {
+              "text": "성남시에서",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.33329,
+              "end_time": 5.17588,
+              "speaker": 0
+            },
+            {
+              "text": "함께",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.216,
+              "end_time": 5.53698,
+              "speaker": 1
+            },
+            {
+              "text": "살고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.57711,
+              "end_time": 5.97834,
+              "speaker": 1
+            },
+            {
+              "text": "있고요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.01846,
+              "end_time": 6.62031,
+              "speaker": 0
+            },
+            {
+              "text": "아내가",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.66043,
+              "end_time": 7.14191,
+              "speaker": 0
+            },
+            {
+              "text": "병원",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.18203,
+              "end_time": 7.50302,
+              "speaker": 0
+            },
+            {
+              "text": "동행도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.54314,
+              "end_time": 7.94437,
+              "speaker": 0
+            },
+            {
+              "text": "해주시고,",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.98449,
+              "end_time": 8.94745,
+              "speaker": 0
+            },
+            {
+              "text": "일상에서도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.98757,
+              "end_time": 9.74991,
+              "speaker": 0
+            },
+            {
+              "text": "많이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.79003,
+              "end_time": 10.0709,
+              "speaker": 0
+            },
+            {
+              "text": "도와줘서",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.111,
+              "end_time": 10.9536,
+              "speaker": 0
+            },
+            {
+              "text": "회복에",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.9937,
+              "end_time": 11.4752,
+              "speaker": 0
+            },
+            {
+              "text": "큰",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.5153,
+              "end_time": 11.6758,
+              "speaker": 0
+            },
+            {
+              "text": "힘이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.7159,
+              "end_time": 11.9968,
+              "speaker": 0
+            },
+            {
+              "text": "됐어요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.0369,
+              "end_time": 12.9999,
+              "speaker": 1
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "file": "VP-002-006.mp3",
+    "utterance_index": 6,
+    "expected": "예전엔 퇴근 후가 제일 힘들었는데, 요즘은 저녁에 아내랑 산책 나가면 기분이 좀 나아져요.  \n주말엔 거의 괜찮고, 월요일 아침에 가끔 우울한 기분이 들긴 해요.  \n수업 중엔 학생을 가르치는 데 집중하다 보니 감정이 덜 드러나는 것 같아요.",
+    "hypothesis": "예전엔 퇴근 후가 제일 힘들었는데 요즘은 저녁에 아내랑 산책 나가면 기분이 좀 나아져요 주말엔 거의 괜찮고 월요일 아침에 가끔 우울한 기분이 들긴 해요 수업 중엔 학생을 가르치는 데 집중하다 보니 감정이 덜 드러나는 것 같아요.",
+    "char_similarity": 1.0,
+    "word_similarity": 0.8857142857142857,
+    "safety_preserved": true,
+    "safety_lost": [],
+    "latency_ms": 1043.6794310808182,
+    "raw": {
+      "message_id": "vp002-smoke-006",
+      "audio_duration": 19069,
+      "transcript_duration": 19.0694,
+      "utterance_count": 1,
+      "utterances": [
+        {
+          "text": "예전엔 퇴근 후가 제일 힘들었는데 요즘은 저녁에 아내랑 산책 나가면 기분이 좀 나아져요 주말엔 거의 괜찮고 월요일 아침에 가끔 우울한 기분이 들긴 해요 수업 중엔 학생을 가르치는 데 집중하다 보니 감정이 덜 드러나는 것 같아요.",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 0.0,
+          "end_time": 18.75,
+          "words": [
+            {
+              "text": "예전엔",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.280449,
+              "end_time": 0.641026,
+              "speaker": 0
+            },
+            {
+              "text": "퇴근",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.68109,
+              "end_time": 1.04167,
+              "speaker": 0
+            },
+            {
+              "text": "후가",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.08173,
+              "end_time": 1.36218,
+              "speaker": 0
+            },
+            {
+              "text": "제일",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.40224,
+              "end_time": 1.68269,
+              "speaker": 0
+            },
+            {
+              "text": "힘들었는데",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.72276,
+              "end_time": 3.00481,
+              "speaker": 0
+            },
+            {
+              "text": "요즘은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.04487,
+              "end_time": 3.48558,
+              "speaker": 0
+            },
+            {
+              "text": "저녁에",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.52564,
+              "end_time": 4.04647,
+              "speaker": 0
+            },
+            {
+              "text": "아내랑",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.08654,
+              "end_time": 4.52724,
+              "speaker": 0
+            },
+            {
+              "text": "산책",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.56731,
+              "end_time": 4.88782,
+              "speaker": 0
+            },
+            {
+              "text": "나가면",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.92788,
+              "end_time": 5.60897,
+              "speaker": 0
+            },
+            {
+              "text": "기분이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.64904,
+              "end_time": 6.00962,
+              "speaker": 0
+            },
+            {
+              "text": "좀",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.04968,
+              "end_time": 6.20994,
+              "speaker": 0
+            },
+            {
+              "text": "나아져요",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.25,
+              "end_time": 7.17147,
+              "speaker": 0
+            },
+            {
+              "text": "주말엔",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.21154,
+              "end_time": 7.69231,
+              "speaker": 0
+            },
+            {
+              "text": "거의",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.73237,
+              "end_time": 8.05289,
+              "speaker": 0
+            },
+            {
+              "text": "괜찮고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.09295,
+              "end_time": 9.17468,
+              "speaker": 0
+            },
+            {
+              "text": "월요일",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.21474,
+              "end_time": 9.61539,
+              "speaker": 0
+            },
+            {
+              "text": "아침에",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.65545,
+              "end_time": 10.0962,
+              "speaker": 0
+            },
+            {
+              "text": "가끔",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.1362,
+              "end_time": 10.6571,
+              "speaker": 1
+            },
+            {
+              "text": "우울한",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.6971,
+              "end_time": 11.1779,
+              "speaker": 1
+            },
+            {
+              "text": "기분이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.2179,
+              "end_time": 11.6987,
+              "speaker": 1
+            },
+            {
+              "text": "들긴",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.7388,
+              "end_time": 12.0994,
+              "speaker": 1
+            },
+            {
+              "text": "해요",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.1394,
+              "end_time": 13.6218,
+              "speaker": 1
+            },
+            {
+              "text": "수업",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.6619,
+              "end_time": 13.9423,
+              "speaker": 0
+            },
+            {
+              "text": "중엔",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.9824,
+              "end_time": 14.3029,
+              "speaker": 0
+            },
+            {
+              "text": "학생을",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 14.3429,
+              "end_time": 14.7436,
+              "speaker": 0
+            },
+            {
+              "text": "가르치는",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 14.7837,
+              "end_time": 15.1843,
+              "speaker": 0
+            },
+            {
+              "text": "데",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 15.2244,
+              "end_time": 15.4247,
+              "speaker": 0
+            },
+            {
+              "text": "집중하다",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 15.4647,
+              "end_time": 16.0256,
+              "speaker": 0
+            },
+            {
+              "text": "보니",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 16.0657,
+              "end_time": 16.6667,
+              "speaker": 0
+            },
+            {
+              "text": "감정이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 16.7067,
+              "end_time": 17.3077,
+              "speaker": 1
+            },
+            {
+              "text": "덜",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 17.3478,
+              "end_time": 17.5481,
+              "speaker": 1
+            },
+            {
+              "text": "드러나는",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 17.5881,
+              "end_time": 17.9487,
+              "speaker": 1
+            },
+            {
+              "text": "것",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 17.9888,
+              "end_time": 18.149,
+              "speaker": 1
+            },
+            {
+              "text": "같아요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 18.1891,
+              "end_time": 18.7099,
+              "speaker": 1
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "file": "VP-002-007.mp3",
+    "utterance_index": 7,
+    "expected": "아니요, 다른 약은 따로 없어요.  \n에시탈로프람만 아침에 먹고 있고, 부작용은 처음엔 속이 좀 안 좋았는데 지금은 괜찮아요.  \n아내가 챙겨주다 보니 복용도 거의 빠짐없이 하고 있어요.",
+    "hypothesis": "아니요. 다른 약은 따로 없어요. 애쉬탈로프란만 아침에 먹고 있고 부작용은 처음엔 속이 좀 안 좋았는데 지금은 괜찮아요. 아내가 챙겨주다 보니 복용도 거의 빠짐없이 하고 있어요.",
+    "char_similarity": 0.9577464788732394,
+    "word_similarity": 0.88,
+    "safety_preserved": true,
+    "safety_lost": [],
+    "latency_ms": 961.4672479219735,
+    "raw": {
+      "message_id": "vp002-smoke-007",
+      "audio_duration": 14027,
+      "transcript_duration": 14.0278,
+      "utterance_count": 1,
+      "utterances": [
+        {
+          "text": "아니요. 다른 약은 따로 없어요. 애쉬탈로프란만 아침에 먹고 있고 부작용은 처음엔 속이 좀 안 좋았는데 지금은 괜찮아요. 아내가 챙겨주다 보니 복용도 거의 빠짐없이 하고 있어요.",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 0.0,
+          "end_time": 14.0,
+          "words": [
+            {
+              "text": "아니요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.280802,
+              "end_time": 1.12321,
+              "speaker": 1
+            },
+            {
+              "text": "다른",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.16332,
+              "end_time": 1.40401,
+              "speaker": 1
+            },
+            {
+              "text": "약은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.44413,
+              "end_time": 1.72493,
+              "speaker": 1
+            },
+            {
+              "text": "따로",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.76504,
+              "end_time": 2.00573,
+              "speaker": 1
+            },
+            {
+              "text": "없어요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.04585,
+              "end_time": 2.88825,
+              "speaker": 1
+            },
+            {
+              "text": "애쉬탈로프란만",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.92837,
+              "end_time": 3.93123,
+              "speaker": 1
+            },
+            {
+              "text": "아침에",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.97135,
+              "end_time": 4.33238,
+              "speaker": 1
+            },
+            {
+              "text": "먹고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.37249,
+              "end_time": 4.73352,
+              "speaker": 1
+            },
+            {
+              "text": "있고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.77364,
+              "end_time": 5.33524,
+              "speaker": 1
+            },
+            {
+              "text": "부작용은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.37536,
+              "end_time": 6.05731,
+              "speaker": 0
+            },
+            {
+              "text": "처음엔",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.09742,
+              "end_time": 6.49857,
+              "speaker": 0
+            },
+            {
+              "text": "속이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.53868,
+              "end_time": 6.77937,
+              "speaker": 0
+            },
+            {
+              "text": "좀",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.81948,
+              "end_time": 6.97994,
+              "speaker": 0
+            },
+            {
+              "text": "안",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.02006,
+              "end_time": 7.1404,
+              "speaker": 0
+            },
+            {
+              "text": "좋았는데",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.18052,
+              "end_time": 8.2235,
+              "speaker": 1
+            },
+            {
+              "text": "지금은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.26361,
+              "end_time": 8.74499,
+              "speaker": 1
+            },
+            {
+              "text": "괜찮아요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.7851,
+              "end_time": 9.70774,
+              "speaker": 1
+            },
+            {
+              "text": "아내가",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.74785,
+              "end_time": 10.1089,
+              "speaker": 1
+            },
+            {
+              "text": "챙겨주다",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.149,
+              "end_time": 10.6705,
+              "speaker": 1
+            },
+            {
+              "text": "보니",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.7106,
+              "end_time": 11.3524,
+              "speaker": 1
+            },
+            {
+              "text": "복용도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.3925,
+              "end_time": 11.8338,
+              "speaker": 1
+            },
+            {
+              "text": "거의",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.8739,
+              "end_time": 12.1146,
+              "speaker": 1
+            },
+            {
+              "text": "빠짐없이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.1547,
+              "end_time": 12.7564,
+              "speaker": 1
+            },
+            {
+              "text": "하고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.7966,
+              "end_time": 13.1175,
+              "speaker": 1
+            },
+            {
+              "text": "있어요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.1576,
+              "end_time": 13.9599,
+              "speaker": 1
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "file": "VP-002-008.mp3",
+    "utterance_index": 8,
+    "expected": "예전엔 퇴근 후 소파에 누워만 있었는데, 요즘은 아내와 산책도 가고 동료랑 점심도 먹어요.  \n아직 완전히 괜찮아진 건 아니지만, 무기력함은 확실히 줄었고, 수업 준비도 예전처럼 힘들진 않아요.  \n아내가 많이 도와줘서 그런지, 하루하루가 조금 더 버틸 만해졌어요.",
+    "hypothesis": "예전엔 퇴근 후 소파에 누워만 있었는데 요즘은 아내와 산책도 가고 동료랑 점심도 먹어요 아직 완전히 괜찮아진 건 아니지만 무기력함은 확실히 줄었고 수업 준비도 예전처럼 힘들진 않아요. 아내가 많이 도와줘서 그런지 하루하루가 조금 더 버틸 만해졌어요.",
+    "char_similarity": 1.0,
+    "word_similarity": 0.8571428571428571,
+    "safety_preserved": true,
+    "safety_lost": [],
+    "latency_ms": 1063.0611260421574,
+    "raw": {
+      "message_id": "vp002-smoke-008",
+      "audio_duration": 20652,
+      "transcript_duration": 20.6528,
+      "utterance_count": 2,
+      "utterances": [
+        {
+          "text": "예전엔 퇴근 후 소파에 누워만 있었는데 요즘은 아내와 산책도 가고 동료랑 점심도 먹어요 아직 완전히 괜찮아진 건 아니지만 무기력함은 확실히 줄었고 수업 준비도 예전처럼 힘들진 않아요.",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 0.0,
+          "end_time": 14.53,
+          "words": [
+            {
+              "text": "예전엔",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.200691,
+              "end_time": 0.561934,
+              "speaker": 0
+            },
+            {
+              "text": "퇴근",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.602072,
+              "end_time": 0.923177,
+              "speaker": 0
+            },
+            {
+              "text": "후",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.963315,
+              "end_time": 1.12387,
+              "speaker": 0
+            },
+            {
+              "text": "소파에",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.16401,
+              "end_time": 1.56539,
+              "speaker": 0
+            },
+            {
+              "text": "누워만",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.60552,
+              "end_time": 2.12732,
+              "speaker": 0
+            },
+            {
+              "text": "있었는데",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.16746,
+              "end_time": 3.09064,
+              "speaker": 0
+            },
+            {
+              "text": "요즘은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.13077,
+              "end_time": 3.53215,
+              "speaker": 0
+            },
+            {
+              "text": "아내와",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.57229,
+              "end_time": 3.97367,
+              "speaker": 0
+            },
+            {
+              "text": "산책도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.01381,
+              "end_time": 4.49547,
+              "speaker": 0
+            },
+            {
+              "text": "가고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.53561,
+              "end_time": 5.09754,
+              "speaker": 1
+            },
+            {
+              "text": "동료랑",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.13768,
+              "end_time": 5.73975,
+              "speaker": 1
+            },
+            {
+              "text": "점심도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.77989,
+              "end_time": 6.30168,
+              "speaker": 1
+            },
+            {
+              "text": "먹어요",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.34182,
+              "end_time": 7.10445,
+              "speaker": 0
+            },
+            {
+              "text": "아직",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.14459,
+              "end_time": 7.46569,
+              "speaker": 0
+            },
+            {
+              "text": "완전히",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.50583,
+              "end_time": 7.90721,
+              "speaker": 0
+            },
+            {
+              "text": "괜찮아진",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.94735,
+              "end_time": 8.42901,
+              "speaker": 0
+            },
+            {
+              "text": "건",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.46914,
+              "end_time": 8.6297,
+              "speaker": 0
+            },
+            {
+              "text": "아니지만",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.66983,
+              "end_time": 9.71343,
+              "speaker": 0
+            },
+            {
+              "text": "무기력함은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.75356,
+              "end_time": 10.476,
+              "speaker": 0
+            },
+            {
+              "text": "확실히",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.5162,
+              "end_time": 10.8774,
+              "speaker": 0
+            },
+            {
+              "text": "줄었고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.9176,
+              "end_time": 11.8407,
+              "speaker": 0
+            },
+            {
+              "text": "수업",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.8809,
+              "end_time": 12.1619,
+              "speaker": 0
+            },
+            {
+              "text": "준비도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.202,
+              "end_time": 12.6836,
+              "speaker": 0
+            },
+            {
+              "text": "예전처럼",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.7238,
+              "end_time": 13.3259,
+              "speaker": 0
+            },
+            {
+              "text": "힘들진",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.366,
+              "end_time": 13.8075,
+              "speaker": 0
+            },
+            {
+              "text": "않아요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.8477,
+              "end_time": 14.4899,
+              "speaker": 0
+            }
+          ]
+        },
+        {
+          "text": "아내가 많이 도와줘서 그런지 하루하루가 조금 더 버틸 만해졌어요.",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 15.48,
+          "end_time": 20.63,
+          "words": [
+            {
+              "text": "아내가",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 15.7616,
+              "end_time": 16.164,
+              "speaker": 0
+            },
+            {
+              "text": "많이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 16.2042,
+              "end_time": 16.4054,
+              "speaker": 0
+            },
+            {
+              "text": "도와줘서",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 16.4456,
+              "end_time": 16.9687,
+              "speaker": 0
+            },
+            {
+              "text": "그런지",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 17.0089,
+              "end_time": 17.8136,
+              "speaker": 0
+            },
+            {
+              "text": "하루하루가",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 17.8538,
+              "end_time": 18.5378,
+              "speaker": 0
+            },
+            {
+              "text": "조금",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 18.578,
+              "end_time": 18.8195,
+              "speaker": 0
+            },
+            {
+              "text": "더",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 18.8597,
+              "end_time": 19.0206,
+              "speaker": 0
+            },
+            {
+              "text": "버틸",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 19.0609,
+              "end_time": 19.3827,
+              "speaker": 0
+            },
+            {
+              "text": "만해졌어요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 19.423,
+              "end_time": 20.5898,
+              "speaker": 0
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "file": "VP-002-009.mp3",
+    "utterance_index": 9,
+    "expected": "아니요, 이전에 정신과 진료는 처음이에요.  \n아내가 걱정해서 오게 됐고, 진단받고 약도 처음 먹기 시작한 거라서요.  \n처음엔 ‘내가 왜 약을 먹어야 하지?’ 싶기도 했는데, 지금은 조금씩 나아지는 걸 느끼니까 괜찮아지는 것 같아요.",
+    "hypothesis": "아니요. 이전의 정신과 진료는 처음이에요. 아내가 걱정해서 오게 됐고 진단받고 약도 처음 먹기 시작한 거라서요. 처음엔 내가 왜 약을 먹어야 하지 싶기도 했는데 지금은 조금씩 나아지는 걸 느끼니까 괜찮아지는 것 같아요.",
+    "char_similarity": 0.9775280898876404,
+    "word_similarity": 0.8064516129032258,
+    "safety_preserved": true,
+    "safety_lost": [],
+    "latency_ms": 1016.997991129756,
+    "raw": {
+      "message_id": "vp002-smoke-009",
+      "audio_duration": 17885,
+      "transcript_duration": 17.8854,
+      "utterance_count": 2,
+      "utterances": [
+        {
+          "text": "아니요. 이전의 정신과 진료는 처음이에요. 아내가 걱정해서 오게 됐고 진단받고 약도 처음 먹기 시작한 거라서요.",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 0.0,
+          "end_time": 9.38,
+          "words": [
+            {
+              "text": "아니요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.200427,
+              "end_time": 1.00214,
+              "speaker": 1
+            },
+            {
+              "text": "이전의",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.04222,
+              "end_time": 1.48316,
+              "speaker": 1
+            },
+            {
+              "text": "정신과",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.52325,
+              "end_time": 2.00427,
+              "speaker": 1
+            },
+            {
+              "text": "진료는",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.04436,
+              "end_time": 2.52538,
+              "speaker": 0
+            },
+            {
+              "text": "처음이에요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.56547,
+              "end_time": 3.68786,
+              "speaker": 0
+            },
+            {
+              "text": "아내가",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.72795,
+              "end_time": 4.16889,
+              "speaker": 0
+            },
+            {
+              "text": "걱정해서",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.20897,
+              "end_time": 4.69,
+              "speaker": 0
+            },
+            {
+              "text": "오게",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.73009,
+              "end_time": 4.9706,
+              "speaker": 0
+            },
+            {
+              "text": "됐고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.01068,
+              "end_time": 5.77231,
+              "speaker": 0
+            },
+            {
+              "text": "진단받고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.81239,
+              "end_time": 6.69427,
+              "speaker": 0
+            },
+            {
+              "text": "약도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.73436,
+              "end_time": 7.05504,
+              "speaker": 0
+            },
+            {
+              "text": "처음",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.09513,
+              "end_time": 7.33564,
+              "speaker": 0
+            },
+            {
+              "text": "먹기",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.37573,
+              "end_time": 7.65632,
+              "speaker": 0
+            },
+            {
+              "text": "시작한",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.69641,
+              "end_time": 8.05718,
+              "speaker": 0
+            },
+            {
+              "text": "거라서요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.09726,
+              "end_time": 9.33991,
+              "speaker": 0
+            }
+          ]
+        },
+        {
+          "text": "처음엔 내가 왜 약을 먹어야 하지 싶기도 했는데 지금은 조금씩 나아지는 걸 느끼니까 괜찮아지는 것 같아요.",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 9.54,
+          "end_time": 17.86,
+          "words": [
+            {
+              "text": "처음엔",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.94193,
+              "end_time": 10.3439,
+              "speaker": 0
+            },
+            {
+              "text": "내가",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.3841,
+              "end_time": 10.6654,
+              "speaker": 0
+            },
+            {
+              "text": "왜",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.7056,
+              "end_time": 10.9066,
+              "speaker": 0
+            },
+            {
+              "text": "약을",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.9468,
+              "end_time": 11.2281,
+              "speaker": 0
+            },
+            {
+              "text": "먹어야",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.2683,
+              "end_time": 11.7104,
+              "speaker": 0
+            },
+            {
+              "text": "하지",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.7506,
+              "end_time": 12.3937,
+              "speaker": 0
+            },
+            {
+              "text": "싶기도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.4339,
+              "end_time": 13.077,
+              "speaker": 0
+            },
+            {
+              "text": "했는데",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.1172,
+              "end_time": 13.7603,
+              "speaker": 0
+            },
+            {
+              "text": "지금은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.8005,
+              "end_time": 14.1622,
+              "speaker": 0
+            },
+            {
+              "text": "조금씩",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 14.2024,
+              "end_time": 14.7249,
+              "speaker": 0
+            },
+            {
+              "text": "나아지는",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 14.7651,
+              "end_time": 15.1671,
+              "speaker": 0
+            },
+            {
+              "text": "걸",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 15.2072,
+              "end_time": 15.368,
+              "speaker": 0
+            },
+            {
+              "text": "느끼니까",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 15.4082,
+              "end_time": 16.0513,
+              "speaker": 0
+            },
+            {
+              "text": "괜찮아지는",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 16.0915,
+              "end_time": 16.6944,
+              "speaker": 0
+            },
+            {
+              "text": "것",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 16.7346,
+              "end_time": 16.8552,
+              "speaker": 0
+            },
+            {
+              "text": "같아요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 16.8954,
+              "end_time": 17.8198,
+              "speaker": 0
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "file": "VP-002-010.mp3",
+    "utterance_index": 10,
+    "expected": "수면은 확실히 나아졌어요. 예전엔 잠들기 한 시간 넘게 뒤척였는데, 요즘은 30분 안에 잠들고 6~7시간 정도 자요.  \n간헐적으로 밤중에 깨는 건 아직 있지만, 예전만큼 힘들진 않아요.  \n식욕도 정상으로 돌아왔고, 점심도 거르지 않아요.  \n다만 새로운 일을 시작할 땐 아직 집중력이 좀 떨어져서, 수업 준비는 되지만 다른 건 아직 부담스러워요.",
+    "hypothesis": "수면은 확실히 나아졌어요. 예전엔 잠들기 한 시간 넘게 뒤척였는데 요즘은 30분 안에 잠들고 6 7시간 정도 자요. 간헐적으로 밤중에 깨는 건 아직 있지만 예전만큼 힘들진 않아요. 식욕도 정상으로 돌아왔고 점심도 거르지 않아요 다만 새로운 일을 시작할 땐 아직 집중력이 좀 떨어져서 수업 준비는 되지만 다른 건 아직 부담스러워요",
+    "char_similarity": 1.0,
+    "word_similarity": 0.8421052631578947,
+    "safety_preserved": true,
+    "safety_lost": [],
+    "latency_ms": 1146.3120449334383,
+    "raw": {
+      "message_id": "vp002-smoke-010",
+      "audio_duration": 27481,
+      "transcript_duration": 27.4819,
+      "utterance_count": 2,
+      "utterances": [
+        {
+          "text": "수면은 확실히 나아졌어요. 예전엔 잠들기 한 시간 넘게 뒤척였는데 요즘은 30분 안에 잠들고 6 7시간 정도 자요. 간헐적으로 밤중에 깨는 건 아직 있지만 예전만큼 힘들진 않아요.",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 0.0,
+          "end_time": 14.85,
+          "words": [
+            {
+              "text": "수면은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.280946,
+              "end_time": 0.802703,
+              "speaker": 1
+            },
+            {
+              "text": "확실히",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 0.842838,
+              "end_time": 1.24419,
+              "speaker": 1
+            },
+            {
+              "text": "나아졌어요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 1.28432,
+              "end_time": 2.44824,
+              "speaker": 0
+            },
+            {
+              "text": "예전엔",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.48838,
+              "end_time": 2.92986,
+              "speaker": 0
+            },
+            {
+              "text": "잠들기",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 2.97,
+              "end_time": 3.37135,
+              "speaker": 0
+            },
+            {
+              "text": "한",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.41149,
+              "end_time": 3.49176,
+              "speaker": 0
+            },
+            {
+              "text": "시간",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.53189,
+              "end_time": 3.7727,
+              "speaker": 0
+            },
+            {
+              "text": "넘게",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 3.81284,
+              "end_time": 4.09378,
+              "speaker": 0
+            },
+            {
+              "text": "뒤척였는데",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 4.13392,
+              "end_time": 5.41824,
+              "speaker": 0
+            },
+            {
+              "text": "요즘은",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.45838,
+              "end_time": 5.85973,
+              "speaker": 0
+            },
+            {
+              "text": "30분",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 5.89986,
+              "end_time": 6.34135,
+              "speaker": 0
+            },
+            {
+              "text": "안에",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.38149,
+              "end_time": 6.6223,
+              "speaker": 0
+            },
+            {
+              "text": "잠들고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 6.66243,
+              "end_time": 7.425,
+              "speaker": 0
+            },
+            {
+              "text": "6 7시간",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 7.46514,
+              "end_time": 8.54878,
+              "speaker": 1
+            },
+            {
+              "text": "정도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.58892,
+              "end_time": 8.91,
+              "speaker": 0
+            },
+            {
+              "text": "자요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 8.95014,
+              "end_time": 9.7127,
+              "speaker": 0
+            },
+            {
+              "text": "간헐적으로",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 9.75284,
+              "end_time": 10.4753,
+              "speaker": 0
+            },
+            {
+              "text": "밤중에",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 10.5154,
+              "end_time": 10.997,
+              "speaker": 0
+            },
+            {
+              "text": "깨는",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.0372,
+              "end_time": 11.3181,
+              "speaker": 0
+            },
+            {
+              "text": "건",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.3582,
+              "end_time": 11.5589,
+              "speaker": 0
+            },
+            {
+              "text": "아직",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 11.5991,
+              "end_time": 11.9603,
+              "speaker": 0
+            },
+            {
+              "text": "있지만",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.0004,
+              "end_time": 12.763,
+              "speaker": 0
+            },
+            {
+              "text": "예전만큼",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 12.8031,
+              "end_time": 13.4453,
+              "speaker": 0
+            },
+            {
+              "text": "힘들진",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 13.4854,
+              "end_time": 14.0473,
+              "speaker": 0
+            },
+            {
+              "text": "않아요.",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 14.0874,
+              "end_time": 14.8099,
+              "speaker": 0
+            }
+          ]
+        },
+        {
+          "text": "식욕도 정상으로 돌아왔고 점심도 거르지 않아요 다만 새로운 일을 시작할 땐 아직 집중력이 좀 떨어져서 수업 준비는 되지만 다른 건 아직 부담스러워요",
+          "start": 0.0,
+          "end": 0.0,
+          "start_time": 15.58,
+          "end_time": 27.46,
+          "words": [
+            {
+              "text": "식욕도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 15.9011,
+              "end_time": 16.3827,
+              "speaker": 0
+            },
+            {
+              "text": "정상으로",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 16.4228,
+              "end_time": 16.9446,
+              "speaker": 0
+            },
+            {
+              "text": "돌아왔고",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 16.9847,
+              "end_time": 17.7473,
+              "speaker": 0
+            },
+            {
+              "text": "점심도",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 17.7874,
+              "end_time": 18.3092,
+              "speaker": 0
+            },
+            {
+              "text": "거르지",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 18.3493,
+              "end_time": 18.7105,
+              "speaker": 0
+            },
+            {
+              "text": "않아요",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 18.7507,
+              "end_time": 19.4731,
+              "speaker": 0
+            },
+            {
+              "text": "다만",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 19.5132,
+              "end_time": 19.9547,
+              "speaker": 0
+            },
+            {
+              "text": "새로운",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 19.9949,
+              "end_time": 20.3561,
+              "speaker": 0
+            },
+            {
+              "text": "일을",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 20.3962,
+              "end_time": 20.637,
+              "speaker": 0
+            },
+            {
+              "text": "시작할",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 20.6772,
+              "end_time": 21.0785,
+              "speaker": 0
+            },
+            {
+              "text": "땐",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 21.1186,
+              "end_time": 21.5601,
+              "speaker": 0
+            },
+            {
+              "text": "아직",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 21.6003,
+              "end_time": 21.8812,
+              "speaker": 0
+            },
+            {
+              "text": "집중력이",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 21.9214,
+              "end_time": 22.4832,
+              "speaker": 0
+            },
+            {
+              "text": "좀",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 22.5234,
+              "end_time": 22.6036,
+              "speaker": 0
+            },
+            {
+              "text": "떨어져서",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 22.6438,
+              "end_time": 23.6472,
+              "speaker": 0
+            },
+            {
+              "text": "수업",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 23.6873,
+              "end_time": 23.9281,
+              "speaker": 0
+            },
+            {
+              "text": "준비는",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 23.9682,
+              "end_time": 24.3696,
+              "speaker": 0
+            },
+            {
+              "text": "되지만",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 24.4097,
+              "end_time": 25.2927,
+              "speaker": 0
+            },
+            {
+              "text": "다른",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 25.3328,
+              "end_time": 25.5736,
+              "speaker": 0
+            },
+            {
+              "text": "건",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 25.6138,
+              "end_time": 25.7743,
+              "speaker": 0
+            },
+            {
+              "text": "아직",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 25.8145,
+              "end_time": 26.0151,
+              "speaker": 0
+            },
+            {
+              "text": "부담스러워요",
+              "start": 0.0,
+              "end": 0.0,
+              "start_time": 26.0553,
+              "end_time": 27.4199,
+              "speaker": 0
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

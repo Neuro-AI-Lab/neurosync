@@ -37,8 +37,17 @@ from typing import Any
 
 from src.agents.clinical_slot import ALL_SLOT_KEYS, ESSENTIAL_SLOT_KEYS, ClinicalSlotAgent
 from src.agents.dialogue import DialogueAgent
+from src.agents.input_normalizer import InputNormalizerAgent
+from src.agents.ocr import OCRAgent
 from src.agents.safety_classifier import SafetyClassifierAgent
-from src.dependencies import get_model_router, get_prompt_loader
+from src.agents.sentiment_analyzer import SentimentAnalyzerAgent
+from src.agents.stt import STTAgent
+from src.dependencies import (
+    get_model_router,
+    get_ocr_agent,
+    get_prompt_loader,
+    get_stt_agent,
+)
 from src.grounding import (
     QUESTIONABLE_SLOT_KEYS,
     RISK_SLOT_KEY,
@@ -50,7 +59,15 @@ from src.grounding import (
 )
 from src.schemas.clinical_slot import ClinicalSlotInput
 from src.schemas.dialogue import DialogueInput
+from src.schemas.input_normalizer import InputNormalizerInput
+from src.schemas.ocr import DocumentType, OCRInput, OCROutput
 from src.schemas.safety import SafetyInput, SafetyOutput
+from src.schemas.sentiment import (
+    SentimentSessionInput,
+    SentimentUtteranceInput,
+    SentimentUtteranceOutput,
+)
+from src.schemas.stt import STTInput, STTOutput
 
 logger = logging.getLogger(__name__)
 
@@ -153,6 +170,13 @@ class F1TurnLog:
     targeted_slot: str | None = None
     slot_discards: dict[str, str] = field(default_factory=dict)
     grounded_coverage: float = 0.0
+    # T1-F1-DEV-002 — InputNormalizer 적용 결과 (원본 vs 정규화, changes)
+    normalizer_meta: dict = field(default_factory=dict)
+    # T1-F1-DEV-011~013 — per-utterance sentiment (Mode A)
+    sentiment: dict = field(default_factory=dict)
+    # 명세 준수 — AI 응답 자체에 대한 Safety 재검사 결과 (CTRS)
+    dialogue_safety_ctrs: int | None = None
+    dialogue_safety_risk: str | None = None
 
 
 @dataclass
@@ -176,6 +200,125 @@ class F1Result:
     probe_events: list[dict] = field(default_factory=list)
     # min CTRS over ALL turns INCLUDING turn 0 (ISS-036 partial fix)
     session_ctrs: int = 5
+    # T1-F1-DEV-004/008 — OCR documents attached to this session
+    ocr_documents: list[dict] = field(default_factory=list)
+    # T1-F1-DEV-003/007 — STT transcripts consumed (one per patient turn if audio input)
+    stt_transcripts: list[dict] = field(default_factory=list)
+    # T1-F1-DEV-011~013 — Mode B session-level sentiment (calculated at session end)
+    session_sentiment: dict = field(default_factory=dict)
+
+
+_CONTENT_TYPE_BY_SUFFIX: dict[str, str] = {
+    ".pdf": "application/pdf",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".bmp": "image/bmp",
+    ".tiff": "image/tiff",
+    ".tif": "image/tiff",
+    ".heic": "image/heic",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+}
+
+
+def _guess_content_type(path: Path) -> str:
+    return _CONTENT_TYPE_BY_SUFFIX.get(path.suffix.lower(), "application/octet-stream")
+
+
+def _ocr_output_to_dict(out: OCROutput) -> dict[str, Any]:
+    """Serialize OCROutput for F1Result. Keep the full markdown for Handoff."""
+    return out.model_dump()
+
+
+def _stt_output_to_dict(out: STTOutput) -> dict[str, Any]:
+    """Serialize STTOutput for F1Result."""
+    return out.model_dump()
+
+
+def _make_canned_patient_fn(
+    texts: list[str],
+) -> Callable[[str], Awaitable[str]]:
+    """Build an async callback that returns pre-transcribed texts in order.
+
+    Used when audio inputs (mp3/wav) are pre-supplied to run_session().
+    Each call ignores agent_response and returns the next transcript.
+    Raises RuntimeError when exhausted so the loop terminates cleanly.
+    """
+    idx = {"i": 0}
+
+    async def _fn(_agent_response: str) -> str:
+        i = idx["i"]
+        if i >= len(texts):
+            raise RuntimeError(
+                f"Exhausted STT transcripts after {i} turns "
+                f"(session had {len(texts)} audio input(s))"
+            )
+        idx["i"] += 1
+        return texts[i]
+
+    return _fn
+
+
+def _format_ocr_for_context(out: OCROutput) -> str:
+    """Compact clinical summary for injection into conversation_history (system).
+
+    We inject the *summary* + a truncated markdown snippet. The full raw text
+    stays in F1Result for downstream Handoff generation. This keeps the LLM
+    context window bounded while still letting Dialogue reference the
+    documents.
+    """
+    if not out.blocks and not out.extracted_summary.diagnoses:
+        return ""
+
+    s = out.extracted_summary
+    lines: list[str] = [
+        f"[환자 제출 문서 — {out.document_type}] (OCR 요약, AI 진단 아님, 참고용)",
+    ]
+    if s.patient_name or s.patient_age or s.patient_gender:
+        parts = [
+            v for v in (s.patient_name, s.patient_age, s.patient_gender) if v
+        ]
+        lines.append(f"- 환자: {' / '.join(parts)}")
+    if s.department:
+        lines.append(f"- 진료과: {s.department}")
+    if s.diagnoses:
+        codes_str = f" ({', '.join(s.diagnosis_codes)})" if s.diagnosis_codes else ""
+        lines.append(f"- 문서에 기재된 진단명{codes_str}: {', '.join(s.diagnoses)}")
+    if s.scale_scores:
+        lines.append(
+            "- 문서 내 척도 점수: "
+            + ", ".join(f"{k}={v}" for k, v in s.scale_scores.items())
+        )
+    if s.medications:
+        med_str = ", ".join(
+            f"{m.name} {m.dose or ''}".strip() for m in s.medications[:5]
+        )
+        lines.append(f"- 문서에 기재된 약물: {med_str}")
+    if s.dates:
+        lines.append(f"- 문서 내 날짜: {', '.join(s.dates[:3])}")
+    if out.low_confidence_items:
+        lines.append(
+            f"- 확인 필요 항목({len(out.low_confidence_items)}): OCR 신뢰도 낮음"
+        )
+
+    # Bounded markdown snippet for Dialogue reference (max ~1000 chars).
+    if out.raw_markdown:
+        snippet = out.raw_markdown[:1000]
+        if len(out.raw_markdown) > 1000:
+            snippet += "\n...(중략)"
+        lines.append("")
+        lines.append("[문서 원문 발췌]")
+        lines.append(snippet)
+
+    lines.append("")
+    lines.append(
+        "안내: 위 정보는 환자가 제출한 문서에서 OCR로 추출한 참고 자료입니다. "
+        "환자에게 새로 물을 때 문서 내용을 자연스럽게 참조하세요. "
+        "AI가 내린 진단이 아닙니다."
+    )
+    return "\n".join(lines)
 
 
 def _extract_text(response: str) -> str:
@@ -252,6 +395,226 @@ class F1Pipeline:
         self.safety = SafetyClassifierAgent(model_router=mr, prompt_loader=pl)
         self.dialogue = DialogueAgent(model_router=mr, prompt_loader=pl)
         self.clinical_slot = ClinicalSlotAgent(model_router=mr, prompt_loader=pl)
+        # 명세 준수: 모든 입력이 InputNormalizer로 수렴 → Dialogue+Safety로.
+        self.normalizer = InputNormalizerAgent(model_router=mr, prompt_loader=pl)
+        # 명세 준수: 매 턴 sentiment (Mode A) + 세션 종료 sentiment (Mode B).
+        self.sentiment = SentimentAnalyzerAgent(model_router=mr, prompt_loader=pl)
+        # OCR + STT are optional — instantiated lazily only when needed.
+        # Failing here (e.g. UPSTAGE_API_KEY missing) should not break text-only
+        # sessions; guarded by try/except when actually used.
+        self._ocr: OCRAgent | None = None
+        self._stt: STTAgent | None = None
+
+    def _get_ocr_agent(self) -> OCRAgent:
+        if self._ocr is None:
+            self._ocr = get_ocr_agent()
+        return self._ocr
+
+    def _get_stt_agent(self) -> STTAgent:
+        if self._stt is None:
+            self._stt = get_stt_agent()
+        return self._stt
+
+    async def _analyze_utterance_sentiment(
+        self,
+        *,
+        session_id: str,
+        utterance: str,
+        turn_index: int,
+        history: list[dict[str, str]],
+    ) -> dict[str, Any]:
+        """Run per-utterance sentiment (Mode A). Never blocks the pipeline
+        on failure — returns empty dict."""
+        if not utterance.strip():
+            return {}
+        try:
+            out = await self.sentiment.run(SentimentUtteranceInput(
+                session_id=session_id,
+                utterance=utterance,
+                turn_index=turn_index,
+                conversation_context=history[-6:],  # bounded context
+            ))
+            if isinstance(out, SentimentUtteranceOutput):
+                return {
+                    "polarity": out.polarity,
+                    "arousal": out.arousal,
+                    "emotions": [
+                        {"label": e.label, "intensity": e.intensity} for e in out.emotions
+                    ],
+                    "evidence_phrase": out.evidence_phrase,
+                    "risk_signal": out.risk_signal,
+                }
+            return {}
+        except Exception as exc:
+            logger.warning("Sentiment (Mode A) failed at turn %d: %s", turn_index, exc)
+            return {}
+
+    async def _analyze_session_sentiment(
+        self,
+        *,
+        session_id: str,
+        per_utterance: list[dict[str, Any]],
+        history: list[dict[str, str]],
+    ) -> dict[str, Any]:
+        """Run session-level sentiment (Mode B) at session end."""
+        if not per_utterance:
+            return {}
+        # Convert dicts back to typed inputs for the agent
+        per_out: list[SentimentUtteranceOutput] = []
+        for i, p in enumerate(per_utterance):
+            if not p:
+                continue
+            try:
+                per_out.append(
+                    SentimentUtteranceOutput(
+                        turn_index=i,
+                        polarity=float(p.get("polarity", 0.0)),
+                        arousal=str(p.get("arousal", "medium")),
+                        emotions=[
+                            {
+                                "label": e.get("label", "neutral"),
+                                "intensity": e.get("intensity", 0.0),
+                            }
+                            for e in (p.get("emotions") or [])
+                        ],
+                        evidence_phrase=p.get("evidence_phrase", ""),
+                        risk_signal=bool(p.get("risk_signal", False)),
+                    )
+                )
+            except Exception:
+                continue
+        try:
+            out = await self.sentiment.run(SentimentSessionInput(
+                session_id=session_id,
+                per_utterance_results=per_out,
+                conversation_history=history,
+            ))
+            # Mode B returns SentimentSessionOutput
+            return out.model_dump() if hasattr(out, "model_dump") else {}
+        except Exception as exc:
+            logger.warning("Sentiment (Mode B) failed: %s", exc)
+            return {}
+
+    async def _normalize_patient_message(
+        self,
+        raw_text: str,
+        *,
+        session_id: str,
+        input_type: str,
+    ) -> tuple[str, dict[str, Any]]:
+        """Route patient input through InputNormalizerAgent.
+
+        Returns (normalized_text, meta_dict). On any failure, falls back to
+        the original text (Normalizer itself has a safe fallback path).
+        """
+        if not raw_text.strip():
+            return raw_text, {"skipped": "empty_input"}
+        try:
+            out = await self.normalizer.run(InputNormalizerInput(
+                session_id=session_id,
+                raw_text=raw_text,
+                input_type=input_type,
+            ))
+            meta = {
+                "original": out.original_text,
+                "normalized": out.normalized_text,
+                "input_type": input_type,
+                "change_count": out.change_count,
+                "risk_expressions_preserved": out.risk_expressions_preserved,
+                "clinical_content_preserved": out.clinical_content_preserved,
+                "latency_ms": out.latency_ms,
+                "changes": [c.model_dump() for c in out.changes[:6]],
+            }
+            return out.normalized_text or raw_text, meta
+        except Exception as exc:
+            logger.warning("InputNormalizer failed, using raw text: %s", exc)
+            return raw_text, {"skipped": f"normalizer_error: {type(exc).__name__}"}
+
+    async def _transcribe_audio_inputs(
+        self,
+        audio_paths: list[Path | str],
+        *,
+        session_id: str,
+        patient_id: str,
+    ) -> list[STTOutput]:
+        """Batch-transcribe each audio file. Failures produce empty STTOutput
+        entries so the pipeline can still continue with the remaining."""
+        try:
+            agent = self._get_stt_agent()
+        except Exception as exc:
+            logger.warning("STT agent unavailable, skipping audio inputs: %s", exc)
+            return []
+
+        outputs: list[STTOutput] = []
+        for p in audio_paths:
+            path = Path(p)
+            if not path.exists():
+                logger.warning("Audio not found, skipping: %s", path)
+                continue
+            body = path.read_bytes()
+            meta = STTInput(
+                session_id=session_id,
+                patient_id=patient_id,
+                filename=path.name,
+                mode="batch",
+                keywords=["우울감", "불면", "불안", "자살", "자해"],
+            )
+            try:
+                out = await agent.transcribe(body, meta)
+                outputs.append(out)
+                logger.info(
+                    "STT %s → %d chars, %.0fms",
+                    path.name, len(out.text), out.latency_ms,
+                )
+            except Exception as exc:
+                logger.error("STT failed for %s: %s", path, exc)
+        return outputs
+
+    async def _process_ocr_documents(
+        self,
+        documents: list[Path | str],
+        hints: list[DocumentType] | None,
+        *,
+        session_id: str,
+        patient_id: str,
+    ) -> list[OCROutput]:
+        """Parse each attached document via OCRAgent. Failures do not abort the session."""
+        try:
+            agent = self._get_ocr_agent()
+        except Exception as exc:
+            logger.warning("OCR agent unavailable, skipping documents: %s", exc)
+            return []
+
+        outputs: list[OCROutput] = []
+        hints_norm: list[DocumentType] = list(hints or [])
+        while len(hints_norm) < len(documents):
+            hints_norm.append("unknown")
+
+        for i, doc_path in enumerate(documents):
+            p = Path(doc_path)
+            if not p.exists():
+                logger.warning("OCR document not found, skipping: %s", p)
+                continue
+            try:
+                body = p.read_bytes()
+                content_type = _guess_content_type(p)
+                meta = OCRInput(
+                    session_id=session_id,
+                    patient_id=patient_id,
+                    document_type_hint=hints_norm[i],
+                    filename=p.name,
+                    confidence_threshold=0.8,
+                )
+                out = await agent.parse(body, meta, content_type=content_type)
+                outputs.append(out)
+                logger.info(
+                    "OCR parsed %s → type=%s, blocks=%d, %.0fms",
+                    p.name, out.document_type, len(out.blocks), out.latency_ms,
+                )
+            except Exception as exc:
+                logger.error("OCR failed for %s: %s", p, exc)
+
+        return outputs
 
     @staticmethod
     def _summarize_prior_handoff(handoff: str) -> str:
@@ -379,7 +742,7 @@ class F1Pipeline:
 
     async def run_session(
         self,
-        patient_input_fn: Callable[[str], Awaitable[str]],
+        patient_input_fn: Callable[[str], Awaitable[str]] | None = None,
         session_id: str = "f1_session",
         persona_id: str | None = None,
         persona_name: str | None = None,
@@ -388,6 +751,9 @@ class F1Pipeline:
         is_revisit: bool = False,
         prior_handoff: str = "",
         prior_slots: dict[str, str] | None = None,
+        ocr_documents: list[Path | str] | None = None,
+        ocr_document_hints: list[DocumentType] | None = None,
+        audio_inputs: list[Path | str] | None = None,
     ) -> F1Result:
         """한 세션 실행.
 
@@ -399,6 +765,12 @@ class F1Pipeline:
             is_revisit: 재진 여부
             prior_handoff: 이전 handoff report (재진 시)
             prior_slots: 이전 세션에서 수집된 slot (재진 시)
+            ocr_documents: 세션 시작 시 OCR 처리할 문서 경로 목록 (진단서/처방전 등)
+            ocr_document_hints: 각 문서 유형 힌트 ('diagnosis', 'prescription', ...).
+                                미지정 시 자동 감지.
+            audio_inputs: 환자 음성 입력 파일 경로 목록. 지정 시 STT로 전사 후
+                          그 텍스트를 patient_input_fn 대신 순차 사용한다.
+                          patient_input_fn과 상호 배타적 (audio_inputs 우선).
         """
         result = F1Result(
             session_id=session_id,
@@ -407,10 +779,57 @@ class F1Pipeline:
             started_at=datetime.now().isoformat(),
         )
 
+        # ── STT: 음성 입력 → patient_input_fn 자동 구성 (T1-F1-DEV-003 통합) ──
+        # audio_inputs가 주어지면 세션 시작 시점에 모든 오디오를 STT로 전사하고,
+        # 그 텍스트들을 순차 반환하는 콜백으로 patient_input_fn을 대체한다.
+        # (실시간 스트리밍은 아직 미구현 — batch 모드로 사전 전사)
+        if audio_inputs:
+            transcribed = await self._transcribe_audio_inputs(
+                audio_inputs, session_id=session_id, patient_id=persona_id or "anon"
+            )
+            for out in transcribed:
+                result.stt_transcripts.append(_stt_output_to_dict(out))
+            texts = [out.text for out in transcribed if out.text]
+            if not texts:
+                result.errors.append("STT produced no text — session cannot proceed")
+                result.ended_at = datetime.now().isoformat()
+                return result
+            patient_input_fn = _make_canned_patient_fn(texts)
+            logger.info(
+                "STT prepared %d patient utterances for session %s",
+                len(texts), session_id,
+            )
+        elif patient_input_fn is None:
+            raise ValueError(
+                "Either patient_input_fn or audio_inputs must be provided"
+            )
+
         conversation_history: list[dict[str, str]] = []
         filled_slots: dict[str, str] = dict(prior_slots) if prior_slots else {}
         prev_agent_response = ""
         repeat_count = 0
+
+        # ── OCR: 세션 시작 시 첨부 문서 처리 (T1-F1-DEV-004 통합) ──
+        # 결과는 result.ocr_documents에 저장 + 대화 컨텍스트에 system 메시지로 주입.
+        if ocr_documents:
+            ocr_outputs = await self._process_ocr_documents(
+                ocr_documents,
+                ocr_document_hints,
+                session_id=session_id,
+                patient_id=persona_id or "anon",
+            )
+            for ocr_out in ocr_outputs:
+                result.ocr_documents.append(_ocr_output_to_dict(ocr_out))
+                # Inject a compact clinical summary — full markdown is retained
+                # in result.ocr_documents for downstream (Handoff Report) use.
+                ctx = _format_ocr_for_context(ocr_out)
+                if ctx:
+                    conversation_history.append({"role": "system", "content": ctx})
+            logger.info(
+                "OCR processed %d document(s) for session %s",
+                len(ocr_outputs),
+                session_id,
+            )
 
         # Grounding filter context: patient utterances + which slot the AI's
         # question targeted for each utterance (aligned by index).
@@ -425,7 +844,23 @@ class F1Pipeline:
         risk_question_pending = False  # AI's last question targeted risk_assessment
         pending_soft_safety = False    # append 109 note to next AI response
 
+        async def _finalize_async() -> F1Result:
+            result.session_ctrs = min(
+                (t.safety_ctrs for t in result.turns), default=5
+            )
+            result.grounded_coverage = _grounded_coverage(filled_slots)
+            # 명세 준수: 세션 종료 시 Sentiment Mode B (session-level 리포트)
+            per_utt = [t.sentiment for t in result.turns if t.sentiment]
+            result.session_sentiment = await self._analyze_session_sentiment(
+                session_id=session_id,
+                per_utterance=per_utt,
+                history=conversation_history,
+            )
+            result.ended_at = datetime.now().isoformat()
+            return result
+
         def _finalize() -> F1Result:
+            # Sync fallback for early-exit paths — skips Mode B sentiment.
             result.session_ctrs = min(
                 (t.safety_ctrs for t in result.turns), default=5
             )
@@ -467,10 +902,18 @@ class F1Pipeline:
         turn0_start = time.perf_counter()
 
         try:
-            patient_message = await patient_input_fn(greeting)
+            raw_patient_message = await patient_input_fn(greeting)
         except Exception as e:
             result.errors.append(f"Patient start failed: {e}")
             return _finalize()
+
+        # 명세: 모든 환자 입력은 InputNormalizer로 수렴 후 Safety/Dialogue로.
+        input_type_for_normalizer = "stt_transcript" if audio_inputs else "user_text"
+        patient_message, turn0_norm_meta = await self._normalize_patient_message(
+            raw_patient_message,
+            session_id=session_id,
+            input_type=input_type_for_normalizer,
+        )
 
         # The opening question targets the chief complaint.
         patient_utterances.append(patient_message)
@@ -540,6 +983,14 @@ class F1Pipeline:
             })
             logger.warning("Safety probe triggered at turn 0 (CTRS=3, SI/self-harm)")
 
+        # 명세 준수: Sentiment (Mode A) 매 턴 실행 — 여기서는 Turn 0.
+        turn0_sentiment = await self._analyze_utterance_sentiment(
+            session_id=session_id,
+            utterance=patient_message,
+            turn_index=0,
+            history=turn0_history,
+        )
+
         turn0_coverage = _legacy_essential_coverage(filled_slots)
         turn0_grounded = _grounded_coverage(filled_slots)
 
@@ -561,6 +1012,8 @@ class F1Pipeline:
             targeted_slot="chief_complaint",
             slot_discards=turn0_discards,
             grounded_coverage=turn0_grounded,
+            normalizer_meta=turn0_norm_meta,
+            sentiment=turn0_sentiment,
         )
         result.turns.append(turn0_log)
 
@@ -583,6 +1036,8 @@ class F1Pipeline:
         #   - agent 호출 시점에는 "이전까지의 완성된 대화"만 들어있음
         #   - 현재 턴의 user/assistant는 턴 끝에 한번에 추가
         #   - agent에는 history + current user_message를 분리 전달
+        # turn_norm_meta는 매 턴 갱신 (첫 진입은 Turn 0의 정규화 메타를 승계)
+        turn_norm_meta: dict[str, Any] = turn0_norm_meta
         for turn in range(1, max_turns + 1):
             turn_start = time.perf_counter()
             logger.info("Turn %d | Patient: %s", turn, patient_message)
@@ -849,6 +1304,42 @@ class F1Pipeline:
                 slot_discards=slot_discards,
                 grounded_coverage=g_coverage,
             )
+            # 명세 준수: Sentiment (Mode A) — 매 턴 환자 발화 정서 signal.
+            turn_sentiment = await self._analyze_utterance_sentiment(
+                session_id=session_id,
+                utterance=patient_message,
+                turn_index=turn,
+                history=conversation_history,
+            )
+            # 명세 준수: Dialogue 응답 자체에 대한 Safety 재검사.
+            # AI 응답이 부적절한 위험 문구를 담고 있는지 확인 — 실패해도 세션은 계속.
+            dialogue_safety_ctrs = None
+            dialogue_safety_risk = None
+            if agent_response and agent_response != CRISIS_RESPONSE:
+                try:
+                    post_safety = await self.safety.run(SafetyInput(
+                        session_id=session_id,
+                        user_message=agent_response,  # AI 응답이 검사 대상
+                        conversation_history=conversation_history + [
+                            {"role": "user", "content": patient_message},
+                        ],
+                    ))
+                    dialogue_safety_ctrs = int(post_safety.ctrs_level)
+                    dialogue_safety_risk = str(post_safety.risk_level)
+                    if dialogue_safety_ctrs <= 2:
+                        logger.warning(
+                            "Post-dialogue Safety flagged AI response at turn %d "
+                            "(CTRS=%d, risk=%s) — leaving as-is for logging",
+                            turn, dialogue_safety_ctrs, dialogue_safety_risk,
+                        )
+                except Exception as e:
+                    logger.warning("Post-dialogue Safety failed at turn %d: %s", turn, e)
+
+            # Attach sentiment + normalizer_meta + dialogue_safety on the log.
+            turn_log.sentiment = turn_sentiment
+            turn_log.normalizer_meta = turn_norm_meta
+            turn_log.dialogue_safety_ctrs = dialogue_safety_ctrs
+            turn_log.dialogue_safety_risk = dialogue_safety_risk
             result.turns.append(turn_log)
             result.total_turns = turn
             result.final_slots = [{"key": k, "value": v} for k, v in filled_slots.items() if v]
@@ -856,9 +1347,12 @@ class F1Pipeline:
             result.grounded_coverage = g_coverage
 
             logger.info(
-                "Turn %d | CTRS=%d | slots=%d | coverage=%.0f%% | grounded=%.0f%% | %.0fms",
+                "Turn %d | CTRS=%d | slots=%d | coverage=%.0f%% | grounded=%.0f%% | "
+                "sentiment=%s | dlg_ctrs=%s | %.0fms",
                 turn, safety_out.ctrs_level, len(filled_slots),
-                coverage * 100, g_coverage * 100, latency,
+                coverage * 100, g_coverage * 100,
+                turn_sentiment.get("polarity", "?"),
+                dialogue_safety_ctrs, latency,
             )
 
             if crisis:
@@ -889,18 +1383,25 @@ class F1Pipeline:
                 repeat_count = 0
             prev_agent_response = agent_response
 
-            # ── Next patient input ──
+            # ── Next patient input (정규화 포함) ──
             try:
-                patient_message = await patient_input_fn(agent_response)
+                raw_next = await patient_input_fn(agent_response)
             except Exception as e:
                 result.errors.append(f"Turn {turn} patient error: {e}")
                 break
+
+            patient_message, turn_norm_meta = await self._normalize_patient_message(
+                raw_next,
+                session_id=session_id,
+                input_type=input_type_for_normalizer,
+            )
 
             # Record the new utterance + which slot this turn's question targeted.
             patient_utterances.append(patient_message)
             asked_slots.append(targeted_slot)
 
-        return _finalize()
+        # 정상 종료 경로 — Session-level Sentiment (Mode B) 계산 후 반환.
+        return await _finalize_async()
 
 
 # ── Output: save results + report + checklist ────────────────────────
@@ -970,6 +1471,10 @@ def _build_checklist(r: F1Result) -> str:
         f"| Slot coverage (legacy, essential 5) | {r.slot_coverage:.0%} | "
         f"{len(r.final_slots)} slots filled |",
         f"| Grounded coverage (questionable 8) | {r.grounded_coverage:.0%} | filter 통과 값만 |",
+        f"| OCR documents attached | {'PASS' if r.ocr_documents else 'N/A'} | "
+        f"{len(r.ocr_documents)} document(s) parsed |",
+        f"| STT audio inputs | {'PASS' if r.stt_transcripts else 'N/A'} | "
+        f"{len(r.stt_transcripts)} audio file(s) transcribed |",
         "",
     ]
 
@@ -1089,6 +1594,70 @@ def _build_report(r: F1Result) -> str:
     lines.append("")
     for slot in r.final_slots:
         lines.append(f"- **{slot['key']}**: {slot['value']}")
+
+    # OCR documents (if any)
+    if r.ocr_documents:
+        lines.extend(["", "## OCR Documents", ""])
+        for i, doc in enumerate(r.ocr_documents, 1):
+            summary = doc.get("extracted_summary", {}) or {}
+            doc_type = doc.get("document_type", "unknown")
+            lines.append(f"### Document {i} — {doc_type}")
+            lines.append("")
+            patient_parts = [
+                v for v in (
+                    summary.get("patient_name"),
+                    summary.get("patient_age"),
+                    summary.get("patient_gender"),
+                )
+                if v
+            ]
+            if patient_parts:
+                lines.append(f"- 환자: {' / '.join(patient_parts)}")
+            if summary.get("department"):
+                lines.append(f"- 진료과: {summary['department']}")
+            dxs = summary.get("diagnoses") or []
+            codes = summary.get("diagnosis_codes") or []
+            if dxs:
+                code_str = f" ({', '.join(codes)})" if codes else ""
+                lines.append(f"- 진단명{code_str}: {', '.join(dxs)}")
+            scores = summary.get("scale_scores") or {}
+            if scores:
+                lines.append(
+                    "- 척도 점수: "
+                    + ", ".join(f"{k}={v}" for k, v in scores.items())
+                )
+            meds = summary.get("medications") or []
+            if meds:
+                med_str = ", ".join(
+                    f"{m.get('name', '?')} {m.get('dose', '') or ''}".strip()
+                    for m in meds[:5]
+                )
+                lines.append(f"- 약물: {med_str}")
+            dates = summary.get("dates") or []
+            if dates:
+                lines.append(f"- 날짜: {', '.join(dates[:3])}")
+            low_conf = doc.get("low_confidence_items") or []
+            if low_conf:
+                lines.append(f"- 확인 필요: {len(low_conf)}개 항목")
+            lines.append(
+                f"- 페이지: {doc.get('page_count', '?')} | "
+                f"지연: {doc.get('latency_ms', 0):.0f}ms"
+            )
+            lines.append("")
+
+    # STT transcripts (if any)
+    if r.stt_transcripts:
+        lines.extend(["", "## STT Transcripts (음성 입력)", ""])
+        for i, tr in enumerate(r.stt_transcripts, 1):
+            lines.append(f"### Audio {i}")
+            lines.append("")
+            lines.append(f"- 텍스트: {tr.get('text', '')[:200]}")
+            lines.append(f"- 세그먼트: {len(tr.get('segments', []))}개")
+            lines.append(f"- 지속: {tr.get('audio_duration_ms', 0)}ms")
+            lines.append(f"- 지연: {tr.get('latency_ms', 0):.0f}ms")
+            lines.append(f"- 벤더: {tr.get('vendor', '?')}")
+            lines.append(f"- 사용자 확인: {tr.get('user_confirmed', False)} (FR-035)")
+            lines.append("")
 
     return "\n".join(lines)
 
@@ -1226,6 +1795,9 @@ async def _run_simulation(
     persona_id: str,
     max_turns: int,
     followup_from: str | None = None,
+    ocr_documents: list[Path] | None = None,
+    ocr_hints: list[DocumentType] | None = None,
+    audio_inputs: list[Path] | None = None,
 ) -> None:
     """시뮬레이션 모드: PatientLLM과 F1Pipeline 대화.
 
@@ -1284,14 +1856,24 @@ async def _run_simulation(
     # 주의: persona.visit_type == "revisit"이더라도, --followup-from이 없으면
     # 첫 상담으로 취급한다. 재상담은 명시적 --followup-from 플래그로만 활성화.
 
-    # Patient LLM uses K-EXAONE (not Solar Pro3)
-    patient = PatientLLM(persona=persona)  # auto-loads EXAONE keys from env
+    # Patient input source:
+    # - Default: PatientLLM (K-EXAONE) generates dynamic responses.
+    # - With --audio: skip PatientLLM; F1Pipeline runs STT on files internally.
     pipeline = F1Pipeline()
 
-    async def patient_fn(agent_msg: str) -> str:
-        return await patient.respond(agent_msg)
+    if audio_inputs:
+        # audio_inputs 경로에서 STT 실행 → 그 결과를 순차 소비.
+        patient_fn = None
+        print(f"[STT] Skipping PatientLLM — using {len(audio_inputs)} audio input(s)")
+    else:
+        patient = PatientLLM(persona=persona)  # auto-loads EXAONE keys from env
+
+        async def patient_fn(agent_msg: str) -> str:  # type: ignore[misc]
+            return await patient.respond(agent_msg)
 
     session_suffix = "_followup" if followup_from else ""
+    if audio_inputs:
+        session_suffix += "_audio"
     result = await pipeline.run_session(
         patient_input_fn=patient_fn,
         session_id=f"f1_{persona_id}{session_suffix}",
@@ -1301,6 +1883,9 @@ async def _run_simulation(
         is_revisit=bool(followup_from),  # 명시적 --followup-from만 재상담
         prior_handoff=prior_handoff,
         prior_slots=prior_slots,
+        ocr_documents=ocr_documents,
+        ocr_document_hints=ocr_hints,
+        audio_inputs=audio_inputs,
     )
 
     paths = save_f1_result(result)
@@ -1317,6 +1902,8 @@ async def _run_simulation(
     print(f"  Grounded Coverage: {result.grounded_coverage:.0%}")
     print(f"  Session CTRS: {result.session_ctrs} | Risk floor: {result.risk_floor}")
     print(f"  Probe events: {len(result.probe_events)}")
+    print(f"  OCR documents: {len(result.ocr_documents)}")
+    print(f"  STT transcripts: {len(result.stt_transcripts)}")
     print(f"  Errors: {len(result.errors)}")
     print(f"  Files: {', '.join(p.name for p in paths.values())}")
     print(f"{'='*60}")
@@ -1330,6 +1917,47 @@ def main() -> None:
         "--followup-from",
         default=None,
         help="재상담 모드: 이전 세션의 persona ID 또는 conversation.json 경로",
+    )
+    parser.add_argument(
+        "--ocr",
+        default=None,
+        help=(
+            "OCR 처리할 문서 경로 (콤마 구분). "
+            "예: --ocr docs/ai/simulation_results/VP-001/VP-001_first_visit_mild_ocr.pdf"
+        ),
+    )
+    parser.add_argument(
+        "--ocr-hint",
+        default=None,
+        help=(
+            "OCR 문서 유형 힌트 (콤마 구분, --ocr 개수와 일치). "
+            "값: diagnosis | prescription | consultation | lab_result | unknown. "
+            "미지정 시 unknown (자동 감지)."
+        ),
+    )
+    parser.add_argument(
+        "--ocr-vp-default",
+        action="store_true",
+        help=(
+            "편의 옵션: --persona VP-001 이고 --ocr 미지정이면 "
+            "docs/ai/simulation_results/VP-001/VP-001_*_ocr.pdf를 자동 첨부."
+        ),
+    )
+    parser.add_argument(
+        "--audio",
+        default=None,
+        help=(
+            "환자 음성 입력 파일 경로 (콤마 구분). 지정 시 PatientLLM 대신 STT 결과를 "
+            "순차 사용. 예: --audio VP-001-001.mp3,VP-001-002.mp3"
+        ),
+    )
+    parser.add_argument(
+        "--audio-vp-default",
+        action="store_true",
+        help=(
+            "편의 옵션: --audio 미지정 시 "
+            "docs/ai/simulation_results/{persona}/{persona}-*.mp3를 정렬 순 자동 첨부."
+        ),
     )
     args = parser.parse_args()
 
@@ -1348,7 +1976,47 @@ def main() -> None:
     if not os.environ.get("PROMPTS_BASE_DIR"):
         os.environ["PROMPTS_BASE_DIR"] = str(PROJECT_ROOT / "docs" / "ai" / "prompts")
 
-    asyncio.run(_run_simulation(args.persona, args.max_turns, args.followup_from))
+    # Resolve OCR documents
+    ocr_docs: list[Path] | None = None
+    ocr_hints_list: list[DocumentType] | None = None
+
+    if args.ocr:
+        ocr_docs = [Path(p.strip()) for p in args.ocr.split(",") if p.strip()]
+    elif args.ocr_vp_default:
+        default_glob = OUTPUT_DIR / args.persona
+        matches = sorted(default_glob.glob(f"{args.persona}_*_ocr.pdf"))
+        if matches:
+            ocr_docs = matches
+            print(f"[OCR default] Auto-attached {len(matches)} document(s) for {args.persona}")
+
+    if args.ocr_hint and ocr_docs:
+        hints_raw = [h.strip() for h in args.ocr_hint.split(",") if h.strip()]
+        valid = {"diagnosis", "prescription", "consultation", "lab_result", "unknown"}
+        ocr_hints_list = [h if h in valid else "unknown" for h in hints_raw]  # type: ignore[misc]
+
+    # Resolve audio inputs (patient utterances)
+    audio_paths: list[Path] | None = None
+    if args.audio:
+        audio_paths = [Path(p.strip()) for p in args.audio.split(",") if p.strip()]
+    elif args.audio_vp_default:
+        default_glob = OUTPUT_DIR / args.persona
+        matches = sorted(default_glob.glob(f"{args.persona}-*.mp3"))
+        if matches:
+            audio_paths = matches
+            print(
+                f"[Audio default] Auto-attached {len(matches)} audio file(s) for {args.persona}"
+            )
+
+    asyncio.run(
+        _run_simulation(
+            args.persona,
+            args.max_turns,
+            args.followup_from,
+            ocr_documents=ocr_docs,
+            ocr_hints=ocr_hints_list,
+            audio_inputs=audio_paths,
+        )
+    )
 
 
 if __name__ == "__main__":
