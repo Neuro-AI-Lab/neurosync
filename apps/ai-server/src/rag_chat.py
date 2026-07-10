@@ -1,42 +1,44 @@
 #!/usr/bin/env python3
-"""RAG grounding 대화형 테스트 클라이언트 — 발화를 ai-server로 보내 grounding을 본다.
+"""RAG grounding 대화형 테스트 클라이언트 — 발화를 넣으면 grounding을 본다.
 
-**HTTP 클라이언트**다. ai-server의 POST /ai/rag/grounding 을 때린다. DB·키·의존성이
-전혀 필요 없어 표준 라이브러리(urllib)만 쓰므로, venv 없이 노트북 어디서든 파일 하나만
-복사해 `python rag_chat.py` 로 실행된다. (RAG 로직 자체는 ai-server에서 돈다.)
+**in-process 스크립트다.** ADR-017/REV-013(2026-07-09): RAG HTTP API가 영구
+retire되면서(`POST /ai/rag/grounding` 언마운트, `src/main.py`) 이 파일도 더 이상
+HTTP 클라이언트가 아니다 — `src.rag.retrieval.retrieve_grounding()`을 로컬
+DB 세션으로 직접 호출한다. `src/f2.py:176-180`의 Stage 1 호출이 이미 쓰는 것과
+정확히 같은 in-process 패턴(`src.dependencies.get_sessionmaker()`)이다.
 
-ADR-013/VAL-005(2026-07-08): 이전에는 공인 IP:포트와 환자 UUID 4종이 파일에 하드코딩되어
-있었다 — 엔드포인트가 무인증이던 시절엔 그 UUID가 사실상 접근 자격증명이었다. 이제 서버가
-`NS_RAG_API_KEY` bearer 인증을 요구하므로(fail-closed 기본값 — 미설정 시 503), 하드코딩된
-공인 접속 정보는 더 이상 이 파일에 없다. URL/patient/API 키는 모두 env 또는 REPL 명령으로
-넘긴다 — 아무 것도 지정하지 않으면 로컬(localhost)로만 접속을 시도하고 my_past는 조회하지
-않는다(patient_id 미지정).
+이제 서버 프로세스·포트·bearer 키가 필요 없다(HTTP round-trip 자체가 없다).
+대신 f1.py/f2.py와 동일하게 **venv + `.env`(DATABASE_URL)** 가 필요하다 — 더는
+"venv 없이 파일 하나만 복사해 실행"되는 도구가 아니다. 임베딩 조회 시
+UPSTAGE_API_KEY도 필요.
 
-실행: `python rag_chat.py`  (또는 apps/ai-server에서 `python -m src.rag_chat`)
+ADR-013/VAL-005(2026-07-08) 이력: 과거엔 공인 IP:포트와 환자 UUID 4종이 파일에
+하드코딩되어 있었다(엔드포인트가 무인증이던 시절엔 그 UUID가 사실상 접근
+자격증명이었다). REV-013 §2: 라이브 HTTP 서피스 자체가 사라지면서 VAL-005는
+구조적으로 해소됐다 — 아래 PERSONAS는 이제 로컬 DB의 임의 patient_id 조회
+편의일 뿐, 원격 접근 자격증명이 아니다. 그럼에도 계속 명시 선택(:p VP-00N)만
+지원한다(자동 기본값 없음 — 관행 유지).
+
+실행: `python -m src.rag_chat`  (apps/ai-server에서, venv 필요)
 env:
-  NS_RAG_URL       ai-server 베이스 URL (기본 http://localhost:8001 — 원격 접속은 명시 지정)
-  NS_RAG_API_KEY   서버의 NS_RAG_API_KEY와 동일한 값 (있으면 Authorization: Bearer 헤더로 전송)
   NS_PATIENT_ID    환자 UUID 또는 VP-00N 별칭       (기본 없음 → my_past 미조회)
   NS_K             슬롯별 top-k 1~10                 (기본 3)
 
 명령: 발화 입력 / ":p <uuid|VP-00N>" patient 변경 / ":k 5" k 변경 / ":q"/exit 종료.
-비밀 값(NS_RAG_API_KEY)은 어디에도 출력하지 않는다.
+DB 접속 정보(비밀번호 포함, `.env`의 DATABASE_URL)는 어디에도 출력/로그되지 않는다
+— `get_sessionmaker()`가 내부에서 소비할 뿐, 이 파일은 DSN 문자열을 다루지 않는다.
 """
 
 from __future__ import annotations
 
-import json
+import asyncio
 import os
 import sys
-import urllib.error
-import urllib.request
 import uuid
-
-# 안전한 로컬 기본값만 — 원격/공인 주소는 반드시 NS_RAG_URL로 명시 지정한다.
-DEFAULT_URL = "http://localhost:8001"
+from typing import Any
 
 # load_simulations로 적재된 VP 페르소나 별칭(결정론적 uuid5, 비밀 아님) — 편의 lookup일 뿐,
-# 자동으로 쓰이는 기본값이 아니다(:p VP-004 처럼 명시적으로 선택해야 함, VAL-005).
+# 자동으로 쓰이는 기본값이 아니다(:p VP-004 처럼 명시적으로 선택해야 함, VAL-005 이력).
 PERSONAS = {
     "VP-001": "adc981a1-07e6-5325-8cf0-e352ec2b45e5",
     "VP-002": "38066e4e-b2b5-5e06-bf38-4fbff4db3b76",
@@ -84,27 +86,20 @@ def render(g: dict) -> str:
     return "\n".join(lines)
 
 
-def _query(base_url: str, utterance: str, patient_id: str | None, k: int) -> dict:
-    """POST /ai/rag/grounding — 실패 시 예외를 올려 REPL이 잡게 한다.
+async def _query(utterance: str, patient_id: str | None, k: int) -> dict[str, Any]:
+    """retrieve_grounding()을 로컬 DB 세션메이커로 직접 호출한다 (in-process, ADR-017).
 
-    NS_RAG_API_KEY가 설정되어 있으면 Authorization: Bearer 헤더로 전송한다
-    (ADR-013). 키 값 자체는 절대 로그/출력하지 않는다.
+    HTTP round-trip이 없다 — 실패 시 예외를 그대로 올려 REPL이 잡게 한다.
     """
-    body = json.dumps(
-        {"utterance": utterance, "patient_id": patient_id, "k": k}
-    ).encode("utf-8")
-    headers = {"Content-Type": "application/json"}
-    api_key = os.environ.get("NS_RAG_API_KEY", "").strip()
-    if api_key:
-        headers["Authorization"] = f"Bearer {api_key}"
-    req = urllib.request.Request(
-        f"{base_url.rstrip('/')}/ai/rag/grounding",
-        data=body,
-        headers=headers,
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310 — 신뢰된 내부 URL
-        return json.loads(resp.read().decode("utf-8"))
+    from uuid import UUID
+
+    from src.dependencies import get_sessionmaker
+    from src.rag.retrieval import retrieve_grounding
+
+    pid: UUID | None = UUID(patient_id) if patient_id else None
+    sessionmaker = get_sessionmaker()
+    async with sessionmaker() as db:
+        return await retrieve_grounding(db, utterance, patient_id=pid, k=k)
 
 
 def _parse_uuid(raw: str) -> str | None:
@@ -118,18 +113,14 @@ def _parse_uuid(raw: str) -> str | None:
         return None
 
 
-def main() -> int:
-    base_url = os.environ.get("NS_RAG_URL", DEFAULT_URL)
+async def _run() -> int:
     k = int(os.environ.get("NS_K", "3"))
-    # VAL-005: 하드코딩된 기본 환자 없음 — 명시적으로 지정해야만 my_past가 조회된다.
+    # VAL-005 이력: 하드코딩된 기본 환자 없음 — 명시적으로 지정해야만 my_past가 조회된다.
     pid = _parse_uuid(os.environ.get("NS_PATIENT_ID", "")) or None
-    has_key = bool(os.environ.get("NS_RAG_API_KEY", "").strip())
-    auth_note = (
-        "Bearer 헤더 전송" if has_key
-        else "(NS_RAG_API_KEY 미설정 — 서버가 503/401 반환 가능)"
+    print(
+        f"RAG in-process 테스트 클라이언트 (ADR-017/REV-013 — HTTP 아님)  k={k}  "
+        f"patient_id={pid or '(미설정 → my_past 안 뜸)'}"
     )
-    print(f"RAG 테스트 클라이언트  server={base_url}  k={k}  "
-          f"patient_id={pid or '(미설정 → my_past 안 뜸)'}  auth={auth_note}")
     print("발화를 입력하세요. (:p <uuid|VP-00N> = 환자변경, :k N = k변경, :q/exit = 종료)\n")
 
     while True:
@@ -159,17 +150,24 @@ def main() -> int:
             continue
 
         try:
-            data = _query(base_url, line, pid, k)
-        except urllib.error.HTTPError as exc:
-            print(f"[HTTP {exc.code}] {exc.read().decode('utf-8', 'ignore')}", file=sys.stderr)
-            continue
-        except urllib.error.URLError as exc:
-            print(f"[연결 실패] {exc.reason} — ai-server({base_url}) 떠 있나요?", file=sys.stderr)
+            data = await _query(line, pid, k)
+        except Exception as exc:  # noqa: BLE001 — REPL: DB/임베딩 실패도 계속 진행하게 표시만
+            print(f"[조회 실패] {exc}", file=sys.stderr)
             continue
         print("---")
         print(render(data))
         print()
     return 0
+
+
+def main() -> int:
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv()
+    except ImportError:
+        pass
+    return asyncio.run(_run())
 
 
 if __name__ == "__main__":

@@ -16,6 +16,12 @@ accepted as `depression` evidence by the pre-v2 whitelist.
 
 from __future__ import annotations
 
+from unittest.mock import AsyncMock
+
+import pytest
+from pydantic import ValidationError
+
+import src.f2 as f2
 from src.eval.f2_grounding import (
     _PANIC_IDIOM_PHRASES,
     _RISK_PHRASES,
@@ -24,6 +30,7 @@ from src.eval.f2_grounding import (
     VERDICT_REJECTED_RISK_LEXICON,
     VERDICT_REJECTED_UNKNOWN_SOURCE,
     VERDICT_REJECTED_UNKNOWN_TYPE,
+    _normalize_rag_chunk_source_id,
     audit_domain_candidates,
     check_evidence,
     filter_domain_candidates,
@@ -76,6 +83,49 @@ class TestCheckEvidenceRejectsHallucinatedSource:
             chunk_texts=_CHUNK_TEXTS, utterances=_UTTERANCES,
         )
         assert v.verdict == VERDICT_REJECTED_UNKNOWN_TYPE
+
+
+class TestBug016ChunkIdPrefixNormalization:
+    """BUG-016 (REV-010 finding 1) — a rag_chunk source_id carrying a benign
+    `chunk_id=` prefix echo (the model sometimes reflects the prompt's own
+    per-chunk listing label back into source_id) must not cost genuine,
+    well-grounded evidence. See tests/repro/test_bug_016.py for the
+    production-artifact-derived repro; this class covers the normalization
+    primitive and its edge cases directly."""
+
+    def test_normalize_strips_exact_prefix(self) -> None:
+        assert _normalize_rag_chunk_source_id("chunk_id=case_card:687") == "case_card:687"
+
+    def test_normalize_strips_whitespace_variant(self) -> None:
+        assert _normalize_rag_chunk_source_id("chunk_id = case_card:687") == "case_card:687"
+        assert _normalize_rag_chunk_source_id("chunk_id= case_card:687") == "case_card:687"
+        assert _normalize_rag_chunk_source_id("chunk_id =case_card:687") == "case_card:687"
+
+    def test_normalize_leaves_unprefixed_id_unchanged(self) -> None:
+        assert _normalize_rag_chunk_source_id("case_card:687") == "case_card:687"
+
+    def test_normalize_only_strips_leading_prefix(self) -> None:
+        """A chunk_id that legitimately CONTAINS the substring elsewhere
+        (not as a leading prefix) must not be mangled."""
+        assert _normalize_rag_chunk_source_id("qa:chunk_id=5") == "qa:chunk_id=5"
+
+    def test_check_evidence_accepts_prefixed_rag_chunk_source_id(self) -> None:
+        v = check_evidence(
+            "rag_chunk", "chunk_id=case_card:1", "불안감과 수면 문제",
+            chunk_texts=_CHUNK_TEXTS, utterances=_UTTERANCES,
+        )
+        assert v.verdict == VERDICT_ACCEPTED
+        assert v.source_id == "case_card:1"  # normalized id recorded, not raw
+
+    def test_check_evidence_normalization_is_rag_chunk_only(self) -> None:
+        """The `chunk_id=` prefix strip must not apply to `utterance`
+        source_ids (a turn_id like `turn_0` would never legitimately carry
+        this prefix; normalizing it anyway would be scope creep)."""
+        v = check_evidence(
+            "utterance", "chunk_id=turn_0", "잠을 잘 못 자",
+            chunk_texts=_CHUNK_TEXTS, utterances=_UTTERANCES,
+        )
+        assert v.verdict == VERDICT_REJECTED_UNKNOWN_SOURCE
 
 
 class TestCheckEvidenceRejectsQuoteMismatch:
@@ -478,3 +528,324 @@ class TestRejectionCascade:
         )
         assert len(verdicts) == 1
         assert sum(counts.values()) == 1
+
+
+class TestVal011AiPredictedDiseasePopulationRiskLexiconGate:
+    """VAL-011 (`error.md`) / ADR-020 condition 1 (binding, blocking-scoped),
+    PLAN-2026-W28-K Task 3/4 qa gate.
+
+    RES-001's path1 population design derives each
+    ``AIPredictedDiseaseCandidate.quote`` verbatim from a retrieved
+    ``case_card``/``qa`` chunk's own text — the SAME failure class REV-008's
+    live VP-003 finding already forced ``domain_candidates`` to close via
+    ``filter_domain_candidates``/``_RISK_PHRASES`` (ADR-014). Developer's
+    Track B fix (`f2._aggregate_disease_candidates`) reuses
+    ``f2_grounding._contains_any(quote, _RISK_PHRASES)`` — the EXACT SAME
+    primitives, not a re-implemented/drifting copy — before a vote is
+    allowed to become a shipped candidate. This class independently
+    re-verifies that reuse is genuine (not a no-op / vacuously-always-empty
+    result for an unrelated reason) via a mutation check, and locks in the
+    two behavioral guarantees ADR-020 condition 1 requires: DROP (never
+    clip/redact) the risk-flagged vote, and a sole-risk-flagged-match
+    candidate reduces to a legitimate 0-candidate outcome, not an error.
+
+    Fixture: a VP-003-style ``case_card`` excerpt (this project's own
+    governing high-scrutiny persona, DATASET-004/VAL-010) — constructed
+    (not copied from a live artifact; no live-populated-path batch has run
+    yet as of this gate) to match the same "자살 생각을 표현하며..." class
+    the brief names and the same lexicon coverage this project's
+    established ``_RISK_PHRASES`` list already provides (verbatim
+    ``"자살"`` entry).
+    """
+
+    _RISKY_CASE_CARD_TEXT = "환자는 최근 상담에서 자살 생각을 표현하며 매우 힘들어했다고 진술함."
+    _CLEAN_CASE_CARD_TEXT = "환자가 불안하고 잠을 잘 못 잔다고 호소함."
+
+    def test_risk_flagged_case_card_quote_dropped_not_shipped(self) -> None:
+        """Core VAL-011 claim: a risk-lexicon-flagged case_card chunk quote
+        must never reach `ai_predicted_disease.candidates` — the candidate
+        is DROPPED entirely (`candidates == []`), not shipped with a
+        clipped/redacted quote."""
+        chunk = {
+            "chunk_id": "case_card:9001", "source_type": "case_card",
+            "text": self._RISKY_CASE_CARD_TEXT, "score": 0.81,
+        }
+        candidates, n_dropped = f2._aggregate_disease_candidates(
+            [(chunk, "우울 삽화(우울증)", "힘들어")]
+        )
+        assert candidates == []
+        assert n_dropped == 1
+
+    async def test_sole_risk_flagged_match_reduces_to_legitimate_zero_candidate_outcome(
+        self, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """ADR-020 condition 1 / RES-001 §2 step 7: a candidate whose SOLE
+        matched chunk is risk-lexicon-flagged reduces the whole
+        populated-path run to a legitimate, honestly-explained 0-candidate
+        outcome via the real async entry point
+        `_build_ai_predicted_disease_populated` — not a crash, not a
+        redacted candidate, not a silent empty list with no explanation."""
+        chunk = {
+            "chunk_id": "case_card:9001", "source_type": "case_card",
+            "text": self._RISKY_CASE_CARD_TEXT, "score": 0.81,
+        }
+        monkeypatch.setattr(
+            "src.rag.retrieval.match_diseases_for_chunk_text",
+            AsyncMock(return_value=[("우울 삽화(우울증)", 1, "힘들어")]),
+        )
+        out = await f2._build_ai_predicted_disease_populated(object(), [chunk])
+        assert out.mode == "rag_live"
+        assert out.candidates == []
+        assert out.is_diagnostic is False
+        assert "legitimate" in out.reason_summary
+        assert "risk-lexicon filter" in out.reason_summary
+        assert "1 candidate vote(s)" in out.reason_summary
+
+    def test_risk_flagged_drop_does_not_eliminate_an_unrelated_clean_sibling(
+        self,
+    ) -> None:
+        """The drop is scoped to the risk-flagged vote only — an unrelated
+        clean candidate in the same population batch still ships."""
+        risky_chunk = {
+            "chunk_id": "case_card:9001", "source_type": "case_card",
+            "text": self._RISKY_CASE_CARD_TEXT, "score": 0.81,
+        }
+        clean_chunk = {
+            "chunk_id": "case_card:9003", "source_type": "case_card",
+            "text": self._CLEAN_CASE_CARD_TEXT, "score": 0.6,
+        }
+        votes = [
+            (risky_chunk, "우울 삽화(우울증)", "힘들어"),
+            (clean_chunk, "공황장애", "불안"),
+        ]
+        candidates, n_dropped = f2._aggregate_disease_candidates(votes)
+        assert n_dropped == 1
+        assert len(candidates) == 1
+        assert candidates[0].disease == "공황장애"
+        assert candidates[0].source_id == "case_card:9003"
+
+    def test_mutation_check_filter_is_load_bearing_not_vacuous(
+        self, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Non-vacuity guard for `test_risk_flagged_case_card_quote_dropped_not_shipped`
+        above: patch `f2._RISK_PHRASES` (the module-level name
+        `_aggregate_disease_candidates` actually reads at call time, via
+        `from src.eval.f2_grounding import _RISK_PHRASES`) to an empty
+        tuple and confirm the SAME risky quote now SURVIVES as a shipped
+        candidate. This proves the sibling test's `candidates == []`
+        assertion is genuinely exercising the risk-lexicon filter, not
+        passing for an unrelated reason (e.g. the disease-vote lookup
+        itself yielding nothing) — a regression that silently disabled the
+        filter (patched to a no-op, per this project's established
+        mutation-check convention — BUG-014/BUG-016 precedent) would flip
+        this test's own assertions, catching the regression."""
+        monkeypatch.setattr(f2, "_RISK_PHRASES", ())
+        chunk = {
+            "chunk_id": "case_card:9001", "source_type": "case_card",
+            "text": self._RISKY_CASE_CARD_TEXT, "score": 0.81,
+        }
+        candidates, n_dropped = f2._aggregate_disease_candidates(
+            [(chunk, "우울 삽화(우울증)", "힘들어")]
+        )
+        assert n_dropped == 0
+        assert len(candidates) == 1
+        assert candidates[0].disease == "우울 삽화(우울증)"
+        assert candidates[0].quote == self._RISKY_CASE_CARD_TEXT
+
+
+class TestRev017Finding1FullChunkRiskLexiconGate:
+    """REV-017 Finding 1 (`discussion.md`) / VAL-011 reopened (`error.md`) —
+    the ±40-char extracted-quote window is not the full source chunk, and a
+    risk phrase sitting more than a window-width away from the matched
+    *symptom* term (in a longer, multi-sentence chunk) escaped
+    `TestVal011AiPredictedDiseasePopulationRiskLexiconGate`'s single-sentence
+    fixture entirely. Live-reproduced twice by critic on the project's own
+    VP-003 persona: `case_card:664` ("자해를 하려는 생각") and `case_card:563`
+    ("자살 생각을 표현") both shipped as disease-candidate evidence with a
+    clean-looking quote while the SAME chunk was independently rejected by
+    the `domain_candidates` whitelist as risk-lexicon-flagged.
+
+    Fixtures below reproduce that shape directly (constructed, not copied
+    verbatim from the live artifact, but same structural property: risk
+    phrase near the start of a multi-sentence chunk, matched symptom term
+    later in the same chunk, distance between them exceeds the ±40-char
+    quote-extraction window so the shipped `quote` itself is clean).
+    """
+
+    # Risk phrase ("자해") sits at index 12; matched term ("식욕") sits at
+    # index 85 — verified this fixture's ±40-char quote window around the
+    # matched term does NOT contain the risk phrase (the exact blind spot
+    # REV-017 documents), while the full chunk text does.
+    _LONG_CHUNK_RISK_FAR_FROM_TERM = (
+        "환자는 최근 상담에서 자해를 하려는 생각이 가끔 들기도 하며, 자신을 실패자로 여기거나 "
+        "쓸모없다고 느끼는 경우가 있다고 진술하였다. 내담자는 최근 들어 식욕이 줄어들어 "
+        "거의 매일 조금씩 먹는 상태이며, 밤에 잠을 이루지 못하고 뒤척이는 경우가 많고, "
+        "사람들과의 만남을 피하고 혼자 있으려는 경향이 뚜렷하게 나타나고 있다."
+    )
+    _LONG_CHUNK_TERM = "식욕"
+
+    # Same length/shape, no risk phrase anywhere — must NOT be blocked
+    # (regression guard against over-blocking).
+    _LONG_CHUNK_BENIGN = (
+        "환자는 최근 상담에서 대인관계에서의 어려움을 자주 언급하며, 회사 업무에서 스트레스를 "
+        "크게 받고 있다고 진술하였다. 내담자는 최근 들어 식욕이 줄어들어 "
+        "거의 매일 조금씩 먹는 상태이며, 밤에 잠을 이루지 못하고 뒤척이는 경우가 많고, "
+        "사람들과의 만남을 피하고 혼자 있으려는 경향이 뚜렷하게 나타나고 있다."
+    )
+
+    def test_quote_window_does_not_contain_risk_phrase_precondition(self) -> None:
+        """Precondition check: confirms the fixture actually reproduces the
+        gap REV-017 describes — the ±40-char quote extracted around the
+        matched term is itself clean, so a quote-only check would (wrongly)
+        pass this vote. If this assertion ever fails, the fixture no longer
+        exercises the blind spot and must be revised."""
+        quote = f2._extract_quote(self._LONG_CHUNK_RISK_FAR_FROM_TERM, self._LONG_CHUNK_TERM)
+        assert not f2._contains_any(quote, f2._RISK_PHRASES)
+        assert f2._contains_any(self._LONG_CHUNK_RISK_FAR_FROM_TERM, f2._RISK_PHRASES)
+
+    def test_long_chunk_distant_risk_phrase_is_dropped(self) -> None:
+        """The REV-017 fix: even though the extracted quote is clean, the
+        candidate must be dropped because the risk phrase appears elsewhere
+        in the SAME source chunk (case_card:664/563 shape)."""
+        chunk = {
+            "chunk_id": "case_card:9101", "source_type": "case_card",
+            "text": self._LONG_CHUNK_RISK_FAR_FROM_TERM, "score": 0.77,
+        }
+        candidates, n_dropped = f2._aggregate_disease_candidates(
+            [(chunk, "우울 삽화(우울증)", self._LONG_CHUNK_TERM)]
+        )
+        assert candidates == []
+        assert n_dropped == 1
+
+    async def test_long_chunk_distant_risk_phrase_dropped_via_real_entry_point(
+        self, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Same as above via the real async entry point
+        `_build_ai_predicted_disease_populated` — reduces to a legitimate
+        0-candidate outcome, not a crash or a leaked candidate."""
+        chunk = {
+            "chunk_id": "case_card:9101", "source_type": "case_card",
+            "text": self._LONG_CHUNK_RISK_FAR_FROM_TERM, "score": 0.77,
+        }
+        monkeypatch.setattr(
+            "src.rag.retrieval.match_diseases_for_chunk_text",
+            AsyncMock(return_value=[("우울 삽화(우울증)", 1, self._LONG_CHUNK_TERM)]),
+        )
+        out = await f2._build_ai_predicted_disease_populated(object(), [chunk])
+        assert out.mode == "rag_live"
+        assert out.candidates == []
+        assert "legitimate" in out.reason_summary
+        assert "risk-lexicon filter" in out.reason_summary
+
+    def test_long_chunk_no_risk_phrase_anywhere_still_ships_no_over_blocking(self) -> None:
+        """Regression guard: a benign long, multi-sentence chunk (same
+        shape/length as the risky fixture, matched term far from the start,
+        but NO risk phrase anywhere in the full text) must still produce a
+        shipped candidate — the full-chunk check must not become an
+        over-broad block on long chunks in general."""
+        assert not f2._contains_any(self._LONG_CHUNK_BENIGN, f2._RISK_PHRASES)
+        chunk = {
+            "chunk_id": "case_card:9102", "source_type": "case_card",
+            "text": self._LONG_CHUNK_BENIGN, "score": 0.65,
+        }
+        candidates, n_dropped = f2._aggregate_disease_candidates(
+            [(chunk, "우울 삽화(우울증)", self._LONG_CHUNK_TERM)]
+        )
+        assert n_dropped == 0
+        assert len(candidates) == 1
+        assert candidates[0].disease == "우울 삽화(우울증)"
+        assert candidates[0].source_id == "case_card:9102"
+
+    def test_case_card_664_shape_direct_repro(self) -> None:
+        """Closest reproduction of the actual live leak (`case_card:664`,
+        EXP-009 VP-003/run2): "자해를 하려는 생각" opens the chunk, the
+        matched symptom term is drawn from the sentence describing
+        appetite/hopelessness much later in the same multi-sentence
+        record — confirms the exact shipped `source_id`/leak class from
+        REV-017 Finding 1 is now closed."""
+        case_card_664_shape = (
+            "환자는 식욕이 줄어들어 거의 매일 조금씩 먹는 상태이다. 자해를 하려는 생각이 "
+            "가끔 들기도 하며, 자신을 실패자로 여기거나 쓸모없다고 느끼는 경우가 있다. "
+            "내담자는 자신을 쓸모없다고 느끼고, 미래에 대한 절망감을 가지고 있으며, "
+            "사람들의 비난을 두려워하고 있다. 또한, 부모님의 기대에 미치지 못한다고 여긴다."
+        )
+        term = "절망감"
+        quote = f2._extract_quote(case_card_664_shape, term)
+        assert not f2._contains_any(quote, f2._RISK_PHRASES)  # precondition: quote-only was blind
+        chunk = {
+            "chunk_id": "case_card:664", "source_type": "case_card",
+            "text": case_card_664_shape, "score": 0.9,
+        }
+        candidates, n_dropped = f2._aggregate_disease_candidates(
+            [(chunk, "우울 삽화(우울증)", term)]
+        )
+        assert candidates == []
+        assert n_dropped == 1
+
+
+class TestVal011ProvenanceEnforcementBoundary:
+    """REV-016(b) binding condition 2 / ADR-020 condition 2 — qa gate
+    scrutiny of the developer's own deviation claim ("`_aggregate_disease_candidates`
+    never constructs a candidate without both `source_id` and `quote`...
+    the discipline is enforced at the population-code level, checked by
+    tests, not by the Pydantic schema itself").
+
+    Finding (non-blocking, reported to critic per this gate's brief, NOT a
+    `src/` fix — out of this gate's charter): the claim is true for the
+    shape `retrieve_domain_chunks()` actually returns on the live path
+    (every chunk dict always carries `chunk_id`/`text`) but is NOT a
+    standalone invariant of `_aggregate_disease_candidates` itself. A
+    malformed vote tuple whose chunk dict lacks `chunk_id` DOES construct a
+    candidate with `source_id=None` (schema-legal — the field is Optional,
+    so no `ValidationError` catches it). The reason this is unreachable on
+    the actual `f2.py::_run()` call path is INCIDENTAL, not a designed
+    guard of the population code itself: `_run()`'s own
+    `chunk_texts = {c["chunk_id"]: c["text"] for c in raw_chunks}`
+    (`f2.py:864`) runs strictly BEFORE the population call (`f2.py:898`)
+    and would already raise an uncaught `KeyError`, aborting the entire F2
+    run, for any `raw_chunks` entry missing `chunk_id`/`text` — so a
+    provenance-less candidate cannot ship today, but only because the
+    whole pipeline dies first for an unrelated reason, not because
+    `_aggregate_disease_candidates` itself enforces "no evidence, no
+    candidate" at its own function boundary. Flagged to critic; not
+    blocking per this gate's own charter (a candidate cannot actually ship
+    without provenance on the live path today).
+    """
+
+    def test_malformed_chunk_missing_chunk_id_ships_candidate_with_source_id_none(
+        self,
+    ) -> None:
+        """Documents the function-boundary gap (this is NOT asserting
+        desired behavior — see class docstring): a chunk dict lacking
+        `chunk_id` produces a candidate with `source_id=None` today. A
+        future caller of `_aggregate_disease_candidates` that does not go
+        through `retrieve_domain_chunks()`'s guaranteed shape (e.g. a
+        differently-constructed votes list, or a future refactor of
+        `_collect_chunk_disease_votes`) could silently ship a
+        provenance-less candidate without any error."""
+        chunk_without_chunk_id = {"text": "환자가 불안 증상을 호소함", "score": 0.6}
+        candidates, n_dropped = f2._aggregate_disease_candidates(
+            [(chunk_without_chunk_id, "불안장애", "불안")]
+        )
+        assert n_dropped == 0
+        assert len(candidates) == 1
+        assert candidates[0].source_id is None
+
+    def test_malformed_chunk_missing_text_raises_validation_error_uncaught_here(
+        self,
+    ) -> None:
+        """A chunk dict with no `text` key produces an empty-string quote
+        (`_extract_quote("", term)` returns `""`), which the schema's
+        `min_length=1` constraint on `quote` rejects with an uncaught
+        `pydantic.ValidationError` raised INSIDE `_aggregate_disease_candidates`
+        itself (not caught here). `_run()`'s own outer `try/except`
+        (`f2.py:901`) does catch this at the call-site level and degrades
+        the WHOLE batch to `experimental_unpopulated` — coarser than
+        per-candidate isolation, but not a crash of the whole F2 run.
+        Unreachable via the real `_collect_chunk_disease_votes` (which
+        filters blank/missing-text chunks before a vote is ever created) —
+        documented here for a hypothetical direct/future caller that
+        bypasses that guard."""
+        chunk_without_text = {"chunk_id": "qa:1", "score": 0.5}
+        with pytest.raises(ValidationError):
+            f2._aggregate_disease_candidates([(chunk_without_text, "불안장애", "불안")])

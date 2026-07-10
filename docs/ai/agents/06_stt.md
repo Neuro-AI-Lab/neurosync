@@ -1,6 +1,13 @@
 # Agent 06: STT Agent
 
-> **상태 배너 — 미구현 (설계 스펙만 존재)**: 3-way 감사 기준, `apps/ai-server/src/agents/`에 `stt` 관련 에이전트 구현 파일이 존재하지 않는다. 이 문서는 설계 의도를 기술한 스펙이며, as-built 코드가 아니다.
+> **상태 배너 — 구현됨 (PR #38 통합, `feat/f1-stt-ocr-integration`@`5bdd379f6eed9f340a9878edd02bbc0f073fd04a`, 2026-07-10)**: `agents/stt.py`(`STTAgent`) + `adapters/skt_ak_stt.py`(`SktAkSttAdapter`) + 라우트 `POST /ai/stt/transcribe`(`routes/stt.py`, `main.py`에 마운트됨)가 존재한다. as-built와 이 문서의 델타:
+>
+> - **Batch 모드만 구현.** `mode="streaming"`을 요청하면 라우트가 `HTTPException(501, "Streaming STT not implemented yet — use mode='batch'")`을 반환한다 — 아래 "두 가지 모드" 절의 streaming 행은 설계 의도이며 as-built 상태가 아니다.
+> - **인증 없음 (VAL-012, `error.md`, major, open, non-blocking).** `POST /ai/stt/transcribe`는 어떤 인증/인가 의존성도 없다 — 유료 벤더 API(SKT A.X STT Batch)를 프록시하는 무인증 multipart 라우트로, 비용/DoS 노출이 있다. 부분 완화: 100MB 크기 상한(초과 시 413). Content-Type 검사는 관대함(불일치 시 경고 로그만 남기고 진행).
+> - **벤더 자격증명 부재 시 처리 결함 (VAL-012 §3 하위 이슈).** `dependencies.get_stt_agent()`는 `SKT_A_X_API_KEY`(또는 `SKT_A_X_K1`) 미등록 시 `RuntimeError`를 던진다. 이 예외는 FastAPI `Depends()` 해석 단계에서 발생하며, 라우트 바디의 `try/except`(벤더 호출만 감쌈)가 잡지 못해 **애플리케이션 메시지 없는 일반 500**으로 노출된다 — qa BUG 신설 권고(미신설, VAL-012 §3).
+> - **STT 라이브 경로는 이 통합 미션에서 미검증(declared untested)으로 남는다.** 이 저장소의 `.env`에는 `SKT_A_X_API_KEY`가 비어 있음이 확인됐다(`result.md` EXP-013 Task 4) — 실제 벤더 호출을 수반하는 라이브 스모크가 수행된 적이 없다. `continuous_test.py`의 F1→F2 체이닝 스모크도 STT/OCR을 항상 끈 상태로만 실행된다(`audio_inputs`/`ocr_documents` 미전달 — `f1.py`의 해당 파라미터가 기본값 `None`).
+> - **FR-035/FR-036은 스키마 계약으로 존재하나 부분적으로만 코드 강제된다.** `STTOutput.user_confirmed`는 항상 `False`로 반환되며(호출자가 사용자 확인 후 갱신해야 하는 계약), 이 라우트 자체가 확인 전 LLM 전달을 차단하는 게이트는 아니다. `audio_retention_expires_at`(48시간 후) 타임스탬프는 계산·반환되나, 실제 삭제 집행은 이 코드의 범위 밖이다(agent 자체 docstring: "actual deletion is the Platform's storage layer").
+> - **"인증"/"통과"/"검증됨" 등의 표현은 STT 경로 전체(agent/adapter/route)에 사용하지 않는다** — 이 통합 미션은 코드 존재를 확인했을 뿐, 라이브 벤더 검증을 수행하지 않았다.
 
 ## 개요
 

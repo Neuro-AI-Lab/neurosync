@@ -35,12 +35,19 @@ from typing import Any
 from src.agents.domain_inference import DomainInferenceAgent
 from src.dependencies import get_model_router, get_prompt_loader, get_sessionmaker
 from src.eval.f2_grounding import (
+    # VAL-011/ADR-020 condition 1: the SAME risk-lexicon primitives the
+    # domain_candidates cascade already uses (ADR-014), reused here so the
+    # chunk-derived AI-predicted-disease population path is code-enforced by
+    # the identical filter, not a re-implemented/drifting copy of it.
+    _RISK_PHRASES,
     VERDICT_ACCEPTED,
     VERDICT_REJECTED_RISK_LEXICON,
+    _contains_any,
     filter_domain_candidates,
     find_orphan_departments,
 )
 from src.f1 import OUTPUT_DIR
+from src.schemas.ai_predicted_disease import AIPredictedDiseaseCandidate, AIPredictedDiseaseOutput
 from src.schemas.domain_inference import (
     DomainCandidate,
     DomainInferenceInput,
@@ -54,8 +61,25 @@ logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]  # apps/ai-server/src/f2.py → neurosync/
 
-# C-2: Stage 1 queries are drawn from these three F1 slots only.
-_STAGE1_QUERY_SLOTS = ("chief_complaint", "history_of_present_illness", "risk_assessment")
+# C-2: Stage 1 queries are drawn from these F1 slots only.
+# VAL-010 (2026-07-08, code-level mitigation — option a of REV-007
+# finding #3 / REV-010's two named options): `risk_assessment` used to be a
+# third query slot here. It is composed from the Safety Probe/SI-screen
+# exchange (`f1.py:360-373`) — genuinely risk-worded narration by
+# construction, not incidental — and embedding it verbatim as a retrieval
+# query systematically biased Stage 1 toward risk/crisis-topic chunks for
+# higher-risk personas (VP-003/VP-004): EXP-005's live batch showed VP-003's
+# RAG queries were the most risk-topic-saturated in the dataset, retrieving
+# explicit suicide/self-harm case content (e.g. qa:1685/qa:1730/qa:1164).
+# Excluded entirely rather than sanitized/summarized: a lexicon-based
+# sanitizer would only be as complete as its own coverage (the same
+# structural gap class BUG-014/BUG-015 already hit twice in this project's
+# risk-lexicon filter), whereas exclusion removes the bias channel
+# deterministically. chief_complaint/history_of_present_illness — the
+# primary symptom-description slots — continue to drive retrieval unchanged;
+# risk_assessment's SI-screen content does not carry independent
+# domain-retrieval signal beyond what those two slots already provide.
+_STAGE1_QUERY_SLOTS = ("chief_complaint", "history_of_present_illness")
 
 _REVISIT_GREETING_MARKER = "지난번 상담 기록을 확인했습니다"
 
@@ -150,8 +174,8 @@ async def run_stage1(
     queries = [final_slots[k2] for k2 in _STAGE1_QUERY_SLOTS if final_slots.get(k2)]
     if not queries:
         logger.warning(
-            "f2.stage1.no_queries — chief_complaint/HPI/risk_assessment all empty, "
-            "mode=llm_only"
+            "f2.stage1.no_queries — chief_complaint/HPI (VAL-010: risk_assessment "
+            "excluded from Stage-1 query slots) all empty, mode=llm_only"
         )
         return "llm_only", []
 
@@ -223,7 +247,16 @@ def _build_input(
 
 
 def _repro_metadata(
-    *, model_used: str, prompt_version: str, input_path: Path, mode: str, latency_ms: float
+    *,
+    model_used: str,
+    prompt_version: str,
+    input_path: Path,
+    mode: str,
+    latency_ms: float,
+    finish_reason: str | None = None,
+    usage: dict[str, int] | None = None,
+    raw_response: str | None = None,
+    validation_errors: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     git_head = "unknown"
     try:
@@ -244,6 +277,17 @@ def _repro_metadata(
         "mode": mode,
         "latency_ms": round(latency_ms, 1),
         "generated_at": datetime.now().isoformat(),
+        # BUG-017 phase A: the LLM call's finish_reason/usage, so a future
+        # RAG-mode truncation hypothesis (finish_reason == "length") is
+        # falsifiable directly from a saved artifact, not just from logs.
+        "finish_reason": finish_reason,
+        "usage": usage,
+        # BUG-019: raw LLM response text (present only on a parse/schema
+        # failure) + Pydantic ValidationError.errors() field-level detail
+        # (schema-validation failures only), mirroring finish_reason/usage
+        # above — closes the root-cause-undiagnosable gap BUG-019 found.
+        "raw_response": raw_response,
+        "validation_errors": validation_errors,
     }
 
 
@@ -275,6 +319,246 @@ def _build_filter_summary(
     }
 
 
+# PLAN-2026-W28-H Track B (REV-013 §3/§4) — the "AI 예상질환" container.
+# PLAN-2026-W28-K Task 3 (ADR-020/ADR-021) — live population, path1.
+_AI_PREDICTED_DISEASE_REASON_UNPOPULATED = (
+    "Stage 1 ran in llm_only mode (no RAG chunks retrieved this run) — the "
+    "AI-disease container has no chunk-derived evidence to populate from"
+)
+
+# ADR-020 condition 3 (binding): the two-hop-proxy caveat must be disclosed
+# on every POPULATED run, not merely understood internally.
+_AI_PREDICTED_DISEASE_PROXY_CAVEAT = (
+    "similarity_score is a RAG cosine-similarity signal between the "
+    "retrieved chunk and the Stage-1 query — NOT a patient-to-disease "
+    "similarity, and NOT a calibrated probability (two-hop proxy, "
+    "RES-001 §2 step 9 / ADR-020 condition 3)."
+)
+
+
+def _build_ai_predicted_disease() -> AIPredictedDiseaseOutput:
+    """Build the unpopulated "AI 예상질환" container.
+
+    Used whenever Stage 1 ran in ``llm_only`` mode this run (no RAG chunks
+    retrieved, per ``run_stage1``) — there is no chunk-derived evidence to
+    populate from. A ``rag``-mode run instead calls
+    :func:`_build_ai_predicted_disease_populated`. This function makes no DB
+    call and always emits ``mode="experimental_unpopulated"`` with empty
+    ``candidates`` and an honest ``reason_summary``. Standalone
+    (`src.schemas.ai_predicted_disease`) — shares no type with
+    `DomainInferenceOutput`/`DomainCandidate` above (REV-013 §3).
+    """
+    return AIPredictedDiseaseOutput(
+        mode="experimental_unpopulated",
+        candidates=[],
+        reason_summary=_AI_PREDICTED_DISEASE_REASON_UNPOPULATED,
+    )
+
+
+def _extract_quote(text: str, term: str, *, window: int = 40) -> str:
+    """Short verbatim excerpt of *text* centered on the first occurrence of
+    *term* (RES-001 §2 step 8's provenance quote). Defensive fallback (a
+    leading excerpt) if *term* is not actually found in *text* — should not
+    happen on the live path (the term is only ever passed in because
+    `retrieval.match_diseases_for_chunk_text` found it as a substring of
+    this exact text), but keeps this pure function total for unit tests
+    that construct synthetic (chunk, term) pairs directly.
+    """
+    idx = text.find(term)
+    if idx == -1:
+        excerpt = text[: window * 2].strip()
+        return f"{excerpt}..." if len(text) > window * 2 else excerpt
+    start = max(0, idx - window)
+    end = min(len(text), idx + len(term) + window)
+    excerpt = text[start:end].strip()
+    prefix = "..." if start > 0 else ""
+    suffix = "..." if end < len(text) else ""
+    return f"{prefix}{excerpt}{suffix}"
+
+
+def _clamp_similarity_score(score: float) -> float:
+    """Clamp a chunk's raw cosine retrieval score to ``[0,1]`` (ADR-020
+    condition 4 / REV-016 issue #4).
+
+    pgvector cosine similarity (``1 - (embedding <=> vector)``) is
+    theoretically bounded to ``[-1,1]``, and `retrieval.py`'s own SQL does
+    not clamp it — `RetrievedChunk.score`/`DomainCandidate` evidence have
+    never observed a negative value live, but
+    ``AIPredictedDiseaseCandidate.similarity_score`` declares ``ge=0.0``, so
+    an as-yet-unexercised negative-cosine chunk would otherwise raise an
+    uncaught ``ValidationError`` mid-population and take down the whole
+    step. Clamping (rather than excluding the candidate) is chosen because
+    it is deterministic and keeps the candidate's disease/provenance
+    auditable even in this edge case, at the cost of slightly overstating a
+    near-zero-or-negative match as exactly 0.0 — an acceptable, disclosed
+    trade-off for a value the two-hop-proxy caveat already flags as not a
+    calibrated probability.
+    """
+    return max(0.0, min(1.0, score))
+
+
+async def _collect_chunk_disease_votes(
+    db: Any, raw_chunks: list[dict[str, Any]], *, limit_per_chunk: int = 2
+) -> list[tuple[dict[str, Any], str, str]]:
+    """For each Stage-1 chunk, up to ``limit_per_chunk`` (disease_name,
+    matched_term) votes (RES-001 §2 steps 1-3) — reuses the SAME chunks
+    DomainInferenceAgent already received, makes NO second vector query.
+
+    Thin, DB-touching wrapper kept separate from the pure aggregation/
+    filtering/scoring logic in :func:`_aggregate_disease_candidates` so the
+    latter is unit-testable without a live DB or async mocking.
+    """
+    from src.rag.retrieval import match_diseases_for_chunk_text
+
+    votes: list[tuple[dict[str, Any], str, str]] = []
+    for chunk in raw_chunks:
+        chunk_text = chunk.get("text") or ""
+        if not chunk_text.strip():
+            continue
+        for disease_name, _overlap, term in await match_diseases_for_chunk_text(
+            db, chunk_text, limit=limit_per_chunk
+        ):
+            votes.append((chunk, disease_name, term))
+    return votes
+
+
+def _aggregate_disease_candidates(
+    votes: list[tuple[dict[str, Any], str, str]],
+) -> tuple[list[AIPredictedDiseaseCandidate], int]:
+    """RES-001 §2 steps 4-9 + ADR-020 conditions 1/2/4 — pure, DB-free,
+    directly unit-testable.
+
+    Args:
+        votes: ``(chunk_dict, disease_name, matched_term)`` tuples, one per
+            (chunk, disease) vote already collected by
+            :func:`_collect_chunk_disease_votes` — each ``chunk_dict`` has
+            at least ``chunk_id``/``text``/``score`` (the same shape
+            ``retrieve_domain_chunks`` returns).
+
+    Returns:
+        ``(candidates, n_dropped_risk_lexicon)`` — candidates sorted by
+        ``similarity_score`` descending, truncated to top-5, never padded;
+        MAX-not-sum per disease name (RES-001 §2 step 5); every quote must
+        clear the risk-lexicon filter (VAL-011/ADR-020 condition 1,
+        blocking) — a vote whose quote is risk-flagged is DROPPED (never
+        clipped/redacted), and ``n_dropped_risk_lexicon`` counts how many
+        votes were dropped this way, so the caller can build an honest
+        ``reason_summary``.
+    """
+    best: dict[str, AIPredictedDiseaseCandidate] = {}
+    n_dropped = 0
+    for chunk, disease_name, term in votes:
+        chunk_text = chunk.get("text") or ""
+        quote = _extract_quote(chunk_text, term)
+        # VAL-011/ADR-020 condition 1 (blocking-scoped, REV-017 Finding 1
+        # fix): the load-bearing check is against the FULL source chunk
+        # text, not the ±40-char extracted quote window — ADR-020 condition
+        # 1's own text is "any candidate whose sole matched chunk is
+        # risk-lexicon-flagged is DROPPED", and a deterministic window
+        # centered on the matched *symptom* term can sit far from where a
+        # risk phrase actually appears in a longer chunk (case_card:664/563,
+        # REV-017). The quote-only check is kept as defense-in-depth (also
+        # drops if the risk phrase happens to fall inside the shipped
+        # excerpt itself) but is no longer the sole gate. Mirrors
+        # filter_domain_candidates' "no evidence, no candidate" discipline —
+        # drop the vote outright, never clip/redact the quote/chunk.
+        if _contains_any(chunk_text, _RISK_PHRASES) or _contains_any(quote, _RISK_PHRASES):
+            n_dropped += 1
+            continue
+
+        raw_score = chunk.get("score")
+        score = _clamp_similarity_score(float(raw_score) if raw_score is not None else 0.0)
+        candidate = AIPredictedDiseaseCandidate(
+            disease=disease_name,
+            similarity_score=score,
+            source_id=chunk.get("chunk_id"),
+            quote=quote,
+        )
+
+        # MAX-not-sum aggregation across chunks (RES-001 §2 step 5) — a
+        # disease mentioned in several chunks keeps only its single
+        # highest-scoring vote, never a summed/averaged score.
+        current = best.get(disease_name)
+        if current is None or candidate.similarity_score > current.similarity_score:
+            best[disease_name] = candidate
+
+    ranked = sorted(best.values(), key=lambda c: c.similarity_score, reverse=True)
+    return ranked[:5], n_dropped  # top-5, never padded (RES-001 §2 step 6)
+
+
+async def _build_ai_predicted_disease_populated(
+    db: Any, raw_chunks: list[dict[str, Any]], *, limit_per_chunk: int = 2
+) -> AIPredictedDiseaseOutput:
+    """Live top-5 disease population for a RAG-mode run — path1 (ADR-020),
+    PLAN-2026-W28-K Task 3.
+
+    A deterministic post-processing pass over the SAME Stage-1 ``raw_chunks``
+    DomainInferenceAgent already used for ``domain_candidates`` — independent
+    of, and not blocking on, the LLM call (REV-016(c); this function never
+    touches the certified `domain_inference` prompt or ``DomainCandidate``
+    output). A 0-candidate outcome (no chunk matched a canonical symptom
+    keyword, or every match was risk-lexicon-dropped) is legitimate, not an
+    error (RES-001 §2 step 7).
+    """
+    votes = await _collect_chunk_disease_votes(db, raw_chunks, limit_per_chunk=limit_per_chunk)
+    candidates, n_dropped = _aggregate_disease_candidates(votes)
+    n_chunks = len(raw_chunks)
+
+    if candidates:
+        reason = (
+            f"{len(candidates)} disease candidate(s) derived from {n_chunks} "
+            "retrieved chunk(s) via symptom-keyword match (path1, ADR-020). "
+            f"{_AI_PREDICTED_DISEASE_PROXY_CAVEAT}"
+        )
+    else:
+        reason = (
+            f"0 of {n_chunks} retrieved chunk(s) yielded a disease candidate "
+            "this run (no canonical symptom keyword matched, or every match "
+            "was dropped by the risk-lexicon filter) — a legitimate "
+            f"0-candidate outcome, not an error (RES-001 §2 step 7). "
+            f"{_AI_PREDICTED_DISEASE_PROXY_CAVEAT}"
+        )
+    if n_dropped:
+        reason += (
+            f" {n_dropped} candidate vote(s) dropped by the risk-lexicon "
+            "filter before ranking (VAL-011/ADR-020 condition 1)."
+        )
+
+    return AIPredictedDiseaseOutput(mode="rag_live", candidates=candidates, reason_summary=reason)
+
+
+# Enhancement #4 code-side half (ADR-021, REV-016(a)) — evidence-provenance
+# reporting. Computed entirely from data already schema-validated in the
+# artifact (`DomainEvidence.source_type`/`source_id`) — zero LLM call, zero
+# edit to the certified `domain_inference/v2.system.md` prompt.
+def _build_evidence_provenance_summary(
+    domain_candidates: list[DomainCandidate],
+) -> dict[str, int]:
+    """Provenance counts over POST-cascade (accepted-only) evidence.
+
+    ``rag_chunk`` items are split on their ``source_id``'s DB-table-origin
+    prefix (``case_card:<id>`` / ``qa:<id>``, confirmed BUG-016-clean as of
+    EXP-008) into ``rag_chunk_case_card`` / ``rag_chunk_qa``; a malformed or
+    unrecognized prefix (should not occur post-whitelist, but this function
+    must not silently miscount if it does) falls into ``rag_chunk_other``
+    rather than being dropped or merged into one of the two known buckets.
+    """
+    counts = {"rag_chunk_case_card": 0, "rag_chunk_qa": 0, "rag_chunk_other": 0, "utterance": 0}
+    for cand in domain_candidates:
+        for ev in cand.evidence:
+            if ev.source_type == "rag_chunk":
+                prefix = ev.source_id.split(":", 1)[0]
+                if prefix == "case_card":
+                    counts["rag_chunk_case_card"] += 1
+                elif prefix == "qa":
+                    counts["rag_chunk_qa"] += 1
+                else:
+                    counts["rag_chunk_other"] += 1
+            elif ev.source_type == "utterance":
+                counts["utterance"] += 1
+    return counts
+
+
 def _build_artifact(
     *,
     output: DomainInferenceOutput,
@@ -288,6 +572,8 @@ def _build_artifact(
     orphans: list[Any],
     session_id: str,
     persona_id: str | None,
+    ai_predicted_disease: dict[str, Any] | None = None,
+    evidence_provenance_summary: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     """Build the F2 artifact dict.
 
@@ -298,6 +584,18 @@ def _build_artifact(
     cover every evidence item submitted (accepted + all rejection reasons),
     so the full audit trail is preserved even though rejected evidence never
     reaches ``domain_candidates``.
+
+    ``ai_predicted_disease`` (PLAN-2026-W28-H Track B, REV-013 §3): the
+    ``AIPredictedDiseaseOutput.model_dump()`` dict, attached as a SIBLING
+    top-level key — never nested inside ``domain_candidates`` or any other
+    key above. Defaults to ``None`` only for backward-compat with call
+    sites/tests that predate this field; ``_run()`` always passes a real
+    value.
+
+    ``evidence_provenance_summary`` (enhancement #4 code-side half, ADR-021):
+    :func:`_build_evidence_provenance_summary`'s output dict. Defaults to
+    ``None`` for the same backward-compat reason; ``_run()`` always supplies
+    a real value.
     """
     return {
         "session_id": session_id,
@@ -329,6 +627,22 @@ def _build_artifact(
         "model_used": output.model_used,
         "prompt_version": output.prompt_version,
         "latency_ms": output.latency_ms,
+        # BUG-017 phase A: mirrors repro["finish_reason"/"usage"] at the
+        # top level too, alongside model_used/prompt_version/latency_ms.
+        "finish_reason": output.finish_reason,
+        "usage": output.usage,
+        # BUG-019: mirrors repro["raw_response"/"validation_errors"] at the
+        # top level too.
+        "raw_response": output.raw_response,
+        "validation_errors": output.validation_errors,
+        # PLAN-2026-W28-H Track B (REV-013 §3) — SIBLING top-level key, not
+        # nested inside domain_candidates/summary/any handoff-shaped object.
+        # `None` only for pre-Track-B artifacts/tests; `_run()` always
+        # supplies a real (possibly experimental_unpopulated) value.
+        "ai_predicted_disease": ai_predicted_disease,
+        # Enhancement #4 code-side half (ADR-021) — additive, read-only over
+        # data already validated above; `None` only for pre-#4 artifacts/tests.
+        "evidence_provenance_summary": evidence_provenance_summary,
     }
 
 
@@ -358,6 +672,11 @@ def _build_report(artifact: dict[str, Any]) -> str:
         f"| mode | **{repro['mode']}** |",
         f"| latency_ms | {repro['latency_ms']} |",
         f"| generated_at | {repro['generated_at']} |",
+        # BUG-017 phase A diagnostic instrumentation — repro.get(...) (not
+        # repro[...]) so artifacts/tests built from a pre-BUG-017 repro dict
+        # (missing these keys) don't KeyError.
+        f"| finish_reason | {repro.get('finish_reason')} |",
+        f"| usage | {repro.get('usage')} |",
         "",
         "## Retrieval",
         "",
@@ -433,6 +752,24 @@ def _build_report(artifact: dict[str, Any]) -> str:
         f"- counts: {artifact['whitelist_audit']['counts']}",
         f"- orphan departments: {len(artifact['orphan_departments'])}",
         "",
+    ])
+
+    # Enhancement #4 code-side half (ADR-021, REV-016(a)) — additive,
+    # computed from data already validated above; `None` only for pre-#4
+    # artifacts/tests.
+    eps = artifact.get("evidence_provenance_summary")
+    if eps is not None:
+        lines.extend([
+            "## Evidence provenance (enhancement #4)",
+            "",
+            f"- rag_chunk(case_card): {eps.get('rag_chunk_case_card', 0)}",
+            f"- rag_chunk(qa): {eps.get('rag_chunk_qa', 0)}",
+            f"- rag_chunk(other/unrecognized prefix): {eps.get('rag_chunk_other', 0)}",
+            f"- utterance: {eps.get('utterance', 0)}",
+            "",
+        ])
+
+    lines.extend([
         "## Grounding cascade (ADR-014)",
         "",
         f"- candidates before -> after: {filter_summary.get('candidates_before', '?')} -> "
@@ -444,6 +781,49 @@ def _build_report(artifact: dict[str, Any]) -> str:
         f"{filter_summary.get('evidence_stripped_risk_lexicon', 0)}",
         "",
     ])
+
+    # BUG-019: only rendered when a parse/schema failure actually occurred
+    # this run — keeps the report unchanged for the (common) clean-success
+    # case, matching this module's own "additive, honest-on-failure-only"
+    # convention already used elsewhere (e.g. filter_summary's eliminated-
+    # domains section above).
+    if artifact.get("raw_response") is not None:
+        lines.extend([
+            "## LLM failure diagnostics (BUG-019)",
+            "",
+            f"- validation_errors: {artifact.get('validation_errors')}",
+            "- raw_response:",
+            "",
+            "```",
+            str(artifact["raw_response"]),
+            "```",
+            "",
+        ])
+
+    # PLAN-2026-W28-H Track B (REV-013 §3) — SIBLING section, kept visually
+    # and structurally separate from the domain/department candidates above
+    # (not merged into "## Domain candidates").
+    ai_disease = artifact.get("ai_predicted_disease")
+    if ai_disease is not None:
+        lines.extend([
+            "## AI 예상질환 (experimental, non-diagnostic)",
+            "",
+            f"- mode: **{ai_disease.get('mode')}**",
+            f"- is_diagnostic: {ai_disease.get('is_diagnostic')}",
+            f"- disclaimer: {ai_disease.get('disclaimer')}",
+            f"- reason_summary: {ai_disease.get('reason_summary')}",
+        ])
+        candidates = ai_disease.get("candidates") or []
+        if candidates:
+            for c in candidates:
+                line = f"- {c['disease']} (similarity_score={c['similarity_score']})"
+                if c.get("source_id") or c.get("quote"):
+                    line += f" — {c.get('source_id')} — \"{c.get('quote')}\""
+                lines.append(line)
+        else:
+            lines.append("- (no candidates)")
+        lines.append("")
+
     return "\n".join(lines)
 
 
@@ -513,12 +893,39 @@ async def _run(args: argparse.Namespace) -> None:
     repro = _repro_metadata(
         model_used=output.model_used, prompt_version=output.prompt_version,
         input_path=input_path, mode=mode, latency_ms=output.latency_ms,
+        finish_reason=output.finish_reason, usage=output.usage,
+        raw_response=output.raw_response, validation_errors=output.validation_errors,
     )
+    # PLAN-2026-W28-K Task 3 (ADR-020) — live population for a RAG-mode run;
+    # llm_only stays experimental_unpopulated (no chunks to derive from).
+    # This is a SEPARATE DB session from Stage 1's (already closed by
+    # run_stage1's own `async with`) and runs entirely independent of the
+    # certified DomainInferenceAgent call above (REV-016(c)).
+    if mode == "rag" and raw_chunks:
+        try:
+            sessionmaker = get_sessionmaker()
+            async with sessionmaker() as db:
+                ai_predicted_disease = await _build_ai_predicted_disease_populated(
+                    db, raw_chunks
+                )
+        except Exception as exc:  # noqa: BLE001 — population failure must not crash F2
+            logger.warning(
+                "f2.ai_predicted_disease.population_failed — falling back to "
+                "experimental_unpopulated (RAG domain_candidates unaffected): %s", exc,
+            )
+            ai_predicted_disease = _build_ai_predicted_disease()
+    else:
+        ai_predicted_disease = _build_ai_predicted_disease()
+
+    evidence_provenance_summary = _build_evidence_provenance_summary(filtered_candidates)
+
     artifact = _build_artifact(
         output=output, domain_candidates=filtered_candidates, repro=repro,
         chunk_texts=chunk_texts, utterances=utterances,
         verdicts=verdicts, counts=counts, filter_summary=filter_summary, orphans=orphans,
         session_id=session_id, persona_id=persona_id,
+        ai_predicted_disease=ai_predicted_disease.model_dump(),
+        evidence_provenance_summary=evidence_provenance_summary,
     )
 
     out_dir = Path(args.out) if args.out else None

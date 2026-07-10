@@ -47,18 +47,33 @@ async def _topk(
     return (await db.execute(sql, {**params, "k": k})).fetchall()
 
 
-async def _detect_symptoms(db: AsyncSession, utterance: str) -> list[tuple[int, str]]:
-    """발화에 증상 한글명/동의어가 등장하면 해당 증상으로 간주 (LLM 추출의 자리표시).
-    TODO: ai-server 구조화 추출(40 플래그)로 교체하면 정확도↑ (MedRAG 변별자질 확장)."""
+async def _detect_symptoms_with_term(
+    db: AsyncSession, utterance: str
+) -> list[tuple[int, str, str]]:
+    """발화/청크 텍스트에 증상 한글명/동의어가 등장하면 (symptom_id, 표준명,
+    실제로 매칭된 표현) 반환 (LLM 추출의 자리표시).
+    TODO: ai-server 구조화 추출(40 플래그)로 교체하면 정확도↑ (MedRAG 변별자질 확장).
+
+    F2 Track B (PLAN-2026-W28-K, RES-001 §2 step 2) needs the actual matched
+    term (not just the canonical name) to build a verbatim quote excerpt
+    around it — `_detect_symptoms` below is a thin wrapper over this that
+    drops the term for callers (`retrieve_grounding`) that don't need it.
+    """
     rows = (
         await db.execute(text("SELECT symptom_id, name, name_ko, synonyms FROM rag.symptom"))
     ).fetchall()
-    hits: list[tuple[int, str]] = []
+    hits: list[tuple[int, str, str]] = []
     for sid, name, name_ko, synonyms in rows:
         terms = [name_ko or name] + list(synonyms or [])
-        if any(t and t in utterance for t in terms):
-            hits.append((sid, name_ko or name))
+        matched_term = next((t for t in terms if t and t in utterance), None)
+        if matched_term:
+            hits.append((sid, name_ko or name, matched_term))
     return hits
+
+
+async def _detect_symptoms(db: AsyncSession, utterance: str) -> list[tuple[int, str]]:
+    """발화에 증상 한글명/동의어가 등장하면 해당 증상으로 간주 (LLM 추출의 자리표시)."""
+    return [(sid, name) for sid, name, _term in await _detect_symptoms_with_term(db, utterance)]
 
 
 async def _followup(db: AsyncSession, mentioned_ids: list[int]) -> GroundingFollowup | None:
@@ -223,3 +238,52 @@ async def retrieve_domain_chunks(
             })
 
     return list(seen.values())
+
+
+# ── F2 Track B — chunk-derived AI-predicted-disease population ────────────
+# (PLAN-2026-W28-K Task 3, RES-001 §2 steps 2-3, ADR-020 "path1")
+
+
+async def match_diseases_for_chunk_text(
+    db: AsyncSession, chunk_text: str, *, limit: int = 2
+) -> list[tuple[str, int, str]]:
+    """One retrieved chunk's text -> up to `limit` (disease_name_ko,
+    symptom_overlap_count, matched_term) votes.
+
+    Reuses `_detect_symptoms_with_term`'s symbolic keyword match (the SAME
+    query already backing `retrieve_grounding`'s live-chat symptom
+    detection) against the chunk's own text, then the SAME
+    `rag.disease_symptom` JOIN `rag.disease` query shape `_followup` already
+    runs — widened from `_followup`'s `LIMIT 1` to `limit` so one chunk can
+    nominate more than one plausible disease when symptom overlap is
+    ambiguous, per RES-001 §2 step 3. The overlap COUNT here selects which
+    disease NAME(s) a chunk votes for — the caller (`f2.py`) must never use
+    it as, or blend it into, `similarity_score` (RES-001 §2 step 4 / REV-013
+    §4): that value is always the chunk's own retrieval `score`, set by the
+    caller, not by this function.
+
+    Returns [] if no canonical symptom keyword matched this chunk's text at
+    all — a legitimate, expected outcome (RES-001 §2 step 7), not an error.
+    """
+    hits = await _detect_symptoms_with_term(db, chunk_text)
+    if not hits:
+        return []
+    mentioned_ids = [h[0] for h in hits]
+    # A chunk may match several distinct symptom terms; the quote excerpt
+    # this vote's caller builds centers on whichever term appeared first in
+    # the chunk's own text (good enough for a short, honest excerpt — this
+    # is never used for scoring or disease-name selection).
+    first_term = hits[0][2]
+    rows = (
+        await db.execute(
+            text(
+                """SELECT d.name_ko, count(*) AS overlap
+                   FROM rag.disease_symptom ds JOIN rag.disease d USING (disease_id)
+                   WHERE ds.symptom_id = ANY(:ids)
+                   GROUP BY d.disease_id, d.name_ko
+                   ORDER BY overlap DESC, d.disease_id LIMIT :limit"""
+            ),
+            {"ids": mentioned_ids, "limit": limit},
+        )
+    ).fetchall()
+    return [(name, int(overlap), first_term) for name, overlap in rows]

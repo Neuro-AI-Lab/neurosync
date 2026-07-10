@@ -1,6 +1,6 @@
 # Agent 05: Input Normalizer Agent
 
-> **상태 배너 — dead code**: `InputNormalizerAgent`는 3-way 감사 기준, `agents/orchestrator.py`를 포함한 **어느 프로덕션 코드 경로에서도 호출되지 않는다**(참조는 자기 자신의 모듈과 `tests/test_input_normalizer.py`, `tests/test_rigorous_validation.py`뿐). `01_orchestrator.md`의 "STT/OCR 입력 시 InputNormalizer(05) 호출" 기술은 설계 의도이며, 현재 as-built 상태와 다르다.
+> **상태 배너 — live-as-of-this-merge, 그러나 correction 기능은 확인된 no-op (BUG-020)**: PR #38 통합 머지(`feat/f1-stt-ocr-integration`@`5bdd379f6eed9f340a9878edd02bbc0f073fd04a`, 2026-07-10) 이후 `InputNormalizerAgent`는 더 이상 dead code가 아니다 — `f1.py`가 STT/OCR 여부와 무관하게 **모든 환자 입력**을 이 agent에 먼저 통과시킨 뒤 Safety/Dialogue로 넘긴다(`f1.py:398-399,505-531,910-911`; `01_orchestrator.md`의 "STT/OCR 입력 시 InputNormalizer(05) 호출" 기술이 처음으로 as-built와 일치하게 됨). **그러나 이 활성화가 기능 정상화를 의미하지 않는다.** 아래 ISS-039 프롬프트/스키마 불일치는 라이브 배치(`result.md` EXP-013)에서 실측 확인됐다: 실제 교정(correction)이 시도된 경우 **14/14(100%)가 스키마 검증 실패로 `_safe_fallback()`에 귀결**되어 원문이 그대로 반환된다(`error.md` BUG-020, open, major). Fail-safe 자체는 검증됨 — 관측된 모든 사례에서 위험 표현을 포함한 원문이 그대로(verbatim) 보존됐다. 수정 미적용 상태이며, PR #38 병합의 merge-gating 조건은 아니다(critic ruling (d), REV-021) — "activation"을 "정상 동작"으로 오독하지 말 것. **"인증"/"통과"/"검증됨" 등의 표현은 이 correction 기능에 사용하지 않는다.**
 
 ## 개요
 
@@ -26,6 +26,8 @@ STT transcript와 텍스트 입력의 전사 오류, 오타, 구어체/방언 �
 | `confidence`/`applied` 필드 | 각 변경 항목에 포함 | 스키마에 필드 자체가 없음 |
 
 코드(`agents/input_normalizer.py:134-141`)는 LLM 응답의 `normalized`/`position`(dict) 키를 읽어 `NormalizationChange`를 구성한다. 프롬프트가 지시한 대로 LLM이 `type`에 7종 중 스키마에 없는 값(예: `stt_misrecognition`)을 출력하면 `Literal` 필드 검증이 실패하고, `position`에 `int`를 출력하면 `dict[str, int]` 필드 검증이 실패한다 — 둘 중 하나만 어긋나도 `NormalizationChange(...)` 생성이 `pydantic.ValidationError`를 던지고, 이는 `run()`의 바깥쪽 `try/except`(`:77-81`)에 잡혀 `_safe_fallback()`으로 떨어진다(원문을 그대로 반환, `changes: []`). 즉 현재 프롬프트/스키마 조합에서는 LLM이 프롬프트 지시를 충실히 따를수록 오히려 폴백 경로로 빠질 가능성이 높다.
+
+**라이브 실측 (BUG-020, `result.md` EXP-013, 2026-07-10):** PR #38 통합으로 이 경로가 처음 라이브 실행됐다. Method A(세이프티 매트릭스 배치, 79회 호출) — 9/79가 위 시그니처로 폴백. Method B(교정을 강제하도록 설계된 6개 텍스트의 통제 드라이버) — 교정이 필요한 5/5가 전부 폴백, 이미 깨끗한 1개 대조 텍스트만 정상 성공. **합산: 교정을 시도한 14/14(100%) 호출이 전부 폴백** — 나머지 71건은 LLM이 "교정 불필요"로 판단해 애초에 스키마 충돌 지점에 도달하지 않은 경우다. 위험 표현 포함 케이스(`"죽고싶다는 생각이 자꾸 들어여 맨날"`)도 폴백됐으나 `risk_expressions_preserved=true`, `normalized_text == raw_text` verbatim으로 fail-safe는 유지됐다.
 
 ## 입력
 

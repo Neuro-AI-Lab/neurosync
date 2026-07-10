@@ -43,6 +43,7 @@ output stays uniform across F1 and F2.
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 
@@ -185,6 +186,33 @@ _PANIC_SYMPTOM_CONTEXT: tuple[str, ...] = (
 )
 
 
+# BUG-016 (REV-010 finding 1): `DomainInferenceAgent._build_user_content`
+# (`src/agents/domain_inference.py`) used to header the retrieved-chunk block
+# and list each chunk with the literal string `chunk_id=` sitting directly
+# adjacent to the id — Solar Pro3 sometimes echoed that literal label back
+# into the `source_id` field it emitted (e.g. `"chunk_id=case_card:687"`
+# instead of `"case_card:687"`), which the exact-match lookup below then
+# rejected as `rejected_unknown_source` even though the cited chunk/quote
+# were both genuine. The prompt-wording side of this is fixed too (defense
+# in depth — the literal string no longer appears adjacent to the id), but a
+# prompt-only fix is not deterministic (this project's own history —
+# VAL-006/REV-008/ADR-014 — is exactly why rule enforcement here is
+# code-level, not prompt-only). This regex defensively strips a leading
+# `chunk_id=` (and whitespace variants around `=`) from a `rag_chunk`
+# source_id BEFORE the lookup, so a benign formatting echo does not cost
+# genuine, well-grounded evidence.
+_CHUNK_ID_PREFIX_RE = re.compile(r"^\s*chunk_id\s*=\s*")
+
+
+def _normalize_rag_chunk_source_id(source_id: str) -> str:
+    """Strip a leading `chunk_id=` prefix (BUG-016) from a rag_chunk source_id.
+
+    Space-insensitive around `=` (e.g. ``"chunk_id = case_card:1"``), applied
+    once. A source_id with no such prefix is returned unchanged.
+    """
+    return _CHUNK_ID_PREFIX_RE.sub("", source_id, count=1)
+
+
 def _contains_any(text: str, phrases: tuple[str, ...]) -> list[str]:
     """Phrases (space-insensitive) actually present in *text*, in list order."""
     collapsed = text.replace(" ", "")
@@ -245,6 +273,11 @@ def check_evidence(
     source_id = (source_id or "").strip()
 
     if source_type == "rag_chunk":
+        # BUG-016: normalize a benign `chunk_id=` prefix echo ONCE, before
+        # the lookup — the normalized id is used for both the lookup and the
+        # recorded verdict (a caller reading `EvidenceVerdict.source_id` back
+        # sees the same id that was actually checked, not the raw model output).
+        source_id = _normalize_rag_chunk_source_id(source_id)
         text = chunk_texts.get(source_id)
         if text is None:
             return EvidenceVerdict(

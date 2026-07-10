@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 from typing import Any
 
@@ -72,9 +73,34 @@ def _build_user_content(inp: DomainInferenceInput) -> str:
             parts.append(f"- {s.scale_name}: {s.total_score} ({s.severity})")
 
     if inp.retrieved_chunks:
-        parts.append("\n## 검색된 근거 청크 (source_type=rag_chunk, source_id=chunk_id)")
+        # BUG-016 (REV-010 finding 1): the literal string "chunk_id=" used to
+        # sit directly adjacent to the id below, and the model sometimes
+        # echoed that literal label into the source_id field it emitted
+        # (e.g. "chunk_id=case_card:687"), which cost genuine evidence at
+        # the exact-match lookup in src.eval.f2_grounding.check_evidence.
+        # Defense in depth only — the deterministic fix is the code-level
+        # normalization in check_evidence itself; this wording change just
+        # removes the easy trigger.
+        #
+        # BUG-019 (EXP-007 root-cause hypothesis, 2026-07-09): the per-chunk
+        # listing used to print `({c.source_type})` — the RetrievedChunk's DB
+        # TABLE ORIGIN ("case_card"/"qa") — directly adjacent to chunk_id, in
+        # the exact visual slot the output evidence[].source_type field
+        # occupies (a DIFFERENT field with a different value domain,
+        # Literal["rag_chunk", "utterance"]). The model sometimes echoed the
+        # table-origin value into evidence[].source_type instead of the
+        # required "rag_chunk" (offending values observed live: "qa",
+        # "qa:1502", "qa:1537", "qa:532" — all qa-table chunks). Reworded so
+        # the table-origin label no longer sits in that slot and is
+        # explicitly named "origin"/DB 출처, not "source_type" — same
+        # defense-in-depth-only status as BUG-016's wording fix; the
+        # deterministic fix is the code-level coercion in `_parse` below.
+        parts.append(
+            "\n## 검색된 근거 청크 (evidence.source_type은 항상 고정값 rag_chunk — "
+            "아래 괄호는 source_type이 아니라 DB 출처 테이블명, [ ] 안 값이 source_id)"
+        )
         for c in inp.retrieved_chunks:
-            parts.append(f"- chunk_id={c.chunk_id} [{c.source_type}]: {c.text}")
+            parts.append(f"- [{c.chunk_id}] (DB 출처: {c.source_type}): {c.text}")
     else:
         parts.append(
             "\n## 검색된 근거 청크: 없음 (mode=llm_only) — rag_chunk 근거를 인용할 수 없습니다."
@@ -92,6 +118,76 @@ def _build_user_content(inp: DomainInferenceInput) -> str:
         parts.append(inp.prior_handoff)
 
     return "\n".join(parts)
+
+
+# BUG-019 (EXP-007 root-cause hypothesis, 2026-07-09): `RetrievedChunk.
+# source_type` (DB table origin: "case_card"/"qa", `schemas/domain_
+# inference.py:81`) and `DomainEvidence.source_type` (output enum
+# Literal["rag_chunk", "utterance"], `:35`) share a field NAME across
+# different value DOMAINS. EXP-007's captured `validation_errors` show the
+# model intermittently echoes the table-origin value into the output field
+# instead of the required "rag_chunk" — offending `input` values observed
+# live: "qa" (bare table name), "qa:1502"/"qa:1537"/"qa:532" (the model went
+# further and copied the whole source_id string). Every offending value
+# observed is qa-table-sourced; case_card is included below on the same
+# hypothesis (EXP-007's evidence does not rule it out, only that it was not
+# observed this batch — REV-011 single-variable discipline: this coercion
+# does not depend on which table, only on the known collision shape).
+#
+# NARROW BY DESIGN: matches only a source_type value that is exactly one of
+# the two known DB table names, optionally suffixed with ":<digits>" (a
+# copied source_id). Anything else (e.g. "garbage", "chunk", "rag") is left
+# untouched and still fails Pydantic validation honestly — this coercion
+# must not mask a genuinely malformed model output.
+_SOURCE_TYPE_TABLE_ORIGIN_RE = re.compile(r"^(?:case_card|qa)(?::\d+)?$")
+
+
+def _normalize_source_type_collision(data: Any) -> Any:
+    """Coerce a known table-origin value in ``evidence[].source_type`` to
+    ``"rag_chunk"`` (BUG-019), in place, before Pydantic ever validates it.
+
+    Must run on the raw parsed JSON dict, before ``DomainInferenceLLMResponse.
+    model_validate(data)`` — ``DomainEvidence.source_type`` is a Pydantic
+    ``Literal``, so any correction has to happen pre-validation; there is no
+    later hook that can fix an already-raised ``ValidationError`` (unlike
+    BUG-016's ``source_id`` fix, which normalizes at grounding-check time in
+    ``src.eval.f2_grounding`` because ``source_id`` is an unconstrained
+    ``str`` there and the collision is only discovered post-parse).
+
+    Only mutates a ``source_type`` value matching the known collision shape
+    (``_SOURCE_TYPE_TABLE_ORIGIN_RE``) — a value that does not match (e.g.
+    already-valid ``"rag_chunk"``/``"utterance"``, or genuinely malformed
+    output such as ``"garbage"``) is left untouched, so validation still
+    fails honestly on real defects. Tolerates a non-dict/non-list shape at
+    any level (returns *data* unchanged for that branch) — malformed
+    structure is Pydantic's job to reject, not this function's.
+    """
+    if not isinstance(data, dict):
+        return data
+    candidates = data.get("domain_candidates")
+    if not isinstance(candidates, list):
+        return data
+    for candidate in candidates:
+        if not isinstance(candidate, dict):
+            continue
+        evidence_list = candidate.get("evidence")
+        if not isinstance(evidence_list, list):
+            continue
+        for evidence in evidence_list:
+            if not isinstance(evidence, dict):
+                continue
+            source_type = evidence.get("source_type")
+            if isinstance(source_type, str) and _SOURCE_TYPE_TABLE_ORIGIN_RE.match(
+                source_type
+            ):
+                logger.info(
+                    "DomainInference BUG-019 coercion: evidence.source_type "
+                    "%r -> 'rag_chunk' (known DB table-origin collision, "
+                    "source_id=%r)",
+                    source_type, evidence.get("source_id"),
+                )
+                evidence["source_type"] = "rag_chunk"
+    return data
 
 
 class DomainInferenceAgent(BaseAgent):
@@ -114,16 +210,55 @@ class DomainInferenceAgent(BaseAgent):
         )
 
     @staticmethod
-    def _parse(content: str) -> tuple[DomainInferenceLLMResponse | None, str]:
-        """Parse+validate the LLM JSON. Never raises — returns (None, reason) on failure."""
+    def _parse(
+        content: str,
+    ) -> tuple[DomainInferenceLLMResponse | None, str, list[dict[str, Any]] | None]:
+        """Parse+validate the LLM JSON. Never raises — returns
+        (parsed, reason, validation_errors) on failure.
+
+        BUG-019 (2026-07-09): previously returned only `exc.error_count()` (a
+        bare integer) in `reason` on a schema-validation failure, discarding
+        `exc.errors()` — the field-level detail (which field failed, what
+        value was received, which constraint was violated) — which made the
+        root cause of a schema-validation failure undiagnosable from this
+        pipeline's own logs/artifacts (EXP-006 RAG-arm batch, 3 failures,
+        `error.md` BUG-019). `validation_errors` now carries that detail on
+        the schema-validation branch; it is `None` on the JSON-parse-failure
+        branch (no `ValidationError` was ever raised there — same gap class,
+        `TestBug019JsonParseFailurePathAlsoDiscardsContent` precedent) and on
+        success. The raw `content` string itself is not returned here — the
+        caller (`run()`) already holds it in scope as `raw_content` from the
+        `_call()` result, so it threads that directly into
+        `DomainInferenceOutput.raw_response` rather than round-tripping it
+        through this method's return value.
+
+        BUG-019 root-cause fix (2026-07-09, EXP-007 diagnostic capture):
+        before validation, `_normalize_source_type_collision` narrowly
+        coerces a known `RetrievedChunk.source_type` (DB table origin,
+        "case_card"/"qa", optionally suffixed ":<digits>") value the model
+        sometimes echoes into `evidence[].source_type` back to the correct
+        `"rag_chunk"`. This does not change `reason`/`validation_errors`'
+        contract on a GENUINE validation failure — only the known collision
+        shape is corrected; anything else still raises `ValidationError`
+        and is reported exactly as before.
+        """
         try:
             data = json.loads(content)
         except json.JSONDecodeError as exc:
-            return None, f"LLM response JSON parse failure: {exc}"
+            return None, f"LLM response JSON parse failure: {exc}", None
+        # BUG-019: narrow, deterministic coercion of the known source_type
+        # table-origin collision, BEFORE Pydantic validation — see
+        # `_normalize_source_type_collision`'s own docstring for why this
+        # must happen pre-validation and why it is scoped this narrowly.
+        data = _normalize_source_type_collision(data)
         try:
-            return DomainInferenceLLMResponse.model_validate(data), ""
+            return DomainInferenceLLMResponse.model_validate(data), "", None
         except ValidationError as exc:
-            return None, f"LLM response schema validation failure: {exc.error_count()} error(s)"
+            return (
+                None,
+                f"LLM response schema validation failure: {exc.error_count()} error(s)",
+                [dict(e) for e in exc.errors()],
+            )
 
     async def _call(
         self,
@@ -131,16 +266,36 @@ class DomainInferenceAgent(BaseAgent):
         adapter: LLMAdapter,
         model_id: str,
         response_format: dict[str, Any] | None,
-    ) -> tuple[str, str, float]:
-        """Return (raw_content, model_used, latency_ms). Raises on transport failure."""
+    ) -> tuple[str, str, float, str | None, dict[str, int] | None]:
+        """Return (raw_content, model_used, latency_ms, finish_reason, usage).
+
+        Raises on transport failure. BUG-017 phase A: `finish_reason`/`usage`
+        (`ChatResponse.finish_reason`/`.usage`, `src/adapters/base.py`) used
+        to be silently discarded here, which made the RAG-mode truncation
+        hypothesis unfalsifiable from this project's own logs —
+        `finish_reason == "length"` is the OpenAI-compatible API's own direct
+        truncation signal. Now captured and threaded through by the caller
+        for logging + persistence.
+
+        BUG-017 phase B (2026-07-09): the diagnostic run confirmed the
+        hypothesis directly — VP-003 RAG run
+        (`docs/ai/simulation_results/VP-003/VP-003_20260709_110457_domain_
+        inference.json`) returned `finish_reason="length"` with
+        `usage.completion_tokens == 1536` (exactly the prior ceiling),
+        `usage.prompt_tokens == 2665`. `max_tokens` raised from 1536 to
+        4096 (global, both `llm_only`/`rag`) — see this dispatch's RESULT
+        for the value/scope rationale. This is the only change BUG-017
+        phase B makes; no retrieval/prompt-size change (that is a separate,
+        held Track-3 item, REV-011 Issue 5).
+        """
         resp = await adapter.chat_timed(
             messages,
             model=model_id,
             temperature=0.2,
-            max_tokens=1536,
+            max_tokens=4096,
             response_format=response_format,
         )
-        return resp.content, resp.model, resp.latency_ms
+        return resp.content, resp.model, resp.latency_ms, resp.finish_reason, resp.usage
 
     async def run(self, inp: AgentInput, **kwargs: Any) -> DomainInferenceOutput:
         """Stage 2 LLM call → parsed candidates. Never crashes: parse/transport
@@ -179,8 +334,10 @@ class DomainInferenceAgent(BaseAgent):
         model_used = "none"
         raw_content = ""
         reason = ""
+        finish_reason: str | None = None
+        usage: dict[str, int] | None = None
         try:
-            raw_content, model_used, _ = await self._call(
+            raw_content, model_used, _, finish_reason, usage = await self._call(
                 messages, adapter, selection.model_id, response_format
             )
             self._router.record_success(selection.adapter_name)
@@ -208,7 +365,7 @@ class DomainInferenceAgent(BaseAgent):
                     if fallback.supports_json_schema or fallback.supports_json_object
                     else None
                 )
-                raw_content, model_used, _ = await self._call(
+                raw_content, model_used, _, finish_reason, usage = await self._call(
                     messages, fb_adapter, fallback.model_id, fb_format
                 )
                 self._router.record_success(fallback.adapter_name)
@@ -223,19 +380,42 @@ class DomainInferenceAgent(BaseAgent):
                     retrieval_meta=retrieval_meta,
                 )
 
-        parsed, reason = self._parse(raw_content)
+        parsed, reason, validation_errors = self._parse(raw_content)
         latency_ms = (time.perf_counter() - start) * 1000
 
+        # BUG-017 phase A: log finish_reason/usage on EVERY call outcome
+        # (success and parse/schema failure alike) so a future RAG-mode
+        # truncation hypothesis (finish_reason == "length") is falsifiable
+        # from this project's own logs, not just inferred from a character
+        # offset (REV-010 finding 2 / VAL-010 correlation note).
         if parsed is None:
-            logger.warning("DomainInference parse failure: %s", reason)
+            logger.warning(
+                "DomainInference parse failure: %s (model=%s, finish_reason=%s, usage=%s)",
+                reason, model_used, finish_reason, usage,
+            )
+            # BUG-019: persist the raw LLM response text AND (on a schema-
+            # validation failure specifically) the field-level
+            # ValidationError.errors() detail, on both failure branches
+            # (JSON-parse and schema-validation alike, for symmetry) — the
+            # gap that made this class of failure undiagnosable from this
+            # pipeline's own artifacts. Mirrors finish_reason/usage's own
+            # capture-on-every-failure-outcome discipline above.
             return DomainInferenceOutput(
                 model_used=model_used,
                 prompt_version=PROMPT_VERSION,
                 latency_ms=latency_ms,
                 reason_summary=reason,
                 retrieval_meta=retrieval_meta,
+                finish_reason=finish_reason,
+                usage=usage,
+                raw_response=raw_content,
+                validation_errors=validation_errors,
             )
 
+        logger.info(
+            "DomainInference call ok — model=%s, finish_reason=%s, usage=%s",
+            model_used, finish_reason, usage,
+        )
         return DomainInferenceOutput(
             model_used=model_used,
             prompt_version=PROMPT_VERSION,
@@ -246,4 +426,6 @@ class DomainInferenceAgent(BaseAgent):
             summary=parsed.summary,
             retrieval_meta=retrieval_meta,
             additional_questions=parsed.additional_questions,
+            finish_reason=finish_reason,
+            usage=usage,
         )

@@ -9,7 +9,7 @@ left to prompt discipline alone (REV-006 issue #3's lesson).
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -130,3 +130,34 @@ class DomainInferenceOutput(AgentOutput):
     summary: str = Field(default="")
     retrieval_meta: RetrievalMeta
     additional_questions: list[str] | None = Field(default=None)
+    # BUG-017 phase A (diagnostic instrumentation, 2026-07-08): the adapter's
+    # raw ChatResponse.finish_reason/.usage (src/adapters/base.py), captured
+    # so a future RAG-mode truncation hypothesis (finish_reason == "length")
+    # is falsifiable from this agent's own output/logs, on success AND on
+    # parse/schema failure alike. None whenever no ChatResponse was ever
+    # obtained (transport failure before any LLM response existed).
+    finish_reason: str | None = Field(default=None)
+    usage: dict[str, int] | None = Field(default=None)
+    # BUG-019 (2026-07-09): the schema-validation-failure root cause was
+    # undiagnosable because neither the raw LLM response text nor the
+    # Pydantic ValidationError's field-level detail was ever persisted —
+    # only a bare `exc.error_count()` integer reached `reason_summary`.
+    # Mirrors BUG-017 phase A's finish_reason/usage precedent: populated on
+    # a parse/schema failure (JSON-parse OR schema-validation branch alike,
+    # for symmetry), `None` on success (redundant with the already-
+    # structured domain_candidates/etc.) and on a transport failure (no
+    # ChatResponse was ever obtained — same None convention as
+    # finish_reason/usage above). `default=None` — non-breaking for
+    # existing callers/artifacts built before this field existed.
+    raw_response: str | None = Field(
+        default=None,
+        description="Raw LLM response text, present only on a parse/schema "
+        "failure. Model output, not patient PII by construction.",
+    )
+    validation_errors: list[dict[str, Any]] | None = Field(
+        default=None,
+        description="Pydantic ValidationError.errors() field-level detail "
+        "(which field, what value, what constraint) — present only on a "
+        "schema-validation failure; None on a JSON-parse failure (no "
+        "ValidationError was ever raised) or success.",
+    )

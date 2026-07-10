@@ -1,0 +1,134 @@
+{
+  "session_id": "f1_VP-004",
+  "persona_id": "VP-004",
+  "repro": {
+    "git_head": "9d857fe403567fd2c501879e5ab30bbe5a5500e0",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-004/VP-004_20260707_155625_conversation.json",
+    "input_sha256": "7f34c9962e5aea3963dc5118b470d314e1c77070a5266a075d77bbbbe1b5fc71",
+    "mode": "llm_only",
+    "latency_ms": 3335.6,
+    "generated_at": "2026-07-09T11:21:04.022734",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 1494,
+      "completion_tokens": 400,
+      "total_tokens": 1894
+    }
+  },
+  "domain_candidates": [
+    {
+      "domain": "depression",
+      "confidence": 0.35,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_0",
+          "quote": "약을 먹는데도 전혀 나아지지 않고 오히려 더 나빠진 느낌, 감정에서 벗어날 수 없을 것 같은 절망감"
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_1",
+          "quote": "약을 먹는데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고... 진짜 이 감정에서 벗어날 수 있을까요?"
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9"
+      ]
+    },
+    {
+      "domain": "anxiety",
+      "confidence": 0.3,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_2",
+          "quote": "갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요. 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요."
+        }
+      ],
+      "recommended_surveys": [
+        "GAD-7"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "우울감과 절망감, 그리고 공황 발작과 같은 불안 증상이 동시에 관찰되어 정신건강의학과 진료가 필요합니다.",
+      "domain_ref": "depression"
+    }
+  ],
+  "summary": "환자는 약물 치료에도 불구하고 증상이 악화되고 절망감을 호소하고 있으며, 공황 발작과 같은 불안 증상도 동반하고 있습니다. 이는 우울증과 불안 장애의 가능성을 시사합니다.",
+  "retrieval_meta": {
+    "mode": "llm_only",
+    "chunks_returned": 0,
+    "chunk_ids": [],
+    "queries": null
+  },
+  "chunk_texts": {},
+  "utterances": {
+    "turn_0": "약을 먹는데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고... 진짜 이 감정에서 벗어날 수 있을까요?",
+    "turn_1": "약을 먹는데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고... 진짜 이 감정에서 벗어날 수 있을까요?",
+    "turn_2": "아니요, 근데 그런 생각이 자꾸 들어요. 갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요. 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요.",
+    "turn_3": "그런 계획은... 가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요. 근데... 한 적은 없어요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 3,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 0
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "약을 먹는데도 전혀 나아지지 않고 오히려 더 나빠진 느낌, 감정에서 벗어날 수 없을 것 같은 절망감",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "약을 먹는데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고... 진짜 이 감정에서 벗어날 수 있을까요?",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요. 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text (ISS-046 panic fear-of-dying idiom — legitimate anxiety-domain evidence, not risk content; SM-07a precedent)"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 2,
+    "candidates_after": 2,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 0,
+    "evidence_stripped_risk_lexicon": 0
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "현재 복용 중인 약물의 종류와 용량은 어떻게 되나요?",
+    "공황 발작이 발생한 구체적인 상황과 빈도는 어떻게 되나요?",
+    "일상 생활에서 수면, 식욕, 집중력 등의 변화는 있었나요?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 3335.5785221792758,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 1494,
+    "completion_tokens": 400,
+    "total_tokens": 1894
+  }
+}

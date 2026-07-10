@@ -69,6 +69,15 @@ verifiable without a live LLM call:
      folded into BUG-017's fix scope or filed as a fast-follow: log/carry
      `finish_reason`+`usage` on every parse failure at minimum.
 
+     BUG-017 PHASE A (2026-07-08, PLAN-2026-W28-G T1-dev): this gap is now
+     closed -- `_call`/`run` (`domain_inference.py`) capture and log
+     `finish_reason`/`usage` on EVERY call outcome (success and parse/schema
+     failure alike) and `DomainInferenceOutput` now carries both fields.
+     `TestBug017FinishReasonDiscarded` below is inverted accordingly (was:
+     demonstrates the gap; now: demonstrates the gap is closed). Raising
+     `max_tokens` itself is still BUG-017 phase B, deferred pending a live
+     diagnostic run -- explicitly NOT part of this fix.
+
 Order-of-magnitude plausibility note on char 5053 (documented here, not
 asserted by an automated test -- no solar-pro3 tokenizer is available in
 this environment to compute this precisely, and see finding 3 above for
@@ -81,6 +90,21 @@ REV-010's own "correlation, not established causation" framing and should
 not be upgraded to a confirmed-cause claim without instrumenting
 finish_reason/usage capture and observing an actual `finish_reason ==
 "length"` on a re-run.
+
+BUG-017 PHASE B (2026-07-09, PLAN-2026-W28-G T1-dev-B): the diagnostic run
+(`docs/ai/simulation_results/VP-003/VP-003_20260709_110457_domain_
+inference.json`, `feat/f2-rag-remediation`, phase A instrumentation live)
+CONFIRMED the truncation hypothesis directly, no longer by inference --
+`finish_reason="length"` and `usage={"prompt_tokens": 2665,
+"completion_tokens": 1536, "total_tokens": 4201}`: `completion_tokens`
+exactly equals the old `max_tokens` ceiling, i.e. the completion was cut
+off at the budget, not stopped naturally. `_call`'s `max_tokens` is raised
+from 1536 to 4096 (global -- both `llm_only`/`rag` -- see this fix's own
+`_call` docstring for the value/scope rationale; `llm_only` is unaffected
+in practice since its shorter outputs already finish with
+`finish_reason="stop"` well under the old ceiling). `TestBug017MaxTokens
+Config` below is updated to assert the new value (single-variable change,
+REV-011 binding -- no retrieval/prompt-size change bundled with this fix).
 """
 
 from __future__ import annotations
@@ -92,16 +116,20 @@ import pytest
 from src.adapters.base import LLMAdapter
 from tests.test_domain_inference import _base_input, _make_agent
 
-# ── Test 1: max_tokens config value, source of REV-010's leading hypothesis
+# ── Test 1: max_tokens config value -- BUG-017 phase B raised value ──
 
 
 class TestBug017MaxTokensConfig:
     @pytest.mark.asyncio
-    async def test_call_passes_max_tokens_1536(self) -> None:
+    async def test_call_passes_max_tokens_4096(self) -> None:
         """Confirms the exact config value through the live code path (not
-        just a grep of domain_inference.py:140): every chat_timed() call
-        this agent makes, RAG or llm_only, is capped at 1536 completion
-        tokens -- no per-mode budget increase for RAG's heavier prompts."""
+        just a grep of domain_inference.py): every chat_timed() call this
+        agent makes, RAG or llm_only, is capped at 4096 completion tokens
+        -- BUG-017 phase B's global raise from the old 1536 ceiling that
+        the live diagnostic run confirmed was truncating VP-003 RAG-mode
+        output (`finish_reason="length"`, `usage.completion_tokens==1536`,
+        exactly the old ceiling). Still no per-mode budget split (a global
+        raise was chosen; see this fix's `_call` docstring for why)."""
         agent = _make_agent()
         agent._router.select_model.return_value = MagicMock(
             adapter_name="test", model_id="test",
@@ -111,6 +139,8 @@ class TestBug017MaxTokensConfig:
         resp.content = '{"domain_candidates": [], "department_candidates": [], "summary": ""}'
         resp.model = "test-model"
         resp.latency_ms = 1.0
+        resp.finish_reason = None
+        resp.usage = None
         adapter = AsyncMock(spec=LLMAdapter)
         adapter.chat_timed = AsyncMock(return_value=resp)
         agent._router.get_adapter.return_value = adapter
@@ -121,10 +151,10 @@ class TestBug017MaxTokensConfig:
 
         adapter.chat_timed.assert_awaited_once()
         _, kwargs = adapter.chat_timed.call_args
-        assert kwargs["max_tokens"] == 1536, (
-            "BUG-017: max_tokens config drifted from the value REV-010 "
-            "cited as the leading truncation hypothesis (domain_inference"
-            ".py:140) -- update error.md/REV-010 cross-reference."
+        assert kwargs["max_tokens"] == 4096, (
+            "BUG-017 phase B: max_tokens config drifted from the raised "
+            "value (domain_inference.py, DomainInferenceAgent._call) -- "
+            "update error.md/REV-011 cross-reference."
         )
 
 
@@ -213,6 +243,10 @@ def _wire_content(agent, content: str) -> AsyncMock:
     resp.content = content
     resp.model = "test-model"
     resp.latency_ms = 1.0
+    # BUG-017 phase A: explicit, matching a real ChatResponse's defaults --
+    # see tests.test_domain_inference._wire's own comment.
+    resp.finish_reason = None
+    resp.usage = None
     adapter = AsyncMock(spec=LLMAdapter)
     adapter.chat_timed = AsyncMock(return_value=resp)
     agent._router.get_adapter.return_value = adapter
@@ -226,18 +260,18 @@ def _wire_content(agent, content: str) -> AsyncMock:
 
 class TestBug017FinishReasonDiscarded:
     @pytest.mark.asyncio
-    async def test_finish_reason_and_usage_not_captured_anywhere(self) -> None:
-        """QA finding beyond REV-010's original scope: even when the
+    async def test_finish_reason_and_usage_now_captured_and_persisted(self) -> None:
+        """BUG-017 phase A (2026-07-08, this dispatch): the diagnostic gap
+        qa found beyond REV-010's original scope is closed. When the
         adapter's response carries `finish_reason="length"` (the OpenAI-
         compatible API's direct signal that the completion was cut off by
         max_tokens) and `usage.completion_tokens == 1536` (the budget
-        fully consumed), DomainInferenceAgent discards both -- `_call`
-        (domain_inference.py:128-143) returns only `(content, model,
-        latency_ms)`, and DomainInferenceOutput has no field for either.
-        This means the one signal that would directly confirm (or rule
-        out) REV-010's truncation hypothesis never reaches this project's
-        own logs or artifacts, on this run or any future one, until this
-        gap is closed."""
+        fully consumed), DomainInferenceAgent now threads both through
+        `_call` -> `run` into `DomainInferenceOutput.finish_reason`/`.usage`
+        -- so a future RAG-mode truncation hypothesis is falsifiable
+        directly from the agent's own output, not just inferred from a
+        character offset. (Raising max_tokens itself is BUG-017 phase B,
+        deferred pending a live diagnostic run -- NOT part of this fix.)"""
         agent = _make_agent()
         agent._router.select_model.return_value = MagicMock(
             adapter_name="test", model_id="test",
@@ -260,11 +294,12 @@ class TestBug017FinishReasonDiscarded:
         # The signal was right there on the response object --
         assert resp.finish_reason == "length"
         assert resp.usage["completion_tokens"] == 1536
-        # -- but it never reaches the agent's output.
-        out_dict = out.model_dump()
-        assert "finish_reason" not in out_dict, (
-            "BUG-017 gap closed? DomainInferenceOutput now carries "
-            "finish_reason -- update error.md/BUG-017 finding 3."
+        # -- and now it DOES reach the agent's output.
+        assert out.finish_reason == "length", (
+            "BUG-017 phase A regression: DomainInferenceOutput.finish_reason "
+            "no longer carries the adapter's finish_reason."
         )
-        assert "usage" not in out_dict
-        assert "length" not in repr(out_dict)
+        assert out.usage == {"prompt_tokens": 900, "completion_tokens": 1536, "total_tokens": 2436}
+        out_dict = out.model_dump()
+        assert out_dict["finish_reason"] == "length"
+        assert out_dict["usage"]["completion_tokens"] == 1536

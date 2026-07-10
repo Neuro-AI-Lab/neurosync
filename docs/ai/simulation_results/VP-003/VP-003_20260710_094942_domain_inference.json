@@ -1,0 +1,266 @@
+{
+  "session_id": "f1_VP-003",
+  "persona_id": "VP-003",
+  "repro": {
+    "git_head": "c2acc90dc5388a0597cd80b23aa003ca799693ab",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260710_094933_conversation.json",
+    "input_sha256": "fb8c15edd92bf75c17da1260089c2f054c27cf7670c095f7b58841471c65d224",
+    "mode": "rag",
+    "latency_ms": 8497.7,
+    "generated_at": "2026-07-10T09:49:42.669176",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 3452,
+      "completion_tokens": 1125,
+      "total_tokens": 4577
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "depression",
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_2",
+          "quote": "매일 들어요. 사, 그런 생각이 계속 들어요. 어떻게 해야 할지 모르겠고... 아무것도 하고 싶지 않아요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_4",
+          "quote": "네. 그냥 힘들어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_5",
+          "quote": "매일 들어요. 사, 그런 생각이 계속 들어요. 어떻게 해야 할지 모르겠고... 아무것도 하고 싶지 않아요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_7",
+          "quote": "잠을 못 자요. 새벽 3시에 깨서... 그냥 천장만 봐요. 밥도 안 먹어요. 편의점 음식 하나 먹는 게 다예요. 술 안 마시면 못 버텨요. 매일 마셔요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_9",
+          "quote": "체중은 빠졌어요. 7킬로 줄었어요. 밥도 안 먹고... 주, 술 안 마시면 못 버텨요. 매일 마셔요. 잠도 못 자고... 새벽 3시에 깨서 천장만 봐요."
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9",
+        "GAD-7"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "지속적인 우울감, 죽고 싶다는 생각, 수면 장애, 식욕 저하, 무기력, 알코올 의존 등 주요우울장애와 일치하는 증상이 다수 확인됨",
+      "domain_ref": "depression"
+    }
+  ],
+  "summary": "환자는 지속적인 우울감, 죽고 싶다는 생각, 수면 장애, 식욕 저하, 무기력, 알코올 의존 등의 증상을 호소하고 있으며, 주요우울장애와 일치하는 임상 양상이 관찰됩니다.",
+  "retrieval_meta": {
+    "mode": "rag",
+    "chunks_returned": 10,
+    "chunk_ids": [
+      "case_card:847",
+      "case_card:563",
+      "case_card:940",
+      "qa:1685",
+      "qa:1268",
+      "qa:206",
+      "case_card:664",
+      "case_card:678",
+      "case_card:873",
+      "qa:256"
+    ],
+    "queries": [
+      "살고 싶지 않다, 죽고 싶다는 생각이 매일 계속 든다",
+      "매일 죽고 싶다는 생각이 지속되며, 새벽 3시에 깨서 천장만 보는 수면 장애, 식욕 저하로 편의점 음식만 섭취, 매일 술 마심, 아무것도 하고 싶지 않은 무기력 상태"
+    ]
+  },
+  "chunk_texts": {
+    "case_card:847": "내담자는 지속적인 우울감을 경험하고 있으며, 이는 일상적인 감정으로 자리 잡고 있다고 표현했다. 우울한 감정은 자존감에 대한 공격이나 과거의 상처가 드러날 때, 그리고 일상생활이 감당하기 힘들 만큼 바쁠 때 촉발된다고 했다. 내담자는 우울한 감정이 늘 따라다니는 것 같다고 느끼며, 기분이 우울하고 일상 활동에 대한 흥미가 줄어드는 것을 자주 경험한다고 말했다. 또한, 주의 집중이 잘 안 되고 삶에 대한 희망이 가끔 사라진다고 느끼며, 죽고 싶다는 생각이 가끔 든다고 했다.  내담자는 자존감에 대한 공격이나 비교로 인해 우울한 감정이 촉발된다고 했다. 특히, 언니와의 비교가 힘들었으며, 외모에 대한 비교가 가정 내에서뿐만 아니라 외부에서도 이루어져 작년까지는 힘들었다고 말했다. 또한, 바쁜 일상 속에서 잠을 잘 못 자고 피로가 쌓이면서 우울감이 심화된다고 했다. 상담을 받는 것조차 또 다른 일로 느껴져 피하고 싶다는 생각이 들기도 하며, 상담을 통해 얻을 수 있는 것이 있을지에 대한 기대감이 없다고 표현했다. 이러한 상황들이 내담자의 우울감을 악화시키는 위험 요인으로 작용하고 있다.",
+    "case_card:563": "내담자가 우울한 기분과 자살 생각을 표현하며, 통증으로 인해 일상생활에 어려움을 겪고 있음을 드러냈다. 내담자는 통증이 지속되며 진통제를 맞아도 효과가 없을 때가 있고, 이로 인해 식욕과 수면에도 문제가 발생한다고 말했다. 또한, 내담자는 지속적인 통증을 견뎌야 한다는 부담감을 느끼고 있으며, 가족들이 자신의 존재를 어떻게 생각할지에 대한 불안감도 드러냈다.  내담자가 세상이 위험하다고 느끼며, 전쟁과 같은 뉴스가 슬픔을 유발한다고 말했다. 내담자는 세상이 안전하지 않다고 느끼며, 믿을 사람이 없다는 생각도 가지고 있다. 이러한 생각들은 내담자의 불안과 슬픔을 증가시키고 있으며, 이는 내담자의 정신 건강에 부정적인 영향을 미치고 있다.",
+    "case_card:940": "내담자는 잠들기 어렵거나 자주 깨는 등의 수면 문제를 겪고 있으며, 일상적인 일에 집중하기 어려움을 호소하고 있다. 그러나 전반적으로 우울한 기분이나 무가치감, 죄책감, 자살생각 등 다른 주요 증상은 나타나지 않고 있다.  내담자는 \"나는 왜 이런 일만 생길까?\"라는 비합리적인 신념을 가지고 있으며, 이는 자신을 괴롭히는 생각으로 작용하고 있다. 또한, 내담자는 특정 상황에서 무서움을 느끼며 정서 조절에 어려움을 겪고 있다.",
+    "qa:1685": "Q: 29세 남성이 자살 시도로 응급실에 내원했다. 3주 전부터 기분이 우울하고, 살고 싶지 않다는 생각이 지속되었다고 한다. 저번 달에는 일주일 동안 잠을 거의 자지 않았음에도 피곤하지 않았고, 과소비를 하며 평소보다 과도하게 회사일에 몰두했다고 한다. 이 환자의 가장 적합한 정신과적 진단은 무엇인가?\nA: 양극성 장애",
+    "qa:1268": "Q: 23세 여성이 잠을 잘 수 없고 우울감을 느껴 병원에 내원했다. 환자는 6개월 전 남자친구가 자신과 친한 동기와 바람을 핀 사실을 알게 된 이후로 우울감이 지속되었으며, 의욕 저하, 학업 집중 곤란, 죽고 싶은 생각, 식욕 감소로 인해 식사량이 절반으로 줄었다고 한다. 또한 불면증과 하루 종일 피로감을 호소하고 있다. 이 환자에게 적절한 치료 방안을 제시하시오.\nA: 이 환자는 우울감, 흥미 감소, 식욕 감소, 불면, 피로감 등의 증상을 보이며, 주요우울장애의 진단 기준을 충족한다. 치료로는 선택적 세로토닌 재흡수 억제제(SSRI)를 1차 약제로 사용하며, 약물은 최소 4주 이상 복용해야 효과를 평가할 수 있다. 증상이 호전될 경우, 재발 방지를 위해 5개월 이상의 유지 치료를 권장한다. 만약 SSRI에 반응이 없을 경우, 삼환계 항우울제(TCA)나 모노아민 산화효소 억제제(MAOI)와 같은 대체 약물을 고려할 수 있다. 약물 치료와 함께 인지행동치료(CBT)와 같은 심리치료를 병행할 수 있으며, 환자의 증상이 심각하거나 자살 위험이 높을 경우 입원을 포함한 적극적인 치료를 고려해야 한다.",
+    "qa:206": "Q: 17세 여자가 우울감을 주소로 병원에 내원하였다. 3주 전부터 기분이 가라앉고 식욕이 줄어 하루에 한 끼만 먹는다고 하였다. 잠을 12시간씩 자도 피로가 풀리지 않고 의욕이 없어 학교 생활이 어렵다고 하였다. 우울감이 지속되면서 자신이 모든 문제의 원인인 것 같고 한심하게 느껴져 죽고 싶은 생각까지 든다고 한다. 가족 면담에서 환자의 어머니가 조울증(양극성 장애) 진단을 받은 과거력이 있다고 하였다. 이 환자에서 양극성 장애로 전환될 가능성을 시사하는 소견은 무엇인가?\nA: 이 환자에서 양극성 장애로 전환될 가능성을 시사하는 소견은 다음과 같다. 첫째, 환자가 어린 나이에 우울 증상을 보인 점이다. 둘째, 수면 과다가 관찰된 점이다. 셋째, 환자의 어머니가 양극성 장애를 진단받은 가족력이 있는 점이다. 이러한 소견들은 양극성 장애로 전환될 가능성을 높이는 요인으로 알려져 있다.",
+    "case_card:664": "내담자는 매사에 흥미나 즐거움이 없고, 기분이 가라앉거나 우울하다고 느끼며, 잠들기 어렵거나 자주 깨는 수면 문제를 겪고 있다. 또한, 피곤함을 자주 느끼고, 식욕이 줄어들어 거의 매일 조금씩 먹는 상태이다. 자해를 하려는 생각이 가끔 들기도 하며, 자신을 실패자로 여기거나 가족을 실망시켰다고 느끼는 경우가 있다.  내담자는 자신을 쓸모없다고 느끼고, 미래에 대한 절망감을 가지고 있으며, 사람들의 비난을 두려워하고 있다. 또한, 부모님의 기대와 자신의 신체적 한계로 인해 무능함을 느끼고 있으며, 이러한 감정들이 내담자의 정신 건강에 부정적인 영향을 미치고 있다. 내담자는 자신의 감정을 명확히 인식하고 표현하는 데 어려움을 겪고 있다.",
+    "case_card:678": "내담자는 우울한 기분과 무가치감을 거의 매일 느끼고 있으며, 수면 문제와 피로감도 지속적으로 경험하고 있다. 특히, 잠을 많이 자는 경향이 있으며, 이는 일상생활에 지장을 주고 있다. 식욕이 증가하여 필요 이상으로 많이 먹는 상황도 발생하고 있다. 내담자는 가족을 실망시켰다는 죄책감을 자주 느끼며, 집중력 저하와 사고력 저하도 경험하고 있다. 자살 생각은 없지만, 과거에 자해를 시도한 경험이 있으며, 최근 우울감이 심해지면서 다시 그런 충동을 느끼기도 했다.  비합리적 신념이 내담자의 회복을 방해하고 있다. 가족력과 과거 정신질환의 경험도 내담자의 정신 건강에 영향을 미치는 요소로 보인다. 내담자는 스트레스 사건에 대한 대처 전략이 부족하며 내담자의 심리적 어려움을 가중시키고 있다.",
+    "case_card:873": "내담자는 매사에 흥미나 즐거움이 거의 없고, 기분이 가라앉거나 우울하다고 느끼며, 잠들기 어렵거나 자주 깨는 수면 문제를 겪고 있다. 또한 피로감과 식욕 변화, 자신을 실패자로 여기는 무가치감, 집중력 저하, 정신운동 변화, 그리고 자살 생각까지 나타나고 있다.  내담자는 가족 내 알코올 중독 문제와 도박 문제로 인해 큰 스트레스를 받고 있으며, 사별한 가족 구성원과의 관계에서의 어려움도 겪고 있다. 또한, 내담자는 과거의 정신질환 경험과 현재의 경제적, 사회적 자원 부족으로 인해 더욱 취약한 상태에 있다. 이러한 위험 요인들은 내담자의 정신 건강에 부정적인 영향을 미치고 있으며, 내담자가 느끼는 고립감과 무력감을 심화시키고 있다.",
+    "qa:256": "Q: 40세 남성이 최근 3주 전부터 무기력감, 불면, 삶의 무가치감, 식욕 저하, 집중력 저하를 호소하며 내원하였다. 환자는 강의 시간에도 집중하지 못하고 출근이 고통스럽다고 표현하였으며, 면담 중 \"이렇게 힘들 바에야 죽는 게 낫겠어요.\"라며 눈물을 보였다. 이 환자의 가장 적합한 진단명은 무엇인가?  \n1) 조현병  \n2) 주요우울장애  \n3) 주의력결핍과잉행동장애  \n4) 알츠하이머 치매  \n5) 양극성 장애\nA: 2) 주요우울장애"
+  },
+  "utterances": {
+    "turn_0": "그냥... 너무 힘들어요.  \n살고 싶지 않다, 그런 생각이 계속 들어요.  \n어떻게 해야 할지 모르겠고...  \n아무것도 하고 싶지 않아요.",
+    "turn_1": "그냥... 너무 힘들어요.  \n살고 싶지 않다, 그런 생각이 계속 들어요.  \n어떻게 해야 할지 모르겠고...  \n아무것도 하고 싶지 않아요.",
+    "turn_2": "매일 들어요.  \n사, 그런 생각이 계속 들어요.  \n어떻게 해야 할지 모르겠고...  \n아무것도 하고 싶지 않아요.",
+    "turn_3": "생각해 본 적은 없어요.  \n그냥 사라지고 싶은 거예요.  \n죽으면 편할 것 같다는 생각만 들어요.  \n구체적으로는... 몰라요.  \n아무것도 하고 싶지 않아요.",
+    "turn_4": "...네. 그냥 힘들어요.",
+    "turn_5": "매일 들어요.  \n사, 그런 생각이 계속 들어요.  \n어떻게 해야 할지 모르겠고...  \n아무것도 하고 싶지 않아요.",
+    "turn_6": "생각해 본 적은 없어요.  \n그냥 사라지고 싶은 거예요.  \n죽으면 편할 것 같다는 생각만 들어요.  \n구체적으로는... 몰라요.  \n아무것도 하고 싶지 않아요.",
+    "turn_7": "잠을 못 자요.  \n새벽 3시에 깨서... 그냥 천장만 봐요.  \n밥도 안 먹어요.  \n편의점 음식 하나 먹는 게 다예요.  \n술 안 마시면 못 버텨요.  \n매일 마셔요.  \n...도움이 되나요? 뭘 해도 안 될 것 같은데.",
+    "turn_8": "형.  \n형이긴 한데... 연락 안 해요.  \n짐이 되기 싫어서요.  \n지금 상태로는 더 힘들게 만들고 싶지 않아서.  \n...도움이 되나요? 뭘 해도 안 될 것 같은데.",
+    "turn_9": "체중은 빠졌어요.  \n7킬로 줄었어요.  \n밥도 안 먹고...  \n주, 술 안 마시면 못 버텨요.  \n매일 마셔요.  \n잠도 못 자고...  \n새벽 3시에 깨서 천장만 봐요.  \n...도움이 되나요? 뭘 해도 안 될 것 같은데."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 5,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 8
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:847",
+        "quote": "내담자는 지속적인 우울감을 경험하고 있으며, 이는 일상적인 감정으로 자리 잡고 있다고 표현했다. 우울한 감정은 자존감에 대한 공격이나 과거의 상처가 드러날 때, 그리고 일상생활이 감당하기 힘들 만큼 바쁠 때 촉발된다고 했다. 내담자는 우울한 감정이 늘 따라다니는 것 같다고 느끼며, 기분이 우울하고 일상 활동에 대한 흥미가 줄어드는 것을 자주 경험한다고 말했다. 또한, 주의 집중이 잘 안 되고 삶에 대한 희망이 가끔 사라진다고 느끼며, 죽고 싶다는 생각이 가끔 든다고 했다.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (죽고 싶, 죽고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:563",
+        "quote": "내담자가 우울한 기분과 자살 생각을 표현하며, 통증으로 인해 일상생활에 어려움을 겪고 있음을 드러냈다. 내담자는 통증이 지속되며 진통제를 맞아도 효과가 없을 때가 있고, 이로 인해 식욕과 수면에도 문제가 발생한다고 말했다. 또한, 내담자는 지속적인 통증을 견뎌야 한다는 부담감을 느끼고 있으며, 가족들이 자신의 존재를 어떻게 생각할지에 대한 불안감도 드러냈다. 내담자가 세상이 위험하다고 느끼며, 전쟁과 같은 뉴스가 슬픔을 유발한다고 말했다.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (자살) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:664",
+        "quote": "내담자는 매사에 흥미나 즐거움이 없고, 기분이 가라앉거나 우울하다고 느끼며, 잠들기 어렵거나 자주 깨는 수면 문제를 겪고 있다. 또한, 피곤함을 자주 느끼고, 식욕이 줄어들어 거의 매일 조금씩 먹는 상태이다. 자해를 하려는 생각이 가끔 들기도 하며, 자신을 실패자로 여기거나 가족을 실망시켰다고 느끼는 경우가 있다.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (자해) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "살고 싶지 않다, 그런 생각이 계속 들어요. 어떻게 해야 할지 모르겠고... 아무것도 하고 싶지 않아요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살고 싶지 않, 살고싶지않) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "살고 싶지 않다, 그런 생각이 계속 들어요. 어떻게 해야 할지 모르겠고... 아무것도 하고 싶지 않아요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살고 싶지 않, 살고싶지않) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "매일 들어요. 사, 그런 생각이 계속 들어요. 어떻게 해야 할지 모르겠고... 아무것도 하고 싶지 않아요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_3",
+        "quote": "생각해 본 적은 없어요. 그냥 사라지고 싶은 거예요. 죽으면 편할 것 같다는 생각만 들어요. 구체적으로는... 몰라요. 아무것도 하고 싶지 않아요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶, 죽으면 편할, 죽으면편할) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_4",
+        "quote": "네. 그냥 힘들어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_5",
+        "quote": "매일 들어요. 사, 그런 생각이 계속 들어요. 어떻게 해야 할지 모르겠고... 아무것도 하고 싶지 않아요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_6",
+        "quote": "생각해 본 적은 없어요. 그냥 사라지고 싶은 거예요. 죽으면 편할 것 같다는 생각만 들어요. 구체적으로는... 몰라요. 아무것도 하고 싶지 않아요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶, 죽으면 편할, 죽으면편할) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_7",
+        "quote": "잠을 못 자요. 새벽 3시에 깨서... 그냥 천장만 봐요. 밥도 안 먹어요. 편의점 음식 하나 먹는 게 다예요. 술 안 마시면 못 버텨요. 매일 마셔요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_8",
+        "quote": "형. 형이긴 한데... 연락 안 해요. 짐이 되기 싫어서요. 지금 상태로는 더 힘들게 만들고 싶지 않아서.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (짐이 되, 짐이되) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_9",
+        "quote": "체중은 빠졌어요. 7킬로 줄었어요. 밥도 안 먹고... 주, 술 안 마시면 못 버텨요. 매일 마셔요. 잠도 못 자고... 새벽 3시에 깨서 천장만 봐요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 1,
+    "candidates_after": 1,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 8,
+    "evidence_stripped_risk_lexicon": 8
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "자살 위험에 대한 구체적인 계획이 있는지",
+    "과거 자해 시도 경험이 있는지",
+    "가족 중 정신질환 병력이 있는지",
+    "현재 복용 중인 약물이 있는지",
+    "알코올 사용 빈도 및 양에 대한 구체적인 정보"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 8497.725512366742,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 3452,
+    "completion_tokens": 1125,
+    "total_tokens": 4577
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [],
+    "mode": "rag_live",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "0 of 10 retrieved chunk(s) yielded a disease candidate this run (no canonical symptom keyword matched, or every match was dropped by the risk-lexicon filter) — a legitimate 0-candidate outcome, not an error (RES-001 §2 step 7). similarity_score is a RAG cosine-similarity signal between the retrieved chunk and the Stage-1 query — NOT a patient-to-disease similarity, and NOT a calibrated probability (two-hop proxy, RES-001 §2 step 9 / ADR-020 condition 3). 16 candidate vote(s) dropped by the risk-lexicon filter before ranking (VAL-011/ADR-020 condition 1)."
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 0,
+    "rag_chunk_qa": 0,
+    "rag_chunk_other": 0,
+    "utterance": 5
+  }
+}
