@@ -328,3 +328,167 @@ class TestHPIIsolationLiveBehaviorContainer:
         assert _LEAK_MARKER_DISEASE not in out.report_markdown
         assert str(_LEAK_MARKER_SCORE) not in out.report_markdown
         assert "정상 슬롯 값" in out.report_markdown
+
+
+# ── (populated path) REV-016(c) condition 2 / PLAN-2026-W28-K Task 4 ──────
+#
+# The classes above prove isolation using a SYNTHETIC MARKER container
+# (`disease`/`similarity_score` only). `source_id`/`quote` did not exist as
+# fields on `AIPredictedDiseaseCandidate` when those tests were written —
+# ADR-020 (PLAN-2026-W28-K) added them for live population. REV-016(c)
+# condition 2 (`discussion.md`) is explicit that the marker-based tests do
+# NOT satisfy the populated-path precondition: "has not yet been exercised
+# against a genuinely live-populated AIPredictedDiseaseOutput (real disease
+# name + real similarity_score + real quote) flowing through an actual
+# populated-path run." This section closes that gap.
+
+
+def _populated_candidate() -> AIPredictedDiseaseCandidate:
+    """A genuinely-populated candidate — real disease name (from this
+    project's own 26-disease Ada ontology, `src.rag.ontology.DISEASES`),
+    real `[0,1]`-bounded `similarity_score`, real `source_id`/`quote`
+    provenance — the exact shape `f2._aggregate_disease_candidates` /
+    `f2._build_ai_predicted_disease_populated` actually construct on a live
+    RAG-mode run (`apps/ai-server/src/f2.py`), not a placeholder marker.
+    """
+    return AIPredictedDiseaseCandidate(
+        disease="우울 삽화(우울증)",
+        similarity_score=0.83,
+        source_id="case_card:512",
+        quote="환자가 2주 이상 지속된 우울감과 흥미 상실을 호소하며 상담을 요청함",
+    )
+
+
+def _populated_output() -> AIPredictedDiseaseOutput:
+    return AIPredictedDiseaseOutput(
+        mode="rag_live",
+        candidates=[_populated_candidate()],
+        reason_summary=(
+            "1 disease candidate(s) derived from 1 retrieved chunk(s) via "
+            "symptom-keyword match (path1, ADR-020). similarity_score is a "
+            "RAG cosine-similarity signal ... NOT a calibrated probability."
+        ),
+    )
+
+
+class TestHPIIsolationPopulatedPath:
+    """REV-016(c) condition 2 (`discussion.md`) / ADR-020 (`discussion.md`) /
+    PLAN-2026-W28-K Task 4 — the hard red line for this gate.
+
+    Re-runs BOTH REV-013 §3 channels (`AgentInput.extra`,
+    `state.slot_data` -> `HandoffInput`) end-to-end, with a GENUINELY
+    POPULATED `AIPredictedDiseaseOutput` (real disease name, real
+    similarity_score, real source_id, real quote — every field a live
+    populated-path run ships), through the REAL `HandoffGeneratorAgent.run()`
+    code path (echo-wired mock adapter — a canned-response mock would not
+    catch a prompt-layer leak, only an echo does; same convention as
+    `TestHPIIsolationLiveBehaviorContainer` above). Every check asserts on
+    all four candidate fields (`disease`, `similarity_score`, `source_id`,
+    `quote`) individually, not just the disease name, since `source_id`/
+    `quote` are the two fields the Wave-3 marker tests never exercised.
+    """
+
+    @pytest.mark.asyncio
+    async def test_populated_candidate_via_slot_data_never_reaches_report(
+        self,
+    ) -> None:
+        ai_disease = _populated_output()
+        candidate = ai_disease.candidates[0]
+        quote = candidate.quote
+        source_id = candidate.source_id
+        assert quote is not None and source_id is not None  # narrows for mypy + non-vacuity
+
+        orchestrator = OrchestratorAgent.__new__(OrchestratorAgent)
+        state = SessionState(
+            session_id="s1",
+            slot_data={
+                "chief_complaint": "불안감과 수면 문제",
+                "history_of_present_illness": "3개월 전 발병",
+                # Simulated future mis-wiring: a genuinely-populated
+                # AI-disease payload (not a marker) written into the same
+                # generic dict-bucket real clinical slots use.
+                "ai_predicted_disease": ai_disease.model_dump(),
+            },
+        )
+
+        handoff_input = orchestrator._build_handoff_input(state)
+
+        # Cross-check 1: no named slot silently absorbed any populated field.
+        slot_values = str(handoff_input.slots.model_dump().values())
+        assert candidate.disease not in slot_values
+        assert quote not in slot_values
+        assert source_id not in slot_values
+
+        # Cross-check 2: the pure prompt-building function.
+        prompt_text = _build_user_content(handoff_input)
+        assert candidate.disease not in prompt_text
+        assert quote not in prompt_text
+        assert str(candidate.similarity_score) not in prompt_text
+        assert source_id not in prompt_text
+
+        # Cross-check 3 (the live-behavior assertion): run the REAL agent
+        # end-to-end (LLM mocked-but-echoing) and assert report_markdown —
+        # the actual artifact a clinician reads — contains none of the
+        # populated disease name/score/source_id/quote.
+        agent = _make_handoff_agent()
+        _wire_echo(agent)
+        out = await agent.run(handoff_input)
+
+        assert candidate.disease not in out.report_markdown
+        assert quote not in out.report_markdown
+        assert str(candidate.similarity_score) not in out.report_markdown
+        assert source_id not in out.report_markdown
+        # Sanity: the echo wiring IS genuinely load-bearing — the real
+        # (non-leaked) chief_complaint slot text DOES flow through
+        # end-to-end, proving the "marker absent" assertions aren't vacuous.
+        assert "불안감과 수면 문제" in out.report_markdown
+
+    @pytest.mark.asyncio
+    async def test_populated_candidate_via_extra_never_reaches_report(
+        self,
+    ) -> None:
+        """Companion end-to-end run for channel (a) (`AgentInput.extra`),
+        with the genuinely-populated container, through the full
+        `HandoffGeneratorAgent.run()` path — same non-vacuity discipline as
+        the slot_data case above."""
+        ai_disease = _populated_output()
+        candidate = ai_disease.candidates[0]
+        quote = candidate.quote
+        source_id = candidate.source_id
+        assert quote is not None and source_id is not None  # narrows for mypy + non-vacuity
+
+        handoff_input = HandoffInput(
+            session_id="s1",
+            slots=SlotData(chief_complaint="정상 슬롯 값"),
+            extra={"ai_predicted_disease": [ai_disease.model_dump()]},
+        )
+
+        # Pure prompt-building function first.
+        prompt_text = _build_user_content(handoff_input)
+        assert candidate.disease not in prompt_text
+        assert quote not in prompt_text
+        assert source_id not in prompt_text
+
+        agent = _make_handoff_agent()
+        _wire_echo(agent)
+        out = await agent.run(handoff_input)
+
+        assert candidate.disease not in out.report_markdown
+        assert quote not in out.report_markdown
+        assert str(candidate.similarity_score) not in out.report_markdown
+        assert source_id not in out.report_markdown
+        assert "정상 슬롯 값" in out.report_markdown
+
+    def test_populated_fixture_carries_real_provenance_not_none(self) -> None:
+        """Sanity guard on this class's own fixture: `_populated_candidate()`
+        must actually carry non-None `source_id`/`quote` — the two fields
+        `_marker_candidate()` (Wave-3) never set — otherwise this class
+        would silently degrade into re-testing the same marker shape
+        Wave-3 already covered, not the genuinely-populated shape ADR-020
+        ships. Also confirms this fixture is a distinct disease name from
+        the Wave-3 leak marker (not accidentally reusing it)."""
+        candidate = _populated_candidate()
+        assert candidate.source_id is not None
+        assert candidate.quote is not None
+        assert candidate.disease != _LEAK_MARKER_DISEASE
+        assert candidate.similarity_score != _LEAK_MARKER_SCORE
