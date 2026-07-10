@@ -1063,3 +1063,55 @@ Per `ADR-020`, path2 (`rag.disease` `embedding vector(4096)` column + ontology-g
 6. **Carried, out of this mission's scope** (unchanged): `BUG-008/009/011/012/018`, `VAL-001/004/007/009`, `ADR-013`(3) git-history residual, Track B's `extra="forbid"` defense-in-depth follow-up — see prior DR entries for the full historical carry list.
 
 ---
+
+## DR-013 | 2026-07-10 | PLAN-2026-W28-L step 5 — F1→F2 continuous batch (`EXP-012`) reports: 4 conversation records, 1 consolidated RAG/disease analysis, 1 slot summary (12 clinical slots + AI-predicted-disease item 13)
+
+> **Scope and sourcing:** every number and claim below is already recorded in `result.md` (`EXP-012`), `discussion.md` (`PLAN-2026-W28-L`, `REV-019`, `ADR-018`, `ADR-020`, `REV-016/017/018`), and `error.md` (`BUG-011`, `VAL-001`, `VAL-010`, all open). No new measurement is performed here; this entry records what was written and where. **No "인증/통과/shippable/certified" wording is used anywhere in this entry** — per `REV-019` §3, `EXP-012` is new evidence on a new input dimension (the first genuinely fresh F1→F2 live chain in this project's history), not inherited certification; the licensing question for any such wording is critic's `REV-020` step (`PLAN-2026-W28-L` step 6), not yet run at the time of this entry.
+
+### 1. What ran
+
+`PLAN-2026-W28-L` step 4 (`EXP-012`, `result.md`) executed `apps/ai-server/src/continuous_test.py` live for VP-001~004: one fresh, genuinely new F1 autonomous dialogue session per persona (n=1/VP), chained directly into F2 RAG mode with the AI-predicted-disease populated path (`ADR-020` path1, `k=3`, certified default). 4/4 chains completed, `exit_code=0`, no infra failures, no retries. Git HEAD `c2acc90` (merge of PR #49 into `feat/f2-docs-sync`), qa GATE:PASS at that commit (`VAL-011` closure, suite 812) confirmed still current for the F2-side code (`REV-019` §1).
+
+### 2. Headline audit outcomes (independently re-derived from `EXP-012`'s own raw artifacts, per `REV-019`'s binding instruction — not assumed from the prior `EXP-008`/`009`/`010`/`011` lift)
+
+| Audit | Result | Source |
+|:--|:--|:--|
+| Mode honesty | 4/4 `mode="rag"` + `ai_predicted_disease.mode="rag_live"` | `EXP-012` |
+| `finish_reason`/`validation_errors`/`raw_response` | 4/4 `stop` / `None` / `null` — 0 schema-validation or JSON-parse failures | `EXP-012` |
+| Secondary taxonomy audit (quote-text) | 0/44 (29 `domain_candidates` + 15 `ai_predicted_disease`) | `EXP-012` |
+| NEW chunk-level audit (full source-chunk text, `f2.py:465` fix) | 0/15 shipped disease candidates cite a risk-flagged chunk | `EXP-012` |
+| `retrieval_meta.queries` audit | VP-003 risk-worded both slots (reproduces `VAL-010` on genuinely fresh text, first time); VP-001/VP-002 benign; VP-004 panic-idiom/hopelessness-adjacent, not passive SI | `EXP-012` |
+| `source_type` collision (BUG-019) | 0/44 evidence items — no recurrence | `EXP-012` |
+| `chunk_id=` prefix-echo (BUG-016) | 0 instances — fix holds | `EXP-012` |
+| HPI red line (disease name → F1 clinical slot) | 0/4 leakage; one coincidental, disclosed, non-leak cross-mention (VP-001, `범불안장애`, two independently-retrieved chunks) | `EXP-012` |
+| BUG-011 (turn-0 crisis response substitution) | Checked per VP — **0/4 turn-0 crises this batch; not exercised.** VP-003 (turn 9) and VP-004 (turn 7) crises both fired in the main per-turn loop, which correctly substitutes `CRISIS_RESPONSE` (verified "109"/"119" present in both). `BUG-011` (`error.md`, critical) remains **open** — this batch simply never reached its defective code path. | `EXP-012`, per-VP conversation reports |
+| VAL-001 (plan-disclosure clause-split misread) | Checked per VP — **0/4 misfires; not exercised.** All 11 probe events across the batch show correct denial-recognition (`deescalation`) or direct high-risk classification; no `escalation`-type event with the `"plan/means disclosure (lexical check)"` reason string. `VAL-001` (`error.md`, major) remains **open**. | `EXP-012`, per-VP conversation reports |
+
+### 3. Deliverables written (writer, this entry's own mission)
+
+| # | Deliverable | Path(s) |
+|--:|:--|:--|
+| 1 | 4 per-VP conversation-record reports — full F1 turn-by-turn transcript, CTRS trajectory, probe/crisis events, explicit BUG-011/VAL-001 disclosure | `docs/ai/simulation_results/VP-001/VP-001_EXP-012_conversation_report.md`, `.../VP-002/VP-002_EXP-012_conversation_report.md`, `.../VP-003/VP-003_EXP-012_conversation_report.md`, `.../VP-004/VP-004_EXP-012_conversation_report.md` |
+| 2 | 1 consolidated F1→F2 analysis report — RAG top-5 disease candidates + `similarity_score`/provenance per VP, domain/department candidates, filter/audit summary, per-stage latency, `ADR-018` standing-audit outcomes, `REV-018` §2 five caveats | `docs/ai/simulation_results/EXP-012_f1f2_consolidated_analysis.md` |
+| 3 | 1 per-VP slot summary — 12 canonical clinical slots (verified against `apps/ai-server/src/agents/clinical_slot.py:26-39`, `ALL_SLOT_KEYS`) with extracted value or `미수집`, AI-predicted-disease entity presented as a clearly separated, non-diagnostic item 13, plus the schema-count reconciliation against the user's "13개 항목" | `docs/ai/simulation_results/EXP-012_slot_summary.md` |
+
+### 4. Schema-count reconciliation ("13개 항목")
+
+Verified directly from code this session (not assumed): `ClinicalSlotAgent.ALL_SLOT_KEYS` (`apps/ai-server/src/agents/clinical_slot.py:26-39`) defines exactly **12 Standard Clinical Slots**. `AIPredictedDiseaseOutput` (`apps/ai-server/src/schemas/ai_predicted_disease.py`) is a structurally separate, sibling top-level artifact key — never one of the 12, never merged into them. **12 clinical slots + 1 AI-predicted-disease entity = 13 items**, matching the user's "13개 항목" exactly. `EXP-012_slot_summary.md` presents this reconciliation explicitly and keeps the two groups strictly separated per table, per `REV-013` §3/§4's regulatory red line (never merge the non-diagnostic entity into a clinical slot).
+
+### 5. Carried caveats (binding on every user-facing statement about this batch, restated not re-litigated)
+
+- **New evidence, not inherited certification** (`REV-019` §3): `EXP-012` is the first batch in this project's history to chain a genuinely fresh F1 session into F2's certified pipeline — every prior `ADR-018`/`ADR-020` batch (`EXP-005` through `EXP-011`) reused the same fixed ~8 F1 files from 2026-07-07.
+- **n=1/VP**, thinner than the established n=2/VP standard (`REV-018` §2 caveat 3, `REV-019` Issue #3) — not statistically equivalent to a certifying batch.
+- **`BUG-011`/`VAL-001` disclosure** (`REV-019` Issue #1, blocking-scoped to this deliverable): both checked explicitly per VP and confirmed not exercised this batch — both defects remain **open** in `error.md`; this batch's clean outcome on this specific point does not close either.
+- **`VAL-010` stays open** (`error.md`) — reproduces again this batch, now independently confirmed on genuinely fresh F1 text (VP-003) for the first time, strengthening rather than merely repeating the finding.
+- **F1 repro-metadata gap** (`REV-019` Issue #4): `F1TurnLog`/`F1Result` carry no `model_used`/`prompt_version`/`seed` field; best-effort external capture only (patient simulator via `api.friendli.ai`/K-EXAONE; F1 agents via the Upstage/K-EXAONE model registry).
+- **REV-018 §2's five caveats** (two-hop-proxy, VAL-010-open, single-batch-evidence, provenance-enforcement fragility, `is_diagnostic: False`/no-diagnosis-language) apply to every `similarity_score`/disease-candidate figure in the consolidated analysis report.
+
+### 6. Next steps
+
+1. Critic `REV-020` (`PLAN-2026-W28-L` step 6) — evidence review of `EXP-012` and these three report deliverables, including an independent HPI-isolation audit on the live artifacts, before any user-facing "certified"/"shippable"/"clean" wording is licensed for this batch.
+2. filemanager step 7 — commit (doc-ID cited, no trailers), push, PR stacked on #49.
+3. Carried, out of this entry's scope (unchanged from `DR-012`): `BUG-008/009/011/012/018`, `VAL-001/004/007/009/010`, `ADR-013`(3) git-history residual, Track B's `extra="forbid"` defense-in-depth follow-up, path2 migration `0008_*`.
+
+---
