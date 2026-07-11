@@ -11,7 +11,23 @@ from src.schemas.common import RiskLevel
 
 
 class DialogueInput(AgentInput):
-    """Input to the dialogue agent."""
+    """Input to the dialogue agent.
+
+    ``session_state`` is intentionally an unconstrained ``dict[str, Any]``
+    at the schema level, not narrowed to a single caller's key space: it is
+    genuinely polymorphic across this codebase's two independent live
+    producers — ``src.f1.F1Pipeline`` (5-key set, see
+    ``tests/repro/test_session_state_allowlist.py``) and
+    ``src.routes.chat``'s ``OrchestratorAgent`` flow (``SessionState.
+    model_dump()``, a disjoint ~14-key set, `src/routes/chat.py:130-136`).
+    A schema-level allowlist keyed to one caller's shape would reject the
+    other caller's legitimate, currently-shipped payload — confirmed by
+    `tests/test_chat_orchestrator_integration.py::
+    test_dialogue_input_has_session_state_field` exercising exactly that
+    shape. REV-024 ruling 3's mechanical allowlist is therefore enforced at
+    the CALLER level (`src.f1`'s own construction sites, standing-tested),
+    not here — see that test module's docstring for the full rationale.
+    """
 
     user_message: str = Field(..., description="Current user message")
     conversation_history: list[dict[str, str]] = Field(

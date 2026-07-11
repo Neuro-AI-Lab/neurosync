@@ -361,6 +361,12 @@ class TestDecidePolicyB:
 
     @pytest.mark.asyncio
     async def test_judge_io_persisted_in_judge_output(self) -> None:
+        """REV-024 Issue 3 (blocking-scoped, Gate 0 criterion 5): the agent
+        computes a genuine per-call ``latency_ms`` (`rag_trigger_judge.py`);
+        this asserts it survives into the persisted artifact dict, not just
+        onto the transient `RagTriggerJudgeOutput` object — the prior
+        fixture omitted the key and so encoded the drop instead of catching
+        it."""
         judge = _FakeJudge(retrieve=True, query="수면 문제", prompts_degraded=True)
         decision = await decide_policy_b(
             judge, session_id="t", final_slots={}, turns=[]
@@ -372,6 +378,7 @@ class TestDecidePolicyB:
             "model_used": "fake",
             "prompt_version": "v1",
             "prompts_degraded": True,
+            "latency_ms": 1.0,
         }
 
     @pytest.mark.asyncio
