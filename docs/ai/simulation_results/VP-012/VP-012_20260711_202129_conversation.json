@@ -1,0 +1,890 @@
+{
+  "session_id": "sc13_VP-012_injected",
+  "persona_id": "VP-012",
+  "persona_name": "정우식",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "history_of_present_illness",
+      "value": "건강검진 결과 간 수치 상승 확인 후 술 줄이기 시도했으나 매일 음주 지속, 의지로 중단 실패, 스트레스 시 술 생각 증가"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.\""
+    },
+    {
+      "key": "chief_complaint",
+      "value": "건강검진에서 간 수치 상승으로 인한 술 줄이기 어려움"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "매일 음주, 의지로 중단 실패, 스트레스 시 술 생각 증가"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "저는 최근 건강검진에서 간 수치가 많이 올라갔다는 결과를 받아서 술을 줄여야겠다고 생각했어요. 그런데 술을 거의 매일 마시고, 줄이려고 해도 멈추지 못하는 게 큰 문제예요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술을 거의 매일 마시고, 줄이려고 해도 멈추지 못하는 게 큰 문제"
+      ],
+      "agent_response": "안녕하세요, 저는 정신건강 사전문진을 돕는 AI 상담 도우미입니다. 실제 의사와의 대화가 아니며, 편하게 이야기하셔도 괜찮아요. 오늘 가장 도움받고 싶은 문제나 증상이 무엇인지 알려주시면 함께 고민해 볼게요.",
+      "slot_updates": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과 확인 후 음주 감소 필요성을 인식했으나, 거의 매일 술을 마시고 줄이려고 해도 멈추지 못하는 문제 지속"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과 확인 후 음주 감소 필요성을 인식했으나, 거의 매일 술을 마시고 줄이려고 해도 멈추지 못하는 문제 지속"
+      },
+      "slot_coverage": 0.2,
+      "latency_ms": 7351.645601913333,
+      "timestamp": "2026-07-11T20:19:53.258726",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.125,
+      "normalizer_meta": {
+        "original": "저는 최근 건강검진에서 간 수치가 많이 올라갔다는 결과를 받아서 술을 줄여야겠다고 생각했어요. 그런데 술을 거의 매일 마시고, 줄이려고 해도 멈추지 못하는 게 큰 문제예요.",
+        "normalized": "저는 최근 건강검진에서 간 수치가 많이 올라갔다는 결과를 받아서 술을 줄여야겠다고 생각했어요. 그런데 술을 거의 매일 마시고, 줄이려고 해도 멈추지 못하는 게 큰 문제예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1204.3881020508707,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "despair",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "술을 거의 매일 마시고, 줄이려고 해도 멈추지 못하는 게 큰 문제예요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false
+    },
+    {
+      "turn": 1,
+      "patient_message": "저는 최근 건강검진에서 간 수치가 많이 올라갔다는 결과를 받아서 술을 줄여야겠다고 생각했어요. 그런데 술을 거의 매일 마시고, 줄이려고 해도 멈추지 못하는 게 큰 문제예요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술을 거의 매일 마시고, 줄이려고 해도 멈추지 못하는 게 큰 문제"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 최근 스스로를 해치고 싶거나 죽고 싶다는 생각이 들거나, 다른 사람에게 해를 끼치고 싶은 충동이 있는지 궁금해요.",
+      "slot_updates": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과를 받은 후 술을 줄여야겠다고 생각했으나, 거의 매일 술을 마시고 줄이려고 해도 멈추지 못하는 문제 지속"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과를 받은 후 술을 줄여야겠다고 생각했으나, 거의 매일 술을 마시고 줄이려고 해도 멈추지 못하는 문제 지속"
+      },
+      "slot_coverage": 0.2,
+      "latency_ms": 3733.7856655940413,
+      "timestamp": "2026-07-11T20:19:56.992540",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.125,
+      "normalizer_meta": {
+        "original": "저는 최근 건강검진에서 간 수치가 많이 올라갔다는 결과를 받아서 술을 줄여야겠다고 생각했어요. 그런데 술을 거의 매일 마시고, 줄이려고 해도 멈추지 못하는 게 큰 문제예요.",
+        "normalized": "저는 최근 건강검진에서 간 수치가 많이 올라갔다는 결과를 받아서 술을 줄여야겠다고 생각했어요. 그런데 술을 거의 매일 마시고, 줄이려고 해도 멈추지 못하는 게 큰 문제예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1204.3881020508707,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "술을 거의 매일 마시고, 줄이려고 해도 멈추지 못하는 게 큰 문제예요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 2,
+      "patient_message": "그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "self_harm",
+        "suicidal_ideation",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [
+        "자해"
+      ],
+      "agent_response": "그 마음을 계속 가지고 계시면서도 행동으로 옮기지 못하시는 게 답답하고 힘드실 것 같아요. 혹시 최근에 복용하고 계신 다른 약이나 건강보조식품이 있으신가요? 또는 처방약이 새로 바뀌거나 추가된 것이 있는지 알려주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.\""
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과를 받은 후 술을 줄여야겠다고 생각했으나, 거의 매일 술을 마시고 줄이려고 해도 멈추지 못하는 문제 지속",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.\""
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5175.978540908545,
+      "timestamp": "2026-07-11T20:20:06.377936",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.",
+        "normalized": "그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1107.425320893526,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 3,
+      "patient_message": "아니요, 복용하는 약이나 건강보조식품은 없습니다. 다만 술을 줄이려는 시도가 자꾸 실패하는 게 답답하고 힘들어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술을 줄이려는 시도가 자꾸 실패하는 게 답답하고 힘들어요"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 가족분들 중에 술을 줄이려고 노력하셨거나 비슷한 어려움을 겪으셨던 분이 계신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "술을 거의 매일 마시며 줄이려는 시도가 계속 실패하는 문제",
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과를 받아 술을 줄여야겠다고 생각했으나, 매일 술을 마시며 줄이려는 시도가 반복적으로 실패하고 있음"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과를 받아 술을 줄여야겠다고 생각했으나, 매일 술을 마시며 줄이려는 시도가 반복적으로 실패하고 있음",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.\"",
+        "chief_complaint": "술을 거의 매일 마시며 줄이려는 시도가 계속 실패하는 문제"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3401.2202410958707,
+      "timestamp": "2026-07-11T20:20:13.940869",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "아니요, 복용하는 약이나 건강보조식품은 없습니다. 다만 술을 줄이려는 시도가 자꾸 실패하는 게 답답하고 힘들어요.",
+        "normalized": "아니요, 복용하는 약이나 건강보조식품은 없습니다. 다만 술을 줄이려는 시도가 자꾸 실패하는 게 답답하고 힘들어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1345.1845301315188,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.8
+          },
+          {
+            "label": "anger",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "술을 줄이려는 시도가 자꾸 실패하는 게 답답하고 힘들어요",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 4,
+      "patient_message": "가족 중에 술을 문제로 겪은 분은 없었어요. 다만 제가 술을 줄이려고 여러 번 시도했지만, 의지로 안 되더라고요. 스트레스 받으면 자꾸 술 생각이 나서 더 어려워요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술을 줄이려고 여러 번 시도했지만, 의지로 안 되더라고요",
+        "스트레스 받으면 자꾸 술 생각이 나서"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 최근에 술 외에도 수면제나 진정제, 카페인 같은 다른 물질을 사용하신 적이 있는지 알려주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "술을 줄이려고 여러 번 시도했으나 의지로 안 되고, 스트레스 받으면 술 생각이 나서 더 어려워함",
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과를 받아 술을 줄여야겠다고 생각했으나, 거의 매일 술을 마시고 있으며 줄이려는 시도가 계속 실패하고 있음. 스트레스 상황에서 술 생각이 더 강해져 조절이 어려움"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과를 받아 술을 줄여야겠다고 생각했으나, 거의 매일 술을 마시고 있으며 줄이려는 시도가 계속 실패하고 있음. 스트레스 상황에서 술 생각이 더 강해져 조절이 어려움",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.\"",
+        "chief_complaint": "술을 줄이려고 여러 번 시도했으나 의지로 안 되고, 스트레스 받으면 술 생각이 나서 더 어려워함"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3966.509194113314,
+      "timestamp": "2026-07-11T20:20:24.844126",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "가족 중에 술을 문제로 겪은 분은 없었어요. 다만 제가 술을 줄이려고 여러 번 시도했지만, 의지로 안 되더라고요. 스트레스 받으면 자꾸 술 생각이 나서 더 어려워요.",
+        "normalized": "가족 중에 술을 문제로 겪은 분은 없었어요. 다만 제가 술을 줄이려고 여러 번 시도했지만, 의지로 안 되더라고요. 스트레스 받으면 자꾸 술 생각이 나서 더 어려워요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2243.296047206968,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "가족 중에 술을 문제로 겪은 분은 없었어요. 다만 제가 술을 줄이려고 여러 번 시도했지만, 의지로 안 되더라고요. 스트레스 받으면 자꾸 술 생각이 나서 더 어려워요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 5,
+      "patient_message": "최근에 술 외에도 특별히 수면제나 진정제, 카페인 같은 다른 물질은 전혀 사용하지 않았어요. 술이 제 문제일 뿐이에요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 과거에 정신건강의학과 진료를 받으신 적이 있거나, 현재 정기적으로 상담을 받고 계신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "술을 줄이려고 여러 번 시도했으나 의지로 안 되고, 스트레스 받을 때 술 생각이 나서 더 어려워함",
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과를 받아 술을 줄여야겠다고 생각했으나, 술을 거의 매일 마시고 줄이려는 시도가 계속 실패함. 스트레스 받을 때 술 생각이 나서 더 어려워함"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과를 받아 술을 줄여야겠다고 생각했으나, 술을 거의 매일 마시고 줄이려는 시도가 계속 실패함. 스트레스 받을 때 술 생각이 나서 더 어려워함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.\"",
+        "chief_complaint": "술을 줄이려고 여러 번 시도했으나 의지로 안 되고, 스트레스 받을 때 술 생각이 나서 더 어려워함"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3776.537260040641,
+      "timestamp": "2026-07-11T20:20:33.998773",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "최근에 술 외에도 특별히 수면제나 진정제, 카페인 같은 다른 물질은 전혀 사용하지 않았어요. 술이 제 문제일 뿐이에요.",
+        "normalized": "최근에 술 외에도 특별히 수면제나 진정제, 카페인 같은 다른 물질은 전혀 사용하지 않았어요. 술이 제 문제일 뿐이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1494.0727958455682,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "최근에 술 외에도 특별히 수면제나 진정제, 카페인 같은 다른 물질은 전혀 사용하지 않았어요. 술이 제 문제일 뿐이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 6,
+      "patient_message": "정신과를 간 적은 없어요. 이 앱이 처음이에요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 현재 혼자 술을 줄이려고 노력하시는 게 쉽지 않으실 텐데, 혹시 주변에 술을 함께 줄여갈 수 있는 가족이나 친구가 계신가요? 아니면 혼자서라도 꾸준히 시도해보신 방법이 있다면 알려주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "술을 줄이려고 여러 번 시도했지만 의지로 안 되고, 스트레스 받으면 술 생각이 나서 더 어려워함",
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과를 받아 술을 줄여야겠다고 생각했으나, 거의 매일 술을 마시고 있으며 줄이려는 시도가 계속 실패하고 있음. 스트레스 시 술 생각이 더 강해져 조절이 어려움"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과를 받아 술을 줄여야겠다고 생각했으나, 거의 매일 술을 마시고 있으며 줄이려는 시도가 계속 실패하고 있음. 스트레스 시 술 생각이 더 강해져 조절이 어려움",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.\"",
+        "chief_complaint": "술을 줄이려고 여러 번 시도했지만 의지로 안 되고, 스트레스 받으면 술 생각이 나서 더 어려워함"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4761.644084006548,
+      "timestamp": "2026-07-11T20:20:43.276055",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "정신과를 간 적은 없어요. 이 앱이 처음이에요.",
+        "normalized": "정신과를 간 적은 없어요. 이 앱이 처음이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 947.2594079561532,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "정신과를 간 적은 없어요. 이 앱이 처음이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 7,
+      "patient_message": "배우자가 술 문제로 걱정을 많이 해서, 함께 줄이자고 말은 해봤어요. 하지만 제가 그만 마시라고 해도 멈추지 못하더라고요. 혼자서도 며칠은 참아보려고 해도 스트레스 받거나 저녁 무렵 되면 술이 또 떠올라요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술 생각이 나서 더 어려워요",
+        "혼자서도 며칠은 참아보려고 해도"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 주변에 계신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "술을 줄이려고 여러 번 시도했으나 의지로 멈추지 못하고, 스트레스 시 술 생각이 떠올라 혼자서도 며칠은 참아보려 하지만 실패하는 문제",
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과를 받아 술을 줄여야겠다고 생각했으나, 거의 매일 술을 마시고 있으며 줄이려는 시도가 계속 실패하고 있음. 스트레스 받거나 저녁 무렵에 술 생각이 떠올라 혼자서도 며칠은 참아보려 하지만 결국 다시 마시게 됨. 배우자가 술 문제로 걱정을 많이 하며 함께 줄이자고 말했으나, 환자가 멈추지 못하고 있음"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 결과를 받아 술을 줄여야겠다고 생각했으나, 거의 매일 술을 마시고 있으며 줄이려는 시도가 계속 실패하고 있음. 스트레스 받거나 저녁 무렵에 술 생각이 떠올라 혼자서도 며칠은 참아보려 하지만 결국 다시 마시게 됨. 배우자가 술 문제로 걱정을 많이 하며 함께 줄이자고 말했으나, 환자가 멈추지 못하고 있음",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.\"",
+        "chief_complaint": "술을 줄이려고 여러 번 시도했으나 의지로 멈추지 못하고, 스트레스 시 술 생각이 떠올라 혼자서도 며칠은 참아보려 하지만 실패하는 문제"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4489.772808272392,
+      "timestamp": "2026-07-11T20:20:53.967307",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "배우자가 술 문제로 걱정을 많이 해서, 함께 줄이자고 말은 해봤어요. 하지만 제가 그만 마시라고 해도 멈추지 못하더라고요. 혼자서도 며칠은 참아보려고 해도 스트레스 받거나 저녁 무렵 되면 술이 또 떠올라요.",
+        "normalized": "배우자가 술 문제로 걱정을 많이 해서, 함께 줄이자고 말은 해봤어요. 하지만 제가 그만 마시라고 해도 멈추지 못하더라고요. 혼자서도 며칠은 참아보려고 해도 스트레스 받거나 저녁 무렵 되면 술이 또 떠올라요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2902.2763441316783,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.8
+          },
+          {
+            "label": "despair",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "배우자가 술 문제로 걱정을 많이 해서, 함께 줄이자고 말은 해봤어요. 하지만 제가 그만 마시라고 해도 멈추지 못하더라고요. 혼자서도 며칠은 참아보려고 해도 스트레스 받거나 저녁 무렵 되면 술이 또 떠올라요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 8,
+      "patient_message": "배우자가 제일 걱정해 주긴 하지만, 제가 술을 줄이려는 걸 잘 못 알아채는 것 같아요. 그래도 제가 술 문제를 인정한 건 건강검진 결과와 배우자에게 미안한 마음 때문이에요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 과거에 정신건강의학과 진료를 받으신 적이 있는지, 또는 현재 정기적으로 상담을 받고 계신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "건강검진에서 간 수치 상승으로 인한 술 줄이기 어려움",
+        "history_of_present_illness": "건강검진에서 간 수치 상승 확인 후 술 줄이기 시도했으나 매일 음주 지속, 의지로 중단 실패, 스트레스 시 술 생각 재발",
+        "substance_use_history": "매일 음주, 술 줄이기 시도 실패, 스트레스 시 음주 재발"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "건강검진에서 간 수치 상승 확인 후 술 줄이기 시도했으나 매일 음주 지속, 의지로 중단 실패, 스트레스 시 술 생각 재발",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.\"",
+        "chief_complaint": "건강검진에서 간 수치 상승으로 인한 술 줄이기 어려움",
+        "substance_use_history": "매일 음주, 술 줄이기 시도 실패, 스트레스 시 음주 재발"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5821.852962952107,
+      "timestamp": "2026-07-11T20:21:05.155119",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "배우자가 제일 걱정해 주긴 하지만, 제가 술을 줄이려는 걸 잘 못 알아채는 것 같아요. 그래도 제가 술 문제를 인정한 건 건강검진 결과와 배우자에게 미안한 마음 때문이에요.",
+        "normalized": "배우자가 제일 걱정해 주긴 하지만, 제가 술을 줄이려는 걸 잘 못 알아채는 것 같아요. 그래도 제가 술 문제를 인정한 건 건강검진 결과와 배우자에게 미안한 마음 때문이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1401.8826428800821,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "배우자가 제일 걱정해 주긴 하지만, 제가 술을 줄이려는 걸 잘 못 알아채는 것 같아요. 그래도 제가 술 문제를 인정한 건 건강검진 결과와 배우자에게 미안한 마음 때문이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 9,
+      "patient_message": "정신과를 간 적은 없어요. 이 앱이 처음이에요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 힘들 때 연락하거나 도움을 요청할 수 있는 다른 사람이 주변에 계신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "건강검진에서 간 수치 상승으로 인한 술 줄이기 어려움",
+        "history_of_present_illness": "건강검진에서 간 수치 상승 확인 후 술 줄이기 시도했으나 매일 음주 지속, 의지로 중단 실패, 스트레스 시 술 생각 증가",
+        "substance_use_history": "매일 음주, 술 줄이기 시도 실패, 스트레스 시 술 생각 증가"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "건강검진에서 간 수치 상승 확인 후 술 줄이기 시도했으나 매일 음주 지속, 의지로 중단 실패, 스트레스 시 술 생각 증가",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.\"",
+        "chief_complaint": "건강검진에서 간 수치 상승으로 인한 술 줄이기 어려움",
+        "substance_use_history": "매일 음주, 술 줄이기 시도 실패, 스트레스 시 술 생각 증가"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4162.1470847167075,
+      "timestamp": "2026-07-11T20:21:13.544153",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "정신과를 간 적은 없어요. 이 앱이 처음이에요.",
+        "normalized": "정신과를 간 적은 없어요. 이 앱이 처음이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1004.0962677448988,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "정신과를 간 적은 없어요. 이 앱이 처음이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 10,
+      "patient_message": "배우자가 제일 걱정해 주긴 하지만, 제가 술을 줄이려는 걸 잘 못 알아채는 것 같아요. 그래도 제가 술 문제를 인정한 건 건강검진 결과와 배우자에게 미안한 마음 때문이에요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "배우자가 술 문제로 걱정을 많이 해서",
+        "함께 줄이자고 말은 해봤어요",
+        "제가 그만 마시라고 해도 멈추지 못하더라고요",
+        "혼자서도 며칠은 참아보려고 해도 스트레스 받거나 저녁 무렵 되면 술이 또 떠올라요"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 과거에 정신과 진료를 받으신 적이 있거나, 현재 정기적인 상담을 받고 계신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "건강검진에서 간 수치 상승으로 인한 술 줄이기 어려움",
+        "history_of_present_illness": "건강검진 결과 간 수치 상승 확인 후 술 줄이기 시도했으나 매일 음주 지속, 의지로 중단 실패, 스트레스 시 술 생각 증가",
+        "substance_use_history": "매일 음주, 의지로 중단 실패, 스트레스 시 술 생각 증가"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "건강검진 결과 간 수치 상승 확인 후 술 줄이기 시도했으나 매일 음주 지속, 의지로 중단 실패, 스트레스 시 술 생각 증가",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.\"",
+        "chief_complaint": "건강검진에서 간 수치 상승으로 인한 술 줄이기 어려움",
+        "substance_use_history": "매일 음주, 의지로 중단 실패, 스트레스 시 술 생각 증가"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5629.719869233668,
+      "timestamp": "2026-07-11T20:21:24.501962",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "배우자가 제일 걱정해 주긴 하지만, 제가 술을 줄이려는 걸 잘 못 알아채는 것 같아요. 그래도 제가 술 문제를 인정한 건 건강검진 결과와 배우자에게 미안한 마음 때문이에요.",
+        "normalized": "배우자가 제일 걱정해 주긴 하지만, 제가 술을 줄이려는 걸 잘 못 알아채는 것 같아요. 그래도 제가 술 문제를 인정한 건 건강검진 결과와 배우자에게 미안한 마음 때문이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1578.582496382296,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "배우자가 제일 걱정해 주긴 하지만, 제가 술을 줄이려는 걸 잘 못 알아채는 것 같아요. 그래도 제가 술 문제를 인정한 건 건강검진 결과와 배우자에게 미안한 마음 때문이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-11T20:19:45.907062",
+  "ended_at": "2026-07-11T20:21:29.456435",
+  "grounded_coverage": 0.5,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 1,
+      "forced": false
+    },
+    {
+      "type": "si_screen_result",
+      "turn": 2,
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"그런 생각은 전혀 없어요. 제 문제는 술을 줄이고 싶은 마음뿐이에요. 자해하거나 해치고 싶다는 생각은 전혀 하지 않았어요.\""
+    }
+  ],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.6395,
+  "patient_lng": 127.0255,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.14071259647607803,
+    "reason_summary": "Session sentiment: ['sadness', 'despair'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "despair"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.38,
+      "despair": 0.29,
+      "anxiety": 0.17,
+      "neutral": 0.12,
+      "anger": 0.04
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.75
+      },
+      {
+        "turn": 1,
+        "polarity": -0.7
+      },
+      {
+        "turn": 2,
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "polarity": -0.7
+      },
+      {
+        "turn": 4,
+        "polarity": -0.65
+      },
+      {
+        "turn": 5,
+        "polarity": -0.65
+      },
+      {
+        "turn": 6,
+        "polarity": -0.6
+      },
+      {
+        "turn": 7,
+        "polarity": -0.75
+      },
+      {
+        "turn": 8,
+        "polarity": -0.65
+      },
+      {
+        "turn": 9,
+        "polarity": -0.6
+      },
+      {
+        "turn": 10,
+        "polarity": -0.65
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 9회 반복",
+      "despair 표현 7회 반복",
+      "anxiety 표현 4회 반복",
+      "neutral 표현 3회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "anxiety",
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "despair",
+          "anger"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "sadness",
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "sadness",
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-11",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v3",
+  "prior_handoff": null,
+  "carried_slot_provenance": {}
+}
