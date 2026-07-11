@@ -38,6 +38,7 @@ from typing import Any
 from src.agents.clinical_slot import ALL_SLOT_KEYS, ESSENTIAL_SLOT_KEYS, ClinicalSlotAgent
 from src.agents.dialogue import DialogueAgent
 from src.agents.input_normalizer import InputNormalizerAgent
+from src.agents.nearby_facilities import NearbyFacilitiesAgent
 from src.agents.ocr import OCRAgent
 from src.agents.patient_history import PatientHistoryAgent
 from src.agents.safety_classifier import SafetyClassifierAgent
@@ -45,6 +46,7 @@ from src.agents.sentiment_analyzer import SentimentAnalyzerAgent
 from src.agents.stt import STTAgent
 from src.dependencies import (
     get_model_router,
+    get_nearby_agent,
     get_ocr_agent,
     get_prompt_loader,
     get_stt_agent,
@@ -61,6 +63,7 @@ from src.grounding import (
 from src.schemas.clinical_slot import ClinicalSlotInput
 from src.schemas.dialogue import DialogueInput
 from src.schemas.input_normalizer import InputNormalizerInput
+from src.schemas.nearby import NearbySearchInput
 from src.schemas.ocr import DocumentType, OCRInput, OCROutput
 from src.schemas.phr import PhrLoadInput, PhrSummary
 from src.schemas.safety import SafetyInput, SafetyOutput
@@ -75,6 +78,15 @@ logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]  # apps/ai-server/src/f1.py → neurosync/
 OUTPUT_DIR = PROJECT_ROOT / "docs" / "ai" / "simulation_results"
+
+# 페르소나별 임의 위치 (persona MD 주소 기준 · Kakao geocoded 좌표).
+# 실 프로덕션에서는 모바일 GPS·환자 프로필 좌표를 사용.
+PERSONA_LOCATIONS: dict[str, tuple[float, float]] = {
+    "VP-001": (37.5807, 126.8898),  # 서울 마포구
+    "VP-002": (37.4020, 127.1087),  # 경기 성남 판교
+    "VP-003": (37.4782, 126.9515),  # 서울 관악구
+    "VP-004": (37.5510, 126.8495),  # 서울 강서구
+}
 
 CRISIS_RESPONSE = (
     "지금 많이 힘드시군요. 당신의 이야기를 듣고 있습니다. "
@@ -202,6 +214,10 @@ class F1Result:
     probe_events: list[dict] = field(default_factory=list)
     # min CTRS over ALL turns INCLUDING turn 0 (ISS-036 partial fix)
     session_ctrs: int = 5
+    # Crisis 발동 시 근처 정신건강의학과 top-N (환자 좌표 기반 HIRA 검색)
+    nearby_psychiatric: list[dict] = field(default_factory=list)
+    patient_lat: float | None = None
+    patient_lng: float | None = None
     # T1-F1-DEV-004/008 — OCR documents attached to this session
     ocr_documents: list[dict] = field(default_factory=list)
     # T1-F1-DEV-003/007 — STT transcripts consumed (one per patient turn if audio input)
@@ -468,6 +484,8 @@ class F1Pipeline:
         self.normalizer = InputNormalizerAgent(model_router=mr, prompt_loader=pl)
         # 명세 준수: 매 턴 sentiment (Mode A) + 세션 종료 sentiment (Mode B).
         self.sentiment = SentimentAnalyzerAgent(model_router=mr, prompt_loader=pl)
+        # HIRA 근처 시설 검색 — Crisis 시 정신과 top-3 안내용 (lazy load)
+        self._nearby: NearbyFacilitiesAgent | None = None
         # OCR + STT are optional — instantiated lazily only when needed.
         # Failing here (e.g. UPSTAGE_API_KEY missing) should not break text-only
         # sessions; guarded by try/except when actually used.
@@ -480,6 +498,76 @@ class F1Pipeline:
         if self._history is None:
             self._history = PatientHistoryAgent()
         return self._history
+
+    def _get_nearby_agent(self) -> NearbyFacilitiesAgent | None:
+        """Lazy load. HIRA_SERVICE_KEY 없으면 None 반환 (crisis 안내 skip)."""
+        if self._nearby is None:
+            try:
+                self._nearby = get_nearby_agent()
+            except Exception as exc:
+                logger.warning("Nearby agent unavailable, crisis will use static text: %s", exc)
+                self._nearby = None
+        return self._nearby
+
+    async def _fetch_crisis_facilities(
+        self,
+        lat: float | None,
+        lng: float | None,
+        *,
+        radius_km: float = 5.0,
+        top_n: int = 3,
+    ) -> tuple[str, list[dict]]:
+        """환자 위치 기반 근처 정신건강의학과 top-N을 조회.
+
+        Note: 가장 가까운 1곳(top-1)은 의도적으로 제외하고 그 다음 top_n을 반환한다.
+        HIRA `dgsbjtCd=03` 필터로 반환되는 최근접 후보는 대형 종합병원인 경우가
+        많아 응급실 대기·접근성 이슈가 있어, 실질적 방문 가능성이 높은
+        차상위 후보들을 안내한다.
+        """
+        if lat is None or lng is None:
+            return "", []
+        agent = self._get_nearby_agent()
+        if agent is None:
+            return "", []
+        try:
+            # Agent가 hospital 분기에서 dgsbjtCd=03 + 종별 필터를 강제한다.
+            # 요양병원 등 제외 후에도 top_n+1개 이상 남도록 넉넉히 요청.
+            resp = await agent.search(NearbySearchInput(
+                session_id="crisis-nearby",
+                entity_type="hospital",
+                lat=lat,
+                lng=lng,
+                radius_km=radius_km,
+                num_of_rows=30,
+            ))
+        except Exception as exc:
+            logger.warning("Crisis nearby search failed: %s", exc)
+            return "", []
+        if not resp.places:
+            return "", []
+
+        # 최근접(index 0) 스킵, 다음 top_n 사용
+        chosen = resp.places[1 : top_n + 1]
+        if not chosen:
+            return "", []
+
+        lines = ["", "📍 가까운 정신건강의학과:"]
+        records: list[dict] = []
+        for i, pl in enumerate(chosen, 1):
+            dist = f"{pl.distance_km:.1f}km" if pl.distance_km is not None else "-"
+            phone = f" · ☎ {pl.phone}" if pl.phone else ""
+            lines.append(f"{i}. {pl.name} ({dist}){phone}")
+            records.append({
+                "rank": i,
+                "name": pl.name,
+                "distance_km": pl.distance_km,
+                "phone": pl.phone,
+                "address": pl.address,
+                "type_name": pl.type_name,
+                "lat": pl.lat,
+                "lng": pl.lng,
+            })
+        return "\n".join(lines), records
 
     def _get_ocr_agent(self) -> OCRAgent:
         if self._ocr is None:
@@ -827,6 +915,8 @@ class F1Pipeline:
         is_revisit: bool = False,
         prior_handoff: str = "",
         prior_slots: dict[str, str] | None = None,
+        patient_lat: float | None = None,
+        patient_lng: float | None = None,
         ocr_documents: list[Path | str] | None = None,
         ocr_document_hints: list[DocumentType] | None = None,
         audio_inputs: list[Path | str] | None = None,
@@ -842,6 +932,8 @@ class F1Pipeline:
             is_revisit: 재진 여부
             prior_handoff: 이전 handoff report (재진 시)
             prior_slots: 이전 세션에서 수집된 slot (재진 시)
+            patient_lat, patient_lng: 환자 위치 (Crisis 시 근처 정신과 안내용).
+                None이면 CRISIS_RESPONSE에 병원 정보 미포함.
             ocr_documents: 세션 시작 시 OCR 처리할 문서 경로 목록 (진단서/처방전 등)
             ocr_document_hints: 각 문서 유형 힌트 ('diagnosis', 'prescription', ...).
                                 미지정 시 자동 감지.
@@ -855,6 +947,8 @@ class F1Pipeline:
         """
         result = F1Result(
             session_id=session_id,
+            patient_lat=patient_lat,
+            patient_lng=patient_lng,
             persona_id=persona_id,
             persona_name=persona_name,
             started_at=datetime.now().isoformat(),
@@ -1137,6 +1231,18 @@ class F1Pipeline:
             result.total_turns = 0
             result.final_slots = [{"key": k, "value": v} for k, v in filled_slots.items() if v]
             result.slot_coverage = turn0_coverage
+            # 근처 정신과 안내를 CRISIS_RESPONSE에 첨부
+            nearby_text, nearby_records = await self._fetch_crisis_facilities(
+                patient_lat, patient_lng,
+            )
+            if nearby_text:
+                # Turn 0 log의 agent_response는 greeting이라 손대지 않고,
+                # crisis_response는 별도 필드로 저장 (report 렌더링 시 사용).
+                result.nearby_psychiatric = nearby_records
+                logger.warning(
+                    "Crisis at turn 0 — appended %d nearby psychiatric hospitals",
+                    len(nearby_records),
+                )
             return _finalize()
 
         # Record opening in history
@@ -1298,6 +1404,17 @@ class F1Pipeline:
             if crisis:
                 # ── CTRS 1-2 (or probe escalation): Crisis → 세션 종료 ──
                 agent_response = CRISIS_RESPONSE
+                # 근처 정신과 top-3 자동 안내 (patient_lat/lng 있을 때)
+                nearby_text, nearby_records = await self._fetch_crisis_facilities(
+                    patient_lat, patient_lng,
+                )
+                if nearby_text:
+                    agent_response = agent_response + "\n" + nearby_text
+                    result.nearby_psychiatric = nearby_records
+                    logger.warning(
+                        "Appended %d nearby psychiatric hospitals to CRISIS response",
+                        len(nearby_records),
+                    )
                 result.crisis_triggered = True
                 result.crisis_turn = turn
                 logger.warning("CRISIS at turn %d (CTRS=%d)", turn, safety_out.ctrs_level)
@@ -1634,9 +1751,27 @@ def _build_report(r: F1Result) -> str:
         f"> Session CTRS (incl. turn 0): {r.session_ctrs} | Risk floor: {r.risk_floor}",
         f"> Started: {r.started_at} | Ended: {r.ended_at}",
         "",
-        "## Full Conversation",
-        "",
     ]
+
+    # Crisis 시 근처 정신과 top-N (섹션이 있으면 대화 앞에 배치)
+    if r.nearby_psychiatric:
+        lines.append("## 🚨 위기 대응 — 근처 정신건강의학과")
+        lines.append("")
+        if r.patient_lat is not None and r.patient_lng is not None:
+            lines.append(
+                f"> 환자 위치: ({r.patient_lat:.6f}, {r.patient_lng:.6f}) · HIRA dgsbjtCd=03"
+            )
+            lines.append("")
+        for rec in r.nearby_psychiatric:
+            phone = f" · ☎ {rec.get('phone')}" if rec.get("phone") else ""
+            addr = f"\n   📍 {rec.get('address', '')}" if rec.get("address") else ""
+            lines.append(
+                f"{rec.get('rank')}. **{rec.get('name')}** "
+                f"({rec.get('distance_km')}km){phone}{addr}"
+            )
+        lines.extend(["", ""])
+
+    lines.extend(["## Full Conversation", ""])
 
     turns = r.turns
 
@@ -1950,6 +2085,8 @@ async def _run_simulation(
     persona_id: str,
     max_turns: int,
     followup_from: str | None = None,
+    patient_lat: float | None = None,
+    patient_lng: float | None = None,
     ocr_documents: list[Path] | None = None,
     ocr_hints: list[DocumentType] | None = None,
     audio_inputs: list[Path] | None = None,
@@ -1961,6 +2098,7 @@ async def _run_simulation(
         followup_from: 이전 세션 결과를 기반으로 재상담 시뮬레이션.
             - persona ID (e.g. "VP-001") → 해당 VP의 최신 결과에서 handoff 생성
             - JSON file path → 해당 파일에서 handoff 생성
+        patient_lat/lng: 환자 좌표. 미지정 시 PERSONA_LOCATIONS에서 자동 조회.
     """
     from tests.simulation.patient_llm import PatientLLM, load_persona
 
@@ -2027,6 +2165,14 @@ async def _run_simulation(
         async def patient_fn(agent_msg: str) -> str:  # type: ignore[misc]
             return await patient.respond(agent_msg)
 
+    # 환자 좌표: 명시 → PERSONA_LOCATIONS 기본값 → None (crisis 안내 skip)
+    resolved_lat = patient_lat
+    resolved_lng = patient_lng
+    if resolved_lat is None or resolved_lng is None:
+        default = PERSONA_LOCATIONS.get(persona_id)
+        if default:
+            resolved_lat, resolved_lng = default
+
     session_suffix = "_followup" if followup_from else ""
     if audio_inputs:
         session_suffix += "_audio"
@@ -2041,6 +2187,8 @@ async def _run_simulation(
         is_revisit=bool(followup_from),  # 명시적 --followup-from만 재상담
         prior_handoff=prior_handoff,
         prior_slots=prior_slots,
+        patient_lat=resolved_lat,
+        patient_lng=resolved_lng,
         ocr_documents=ocr_documents,
         ocr_document_hints=ocr_hints,
         audio_inputs=audio_inputs,
@@ -2071,6 +2219,11 @@ async def _run_simulation(
             f"({psycho_ct} psychotropic), {phr.get('total_visits', 0)} visits · "
             f"psychiatric_history={phr.get('has_psychiatric_history', False)}"
         )
+    if result.nearby_psychiatric:
+        print(f"  Nearby psychiatric (crisis): {len(result.nearby_psychiatric)} hospital(s)")
+        for r in result.nearby_psychiatric[:3]:
+            phone = f" ☎ {r.get('phone')}" if r.get("phone") else ""
+            print(f"    {r.get('rank')}. {r.get('name')} ({r.get('distance_km')}km){phone}")
     print(f"  Errors: {len(result.errors)}")
     print(f"  Files: {', '.join(p.name for p in paths.values())}")
     print(f"{'='*60}")
@@ -2084,6 +2237,14 @@ def main() -> None:
         "--followup-from",
         default=None,
         help="재상담 모드: 이전 세션의 persona ID 또는 conversation.json 경로",
+    )
+    parser.add_argument(
+        "--lat", type=float, default=None,
+        help="환자 위도 (Crisis 시 근처 정신과 안내). 미지정 시 PERSONA_LOCATIONS 사용",
+    )
+    parser.add_argument(
+        "--lng", type=float, default=None,
+        help="환자 경도 (Crisis 시 근처 정신과 안내). 미지정 시 PERSONA_LOCATIONS 사용",
     )
     parser.add_argument(
         "--ocr",
@@ -2212,6 +2373,8 @@ def main() -> None:
             args.persona,
             args.max_turns,
             args.followup_from,
+            patient_lat=args.lat,
+            patient_lng=args.lng,
             ocr_documents=ocr_docs,
             ocr_hints=ocr_hints_list,
             audio_inputs=audio_paths,

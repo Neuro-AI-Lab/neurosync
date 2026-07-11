@@ -6,10 +6,15 @@ import functools
 import logging
 
 from src.adapters.ak_llm import AkLlmAdapter
+from src.adapters.hira_hospital import HiraHospitalAdapter
+from src.adapters.hira_madm_dtl import HiraMadmDtlAdapter
+from src.adapters.hira_pharmacy import HiraPharmacyAdapter
 from src.adapters.k_exaone import KExaoneAdapter
+from src.adapters.kakao_local import KakaoLocalAdapter
 from src.adapters.skt_ak_stt import SktAkSttAdapter
 from src.adapters.solar_document_parse import SolarDocumentParseAdapter
 from src.adapters.solar_pro3 import SolarPro3Adapter
+from src.agents.nearby_facilities import NearbyFacilitiesAgent
 from src.agents.ocr import OCRAgent
 from src.agents.stt import STTAgent
 from src.config import Settings
@@ -71,6 +76,67 @@ def get_prompt_loader() -> PromptLoader:
     """Return the PromptLoader singleton."""
     settings = get_settings()
     return PromptLoader(settings.resolve_prompts_dir())
+
+
+@functools.lru_cache(maxsize=1)
+def get_hira_hospital_adapter() -> HiraHospitalAdapter:
+    """HIRA 병원정보서비스 어댑터 싱글턴."""
+    settings = get_settings()
+    if not settings.hira_service_key:
+        raise RuntimeError(
+            "HIRA hospital adapter requires HIRA_SERVICE_KEY — check .env"
+        )
+    return HiraHospitalAdapter(settings)
+
+
+@functools.lru_cache(maxsize=1)
+def get_hira_pharmacy_adapter() -> HiraPharmacyAdapter:
+    """HIRA 약국정보서비스 어댑터 싱글턴."""
+    settings = get_settings()
+    if not settings.hira_service_key:
+        raise RuntimeError(
+            "HIRA pharmacy adapter requires HIRA_SERVICE_KEY — check .env"
+        )
+    return HiraPharmacyAdapter(settings)
+
+
+@functools.lru_cache(maxsize=1)
+def get_kakao_local_adapter() -> KakaoLocalAdapter | None:
+    """Kakao Local REST 어댑터 (선택적). KAKAO_REST_API_KEY 없으면 None 반환."""
+    settings = get_settings()
+    if not settings.kakao_rest_api_key:
+        logger.warning("kakao-local adapter skipped — KAKAO_REST_API_KEY not set")
+        return None
+    return KakaoLocalAdapter(settings)
+
+
+@functools.lru_cache(maxsize=1)
+def get_hira_madm_dtl_adapter() -> HiraMadmDtlAdapter | None:
+    """HIRA MadmDtl 어댑터 (optional). HIRA_SERVICE_KEY 없으면 None.
+
+    호출 시 승인 미완이면 어댑터 내부에서 403을 흡수하고 None을 반환한다.
+    """
+    settings = get_settings()
+    if not settings.hira_service_key:
+        return None
+    return HiraMadmDtlAdapter(settings)
+
+
+@functools.lru_cache(maxsize=1)
+def get_nearby_agent() -> NearbyFacilitiesAgent:
+    """NearbyFacilitiesAgent 싱글턴 (HIRA 병원 + 약국 어댑터 조합).
+
+    - Kakao Local: 정신건강의학과 카테고리 매칭으로 1차 verified.
+    - HIRA MadmDtl 2.8: Kakao로 verified 못한 곳에 대해 진료과별 전문의 수
+      조회 후 정확한 psychiatry_specialist_count와 verified 판정.
+    - 두 소스 모두 실패 시 verified=False (스펙 §4 fallback).
+    """
+    return NearbyFacilitiesAgent(
+        hospital_adapter=get_hira_hospital_adapter(),
+        pharmacy_adapter=get_hira_pharmacy_adapter(),
+        kakao_adapter=get_kakao_local_adapter(),
+        madm_dtl_adapter=get_hira_madm_dtl_adapter(),
+    )
 
 
 @functools.lru_cache(maxsize=1)

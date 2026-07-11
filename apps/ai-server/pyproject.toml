@@ -48,6 +48,11 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
 
+[tool.ruff.lint.per-file-ignores]
+# routes/nearby.py contains a large embedded HTML/CSS/JS template (Kakao Map demo);
+# reflowing the string would break the rendered page.
+"src/routes/nearby.py" = ["E501"]
+
 [tool.ruff.lint.flake8-bugbear]
 # FastAPI DI helpers are intentionally called in argument defaults (Depends/Query/Form/File).
 extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Form", "fastapi.File"]

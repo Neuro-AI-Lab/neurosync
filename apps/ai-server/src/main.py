@@ -10,6 +10,7 @@ Exposes:
 - POST /ai/domain/infer (F2, standalone — not wired into orchestrator.py)
 - POST /ai/ocr/parse
 - POST /ai/stt/transcribe
+- GET  /ai/nearby/hospitals(/report), /ai/nearby/pharmacies(/report), /ai/nearby/ui — HIRA + Kakao
 
 RAG is in-process only, now and at deployment — there is no RAG HTTP API
 (ADR-017: permanently out of scope). `src.rag.retrieval.retrieve_grounding`
@@ -27,6 +28,7 @@ from src import __version__
 from src.routes.chat import router as chat_router
 from src.routes.domain import router as domain_router
 from src.routes.handoff import router as handoff_router
+from src.routes.nearby import router as nearby_router
 from src.routes.ocr import router as ocr_router
 from src.routes.safety import router as safety_router
 from src.routes.sentiment import router as sentiment_router
@@ -56,6 +58,8 @@ app.include_router(stt_router)
 # F2 (PLAN-2026-W28-C) — standalone route, NOT wired into orchestrator.py's
 # 11-state machine (G-D gate defers production integration).
 app.include_router(domain_router)
+# HIRA 병원/약국 검색 (add/map-api)
+app.include_router(nearby_router)
 
 
 @app.get("/health")
