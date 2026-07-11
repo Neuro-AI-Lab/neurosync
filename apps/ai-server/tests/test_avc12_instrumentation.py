@@ -20,7 +20,7 @@ from src.avc12_instrumentation import (
     greeting_generation_activation,
     input_normalizer_activation,
     input_normalizer_activation_pooled,
-    policy_b_judge_activation_placeholder,
+    policy_b_judge_activation,
 )
 
 
@@ -164,14 +164,39 @@ class TestGreetingGenerationActivation:
         assert stats.rate is None
 
 
-class TestPolicyBJudgePlaceholder:
-    def test_placeholder_has_zero_attempts_and_none_rate(self) -> None:
-        stats = policy_b_judge_activation_placeholder()
+class TestPolicyBJudgeActivation:
+    """PLAN-2026-W28-Q W4 — replaces the pre-W4 placeholder with the real
+    counter, reading the `rag_trigger` field `f2.py`'s `_run()` now
+    persists on every `domain_inference.json` artifact."""
+
+    def test_no_runs_yields_zero_attempts_and_none_rate(self) -> None:
+        stats = policy_b_judge_activation([])
         assert stats.component == "policy_b_judge"
         assert stats.attempts == 0
-        assert stats.activations == 0
         assert stats.rate is None
-        assert "W4" in stats.notes
+
+    def test_policy_a_runs_excluded_from_attempts(self) -> None:
+        """A run where Policy A was active must not count toward Policy B's
+        own activation rate — the two arms measure different things."""
+        runs = [{"rag_trigger": {"policy": "A", "retrieve": True}}]
+        stats = policy_b_judge_activation(runs)
+        assert stats.attempts == 0
+        assert stats.rate is None
+
+    def test_pre_w4_artifact_without_rag_trigger_field_excluded(self) -> None:
+        stats = policy_b_judge_activation([{"repro": {"mode": "rag"}}])
+        assert stats.attempts == 0
+
+    def test_counts_policy_b_retrieve_true_as_activation(self) -> None:
+        runs = [
+            {"rag_trigger": {"policy": "B", "retrieve": True}},
+            {"rag_trigger": {"policy": "B", "retrieve": False}},
+            {"rag_trigger": {"policy": "A", "retrieve": True}},  # excluded
+        ]
+        stats = policy_b_judge_activation(runs)
+        assert stats.attempts == 2
+        assert stats.activations == 1
+        assert stats.rate == pytest.approx(0.5)
 
 
 class TestBuildAvc12Report:
@@ -179,7 +204,7 @@ class TestBuildAvc12Report:
         report = build_avc12_report(
             input_normalizer_activation({"turns": []}),
             greeting_generation_activation([]),
-            policy_b_judge_activation_placeholder(),
+            policy_b_judge_activation([]),
         )
         components = [s["component"] for s in report["avc12_activation_rates"]]
         assert components == [

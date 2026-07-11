@@ -27,8 +27,11 @@ reads a field or log message the production code ALREADY emits:
     already set to the literal `"fallback_static"` by `f1.py`'s own
     turn-0 exception handler when the autonomous `DialogueAgent` greeting
     call fails; any other value means v3 generation actually fired.
-  - Policy-B judge: NOT YET IMPLEMENTED (lands W4, plan §3 "RAG trigger
-    policy B" row) — a disclosed placeholder, never a fabricated number.
+  - Policy-B judge (PLAN-2026-W28-Q W4, landed): the `domain_inference.json`
+    artifact's `rag_trigger` field (`src.rag_trigger.TriggerDecision.
+    as_dict()`, written by `f2.py`'s `_run()`) — already-persisted per-run
+    audit surface, read here exactly like every other counter in this
+    module, no new emission point added.
 
 No production module is imported-from/branched-for/parameterized-by this
 module (AVC-03): this file only reads artifact dicts already written to
@@ -235,21 +238,43 @@ def greeting_generation_activation(
     )
 
 
-def policy_b_judge_activation_placeholder() -> ActivationStats:
-    """Policy-B judge does not exist yet (lands W4, plan §3 RAG trigger
-    policy B row) — an honest, disclosed placeholder. `attempts=0` so
-    `.rate` returns `None`, never a fabricated `0.0` that could misread as
-    "measured and found to be 0% activation"."""
+def policy_b_judge_activation(
+    domain_inference_jsons: Iterable[Mapping[str, Any]],
+) -> ActivationStats:
+    """AVC-12 for the Policy-B judge (PLAN-2026-W28-Q W4, plan §3 RAG
+    trigger policy B row, landed): activation = a Policy-B-arm run whose
+    judge decided ``retrieve=True``, out of every run where Policy B was
+    the CONFIGURED/active arm this run (``rag_trigger.policy == "B"``
+    present, regardless of that run's own retrieve/no-retrieve outcome).
+
+    A run where Policy A was active (``rag_trigger.policy == "A"``, the
+    default) or where ``rag_trigger`` is absent (a pre-W4 artifact) is
+    excluded from ``attempts`` entirely — this counter measures the
+    judge's own activation rate WITHIN its own arm, not "how often does
+    RAG fire across the whole battery" (that is MET-8/the incidence
+    measurement, a different question).
+    """
+    attempts = 0
+    activations = 0
+    for d in domain_inference_jsons:
+        trigger = (d or {}).get("rag_trigger") or {}
+        if trigger.get("policy") != "B":
+            continue
+        attempts += 1
+        if trigger.get("retrieve"):
+            activations += 1
     return ActivationStats(
         component="policy_b_judge",
-        attempts=0,
-        activations=0,
+        attempts=attempts,
+        activations=activations,
         notes=(
-            "NOT YET IMPLEMENTED — Policy-B judge lands in W4 "
-            "(docs/ai/validation_plan_f1f2_continuous.md §3 RAG trigger policy B row). "
-            "W8 must not report a rate for a component that does not exist yet; this "
-            "placeholder exists so the AVC-12 report always names all four components "
-            "even before they are all measurable."
+            "activation = a Policy-B-arm run whose judge decided retrieve=True, out of "
+            "every run where rag_trigger.policy == 'B' (regardless of that run's own "
+            "retrieve/no-retrieve outcome). Reads the domain_inference.json artifact's "
+            "rag_trigger field (PLAN-2026-W28-Q W4, src.rag_trigger.TriggerDecision) — "
+            "same read-only-over-existing-surfaces discipline as this module's other "
+            "counters. attempts=0 (rate=None) whenever no run this battery used Policy B "
+            "at all — never misread as '0% activation'."
         ),
     )
 

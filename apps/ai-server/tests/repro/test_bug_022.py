@@ -32,6 +32,14 @@ F2's `DomainInferenceAgent` is included per this mission's brief ("the F2
 DomainInference input construction") — `error.md` BUG-022 repro step 6
 already confirms F2 calls `retrieve_domain_chunks` (case_card/qa tables
 only), never `retrieve_grounding`/`rag.session_insights`.
+
+PLAN-2026-W28-Q W4 (RAG trigger Policy B): `RagTriggerJudgeInput` is added
+to the allowlist below, mirroring plan §6's "Policy-B judge (new)" allowlist
+row verbatim — licensed input is session transcript + slot state ONLY;
+persona paths and `retrieve_grounding()` are explicitly NOT licensed. The
+schema simply has no field for either, so this guard's exact-match
+assertion (`test_field_allowlist_exact_match`) mechanically catches any
+future drift that would license them.
 """
 
 from __future__ import annotations
@@ -41,6 +49,7 @@ from src.schemas.clinical_slot import ClinicalSlotInput
 from src.schemas.dialogue import DialogueInput
 from src.schemas.domain_inference import DomainInferenceInput
 from src.schemas.input_normalizer import InputNormalizerInput
+from src.schemas.rag_trigger_judge import RagTriggerJudgeInput
 from src.schemas.safety import SafetyInput
 from src.schemas.sentiment import SentimentSessionInput, SentimentUtteranceInput
 
@@ -104,6 +113,16 @@ APPROVED_FIELDS: dict[type[AgentInput], frozenset[str]] = {
         "retrieval_mode",
         "queries",
     },
+    # PLAN-2026-W28-Q W4 (plan §6 "Policy-B judge (new)" allowlist row):
+    # (a) session transcript + slot state ONLY. Explicitly NOT licensed:
+    # persona paths, `retrieve_grounding()` — no field for either exists
+    # on this model, so this guard catches any future drift that would add
+    # one. `risk_assessment` is additionally hard-excluded as a query
+    # source (REV-022 Issue 10) by the CALLER (`src.rag_trigger.decide_
+    # policy_b`, which strips the key from `final_slots` before this
+    # model is ever constructed) — belt-and-braces with the 4 BUG-022
+    # forbidden columns below, not a substitute for them.
+    RagTriggerJudgeInput: _BASE_FIELDS | {"turns", "final_slots"},
 }
 
 
@@ -116,7 +135,8 @@ class TestBug022InputSchemaFieldAllowlist:
         """Fixture sanity: the 7 models this mission's brief names are all
         present — SafetyInput, ClinicalSlotInput, DialogueInput,
         InputNormalizerInput + SentimentAnalyzer's two inputs, and the F2
-        DomainInference input construction."""
+        DomainInference input construction — PLUS the PLAN-2026-W28-Q W4
+        Policy-B judge input, added by this wave's guard extension."""
         expected = {
             SafetyInput,
             ClinicalSlotInput,
@@ -125,6 +145,7 @@ class TestBug022InputSchemaFieldAllowlist:
             SentimentUtteranceInput,
             SentimentSessionInput,
             DomainInferenceInput,
+            RagTriggerJudgeInput,
         }
         assert set(APPROVED_FIELDS) == expected
 

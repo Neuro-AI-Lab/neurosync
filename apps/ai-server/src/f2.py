@@ -33,6 +33,7 @@ from pathlib import Path
 from typing import Any
 
 from src.agents.domain_inference import DomainInferenceAgent
+from src.agents.rag_trigger_judge import RagTriggerJudgeAgent
 from src.dependencies import get_model_router, get_prompt_loader, get_sessionmaker
 from src.eval.f2_grounding import (
     # VAL-011/ADR-020 condition 1: the SAME risk-lexicon primitives the
@@ -48,6 +49,16 @@ from src.eval.f2_grounding import (
 )
 from src.f1 import OUTPUT_DIR
 from src.prompts.loader import resolve_prompts_base_dir
+
+# PLAN-2026-W28-Q W4: RAG trigger Policy A/B — `_STAGE1_QUERY_SLOTS` now
+# lives in `src.rag_trigger` (single source of truth for both this module's
+# own default composition and the trigger-policy mechanism, so the two can
+# never silently drift apart), re-exported here under its historical name
+# for existing callers/tests (`f2._STAGE1_QUERY_SLOTS`,
+# `tests/test_f2_pipeline.py`). See `src.rag_trigger`'s module docstring for
+# the full VAL-010/REV-022 rationale this constant used to carry inline.
+from src.rag_trigger import STAGE1_QUERY_SLOTS as _STAGE1_QUERY_SLOTS
+from src.rag_trigger import decide_policy_a, decide_policy_b, no_rag_decision
 from src.schemas.ai_predicted_disease import AIPredictedDiseaseCandidate, AIPredictedDiseaseOutput
 from src.schemas.domain_inference import (
     DomainCandidate,
@@ -61,26 +72,6 @@ from src.schemas.handoff import ScaleScore
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]  # apps/ai-server/src/f2.py → neurosync/
-
-# C-2: Stage 1 queries are drawn from these F1 slots only.
-# VAL-010 (2026-07-08, code-level mitigation — option a of REV-007
-# finding #3 / REV-010's two named options): `risk_assessment` used to be a
-# third query slot here. It is composed from the Safety Probe/SI-screen
-# exchange (`f1.py:360-373`) — genuinely risk-worded narration by
-# construction, not incidental — and embedding it verbatim as a retrieval
-# query systematically biased Stage 1 toward risk/crisis-topic chunks for
-# higher-risk personas (VP-003/VP-004): EXP-005's live batch showed VP-003's
-# RAG queries were the most risk-topic-saturated in the dataset, retrieving
-# explicit suicide/self-harm case content (e.g. qa:1685/qa:1730/qa:1164).
-# Excluded entirely rather than sanitized/summarized: a lexicon-based
-# sanitizer would only be as complete as its own coverage (the same
-# structural gap class BUG-014/BUG-015 already hit twice in this project's
-# risk-lexicon filter), whereas exclusion removes the bias channel
-# deterministically. chief_complaint/history_of_present_illness — the
-# primary symptom-description slots — continue to drive retrieval unchanged;
-# risk_assessment's SI-screen content does not carry independent
-# domain-retrieval signal beyond what those two slots already provide.
-_STAGE1_QUERY_SLOTS = ("chief_complaint", "history_of_present_illness")
 
 _REVISIT_GREETING_MARKER = "지난번 상담 기록을 확인했습니다"
 
@@ -173,17 +164,37 @@ def _load_scale_scores(path_str: str | None) -> list[ScaleScore]:
 
 
 async def run_stage1(
-    final_slots: dict[str, str], *, no_rag: bool, k: int
+    final_slots: dict[str, str],
+    *,
+    no_rag: bool,
+    k: int,
+    queries_override: list[str] | None = None,
 ) -> tuple[str, list[dict[str, Any]]]:
     """Returns (mode, chunks). mode is 'llm_only' on --no-rag, empty queries, or
     ANY Stage-1 failure (DB/embedding) — never raises, never crashes the run
     (REV-006 condition 6: the fallback is explicit and reported, not silent).
+
+    Args:
+        queries_override: PLAN-2026-W28-Q W4 — when given (not ``None``),
+            used AS-IS instead of the default cc/HPI composition. The
+            RAG-trigger-policy layer (`src.rag_trigger.decide_policy_a`/
+            `decide_policy_b`, called by `_run()` below) is the only
+            intended caller of this parameter — it has ALREADY applied the
+            single-choke-point risk-lexicon filter (REV-022 Issues 9/10)
+            to whatever it passes here. Direct callers of `run_stage1`
+            that omit this argument (e.g. this module's own pre-W4 tests)
+            keep the exact prior default behavior, unfiltered — matching
+            `_STAGE1_QUERY_SLOTS`' own historical, still-unfiltered
+            semantics for that specific call shape.
     """
     if no_rag:
         logger.info("f2.stage1.skipped — --no-rag flag set, mode=llm_only")
         return "llm_only", []
 
-    queries = [final_slots[k2] for k2 in _STAGE1_QUERY_SLOTS if final_slots.get(k2)]
+    if queries_override is not None:
+        queries = queries_override
+    else:
+        queries = [final_slots[k2] for k2 in _STAGE1_QUERY_SLOTS if final_slots.get(k2)]
     if not queries:
         logger.warning(
             "f2.stage1.no_queries — chief_complaint/HPI (VAL-010: risk_assessment "
@@ -603,6 +614,7 @@ def _build_artifact(
     persona_id: str | None,
     ai_predicted_disease: dict[str, Any] | None = None,
     evidence_provenance_summary: dict[str, int] | None = None,
+    rag_trigger: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build the F2 artifact dict.
 
@@ -625,6 +637,15 @@ def _build_artifact(
     :func:`_build_evidence_provenance_summary`'s output dict. Defaults to
     ``None`` for the same backward-compat reason; ``_run()`` always supplies
     a real value.
+
+    ``rag_trigger`` (PLAN-2026-W28-Q W4): ``TriggerDecision.as_dict()``
+    (`src.rag_trigger`) — the active policy (A/B), the effective retrieve
+    decision, the post-filter query list, dropped (risk-lexicon-flagged)
+    queries, and (Policy B only) the judge's own I/O, persisted as an audit
+    surface (this wave's binding requirement). SIBLING top-level key, same
+    convention as ``ai_predicted_disease``/``evidence_provenance_summary``
+    above. ``None`` only for pre-W4 artifacts/tests; ``_run()`` always
+    supplies a real value.
     """
     return {
         "session_id": session_id,
@@ -672,6 +693,10 @@ def _build_artifact(
         # Enhancement #4 code-side half (ADR-021) — additive, read-only over
         # data already validated above; `None` only for pre-#4 artifacts/tests.
         "evidence_provenance_summary": evidence_provenance_summary,
+        # PLAN-2026-W28-Q W4 — SIBLING top-level key, additive; `None` only
+        # for pre-W4 artifacts/tests. `rag_trigger.retrieve` vs `repro.mode`
+        # vs `ai_predicted_disease.mode` is the MET-6 mode-consistency triple.
+        "rag_trigger": rag_trigger,
     }
 
 
@@ -854,6 +879,30 @@ def _build_report(artifact: dict[str, Any]) -> str:
             lines.append("- (no candidates)")
         lines.append("")
 
+    # PLAN-2026-W28-Q W4 — SIBLING section, additive; `None` only for
+    # pre-W4 artifacts/tests.
+    rag_trigger = artifact.get("rag_trigger")
+    if rag_trigger is not None:
+        lines.extend([
+            "## RAG trigger (PLAN-2026-W28-Q W4)",
+            "",
+            f"- policy: **{rag_trigger.get('policy')}**",
+            f"- retrieve: {rag_trigger.get('retrieve')}",
+            f"- trigger_reason: {rag_trigger.get('trigger_reason')}",
+            f"- fallback_used: {rag_trigger.get('fallback_used')}",
+            f"- queries: {rag_trigger.get('queries')}",
+        ])
+        dropped = rag_trigger.get("dropped_queries") or []
+        if dropped:
+            lines.append(
+                f"- **{len(dropped)} query(ies) DROPPED by the single-choke-point "
+                f"risk-lexicon filter (REV-022 Issues 9/10):** {dropped}"
+            )
+        judge_output = rag_trigger.get("judge_output")
+        if judge_output is not None:
+            lines.append(f"- judge_output: {judge_output}")
+        lines.append("")
+
     return "\n".join(lines)
 
 
@@ -889,13 +938,42 @@ async def _run(args: argparse.Namespace) -> None:
     scale_scores = _load_scale_scores(args.scale_scores)
 
     final_slots = {s["key"]: s["value"] for s in data.get("final_slots", []) if s.get("value")}
-    mode, raw_chunks = await run_stage1(final_slots, no_rag=args.no_rag, k=args.k)
-    queries_used = [final_slots[k] for k in _STAGE1_QUERY_SLOTS if final_slots.get(k)]
+    turns_for_trigger = _build_turns(data)
+    probe_events = data.get("probe_events", [])
+
+    # PLAN-2026-W28-Q W4 — config-driven RAG trigger arm (default A). Both
+    # arms funnel through the SAME single-choke-point risk-lexicon filter
+    # (`src.rag_trigger.apply_risk_lexicon_filter`, REV-022 Issues 9/10)
+    # regardless of policy — this is what makes cc/HPI-content exposure
+    # mitigated identically for both arms, not scattered per-source.
+    # `--no-rag` is checked FIRST so Policy B never spends an LLM call when
+    # retrieval is disabled outright.
+    rag_trigger_policy = getattr(args, "rag_trigger_policy", "A") or "A"
+    if args.no_rag:
+        trigger = no_rag_decision(rag_trigger_policy)
+    elif rag_trigger_policy == "B":
+        judge_agent = RagTriggerJudgeAgent(
+            model_router=get_model_router(), prompt_loader=get_prompt_loader()
+        )
+        trigger = await decide_policy_b(
+            judge_agent, session_id=session_id, final_slots=final_slots,
+            turns=turns_for_trigger,
+        )
+    else:
+        trigger = decide_policy_a(final_slots, turns_for_trigger, probe_events)
+
+    if trigger.retrieve:
+        mode, raw_chunks = await run_stage1(
+            final_slots, no_rag=False, k=args.k, queries_override=trigger.queries
+        )
+    else:
+        mode, raw_chunks = "llm_only", []
+    queries_used = trigger.queries if mode == "rag" else []
 
     inp = _build_input(
         data, session_id=session_id, is_first_visit=is_first_visit,
         scale_scores=scale_scores, mode=mode, raw_chunks=raw_chunks,
-        queries_used=queries_used if mode == "rag" else [],
+        queries_used=queries_used,
     )
 
     agent = DomainInferenceAgent(model_router=get_model_router(), prompt_loader=get_prompt_loader())
@@ -956,6 +1034,7 @@ async def _run(args: argparse.Namespace) -> None:
         session_id=session_id, persona_id=persona_id,
         ai_predicted_disease=ai_predicted_disease.model_dump(),
         evidence_provenance_summary=evidence_provenance_summary,
+        rag_trigger=trigger.as_dict(),
     )
 
     out_dir = Path(args.out) if args.out else None
@@ -991,6 +1070,16 @@ def main() -> None:
         "--no-rag", action="store_true", help="Stage 1 검색 건너뛰기(mode=llm_only)"
     )
     parser.add_argument("--k", type=int, default=3, help="Stage 1 테이블별 top-k (기본 3)")
+    parser.add_argument(
+        "--rag-trigger-policy",
+        choices=["A", "B"],
+        default="A",
+        dest="rag_trigger_policy",
+        help=(
+            "RAG 트리거 arm (PLAN-2026-W28-Q W4) — A: 슬롯 기반 + 전체 대화 fallback "
+            "(기본값, 코드 레벨). B: LLM 판정(rag_trigger_judge)."
+        ),
+    )
     parser.add_argument("--out", default=None, help="출력 디렉터리 override")
     parser.add_argument("--scale-scores", default=None, help="F3 척도 점수 JSON 경로(선택)")
     visit_group = parser.add_mutually_exclusive_group()
