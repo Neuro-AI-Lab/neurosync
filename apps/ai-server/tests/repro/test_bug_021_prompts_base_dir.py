@@ -14,6 +14,12 @@ against the real repo-root `docs/ai/prompts/` tree, and
 `TestAgentPromptsDegradedFlag` drives a real `PromptLoader` through
 `SafetyClassifierAgent.run()` (only the LLM adapter/router are mocked — the
 same established pattern as `tests/test_safety_failclosed.py`).
+`TestDomainInferencePromptsDegradedFlag` and
+`TestSentimentAnalyzerPromptsDegradedFlag` extend the identical coverage to
+`DomainInferenceAgent`/`SentimentAnalyzerAgent` (orchestrator disposition on
+developer's W1 open item 1: same defect class as the other 4 agents — the
+W7 battery invokes DomainInference on every F2 call, so a silent degraded F2
+prompt would invisibly corrupt validation results).
 
 Root cause (`error.md` BUG-021): the old guard
 (``if not os.environ.get("PROMPTS_BASE_DIR"): os.environ[...] = default``)
@@ -36,10 +42,20 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from src.adapters.base import LLMAdapter
+from src.agents.domain_inference import (
+    PROMPT_VERSION as DOMAIN_INFERENCE_PROMPT_VERSION,
+)
+from src.agents.domain_inference import DomainInferenceAgent
 from src.agents.safety_classifier import PROMPT_VERSION, SafetyClassifierAgent
+from src.agents.sentiment_analyzer import (
+    PROMPT_VERSION as SENTIMENT_ANALYZER_PROMPT_VERSION,
+)
+from src.agents.sentiment_analyzer import SentimentAnalyzerAgent
 from src.f1 import PROJECT_ROOT
 from src.prompts.loader import PromptLoader, resolve_prompts_base_dir
+from src.schemas.domain_inference import DomainInferenceInput
 from src.schemas.safety import SafetyInput
+from src.schemas.sentiment import SentimentUtteranceInput
 
 _REAL_PROMPTS_DIR = PROJECT_ROOT / "docs" / "ai" / "prompts"
 
@@ -53,6 +69,14 @@ class TestResolvePromptsBaseDirFixture:
     def test_real_prompts_dir_sanity(self) -> None:
         """Fixture isn't stale: the repo-root prompts tree really exists."""
         assert _REAL_PROMPTS_DIR.is_dir()
+        assert (
+            _REAL_PROMPTS_DIR / "domain_inference"
+            / f"{DOMAIN_INFERENCE_PROMPT_VERSION}.system.md"
+        ).is_file()
+        assert (
+            _REAL_PROMPTS_DIR / "sentiment_analyzer"
+            / f"{SENTIMENT_ANALYZER_PROMPT_VERSION}.system.md"
+        ).is_file()
         assert (_REAL_PROMPTS_DIR / "safety_classifier" / f"{PROMPT_VERSION}.system.md").is_file()
 
 
@@ -200,5 +224,145 @@ class TestAgentPromptsDegradedFlag:
         )
 
         assert out.prompts_degraded is True
+
+
+class TestDomainInferencePromptsDegradedFlag:
+    """Same BUG-021 coverage as `TestAgentPromptsDegradedFlag`, extended to
+    `DomainInferenceAgent` (orchestrator disposition, W1 open item 1:
+    DomainInferenceAgent runs on every F2 call — the W7 battery invokes it
+    every time — so a silent degraded F2 prompt would invisibly corrupt
+    validation results; same defect class, same fix as the other 4 agents)."""
+
+    @staticmethod
+    def _make_agent(prompt_loader: PromptLoader) -> DomainInferenceAgent:
+        agent = DomainInferenceAgent.__new__(DomainInferenceAgent)
+        agent._router = MagicMock()
+        agent._prompt_loader = prompt_loader
+        agent._router.select_model.return_value = MagicMock(
+            adapter_name="test",
+            model_id="test",
+            supports_json_schema=False,
+            supports_json_object=False,
+        )
+        adapter = AsyncMock(spec=LLMAdapter)
+        adapter.chat_timed = AsyncMock(
+            return_value=MagicMock(
+                content='{"domain_candidates": [], "department_candidates": [], '
+                '"summary": "ok"}',
+                model="test-model",
+                latency_ms=1.0,
+                finish_reason="stop",
+                usage={"prompt_tokens": 1, "completion_tokens": 1},
+            )
+        )
+        agent._router.get_adapter.return_value = adapter
+        agent._router.record_success = MagicMock()
+        agent._router.record_failure = MagicMock()
+        agent._router.get_fallback.return_value = None
+        return agent
+
+    @staticmethod
+    def _make_input() -> DomainInferenceInput:
+        return DomainInferenceInput(
+            session_id="t-bug021-domain",
+            final_slots={"chief_complaint": "불안감"},
+            session_ctrs=5,
+            crisis_triggered=False,
+            is_first_visit=True,
+        )
+
+    @pytest.mark.asyncio
+    async def test_correct_path_real_prompt_loads_not_degraded(self) -> None:
+        """Real PromptLoader pointed at the real prompts dir -> the real v2
+        prompt loads -> prompts_degraded is False."""
+        agent = self._make_agent(PromptLoader(_REAL_PROMPTS_DIR))
+
+        out = await agent.run(self._make_input())
+
+        assert out.prompts_degraded is False
+
+    @pytest.mark.asyncio
+    async def test_wrong_but_existing_dir_missing_prompt_sets_degraded_flag(
+        self, tmp_path
+    ) -> None:
+        """Real PromptLoader pointed at a real, EXISTING directory that lacks
+        `domain_inference/v2.system.md` -> load_system_prompt raises
+        FileNotFoundError, the agent's own catch site falls back to the
+        generic prompt, and prompts_degraded is now True and machine-visible
+        on the artifact — not just a WARNING log line."""
+        agent = self._make_agent(PromptLoader(tmp_path))
+
+        out = await agent.run(self._make_input())
+
+        assert out.prompts_degraded is True
+        # Sanity: the run still completed — degrade, don't crash.
+        assert out.model_used == "test-model"
+
+
+class TestSentimentAnalyzerPromptsDegradedFlag:
+    """Same BUG-021 coverage as `TestAgentPromptsDegradedFlag`, extended to
+    `SentimentAnalyzerAgent` Mode A (`_analyze_utterance` — the only
+    prompt-fallback-catch site this agent has; Mode B/`_analyze_session`
+    never loads a prompt file, see the agent's own PROMPT_VERSION comment)."""
+
+    @staticmethod
+    def _make_agent(prompt_loader: PromptLoader) -> SentimentAnalyzerAgent:
+        agent = SentimentAnalyzerAgent.__new__(SentimentAnalyzerAgent)
+        agent._router = MagicMock()
+        agent._prompt_loader = prompt_loader
+        agent._router.select_model.return_value = MagicMock(
+            adapter_name="test",
+            model_id="test",
+            supports_json_schema=False,
+            supports_json_object=False,
+        )
+        adapter = AsyncMock(spec=LLMAdapter)
+        adapter.chat_timed = AsyncMock(
+            return_value=MagicMock(
+                content='{"emotions": [{"label": "neutral", "intensity": 0.5}], '
+                '"polarity": 0.0, "arousal": "medium", "evidence_phrase": "", '
+                '"risk_signal": false}',
+                model="test-model",
+                latency_ms=1.0,
+            )
+        )
+        agent._router.get_adapter.return_value = adapter
+        agent._router.record_success = MagicMock()
+        agent._router.record_failure = MagicMock()
+        agent._router.get_fallback.return_value = None
+        return agent
+
+    @pytest.mark.asyncio
+    async def test_correct_path_real_prompt_loads_not_degraded(self) -> None:
+        """Real PromptLoader pointed at the real prompts dir -> the real v2
+        prompt loads -> prompts_degraded is False."""
+        agent = self._make_agent(PromptLoader(_REAL_PROMPTS_DIR))
+
+        out = await agent.run(
+            SentimentUtteranceInput(session_id="t-bug021-sentiment-ok", utterance="괜찮아요")
+        )
+
+        assert out.prompts_degraded is False
+
+    @pytest.mark.asyncio
+    async def test_wrong_but_existing_dir_missing_prompt_sets_degraded_flag(
+        self, tmp_path
+    ) -> None:
+        """Real PromptLoader pointed at a real, EXISTING directory that lacks
+        `sentiment_analyzer/v2.system.md` -> load_system_prompt raises
+        FileNotFoundError, the agent's own catch site falls back to the
+        generic prompt, and prompts_degraded is now True and machine-visible
+        on the artifact — not just a WARNING log line."""
+        agent = self._make_agent(PromptLoader(tmp_path))
+
+        out = await agent.run(
+            SentimentUtteranceInput(
+                session_id="t-bug021-sentiment-degraded", utterance="괜찮아요"
+            )
+        )
+
+        assert out.prompts_degraded is True
+        # Sanity: the run still completed — degrade, don't crash.
+        assert out.model_used == "test-model"
         # Sanity: the run still completed — degrade, don't crash.
         assert out.model_used == "test-model"
