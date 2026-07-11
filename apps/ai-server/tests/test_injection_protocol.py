@@ -72,6 +72,38 @@ class TestInjectionCue:
         )
         assert cue.resolved_label == "custom"
 
+    def test_stt_cue_without_fixture_path_raises(self) -> None:
+        with pytest.raises(ValueError, match="requires `fixture_path`"):
+            InjectionCue(turn_index=0, modality="stt", text="should not matter")
+
+    def test_ocr_cue_without_fixture_path_raises(self) -> None:
+        with pytest.raises(ValueError, match="requires `fixture_path`"):
+            InjectionCue(turn_index=0, modality="ocr")
+
+
+class TestTextModalityCue:
+    """`"text"` modality — literal patient text, no fixture, no vendor call
+    (plan §6 SC-15 prompt-echo probes)."""
+
+    def test_text_cue_requires_non_empty_text(self) -> None:
+        with pytest.raises(ValueError, match="requires a non-empty `text`"):
+            InjectionCue(turn_index=0, modality="text")
+
+    def test_text_cue_does_not_require_fixture_path(self) -> None:
+        cue = InjectionCue(turn_index=0, modality="text", text="안녕하세요, 접니다.")
+        assert cue.fixture_path is None
+        assert cue.text == "안녕하세요, 접니다."
+
+    def test_text_cue_resolved_label_falls_back_to_turn_marker(self) -> None:
+        cue = InjectionCue(turn_index=2, modality="text", text="probe text")
+        assert cue.resolved_label == "text-turn2"
+
+    def test_text_cue_resolved_label_prefers_explicit_label(self) -> None:
+        cue = InjectionCue(
+            turn_index=0, modality="text", text="probe text", label="echo-probe",
+        )
+        assert cue.resolved_label == "echo-probe"
+
 
 class TestScheduleJsonRoundTrip:
     def test_load_schedule_from_json(self, tmp_path: Path) -> None:
@@ -104,6 +136,27 @@ class TestScheduleJsonRoundTrip:
             "turn_index": 0, "modality": "ocr", "fixture_path": str(fixture), "label": "doc",
         }]
 
+    def test_load_schedule_from_json_with_text_modality(self, tmp_path: Path) -> None:
+        schedule_path = tmp_path / "schedule.json"
+        schedule_path.write_text(json.dumps([
+            {"turn_index": 0, "modality": "text", "text": "안녕하세요", "label": "echo"},
+        ]), encoding="utf-8")
+
+        cues = load_schedule_from_json(schedule_path)
+        assert len(cues) == 1
+        assert cues[0].modality == "text"
+        assert cues[0].text == "안녕하세요"
+        assert cues[0].fixture_path is None
+        assert cues[0].label == "echo"
+
+    def test_schedule_to_dicts_includes_text_when_present(self) -> None:
+        cue = InjectionCue(turn_index=0, modality="text", text="probe")
+        dicts = schedule_to_dicts([cue])
+        assert dicts == [{
+            "turn_index": 0, "modality": "text", "fixture_path": None,
+            "label": "text-turn0", "text": "probe",
+        }]
+
 
 class TestValidateSchedule:
     def test_missing_fixture_is_reported(self, tmp_path: Path) -> None:
@@ -127,6 +180,18 @@ class TestValidateSchedule:
         cues = [
             InjectionCue(turn_index=3, modality="ocr", fixture_path=f1),
             InjectionCue(turn_index=3, modality="ocr", fixture_path=f2),
+        ]
+        issues = validate_schedule(cues)
+        assert any("duplicate" in i.reason for i in issues)
+
+    def test_text_cue_never_reports_a_missing_fixture(self) -> None:
+        cue = InjectionCue(turn_index=0, modality="text", text="probe text")
+        assert validate_schedule([cue]) == []
+
+    def test_text_cue_duplicate_turn_index_still_flagged(self) -> None:
+        cues = [
+            InjectionCue(turn_index=1, modality="text", text="a"),
+            InjectionCue(turn_index=1, modality="text", text="b"),
         ]
         issues = validate_schedule(cues)
         assert any("duplicate" in i.reason for i in issues)
@@ -219,6 +284,63 @@ class TestComposeInjectedPatientInputFn:
         )
         with pytest.raises(FileNotFoundError, match="SKIPPED-awaiting-user-material"):
             await composed("greeting")
+
+    @pytest.mark.asyncio
+    async def test_scheduled_text_turn_returns_literal_no_vendor_call(self) -> None:
+        base_fn = AsyncMock(return_value="SHOULD NOT BE USED")
+        get_stt_agent_fn = MagicMock(side_effect=AssertionError("STT agent must not be built"))
+        get_ocr_agent_fn = MagicMock(side_effect=AssertionError("OCR agent must not be built"))
+
+        cue = InjectionCue(
+            turn_index=0, modality="text", text="CANARY-ECHO-PROBE-XYZ", label="echo-probe",
+        )
+        composed, events = compose_injected_patient_input_fn(
+            base_fn, schedule=[cue], session_id="s1", patient_id="VP-001",
+            get_stt_agent_fn=get_stt_agent_fn, get_ocr_agent_fn=get_ocr_agent_fn,
+        )
+
+        result = await composed("agent turn 0")
+
+        assert result == "CANARY-ECHO-PROBE-XYZ"
+        base_fn.assert_not_awaited()
+        get_stt_agent_fn.assert_not_called()
+        get_ocr_agent_fn.assert_not_called()
+        assert len(events) == 1
+        ev = events[0]
+        assert ev.modality == "text"
+        assert ev.source_id == "text:echo-probe"
+        assert ev.vendor == "literal"
+        assert ev.latency_ms == 0.0
+        assert ev.text == "CANARY-ECHO-PROBE-XYZ"
+        assert ev.char_count == len("CANARY-ECHO-PROBE-XYZ")
+
+    @pytest.mark.asyncio
+    async def test_text_only_schedule_never_constructs_a_vendor_client(self) -> None:
+        """A schedule mixing multiple text cues across turns must never
+        touch either vendor-agent factory — the composer's default factory
+        args are the LIVE production factories, so this proves a real
+        vendor client is never constructed for a text-only run."""
+        base_fn = AsyncMock(return_value="filler")
+        get_stt_agent_fn = MagicMock(side_effect=AssertionError("must not be built"))
+        get_ocr_agent_fn = MagicMock(side_effect=AssertionError("must not be built"))
+
+        schedule = [
+            InjectionCue(turn_index=0, modality="text", text="첫 발화"),
+            InjectionCue(turn_index=2, modality="text", text="세 번째 발화"),
+        ]
+        composed, events = compose_injected_patient_input_fn(
+            base_fn, schedule=schedule, session_id="s1", patient_id="VP-001",
+            get_stt_agent_fn=get_stt_agent_fn, get_ocr_agent_fn=get_ocr_agent_fn,
+        )
+
+        assert await composed("turn 0") == "첫 발화"
+        assert await composed("turn 1 (not scheduled)") == "filler"
+        assert await composed("turn 2") == "세 번째 발화"
+
+        get_stt_agent_fn.assert_not_called()
+        get_ocr_agent_fn.assert_not_called()
+        assert len(events) == 2
+        assert base_fn.await_count == 1
 
     @pytest.mark.asyncio
     async def test_ocr_text_bounded_by_max_ocr_chars(self, tmp_path: Path) -> None:

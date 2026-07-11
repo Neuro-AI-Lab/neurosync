@@ -23,7 +23,7 @@ document (OCR'd) that becomes their turn's message.
 `compose_injected_patient_input_fn()` wraps an existing base
 `patient_input_fn` (e.g. the live `PatientLLM.respond` `f1._run_simulation`
 already builds) with a per-scenario **injection schedule** — a turn index
--> modality (`"stt"` | `"ocr"`) -> fixture-file mapping. On a scheduled
+-> modality (`"stt"` | `"ocr"` | `"text"`) -> cue mapping. On a scheduled
 turn, instead of delegating to the base function, the composed function
 invokes the SAME production agents f1.py itself uses
 (`src.dependencies.get_stt_agent()` / `get_ocr_agent()`) against the
@@ -31,6 +31,13 @@ fixture file and returns the REAL vendor-transcribed/parsed text as that
 turn's patient message — mirroring what a real client's STT/OCR call would
 hand back. Every other (non-scheduled) turn is untouched — delegates to
 `base_fn` unchanged.
+
+`"text"` modality (plan §6 SC-15 prompt-echo probes): the cue's own
+literal `text` string is returned as-is for its scheduled turn — NO
+vendor/model call, no `fixture_path` required. This is the LITERAL-patient-
+text injection mode: it schedules an exact, pre-written adversarial or
+malformed patient turn (e.g. a prompt-echo/mutation probe string) without
+needing an audio/document fixture at all.
 
 ## Modality provenance (AVC-15)
 
@@ -122,7 +129,7 @@ from src.schemas.stt import STTInput
 logger = logging.getLogger(__name__)
 
 PatientInputFn = Callable[[str], Awaitable[str]]
-Modality = Literal["stt", "ocr"]
+Modality = Literal["stt", "ocr", "text"]
 
 _DEFAULT_STT_KEYWORDS = ["우울감", "불면", "불안", "자살", "자해"]
 
@@ -150,54 +157,76 @@ class InjectionCue:
     `patient_input_fn` ever receives), 1..N = the per-turn loop. This is a
     call-ordinal counter internal to the composed function, not a lookup
     into any already-existing conversation state.
+
+    `fixture_path` is required for `"stt"`/`"ocr"` cues (a vendor call needs
+    a file) and MUST be omitted (`None`) for `"text"` cues — `"text"` cues
+    instead require a non-empty `text`, the literal patient message
+    returned verbatim at that turn (no fixture, no vendor call).
     """
 
     turn_index: int
     modality: Modality
-    fixture_path: Path
+    fixture_path: Path | None = None
     label: str = ""
+    text: str = ""
 
     def __post_init__(self) -> None:
         if self.turn_index < 0:
             raise ValueError(f"turn_index must be >= 0, got {self.turn_index}")
-        if self.modality not in ("stt", "ocr"):
-            raise ValueError(f"modality must be 'stt' or 'ocr', got {self.modality!r}")
-        if not isinstance(self.fixture_path, Path):
-            object.__setattr__(self, "fixture_path", Path(self.fixture_path))
+        if self.modality not in ("stt", "ocr", "text"):
+            raise ValueError(f"modality must be 'stt', 'ocr', or 'text', got {self.modality!r}")
+        if self.modality == "text":
+            if not self.text:
+                raise ValueError("modality='text' requires a non-empty `text`")
+        else:
+            if self.fixture_path is None:
+                raise ValueError(f"modality={self.modality!r} requires `fixture_path`")
+            if not isinstance(self.fixture_path, Path):
+                object.__setattr__(self, "fixture_path", Path(self.fixture_path))
 
     @property
     def resolved_label(self) -> str:
-        return self.label or self.fixture_path.stem
+        if self.label:
+            return self.label
+        if self.fixture_path is not None:
+            return self.fixture_path.stem
+        return f"text-turn{self.turn_index}"
 
 
 def load_schedule_from_json(path: Path) -> list[InjectionCue]:
     """Load a per-scenario injection schedule: a JSON list of
-    ``{"turn_index": int, "modality": "stt"|"ocr", "fixture_path": str,
+    ``{"turn_index": int, "modality": "stt"|"ocr"|"text", "fixture_path": str
+    (required for "stt"/"ocr"), "text": str (required for "text"),
     "label": str (optional)}`` objects."""
     raw = json.loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(raw, list):
         raise ValueError(f"schedule file must contain a JSON list, got {type(raw).__name__}")
-    return [
-        InjectionCue(
+    cues = []
+    for entry in raw:
+        fixture_path_raw = entry.get("fixture_path")
+        cues.append(InjectionCue(
             turn_index=int(entry["turn_index"]),
             modality=entry["modality"],
-            fixture_path=Path(entry["fixture_path"]),
+            fixture_path=Path(fixture_path_raw) if fixture_path_raw else None,
             label=entry.get("label", ""),
-        )
-        for entry in raw
-    ]
+            text=entry.get("text", ""),
+        ))
+    return cues
 
 
 def schedule_to_dicts(schedule: Sequence[InjectionCue]) -> list[dict[str, Any]]:
-    return [
-        {
+    out: list[dict[str, Any]] = []
+    for c in schedule:
+        d: dict[str, Any] = {
             "turn_index": c.turn_index,
             "modality": c.modality,
-            "fixture_path": str(c.fixture_path),
+            "fixture_path": str(c.fixture_path) if c.fixture_path is not None else None,
             "label": c.resolved_label,
         }
-        for c in schedule
-    ]
+        if c.text:
+            d["text"] = c.text
+        out.append(d)
+    return out
 
 
 @dataclass(frozen=True)
@@ -210,7 +239,9 @@ def validate_schedule(schedule: Sequence[InjectionCue]) -> list[ScheduleValidati
     """Dry-run schedule check — ZERO vendor/model calls. Fixture existence
     + duplicate-turn-index + modality sanity only. Lets an SC-6/SC-10
     schedule be authored and checked before the fixtures physically land
-    (module docstring)."""
+    (module docstring). `"text"` cues carry no fixture and are skipped by
+    the fixture-existence check — `InjectionCue.__post_init__` already
+    guarantees a non-empty `text` at construction time."""
     issues: list[ScheduleValidationIssue] = []
     seen_turns: set[int] = set()
     for cue in schedule:
@@ -219,7 +250,9 @@ def validate_schedule(schedule: Sequence[InjectionCue]) -> list[ScheduleValidati
                 cue.turn_index, "duplicate turn_index in schedule (last one wins silently)",
             ))
         seen_turns.add(cue.turn_index)
-        if not cue.fixture_path.exists():
+        if cue.modality == "text":
+            continue
+        if cue.fixture_path is None or not cue.fixture_path.exists():
             issues.append(ScheduleValidationIssue(
                 cue.turn_index,
                 f"fixture not found: {cue.fixture_path} — SKIPPED-awaiting-user-material "
@@ -263,6 +296,31 @@ def _stt_source_id(cue: InjectionCue) -> str:
 
 def _ocr_source_id(cue: InjectionCue) -> str:
     return f"ocr:{cue.resolved_label}"
+
+
+def _text_source_id(cue: InjectionCue) -> str:
+    return f"text:{cue.resolved_label}"
+
+
+def _run_text_cue(cue: InjectionCue) -> tuple[str, ModalityProvenanceEvent]:
+    """Return the cue's own literal text — ZERO vendor/model call, no
+    `fixture_path` involved. `latency_ms=0.0` is honest (no I/O happened),
+    not a placeholder."""
+    text = cue.text
+    event = ModalityProvenanceEvent(
+        turn_index=cue.turn_index,
+        modality="text",
+        fixture_path="",
+        label=cue.resolved_label,
+        source_id=_text_source_id(cue),
+        vendor="literal",
+        char_count=len(text),
+        latency_ms=0.0,
+        extracted_at=datetime.now().isoformat(),
+        text=text,
+        text_preview=text[:10],
+    )
+    return text, event
 
 
 async def _run_stt_cue(
@@ -374,7 +432,19 @@ def compose_injected_patient_input_fn(
         if cue is None:
             return await base_fn(agent_response)
 
-        if not cue.fixture_path.exists():
+        if cue.modality == "text":
+            # No fixture, no vendor/model call — the cue's own literal
+            # string becomes this turn's patient message verbatim.
+            text, event = _run_text_cue(cue)
+            events.append(event)
+            logger.info(
+                "injection_protocol.turn_injected — turn=%d modality=text source_id=%s "
+                "chars=%d",
+                turn_index, event.source_id, event.char_count,
+            )
+            return text
+
+        if cue.fixture_path is None or not cue.fixture_path.exists():
             raise FileNotFoundError(
                 f"injection_protocol: scheduled {cue.modality} fixture missing for turn "
                 f"{turn_index}: {cue.fixture_path} — SKIPPED-awaiting-user-material until "
