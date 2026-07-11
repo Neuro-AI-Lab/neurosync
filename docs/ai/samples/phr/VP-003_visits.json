@@ -1,0 +1,698 @@
+{
+  "publicData": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "10000000",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+          ]
+        },
+        "identifier": [
+          {
+            "type": {
+              "coding": [
+                {
+                  "system": "http://myhealthway.go.kr(가칭)",
+                  "code": "MHID"
+                }
+              ]
+            },
+            "system": "미정",
+            "value": "20530003"
+          },
+          {
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                  "code": "NNKOR"
+                }
+              ]
+            },
+            "system": "http://mois.go.kr/rnn",
+            "value": "8305678******"
+          }
+        ],
+        "name": [
+          {
+            "text": "박민수"
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "ExplanationOfBenefit",
+        "id": "v003-1",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicExplanationOfBenefit"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "리소스식별자(미정)",
+            "value": "v003-1"
+          }
+        ],
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "v003-1-org",
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "미정",
+                    "code": "미정",
+                    "display": "병의원"
+                  }
+                ],
+                "text": "병의원"
+              }
+            ],
+            "name": "관악성모의원",
+            "address": [
+              {
+                "text": "서울특별시 관악구 남부순환로"
+              }
+            ]
+          }
+        ],
+        "status": "active",
+        "type": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+              "code": "professional",
+              "display": "professional"
+            }
+          ]
+        },
+        "use": "claim",
+        "patient": {
+          "reference": "Patient/10000000",
+          "resource": {
+            "resourceType": "Patient",
+            "id": "10000000",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+              ]
+            },
+            "identifier": [
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://myhealthway.go.kr(가칭)",
+                      "code": "MHID"
+                    }
+                  ]
+                },
+                "system": "미정",
+                "value": "20530003"
+              },
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                      "code": "NNKOR"
+                    }
+                  ]
+                },
+                "system": "http://mois.go.kr/rnn",
+                "value": "8305678******"
+              }
+            ],
+            "name": [
+              {
+                "text": "박민수"
+              }
+            ]
+          }
+        },
+        "billablePeriod": {
+          "start": "2026-03-22"
+        },
+        "provider": {
+          "reference": "Organization/v003-1-org"
+        },
+        "outcome": "complete",
+        "total": {
+          "value": 13000,
+          "currency": "KRW"
+        },
+        "diagnosis": []
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "ExplanationOfBenefit",
+        "id": "v003-2",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicExplanationOfBenefit"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "리소스식별자(미정)",
+            "value": "v003-2"
+          }
+        ],
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "v003-2-org",
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "미정",
+                    "code": "미정",
+                    "display": "약국"
+                  }
+                ],
+                "text": "약국"
+              }
+            ],
+            "name": "관악프라자약국",
+            "address": [
+              {
+                "text": "서울특별시 관악구 관악로"
+              }
+            ]
+          }
+        ],
+        "status": "active",
+        "type": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+              "code": "pharmacy",
+              "display": "pharmacy"
+            }
+          ]
+        },
+        "use": "claim",
+        "patient": {
+          "reference": "Patient/10000000",
+          "resource": {
+            "resourceType": "Patient",
+            "id": "10000000",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+              ]
+            },
+            "identifier": [
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://myhealthway.go.kr(가칭)",
+                      "code": "MHID"
+                    }
+                  ]
+                },
+                "system": "미정",
+                "value": "20530003"
+              },
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                      "code": "NNKOR"
+                    }
+                  ]
+                },
+                "system": "http://mois.go.kr/rnn",
+                "value": "8305678******"
+              }
+            ],
+            "name": [
+              {
+                "text": "박민수"
+              }
+            ]
+          }
+        },
+        "billablePeriod": {
+          "start": "2026-03-22"
+        },
+        "provider": {
+          "reference": "Organization/v003-2-org"
+        },
+        "outcome": "complete",
+        "total": {
+          "value": 4500,
+          "currency": "KRW"
+        },
+        "diagnosis": []
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "ExplanationOfBenefit",
+        "id": "v003-3",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicExplanationOfBenefit"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "리소스식별자(미정)",
+            "value": "v003-3"
+          }
+        ],
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "v003-3-org",
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "미정",
+                    "code": "미정",
+                    "display": "병의원"
+                  }
+                ],
+                "text": "병의원"
+              }
+            ],
+            "name": "낙성대내과의원",
+            "address": [
+              {
+                "text": "서울특별시 관악구 남부순환로"
+              }
+            ]
+          }
+        ],
+        "status": "active",
+        "type": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+              "code": "professional",
+              "display": "professional"
+            }
+          ]
+        },
+        "use": "claim",
+        "patient": {
+          "reference": "Patient/10000000",
+          "resource": {
+            "resourceType": "Patient",
+            "id": "10000000",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+              ]
+            },
+            "identifier": [
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://myhealthway.go.kr(가칭)",
+                      "code": "MHID"
+                    }
+                  ]
+                },
+                "system": "미정",
+                "value": "20530003"
+              },
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                      "code": "NNKOR"
+                    }
+                  ]
+                },
+                "system": "http://mois.go.kr/rnn",
+                "value": "8305678******"
+              }
+            ],
+            "name": [
+              {
+                "text": "박민수"
+              }
+            ]
+          }
+        },
+        "billablePeriod": {
+          "start": "2026-04-15"
+        },
+        "provider": {
+          "reference": "Organization/v003-3-org"
+        },
+        "outcome": "complete",
+        "total": {
+          "value": 15000,
+          "currency": "KRW"
+        },
+        "diagnosis": []
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "ExplanationOfBenefit",
+        "id": "v003-4",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicExplanationOfBenefit"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "리소스식별자(미정)",
+            "value": "v003-4"
+          }
+        ],
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "v003-4-org",
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "미정",
+                    "code": "미정",
+                    "display": "약국"
+                  }
+                ],
+                "text": "약국"
+              }
+            ],
+            "name": "관악프라자약국",
+            "address": [
+              {
+                "text": "서울특별시 관악구 관악로"
+              }
+            ]
+          }
+        ],
+        "status": "active",
+        "type": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+              "code": "pharmacy",
+              "display": "pharmacy"
+            }
+          ]
+        },
+        "use": "claim",
+        "patient": {
+          "reference": "Patient/10000000",
+          "resource": {
+            "resourceType": "Patient",
+            "id": "10000000",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+              ]
+            },
+            "identifier": [
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://myhealthway.go.kr(가칭)",
+                      "code": "MHID"
+                    }
+                  ]
+                },
+                "system": "미정",
+                "value": "20530003"
+              },
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                      "code": "NNKOR"
+                    }
+                  ]
+                },
+                "system": "http://mois.go.kr/rnn",
+                "value": "8305678******"
+              }
+            ],
+            "name": [
+              {
+                "text": "박민수"
+              }
+            ]
+          }
+        },
+        "billablePeriod": {
+          "start": "2026-04-15"
+        },
+        "provider": {
+          "reference": "Organization/v003-4-org"
+        },
+        "outcome": "complete",
+        "total": {
+          "value": 7200,
+          "currency": "KRW"
+        },
+        "diagnosis": []
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "ExplanationOfBenefit",
+        "id": "v003-5",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicExplanationOfBenefit"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "리소스식별자(미정)",
+            "value": "v003-5"
+          }
+        ],
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "v003-5-org",
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "미정",
+                    "code": "미정",
+                    "display": "병의원"
+                  }
+                ],
+                "text": "병의원"
+              }
+            ],
+            "name": "서울특별시보라매병원",
+            "address": [
+              {
+                "text": "서울특별시 동작구 보라매로 5길"
+              }
+            ]
+          }
+        ],
+        "status": "active",
+        "type": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+              "code": "professional",
+              "display": "professional"
+            }
+          ]
+        },
+        "use": "claim",
+        "patient": {
+          "reference": "Patient/10000000",
+          "resource": {
+            "resourceType": "Patient",
+            "id": "10000000",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+              ]
+            },
+            "identifier": [
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://myhealthway.go.kr(가칭)",
+                      "code": "MHID"
+                    }
+                  ]
+                },
+                "system": "미정",
+                "value": "20530003"
+              },
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                      "code": "NNKOR"
+                    }
+                  ]
+                },
+                "system": "http://mois.go.kr/rnn",
+                "value": "8305678******"
+              }
+            ],
+            "name": [
+              {
+                "text": "박민수"
+              }
+            ]
+          }
+        },
+        "billablePeriod": {
+          "start": "2026-06-25"
+        },
+        "provider": {
+          "reference": "Organization/v003-5-org"
+        },
+        "outcome": "complete",
+        "total": {
+          "value": 68000,
+          "currency": "KRW"
+        },
+        "diagnosis": []
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "ExplanationOfBenefit",
+        "id": "v003-6",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicExplanationOfBenefit"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "리소스식별자(미정)",
+            "value": "v003-6"
+          }
+        ],
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "v003-6-org",
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "미정",
+                    "code": "미정",
+                    "display": "약국"
+                  }
+                ],
+                "text": "약국"
+              }
+            ],
+            "name": "봉천새롬약국",
+            "address": [
+              {
+                "text": "서울특별시 관악구 봉천로"
+              }
+            ]
+          }
+        ],
+        "status": "active",
+        "type": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+              "code": "pharmacy",
+              "display": "pharmacy"
+            }
+          ]
+        },
+        "use": "claim",
+        "patient": {
+          "reference": "Patient/10000000",
+          "resource": {
+            "resourceType": "Patient",
+            "id": "10000000",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+              ]
+            },
+            "identifier": [
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://myhealthway.go.kr(가칭)",
+                      "code": "MHID"
+                    }
+                  ]
+                },
+                "system": "미정",
+                "value": "20530003"
+              },
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                      "code": "NNKOR"
+                    }
+                  ]
+                },
+                "system": "http://mois.go.kr/rnn",
+                "value": "8305678******"
+              }
+            ],
+            "name": [
+              {
+                "text": "박민수"
+              }
+            ]
+          }
+        },
+        "billablePeriod": {
+          "start": "2026-06-25"
+        },
+        "provider": {
+          "reference": "Organization/v003-6-org"
+        },
+        "outcome": "complete",
+        "total": {
+          "value": 3800,
+          "currency": "KRW"
+        },
+        "diagnosis": []
+      }
+    }
+  ],
+  "medicalData": [],
+  "healthData": {
+    "stepCount": [],
+    "stepDistance": [],
+    "energyBurned": [],
+    "sleep": [],
+    "bloodGlucose": [],
+    "weight": [],
+    "bloodPressure": []
+  }
+}

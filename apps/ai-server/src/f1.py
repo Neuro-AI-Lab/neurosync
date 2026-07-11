@@ -39,6 +39,7 @@ from src.agents.clinical_slot import ALL_SLOT_KEYS, ESSENTIAL_SLOT_KEYS, Clinica
 from src.agents.dialogue import DialogueAgent
 from src.agents.input_normalizer import InputNormalizerAgent
 from src.agents.ocr import OCRAgent
+from src.agents.patient_history import PatientHistoryAgent
 from src.agents.safety_classifier import SafetyClassifierAgent
 from src.agents.sentiment_analyzer import SentimentAnalyzerAgent
 from src.agents.stt import STTAgent
@@ -61,6 +62,7 @@ from src.schemas.clinical_slot import ClinicalSlotInput
 from src.schemas.dialogue import DialogueInput
 from src.schemas.input_normalizer import InputNormalizerInput
 from src.schemas.ocr import DocumentType, OCRInput, OCROutput
+from src.schemas.phr import PhrLoadInput, PhrSummary
 from src.schemas.safety import SafetyInput, SafetyOutput
 from src.schemas.sentiment import (
     SentimentSessionInput,
@@ -206,6 +208,8 @@ class F1Result:
     stt_transcripts: list[dict] = field(default_factory=list)
     # T1-F1-DEV-011~013 — Mode B session-level sentiment (calculated at session end)
     session_sentiment: dict = field(default_factory=dict)
+    # PHR (개인건강기록) — 세션 시작 시 로드된 myhealthway PHR 요약.
+    phr_summary: dict = field(default_factory=dict)
 
 
 _CONTENT_TYPE_BY_SUFFIX: dict[str, str] = {
@@ -321,6 +325,71 @@ def _format_ocr_for_context(out: OCROutput) -> str:
     return "\n".join(lines)
 
 
+# ── PHR (개인건강기록) helpers ──────────────────────────────────────
+
+# 페르소나별 기본 PHR 샘플 경로 (익명화 fake data).
+# CLI `--phr-vp-default` 편의 인자가 이를 참조.
+PERSONA_PHR_FILES: dict[str, list[str]] = {
+    "VP-001": [
+        "docs/ai/samples/phr/VP-001_medications.json",
+        "docs/ai/samples/phr/VP-001_visits.json",
+    ],
+    "VP-002": [
+        "docs/ai/samples/phr/VP-002_medications.json",
+        "docs/ai/samples/phr/VP-002_visits.json",
+    ],
+    "VP-003": [
+        "docs/ai/samples/phr/VP-003_medications.json",
+        "docs/ai/samples/phr/VP-003_visits.json",
+    ],
+    "VP-004": [
+        "docs/ai/samples/phr/VP-004_medications.json",
+        "docs/ai/samples/phr/VP-004_visits.json",
+    ],
+}
+
+
+def _format_phr_for_context(summary: PhrSummary, agent: PatientHistoryAgent) -> str:
+    """PHR summary → conversation_history에 넣을 system 컨텍스트 문자열.
+
+    LLM이 환자 병력·복약 이력을 인지하도록 안내. AI 진단이 아니라 PHR
+    (건보공단 마이헬스웨이 계열) 원본에서 추출한 사실만 담는다.
+    """
+    if summary.total_medication_events == 0 and summary.total_visits == 0:
+        return ""
+
+    lines: list[str] = ["[환자 PHR — 마이헬스웨이 개인건강기록 요약, AI 판단 아님]"]
+    note = agent.to_system_prompt_note(summary)
+    if note:
+        lines.append(f"- {note}")
+
+    # 정신과 약물이 있으면 상세 (최근 3건) 노출
+    if summary.psychotropic_medications:
+        lines.append("- 정신과 계열 약물 최근 조제:")
+        for m in summary.psychotropic_medications[-3:]:
+            when = m.dispensed_at.isoformat() if m.dispensed_at else "-"
+            days = m.days_supply if m.days_supply is not None else "?"
+            freq = m.daily_frequency if m.daily_frequency is not None else "?"
+            lines.append(
+                f"  · {when} · {m.product_name} [{m.psychotropic_class}] "
+                f"{days}일치 · {freq}회/일"
+            )
+    else:
+        lines.append("- 정신과 계열 약물 이력 없음 (PHR 조회 범위 내).")
+
+    # 진료 방문 요약
+    lines.append(
+        f"- 총 조제 {summary.total_medication_events}건 · "
+        f"방문 {summary.total_visits}건 (정신과명 포함 {summary.psychiatric_visit_count}건)"
+    )
+    lines.append("")
+    lines.append(
+        "안내: 위 정보는 환자의 PHR 원본에서 추출한 참고 자료이며, "
+        "AI가 새로 부여한 진단이 아닙니다. 대화 중 자연스럽게 참조하세요."
+    )
+    return "\n".join(lines)
+
+
 def _extract_text(response: str) -> str:
     """Extract natural text from possibly JSON-wrapped agent response."""
     stripped = response.strip()
@@ -404,6 +473,13 @@ class F1Pipeline:
         # sessions; guarded by try/except when actually used.
         self._ocr: OCRAgent | None = None
         self._stt: STTAgent | None = None
+        # PHR (myhealthway PHR reader). No external API key needed — file-based v1.
+        self._history: PatientHistoryAgent | None = None
+
+    def _get_history_agent(self) -> PatientHistoryAgent:
+        if self._history is None:
+            self._history = PatientHistoryAgent()
+        return self._history
 
     def _get_ocr_agent(self) -> OCRAgent:
         if self._ocr is None:
@@ -754,6 +830,7 @@ class F1Pipeline:
         ocr_documents: list[Path | str] | None = None,
         ocr_document_hints: list[DocumentType] | None = None,
         audio_inputs: list[Path | str] | None = None,
+        phr_paths: list[Path | str] | None = None,
     ) -> F1Result:
         """한 세션 실행.
 
@@ -771,6 +848,10 @@ class F1Pipeline:
             audio_inputs: 환자 음성 입력 파일 경로 목록. 지정 시 STT로 전사 후
                           그 텍스트를 patient_input_fn 대신 순차 사용한다.
                           patient_input_fn과 상호 배타적 (audio_inputs 우선).
+            phr_paths: 마이헬스웨이 계열 PHR JSON 파일 경로 목록
+                       (투약/진료 각각 여러 파일 병합 가능). 지정 시 세션 시작
+                       시점에 로드해 병력 요약을 대화 시스템 프롬프트에 주입하고
+                       F1Result.phr_summary에 저장한다.
         """
         result = F1Result(
             session_id=session_id,
@@ -830,6 +911,39 @@ class F1Pipeline:
                 len(ocr_outputs),
                 session_id,
             )
+
+        # ── PHR: 세션 시작 시 마이헬스웨이 개인건강기록 로드 ──
+        # 처방·진료 기록이 있으면 DialogueAgent에 사전 인지 컨텍스트로 전달한다.
+        # (대화 시작 전 · base system prompt 앞부분에 결합)
+        phr_context_for_dialogue: str = ""
+        if phr_paths:
+            history_agent = self._get_history_agent()
+            try:
+                phr_summary = await history_agent.run(
+                    PhrLoadInput(
+                        session_id=session_id,
+                        bundle_paths=[str(p) for p in phr_paths],
+                    )
+                )
+            except Exception as exc:  # 개별 파일 실패는 agent 내부에서 흡수됨
+                logger.warning("PHR load failed for session %s: %s", session_id, exc)
+                phr_summary = None
+            if phr_summary is not None:
+                result.phr_summary = phr_summary.model_dump(mode="json")
+                ctx = _format_phr_for_context(phr_summary, history_agent)
+                if ctx:
+                    # (1) 대화 이전 인지: DialogueAgent가 매 턴 system prompt에 결합
+                    phr_context_for_dialogue = ctx
+                    # (2) 안전망: conversation_history에도 system 메시지로 남겨 다른
+                    #    소비층(로그·재현·다른 agent)이 참조 가능하게 유지.
+                    conversation_history.append({"role": "system", "content": ctx})
+                logger.info(
+                    "PHR loaded for session %s — %d meds (%d psychotropic), %d visits",
+                    session_id,
+                    phr_summary.total_medication_events,
+                    len(phr_summary.psychotropic_medications),
+                    phr_summary.total_visits,
+                )
 
         # Grounding filter context: patient utterances + which slot the AI's
         # question targeted for each utterance (aligned by index).
@@ -1254,6 +1368,7 @@ class F1Pipeline:
                         filled_slots=filled_slots,
                         safety_result=safety_result_for_dialogue,
                         session_state=session_state,
+                        patient_history_context=phr_context_for_dialogue,
                     ))
                     agent_response = _extract_text(dialogue_out.assistant_response)
                 except Exception as e:
@@ -1645,6 +1760,46 @@ def _build_report(r: F1Result) -> str:
             )
             lines.append("")
 
+    # PHR (개인건강기록) — 세션 시작 시 로드된 요약
+    if r.phr_summary:
+        lines.extend(["", "## PHR — 개인건강기록 요약", ""])
+        phr = r.phr_summary
+        patient = phr.get("patient") or {}
+        lines.append(f"- MHID: {patient.get('mhid', '-')}")
+        lines.append(f"- name_hash: {patient.get('name_hash', '-')}")
+        date_range = phr.get("date_range")
+        if date_range and len(date_range) == 2:
+            lines.append(f"- 커버 기간: {date_range[0]} ~ {date_range[1]}")
+        lines.append(
+            f"- 총 조제: {phr.get('total_medication_events', 0)}건 "
+            f"(정신과 계열 {len(phr.get('psychotropic_medications') or [])}건)"
+        )
+        lines.append(
+            f"- 총 방문: {phr.get('total_visits', 0)}건 "
+            f"(정신과명 포함 {phr.get('psychiatric_visit_count', 0)}건)"
+        )
+        lines.append(
+            f"- 정신과 이력: {'예' if phr.get('has_psychiatric_history') else '아니요'}"
+        )
+        psycho = phr.get("psychotropic_medications") or []
+        if psycho:
+            lines.append("")
+            lines.append("### 정신과 계열 약물 이력")
+            for m in psycho:
+                when = m.get("dispensed_at") or "-"
+                cls = m.get("psychotropic_class", "?")
+                name = m.get("product_name", "-")
+                days = m.get("days_supply")
+                freq = m.get("daily_frequency")
+                extra_parts = []
+                if days is not None:
+                    extra_parts.append(f"{days}일치")
+                if freq is not None:
+                    extra_parts.append(f"{freq}회/일")
+                extra = f" · {' · '.join(extra_parts)}" if extra_parts else ""
+                lines.append(f"- {when} · {name} [{cls}]{extra}")
+        lines.append("")
+
     # STT transcripts (if any)
     if r.stt_transcripts:
         lines.extend(["", "## STT Transcripts (음성 입력)", ""])
@@ -1798,6 +1953,7 @@ async def _run_simulation(
     ocr_documents: list[Path] | None = None,
     ocr_hints: list[DocumentType] | None = None,
     audio_inputs: list[Path] | None = None,
+    phr_paths: list[Path] | None = None,
 ) -> None:
     """시뮬레이션 모드: PatientLLM과 F1Pipeline 대화.
 
@@ -1874,6 +2030,8 @@ async def _run_simulation(
     session_suffix = "_followup" if followup_from else ""
     if audio_inputs:
         session_suffix += "_audio"
+    if phr_paths:
+        session_suffix += "_phr"
     result = await pipeline.run_session(
         patient_input_fn=patient_fn,
         session_id=f"f1_{persona_id}{session_suffix}",
@@ -1886,6 +2044,7 @@ async def _run_simulation(
         ocr_documents=ocr_documents,
         ocr_document_hints=ocr_hints,
         audio_inputs=audio_inputs,
+        phr_paths=phr_paths,
     )
 
     paths = save_f1_result(result)
@@ -1904,6 +2063,14 @@ async def _run_simulation(
     print(f"  Probe events: {len(result.probe_events)}")
     print(f"  OCR documents: {len(result.ocr_documents)}")
     print(f"  STT transcripts: {len(result.stt_transcripts)}")
+    if result.phr_summary:
+        phr = result.phr_summary
+        psycho_ct = len(phr.get("psychotropic_medications") or [])
+        print(
+            f"  PHR: {phr.get('total_medication_events', 0)} meds "
+            f"({psycho_ct} psychotropic), {phr.get('total_visits', 0)} visits · "
+            f"psychiatric_history={phr.get('has_psychiatric_history', False)}"
+        )
     print(f"  Errors: {len(result.errors)}")
     print(f"  Files: {', '.join(p.name for p in paths.values())}")
     print(f"{'='*60}")
@@ -1959,6 +2126,24 @@ def main() -> None:
             "docs/ai/simulation_results/{persona}/{persona}-*.mp3를 정렬 순 자동 첨부."
         ),
     )
+    parser.add_argument(
+        "--phr",
+        default=None,
+        help=(
+            "PHR JSON 파일 경로 (콤마 구분, 여러 파일 병합). 지정 시 세션 시작 시 "
+            "마이헬스웨이 개인건강기록을 로드해 병력 요약을 대화 컨텍스트에 주입. "
+            "예: --phr docs/ai/samples/phr/VP-001_medications.json,"
+            "docs/ai/samples/phr/VP-001_visits.json"
+        ),
+    )
+    parser.add_argument(
+        "--phr-vp-default",
+        action="store_true",
+        help=(
+            "편의 옵션: --persona VP-001~004 · --phr 미지정 시 "
+            "PERSONA_PHR_FILES에 등록된 페르소나별 기본 PHR 샘플 파일 자동 첨부."
+        ),
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -2007,6 +2192,21 @@ def main() -> None:
                 f"[Audio default] Auto-attached {len(matches)} audio file(s) for {args.persona}"
             )
 
+    # Resolve PHR inputs
+    phr_paths: list[Path] | None = None
+    if args.phr:
+        phr_paths = [Path(p.strip()) for p in args.phr.split(",") if p.strip()]
+    elif args.phr_vp_default:
+        default_files = PERSONA_PHR_FILES.get(args.persona)
+        if default_files:
+            resolved = [PROJECT_ROOT / p for p in default_files]
+            existing = [p for p in resolved if p.is_file()]
+            if existing:
+                phr_paths = existing
+                print(
+                    f"[PHR default] Auto-attached {len(existing)} PHR file(s) for {args.persona}"
+                )
+
     asyncio.run(
         _run_simulation(
             args.persona,
@@ -2015,6 +2215,7 @@ def main() -> None:
             ocr_documents=ocr_docs,
             ocr_hints=ocr_hints_list,
             audio_inputs=audio_paths,
+            phr_paths=phr_paths,
         )
     )
 

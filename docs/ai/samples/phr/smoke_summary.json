@@ -1,0 +1,66 @@
+[
+  {
+    "vp_id": "VP-001",
+    "name": "김서연 (28F 초진 경증, 마포)",
+    "has_psychiatric_history": false,
+    "medications": 3,
+    "psychotropic": 0,
+    "visits": 4,
+    "psychiatric_visits": 0,
+    "classes": [],
+    "date_range": [
+      "2026-04-12",
+      "2026-05-20"
+    ]
+  },
+  {
+    "vp_id": "VP-002",
+    "name": "이준호 (35M 재진 경증, 판교)",
+    "has_psychiatric_history": true,
+    "medications": 4,
+    "psychotropic": 3,
+    "visits": 7,
+    "psychiatric_visits": 3,
+    "classes": [
+      "SSRI"
+    ],
+    "date_range": [
+      "2026-03-10",
+      "2026-06-01"
+    ]
+  },
+  {
+    "vp_id": "VP-003",
+    "name": "박민수 (42M 초진 중증, 관악)",
+    "has_psychiatric_history": true,
+    "medications": 3,
+    "psychotropic": 1,
+    "visits": 6,
+    "psychiatric_visits": 0,
+    "classes": [
+      "BENZO"
+    ],
+    "date_range": [
+      "2026-03-22",
+      "2026-06-25"
+    ]
+  },
+  {
+    "vp_id": "VP-004",
+    "name": "최하은 (29F 재진 중증, 강서)",
+    "has_psychiatric_history": true,
+    "medications": 8,
+    "psychotropic": 8,
+    "visits": 11,
+    "psychiatric_visits": 5,
+    "classes": [
+      "BENZO",
+      "SSRI",
+      "ZDRUG"
+    ],
+    "date_range": [
+      "2026-01-08",
+      "2026-05-01"
+    ]
+  }
+]

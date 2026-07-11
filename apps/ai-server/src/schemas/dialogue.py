@@ -30,6 +30,14 @@ class DialogueInput(AgentInput):
         default=None,
         description="Orchestrator session state from previous turn (pass-through)",
     )
+    patient_history_context: str = Field(
+        default="",
+        description=(
+            "환자 PHR(개인건강기록) 요약. 세션 시작 전 로드되어 있으면 dialogue "
+            "system prompt 첫 부분에 삽입되어 LLM이 병력·복약을 인지한 상태로 "
+            "대화한다. 비어있으면 무시."
+        ),
+    )
 
 
 class DialogueLLMResponse(BaseModel):
