@@ -1,0 +1,123 @@
+{
+  "session_id": "f1_VP-001",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 0,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [],
+  "slot_coverage": 0.0,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요. 요즘 잠을 잘 못 자서 고민이에요. 누우면 머릿속이 복잡해지고 한 시간 넘게 뒤척이는 것 같아요. 새벽에도 두세 번 깨서 피곤한 상태로 아침을 맞이해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 저는 정신건강 사전 문진을 돕는 AI 상담 도우미입니다. 실제 의사와의 대화가 아니며, 편하게 이야기하셔도 괜찮아요. 오늘 가장 도움받고 싶은 문제나 증상은 무엇인가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자서 고민, 누우면 머릿속이 복잡해지고 한 시간 넘게 뒤척임, 새벽에도 두세 번 깨서 피곤한 상태로 아침을 맞이함",
+        "history_of_present_illness": "잠을 잘 못 자는 증상이 지속되며, 누우면 머릿속이 복잡해지고 한 시간 넘게 뒤척임, 새벽에도 두세 번 깨서 피곤한 상태로 아침을 맞이함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자서 고민, 누우면 머릿속이 복잡해지고 한 시간 넘게 뒤척임, 새벽에도 두세 번 깨서 피곤한 상태로 아침을 맞이함",
+        "history_of_present_illness": "잠을 잘 못 자는 증상이 지속되며, 누우면 머릿속이 복잡해지고 한 시간 넘게 뒤척임, 새벽에도 두세 번 깨서 피곤한 상태로 아침을 맞이함"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 9741.619220934808,
+      "timestamp": "2026-07-11T17:58:35.324093",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "안녕하세요. 요즘 잠을 잘 못 자서 고민이에요. 누우면 머릿속이 복잡해지고 한 시간 넘게 뒤척이는 것 같아요. 새벽에도 두세 번 깨서 피곤한 상태로 아침을 맞이해요.",
+        "normalized": "안녕하세요. 요즘 잠을 잘 못 자서 고민이에요. 누우면 머릿속이 복잡해지고 한 시간 넘게 뒤척이는 것 같아요. 새벽에도 두세 번 깨서 피곤한 상태로 아침을 맞이해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2192.0963167212903,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "누우면 머릿속이 복잡해지고 한 시간 넘게 뒤척이는 것 같아요. 새벽에도 두세 번 깨서 피곤한 상태로 아침을 맞이해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-11T17:58:25.582454",
+  "ended_at": "2026-07-11T17:58:35.324264",
+  "grounded_coverage": 0.25,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5807,
+  "patient_lng": 126.8898,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.052941031754016876,
+    "reason_summary": "Session sentiment: ['anxiety', 'sadness'], strength=moderate",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "anxiety",
+      "sadness"
+    ],
+    "emotion_distribution": {
+      "anxiety": 0.5,
+      "sadness": 0.5
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.7
+      }
+    ],
+    "signal_strength": "moderate",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.7
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-11",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v3",
+  "prior_handoff": null,
+  "carried_slot_provenance": {}
+}

@@ -1,0 +1,125 @@
+{
+  "session_id": "f1_VP-002_followup",
+  "persona_id": "VP-002",
+  "persona_name": "이준호",
+  "total_turns": 0,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [],
+  "slot_coverage": 0.0,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요, 선생님. 약 먹은 지 6주 정도 됐는데, 처음보다는 좀 나아진 것 같아서 확인받으러 왔어요. 지난번에 힘들었던 것들, 특히 잠드는 게 너무 힘들었는데 지금은 30분 안에 잠들고, 수면도 6~7시간 정도로 좋아졌어요. 기분도 예전처럼 매일 우울하진 않고, 주말에는 거의 괜찮을 정도예요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "너무 힘들"
+      ],
+      "agent_response": "안녕하세요, 지난번에 이어서 다시 뵙게 되어 반갑습니다. 오늘은 어떤 마음으로 대화를 시작하셨는지 편하게 말씀해 주시면, 함께 천천히 이야기 나눠보도록 할게요.",
+      "slot_updates": {
+        "history_of_present_illness": "약 복용 6주 경과, 수면 문제 개선(잠드는 시간 30분 이내, 수면 6~7시간), 기분 저하 완화(주중 우울감 감소, 주말 호전)"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "약 복용 6주 경과, 수면 문제 개선(잠드는 시간 30분 이내, 수면 6~7시간), 기분 저하 완화(주중 우울감 감소, 주말 호전)"
+      },
+      "slot_coverage": 0.2,
+      "latency_ms": 11213.622288778424,
+      "timestamp": "2026-07-11T18:00:07.669418",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.125,
+      "normalizer_meta": {
+        "original": "안녕하세요, 선생님. 약 먹은 지 6주 정도 됐는데, 처음보다는 좀 나아진 것 같아서 확인받으러 왔어요.  \n지난번에 힘들었던 것들, 특히 잠드는 게 너무 힘들었는데 지금은 30분 안에 잠들고, 수면도 6~7시간 정도로 좋아졌어요.  \n기분도 예전처럼 매일 우울하진 않고, 주말에는 거의 괜찮을 정도예요.",
+        "normalized": "안녕하세요, 선생님. 약 먹은 지 6주 정도 됐는데, 처음보다는 좀 나아진 것 같아서 확인받으러 왔어요. 지난번에 힘들었던 것들, 특히 잠드는 게 너무 힘들었는데 지금은 30분 안에 잠들고, 수면도 6~7시간 정도로 좋아졌어요. 기분도 예전처럼 매일 우울하진 않고, 주말에는 거의 괜찮을 정도예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2511.882681399584,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.9
+          },
+          {
+            "label": "hope",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "약 먹은 지 6주 정도 됐는데, 처음보다는 좀 나아진 것 같아서 확인받으러 왔어요. 지난번에 힘들었던 것들, 특히 잠드는 게 너무 힘들었는데 지금은 30분 안에 잠들고, 수면도 6~7시간 정도로 좋아졌어요. 기분도 예전처럼 매일 우울하진 않고, 주말에는 거의 괜찮을 정도예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-11T17:59:56.455768",
+  "ended_at": "2026-07-11T18:00:07.669601",
+  "grounded_coverage": 0.125,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.402,
+  "patient_lng": 127.1087,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.05130097270011902,
+    "reason_summary": "Session sentiment: ['relief', 'hope'], strength=none",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "relief",
+      "hope"
+    ],
+    "emotion_distribution": {
+      "relief": 0.5,
+      "hope": 0.5
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": 0.6
+      }
+    ],
+    "signal_strength": "none",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "relief",
+          "hope"
+        ],
+        "polarity": 0.6
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 2,
+  "simulated_date": "2026-07-11",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v3",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n(수집된 정보 없음)\n\n[이전 세션 요약 — 미수집 정보]\nchief_complaint, history_of_present_illness, past_psychiatric_history, medical_history, personal_social_history, family_history, substance_use_history, risk_assessment",
+  "carried_slot_provenance": {}
+}
