@@ -221,14 +221,22 @@ class DialogueAgent(BaseAgent):
 
         if is_repeated:
             logger.warning("DialogueAgent repeated — retrying with stronger hint")
-            missing = [
-                s
-                for s in _ESSENTIAL_SLOTS
-                if s not in inp.filled_slots or not inp.filled_slots.get(s)
-            ]
+            # BUG-025 fix: this used to filter `_ESSENTIAL_SLOTS` only, which
+            # both (a) omits every non-essential questionable slot (past_
+            # psychiatric_history, medical_history, personal_social_history,
+            # family_history, substance_use_history) — exactly the slots the
+            # round-robin target (`compute_target_slot`/`_build_slot_context`)
+            # most often lands on — and (b) could list non-questionable
+            # essential slots (mental_status_exam, clinical_assessment) that
+            # must never be asked about directly. Reuse the SAME canonical
+            # list the slot-context directive itself used to pick this
+            # turn's target, so a retry's hint can never contradict the
+            # instruction the LLM already ignored once.
+            missing = self.missing_questionable_slots(inp.filled_slots)
+            missing_text = ", ".join(missing) if missing else "risk_assessment (안전 확인)"
             hint = (
                 f"\n\n[주의: 이전과 동일한 응답입니다. 반드시 다른 질문을 하세요. "
-                f"미수집 슬롯: {', '.join(missing)}]"
+                f"미수집 슬롯: {missing_text}]"
             )
             messages[-1] = ChatMessage(role="user", content=inp.user_message + hint)
             try:
