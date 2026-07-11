@@ -1,0 +1,50 @@
+[
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-11",
+    "is_revisit": false,
+    "final_slots": {
+      "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+      "history_of_present_illness": "매일 새벽 3시에 깨어 천장만 보며 다시 잠들지 못함. 술 없이는 버틸 수 없다고 표현함. '뭘 해도 안 될 것 같다'는 절망감 표현",
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"형이 있는데... 연락 안 해요. 짐이 되기 싫어서. ...도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 처음이에요. 정신과... 가본 적 없어요.\"",
+      "family_history": "형이 있으나 연락 없음"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "substance_use_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v3"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260711_222625_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260711_222635_domain_inference.json",
+    "written_at": "2026-07-11T22:26:35.163827"
+  },
+  {
+    "session_index": 2,
+    "simulated_date": "2026-07-25",
+    "is_revisit": true,
+    "final_slots": {
+      "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+      "history_of_present_illness": "살고 싶지 않음, 너무 힘듦",
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요. 수면제나 그런 건... 몰라요. 카페인은 별로 안 마셔요. 술은 매일 마셔요. 안 마시면 못 버텨요. ... (침묵 4초) 도움이 되나...\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\"",
+      "family_history": "형이 있으나 연락 없음",
+      "substance_use_history": "술은 매일 마시며, 안 마시면 못 버틴다고 표현함",
+      "medical_history": "고혈압은 있으나 약은 안 먹음"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "personal_social_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v3"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260711_222843_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260711_222853_domain_inference.json",
+    "written_at": "2026-07-11T22:28:53.902063"
+  }
+]

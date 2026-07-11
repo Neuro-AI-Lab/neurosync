@@ -1,0 +1,178 @@
+{
+  "session_id": "f1_VP-003_injected",
+  "persona_id": "VP-003",
+  "repro": {
+    "git_head": "c2c631b53922a584d0e70585e70442ad04af2a52",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260711_224947_conversation.json",
+    "input_sha256": "3a9decba88894fcc5bf7bb5687983068b828cdcd9a85ac4fc8e7e5aa7fcedee3",
+    "mode": "llm_only",
+    "latency_ms": 7658.2,
+    "generated_at": "2026-07-11T22:49:55.611449",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 1574,
+      "completion_tokens": 492,
+      "total_tokens": 2066
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "자살 사고 및 살고 싶지 않다는 반복적 표현, 무기력감, 삶에 대한 무의미함, 음주 의존 등이 관찰됨",
+      "domain_ref": "depression"
+    }
+  ],
+  "summary": "환자는 매일 살고 싶지 않다는 생각이 들고, 삶에 대한 무의미함과 무기력감을 호소하며, 음주 없이는 버티기 어렵다고 표현함. 자살 사고는 있으나 구체적 계획이나 의도는 부인함.",
+  "retrieval_meta": {
+    "mode": "llm_only",
+    "chunks_returned": 0,
+    "chunk_ids": [],
+    "queries": null
+  },
+  "chunk_texts": {},
+  "utterances": {
+    "turn_0": "... 그냥 너무 힘들어요. 살고 싶지 않아요.",
+    "turn_1": "... 그냥 너무 힘들어요. 살고 싶지 않아요.",
+    "turn_2": "거의 매일이에요. 사라지고 싶은 생각이 멈추질 않아요. 어떻게 죽을지까지는... 생각 안 해요. 그냥... 사라지고 싶은 거예요.",
+    "turn_3": "... 어떻게까지는... 생각 안 했어요. 그냥... 사라지고 싶은 거예요.",
+    "turn_4": "... 형은 있는데, 연락 안 해요. 짐이 되기 싫어서. 술 안 마시면 못 버텨요. 그래도... 도움이 될까요? 뭘 해도 안 될 것 같은데.",
+    "turn_5": "그냥 너무 힘들어요 살고 싶지 않다는 생각이 들어요 매일 그런 생각이 들어요.",
+    "turn_6": "아니요.  \n정신과는 가본 적 없어요.  \n고혈압 약도 안 먹고 있어요.  \n살아서 뭐하나, 싶은 생각이 매일 들어요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 0,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 7
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "그냥 너무 힘들어요. 살고 싶지 않아요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살고 싶지 않, 살고싶지않) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "그냥 너무 힘들어요. 살고 싶지 않아요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살고 싶지 않, 살고싶지않) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "거의 매일이에요. 사라지고 싶은 생각이 멈추질 않아요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_3",
+        "quote": "어떻게까지는... 생각 안 했어요. 그냥... 사라지고 싶은 거예요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_4",
+        "quote": "짐이 되기 싫어서. 술 안 마시면 못 버텨요. 그래도... 도움이 될까요?",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (짐이 되, 짐이되) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_5",
+        "quote": "그냥 너무 힘들어요 살고 싶지 않다는 생각이 들어요 매일 그런 생각이 들어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살고 싶지 않, 살고싶지않) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_6",
+        "quote": "살아서 뭐하나, 싶은 생각이 매일 들어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살아서 뭐하, 살아서뭐하) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 1,
+    "candidates_after": 0,
+    "candidates_eliminated": 1,
+    "eliminated_domains": [
+      "depression"
+    ],
+    "evidence_stripped": 7,
+    "evidence_stripped_risk_lexicon": 7
+  },
+  "orphan_departments": [
+    {
+      "department": "정신건강의학과",
+      "reason": "자살 사고 및 살고 싶지 않다는 반복적 표현, 무기력감, 삶에 대한 무의미함, 음주 의존 등이 관찰됨",
+      "domain_ref": "depression"
+    }
+  ],
+  "additional_questions": [
+    "자살 사고의 빈도나 강도가 최근 증가했는지",
+    "일상 기능(수면, 식사, 업무 등)에 어떤 영향을 미치는지",
+    "과거 우울증 진단이나 치료 경험이 있는지",
+    "가족이나 사회적 지지 체계가 있는지"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 7658.2307438366115,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 1574,
+    "completion_tokens": 492,
+    "total_tokens": 2066
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [],
+    "mode": "experimental_unpopulated",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "Stage 1 ran in llm_only mode (no RAG chunks retrieved this run) — the AI-disease container has no chunk-derived evidence to populate from",
+    "recommended_questionnaire": null,
+    "recommendation_caveat": null
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 0,
+    "rag_chunk_qa": 0,
+    "rag_chunk_other": 0,
+    "utterance": 0,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "A",
+    "retrieve": false,
+    "queries": [],
+    "dropped_queries": [
+      "살고 싶지 않다는 생각이 매일 든다",
+      "너무 힘들다고 표현하며 살고 싶지 않다고 말함",
+      "... 그냥 너무 힘들어요. 살고 싶지 않아요.",
+      "아니요.  \n정신과는 가본 적 없어요.  \n고혈압 약도 안 먹고 있어요.  \n살아서 뭐하나, 싶은 생각이 매일 들어요."
+    ],
+    "trigger_reason": "insufficient_fallback_used_no_usable_queries",
+    "fallback_used": true,
+    "judge_output": null
+  }
+}

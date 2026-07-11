@@ -1,0 +1,1028 @@
+{
+  "session_id": "f1_VP-003_followup",
+  "persona_id": "VP-003",
+  "persona_name": "박민수",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "살고 싶지 않음, 너무 힘듦"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요. 수면제나 그런 건... 몰라요. 카페인은 별로 안 마셔요. 술은 매일 마셔요. 안 마시면 못 버텨요. ... (침묵 4초) 도움이 되나...\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\""
+    },
+    {
+      "key": "family_history",
+      "value": "형이 있으나 연락 없음"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "술은 매일 마시며, 안 마시면 못 버틴다고 표현함"
+    },
+    {
+      "key": "medical_history",
+      "value": "고혈압은 있으나 약은 안 먹음"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "... 살고 싶지 않아요. 그냥... 너무 힘들어요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "safety_flagged": [
+        "살고 싶지 않",
+        "살고싶지않",
+        "살고 싶지 않아요"
+      ],
+      "agent_response": "안녕하세요, 지난번에 이어서 상담을 이어가시는군요. 오늘은 어떤 기분으로 지내셨나요?",
+      "slot_updates": {
+        "chief_complaint": "살고 싶지 않음, 너무 힘듦",
+        "history_of_present_illness": "살고 싶지 않음, 너무 힘듦"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "살고 싶지 않음, 너무 힘듦",
+        "history_of_present_illness": "살고 싶지 않음, 너무 힘듦",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"형이 있는데... 연락 안 해요. 짐이 되기 싫어서. ...도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 처음이에요. 정신과... 가본 적 없어요.\"",
+        "family_history": "형이 있으나 연락 없음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 8261.858773883432,
+      "timestamp": "2026-07-11T22:26:43.436913",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "...  \n살고 싶지 않아요.  \n그냥... 너무 힘들어요.",
+        "normalized": "... 살고 싶지 않아요. 그냥... 너무 힘들어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1293.4703142382205,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "살고 싶지 않아요. 그냥... 너무 힘들어요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false
+    },
+    {
+      "turn": 1,
+      "patient_message": "... 살고 싶지 않아요. 그냥... 너무 힘들어요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "safety_flagged": [
+        "살고 싶지 않",
+        "살고싶지않",
+        "살고 싶지 않아요"
+      ],
+      "agent_response": "정말 많이 지치셨겠어요. 그런 생각이 얼마나 자주 드는지 말씀해 주실 수 있나요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "살고 싶지 않음, 너무 힘듦",
+        "history_of_present_illness": "살고 싶지 않음, 너무 힘듦",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"형이 있는데... 연락 안 해요. 짐이 되기 싫어서. ...도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 처음이에요. 정신과... 가본 적 없어요.\"",
+        "family_history": "형이 있으나 연락 없음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4103.424706030637,
+      "timestamp": "2026-07-11T22:26:47.540372",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negative template without ask evidence (slot was never asked and answered with negation)"
+      },
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "...  \n살고 싶지 않아요.  \n그냥... 너무 힘들어요.",
+        "normalized": "... 살고 싶지 않아요. 그냥... 너무 힘들어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1293.4703142382205,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "살고 싶지 않아요. 그냥... 너무 힘들어요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 2,
+      "patient_message": "매일이요.  \n새벽에 깨면 다시 잠들 수 없고, 천장만 보게 돼요.  \n그때마다... 사라지고 싶다는 생각이 들어요.  \n...  \n(침묵 3초)  \n어제는 또 술 없이 못 버틸 것 같았어요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "safety_flagged": [
+        "사라지고 싶",
+        "사라지고싶",
+        "살고 싶지 않아요",
+        "사라지고 싶다는 생각이 들어요",
+        "술 없이 못 버틸 것 같았어요"
+      ],
+      "agent_response": "매일 그런 생각이 드신다니 정말 힘드셨겠어요. 혹시 구체적인 계획을 생각해 보신 적이 있는지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "history_of_present_illness": "살고 싶지 않음, 너무 힘듦",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"형이 있는데... 연락 안 해요. 짐이 되기 싫어서. ...도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 처음이에요. 정신과... 가본 적 없어요.\"",
+        "family_history": "형이 있으나 연락 없음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4479.6431181021035,
+      "timestamp": "2026-07-11T22:26:57.927547",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negative template without ask evidence (slot was never asked and answered with negation)"
+      },
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "매일이요.  \n새벽에 깨면 다시 잠들 수 없고, 천장만 보게 돼요.  \n그때마다... 사라지고 싶다는 생각이 들어요.  \n...  \n(침묵 3초)  \n어제는 또 술 없이 못 버틸 것 같았어요.",
+        "normalized": "매일이요.  \n새벽에 깨면 다시 잠들 수 없고, 천장만 보게 돼요.  \n그때마다... 사라지고 싶다는 생각이 들어요.  \n...  \n(침묵 3초)  \n어제는 또 술 없이 못 버틸 것 같았어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2183.8187919929624,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "매일이요. 새벽에 깨면 다시 잠들 수 없고, 천장만 보게 돼요. 그때마다... 사라지고 싶다는 생각이 들어요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 3,
+      "patient_message": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "safety_flagged": [
+        "사라지고 싶",
+        "사라지고싶",
+        "살고 싶지 않아요",
+        "사라지고 싶다는 생각이 들어요",
+        "술 없이는 못 버텨요"
+      ],
+      "agent_response": "술 없이는 버틸 수 없다고 느끼시는군요. 최근 술이나 수면제, 진정제, 카페인 등 증상을 악화시킬 수 있는 것들을 사용하신 적이 있는지 여쭤봐도 될까요? 그리고 혹시 마음이 많이 힘들어질 때는 언제든 자살예방상담전화 109에서 도움을 받으실 수 있다는 것도 기억해 주세요.",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"... 살고 싶지 않아요. 그냥... 너무 힘들어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\"",
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "history_of_present_illness": "살고 싶지 않음, 너무 힘듦",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"... 살고 싶지 않아요. 그냥... 너무 힘들어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\"",
+        "family_history": "형이 있으나 연락 없음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4330.399677157402,
+      "timestamp": "2026-07-11T22:27:11.305227",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negative template without ask evidence (slot was never asked and answered with negation)"
+      },
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+        "normalized": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 5185.146300122142,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "그냥 사라지고 싶은 거예요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 4,
+      "patient_message": "아니요.\n수면제나 그런 건... 몰라요.\n카페인은 별로 안 마셔요.\n술은 매일 마셔요.\n안 마시면 못 버텨요.\n...\n(침묵 4초)\n도움이 되나요? 뭘 해도 안 될 것 같은데.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "safety_flagged": [
+        "살고 싶지 않아요",
+        "사라지고 싶다는 생각이 들어요",
+        "술 없이는 못 버텨요"
+      ],
+      "agent_response": "정말 마음이 많이 지치셨겠어요. 혹시 과거에도 비슷한 어려움을 겪으신 적이 있는지 여쭤봐도 될까요? 그리고 술 없이는 힘들다고 하셨는데, 혹시 술을 마실 때 어떤 점이 도움이 되는지 말씀해 주실 수 있나요?",
+      "slot_updates": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "substance_use_history": "술은 매일 마셔요. 안 마시면 못 버텨요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "history_of_present_illness": "살고 싶지 않음, 너무 힘듦",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"... 살고 싶지 않아요. 그냥... 너무 힘들어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\"",
+        "family_history": "형이 있으나 연락 없음",
+        "substance_use_history": "술은 매일 마셔요. 안 마시면 못 버텨요."
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5016.742114908993,
+      "timestamp": "2026-07-11T22:27:22.463000",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negative template without ask evidence (slot was never asked and answered with negation)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아니요.  \n수면제나 그런 건... 몰라요.  \n카페인은 별로 안 마셔요.  \n술은 매일 마셔요.  \n안 마시면 못 버텨요.  \n...  \n(침묵 4초)  \n도움이 되나요? 뭘 해도 안 될 것 같은데.",
+        "normalized": "아니요.\n수면제나 그런 건... 몰라요.\n카페인은 별로 안 마셔요.\n술은 매일 마셔요.\n안 마시면 못 버텨요.\n...\n(침묵 4초)\n도움이 되나요? 뭘 해도 안 될 것 같은데.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2055.5494888685644,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "도움이 되나요? 뭘 해도 안 될 것 같은데.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 5,
+      "patient_message": "... 형이 있는데... 연락 안 해요. 짐이 되기 싫어서. 술은... 안 마시면 못 버텨요. ... (침묵 5초) 뭐 해도 안 될 것 같아요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "safety_flagged": [
+        "사라지고 싶다는 생각이 들어요",
+        "술 없이는 못 버텨요",
+        "뭐 해도 안 될 것 같아요"
+      ],
+      "agent_response": "형이 계시고, 짐이 되고 싶지 않아 연락을 못 하시는군요. 그런 마음이 얼마나 힘드셨을지 공감합니다. 혹시 구체적인 계획을 생각해 보신 적이 있는지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "substance_use_history": "술은 매일 마셔요. 안 마시면 못 버텨요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "history_of_present_illness": "살고 싶지 않음, 너무 힘듦",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"... 살고 싶지 않아요. 그냥... 너무 힘들어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\"",
+        "family_history": "형이 있으나 연락 없음",
+        "substance_use_history": "술은 매일 마셔요. 안 마시면 못 버텨요."
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4013.833098579198,
+      "timestamp": "2026-07-11T22:27:32.275355",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negative template without ask evidence (slot was never asked and answered with negation)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "...  \n형이 있는데... 연락 안 해요.  \n짐이 되기 싫어서.  \n술은...  \n안 마시면 못 버텨요.  \n...  \n(침묵 5초)  \n뭐 해도 안 될 것 같아요.",
+        "normalized": "... 형이 있는데... 연락 안 해요. 짐이 되기 싫어서. 술은... 안 마시면 못 버텨요. ... (침묵 5초) 뭐 해도 안 될 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1524.15488101542,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.9
+          },
+          {
+            "label": "despair",
+            "intensity": 0.8
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "형이 있는데... 연락 안 해요. 짐이 되기 싫어서. 술은... 안 마시면 못 버텨요. ... (침묵 5초) 뭐 해도 안 될 것 같아요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 6,
+      "patient_message": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation"
+      ],
+      "safety_flagged": [
+        "사라지고 싶",
+        "사라지고싶",
+        "사라지고 싶은 거예요"
+      ],
+      "agent_response": "정말 마음이 많이 지치셨겠어요. 혹시 구체적인 계획을 생각해 보신 적이 있는지 궁금합니다. 그리고 혹시 마음이 많이 힘들어질 때는 언제든 자살예방상담전화 109에서 도움을 받으실 수 있다는 것도 기억해 주세요.",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요. 수면제나 그런 건... 몰라요. 카페인은 별로 안 마셔요. 술은 매일 마셔요. 안 마시면 못 버텨요. ... (침묵 4초) 도움이 되나...\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\"",
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "history_of_present_illness": "살고 싶지 않음, 너무 힘듦",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요. 수면제나 그런 건... 몰라요. 카페인은 별로 안 마셔요. 술은 매일 마셔요. 안 마시면 못 버텨요. ... (침묵 4초) 도움이 되나...\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\"",
+        "family_history": "형이 있으나 연락 없음",
+        "substance_use_history": "술은 매일 마셔요. 안 마시면 못 버텨요."
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3963.3680218830705,
+      "timestamp": "2026-07-11T22:27:45.340353",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negative template without ask evidence (slot was never asked and answered with negation)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+        "normalized": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 4916.237711906433,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "그냥 사라지고 싶은 거예요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "safety_flagged": [
+        "사라지고 싶",
+        "사라지고싶",
+        "사라지고 싶은 거예요"
+      ],
+      "agent_response": "지난번에 여쭤보지 못했는데, 과거에 정신건강의학과 진료나 진단을 받으신 적이 있는지 궁금합니다. 그리고 혹시 현재 다른 신체질환이나 복용 중인 약이 있는지 여쭤봐도 될까요?",
+      "slot_updates": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "substance_use_history": "술은 매일 마셔요. 안 마시면 못 버텨요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "history_of_present_illness": "살고 싶지 않음, 너무 힘듦",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요. 수면제나 그런 건... 몰라요. 카페인은 별로 안 마셔요. 술은 매일 마셔요. 안 마시면 못 버텨요. ... (침묵 4초) 도움이 되나...\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\"",
+        "family_history": "형이 있으나 연락 없음",
+        "substance_use_history": "술은 매일 마셔요. 안 마시면 못 버텨요."
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5121.904490981251,
+      "timestamp": "2026-07-11T22:28:00.535452",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negative template without ask evidence (slot was never asked and answered with negation)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+        "normalized": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 6439.585637766868,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.8,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "\"그냥 사라지고 싶은 거예요\"",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요.  \n정신과는... 가본 적 없어요.  \n고혈압은 있는데... 약은 안 먹어요.  \n...  \n(침묵 4초)  \n살기 싫어요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation"
+      ],
+      "safety_flagged": [
+        "살기 싫어요"
+      ],
+      "agent_response": "정말 마음이 많이 지치셨겠어요. 혹시 구체적인 계획을 생각해 보신 적이 있는지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "medical_history": "고혈압은 있지만 약은 안 먹음",
+        "substance_use_history": "술은 매일 마시며, 안 마시면 못 버틴다고 표현함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "history_of_present_illness": "살고 싶지 않음, 너무 힘듦",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요. 수면제나 그런 건... 몰라요. 카페인은 별로 안 마셔요. 술은 매일 마셔요. 안 마시면 못 버텨요. ... (침묵 4초) 도움이 되나...\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\"",
+        "family_history": "형이 있으나 연락 없음",
+        "substance_use_history": "술은 매일 마시며, 안 마시면 못 버틴다고 표현함",
+        "medical_history": "고혈압은 있지만 약은 안 먹음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4633.077410981059,
+      "timestamp": "2026-07-11T22:28:11.997859",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negative template without ask evidence (slot was never asked and answered with negation)"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요.  \n정신과는... 가본 적 없어요.  \n고혈압은 있는데... 약은 안 먹어요.  \n...  \n(침묵 4초)  \n살기 싫어요.",
+        "normalized": "아니요.  \n정신과는... 가본 적 없어요.  \n고혈압은 있는데... 약은 안 먹어요.  \n...  \n(침묵 4초)  \n살기 싫어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3520.9548701532185,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "살기 싫어요",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation"
+      ],
+      "safety_flagged": [
+        "사라지고 싶",
+        "사라지고싶",
+        "사라지고 싶은 거예요"
+      ],
+      "agent_response": "정말 마음이 많이 지치셨겠어요. 혹시 구체적인 계획을 생각해 보신 적이 있는지 궁금합니다. 그리고 혹시 마음이 많이 힘들어질 때 언제든 자살예방상담전화 109에서 도움을 받으실 수 있다는 것도 기억하시면 좋겠습니다.",
+      "slot_updates": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "medical_history": "고혈압은 있으나 약은 안 먹음",
+        "substance_use_history": "술은 매일 마시며, 안 마시면 못 버틴다고 표현함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "history_of_present_illness": "살고 싶지 않음, 너무 힘듦",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요. 수면제나 그런 건... 몰라요. 카페인은 별로 안 마셔요. 술은 매일 마셔요. 안 마시면 못 버텨요. ... (침묵 4초) 도움이 되나...\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\"",
+        "family_history": "형이 있으나 연락 없음",
+        "substance_use_history": "술은 매일 마시며, 안 마시면 못 버틴다고 표현함",
+        "medical_history": "고혈압은 있으나 약은 안 먹음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5341.407784726471,
+      "timestamp": "2026-07-11T22:28:25.047300",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negative template without ask evidence (slot was never asked and answered with negation)"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+        "normalized": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 4520.120108034462,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "그냥 사라지고 싶은 거예요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "safety_flagged": [
+        "사라지고 싶",
+        "사라지고싶",
+        "사라지고 싶은 거예요"
+      ],
+      "agent_response": "정말 마음이 많이 지치셨겠어요. 혹시 과거에도 비슷한 어려움을 겪으신 적이 있는지, 그리고 현재 삶의 중요한 부분(예: 직업, 인간관계 등)에서 어떤 변화를 느끼시는지 여쭤봐도 될까요?",
+      "slot_updates": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "medical_history": "고혈압은 있으나 약은 안 먹음",
+        "substance_use_history": "술은 매일 마시며, 안 마시면 못 버틴다고 표현함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+        "history_of_present_illness": "살고 싶지 않음, 너무 힘듦",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요. 수면제나 그런 건... 몰라요. 카페인은 별로 안 마셔요. 술은 매일 마셔요. 안 마시면 못 버텨요. ... (침묵 4초) 도움이 되나...\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\"",
+        "family_history": "형이 있으나 연락 없음",
+        "substance_use_history": "술은 매일 마시며, 안 마시면 못 버틴다고 표현함",
+        "medical_history": "고혈압은 있으나 약은 안 먹음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5843.477489892393,
+      "timestamp": "2026-07-11T22:28:38.354818",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negative template without ask evidence (slot was never asked and answered with negation)"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+        "normalized": "아니요.  \n구체적으로는... 생각해 본 적 없어요.  \n그냥 사라지고 싶은 거예요.  \n...  \n(침묵 3초)  \n술 없이는 못 버텨요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 4328.449700027704,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "그냥 사라지고 싶은 거예요... 술 없이는 못 버텨요",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium",
+      "prompts_degraded": false
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-11T22:26:35.175012",
+  "ended_at": "2026-07-11T22:28:43.457456",
+  "grounded_coverage": 0.75,
+  "risk_floor": 3,
+  "probe_events": [
+    {
+      "type": "trigger",
+      "turn": 0,
+      "ctrs": 3,
+      "categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "utterance": "... 살고 싶지 않아요. 그냥... 너무 힘들어요."
+    },
+    {
+      "type": "progress",
+      "turn": 2,
+      "stage": "frequency",
+      "next_stage": "plan"
+    },
+    {
+      "type": "deescalation",
+      "turn": 3,
+      "stage": "plan",
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"... 살고 싶지 않아요. 그냥... 너무 힘들어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\""
+    },
+    {
+      "type": "trigger",
+      "turn": 4,
+      "ctrs": 3,
+      "categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "utterance": "아니요. 수면제나 그런 건... 몰라요. 카페인은 별로 안 마셔요. 술은 매일 마셔요. 안 마시면 못 버텨요. ... (침묵 4초) 도움이 되나요? 뭘 해도 안 될 것 같은데."
+    },
+    {
+      "type": "progress",
+      "turn": 5,
+      "stage": "frequency",
+      "next_stage": "plan"
+    },
+    {
+      "type": "deescalation",
+      "turn": 6,
+      "stage": "plan",
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요. 수면제나 그런 건... 몰라요. 카페인은 별로 안 마셔요. 술은 매일 마셔요. 안 마시면 못 버텨요. ... (침묵 4초) 도움이 되나...\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\""
+    }
+  ],
+  "session_ctrs": 3,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.4782,
+  "patient_lng": 126.9515,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.12448197230696678,
+    "reason_summary": "Session sentiment: ['despair', 'sadness'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "despair",
+      "sadness"
+    ],
+    "emotion_distribution": {
+      "despair": 0.39,
+      "sadness": 0.32,
+      "anxiety": 0.29
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.85
+      },
+      {
+        "turn": 1,
+        "polarity": -0.85
+      },
+      {
+        "turn": 2,
+        "polarity": -0.85
+      },
+      {
+        "turn": 3,
+        "polarity": -0.85
+      },
+      {
+        "turn": 4,
+        "polarity": -0.85
+      },
+      {
+        "turn": 5,
+        "polarity": -0.85
+      },
+      {
+        "turn": 6,
+        "polarity": -0.85
+      },
+      {
+        "turn": 7,
+        "polarity": -0.8
+      },
+      {
+        "turn": 8,
+        "polarity": -0.85
+      },
+      {
+        "turn": 9,
+        "polarity": -0.85
+      },
+      {
+        "turn": 10,
+        "polarity": -0.85
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "despair 표현 11회 반복",
+      "sadness 표현 9회 반복",
+      "anxiety 표현 8회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "despair",
+          "sadness"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "despair",
+          "sadness"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "despair",
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "sadness",
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "despair",
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "despair",
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.8
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "despair",
+          "sadness"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "despair",
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "despair",
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.85
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 2,
+  "simulated_date": "2026-07-25",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v3",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- chief_complaint: 살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨\n- history_of_present_illness: 매일 새벽 3시에 깨어 천장만 보며 다시 잠들지 못함. 술 없이는 버틸 수 없다고 표현함. '뭘 해도 안 될 것 같다'는 절망감 표현\n- family_history: 형이 있으나 연락 없음\n\n[이전 세션 요약 — 미수집 정보]\npast_psychiatric_history, medical_history, personal_social_history, substance_use_history",
+  "carried_slot_provenance": {
+    "family_history": "carried_from_session_1"
+  }
+}

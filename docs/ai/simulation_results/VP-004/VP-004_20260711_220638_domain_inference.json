@@ -1,0 +1,251 @@
+{
+  "session_id": "f1_VP-004",
+  "persona_id": "VP-004",
+  "repro": {
+    "git_head": "c2c631b53922a584d0e70585e70442ad04af2a52",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-004/VP-004_20260711_220604_conversation.json",
+    "input_sha256": "6f3735946b428caa56579859c40bfbe7c5de05340c763f1321f5c734b7244454",
+    "mode": "rag",
+    "latency_ms": 7989.1,
+    "generated_at": "2026-07-11T22:06:38.352809",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 2647,
+      "completion_tokens": 751,
+      "total_tokens": 3398
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "anxiety",
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:349",
+          "quote": "내담자는 불안과 관련된 다양한 증상을 경험하고 있다. 특히, 미래에 대한 불안과 평가받는 상황에서의 불안이 두드러지며, 이는 일상생활에 큰 영향을 미치고 있다. 내담자는 사소한 일에도 쉽게 불안해지고, 집중력이 저하되며, 수면 장애를 겪고 있다. 또한, 과거의 트라우마 경험으로 인해 불안이 심화되었으며, 이는 신체적 증상으로도 나타나고 있다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:384",
+          "quote": "내담자는 어머니와의 관계에서 오는 불안과 과거의 트라우마로 인해 공황장애와 같은 증상을 겪고 있으며, 특히 어머니와의 갈등이 심화될 때 신체적으로도 긴장과 불안을 느끼고 있다. 또한, 수면 중 악몽을 꾸거나 숨이 막히는 경험을 하며, 이러한 증상들이 일상생활에 영향을 미치고 있다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:609",
+          "quote": "내담자는 불안을 경험하고 있으며, 특히 자기 전 죽음에 대한 생각으로 인해 불안감을 느끼고 있다고 했다. 또한, 수면 문제와 집중력 저하를 겪고 있으며, 이는 불안장애의 주요 증상으로 나타났다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:532",
+          "quote": "이 환자는 일반화된 불안장애(Generalized Anxiety Disorder, GAD)를 앓고 있는 것으로 보인다. 일반화된 불안장애는 과도한 걱정과 불안이 지속적으로 나타나는 상태로, 신체적 증상(불면증, 두통, 가슴 두근거림 등)과 함께 나타날 수 있다."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_2",
+          "quote": "지쳤어요... 눈물이 자꾸 나요. 번역도 못하고 있는데, 먹는 것도 제대로 안 돼서 더 힘들어요. 잠도 악몽만 꾸고, 아침에 일어나는 게 지옥 같아요. 어머니 전화도 받기 싫어요... 울고 있을 것 같아서."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_3",
+          "quote": "자주 들어요. \"이러다 진짜 죽을 것 같다\"는 생각이 자꾸 나요. 근데 한 적은 없어요... 그냥 그렇게 생각만 해도 무서워요. 손도 떨리고, 머리도 아프고... 약을 먹어도 달라지는 게 없으니까 더 그래요."
+        }
+      ],
+      "recommended_surveys": [
+        "GAD-7"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "불안장애 및 공황장애 증상(과도한 불안, 죽음에 대한 공포, 신체 증상, 수면 장애, 집중력 저하)이 확인되었으며, 일반화된 불안장애(GAD) 가능성이 높음.",
+      "domain_ref": "anxiety"
+    }
+  ],
+  "summary": "내담자는 불안, 공황장애, 수면 장애, 집중력 저하, 식욕 부진 등의 증상을 호소하고 있으며, 특히 미래에 대한 불안과 평가받는 상황에서의 불안이 두드러지고, 어머니와의 관계에서 오는 불안이 심화되고 있다. 일반화된 불안장애(GAD) 가능성이 높으며, 인지행동치료(CBT)와 약물치료가 주요 치료 옵션으로 고려된다.",
+  "retrieval_meta": {
+    "mode": "rag",
+    "chunks_returned": 6,
+    "chunk_ids": [
+      "case_card:349",
+      "case_card:384",
+      "case_card:609",
+      "qa:532",
+      "qa:84",
+      "qa:842"
+    ],
+    "queries": [
+      "공황장애와 관련된 지속적인 불안, 죽음에 대한 공포, 수면 장애, 식욕 저하, 손 떨림, 두통 등의 증상 관리 및 치료 옵션"
+    ]
+  },
+  "chunk_texts": {
+    "case_card:349": "내담자는 불안과 관련된 다양한 증상을 경험하고 있다. 특히, 미래에 대한 불안과 평가받는 상황에서의 불안이 두드러지며, 이는 일상생활에 큰 영향을 미치고 있다. 내담자는 사소한 일에도 쉽게 불안해지고, 집중력이 저하되며, 수면 장애를 겪고 있다. 또한, 과거의 트라우마 경험으로 인해 불안이 심화되었으며, 이는 신체적 증상으로도 나타나고 있다. 내담자는 불안으로 인해 일상생활에서의 불편감이 상당히 높다고 느끼고 있으며, 이러한 불안이 매일 지속되고 있다고 보고하고 있다.  내담자의 불안에는 여러 위험 요인이 작용하고 있다. 가족 내에서의 높은 기대와 책임감, 과거의 트라우마 경험, 그리고 경제적 지원에 대한 부담감이 주요 위험 요인으로 작용하고 있다. 내담자는 가족의 기대에 부응하지 못할 것이라는 불안감과 자책감을 느끼고 있으며, 이는 불안 증상을 악화시키고 있다. 또한, 과거의 트라우마 경험은 내담자의 불안과 수면 장애를 심화시키고 있으며, 이러한 경험을 통해 자신에 대한 부정적인 인식이 형성되었다. 내담자는 불안을 해소하기 위해 비효율적인 대처 전략을 사용하고 있으며, 이는 불안을 더욱 악화시키는 요인으로 작용하고 있다.",
+    "case_card:384": "내담자는 어머니와의 관계에서 오는 불안과 과거의 트라우마로 인해 공황장애와 같은 증상을 겪고 있으며, 특히 어머니와의 갈등이 심화될 때 신체적으로도 긴장과 불안을 느끼고 있다. 또한, 수면 중 악몽을 꾸거나 숨이 막히는 경험을 하며, 이러한 증상들이 일상생활에 영향을 미치고 있다.  내담자는 어머니와의 복잡한 관계와 과거의 가정 환경에서 비롯된 스트레스와 트라우마로 인해 불안이 지속되고 있으며, 이러한 경험들이 현재의 정신 건강에 부정적인 영향을 미치고 있다. 또한, 내담자는 어머니의 감정적 불안정성과 폭력적인 행동으로 인해 심리적 불안을 겪고 있다.",
+    "case_card:609": "내담자는 불안을 경험하고 있으며, 특히 자기 전 죽음에 대한 생각으로 인해 불안감을 느끼고 있다고 했다. 또한, 수면 문제와 집중력 저하를 겪고 있으며, 이는 불안장애의 주요 증상으로 나타났다. 내담자는 상담을 통해 이러한 부정적인 생각을 긍정적으로 바꾸려는 노력을 하고 있으며, 최근에는 불안한 마음이 전보다 많이 줄어들었다고 보고했다. 이는 내담자가 긍정적인 사고를 통해 불안감을 조절하려는 시도를 하고 있음을 보여준다.  내담자는 부정적 자아상과 낮은 정서조절 능력을 가지고 있으며, 이는 불안장애의 위험 요인으로 작용하고 있다. 또한, 가족력과 과거 정신질환의 경험이 있으며, 이는 내담자의 불안 증상을 악화시키는 요인으로 작용할 수 있다. 내담자는 어머니와의 관계에서 부정적인 감정을 느끼고 있으며, 이는 낮은 정서조절 능력과 관련이 있을 수 있다.",
+    "qa:532": "Q: 29세 남성이 직장에서의 실수로 인해 극심한 불안과 자책감을 느끼며 병원을 찾았다. 그는 최근 새로운 프로젝트를 맡았으나, 작은 실수에도 불구하고 전체 프로젝트가 실패할 것이라는 비관적인 생각을 하고 있다. 이로 인해 불면증, 두통, 가슴 두근거림 등의 신체 증상이 나타나고 있다. 환자는 과거에도 비슷한 증상이 있었으며, 자신이 하는 모든 것이 불완전하다는 지속적인 두려움을 가지고 있다. 이 환자가 앓고 있는 질환의 이름과 주요 치료 방법을 설명하시오.\nA: 이 환자는 일반화된 불안장애(Generalized Anxiety Disorder, GAD)를 앓고 있는 것으로 보인다. 일반화된 불안장애는 과도한 걱정과 불안이 지속적으로 나타나는 상태로, 신체적 증상(불면증, 두통, 가슴 두근거림 등)과 함께 나타날 수 있다. 주요 치료 방법으로는 인지행동치료(Cognitive Behavioral Therapy, CBT)와 약물치료가 있다. 인지행동치료는 환자가 비현실적이고 부정적인 사고 패턴을 인식하고 이를 수정하도록 돕는 심리치료 방법이다. 약물치료로는 선택적 세로토닌 재흡수 억제제(SSRIs)와 같은 항우울제가 주로 사용된다.",
+    "qa:84": "Q: 공황장애는 예기치 않은 강렬한 두려움의 발작이 반복적으로 발생하는 불안장애로, 진단을 위해서는 다른 의학적 원인을 배제해야 한다. 치료의 목표는 환자의 일상생활 기능을 회복시키는 것이며, 약물 치료와 인지행동치료(CBT)가 효과적이다. 다음 중 공황장애의 치료로 가장 적합한 선택은 무엇인가?  \n1) 벤조디아제핀 단독 요법  \n2) 선택적 세로토닌 재흡수 억제제(SSRI)와 인지행동치료의 병용  \n3) 항경련제 단독 요법  \n4) 단순한 상담 치료  \n5) 모노아민 산화효소 억제제(MAOI) 단독 요법\nA: 2) 선택적 세로토닌 재흡수 억제제(SSRI)와 인지행동치료의 병용",
+    "qa:842": "Q: 45세 남성 환자가 과도한 걱정과 불안으로 인해 정신과 진료를 받았다. 환자는 일상생활에서 불안과 걱정이 지속되어 집중력이 저하되고 수면 장애를 겪고 있다. 일반화된 불안장애(GAD)로 진단받았으며, 치료 옵션을 고민 중이다. 다음 중 GAD 치료에 있어 단기적으로 가장 효과적인 심리 치료는 무엇인가?\n\n1) 지원 치료(supportive therapy) \n2) 정신역동 치료(psychodynamic therapy) \n3) 인지 행동 치료(cognitive behavioural therapy, CBT) \n4) 대기자 명단/일반 치료(treatment as usual/waiting list, TAU/WL) \n5) 장기 심리 치료(long-term psychotherapy)\nA: 3) 인지 행동 치료(cognitive behavioural therapy, CBT)"
+  },
+  "utterances": {
+    "turn_0": "아니에요, 의사도 아니고 상담 선생님도 아니에요. 그냥... 말 좀 하고 싶은 거예요.  \n\n약을 바꿔도 안 낫고, 또 공황이 올까 봐 계속 무서워요.",
+    "turn_1": "아니에요, 의사도 아니고 상담 선생님도 아니에요. 그냥... 말 좀 하고 싶은 거예요.  \n\n약을 바꿔도 안 낫고, 또 공황이 올까 봐 계속 무서워요.",
+    "turn_2": "지쳤어요... 눈물이 자꾸 나요. 번역도 못하고 있는데, 먹는 것도 제대로 안 돼서 더 힘들어요. 잠도 악몽만 꾸고, 아침에 일어나는 게 지옥 같아요. 어머니 전화도 받기 싫어요... 울고 있을 것 같아서. 근데... 가끔은 아프면 이 감정이 좀 멈출까 싶을 때가 있어요. 근데 한 적은 없어요.",
+    "turn_3": "자주 들어요. \"이러다 진짜 죽을 것 같다\"는 생각이 자꾸 나요. 근데 한 적은 없어요... 그냥 그렇게 생각만 해도 무서워요. 손도 떨리고, 머리도 아프고... 약을 먹어도 달라지는 게 없으니까 더 그래요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 6,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 0
+    },
+    "verdicts": [
+      {
+        "domain": "anxiety",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:349",
+        "quote": "내담자는 불안과 관련된 다양한 증상을 경험하고 있다. 특히, 미래에 대한 불안과 평가받는 상황에서의 불안이 두드러지며, 이는 일상생활에 큰 영향을 미치고 있다. 내담자는 사소한 일에도 쉽게 불안해지고, 집중력이 저하되며, 수면 장애를 겪고 있다. 또한, 과거의 트라우마 경험으로 인해 불안이 심화되었으며, 이는 신체적 증상으로도 나타나고 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:384",
+        "quote": "내담자는 어머니와의 관계에서 오는 불안과 과거의 트라우마로 인해 공황장애와 같은 증상을 겪고 있으며, 특히 어머니와의 갈등이 심화될 때 신체적으로도 긴장과 불안을 느끼고 있다. 또한, 수면 중 악몽을 꾸거나 숨이 막히는 경험을 하며, 이러한 증상들이 일상생활에 영향을 미치고 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:609",
+        "quote": "내담자는 불안을 경험하고 있으며, 특히 자기 전 죽음에 대한 생각으로 인해 불안감을 느끼고 있다고 했다. 또한, 수면 문제와 집중력 저하를 겪고 있으며, 이는 불안장애의 주요 증상으로 나타났다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "rag_chunk",
+        "source_id": "qa:532",
+        "quote": "이 환자는 일반화된 불안장애(Generalized Anxiety Disorder, GAD)를 앓고 있는 것으로 보인다. 일반화된 불안장애는 과도한 걱정과 불안이 지속적으로 나타나는 상태로, 신체적 증상(불면증, 두통, 가슴 두근거림 등)과 함께 나타날 수 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "지쳤어요... 눈물이 자꾸 나요. 번역도 못하고 있는데, 먹는 것도 제대로 안 돼서 더 힘들어요. 잠도 악몽만 꾸고, 아침에 일어나는 게 지옥 같아요. 어머니 전화도 받기 싫어요... 울고 있을 것 같아서.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "utterance",
+        "source_id": "turn_3",
+        "quote": "자주 들어요. \"이러다 진짜 죽을 것 같다\"는 생각이 자꾸 나요. 근데 한 적은 없어요... 그냥 그렇게 생각만 해도 무서워요. 손도 떨리고, 머리도 아프고... 약을 먹어도 달라지는 게 없으니까 더 그래요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 1,
+    "candidates_after": 1,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 0,
+    "evidence_stripped_risk_lexicon": 0
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "어머니와의 관계에서 구체적으로 어떤 점이 불안을 유발하는지 자세히 설명해 주실 수 있나요?",
+    "악몽의 구체적인 내용과 빈도는 어떻게 되나요?",
+    "집중력 저하가 일상생활에 미치는 구체적인 영향은 무엇인가요?",
+    "식욕 저하가 체중 변화나 영양 상태에 영향을 미치고 있나요?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 7989.131946116686,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 2647,
+    "completion_tokens": 751,
+    "total_tokens": 3398
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [
+      {
+        "disease": "월경전 불쾌장애",
+        "similarity_score": 0.447,
+        "source_id": "qa:532",
+        "quote": "...전체 프로젝트가 실패할 것이라는 비관적인 생각을 하고 있다. 이로 인해 불면증, 두통, 가슴 두근거림 등의 신체 증상이 나타나고 있다. 환자는 과거..."
+      },
+      {
+        "disease": "범불안장애",
+        "similarity_score": 0.447,
+        "source_id": "qa:532",
+        "quote": "...전체 프로젝트가 실패할 것이라는 비관적인 생각을 하고 있다. 이로 인해 불면증, 두통, 가슴 두근거림 등의 신체 증상이 나타나고 있다. 환자는 과거..."
+      },
+      {
+        "disease": "계절성 정동장애",
+        "similarity_score": 0.442,
+        "source_id": "qa:84",
+        "quote": "Q: 공황장애는 예기치 않은 강렬한 두려움의 발작이 반복적으로 발생하는 불안장애로, 진단을 위해서는 다른 의학적 원인을 배제해야 한다. 치료의 목표..."
+      },
+      {
+        "disease": "급성 스트레스장애",
+        "similarity_score": 0.392,
+        "source_id": "case_card:384",
+        "quote": "내담자는 어머니와의 관계에서 오는 불안과 과거의 트라우마로 인해 공황장애와 같은 증상을 겪고 있으며, 특히 어..."
+      },
+      {
+        "disease": "우울 삽화(우울증)",
+        "similarity_score": 0.383,
+        "source_id": "case_card:609",
+        "quote": "내담자는 불안을 경험하고 있으며, 특히 자기 전 죽음에 대한 생각으로 인해 불안감을 느끼고 있다고 했다. 또한, 수면 문제와 집중력 저하..."
+      }
+    ],
+    "mode": "rag_live",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "5 disease candidate(s) derived from 6 retrieved chunk(s) via symptom-keyword match (path1, ADR-020). similarity_score is a RAG cosine-similarity signal between the retrieved chunk and the Stage-1 query — NOT a patient-to-disease similarity, and NOT a calibrated probability (two-hop proxy, RES-001 §2 step 9 / ADR-020 condition 3).",
+    "recommended_questionnaire": "PHQ-9",
+    "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 3,
+    "rag_chunk_qa": 1,
+    "rag_chunk_other": 0,
+    "utterance": 2,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "B",
+    "retrieve": true,
+    "queries": [
+      "공황장애와 관련된 지속적인 불안, 죽음에 대한 공포, 수면 장애, 식욕 저하, 손 떨림, 두통 등의 증상 관리 및 치료 옵션"
+    ],
+    "dropped_queries": [],
+    "trigger_reason": "judge_retrieve",
+    "fallback_used": false,
+    "judge_output": {
+      "retrieve": true,
+      "query": "공황장애와 관련된 지속적인 불안, 죽음에 대한 공포, 수면 장애, 식욕 저하, 손 떨림, 두통 등의 증상 관리 및 치료 옵션",
+      "reason_summary": "retrieve/query decision generated",
+      "model_used": "solar-pro3-260323",
+      "prompt_version": "v1",
+      "prompts_degraded": false,
+      "latency_ms": 1257.420954760164
+    }
+  }
+}

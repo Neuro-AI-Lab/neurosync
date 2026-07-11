@@ -1,0 +1,147 @@
+{
+  "session_id": "f1_VP-003",
+  "persona_id": "VP-003",
+  "repro": {
+    "git_head": "c2c631b53922a584d0e70585e70442ad04af2a52",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260711_220424_conversation.json",
+    "input_sha256": "effedc48d9ab0b5998f6431097d1cf37a9d1d93c8c9db3237f76e1e3a87923ca",
+    "mode": "llm_only",
+    "latency_ms": 6662.9,
+    "generated_at": "2026-07-11T22:04:40.272623",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 1493,
+      "completion_tokens": 338,
+      "total_tokens": 1831
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "자살 사고와 지속적인 죽음에 대한 생각이 보고되었으며, 우울 증상(살고 싶지 않음, 매일 죽고 싶다는 생각)이 반복적으로 언급됨",
+      "domain_ref": "depression"
+    }
+  ],
+  "summary": "환자는 초진 환자로, 자살 사고와 함께 매일 죽고 싶다는 생각이 지속되고 있으며, 구체적인 계획이나 의도는 부인함. 우울 증상(살고 싶지 않음, 죽음에 대한 반복적 생각)이 주요 임상 소견으로 확인됨.",
+  "retrieval_meta": {
+    "mode": "llm_only",
+    "chunks_returned": 0,
+    "chunk_ids": [],
+    "queries": null
+  },
+  "chunk_texts": {},
+  "utterances": {
+    "turn_0": "... 그냥... 너무 힘들어요. 살고 싶지 않아요. 매일 그런 생각이 들어요.",
+    "turn_1": "... 그냥... 너무 힘들어요. 살고 싶지 않아요. 매일 그런 생각이 들어요.",
+    "turn_2": "... 거의 매일이에요. 깨어 있는 시간 대부분이 그래요. 죽으면 편할 것 같다는 생각이 계속 들어요.",
+    "turn_3": "어떻게까지는... 생각 안 했어요.  그냥 사라지고 싶은 거예요.  구체적인 건... 몰라요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 0,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 3
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "살고 싶지 않아요. 매일 그런 생각이 들어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살고 싶지 않, 살고싶지않) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "살고 싶지 않아요. 매일 그런 생각이 들어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살고 싶지 않, 살고싶지않) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "깨어 있는 시간 대부분이 그래요. 죽으면 편할 것 같다는 생각이 계속 들어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (죽으면 편할, 죽으면편할) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 1,
+    "candidates_after": 0,
+    "candidates_eliminated": 1,
+    "eliminated_domains": [
+      "depression"
+    ],
+    "evidence_stripped": 3,
+    "evidence_stripped_risk_lexicon": 3
+  },
+  "orphan_departments": [
+    {
+      "department": "정신건강의학과",
+      "reason": "자살 사고와 지속적인 죽음에 대한 생각이 보고되었으며, 우울 증상(살고 싶지 않음, 매일 죽고 싶다는 생각)이 반복적으로 언급됨",
+      "domain_ref": "depression"
+    }
+  ],
+  "additional_questions": [
+    "자살 사고의 빈도와 강도를 구체적으로 어떻게 평가하시겠습니까?",
+    "과거에 비슷한 생각이 있었던 적이 있습니까?",
+    "현재 일상 기능(수면, 식사, 활동)에 어떤 영향을 미치고 있습니까?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 6662.869942840189,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 1493,
+    "completion_tokens": 338,
+    "total_tokens": 1831
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [],
+    "mode": "experimental_unpopulated",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "Stage 1 ran in llm_only mode (no RAG chunks retrieved this run) — the AI-disease container has no chunk-derived evidence to populate from",
+    "recommended_questionnaire": null,
+    "recommendation_caveat": null
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 0,
+    "rag_chunk_qa": 0,
+    "rag_chunk_other": 0,
+    "utterance": 0,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "B",
+    "retrieve": false,
+    "queries": [],
+    "dropped_queries": [
+      "자살 생각 및 죽음에 대한 지속적 사고, 일상 기능 저하 관련 임상 정보 검색"
+    ],
+    "trigger_reason": "judge_retrieve_but_query_risk_filtered",
+    "fallback_used": false,
+    "judge_output": {
+      "retrieve": true,
+      "query": "자살 생각 및 죽음에 대한 지속적 사고, 일상 기능 저하 관련 임상 정보 검색",
+      "reason_summary": "retrieve/query decision generated",
+      "model_used": "solar-pro3-260323",
+      "prompt_version": "v1",
+      "prompts_degraded": false,
+      "latency_ms": 1115.9485378302634
+    }
+  }
+}
