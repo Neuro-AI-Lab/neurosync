@@ -343,7 +343,7 @@ DISEASES = {
     # 작성 — VP-012 페르소나 파일 문구를 역방향으로 가져오지 않음.
     "alcohol-use-disorder": (
         "Alcohol Use Disorder",
-        "알코올 사용장애(의존)",  # DRAFT pending CVR sign-off
+        "알코올 사용장애(의존)",  # KO name finalized per CVR-006 sign-off, 2026-07-11
         "F10.2",
         "substance",
         "반복적 음주로 조절 상실·내성·금단 등 신체적·심리적 의존이 형성되고, "
