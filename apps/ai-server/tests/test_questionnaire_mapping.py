@@ -110,12 +110,30 @@ class TestStructuralOfflineCheck:
                 assert resolve_questionnaire_for_disease_slug(slug) == "AUDIT-C"
 
     def test_w6_forward_compat_hypothetical_aud_entry_needs_zero_code_change(self) -> None:
-        """Simulates the W6 AUD ontology addition (plan §9: slug
-        'alcohol-use-disorder', classification 'substance') without editing
-        `ontology.py` (out of scope for this mission, W6/data) — proves the
-        classification-keyed design resolves it correctly today, before
-        that row exists."""
+        """Classification-level check, independent of whether the row
+        exists yet: proves the classification-keyed design resolves
+        'substance' correctly regardless of DISEASES' current membership."""
         assert resolve_questionnaire_for_classification("substance") == "AUDIT-C"
+
+    def test_w6_aud_entry_now_shipped_resolves_to_audit_c_with_zero_code_change(self) -> None:
+        """W6 (PLAN-2026-W28-Q, plan §9): `ontology.py`'s DISEASES gained
+        the real `alcohol-use-disorder` DRAFT entry (developer, this
+        mission) — this module and its tests required NO edit for it to
+        resolve; the classification-keyed design (not slug-keyed) is what
+        makes that true. DISEASES now ships 27 diseases (26 Ada + 1
+        team-authored draft)."""
+        assert len(DISEASES) == 27
+        assert "alcohol-use-disorder" in DISEASES
+        assert DISEASES["alcohol-use-disorder"][3] == "substance"
+        assert resolve_questionnaire_for_disease_slug("alcohol-use-disorder") == "AUDIT-C"
+        assert resolve_questionnaire_caveat_for_disease_slug("alcohol-use-disorder") == (
+            CLASSIFICATION_TO_CAVEAT["substance"]
+        )
+        # Structural check now covers all 3 substance-classified diseases.
+        substance_slugs = {slug for slug, e in DISEASES.items() if e[3] == "substance"}
+        assert len(substance_slugs) == 3
+        for slug in substance_slugs:
+            assert resolve_questionnaire_for_disease_slug(slug) == "AUDIT-C"
 
 
 class TestClassificationLookup:

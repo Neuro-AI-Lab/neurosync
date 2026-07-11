@@ -83,11 +83,18 @@ FIXTURES_DIR = PROJECT_ROOT / "apps" / "ai-server" / "tests" / "fixtures"
 
 # 페르소나별 임의 위치 (persona MD 주소 기준 · Kakao geocoded 좌표).
 # 실 프로덕션에서는 모바일 GPS·환자 프로필 좌표를 사용.
+# VP-010/011/012 (PLAN-2026-W28-Q W6): 구청 좌표 근사치 — 이 미션은
+# 오프라인이라 Kakao 라이브 지오코딩을 실행하지 않음(disclosed approximation,
+# VP-001..004처럼 street-level로 검증되지 않음). Crisis 근처 병원 안내
+# 정확도에만 쓰이는 시뮬레이션 하네스 메타데이터, 임상 판단에는 미사용.
 PERSONA_LOCATIONS: dict[str, tuple[float, float]] = {
     "VP-001": (37.5807, 126.8898),  # 서울 마포구
     "VP-002": (37.4020, 127.1087),  # 경기 성남 판교
     "VP-003": (37.4782, 126.9515),  # 서울 관악구
     "VP-004": (37.5510, 126.8495),  # 서울 강서구
+    "VP-010": (37.5636, 127.0369),  # 서울 성동구 (구청 좌표 근사)
+    "VP-011": (37.6018, 126.9290),  # 서울 은평구 (구청 좌표 근사)
+    "VP-012": (37.6395, 127.0255),  # 서울 강북구 (구청 좌표 근사)
 }
 
 CRISIS_RESPONSE = (
@@ -2134,7 +2141,7 @@ async def _run_simulation(
         persona = load_persona(persona_id)
     except FileNotFoundError as e:
         print(f"Persona file not found: {e}")
-        print("Available: VP-001, VP-002, VP-003, VP-004")
+        print("Available: VP-001, VP-002, VP-003, VP-004, VP-010, VP-011, VP-012")
         sys.exit(1)
 
     api_key = os.environ.get("UPSTAGE_API_KEY", "")
@@ -2272,7 +2279,10 @@ async def _run_simulation(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="F1 Pipeline — 자율 대화 기반 사전문진")
-    parser.add_argument("--persona", default="VP-001", help="VP-001, VP-002, VP-003, VP-004")
+    parser.add_argument(
+        "--persona", default="VP-001",
+        help="VP-001, VP-002, VP-003, VP-004, VP-010, VP-011, VP-012",
+    )
     parser.add_argument("--max-turns", type=int, default=10)
     parser.add_argument(
         "--followup-from",
