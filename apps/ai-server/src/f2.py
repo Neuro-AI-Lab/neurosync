@@ -131,10 +131,21 @@ def _load_input(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
 
 
 def _infer_is_first_visit(data: dict[str, Any]) -> bool:
-    """F1Result doesn't persist is_revisit directly — infer from the turn-0
-    greeting branch (f1.py `run_session`: the revisit branch's opening message
-    quotes the prior handoff summary). Overridable via --first-visit/--revisit.
+    """Consume F1Result's persisted ``is_revisit`` field when present
+    (PLAN-2026-W28-Q W2, REV-023 ruling 4 — binding atomicity constraint).
+
+    Dialogue v3's autonomous turn-0 greeting (`docs/ai/prompts/dialogue/
+    v3.system.md`) removed the hardcoded greeting string
+    `_REVISIT_GREETING_MARKER` relied on, so that substring match can no
+    longer be the primary signal — it silently stops matching, not fails
+    loud. Legacy fallback (documented, for pre-W2 artifacts that lack the
+    ``is_revisit`` field): substring-match F1's old hardcoded v2-era turn-0
+    greeting. Overridable via --first-visit/--revisit.
     """
+    if "is_revisit" in data:
+        return not bool(data["is_revisit"])
+
+    # Legacy fallback — pre-`is_revisit`-field artifacts only.
     turns = data.get("turns", [])
     if turns:
         turn0 = next((t for t in turns if t.get("turn") == 0), turns[0])
@@ -235,7 +246,11 @@ def _build_input(
         crisis_turn=data.get("crisis_turn"),
         is_first_visit=is_first_visit,
         turns=turns,
-        prior_handoff=None,  # not persisted in F1 conversation.json — G-D scope
+        # PLAN-2026-W28-Q W2: F1Result now persists the narrowed carry
+        # content (`prior_handoff` = `_compose_carry_content` output,
+        # final_slots+missing_slots only — AVC-02) — wired to the real
+        # value; `None` for a first-visit session (never persisted).
+        prior_handoff=data.get("prior_handoff"),
         probe_events=data.get("probe_events", []),
         scale_scores=scale_scores,
         retrieved_chunks=retrieved_chunks,

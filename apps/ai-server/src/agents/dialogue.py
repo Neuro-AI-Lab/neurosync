@@ -51,9 +51,15 @@ _ALL_SLOTS = [
 _SLOT_COVERAGE_THRESHOLD = 0.7
 _MAX_HISTORY_TURNS = 8
 
+# PLAN-2026-W28-Q W2: v3 (dialogue v3 redesign, `docs/ai/prompts/dialogue/
+# v3.system.md`) — DialogueAgent is now called at turn 0 too (autonomous,
+# conditions-aware greeting via session_state["opening_turn"], replacing the
+# old hardcoded f-string greeting) plus continuity phrasing for slots
+# missing from a prior session (session_state["prior_missing_slots"]). v2's
+# clinical-dialogue core is preserved unchanged (evolution, not a rewrite).
 # PLAN-2026-W28 C1: v2 (prompt_redesign_v3.md §2.2) — absolute rules 8→6,
 # Safety section 5→1 line (P12 dedup vs runtime-injected slot/safety context).
-PROMPT_VERSION = "v2"
+PROMPT_VERSION = "v3"
 
 # 직접 질문하지 않는 슬롯 (관찰/자동생성/의료진 영역)
 _NO_QUESTION_SLOTS = {
@@ -305,6 +311,66 @@ class DialogueAgent(BaseAgent):
         return target
 
     @staticmethod
+    def _build_opening_context(session_state: dict[str, Any]) -> str:
+        """Dialogue v3 (a): autonomous turn-0 greeting context.
+
+        session_state keys — ALL carry-channel-licensed (AVC-02,
+        `docs/ai/validation_plan_f1f2_continuous.md` §6):
+          - is_revisit: bool
+          - carry_summary: str | None — F1Pipeline._summarize_prior_handoff's
+            output, itself built ONLY from the narrowed final_slots+
+            missing_slots carry content (`_compose_carry_content`); never
+            raw risk_assessment/CTRS narrative.
+          - prior_missing_slots: list[str] | None — slot KEY NAMES only, no
+            values.
+
+        No premature clinical content, no slot-machinery/internal-jargon
+        language at turn 0 (plan §6 greeting-v3 validation check #2).
+        """
+        is_revisit = bool(session_state.get("is_revisit"))
+        carry_summary = session_state.get("carry_summary")
+        prior_missing = session_state.get("prior_missing_slots") or []
+
+        lines = [
+            "=" * 50,
+            "아래 지시를 반드시 따르세요. (세션 시작 — 첫 인사)",
+            "=" * 50,
+            "",
+            "## 이번 턴: 첫 인사",
+            "- 한국어로 따뜻하게 첫 인사를 작성하세요.",
+            "- 정신건강 사전문진을 돕는 AI 상담 도우미임을 밝히세요.",
+            "- 실제 의사와의 대화가 아니며 편하게 이야기해도 된다고 안내하세요.",
+            "- 아직 슬롯 문진/진단/위험 평가 등 임상적 내용을 언급하지 마세요.",
+            "- \"슬롯\", \"coverage\", \"grounding\" 등 내부 시스템 용어를 언급하지 마세요.",
+        ]
+        if is_revisit:
+            lines.append(
+                "- 이 환자는 이전에 상담한 적이 있습니다. 이전 세션이 있었다는 "
+                "사실은 자연스럽게 언급해도 좋습니다(예: \"지난번에 이어서...\")."
+            )
+            if carry_summary:
+                lines.append(f"- 참고 가능한 이전 세션 정보: {carry_summary}")
+            lines.append(
+                "- 위 정보 이외의 세부사항(구체적 위험 서술, 진단 등)은 추측하거나 "
+                "언급하지 마세요."
+            )
+            if prior_missing:
+                lines.append(
+                    "- 아래는 이전 세션에서 다루지 못한 항목입니다 — 오늘 대화에서 "
+                    f"자연스럽게 이어서 다룰 수 있습니다: {', '.join(prior_missing)}"
+                )
+            lines.append(
+                "- 오늘 상태가 지난번과 비교해 어떤지 편하게 여쭤보며 대화를 여세요."
+            )
+        else:
+            lines.append(
+                "- 오늘 가장 도움받고 싶은 문제나 증상이 무엇인지 자연스럽게 한 번만 "
+                "질문하며 마무리하세요."
+            )
+        lines.append("")
+        return "\n\n" + "\n".join(lines)
+
+    @staticmethod
     def _build_probe_context(probe_instruction: str) -> str:
         """Directive context for safety-probe turns — round-robin suspended."""
         lines = [
@@ -338,9 +404,16 @@ class DialogueAgent(BaseAgent):
 
         session_state["probe_instruction"]이 있으면 안전 탐색 모드 —
         round-robin 슬롯 타겟팅을 중단하고 probe 지시만 전달한다.
+        session_state["opening_turn"]이 있으면 turn 0 자율 인사 모드 —
+        (Dialogue v3, PLAN-2026-W28-Q W2).
         """
+        if session_state and session_state.get("opening_turn"):
+            return self._build_opening_context(session_state)
+
         if session_state and session_state.get("probe_instruction"):
             return self._build_probe_context(str(session_state["probe_instruction"]))
+
+        prior_missing_slots = set((session_state or {}).get("prior_missing_slots") or [])
 
         filled_with_values = {k: v for k, v in filled_slots.items() if v and k in _ALL_SLOTS}
 
@@ -399,6 +472,14 @@ class DialogueAgent(BaseAgent):
             guide = _SLOT_QUESTION_GUIDE.get(target, target)
             lines.append(f"## 이번 턴: {target}에 대해 질문하세요")
             lines.append(f"질문 방향: {guide}")
+            # Dialogue v3 (b): continuity phrasing for slots missing from a
+            # prior session (key names only — AVC-02, never values/prose).
+            if target in prior_missing_slots:
+                lines.append(
+                    "연속성 안내: 이 항목은 지난 상담에서도 다루지 못한 부분입니다. "
+                    "자연스럽게 이어서 질문하되, 필요하다면 지난 상담을 자연스럽게 "
+                    "언급해도 좋습니다(예: \"지난번에 여쭤보지 못했는데...\")."
+                )
             lines.append("")
 
             remaining = [s for s in all_missing if s != target]

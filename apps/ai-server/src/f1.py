@@ -232,6 +232,29 @@ class F1Result:
     # BUG-021: session-level aggregate — True if ANY turn had prompts_degraded
     # True (any prompt-driven agent fell back to a generic hardcoded prompt).
     prompts_degraded: bool = False
+    # PLAN-2026-W28-Q W2 — multi-session production fields (plan §3 row
+    # "Multi-session + question induction").
+    session_index: int = 1
+    simulated_date: str = ""
+    is_revisit: bool = False
+    # Repro-metadata (model, prompt_version): captured from the turn-0
+    # DialogueAgent call — v3 calls DialogueAgent at turn 0 for every
+    # session (autonomous greeting), so it is always the first agent call a
+    # session makes, identifying the session's dialogue configuration.
+    model: str = ""
+    prompt_version: str = ""
+    # Narrowed carry-channel content RECEIVED at session start (AVC-02,
+    # `docs/ai/validation_plan_f1f2_continuous.md` §6): final_slots +
+    # missing_slots only, never raw prose/risk_assessment narration. `None`
+    # for a first-visit session. Persisted so F2 can read it — f2.py's
+    # `prior_handoff` used to be hardcoded `None` ("not persisted in F1
+    # conversation.json").
+    prior_handoff: str | None = None
+    # REV-022 Issue 7 / plan §3: slots whose CURRENT final value is still the
+    # value carried from a prior session (bypassed evaluate_slot_grounding —
+    # never re-grounded THIS session). slot_key -> "carried_from_session_N".
+    # A slot re-grounded this session (even to identical text) is NOT here.
+    carried_slot_provenance: dict[str, str] = field(default_factory=dict)
 
 
 _CONTENT_TYPE_BY_SUFFIX: dict[str, str] = {
@@ -402,6 +425,33 @@ def _legacy_essential_coverage(filled_slots: dict[str, str]) -> float:
     """Legacy essential-slot coverage — kept for comparability (T1-F1-DEV-019)."""
     filled_essential = [s for s in ESSENTIAL_SLOT_KEYS if filled_slots.get(s)]
     return len(filled_essential) / len(ESSENTIAL_SLOT_KEYS) if ESSENTIAL_SLOT_KEYS else 0.0
+
+
+def _compose_carry_content(final_slots: dict[str, str], missing_slots: list[str]) -> str:
+    """Narrowed ``--followup-from`` carry-channel payload (AVC-02,
+    `docs/ai/validation_plan_f1f2_continuous.md` §6, PLAN-2026-W28-Q W2).
+
+    ONLY ``final_slots`` (``risk_assessment`` excluded — every session
+    re-grounds risk from scratch via the Safety Probe/SI-screen, never
+    inherits a prior risk narrative, per this module's own docstring) and
+    ``missing_slots`` (key names only, no values) cross this channel. No
+    CTRS/crisis-protocol narrative, no free-text handoff prose — replaces
+    the old ``generate_handoff_from_result()``-based full-prose channel that
+    used to reach both the patient-simulator prompt and the dialogue
+    history (today: the full Handoff Report, including its "[2. 위기 분류]"
+    and "[5. 위험 평가]" sections).
+    """
+    lines = ["[이전 세션 요약 — 수집된 정보]"]
+    carried = {k: v for k, v in final_slots.items() if k != RISK_SLOT_KEY and v}
+    if carried:
+        for k, v in carried.items():
+            lines.append(f"- {k}: {v}")
+    else:
+        lines.append("(수집된 정보 없음)")
+    lines.append("")
+    lines.append("[이전 세션 요약 — 미수집 정보]")
+    lines.append(", ".join(missing_slots) if missing_slots else "(없음)")
+    return "\n".join(lines)
 
 
 # ── F1 Pipeline ──────────────────────────────────────────────────────
@@ -716,62 +766,30 @@ class F1Pipeline:
         return outputs
 
     @staticmethod
-    def _summarize_prior_handoff(handoff: str) -> str:
-        """Extract chief complaint and key state from prior handoff for greeting.
+    def _summarize_prior_handoff(carry_content: str) -> str:
+        """Short, carry-channel-licensed reference to a prior session — feeds
+        the Dialogue v3 autonomous greeting's ``session_state["carry_summary"]``
+        (AVC-02, PLAN-2026-W28-Q W2).
 
-        Parses both:
-        - Markdown table: | `chief_complaint` | "우울감과 불면" |
-        - Section header: ### 주호소 (with content on next line)
+        The input is ALWAYS ``_compose_carry_content``'s narrowed output
+        (final_slots + missing_slots only) — never the old full-prose
+        Handoff Report. This function itself never scans for risk/CTRS
+        keywords: the v2-era implementation did (looking for "위험"/"risk"
+        to append "안전 관련 우려사항도 확인되었습니다" to the greeting) — that
+        scan was itself part of the carry-channel overreach this redesign
+        closes, so it is removed rather than ported.
         """
-        lines = handoff.split("\n")
         chief = ""
-        risk_info = ""
-
-        # Strategy 1: Markdown table format — | `chief_complaint` | "value" |
-        for line in lines:
-            if "chief_complaint" in line and "|" in line:
-                parts = [p.strip().strip('"').strip('`') for p in line.split("|")]
-                for i, p in enumerate(parts):
-                    if "chief_complaint" in p and i + 1 < len(parts):
-                        chief = parts[i + 1].strip('"')
-                        break
-                if chief:
-                    break
-
-        # Strategy 2: Section header — ### 주호소 or [3. 주호소] (next line has content)
-        if not chief:
-            for i, line in enumerate(lines):
-                if re.search(r"(#+\s*|[\[\(]\d+[\.\)]\s*)주호소", line):
-                    # Take the next non-empty line as content
-                    for j in range(i + 1, min(i + 4, len(lines))):
-                        stripped = lines[j].strip()
-                        if stripped and not stripped.startswith(("#", "[", "---")):
-                            chief = stripped
-                            break
-                    break
-
-        # Look for risk level
-        for line in lines:
-            lower = line.lower()
-            if ("risk" in lower or "위험" in lower) and any(
-                w in lower for w in ["high", "severe", "높", "심각", "자살", "자해"]
-            ):
-                risk_info = "안전 관련 우려사항도 확인되었습니다"
+        for line in carry_content.split("\n"):
+            stripped = line.strip()
+            if stripped.startswith("- chief_complaint:"):
+                chief = stripped.split(":", 1)[1].strip()
                 break
-
-        summary_parts = []
         if chief:
-            # Truncate to a reasonable greeting length
             if len(chief) > 80:
                 chief = chief[:80] + "..."
-            summary_parts.append(f"지난번에 '{chief}' 문제로 상담하셨습니다")
-        else:
-            summary_parts.append("지난번 상담 내용을 확인했습니다")
-
-        if risk_info:
-            summary_parts.append(risk_info)
-
-        return " ".join(summary_parts) + "."
+            return f"지난번에 '{chief}' 문제로 상담하셨습니다."
+        return "지난번 상담 내용을 확인했습니다."
 
     # ── Safety probe helpers (pipeline-side state machine) ──────────
 
@@ -850,6 +868,10 @@ class F1Pipeline:
         is_revisit: bool = False,
         prior_handoff: str = "",
         prior_slots: dict[str, str] | None = None,
+        prior_missing_slots: list[str] | None = None,
+        prior_session_index: int | None = None,
+        session_index: int = 1,
+        simulated_date: str | None = None,
         patient_lat: float | None = None,
         patient_lng: float | None = None,
         ocr_documents: list[Path | str] | None = None,
@@ -864,8 +886,23 @@ class F1Pipeline:
             max_turns: 최대 턴 수
             slot_extraction_interval: N턴마다 ClinicalSlotAgent 실행
             is_revisit: 재진 여부
-            prior_handoff: 이전 handoff report (재진 시)
-            prior_slots: 이전 세션에서 수집된 slot (재진 시)
+            prior_handoff: 이전 세션의 narrowed carry-channel 내용 — ONLY
+                final_slots+missing_slots-shaped 텍스트 (AVC-02). 과거의
+                전체 prose Handoff Report가 아니다 — `_compose_carry_content`
+                참고.
+            prior_slots: 이전 세션에서 수집된 slot (재진 시) — filled_slots를
+                직접 시드한다(evaluate_slot_grounding을 우회하므로
+                carried_slot_provenance로 별도 태깅됨).
+            prior_missing_slots: 이전 세션에서 미수집이었던 slot key 목록
+                (재진 시) — Dialogue v3의 연속성 질문 유도에 사용 (값이 아닌
+                key만 전달되므로 AVC-02 위반이 아니다).
+            prior_session_index: 이전 세션의 session_index — carried_slot_
+                provenance 태그(``carried_from_session_N``)에 사용. None이면
+                일반 태그(``carried_from_prior_session``)를 사용한다.
+            session_index: 이 세션의 순번(1부터). 다중 세션 체이닝용
+                (PLAN-2026-W28-Q W2).
+            simulated_date: 이 세션의 시뮬레이션 날짜(ISO). None이면 실제
+                오늘 날짜를 사용한다.
             patient_lat, patient_lng: 환자 위치 (Crisis 시 근처 정신과 안내용).
                 None이면 CRISIS_RESPONSE에 병원 정보 미포함.
             ocr_documents: 세션 시작 시 OCR 처리할 문서 경로 목록 (진단서/처방전 등)
@@ -875,6 +912,7 @@ class F1Pipeline:
                           그 텍스트를 patient_input_fn 대신 순차 사용한다.
                           patient_input_fn과 상호 배타적 (audio_inputs 우선).
         """
+        resolved_simulated_date = simulated_date or datetime.now().date().isoformat()
         result = F1Result(
             session_id=session_id,
             patient_lat=patient_lat,
@@ -882,6 +920,10 @@ class F1Pipeline:
             persona_id=persona_id,
             persona_name=persona_name,
             started_at=datetime.now().isoformat(),
+            session_index=session_index,
+            simulated_date=resolved_simulated_date,
+            is_revisit=is_revisit,
+            prior_handoff=prior_handoff or None,
         )
 
         # ── STT: 음성 입력 → patient_input_fn 자동 구성 (T1-F1-DEV-003 통합) ──
@@ -911,6 +953,16 @@ class F1Pipeline:
 
         conversation_history: list[dict[str, str]] = []
         filled_slots: dict[str, str] = dict(prior_slots) if prior_slots else {}
+        # REV-022 Issue 7: slots pre-seeded from `prior_slots` bypass
+        # evaluate_slot_grounding — track which ones are STILL the carried
+        # value (never re-grounded this session) so the artifact can tag
+        # them distinctly from freshly-grounded values. A key leaves this
+        # set the moment this session's grounding filter accepts a fresh
+        # value for it (or the Safety Probe/SI-screen re-grounds risk_
+        # assessment directly).
+        _carried_pending: set[str] = (
+            {k for k, v in prior_slots.items() if v} if prior_slots else set()
+        )
         prev_agent_response = ""
         repeat_count = 0
 
@@ -949,6 +1001,18 @@ class F1Pipeline:
         risk_question_pending = False  # AI's last question targeted risk_assessment
         pending_soft_safety = False    # append 109 note to next AI response
 
+        def _apply_carried_provenance() -> None:
+            """REV-022 Issue 7: tag slots whose current value is STILL the
+            un-re-grounded carry (never overwritten this session)."""
+            tag = (
+                f"carried_from_session_{prior_session_index}"
+                if prior_session_index is not None
+                else "carried_from_prior_session"
+            )
+            result.carried_slot_provenance = {
+                k: tag for k in _carried_pending if filled_slots.get(k)
+            }
+
         async def _finalize_async() -> F1Result:
             result.session_ctrs = min(
                 (t.safety_ctrs for t in result.turns), default=5
@@ -957,6 +1021,7 @@ class F1Pipeline:
             # BUG-021: session-level aggregate, machine-visible without
             # scanning every turn.
             result.prompts_degraded = any(t.prompts_degraded for t in result.turns)
+            _apply_carried_provenance()
             # 명세 준수: 세션 종료 시 Sentiment Mode B (session-level 리포트)
             per_utt = [t.sentiment for t in result.turns if t.sentiment]
             result.session_sentiment = await self._analyze_session_sentiment(
@@ -974,29 +1039,62 @@ class F1Pipeline:
                 (t.safety_ctrs for t in result.turns), default=5
             )
             result.grounded_coverage = _grounded_coverage(filled_slots)
+            _apply_carried_provenance()
             result.ended_at = datetime.now().isoformat()
             return result
 
-        # ── Turn 0: DialogueAgent 첫 인사 ──
-        # 재상담(prior_handoff 있음)과 초진/재진(visit_type)은 별개 개념.
+        # ── Turn 0: DialogueAgent 자율 인사 (Dialogue v3, PLAN-2026-W28-Q W2) ──
+        # v2까지는 하드코딩된 f-string 인사말이었다(DialogueAgent는 turn 0에
+        # 호출되지 않았음). v3부터는 DialogueAgent가 turn 0에도 호출되어
+        # session_state(첫 방문/재상담 여부 + carry-channel 내용)를 조건으로
+        # 자율적으로 인사를 생성한다 — 임상적 내용/슬롯 용어는 turn 0에 금지
+        # (DialogueAgent._build_opening_context). 재상담(prior_handoff 있음)과
+        # 초진/재진(visit_type)은 별개 개념:
         # - 초진/재진: 의료 분류 (persona MD의 visit_type)
         # - 재상담: 이전 상담 기록이 존재하는 경우 (prior_handoff 비어있지 않음)
+        #
+        # 재상담 환자에게는 narrowed carry-channel 내용(final_slots+
+        # missing_slots만, AVC-02)만 시스템 메시지로 주입한다 — 과거 전체
+        # prose Handoff Report(raw risk_assessment 포함)는 더 이상 주입하지
+        # 않는다.
+        prior_carry_summary: str | None = None
         if prior_handoff:
-            # 재상담: 지난 상담에서 수집된 주호소/상태 요약을 환자에게 전달
-            prior_summary = self._summarize_prior_handoff(prior_handoff)
-            greeting = (
-                "안녕하세요! 저는 정신건강 사전문진을 도와드리는 AI 상담 도우미입니다. "
-                "실제 의사 선생님과의 대화가 아니니, 너무 긴장하지 마시고 "
-                "편하게 느끼시는 그대로 말씀해 주시면 됩니다.\n\n"
-                f"지난번 상담 기록을 확인했습니다. {prior_summary}\n\n"
-                "지난번 이후로 상태가 어떻게 변했는지 편하게 말씀해 주세요."
-            )
-            # Inject prior handoff as context for DialogueAgent
+            prior_carry_summary = self._summarize_prior_handoff(prior_handoff)
             conversation_history.append({
                 "role": "system",
-                "content": f"[이전 상담 기록 참고 — 재상담 환자]\n{prior_handoff}",
+                "content": f"[이전 세션 요약 참고 — 재상담 환자]\n{prior_handoff}",
             })
-        else:
+
+        opening_session_state: dict[str, Any] = {
+            "opening_turn": True,
+            "is_revisit": is_revisit,
+        }
+        if prior_carry_summary:
+            opening_session_state["carry_summary"] = prior_carry_summary
+        if prior_missing_slots:
+            opening_session_state["prior_missing_slots"] = list(prior_missing_slots)
+
+        # Record Turn 0 in result (greeting generation + patient first response)
+        turn0_start = time.perf_counter()
+
+        try:
+            opening_out = await self.dialogue.run(DialogueInput(
+                session_id=session_id,
+                user_message=(
+                    "(세션 시작 트리거 — 첫 인사말을 생성하세요. "
+                    "이 문장은 환자의 발화가 아닙니다.)"
+                ),
+                conversation_history=[],
+                filled_slots=dict(filled_slots),
+                safety_result=None,
+                session_state=opening_session_state,
+            ))
+            greeting = _extract_text(opening_out.assistant_response)
+            result.model = opening_out.model_used
+            result.prompt_version = opening_out.prompt_version
+        except Exception as e:
+            logger.error("Turn 0 opening greeting failed, using static fallback: %s", e)
+            result.errors.append(f"Turn 0 opening greeting failed: {e}")
             greeting = (
                 "안녕하세요! 저는 정신건강 사전문진을 도와드리는 AI 상담 도우미입니다. "
                 "실제 의사 선생님과의 대화가 아니니, 너무 긴장하지 마시고 "
@@ -1004,11 +1102,9 @@ class F1Pipeline:
                 "지금부터 대화를 시작하겠습니다. "
                 "오늘 가장 도움받고 싶은 문제나 증상은 무엇인가요?"
             )
+            result.prompt_version = "fallback_static"
 
         logger.info("Turn 0 | AI (opening): %s", greeting)
-
-        # Record Turn 0 in result (greeting + patient first response)
-        turn0_start = time.perf_counter()
 
         try:
             raw_patient_message = await patient_input_fn(greeting)
@@ -1061,6 +1157,9 @@ class F1Pipeline:
                     patient_utterances,
                     asked_slots,
                 )
+                # REV-022 Issue 7: a freshly-grounded value supersedes any
+                # carried one — no longer "still carried" provenance.
+                _carried_pending.difference_update(turn0_slots.keys())
                 logger.info(
                     "Turn 0 slot extraction: %d accepted, %d discarded",
                     len(turn0_slots), len(turn0_discards),
@@ -1234,6 +1333,7 @@ class F1Pipeline:
                 elif outcome == "deescalate":
                     risk_value = self._compose_probe_risk_assessment(probe, patient_message)
                     filled_slots[RISK_SLOT_KEY] = risk_value
+                    _carried_pending.discard(RISK_SLOT_KEY)
                     risk_grounded = True
                     slot_updates[RISK_SLOT_KEY] = risk_value
                     probe.active = False
@@ -1256,6 +1356,7 @@ class F1Pipeline:
                             probe, patient_message
                         )
                         filled_slots[RISK_SLOT_KEY] = risk_value
+                        _carried_pending.discard(RISK_SLOT_KEY)
                         risk_grounded = True
                         slot_updates[RISK_SLOT_KEY] = risk_value
                         probe.active = False
@@ -1287,6 +1388,7 @@ class F1Pipeline:
                 else:
                     risk_value = self._compose_screen_risk_assessment(patient_message)
                     filled_slots[RISK_SLOT_KEY] = risk_value
+                    _carried_pending.discard(RISK_SLOT_KEY)
                     risk_grounded = True
                     slot_updates[RISK_SLOT_KEY] = risk_value
                     result.probe_events.append({
@@ -1368,6 +1470,9 @@ class F1Pipeline:
                         )
                         slot_updates.update(extract_updates)
                         slot_discards.update(extract_discards)
+                        # REV-022 Issue 7: freshly-grounded values supersede
+                        # any carried provenance for the same key.
+                        _carried_pending.difference_update(extract_updates.keys())
                     logger.info(
                         "Turn %d slots: +%d accepted, %d discarded, %d total",
                         turn, len(slot_updates), len(slot_discards), len(filled_slots),
@@ -1400,6 +1505,11 @@ class F1Pipeline:
                     targeted_slot = DialogueAgent.compute_target_slot(
                         filled_slots, conversation_history
                     )
+                    # Dialogue v3 (b): continuity phrasing for slots missing
+                    # from a prior session — key names only (AVC-02), never
+                    # values/prose.
+                    if prior_missing_slots:
+                        session_state = {"prior_missing_slots": list(prior_missing_slots)}
 
                 try:
                     safety_result_for_dialogue = {
@@ -1961,6 +2071,16 @@ def _result_from_dict(data: dict) -> F1Result:
         risk_floor=data.get("risk_floor"),
         probe_events=data.get("probe_events", []),
         session_ctrs=data.get("session_ctrs", 5),
+        # PLAN-2026-W28-Q W2 fields — `.get(...)` with defaults so legacy
+        # (pre-W2) artifacts load without KeyError (documented fallback,
+        # REV-023 ruling 4 atomicity constraint).
+        session_index=data.get("session_index", 1),
+        simulated_date=data.get("simulated_date", ""),
+        is_revisit=data.get("is_revisit", False),
+        model=data.get("model", ""),
+        prompt_version=data.get("prompt_version", ""),
+        prior_handoff=data.get("prior_handoff"),
+        carried_slot_provenance=data.get("carried_slot_provenance", {}),
     )
 
 
@@ -1989,7 +2109,9 @@ async def _run_simulation(
     ocr_documents: list[Path] | None = None,
     ocr_hints: list[DocumentType] | None = None,
     audio_inputs: list[Path] | None = None,
-) -> None:
+    session_index: int | None = None,
+    simulated_date: str | None = None,
+) -> F1Result:
     """시뮬레이션 모드: PatientLLM과 F1Pipeline 대화.
 
     Args:
@@ -1997,6 +2119,14 @@ async def _run_simulation(
             - persona ID (e.g. "VP-001") → 해당 VP의 최신 결과에서 handoff 생성
             - JSON file path → 해당 파일에서 handoff 생성
         patient_lat/lng: 환자 좌표. 미지정 시 PERSONA_LOCATIONS에서 자동 조회.
+        session_index: 이 세션의 순번(1부터). None이면 followup_from 유무로
+            자동 산정 (첫 세션=1, 재상담=이전 session_index+1).
+        simulated_date: 이 세션의 시뮬레이션 날짜(ISO). None이면 오늘 날짜.
+
+    Returns:
+        The completed F1Result (also saved to disk via `save_f1_result`) —
+        multi-session callers (`continuous_test.py`) chain off this directly
+        instead of re-globbing the output directory.
     """
     from tests.simulation.patient_llm import PatientLLM, load_persona
 
@@ -2012,12 +2142,19 @@ async def _run_simulation(
         print("UPSTAGE_API_KEY not set")
         sys.exit(1)
 
-    # Determine prior handoff source
+    # Determine prior handoff source — PLAN-2026-W28-Q W2 (AVC-02): the
+    # carry channel is NARROWED to final_slots+missing_slots only. Neither
+    # the patient-simulator prompt below nor `prior_handoff` (which reaches
+    # the dialogue history via F1Pipeline.run_session) ever sees the old
+    # full-prose Handoff Report (CTRS/crisis-protocol narrative, raw
+    # risk_assessment prose) again.
     prior_handoff = ""
     prior_slots: dict[str, str] = {}
+    prior_missing_slots: list[str] = []
+    prior_session_index: int | None = None
 
     if followup_from:
-        # Load prior session result and generate handoff
+        # Load prior session result and build the narrowed carry content
         if followup_from.endswith(".json"):
             with open(followup_from, encoding="utf-8") as f:
                 prior_data = json.load(f)
@@ -2028,17 +2165,22 @@ async def _run_simulation(
                 print(f"No prior result found for {followup_from}")
                 sys.exit(1)
 
-        prior_handoff = generate_handoff_from_result(prior_result)
         prior_slots = {s["key"]: s["value"] for s in prior_result.final_slots}
-        print(f"[Follow-up] Using prior session handoff ({len(prior_handoff)} chars, "
-              f"{len(prior_slots)} slots)")
+        prior_missing_slots = [k for k in QUESTIONABLE_SLOT_KEYS if not prior_slots.get(k)]
+        prior_session_index = prior_result.session_index
+        prior_handoff = _compose_carry_content(prior_slots, prior_missing_slots)
+        print(f"[Follow-up] Using prior session carry ({len(prior_slots)} slot(s), "
+              f"{len(prior_missing_slots)} missing, session_index={prior_session_index})")
 
-        # Inject prior handoff into patient persona for context
+        # Inject the SAME narrowed carry content into the patient persona —
+        # never the old full-prose handoff (AVC-02: the patient-simulator
+        # prompt is one of the two named injection points this narrowing
+        # closes).
         persona.prior_handoff = prior_handoff
         persona.system_prompt += f"""
 
 ## 이전 상담 기록 (당신이 기억해야 할 내용)
-당신은 이전에 상담을 받은 적이 있습니다. 아래는 지난 상담 때의 기록입니다.
+당신은 이전에 상담을 받은 적이 있습니다. 아래는 지난 상담에서 수집/미수집된 정보입니다.
 이전 상태와 비교하여 현재 상태가 좋아졌는지, 나빠졌는지, 유지되는지를 자연스럽게 대화에 반영하세요.
 변화가 있는 부분은 구체적으로 이야기하고, 유지되는 부분은 "비슷해요" 정도로 답하세요.
 
@@ -2071,6 +2213,12 @@ async def _run_simulation(
         if default:
             resolved_lat, resolved_lng = default
 
+    resolved_session_index = session_index
+    if resolved_session_index is None:
+        resolved_session_index = (
+            prior_session_index + 1 if prior_session_index is not None else 1
+        )
+
     session_suffix = "_followup" if followup_from else ""
     if audio_inputs:
         session_suffix += "_audio"
@@ -2083,6 +2231,10 @@ async def _run_simulation(
         is_revisit=bool(followup_from),  # 명시적 --followup-from만 재상담
         prior_handoff=prior_handoff,
         prior_slots=prior_slots,
+        prior_missing_slots=prior_missing_slots,
+        prior_session_index=prior_session_index,
+        session_index=resolved_session_index,
+        simulated_date=simulated_date,
         patient_lat=resolved_lat,
         patient_lng=resolved_lng,
         ocr_documents=ocr_documents,
@@ -2114,6 +2266,8 @@ async def _run_simulation(
     print(f"  Errors: {len(result.errors)}")
     print(f"  Files: {', '.join(p.name for p in paths.values())}")
     print(f"{'='*60}")
+
+    return result
 
 
 def main() -> None:
@@ -2173,6 +2327,14 @@ def main() -> None:
             "편의 옵션: --audio 미지정 시 "
             "apps/ai-server/tests/fixtures/audio/{persona}/{persona}-*.mp3를 정렬 순 자동 첨부."
         ),
+    )
+    parser.add_argument(
+        "--session-index", type=int, default=None,
+        help="다중 세션 체이닝용 세션 순번(1부터). 미지정 시 자동 산정.",
+    )
+    parser.add_argument(
+        "--simulated-date", default=None,
+        help="이 세션의 시뮬레이션 날짜(ISO, 예: 2026-07-25). 미지정 시 오늘 날짜.",
     )
     args = parser.parse_args()
 
@@ -2234,6 +2396,8 @@ def main() -> None:
             ocr_documents=ocr_docs,
             ocr_hints=ocr_hints_list,
             audio_inputs=audio_paths,
+            session_index=args.session_index,
+            simulated_date=args.simulated_date,
         )
     )
 

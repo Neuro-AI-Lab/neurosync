@@ -62,6 +62,10 @@ def _read(agent: str, version: str) -> str:
 SAFETY_V2 = _read("safety_classifier", "v2")
 SAFETY_V3 = _read("safety_classifier", "v3")
 DIALOGUE_V2 = _read("dialogue", "v2")
+# PLAN-2026-W28-Q W2: dialogue v3 redesign (autonomous turn-0 greeting +
+# question-induction continuity phrasing) — the ONE licensed prompt change
+# this mission, superseding the v2 pin below (v2 file kept, rollback policy).
+DIALOGUE_V3 = _read("dialogue", "v3")
 CLINICAL_SLOT_V2 = _read("clinical_slot", "v2")
 CLINICAL_SLOT_V3 = _read("clinical_slot", "v3")
 HANDOFF_V2 = _read("handoff_generator", "v2")
@@ -71,6 +75,7 @@ _ALL_NEW_FILES = {
     "safety_classifier/v2": SAFETY_V2,
     "safety_classifier/v3": SAFETY_V3,
     "dialogue/v2": DIALOGUE_V2,
+    "dialogue/v3": DIALOGUE_V3,
     "clinical_slot/v3": CLINICAL_SLOT_V3,
     "handoff_generator/v2": HANDOFF_V2,
     "sentiment_analyzer/v2": SENTIMENT_V2,
@@ -287,6 +292,47 @@ class TestDialogueV2File:
     def test_char_budget(self) -> None:
         assert len(DIALOGUE_V2) <= 1500
 
+
+class TestDialogueV3File:
+    """PLAN-2026-W28-Q W2: dialogue v3 redesign — the pinned prompt as of
+    this mission. v2's clinical-dialogue core is preserved (evolution, not a
+    rewrite); v3 adds autonomous turn-0 greeting + continuity phrasing."""
+
+    def test_v2_kept_per_versioning_policy(self) -> None:
+        assert (_PROMPTS_DIR / "dialogue" / "v2.system.md").exists()
+
+    def test_output_schema_key_documented(self) -> None:
+        assert "assistant_response" in DIALOGUE_V3
+
+    def test_absolute_rules_present(self) -> None:
+        for phrase in [
+            "진단 확정 금지",
+            "약물/치료 권유 금지",
+            "근거 없는 안심 금지",
+            "환자 감정 부정 금지",
+            "반말 금지",
+        ]:
+            assert phrase in DIALOGUE_V3, f"missing absolute rule text: {phrase!r}"
+
+    def test_safety_dedup_p12(self) -> None:
+        """v2's dedup discipline is preserved unchanged."""
+        assert "Safety 지시" in DIALOGUE_V3
+        assert "risk_level이 medium 이상" not in DIALOGUE_V3  # old v1 hardcoded branch
+
+    def test_opening_turn_section_present(self) -> None:
+        """v3 addition (a): autonomous turn-0 greeting is now documented."""
+        assert "세션 시작 인사" in DIALOGUE_V3
+        assert "슬롯 문진" in DIALOGUE_V3  # "no premature clinical/slot content" rule
+
+    def test_continuity_phrasing_section_present(self) -> None:
+        """v3 addition (b): question-induction continuity phrasing."""
+        assert "연속성" in DIALOGUE_V3
+
+    def test_no_raw_risk_narration_licensed(self) -> None:
+        """AVC-02: the greeting may reference the FACT of a prior session but
+        never raw risk narration — the static prompt says so explicitly."""
+        assert "위험" not in DIALOGUE_V3 or "추측하거나" in DIALOGUE_V3
+
     def test_line_budget(self) -> None:
         assert len(DIALOGUE_V2.splitlines()) <= 50
 
@@ -483,7 +529,11 @@ class TestAgentPinsAndRuntimeVersion:
         assert SAFETY_VERSION == "v2"
 
     def test_dialogue_pin(self) -> None:
-        assert DIALOGUE_VERSION == "v2"
+        """PLAN-2026-W28-Q W2: dialogue v3 redesign (autonomous turn-0
+        greeting + continuity phrasing) — the ONE licensed prompt change
+        this mission; v2 -> v3, atomic with F1Result.is_revisit (REV-023
+        ruling 4)."""
+        assert DIALOGUE_VERSION == "v3"
 
     def test_clinical_slot_pin(self) -> None:
         assert CLINICAL_SLOT_VERSION == "v3"
@@ -514,7 +564,7 @@ class TestAgentPinsAndRuntimeVersion:
         assert out.prompt_version == "v2"
 
     @pytest.mark.asyncio
-    async def test_dialogue_loads_and_reports_v2(self) -> None:
+    async def test_dialogue_loads_and_reports_v3(self) -> None:
         agent = DialogueAgent.__new__(DialogueAgent)
         agent._prompt_loader = MagicMock()
         agent._prompt_loader.load_system_prompt.return_value = "대화 프롬프트"
@@ -522,8 +572,8 @@ class TestAgentPinsAndRuntimeVersion:
 
         out = await agent.run(DialogueInput(session_id="t", user_message="안녕하세요"))
 
-        agent._prompt_loader.load_system_prompt.assert_called_once_with("dialogue", "v2")
-        assert out.prompt_version == "v2"
+        agent._prompt_loader.load_system_prompt.assert_called_once_with("dialogue", "v3")
+        assert out.prompt_version == "v3"
 
     @pytest.mark.asyncio
     async def test_clinical_slot_loads_and_reports_v3(self) -> None:
