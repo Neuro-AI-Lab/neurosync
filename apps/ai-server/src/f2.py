@@ -49,7 +49,10 @@ from src.eval.f2_grounding import (
 )
 from src.f1 import OUTPUT_DIR
 from src.prompts.loader import resolve_prompts_base_dir
-from src.rag.questionnaire_mapping import resolve_questionnaire_for_disease_name_ko
+from src.rag.questionnaire_mapping import (
+    resolve_questionnaire_caveat_for_disease_name_ko,
+    resolve_questionnaire_for_disease_name_ko,
+)
 
 # PLAN-2026-W28-Q W4: RAG trigger Policy A/B — `_STAGE1_QUERY_SLOTS` now
 # lives in `src.rag_trigger` (single source of truth for both this module's
@@ -562,12 +565,22 @@ async def _build_ai_predicted_disease_populated(
     recommended_questionnaire = (
         resolve_questionnaire_for_disease_name_ko(candidates[0].disease) if candidates else None
     )
+    # CVR-003 Findings 1/3 (W5 addendum): recommendation_caveat is derived
+    # from the SAME top-ranked candidate's disease name, via the same
+    # module's CLASSIFICATION_TO_CAVEAT table — never a separate/divergent
+    # lookup from recommended_questionnaire above.
+    recommendation_caveat = (
+        resolve_questionnaire_caveat_for_disease_name_ko(candidates[0].disease)
+        if candidates
+        else None
+    )
 
     return AIPredictedDiseaseOutput(
         mode="rag_live",
         candidates=candidates,
         reason_summary=reason,
         recommended_questionnaire=recommended_questionnaire,
+        recommendation_caveat=recommendation_caveat,
     )
 
 
@@ -885,6 +898,21 @@ def _build_report(artifact: dict[str, Any]) -> str:
             f"- disclaimer: {ai_disease.get('disclaimer')}",
             f"- reason_summary: {ai_disease.get('reason_summary')}",
         ])
+        # CVR-003 Findings 1/3/4 (W5 addendum): recommended_questionnaire
+        # and its recommendation_caveat rendered alongside each other here —
+        # the caveat must reach this artifact's own rendered line for the
+        # field, not only the JSON `model_dump()` output, and never orphaned
+        # (a caveat with no visible recommendation next to it). Both are
+        # conditionally rendered (only when set) so a run with no top
+        # candidate / no construct-valid mapping doesn't add noise lines —
+        # same "additive, honest-on-failure-only" convention already used
+        # elsewhere in this function.
+        recommended_questionnaire = ai_disease.get("recommended_questionnaire")
+        if recommended_questionnaire is not None:
+            lines.append(f"- recommended_questionnaire: **{recommended_questionnaire}**")
+        recommendation_caveat = ai_disease.get("recommendation_caveat")
+        if recommendation_caveat is not None:
+            lines.append(f"- recommendation_caveat: {recommendation_caveat}")
         candidates = ai_disease.get("candidates") or []
         if candidates:
             for c in candidates:

@@ -36,6 +36,17 @@ plan §9) classifies as `substance` (plan: "Mapping consequence:
 Classification `substance` -> AUDIT-C ... low-risk addition") — it slots
 into the existing `"substance"` row below with ZERO code change here, since
 this mapping is keyed on classification, not disease slug.
+
+CVR-003 Findings 1/3 (W5 addendum, PLAN-2026-W28-Q W5 addendum mission):
+the mood row's mania/bipolar-blind-spot caveat and the substance row's
+AUDIT-C consumption-vs-dependence caveat previously existed only as the
+per-row rationale comments below — they now ALSO have a machine-readable
+home in `CLASSIFICATION_TO_CAVEAT` (a per-row caveat column paralleling
+`CLASSIFICATION_TO_SCALE`, keyed on the same classification), so a
+downstream reader of the actual `AIPredictedDiseaseOutput.recommendation_caveat`
+field (never invented at the schema layer — populated from this table by
+`f2.py`, same discipline as `recommended_questionnaire`) sees the caveat
+alongside the recommendation, not only in this source comment.
 """
 
 from __future__ import annotations
@@ -59,13 +70,14 @@ CLASSIFICATION_TO_SCALE: dict[str, ScaleName | None] = {
     # depression-severity scale; the closest standardized proxy for the
     # depressive-episode / bipolar / cyclothymic / seasonal / PMDD
     # presentations bucketed under "mood" in DISEASES today.
-    # Caveat for clinical-validator review: PHQ-9 screens depressive
-    # symptom burden only, not manic/hypomanic history — for
+    # Caveat (CVR-003 Finding 1, ADOPTED, now machine-readable via
+    # CLASSIFICATION_TO_CAVEAT below): PHQ-9 screens depressive symptom
+    # burden only, not manic/hypomanic history — for
     # bipolar-affective-disorder/cyclothymic-disorder specifically this is
     # a partial-construct match, not a full one. Recommended over no
     # questionnaire because a depression-severity read is still clinically
-    # useful pending the validator's content verdict, but this partial-fit
-    # caveat must be surfaced in that review, not silently absorbed here.
+    # useful, but the partial-fit caveat must reach the actual artifact, not
+    # live only in this comment (CVR-003 Finding 1's binding disposition).
     "mood": "PHQ-9",
     # anxiety — GAD-7 (Spitzer et al., 2006) is this project's only anxiety
     # scale; covers generalized-anxiety-disorder directly and is the
@@ -107,7 +119,10 @@ CLASSIFICATION_TO_SCALE: dict[str, ScaleName | None] = {
     # substance-use scale. Covers alcohol-intoxication/alcohol-withdrawal
     # today; per plan §9's "Mapping consequence" row, the W6 AUD ontology
     # entry (`alcohol-use-disorder`) also classifies as "substance" and
-    # slots into this SAME row with zero code change here.
+    # slots into this SAME row with zero code change here. Caveat (CVR-003
+    # Finding 3, ADOPTED via this same W5 addendum mechanism): AUDIT-C is a
+    # consumption/frequency screener, not a dependence-severity or
+    # withdrawal-acuity instrument — see CLASSIFICATION_TO_CAVEAT below.
     "substance": "AUDIT-C",
     # somatic — NO SCALE. Conversion disorder's construct (functional
     # neurological symptoms without a neurological cause) is not covered by
@@ -130,6 +145,59 @@ for _cls, _scale in CLASSIFICATION_TO_SCALE.items():
             f"SUPPORTED_SCALES {sorted(SUPPORTED_SCALES)}"
         )
 
+# ── Classification -> recommendation caveat (or None) ──────────────────────
+#
+# CVR-003 Findings 1/3 (W5 addendum, PLAN-2026-W28-Q W5 addendum mission,
+# `discussion.md` "CVR-003 folded" disposition, 2026-07-11): a per-row
+# caveat "column", keyed on the SAME classification as
+# CLASSIFICATION_TO_SCALE above, so `resolve_questionnaire_caveat_for_*`
+# below always describes the SAME row a `resolve_questionnaire_for_*` call
+# just resolved. `None` means "no disclosed caveat beyond the scale's
+# general non-diagnostic framing" — not "no scale" (a `None`-scale
+# classification, e.g. `ocd`, also carries `None` here; there is no
+# recommendation to caveat). Only two rows carry a caveat today (the two
+# CVR-003 named, Findings 1 and 3); every other classification is an
+# explicit `None` to keep this table's key set exactly matching
+# CLASSIFICATION_TO_SCALE's (asserted below), so a future new
+# classification cannot silently fall through either table.
+CLASSIFICATION_TO_CAVEAT: dict[str, str | None] = {
+    # mood — CVR-003 Finding 1 (major, ADOPTED). Exact content per this
+    # W5 addendum mission's brief.
+    "mood": (
+        "PHQ-9 screens depressive-symptom burden only, does not screen "
+        "manic/hypomanic symptoms — bipolar-spectrum presentations need "
+        "clinician follow-up regardless of score."
+    ),
+    "anxiety": None,
+    "ocd": None,
+    "trauma": None,
+    "psychotic": None,
+    "personality": None,
+    "neurodevelopmental": None,
+    # substance — CVR-003 Finding 3 (minor, ADOPTED via this same
+    # mechanism, "zero extra cost, CVR-flagged" per orchestrator
+    # disposition).
+    "substance": (
+        "AUDIT-C screens alcohol consumption/frequency (hazardous-use "
+        "pattern) only, not dependence severity or withdrawal acuity — for "
+        "a dependence-level presentation, a result here is a first-line/"
+        "gateway signal, not a severity determination; clinician follow-up "
+        "is required regardless of score."
+    ),
+    "somatic": None,
+    "neurocognitive": None,
+}
+
+# Fail fast at import time: key sets must match exactly — every
+# CLASSIFICATION_TO_SCALE row has an explicit (possibly None) caveat
+# disposition, and this table never invents a caveat for a classification
+# CLASSIFICATION_TO_SCALE doesn't know about.
+if set(CLASSIFICATION_TO_CAVEAT) != set(CLASSIFICATION_TO_SCALE):
+    raise AssertionError(
+        "CLASSIFICATION_TO_CAVEAT key set must exactly match "
+        f"CLASSIFICATION_TO_SCALE's: {set(CLASSIFICATION_TO_CAVEAT) ^ set(CLASSIFICATION_TO_SCALE)}"
+    )
+
 
 def resolve_questionnaire_for_classification(classification: str) -> ScaleName | None:
     """Look up the recommended scale for a `DISEASES` classification value.
@@ -149,6 +217,28 @@ def resolve_questionnaire_for_classification(classification: str) -> ScaleName |
         )
         return None
     return CLASSIFICATION_TO_SCALE[classification]
+
+
+def resolve_questionnaire_caveat_for_classification(classification: str) -> str | None:
+    """Look up the disclosed caveat (CVR-003 Findings 1/3) for a `DISEASES`
+    classification value -- the SAME classification
+    :func:`resolve_questionnaire_for_classification` resolves a scale for.
+
+    Returns `None` both when the classification has no disclosed caveat
+    (the common case -- most rows carry no caveat beyond the scale's
+    general non-diagnostic framing) and for an unrecognized classification
+    (defensive, mirrors the scale resolver above; should not happen once
+    the CLASSIFICATION_TO_CAVEAT/CLASSIFICATION_TO_SCALE key-set-equality
+    assertion above is green).
+    """
+    if classification not in CLASSIFICATION_TO_CAVEAT:
+        logger.warning(
+            "questionnaire_mapping.unmapped_classification_for_caveat "
+            "classification=%r -- no recommendation_caveat will be set",
+            classification,
+        )
+        return None
+    return CLASSIFICATION_TO_CAVEAT[classification]
 
 
 # ── Disease name (Korean) -> recommended scale, derived reverse lookup ────
@@ -185,6 +275,24 @@ def resolve_questionnaire_for_disease_name_ko(disease_name_ko: str) -> ScaleName
     return resolve_questionnaire_for_classification(classification)
 
 
+def resolve_questionnaire_caveat_for_disease_name_ko(disease_name_ko: str) -> str | None:
+    """Look up the disclosed caveat (CVR-003 Findings 1/3) for a disease by
+    its Korean display name -- the SAME lookup path
+    :func:`resolve_questionnaire_for_disease_name_ko` uses, so `f2.py`'s
+    population code derives `recommendation_caveat` from the identical
+    `candidates[0].disease` value it already uses for
+    `recommended_questionnaire`.
+
+    Returns `None` if the name is not a recognized ontology disease name
+    (e.g. a synthetic test marker, or DB drift from `DISEASES`) or if its
+    classification has no disclosed caveat.
+    """
+    classification = _NAME_KO_TO_CLASSIFICATION.get(disease_name_ko)
+    if classification is None:
+        return None
+    return resolve_questionnaire_caveat_for_classification(classification)
+
+
 def resolve_questionnaire_for_disease_slug(slug: str) -> ScaleName | None:
     """Look up the recommended scale for a disease by its ontology slug
     (`rag.ontology.DISEASES` key) -- the structural-check entry point."""
@@ -192,3 +300,13 @@ def resolve_questionnaire_for_disease_slug(slug: str) -> ScaleName | None:
     if entry is None:
         return None
     return resolve_questionnaire_for_classification(entry[3])
+
+
+def resolve_questionnaire_caveat_for_disease_slug(slug: str) -> str | None:
+    """Look up the disclosed caveat (CVR-003 Findings 1/3) for a disease by
+    its ontology slug (`rag.ontology.DISEASES` key) -- the structural-check
+    entry point, paralleling :func:`resolve_questionnaire_for_disease_slug`."""
+    entry = DISEASES.get(slug)
+    if entry is None:
+        return None
+    return resolve_questionnaire_caveat_for_classification(entry[3])

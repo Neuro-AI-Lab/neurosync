@@ -19,7 +19,11 @@ from __future__ import annotations
 
 from src.rag.ontology import DISEASES
 from src.rag.questionnaire_mapping import (
+    CLASSIFICATION_TO_CAVEAT,
     CLASSIFICATION_TO_SCALE,
+    resolve_questionnaire_caveat_for_classification,
+    resolve_questionnaire_caveat_for_disease_name_ko,
+    resolve_questionnaire_caveat_for_disease_slug,
     resolve_questionnaire_for_classification,
     resolve_questionnaire_for_disease_name_ko,
     resolve_questionnaire_for_disease_slug,
@@ -148,3 +152,69 @@ class TestDiseaseSlugLookup:
 
     def test_unknown_slug_returns_none_not_raise(self) -> None:
         assert resolve_questionnaire_for_disease_slug("not-a-real-slug") is None
+
+
+class TestClassificationToCaveat:
+    """CVR-003 Findings 1/3 (W5 addendum, `discussion.md` "CVR-003 folded"
+    disposition, 2026-07-11) — the per-row caveat column."""
+
+    def test_key_set_matches_classification_to_scale_exactly(self) -> None:
+        """The module-level fail-fast assertion already enforces this at
+        import time (this test would never even collect if it failed) —
+        this test documents and locks in the invariant explicitly."""
+        assert set(CLASSIFICATION_TO_CAVEAT) == set(CLASSIFICATION_TO_SCALE)
+
+    def test_mood_caveat_discloses_mania_blind_spot(self) -> None:
+        caveat = CLASSIFICATION_TO_CAVEAT["mood"]
+        assert caveat is not None
+        assert "manic" in caveat or "mania" in caveat.lower()
+        assert "PHQ-9" in caveat
+
+    def test_substance_caveat_discloses_consumption_vs_dependence_scope(self) -> None:
+        caveat = CLASSIFICATION_TO_CAVEAT["substance"]
+        assert caveat is not None
+        assert "AUDIT-C" in caveat
+        assert "dependence" in caveat.lower()
+
+    def test_classifications_with_no_disclosed_caveat_are_explicit_none(self) -> None:
+        for classification in ("anxiety", "ocd", "trauma", "psychotic", "personality",
+                                "neurodevelopmental", "somatic", "neurocognitive"):
+            assert CLASSIFICATION_TO_CAVEAT[classification] is None
+
+    def test_resolve_caveat_for_classification_mood(self) -> None:
+        assert resolve_questionnaire_caveat_for_classification("mood") == (
+            CLASSIFICATION_TO_CAVEAT["mood"]
+        )
+
+    def test_resolve_caveat_for_classification_no_caveat_returns_none(self) -> None:
+        assert resolve_questionnaire_caveat_for_classification("anxiety") is None
+
+    def test_resolve_caveat_for_unrecognized_classification_returns_none_not_raise(self) -> None:
+        assert resolve_questionnaire_caveat_for_classification("not-a-real-classification") is None
+
+    def test_resolve_caveat_for_disease_name_ko_real_mood_disease(self) -> None:
+        # "우울 삽화(우울증)" == DISEASES["depressive-episode"][1] (mood)
+        caveat = resolve_questionnaire_caveat_for_disease_name_ko("우울 삽화(우울증)")
+        assert caveat == CLASSIFICATION_TO_CAVEAT["mood"]
+
+    def test_resolve_caveat_for_disease_name_ko_no_coverage_resolves_to_none(self) -> None:
+        # "조현병" == DISEASES["schizophrenia"][1] (psychotic -> None scale, None caveat)
+        assert resolve_questionnaire_caveat_for_disease_name_ko("조현병") is None
+
+    def test_resolve_caveat_for_disease_name_ko_unrecognized_name_returns_none(self) -> None:
+        assert resolve_questionnaire_caveat_for_disease_name_ko("ZZZ_NOT_A_REAL_DISEASE") is None
+
+    def test_resolve_caveat_for_disease_slug_known_mood_slug(self) -> None:
+        caveat = resolve_questionnaire_caveat_for_disease_slug("depressive-episode")
+        assert caveat == CLASSIFICATION_TO_CAVEAT["mood"]
+
+    def test_resolve_caveat_for_disease_slug_unknown_slug_returns_none(self) -> None:
+        assert resolve_questionnaire_caveat_for_disease_slug("not-a-real-slug") is None
+
+    def test_every_shipped_disease_caveat_resolves_without_raising(self) -> None:
+        """Structural offline check, mirroring
+        TestStructuralOfflineCheck's scale-side check: no shipped disease
+        slug crashes the caveat resolver."""
+        for slug in DISEASES:
+            caveat = resolve_questionnaire_caveat_for_disease_slug(slug)
+            assert caveat is None or isinstance(caveat, str)

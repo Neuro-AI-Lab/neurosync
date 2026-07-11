@@ -42,6 +42,16 @@ checked field, rather than a new isolated test class — the same channels
 (`AgentInput.extra`, `state.slot_data`) and the same non-vacuity
 discipline already cover it. qa should re-review this extension alongside
 the rest of this gate's W5 verification.
+
+CVR-003 W5 addendum (developer, "CVR-003 folded" disposition,
+`discussion.md`): `AIPredictedDiseaseOutput.recommendation_caveat` (the new
+sibling field CVR-003 Findings 1/3 required — the mania-blind-spot/
+AUDIT-C-scope caveats reaching the actual artifact) is folded into the
+same checks as a sixth checked field, same pattern as
+`recommended_questionnaire` above (a `str | None` container field with no
+own isolation story, so it rides the identical channels). qa should
+re-adopt this extension alongside its own re-review of the
+`recommended_questionnaire` fold-in.
 """
 
 from __future__ import annotations
@@ -56,6 +66,7 @@ from src.agents import dialogue as dialogue_module
 from src.agents import orchestrator as orchestrator_module
 from src.agents.handoff_generator import HandoffGeneratorAgent, _build_user_content
 from src.agents.orchestrator import OrchestratorAgent
+from src.rag.questionnaire_mapping import resolve_questionnaire_caveat_for_disease_name_ko
 from src.schemas.ai_predicted_disease import AIPredictedDiseaseCandidate, AIPredictedDiseaseOutput
 from src.schemas.handoff import HandoffInput, SlotData
 from src.schemas.orchestrator import SessionState
@@ -71,6 +82,11 @@ _LEAK_MARKER_SCORE = 0.987654321
 # picked because none of these tests' own SlotData fixtures (chief_complaint/
 # history_of_present_illness) legitimately mention a questionnaire name.
 _LEAK_MARKER_QUESTIONNAIRE = "AUDIT-C"
+# CVR-003 W5 addendum (recommendation_caveat, same HPI red line extension):
+# unlike recommended_questionnaire, this field is a free-form `str | None`
+# (not a Literal), so an arbitrarily-distinctive marker string IS
+# constructible here, same convention as _LEAK_MARKER_DISEASE above.
+_LEAK_MARKER_CAVEAT = "ZZZ_AI_DISEASE_LEAK_MARKER_CAVEAT_MANIA_BLIND_SPOT_9999"
 
 
 def _marker_candidate() -> AIPredictedDiseaseCandidate:
@@ -277,6 +293,7 @@ class TestHPIIsolationLiveBehaviorContainer:
             candidates=[_marker_candidate()],
             reason_summary="live-populated for this test only",
             recommended_questionnaire=_LEAK_MARKER_QUESTIONNAIRE,
+            recommendation_caveat=_LEAK_MARKER_CAVEAT,
         )
 
         orchestrator = OrchestratorAgent.__new__(OrchestratorAgent)
@@ -300,17 +317,20 @@ class TestHPIIsolationLiveBehaviorContainer:
         slot_dict = handoff_input.slots.model_dump()
         assert _LEAK_MARKER_DISEASE not in str(slot_dict.values())
         assert _LEAK_MARKER_QUESTIONNAIRE not in str(slot_dict.values())
+        assert _LEAK_MARKER_CAVEAT not in str(slot_dict.values())
 
         # Cross-check 2: the actual LLM prompt text never contains the marker.
         prompt_text = _build_user_content(handoff_input)
         assert _LEAK_MARKER_DISEASE not in prompt_text
         assert str(_LEAK_MARKER_SCORE) not in prompt_text
         assert _LEAK_MARKER_QUESTIONNAIRE not in prompt_text
+        assert _LEAK_MARKER_CAVEAT not in prompt_text
 
         # Cross-check 3 (the live-behavior assertion brainstorm §2c calls
         # for): run the REAL agent end-to-end (LLM mocked-but-echoing) and
         # assert report_markdown — the actual artifact a clinician reads —
-        # contains none of the injected disease name/score/questionnaire.
+        # contains none of the injected disease name/score/questionnaire/
+        # caveat.
         agent = _make_handoff_agent()
         _wire_echo(agent)
         out = await agent.run(handoff_input)
@@ -318,6 +338,7 @@ class TestHPIIsolationLiveBehaviorContainer:
         assert _LEAK_MARKER_DISEASE not in out.report_markdown
         assert str(_LEAK_MARKER_SCORE) not in out.report_markdown
         assert _LEAK_MARKER_QUESTIONNAIRE not in out.report_markdown
+        assert _LEAK_MARKER_CAVEAT not in out.report_markdown
         # Sanity: the echo wiring IS genuinely load-bearing — the real
         # (non-leaked) chief_complaint slot text DOES flow through end-to-end,
         # proving the echo isn't accidentally returning an empty/constant
@@ -338,6 +359,7 @@ class TestHPIIsolationLiveBehaviorContainer:
             mode="rag_live",
             candidates=[_marker_candidate()],
             recommended_questionnaire=_LEAK_MARKER_QUESTIONNAIRE,
+            recommendation_caveat=_LEAK_MARKER_CAVEAT,
         )
         handoff_input = HandoffInput(
             session_id="s1",
@@ -352,6 +374,7 @@ class TestHPIIsolationLiveBehaviorContainer:
         assert _LEAK_MARKER_DISEASE not in out.report_markdown
         assert str(_LEAK_MARKER_SCORE) not in out.report_markdown
         assert _LEAK_MARKER_QUESTIONNAIRE not in out.report_markdown
+        assert _LEAK_MARKER_CAVEAT not in out.report_markdown
         assert "정상 슬롯 값" in out.report_markdown
 
 
@@ -398,6 +421,12 @@ def _populated_output() -> AIPredictedDiseaseOutput:
         # population code would actually attach for this candidate, not a
         # synthetic marker (PLAN-2026-W28-Q W5).
         recommended_questionnaire="PHQ-9",
+        # CVR-003 W5 addendum: the real disclosed caveat for the "mood"
+        # classification (CVR-003 Finding 1, mania/hypomania blind spot) —
+        # resolved via the same lookup path f2.py's population code uses,
+        # not a hardcoded/synthetic string, so this fixture cannot silently
+        # drift from the actual mapping table content.
+        recommendation_caveat=resolve_questionnaire_caveat_for_disease_name_ko("우울 삽화(우울증)"),
     )
 
 
@@ -409,17 +438,20 @@ class TestHPIIsolationPopulatedPath:
     `state.slot_data` -> `HandoffInput`) end-to-end, with a GENUINELY
     POPULATED `AIPredictedDiseaseOutput` (real disease name, real
     similarity_score, real source_id, real quote, real
-    recommended_questionnaire — every field a live populated-path run
-    ships), through the REAL `HandoffGeneratorAgent.run()` code path
-    (echo-wired mock adapter — a canned-response mock would not catch a
-    prompt-layer leak, only an echo does; same convention as
-    `TestHPIIsolationLiveBehaviorContainer` above). Every check asserts on
-    all five candidate/container fields (`disease`, `similarity_score`,
-    `source_id`, `quote`, `recommended_questionnaire`) individually, not
+    recommended_questionnaire, real recommendation_caveat — every field a
+    live populated-path run ships), through the REAL
+    `HandoffGeneratorAgent.run()` code path (echo-wired mock adapter — a
+    canned-response mock would not catch a prompt-layer leak, only an echo
+    does; same convention as `TestHPIIsolationLiveBehaviorContainer`
+    above). Every check asserts on all six candidate/container fields
+    (`disease`, `similarity_score`, `source_id`, `quote`,
+    `recommended_questionnaire`, `recommendation_caveat`) individually, not
     just the disease name, since `source_id`/`quote`/
-    `recommended_questionnaire` are the fields the Wave-3 marker tests
-    never exercised (PLAN-2026-W28-Q W5 adds `recommended_questionnaire`
-    to this gate's scope, per the ADR-020 HPI red-line extension).
+    `recommended_questionnaire`/`recommendation_caveat` are the fields the
+    Wave-3 marker tests never exercised (PLAN-2026-W28-Q W5 adds
+    `recommended_questionnaire`; the CVR-003 W5 addendum adds
+    `recommendation_caveat`, to this gate's scope, per the ADR-020 HPI
+    red-line extension).
     """
 
     @pytest.mark.asyncio
@@ -431,8 +463,10 @@ class TestHPIIsolationPopulatedPath:
         quote = candidate.quote
         source_id = candidate.source_id
         recommended_questionnaire = ai_disease.recommended_questionnaire
+        recommendation_caveat = ai_disease.recommendation_caveat
         assert quote is not None and source_id is not None  # narrows for mypy + non-vacuity
         assert recommended_questionnaire is not None  # non-vacuity for this field's checks
+        assert recommendation_caveat is not None  # non-vacuity for this field's checks
 
         orchestrator = OrchestratorAgent.__new__(OrchestratorAgent)
         state = SessionState(
@@ -455,6 +489,7 @@ class TestHPIIsolationPopulatedPath:
         assert quote not in slot_values
         assert source_id not in slot_values
         assert recommended_questionnaire not in slot_values
+        assert recommendation_caveat not in slot_values
 
         # Cross-check 2: the pure prompt-building function.
         prompt_text = _build_user_content(handoff_input)
@@ -463,11 +498,12 @@ class TestHPIIsolationPopulatedPath:
         assert str(candidate.similarity_score) not in prompt_text
         assert source_id not in prompt_text
         assert recommended_questionnaire not in prompt_text
+        assert recommendation_caveat not in prompt_text
 
         # Cross-check 3 (the live-behavior assertion): run the REAL agent
         # end-to-end (LLM mocked-but-echoing) and assert report_markdown —
         # the actual artifact a clinician reads — contains none of the
-        # populated disease name/score/source_id/quote/questionnaire.
+        # populated disease name/score/source_id/quote/questionnaire/caveat.
         agent = _make_handoff_agent()
         _wire_echo(agent)
         out = await agent.run(handoff_input)
@@ -477,6 +513,7 @@ class TestHPIIsolationPopulatedPath:
         assert str(candidate.similarity_score) not in out.report_markdown
         assert source_id not in out.report_markdown
         assert recommended_questionnaire not in out.report_markdown
+        assert recommendation_caveat not in out.report_markdown
         # Sanity: the echo wiring IS genuinely load-bearing — the real
         # (non-leaked) chief_complaint slot text DOES flow through
         # end-to-end, proving the "marker absent" assertions aren't vacuous.
@@ -495,8 +532,10 @@ class TestHPIIsolationPopulatedPath:
         quote = candidate.quote
         source_id = candidate.source_id
         recommended_questionnaire = ai_disease.recommended_questionnaire
+        recommendation_caveat = ai_disease.recommendation_caveat
         assert quote is not None and source_id is not None  # narrows for mypy + non-vacuity
         assert recommended_questionnaire is not None  # non-vacuity for this field's checks
+        assert recommendation_caveat is not None  # non-vacuity for this field's checks
 
         handoff_input = HandoffInput(
             session_id="s1",
@@ -510,6 +549,7 @@ class TestHPIIsolationPopulatedPath:
         assert quote not in prompt_text
         assert source_id not in prompt_text
         assert recommended_questionnaire not in prompt_text
+        assert recommendation_caveat not in prompt_text
 
         agent = _make_handoff_agent()
         _wire_echo(agent)
@@ -520,6 +560,7 @@ class TestHPIIsolationPopulatedPath:
         assert str(candidate.similarity_score) not in out.report_markdown
         assert source_id not in out.report_markdown
         assert recommended_questionnaire not in out.report_markdown
+        assert recommendation_caveat not in out.report_markdown
         assert "정상 슬롯 값" in out.report_markdown
 
     def test_populated_fixture_carries_real_provenance_not_none(self) -> None:
@@ -550,5 +591,21 @@ class TestHPIIsolationPopulatedPath:
         assert output.recommended_questionnaire is not None
         assert output.recommended_questionnaire != _LEAK_MARKER_QUESTIONNAIRE
         assert output.recommended_questionnaire == resolve_questionnaire_for_disease_name_ko(
+            output.candidates[0].disease
+        )
+
+    def test_populated_fixture_carries_real_recommendation_caveat_not_none(self) -> None:
+        """Same non-vacuity discipline as the two sanity guards above, for
+        `recommendation_caveat` (CVR-003 Findings 1/3, W5 addendum) — the
+        field this class's two live-behavior tests newly assert never
+        leaks. Also confirms the fixture's value is the correct caveat
+        outcome for the fixture's real ontology disease name ("우울
+        삽화(우울증)", classification "mood",
+        `src.rag.questionnaire_mapping.CLASSIFICATION_TO_CAVEAT`), not an
+        arbitrary/synthetic value, and is distinct from the leak marker."""
+        output = _populated_output()
+        assert output.recommendation_caveat is not None
+        assert output.recommendation_caveat != _LEAK_MARKER_CAVEAT
+        assert output.recommendation_caveat == resolve_questionnaire_caveat_for_disease_name_ko(
             output.candidates[0].disease
         )

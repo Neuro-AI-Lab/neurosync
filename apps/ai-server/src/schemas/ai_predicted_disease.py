@@ -54,6 +54,18 @@ forbidden modules named above, so this import does not weaken this
 module's standalone-by-design invariant (REV-013 §3): `ScaleName` is a
 plain `Literal` type alias, not a class from either forbidden module, and
 the survey-scoring module itself imports neither of them.
+
+Recommendation caveat (CVR-003 Findings 1/3, W5 addendum, PLAN-2026-W28-Q
+W5 addendum mission): `recommendation_caveat` below is the machine-readable
+home for the per-classification caveat CVR-003 required reach the actual
+artifact, not live only in `questionnaire_mapping.py`'s source comments
+(Finding 1, mood/PHQ-9 mania blind spot) or go entirely undisclosed
+(Finding 3, substance/AUDIT-C consumption-vs-dependence). Populated by
+`f2.py`'s population code from `src.rag.questionnaire_mapping`'s
+`CLASSIFICATION_TO_CAVEAT` table (same discipline, same source-of-truth
+module as `recommended_questionnaire`), never invented at the schema
+layer. `None` when there is no disclosed caveat for the top candidate's
+classification (the common case).
 """
 
 from __future__ import annotations
@@ -72,8 +84,17 @@ from src.scoring.survey_scorer import ScaleName
 # diagnosis") is what `is_diagnostic: Literal[False]` fixes at the type
 # level. qa's regression coverage should assert this field equals the
 # constant below, not merely that it is a non-empty string.
+#
+# CVR-003 Finding 4 (minor, ADOPTED, W5 addendum): the original wording was
+# scoped to the disease candidates only ("예상 질환 후보") and never named
+# the questionnaire recommendation specifically. Extended with one sentence
+# making explicit that `recommended_questionnaire` is a scale suggestion for
+# intake support, not a diagnostic determination — code-side string only,
+# no prompt-file change.
 AI_PREDICTED_DISEASE_DISCLAIMER_KO = (
     "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. "
+    "함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) "
+    "지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. "
     "최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다."
 )
 
@@ -160,5 +181,28 @@ class AIPredictedDiseaseOutput(BaseModel):
             "an explicit no-forced-mismatch result, not a missing value; "
             "see src.rag.questionnaire_mapping for the per-classification "
             "rationale)."
+        ),
+    )
+    recommendation_caveat: str | None = Field(
+        default=None,
+        description=(
+            "A disclosed construct-validity caveat for "
+            "recommended_questionnaire, when one exists (CVR-003 Findings "
+            "1/3, PLAN-2026-W28-Q W5 addendum) — e.g. PHQ-9's mania/"
+            "hypomania blind spot for a bipolar-spectrum top candidate, or "
+            "AUDIT-C's consumption-vs-dependence-severity scope for a "
+            "substance-classified top candidate. Sibling to "
+            "recommended_questionnaire, not a replacement for it: this "
+            "field is the machine-readable surface for a caveat that "
+            "previously existed only as a source comment in "
+            "src.rag.questionnaire_mapping. Derived from the SAME top-"
+            "ranked candidate's classification via "
+            "src.rag.questionnaire_mapping.CLASSIFICATION_TO_CAVEAT, never "
+            "invented at the schema layer. None when candidates is empty, "
+            "when recommended_questionnaire is None, or when the top "
+            "candidate's classification has no disclosed caveat (the "
+            "common case — most scale recommendations carry no additional "
+            "caveat beyond the general non-diagnostic framing in "
+            "`disclaimer`)."
         ),
     )
