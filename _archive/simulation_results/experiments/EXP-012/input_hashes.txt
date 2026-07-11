@@ -1,0 +1,9 @@
+=== SHA256 of F1 conversation.json fed to F2 ===
+VP-001: docs/ai/simulation_results/VP-001/VP-001_20260710_094714_conversation.json
+51ba8ad42251b3fe495d234e39b5a8a7b56e3b429b831b925a4894bf19480831  docs/ai/simulation_results/VP-001/VP-001_20260710_094714_conversation.json
+VP-002: docs/ai/simulation_results/VP-002/VP-002_20260710_094832_conversation.json
+30eeb80a599515863dbab16444e85bd1adb81a02c71248452ed8d54c08ec37b6  docs/ai/simulation_results/VP-002/VP-002_20260710_094832_conversation.json
+VP-003: docs/ai/simulation_results/VP-003/VP-003_20260710_094933_conversation.json
+fb8c15edd92bf75c17da1260089c2f054c27cf7670c095f7b58841471c65d224  docs/ai/simulation_results/VP-003/VP-003_20260710_094933_conversation.json
+VP-004: docs/ai/simulation_results/VP-004/VP-004_20260710_095042_conversation.json
+e69dad8544d4b97213d76b060966e904800c1dca8ee11be69bf65d34720a399f  docs/ai/simulation_results/VP-004/VP-004_20260710_095042_conversation.json

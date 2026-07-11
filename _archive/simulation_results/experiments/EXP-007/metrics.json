@@ -1,0 +1,87 @@
+{
+  "exp_id": "EXP-007",
+  "purpose": "BUG-019 live diagnostic capture (PLAN-2026-W28-H Wave 5) — reproduce VP-003/VP-001 RAG schema-validation failures with Wave-3 instrumentation, capture raw_response + field-level validation_errors",
+  "git_head": "f4804136acd1bdb6c74344800dc765ab1358d926",
+  "git_branch": "feat/f2-continuation-w28h",
+  "suite_reverified": "758 passed, 0 failed",
+  "db_preflight": {
+    "verdict": "PASS",
+    "row_counts": {"rag.case_card": 1248, "rag.qa": 1789, "rag.symptom": 40, "rag.disease": 26},
+    "delta_vs_exp006": 0
+  },
+  "runs": [
+    {
+      "vp": "VP-003", "run": "run1",
+      "input_file": "docs/ai/simulation_results/VP-003/VP-003_20260707_155149_conversation.json",
+      "input_sha256": "fbabd8202367322d338ea99eb154cf818f43de1094278b3e85340b5da02ccb96",
+      "artifact": "experiments/EXP-007/runs/VP-003/run1/VP-003/VP-003_20260709_140140_domain_inference.json",
+      "mode": "rag",
+      "finish_reason": "stop",
+      "usage": {"prompt_tokens": 2665, "completion_tokens": 896, "total_tokens": 3561},
+      "outcome": "schema_validation_failure",
+      "reproduced": true,
+      "validation_errors": [
+        {"type": "literal_error", "loc": ["domain_candidates", 1, "evidence", 2, "source_type"], "msg": "Input should be 'rag_chunk' or 'utterance'", "input": "qa"}
+      ],
+      "n_evidence_offending_field_value": "qa",
+      "latency_ms": 16921
+    },
+    {
+      "vp": "VP-003", "run": "run2",
+      "input_file": "docs/ai/simulation_results/VP-003/VP-003_20260707_155446_conversation.json",
+      "input_sha256": "126f5c012cf69e798ddfbe5fd10d2142432e44785f54a9607bf117203c4dabe9",
+      "artifact": "experiments/EXP-007/runs/VP-003/run2/VP-003/VP-003_20260709_140153_domain_inference.json",
+      "mode": "rag",
+      "finish_reason": "stop",
+      "usage": {"prompt_tokens": 2273, "completion_tokens": 593, "total_tokens": 2866},
+      "outcome": "cascade_elimination_0_candidate",
+      "reproduced": false,
+      "note": "did NOT reproduce the schema-validation failure this call; parsed successfully (candidates_before=1), then the risk-lexicon cascade correctly stripped all 3 evidence quotes (all risk-laden: 자해/자살/죽고 싶) for the sole 'depression' candidate, eliminating it. Non-deterministic outcome vs EXP-006's same-input run (which failed schema validation). orphan_departments entry present but domain_ref='depression' in eliminated_domains -> cascade side effect, not a genuine orphan (REV-011 sec3 rule iii).",
+      "latency_ms": 11232
+    },
+    {
+      "vp": "VP-001", "run": "run1",
+      "input_file": "docs/ai/simulation_results/VP-001/VP-001_20260707_152922_conversation.json",
+      "input_sha256": "c6af3fa9e5d6f2aa5e8db1108c59c283f38c625b8ef7e363fcb51f3242582816",
+      "artifact": "experiments/EXP-007/runs/VP-001/run1/VP-001/VP-001_20260709_140221_domain_inference.json",
+      "mode": "rag",
+      "finish_reason": "stop",
+      "usage": {"prompt_tokens": 3582, "completion_tokens": 1323, "total_tokens": 4905},
+      "outcome": "success",
+      "reproduced": false,
+      "note": "unexpected SUCCESS this call (BUG-019/EXP-006 had failed VP-001/run1 with an identical schema-validation signature). 3 domain_candidates (depression/sleep/anxiety), 11 accepted evidence quotes, 0/11 broader-taxonomy hits, whitelist rejected=0.",
+      "latency_ms": 26348
+    },
+    {
+      "vp": "VP-001", "run": "run2",
+      "input_file": "docs/ai/simulation_results/VP-001/VP-001_20260707_153451_conversation.json",
+      "input_sha256": "5f5e0b5d6fa6c22e6145a09fa195867aadc8b758ce1a862b41ec9569d0a95a47",
+      "artifact": "experiments/EXP-007/runs/VP-001/run2/VP-001/VP-001_20260709_140239_domain_inference.json",
+      "mode": "rag",
+      "finish_reason": "stop",
+      "usage": {"prompt_tokens": 3991, "completion_tokens": 980, "total_tokens": 4971},
+      "outcome": "schema_validation_failure",
+      "reproduced": true,
+      "validation_errors": [
+        {"type": "literal_error", "loc": ["domain_candidates", 0, "evidence", 3, "source_type"], "msg": "Input should be 'rag_chunk' or 'utterance'", "input": "qa:1502"},
+        {"type": "literal_error", "loc": ["domain_candidates", 0, "evidence", 4, "source_type"], "msg": "Input should be 'rag_chunk' or 'utterance'", "input": "qa:1537"},
+        {"type": "literal_error", "loc": ["domain_candidates", 1, "evidence", 2, "source_type"], "msg": "Input should be 'rag_chunk' or 'utterance'", "input": "qa:532"},
+        {"type": "literal_error", "loc": ["domain_candidates", 1, "evidence", 3, "source_type"], "msg": "Input should be 'rag_chunk' or 'utterance'", "input": "qa:1537"},
+        {"type": "literal_error", "loc": ["domain_candidates", 2, "evidence", 1, "source_type"], "msg": "Input should be 'rag_chunk' or 'utterance'", "input": "qa:1502"},
+        {"type": "literal_error", "loc": ["domain_candidates", 2, "evidence", 2, "source_type"], "msg": "Input should be 'rag_chunk' or 'utterance'", "input": "qa:532"}
+      ],
+      "n_evidence_offending_field_value": ["qa:1502", "qa:1537", "qa:532"],
+      "latency_ms": 15450
+    }
+  ],
+  "root_cause_hypothesis": {
+    "summary": "RetrievedChunk.source_type (schema field, values 'case_card'|'qa' = DB table origin, schemas/domain_inference.py:81, retrieval.py:208/219) and DomainEvidence.source_type (schema field, EvidenceSourceType enum, values 'rag_chunk'|'utterance' = evidence provenance class, schemas/domain_inference.py:35) share the same field name 'source_type' but different value domains. The prompt (_build_user_content, domain_inference.py:83-85) lists each retrieved chunk as '- [{chunk_id}] ({source_type}): {text}' where the parenthetical prints the DB-table-origin value ('case_card' or 'qa') directly adjacent to the chunk_id, in the same visual position the output JSON's evidence[].source_type field occupies. The model intermittently copies this per-chunk table-name annotation (or, worse, the full source_id string) into the JSON evidence[].source_type field instead of the fixed literal 'rag_chunk', which the Pydantic Literal['rag_chunk','utterance'] schema then rejects.",
+    "evidence_for": [
+      "All 4 raw failures/reproductions this batch (VP-003/run1, VP-001/run2) show validation_errors exclusively of type=literal_error on evidence[].source_type, with input values 'qa', 'qa:1502', 'qa:1537', 'qa:532' -- all are qa-table chunk_ids or the bare string 'qa', never a case_card value and never any other field.",
+      "Cross-checked EXP-005+EXP-006's shipped (successfully-parsed) RAG artifacts: 24/24 case_card-sourced accepted evidence items have source_type='rag_chunk' (0 anomalies); 2/2 qa-sourced accepted evidence items also correctly show 'rag_chunk' (EXP-006 rag/VP-004/run2) -- confirming the defect is qa-table-specific and intermittent (not 100% reproduction rate), consistent with a stochastic LLM-conflation trigger rather than a deterministic code bug.",
+      "VP-001/run1 (this batch's one unexpected success) cited zero qa-table chunks as evidence despite 5 qa: chunk_ids being retrieved and available (chunk_ids list includes qa:1755/831/1581/1707/879) -- consistent with the hypothesis that citing a qa-table chunk is the necessary precondition for the failure to trigger at all."
+    ],
+    "distinction_from_bug016": "Same conceptual class as BUG-016 (chunk_id= prefix echo -- the model conflating prompt-listing formatting with a JSON schema field) but a different field and a different confusion: BUG-016 was source_id contamination from an adjacent label string; this is source_type contamination from the per-chunk DB-table-origin annotation, which uses the identical field name 'source_type' for a different value domain than the JSON schema expects.",
+    "not_established": "Not yet confirmed as the sole/complete cause -- 2 of 4 runs this batch did not reproduce a schema-validation failure at all (VP-003/run2 succeeded-then-cascaded, VP-001/run1 succeeded outright with 0 qa-citations), so this is a sufficient-but-observed-only-sometimes trigger; no root-cause fix attempted (out of this brief's scope, developer's Wave 6)."
+  }
+}

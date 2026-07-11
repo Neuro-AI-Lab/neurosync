@@ -1,0 +1,45 @@
+# EXP-012 — F1->F2 continuous pipeline batch, VP-001~004 (fresh F1 sessions)
+# Written before launch, per experiment-reproducibility skill.
+
+task: "F1 (fresh autonomous session) -> F2 (RAG mode + AI-predicted-disease populated path)"
+harness: apps/ai-server/src/continuous_test.py
+invocation: "cd apps/ai-server && .venv/bin/python -m src.continuous_test --persona <VP-ID>"
+personas: [VP-001, VP-002, VP-003, VP-004]
+n_per_vp: 1   # fresh F1->F2 chain, disclosed as thinner than the established n=2/VP standard (REV-019 Issue #3)
+
+f1:
+  max_turns: 10   # continuous_test.py --max-turns default; not overridden
+  followup_from: null
+  crisis_response_substitution_bug: "BUG-011 (open, critical) — turn-0 crisis never substitutes CRISIS_RESPONSE; checked per VP on live artifacts (REV-019 Issue #1)"
+  plan_disclosure_quirk: "VAL-001 (open, major) — _has_plan_disclosure() clause-split quirk; checked per VP on live artifacts (REV-019 Issue #1)"
+
+f2:
+  mode: rag            # --no-rag NOT passed
+  k: 3                 # continuous_test.py --k default; certified default per REV-017 §4
+  prompt_pin: domain_inference v2 (docs/ai/prompts/domain_inference/v2.system.md) — unchanged since ADR-018 certification
+  ai_predicted_disease_source: path1 (ADR-020) — automatic population on mode=rag with raw_chunks, no extra CLI flag
+  out_override: null   # F1/F2 write to canonical docs/ai/simulation_results/<VP>/; mirrored into experiments/EXP-012/runs/<VP>/ post-hoc
+
+git:
+  head_at_gate: c2acc90dc5388a0597cd80b23aa003ca799693ab   # merge of PR #49 into feat/f2-docs-sync, per HANDOFF
+  branch: feat/f2-vp-batch-w28l
+
+gates:
+  hyp: "none — validation/measurement task, matches EXP-005..EXP-011 convention (no HYP-NNN)"
+  critic_review: "REV-019 (discussion.md) — NON-BLOCKING for step-4 execution; blocking-scoped to step 5/6 conversation-report framing only (BUG-011/VAL-001 disclosure required)"
+  qa_gate: "qa GATE:PASS at ea3ee6a / c2acc90 (suite 812) per VAL-011 error.md closure and STATE-2026-07-09-F"
+  dataset: [DATASET-003, DATASET-005]
+  experiment_gate_hook: "does not match `python -m src.continuous_test` (regex targets run.sh/evaluate.sh/models/*.py) — confirmed non-triggering, no GATE_OVERRIDE used or needed (REV-019 Issue #6 precedent)"
+
+db_preflight:
+  method: "src.dependencies.get_settings()/get_sessionmaker(), SELECT 1 + rag.{case_card,qa,symptom,disease,disease_symptom} row counts, 10s timeout"
+  expected_counts: {case_card: 1248, qa: 1789, symptom: 40, disease: 26, disease_symptom: 169}
+  credential_handling: "DATABASE_URL / password NEVER printed — masked DSN only, per continuous_test.py's own _mask_dsn() convention"
+
+standing_audits_required: [ADR-018 secondary taxonomy audit, ADR-018 chunk-level audit, ADR-018 queries audit (chief_complaint/HPI), verbatim finish_reason/usage/validation_errors, HPI red-line check]
+
+disclosures:
+  - "n=1/VP, thinner than established n=2/VP standard (REV-018 caveat 3, REV-019 Issue #3)"
+  - "fresh-F1 input = new evidence on a new input dimension, not inherited certification (REV-019 §3)"
+  - "F1Result/F1TurnLog carry no model/prompt-version/seed provenance fields (REV-019 Issue #4) — best-effort external capture only"
+  - "REV-018 §2 five caveats apply to any AI-predicted-disease reporting: two-hop-proxy, VAL-010 open, single-batch-evidence, provenance-fragility, is_diagnostic:False/no-diagnosis-language"

@@ -1,0 +1,4 @@
+21c21
+< PROMPTS_BASE_DIR=docs/ai/prompts
+---
+> PROMPTS_BASE_DIR=/tmp/wt-f1-stt-ocr-integration/docs/ai/prompts

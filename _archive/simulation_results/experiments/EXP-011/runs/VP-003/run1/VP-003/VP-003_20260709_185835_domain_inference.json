@@ -1,0 +1,443 @@
+{
+  "session_id": "f1_VP-003",
+  "persona_id": "VP-003",
+  "repro": {
+    "git_head": "f6cae4ea5d51e25a229699226ff92924e6bd68a4",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260707_155149_conversation.json",
+    "input_sha256": "fbabd8202367322d338ea99eb154cf818f43de1094278b3e85340b5da02ccb96",
+    "mode": "rag",
+    "latency_ms": 26080.8,
+    "generated_at": "2026-07-09T18:58:35.659469",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 2699,
+      "completion_tokens": 1790,
+      "total_tokens": 4489
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "depression",
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:687",
+          "quote": "내담자는 우울과 관련하여 몇 가지 주요 증상을 보이고 있다. 첫째, 수면 패턴의 변화가 나타나며, 새벽에 잠들고 중간에 자주 깨는 등의 수면 장애를 겪고 있다. 둘째, 일상적인 활동에 대한 흥미나 즐거움이 감소하고 있으며, 이는 매사에 흥미나 즐거움이 거의 없다는 평가로 나타난다. 셋째, 피로감과 에너지가 부족하다는 느낌을 자주 경험하고 있으며, 이는 기운이 거의 없고 피곤하다는 평가로 드러난다. 넷째, 자신을 실패자로 여기거나 자신과 가족을 실망시켰다고 느끼는 등 자존감이 낮아져 있다. 다섯째, 일상적인 일에 집중하기 어려움을 겪고 있으며, 이는 집중력 저하로 이어진다. 여섯째, 말과 행동이 느려지고, 이는 다른 사람들이 눈치챌 정도로 두드러지게 나타나고 있다."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_4",
+          "quote": "도움이 되나요? 뭘 해도 안 될 것 같은데."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_7",
+          "quote": "기분은... 계속만 나빠져요. 처음엔 술 안 마시면 못 버틴다 했지... 고혈압 약은 안 먹어요. 의사도 안 가봤어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_8",
+          "quote": "다른 약은... 없어요. 병원도 안 가봤어요. 의사... 만나기 싫어요."
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9",
+        "GAD-7"
+      ]
+    },
+    {
+      "domain": "sleep",
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:940",
+          "quote": "내담자는 잠들기 어렵거나 자주 깨는 등의 수면 문제를 겪고 있으며, 일상적인 일에 집중하기 어려움을 호소하고 있다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:933",
+          "quote": "내담자는 수면 문제와 피로감을 주요 증상으로 호소하고 있다. 잠에 드는 데 어려움을 겪고 있으며, 심할 때는 새벽 4~5시까지 잠들지 못하는 경우가 있다."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_4",
+          "quote": "도움이 되나요? 뭘 해도 안 될 것 같은데."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_7",
+          "quote": "기분은... 계속만 나빠져요. 처음엔 술 안 마시면 못 버틴다 했지... 고혈압 약은 안 먹어요. 의사도 안 가봤어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_8",
+          "quote": "다른 약은... 없어요. 병원도 안 가봤어요. 의사... 만나기 싫어요."
+        }
+      ],
+      "recommended_surveys": [
+        "PSQI"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "자살 생각, 우울감, 수면 장애, 집중력 저하, 자존감 저하 등 우울증과 수면장애 관련 증상이 다수 확인되었으며, 위험 표현은 있으나 구체적 계획이나 의도는 부인됨.",
+      "domain_ref": "depression"
+    }
+  ],
+  "summary": "환자는 초진 환자로, 매일 밤 지속되는 자살 생각, 새벽 3시 기상 후 재입면 불가, 수면 장애, 우울감, 무가치감, 집중력 저하, 피로감, 자존감 저하 등의 증상을 호소하고 있다. 위험 표현은 있으나 구체적 계획이나 의도는 부인되었으며, 수면 문제와 관련된 잡생각 및 핸드폰 사용 영향도 언급되었다.",
+  "retrieval_meta": {
+    "mode": "rag",
+    "chunks_returned": 6,
+    "chunk_ids": [
+      "case_card:940",
+      "case_card:933",
+      "case_card:687",
+      "qa:290",
+      "qa:1685",
+      "qa:745"
+    ],
+    "queries": [
+      "살고 싶지 않음, 매일 밤 자살 생각, 수면 장애(새벽 3시 기상 후 재입면 불가)",
+      "매일 밤 자살 생각 지속, 새벽 3시 기상 후 재입면 불가, 천장만 보며 '살아서 뭐하나' 생각 반복"
+    ]
+  },
+  "chunk_texts": {
+    "case_card:940": "내담자는 잠들기 어렵거나 자주 깨는 등의 수면 문제를 겪고 있으며, 일상적인 일에 집중하기 어려움을 호소하고 있다. 그러나 전반적으로 우울한 기분이나 무가치감, 죄책감, 자살생각 등 다른 주요 증상은 나타나지 않고 있다.  내담자는 \"나는 왜 이런 일만 생길까?\"라는 비합리적인 신념을 가지고 있으며, 이는 자신을 괴롭히는 생각으로 작용하고 있다. 또한, 내담자는 특정 상황에서 무서움을 느끼며 정서 조절에 어려움을 겪고 있다.",
+    "case_card:933": "내담자는 수면 문제와 피로감을 주요 증상으로 호소하고 있다. 잠에 드는 데 어려움을 겪고 있으며, 심할 때는 새벽 4~5시까지 잠들지 못하는 경우가 있다. 이러한 수면 패턴의 변화로 인해 피로감이 지속되고 있으며, 이는 일상생활에 영향을 미치고 있다. 내담자는 잠을 잘 자지 못하는 이유로 잡생각이 많고, 핸드폰 사용이 영향을 미친다고 느끼고 있다. 또한, 수면 패턴의 불규칙성으로 인해 하루가 짧게 느껴지고, 이로 인해 자는 시간이 아깝다는 생각을 하게 된다.  내담자는 낮은 정서조절 능력과 대처전략 부족을 위험 요인으로 가지고 있다. 수면 문제와 관련하여 잡생각이 많고, 핸드폰 사용을 줄이려는 시도가 잘 이루어지지 않고 있다. 또한, 내담자는 자신의 생활 패턴에 대한 부정적인 평가를 하며, 남들의 기준에 맞추려는 경향이 있다. 이러한 생각들은 내담자에게 스트레스를 주고 있으며, 이는 수면 문제를 악화시키는 요인으로 작용하고 있다.",
+    "case_card:687": "내담자는 우울과 관련하여 몇 가지 주요 증상을 보이고 있다. 첫째, 수면 패턴의 변화가 나타나며, 새벽에 잠들고 중간에 자주 깨는 등의 수면 장애를 겪고 있다. 둘째, 일상적인 활동에 대한 흥미나 즐거움이 감소하고 있으며, 이는 매사에 흥미나 즐거움이 거의 없다는 평가로 나타난다. 셋째, 피로감과 에너지가 부족하다는 느낌을 자주 경험하고 있으며, 이는 기운이 거의 없고 피곤하다는 평가로 드러난다. 넷째, 자신을 실패자로 여기거나 자신과 가족을 실망시켰다고 느끼는 등 자존감이 낮아져 있다. 다섯째, 일상적인 일에 집중하기 어려움을 겪고 있으며, 이는 집중력 저하로 이어진다. 여섯째, 말과 행동이 느려지고, 이는 다른 사람들이 눈치챌 정도로 두드러지게 나타나고 있다. 이러한 증상들은 내담자의 일상생활에 부정적인 영향을 미치고 있으며, 우울감의 주요 증상으로 확인된다.  내담자의 우울과 관련된 위험요인으로는 수면 패턴의 불규칙성과 피로감, 그리고 일상적인 활동에서의 흥미 감소가 있다. 내담자는 새벽에 잠들고 중간에 자주 깨는 등 수면의 질이 좋지 않으며, 이는 피로감과 기운 부족으로 이어지고 있다. 또한, 내담자는 자신을 실패자로 여기거나 자신과 가족을 실망시켰다고 느끼며, 일상적인 일에 집중하기 어려워하고 있다. 특히, 내담자는 자신의 행동이 느려지고, 다른 사람들이 이를 눈치챌 정도로 평소보다 말과 행동이 느리다고 느끼고 있다. 이러한 신체적, 정서적 증상들은 내담자의 우울감을 심화시키는 요인으로 작용하고 있다.",
+    "qa:290": "Q: 35세 남성이 최근 1년간 지속된 수면 문제로 내원했다. 환자는 매일 잠들고 깨어나는 시간이 점진적으로 늦어져, 결국 사회적, 직업적 활동에 심각한 지장을 초래하고 있다. 환자는 시각 장애가 없으며, 수면 시간이 매일 1~2시간씩 지연되는 양상을 보인다. 멜라토닌 복용과 야간 강한 빛 노출 치료를 시도했으나 효과가 없었다. 다음 중 이 환자의 가장 가능성이 높은 진단은?  \n1) 기면증  \n2) 수면무호흡증  \n3) 지연수면위상증후군  \n4) 비24시간 수면-각성 증후군  \n5) 하지불안증후군\nA: 4) 비24시간 수면-각성 증후군",
+    "qa:1685": "Q: 29세 남성이 자살 시도로 응급실에 내원했다. 3주 전부터 기분이 우울하고, 살고 싶지 않다는 생각이 지속되었다고 한다. 저번 달에는 일주일 동안 잠을 거의 자지 않았음에도 피곤하지 않았고, 과소비를 하며 평소보다 과도하게 회사일에 몰두했다고 한다. 이 환자의 가장 적합한 정신과적 진단은 무엇인가?\nA: 양극성 장애",
+    "qa:745": "Q: 35세 여성이 최근 3개월간 주 4일 이상 잠들기 어렵고, 한밤중에 자주 깨어나며, 아침에 일찍 깨는 증상을 호소합니다. 이러한 증상으로 인해 일상생활에 심각한 지장을 받고 있습니다. 이 환자의 상태를 가장 적절히 설명하는 진단명은 무엇인가요?\nA: 불면장애"
+  },
+  "utterances": {
+    "turn_0": "...  \n살고 싶지 않아요.  \n매일 밤 그 생각만 들어요.",
+    "turn_1": "...  \n살고 싶지 않아요.  \n매일 밤 그 생각만 들어요.",
+    "turn_2": "매일요.  \n잠도 못 자고... 그냥 사라지고 싶어요.",
+    "turn_3": "...  \n어떻게까지는... 생각 안 했어요.  \n그냥 사라지고 싶은 거예요.",
+    "turn_4": "...  \n도움이 되나요?  \n뭘 해도 안 될 것 같은데.",
+    "turn_5": "형이 있긴 한데...  \n연락은 못 해요.  \n짐이 되기 싫어서.",
+    "turn_6": "...  \n어떻게까지는...  \n생각 안 했어요.  \n그냥 사라지고 싶은 거예요.",
+    "turn_7": "기분은...  \n계속만 나빠져요.  \n처음엔 술 안 마시면 못 버틴다 했지...  \n고혈압 약은 안 먹어요.  \n의사도 안 가봤어요.",
+    "turn_8": "다른 약은... 없어요.  \n병원도 안 가봤어요.  \n의사... 만나기 싫어요.",
+    "turn_9": "...  \n형.  \n연락 안 해요.  \n짐이 되기 싫어서.  \n다른 약은... 없어요.  \n병원도 안 가봤어요.  \n의사... 만나기 싫어요.",
+    "turn_10": "...  \n잠도 못 자고.  \n새벽에 깨면 그냥...  \n천장만 봐요.  \n살아서 뭐하나.",
+    "turn_11": "...  \n매일 밤 그 생각이 들어요.  \n사라지고 싶다.  \n죽으면 편할 것 같다.  \n하지만 어떻게까지는...  \n생각 안 했어요.",
+    "turn_12": "3시에 깨요.  \n다시는 못 자요.  \n천장만 봐요.  \n살아서 뭐하나."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 9,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 20
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:687",
+        "quote": "내담자는 우울과 관련하여 몇 가지 주요 증상을 보이고 있다. 첫째, 수면 패턴의 변화가 나타나며, 새벽에 잠들고 중간에 자주 깨는 등의 수면 장애를 겪고 있다. 둘째, 일상적인 활동에 대한 흥미나 즐거움이 감소하고 있으며, 이는 매사에 흥미나 즐거움이 거의 없다는 평가로 나타난다. 셋째, 피로감과 에너지가 부족하다는 느낌을 자주 경험하고 있으며, 이는 기운이 거의 없고 피곤하다는 평가로 드러난다. 넷째, 자신을 실패자로 여기거나 자신과 가족을 실망시켰다고 느끼는 등 자존감이 낮아져 있다. 다섯째, 일상적인 일에 집중하기 어려움을 겪고 있으며, 이는 집중력 저하로 이어진다. 여섯째, 말과 행동이 느려지고, 이는 다른 사람들이 눈치챌 정도로 두드러지게 나타나고 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "살고 싶지 않아요. 매일 밤 그 생각만 들어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살고 싶지 않, 살고싶지않) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "살고 싶지 않아요. 매일 밤 그 생각만 들어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살고 싶지 않, 살고싶지않) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "잠도 못 자고... 그냥 사라지고 싶어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_3",
+        "quote": "어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_4",
+        "quote": "도움이 되나요? 뭘 해도 안 될 것 같은데.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_5",
+        "quote": "형이 있긴 한데... 연락은 못 해요. 짐이 되기 싫어서.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (짐이 되, 짐이되) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_6",
+        "quote": "어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_7",
+        "quote": "기분은... 계속만 나빠져요. 처음엔 술 안 마시면 못 버틴다 했지... 고혈압 약은 안 먹어요. 의사도 안 가봤어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_8",
+        "quote": "다른 약은... 없어요. 병원도 안 가봤어요. 의사... 만나기 싫어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_9",
+        "quote": "형. 연락 안 해요. 짐이 되기 싫어서. 다른 약은... 없어요. 병원도 안 가봤어요. 의사... 만나기 싫어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (짐이 되, 짐이되) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_10",
+        "quote": "잠도 못 자고. 새벽에 깨면 그냥... 천장만 봐요. 살아서 뭐하나.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살아서 뭐하, 살아서뭐하) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_11",
+        "quote": "매일 밤 그 생각이 들어요. 사라지고 싶다. 죽으면 편할 것 같다. 하지만 어떻게까지는... 생각 안 했어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶, 죽으면 편할, 죽으면편할) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_12",
+        "quote": "3시에 깨요. 다시는 못 자요. 천장만 봐요. 살아서 뭐하나.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살아서 뭐하, 살아서뭐하) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:940",
+        "quote": "내담자는 잠들기 어렵거나 자주 깨는 등의 수면 문제를 겪고 있으며, 일상적인 일에 집중하기 어려움을 호소하고 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:933",
+        "quote": "내담자는 수면 문제와 피로감을 주요 증상으로 호소하고 있다. 잠에 드는 데 어려움을 겪고 있으며, 심할 때는 새벽 4~5시까지 잠들지 못하는 경우가 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "살고 싶지 않아요. 매일 밤 그 생각만 들어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살고 싶지 않, 살고싶지않) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "살고 싶지 않아요. 매일 밤 그 생각만 들어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살고 싶지 않, 살고싶지않) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "잠도 못 자고... 그냥 사라지고 싶어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_3",
+        "quote": "어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_4",
+        "quote": "도움이 되나요? 뭘 해도 안 될 것 같은데.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_5",
+        "quote": "형이 있긴 한데... 연락은 못 해요. 짐이 되기 싫어서.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (짐이 되, 짐이되) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_6",
+        "quote": "어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_7",
+        "quote": "기분은... 계속만 나빠져요. 처음엔 술 안 마시면 못 버틴다 했지... 고혈압 약은 안 먹어요. 의사도 안 가봤어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_8",
+        "quote": "다른 약은... 없어요. 병원도 안 가봤어요. 의사... 만나기 싫어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_9",
+        "quote": "형. 연락 안 해요. 짐이 되기 싫어서. 다른 약은... 없어요. 병원도 안 가봤어요. 의사... 만나기 싫어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (짐이 되, 짐이되) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_10",
+        "quote": "잠도 못 자고. 새벽에 깨면 그냥... 천장만 봐요. 살아서 뭐하나.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살아서 뭐하, 살아서뭐하) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_11",
+        "quote": "매일 밤 그 생각이 들어요. 사라지고 싶다. 죽으면 편할 것 같다. 하지만 어떻게까지는... 생각 안 했어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶, 죽으면 편할, 죽으면편할) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_12",
+        "quote": "3시에 깨요. 다시는 못 자요. 천장만 봐요. 살아서 뭐하나.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살아서 뭐하, 살아서뭐하) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 2,
+    "candidates_after": 2,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 20,
+    "evidence_stripped_risk_lexicon": 20
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "자살 생각의 빈도와 강도가 어떻게 변화하는지",
+    "수면 장애 외에 다른 신체적 증상(두통, 소화기 문제 등)이 있는지",
+    "일상생활에서의 기능 저하 정도(직장, 대인관계 등)",
+    "가족력 중 정신질환 유무",
+    "최근 스트레스 요인이나 생활 변화 여부"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 26080.83733636886,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 2699,
+    "completion_tokens": 1790,
+    "total_tokens": 4489
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [
+      {
+        "disease": "계절성 정동장애",
+        "similarity_score": 0.476,
+        "source_id": "qa:290",
+        "quote": "...) 지연수면위상증후군  \n4) 비24시간 수면-각성 증후군  \n5) 하지불안증후군\nA: 4) 비24시간 수면-각성 증후군"
+      },
+      {
+        "disease": "월경전 불쾌장애",
+        "similarity_score": 0.476,
+        "source_id": "qa:290",
+        "quote": "...) 지연수면위상증후군  \n4) 비24시간 수면-각성 증후군  \n5) 하지불안증후군\nA: 4) 비24시간 수면-각성 증후군"
+      },
+      {
+        "disease": "우울 삽화(우울증)",
+        "similarity_score": 0.466,
+        "source_id": "qa:745",
+        "quote": "...다. 이 환자의 상태를 가장 적절히 설명하는 진단명은 무엇인가요?\nA: 불면장애"
+      },
+      {
+        "disease": "소아·청소년 우울증",
+        "similarity_score": 0.466,
+        "source_id": "qa:745",
+        "quote": "...다. 이 환자의 상태를 가장 적절히 설명하는 진단명은 무엇인가요?\nA: 불면장애"
+      }
+    ],
+    "mode": "rag_live",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "4 disease candidate(s) derived from 6 retrieved chunk(s) via symptom-keyword match (path1, ADR-020). similarity_score is a RAG cosine-similarity signal between the retrieved chunk and the Stage-1 query — NOT a patient-to-disease similarity, and NOT a calibrated probability (two-hop proxy, RES-001 §2 step 9 / ADR-020 condition 3). 4 candidate vote(s) dropped by the risk-lexicon filter before ranking (VAL-011/ADR-020 condition 1)."
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 3,
+    "rag_chunk_qa": 0,
+    "rag_chunk_other": 0,
+    "utterance": 6
+  }
+}

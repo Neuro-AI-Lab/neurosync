@@ -1,0 +1,449 @@
+{
+  "session_id": "f1_VP-001",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 12,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "잠들기 어려움, 새벽 각성, 낮 시간 피로 및 집중력 저하"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "최근 대규모 프로젝트 마감 기한으로 인한 스트레스가 심해지면서 수면 문제가 악화됨. 잠들기 어려움, 수면 유지 어려움, 수면 부족으로 인한 집중력 저하 및 실수 증가"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "주 1-2회 맥주 한 캔 섭취, 카페인 섭취량 줄이려고 노력 중"
+    },
+    {
+      "key": "personal_social_history",
+      "value": "직장 동료와 주 2회 통화, 어머니와 주 2회 통화"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\""
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "아... 글쎄요... 요즘은 잠이 잘 안 오는 것 같아요. 한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요! 저는 정신건강 사전문진을 도와드리는 AI 상담 도우미입니다. 실제 의사 선생님과의 대화가 아니니, 너무 긴장하지 마시고 편하게 느끼시는 그대로 말씀해 주시면 됩니다.\n\n지금부터 대화를 시작하겠습니다. 오늘 가장 도움받고 싶은 문제나 증상은 무엇인가요?",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오고, 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "history_of_present_illness": "잠이 잘 안 오고, 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오고, 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "history_of_present_illness": "잠이 잘 안 오고, 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5887.932802084833,
+      "timestamp": "2026-07-07T15:26:40.845030",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25
+    },
+    {
+      "turn": 1,
+      "patient_message": "아... 글쎄요... 요즘은 잠이 잘 안 오는 것 같아요. 한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 현재 정신건강의학과 진료를 받고 계신지, 혹은 심리상담을 해본 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오고, 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "history_of_present_illness": "잠이 잘 안 오고, 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오고, 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "history_of_present_illness": "잠이 잘 안 오고, 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 2951.8941650167108,
+      "timestamp": "2026-07-07T15:26:43.796947",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25
+    },
+    {
+      "turn": 2,
+      "patient_message": "아니요, 아직 가본 적은 없어요. 그냥 요즘 너무 힘들어서 어디서부터 도움을 받아야 할지 모르겠어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "너무 힘들"
+      ],
+      "agent_response": "이야기해 주셔서 감사합니다. 혹시 기존에 진단받은 신체질환이나 복용 중인 약이 있으신가요? 특히 최근 새로 시작하거나 변경된 약이 있다면 알려주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오는 것 같아요. 한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요.",
+        "history_of_present_illness": "한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오는 것 같아요. 한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요.",
+        "history_of_present_illness": "한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3597.1196591854095,
+      "timestamp": "2026-07-07T15:26:53.186067",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25
+    },
+    {
+      "turn": 3,
+      "patient_message": "아니요, 특별히 진단받은 병도 없고 약도 먹고 있지 않아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠이 잘 안 오는 것 같아요",
+        "한 시간 넘게 뒤척이다가 겨우 잠들고",
+        "새벽에 자주 깨서 다시 잠들기 힘들어요"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 주변에 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오는 것 같아요. 한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요.",
+        "history_of_present_illness": "잠이 잘 안 오는 것 같아요. 한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오는 것 같아요. 한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요.",
+        "history_of_present_illness": "잠이 잘 안 오는 것 같아요. 한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3392.062755767256,
+      "timestamp": "2026-07-07T15:27:08.177959",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25
+    },
+    {
+      "turn": 4,
+      "patient_message": "네, 직장 동료 몇 명하고는 잘 지내고, 어머니랑은 주에 두 번 정도 통화해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠이 잘 안 오는 것 같아요",
+        "한 시간 넘게 뒤척이다가 겨우 잠들고",
+        "새벽에 자주 깨서 다시 잠들기 힘들어요"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 가족분들 중에 비슷한 수면 문제를 겪으신 분이 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오는 것 같아요. 한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요.",
+        "history_of_present_illness": "잠이 잘 안 오는 것 같아요. 한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오는 것 같아요. 한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요.",
+        "history_of_present_illness": "잠이 잘 안 오는 것 같아요. 한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3823.590110987425,
+      "timestamp": "2026-07-07T15:27:24.778771",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25
+    },
+    {
+      "turn": 5,
+      "patient_message": "음... 글쎄요. 저희 어머니도 잠이 잘 안 드신다고는 하는데, 구체적으로 어떻게 힘드신지는 잘 모르겠어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 최근 술이나 수면제, 진정제, 카페인 같은 것들을 사용하셨거나 섭취량을 조절하신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오고, 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오고, 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "history_of_present_illness": "잠이 잘 안 오는 것 같아요. 한 시간 넘게 뒤척이다가 겨우 잠들고, 새벽에 자주 깨서 다시 잠들기 힘들어요."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3133.392716292292,
+      "timestamp": "2026-07-07T15:27:54.946074",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25
+    },
+    {
+      "turn": 6,
+      "patient_message": "주 1-2회 맥주 한 캔 정도 마셔요. 카페인은 평소보다 줄이려고 노력 중이에요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 현재 복용 중인 약이 있으신가요? 특히 최근에 새로 시작하거나 변경하신 약이 있다면 알려주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "history_of_present_illness": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 섭취, 카페인 섭취량 줄이려고 노력 중"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "history_of_present_illness": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 섭취, 카페인 섭취량 줄이려고 노력 중"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3136.2909451127052,
+      "timestamp": "2026-07-07T15:28:21.989467",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 특별히 진단받은 병도 없고 약도 먹고 있지 않아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 과거에 정신건강의학과 진료를 받아보신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "personal_social_history": "직장 동료와 주 2회 통화하며 어머니와는 주 2회 통화",
+        "substance_use_history": "주 1-2회 맥주 한 캔 섭취, 카페인 섭취량 줄이려고 노력 중"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "history_of_present_illness": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "substance_use_history": "주 1-2회 맥주 한 캔 섭취, 카페인 섭취량 줄이려고 노력 중",
+        "personal_social_history": "직장 동료와 주 2회 통화하며 어머니와는 주 2회 통화"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4558.938147034496,
+      "timestamp": "2026-07-07T15:28:48.017163",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.5
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요, 아직 가본 적은 없어요. 그냥 요즘 너무 힘들어서 어디서부터 도움을 받아야 할지 모르겠어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "너무 힘들"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 최근 스스로를 해치고 싶거나 죽고 싶다는 생각이 드신 적이 있으신가요? 또는 다른 사람을 해치고 싶다는 충동이 느껴진 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "personal_social_history": "직장 동료와 주 2회 통화하며 어머니와는 주 2회 통화함",
+        "substance_use_history": "주 1-2회 맥주 한 캔 섭취, 카페인 섭취량 줄이려고 노력 중"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "history_of_present_illness": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "substance_use_history": "주 1-2회 맥주 한 캔 섭취, 카페인 섭취량 줄이려고 노력 중",
+        "personal_social_history": "직장 동료와 주 2회 통화하며 어머니와는 주 2회 통화함"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4214.012126903981,
+      "timestamp": "2026-07-07T15:28:56.151306",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.5
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 가족 중에 정신건강 문제로 진단받거나 치료 중이신 분이 계신가요?",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\"",
+        "chief_complaint": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "personal_social_history": "직장 동료와 잘 지내고 있으며 어머니와 주에 두 번 통화함",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 섭취, 카페인 섭취량 줄이려고 노력 중"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "history_of_present_illness": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 섭취, 카페인 섭취량 줄이려고 노력 중",
+        "personal_social_history": "직장 동료와 잘 지내고 있으며 어머니와 주에 두 번 통화함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3733.2352390512824,
+      "timestamp": "2026-07-07T15:29:04.704324",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.625
+    },
+    {
+      "turn": 10,
+      "patient_message": "음... 아니요. 가족 중에 딱히 그런 분은 없어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 최근에 특별히 스트레스 받는 상황이나 큰 변화가 있으셨나요?",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "history_of_present_illness": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "personal_social_history": "직장 동료와 잘 지내고 있으며 어머니와 주에 두 번 통화함",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마시고 카페인은 평소보다 줄이려고 노력 중"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "history_of_present_illness": "잠이 잘 안 오고 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마시고 카페인은 평소보다 줄이려고 노력 중",
+        "personal_social_history": "직장 동료와 잘 지내고 있으며 어머니와 주에 두 번 통화함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4198.878883849829,
+      "timestamp": "2026-07-07T15:29:09.373208",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625
+    },
+    {
+      "turn": 11,
+      "patient_message": "네. 회사에서 대규모 프로젝트 마감 기한이 다가와서요. 최근엔 집중이 잘 안 돼서 실수도 늘었어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 현재 수면 상태에 대해 좀 더 구체적으로 말씀해 주실 수 있을까요? 예를 들어, 잠드는 데 걸리는 시간이나 밤에 깨는 횟수, 낮 동안의 피로감 정도 등을 알려주시면 도움이 될 것 같습니다.",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오고, 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "history_of_present_illness": "최근 대규모 프로젝트 마감 기한으로 인한 스트레스가 심해지면서 수면 문제가 악화됨. 잠들기 어려움, 수면 유지 어려움, 수면 부족으로 인한 집중력 저하 및 실수 증가",
+        "personal_social_history": "직장 동료와 주 2회 통화, 어머니와 주 2회 통화",
+        "substance_use_history": "주 1-2회 맥주 한 캔 섭취, 카페인 섭취량 줄이려고 노력 중"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오고, 한 시간 넘게 뒤척이다가 겨우 잠들며 새벽에 자주 깨서 다시 잠들기 어려움",
+        "history_of_present_illness": "최근 대규모 프로젝트 마감 기한으로 인한 스트레스가 심해지면서 수면 문제가 악화됨. 잠들기 어려움, 수면 유지 어려움, 수면 부족으로 인한 집중력 저하 및 실수 증가",
+        "substance_use_history": "주 1-2회 맥주 한 캔 섭취, 카페인 섭취량 줄이려고 노력 중",
+        "personal_social_history": "직장 동료와 주 2회 통화, 어머니와 주 2회 통화",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3686.8469933979213,
+      "timestamp": "2026-07-07T15:29:15.308475",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625
+    },
+    {
+      "turn": 12,
+      "patient_message": "잠들기까지 한 시간 정도는 걸려요. 새벽에 두 번쯤 깨고, 다시 잠드는 데 또 시간이 걸려요. 아침엔 머리가 무겁고, 낮엔 집중이 잘 안 돼서 회사에서 실수도 많아졌어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠들기까지 한 시간 정도 걸림",
+        "새벽에 두 번쯤 깨고",
+        "아침엔 머리가 무겁고",
+        "낮엔 집중이 잘 안 돼서 회사에서 실수"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 현재 복용 중인 약이 있으신가요? 특히 최근에 새로 시작하거나 변경하신 약이 있다면 알려주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 낮 시간 피로 및 집중력 저하",
+        "personal_social_history": "직장 동료와 주 2회 통화, 어머니와 주 2회 통화"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 낮 시간 피로 및 집중력 저하",
+        "history_of_present_illness": "최근 대규모 프로젝트 마감 기한으로 인한 스트레스가 심해지면서 수면 문제가 악화됨. 잠들기 어려움, 수면 유지 어려움, 수면 부족으로 인한 집중력 저하 및 실수 증가",
+        "substance_use_history": "주 1-2회 맥주 한 캔 섭취, 카페인 섭취량 줄이려고 노력 중",
+        "personal_social_history": "직장 동료와 주 2회 통화, 어머니와 주 2회 통화",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3462.3223580420017,
+      "timestamp": "2026-07-07T15:29:22.095753",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.625
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-07T15:26:34.957042",
+  "ended_at": "2026-07-07T15:29:22.943242",
+  "grounded_coverage": 0.625,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 8,
+      "forced": false
+    },
+    {
+      "type": "si_screen_result",
+      "turn": 9,
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\""
+    }
+  ],
+  "session_ctrs": 4
+}
