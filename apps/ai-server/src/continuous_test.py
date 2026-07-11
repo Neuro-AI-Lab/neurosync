@@ -416,8 +416,14 @@ def main() -> int:
     except ImportError:
         pass
 
-    if not os.environ.get("PROMPTS_BASE_DIR"):
-        os.environ["PROMPTS_BASE_DIR"] = str(PROJECT_ROOT / "docs" / "ai" / "prompts")
+    # BUG-021: fail-fast path-existence validation, not the old unset-only
+    # guard (which silently let an explicit-but-wrong PROMPTS_BASE_DIR
+    # through and degraded every prompt-driven agent to a generic fallback).
+    # Lazy import, matching this module's own light-import-at-parse-time
+    # convention (module docstring).
+    from src.prompts.loader import resolve_prompts_base_dir
+
+    resolve_prompts_base_dir(PROJECT_ROOT)
 
     return asyncio.run(_main(args))
 

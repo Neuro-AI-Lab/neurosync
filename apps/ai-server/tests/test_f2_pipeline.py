@@ -919,11 +919,13 @@ class TestBuildEvidenceProvenanceSummary:
         summary = f2._build_evidence_provenance_summary(candidates)
         assert summary == {
             "rag_chunk_case_card": 1, "rag_chunk_qa": 2, "rag_chunk_other": 0, "utterance": 1,
+            "ocr_document": 0,
         }
 
     def test_empty_candidates_all_zero(self) -> None:
         assert f2._build_evidence_provenance_summary([]) == {
             "rag_chunk_case_card": 0, "rag_chunk_qa": 0, "rag_chunk_other": 0, "utterance": 0,
+            "ocr_document": 0,
         }
 
     def test_unrecognized_prefix_falls_into_other_not_silently_dropped(self) -> None:
@@ -977,6 +979,7 @@ class TestBuildEvidenceProvenanceSummary:
         )
         assert artifact["evidence_provenance_summary"] == {
             "rag_chunk_case_card": 1, "rag_chunk_qa": 0, "rag_chunk_other": 0, "utterance": 0,
+            "ocr_document": 0,
         }
         report = f2._build_report(artifact)
         assert "Evidence provenance (enhancement #4)" in report

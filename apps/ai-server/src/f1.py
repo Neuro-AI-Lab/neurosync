@@ -59,6 +59,7 @@ from src.grounding import (
 from src.grounding import (
     grounded_coverage as _grounded_coverage,
 )
+from src.prompts.loader import resolve_prompts_base_dir
 from src.schemas.clinical_slot import ClinicalSlotInput
 from src.schemas.dialogue import DialogueInput
 from src.schemas.input_normalizer import InputNormalizerInput
@@ -189,6 +190,9 @@ class F1TurnLog:
     # 명세 준수 — AI 응답 자체에 대한 Safety 재검사 결과 (CTRS)
     dialogue_safety_ctrs: int | None = None
     dialogue_safety_risk: str | None = None
+    # BUG-021: True if ANY agent called this turn (safety/clinical_slot/
+    # dialogue/input_normalizer) fell back to a generic hardcoded prompt.
+    prompts_degraded: bool = False
 
 
 @dataclass
@@ -222,6 +226,9 @@ class F1Result:
     stt_transcripts: list[dict] = field(default_factory=list)
     # T1-F1-DEV-011~013 — Mode B session-level sentiment (calculated at session end)
     session_sentiment: dict = field(default_factory=dict)
+    # BUG-021: session-level aggregate — True if ANY turn had prompts_degraded
+    # True (any prompt-driven agent fell back to a generic hardcoded prompt).
+    prompts_degraded: bool = False
 
 
 _CONTENT_TYPE_BY_SUFFIX: dict[str, str] = {
@@ -612,6 +619,7 @@ class F1Pipeline:
                 "clinical_content_preserved": out.clinical_content_preserved,
                 "latency_ms": out.latency_ms,
                 "changes": [c.model_dump() for c in out.changes[:6]],
+                "prompts_degraded": out.prompts_degraded,
             }
             return out.normalized_text or raw_text, meta
         except Exception as exc:
@@ -943,6 +951,9 @@ class F1Pipeline:
                 (t.safety_ctrs for t in result.turns), default=5
             )
             result.grounded_coverage = _grounded_coverage(filled_slots)
+            # BUG-021: session-level aggregate, machine-visible without
+            # scanning every turn.
+            result.prompts_degraded = any(t.prompts_degraded for t in result.turns)
             # 명세 준수: 세션 종료 시 Sentiment Mode B (session-level 리포트)
             per_utt = [t.sentiment for t in result.turns if t.sentiment]
             result.session_sentiment = await self._analyze_session_sentiment(
@@ -955,6 +966,7 @@ class F1Pipeline:
 
         def _finalize() -> F1Result:
             # Sync fallback for early-exit paths — skips Mode B sentiment.
+            result.prompts_degraded = any(t.prompts_degraded for t in result.turns)
             result.session_ctrs = min(
                 (t.safety_ctrs for t in result.turns), default=5
             )
@@ -1030,6 +1042,7 @@ class F1Pipeline:
         # Slot extraction on first patient message — grounding filter applied
         turn0_slots: dict[str, str] = {}
         turn0_discards: dict[str, str] = {}
+        turn0_slot_out = None
         try:
             turn0_slot_out = await self.clinical_slot.run(ClinicalSlotInput(
                 session_id=session_id,
@@ -1088,6 +1101,25 @@ class F1Pipeline:
         turn0_coverage = _legacy_essential_coverage(filled_slots)
         turn0_grounded = _grounded_coverage(filled_slots)
 
+        # BUG-021: aggregate this turn's prompts_degraded across every
+        # prompt-driven agent invoked at turn 0 (safety, clinical_slot,
+        # input_normalizer — dialogue is never called at turn 0).
+        turn0_prompts_degraded = (
+            bool(turn0_safety.prompts_degraded if turn0_safety else False)
+            or bool(turn0_slot_out.prompts_degraded if turn0_slot_out else False)
+            or bool(turn0_norm_meta.get("prompts_degraded", False))
+        )
+
+        # BUG-011 fix: a turn-0 crisis must substitute CRISIS_RESPONSE the
+        # same way the main per-turn loop does (see `if crisis:` below) —
+        # the session-opening greeting must never be the patient-facing text
+        # when the very first message already triggers crisis. Per ADR-024,
+        # turn-0 crisis text stays the BARE pinned CRISIS_RESPONSE — PR #42's
+        # nearby-facility augmentation (below) is deliberately NOT extended
+        # to turn 0's agent_response; it only populates
+        # result.nearby_psychiatric, out of this program's validated scope.
+        turn0_agent_response = CRISIS_RESPONSE if turn0_crisis else greeting
+
         turn0_latency = (time.perf_counter() - turn0_start) * 1000
         turn0_log = F1TurnLog(
             turn=0,
@@ -1097,7 +1129,7 @@ class F1Pipeline:
             safety_crisis=turn0_crisis,
             safety_categories=turn0_safety.categories if turn0_safety else [],
             safety_flagged=turn0_safety.flagged_phrases if turn0_safety else [],
-            agent_response=greeting,
+            agent_response=turn0_agent_response,
             slot_updates=turn0_slots,
             cumulative_slots=dict(filled_slots),
             slot_coverage=turn0_coverage,
@@ -1108,6 +1140,7 @@ class F1Pipeline:
             grounded_coverage=turn0_grounded,
             normalizer_meta=turn0_norm_meta,
             sentiment=turn0_sentiment,
+            prompts_degraded=turn0_prompts_degraded,
         )
         result.turns.append(turn0_log)
 
@@ -1117,13 +1150,12 @@ class F1Pipeline:
             result.total_turns = 0
             result.final_slots = [{"key": k, "value": v} for k, v in filled_slots.items() if v]
             result.slot_coverage = turn0_coverage
-            # 근처 정신과 안내를 CRISIS_RESPONSE에 첨부
+            # 근처 정신과 안내를 조회 (ADR-024: 안내 텍스트는 turn0_log.agent_response에
+            # 첨부하지 않는다 — result.nearby_psychiatric에만 별도 저장).
             nearby_text, nearby_records = await self._fetch_crisis_facilities(
                 patient_lat, patient_lng,
             )
             if nearby_text:
-                # Turn 0 log의 agent_response는 greeting이라 손대지 않고,
-                # crisis_response는 별도 필드로 저장 (report 렌더링 시 사용).
                 result.nearby_psychiatric = nearby_records
                 logger.warning(
                     "Crisis at turn 0 — appended %d nearby psychiatric hospitals",
@@ -1166,6 +1198,12 @@ class F1Pipeline:
             slot_updates: dict[str, str] = {}
             slot_discards: dict[str, str] = {}
             probe_just_concluded = False  # QA finding 8: probe cooldown
+            # BUG-021: reset every turn — never carry a stale flag from a
+            # previous iteration forward if this turn's try/except skips the
+            # agent call entirely (e.g. crisis turns skip slot/dialogue).
+            slot_prompts_degraded = False
+            dialogue_prompts_degraded = False
+            post_safety_prompts_degraded = False
 
             # ── Step 1b: Safety probe state machine (T1-F1-DEV-022/023) ──
             if not crisis and probe.active and probe.awaiting_answer:
@@ -1317,6 +1355,7 @@ class F1Pipeline:
                         conversation_history=slot_history,
                         current_slots=filled_slots,
                     ))
+                    slot_prompts_degraded = bool(slot_out.prompts_degraded)
                     if slot_out.extracted_slots:
                         extract_updates, extract_discards = _filter_and_merge_slots(
                             slot_out.extracted_slots,
@@ -1373,6 +1412,7 @@ class F1Pipeline:
                         session_state=session_state,
                     ))
                     agent_response = _extract_text(dialogue_out.assistant_response)
+                    dialogue_prompts_degraded = bool(dialogue_out.prompts_degraded)
                 except Exception as e:
                     result.errors.append(f"Turn {turn} dialogue error: {e}")
                     logger.error("Dialogue failed: %s", e)
@@ -1443,6 +1483,7 @@ class F1Pipeline:
                     ))
                     dialogue_safety_ctrs = int(post_safety.ctrs_level)
                     dialogue_safety_risk = str(post_safety.risk_level)
+                    post_safety_prompts_degraded = bool(post_safety.prompts_degraded)
                     if dialogue_safety_ctrs <= 2:
                         logger.warning(
                             "Post-dialogue Safety flagged AI response at turn %d "
@@ -1457,6 +1498,16 @@ class F1Pipeline:
             turn_log.normalizer_meta = turn_norm_meta
             turn_log.dialogue_safety_ctrs = dialogue_safety_ctrs
             turn_log.dialogue_safety_risk = dialogue_safety_risk
+            # BUG-021: aggregate across every prompt-driven agent invoked
+            # this turn (safety, slot, dialogue, post-dialogue safety
+            # re-check, input_normalizer for the message that started it).
+            turn_log.prompts_degraded = (
+                bool(safety_out.prompts_degraded)
+                or slot_prompts_degraded
+                or dialogue_prompts_degraded
+                or post_safety_prompts_degraded
+                or bool(turn_norm_meta.get("prompts_degraded", False))
+            )
             result.turns.append(turn_log)
             result.total_turns = turn
             result.final_slots = [{"key": k, "value": v} for k, v in filled_slots.items() if v]
@@ -2134,8 +2185,10 @@ def main() -> None:
     except ImportError:
         pass
 
-    if not os.environ.get("PROMPTS_BASE_DIR"):
-        os.environ["PROMPTS_BASE_DIR"] = str(PROJECT_ROOT / "docs" / "ai" / "prompts")
+    # BUG-021: fail-fast path-existence validation, not the old unset-only
+    # guard (which silently let an explicit-but-wrong PROMPTS_BASE_DIR
+    # through and degraded every prompt-driven agent to a generic fallback).
+    resolve_prompts_base_dir(PROJECT_ROOT)
 
     # Resolve OCR documents
     ocr_docs: list[Path] | None = None

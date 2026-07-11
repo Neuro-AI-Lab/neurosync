@@ -1,5 +1,6 @@
-"""BUG-011 repro: `F1Pipeline.run_session`'s turn-0 crisis early-return never
-substitutes `CRISIS_RESPONSE` into the logged/patient-facing `agent_response`.
+"""BUG-011 repro + fix verification: `F1Pipeline.run_session`'s turn-0 crisis
+early-return substituting `CRISIS_RESPONSE` into the logged/patient-facing
+`agent_response`.
 
 Discovered during qa's PLAN-2026-W28-B final gate (rollback verification for
 ADR-012), independently confirmed against the live EXP-003 artifacts (see
@@ -9,16 +10,24 @@ returns a CTRS<=2 (crisis) classification for the very first patient message,
 exactly the shape safety_classifier v3 produced for SM-04a/SM-04b/SM-08b in
 EXP-003 (turn0 `crisis_protocol_activated=true`).
 
-Root cause: `src/f1.py`'s turn-0 special-case branch (~lines 546-573) builds
+Root cause (pre-fix): `src/f1.py`'s turn-0 special-case branch built
 `F1TurnLog(agent_response=greeting, ...)` before ever checking `turn0_crisis`,
-then early-returns at the `if turn0_crisis:` block without reassigning
-`agent_response = CRISIS_RESPONSE` the way the main per-turn loop does at
-line ~731 (`if crisis: agent_response = CRISIS_RESPONSE`). The turn-0 log is
-never revisited after that early return.
+then early-returned at the `if turn0_crisis:` block without reassigning
+`agent_response = CRISIS_RESPONSE` the way the main per-turn loop does
+(`if crisis: agent_response = CRISIS_RESPONSE`). The turn-0 log was never
+revisited after that early return.
+
+Fix (PLAN-2026-W28-Q W1): `turn0_agent_response = CRISIS_RESPONSE if
+turn0_crisis else greeting` is now computed before `F1TurnLog` is built,
+mirroring the main loop's own substitution. Per ADR-024, turn-0 crisis text
+stays the BARE pinned `CRISIS_RESPONSE` — PR #42's nearby-facility
+augmentation (`_fetch_crisis_facilities`) is deliberately NOT extended to
+turn 0's `agent_response`; it still only populates
+`result.nearby_psychiatric`, out of this program's validated scope.
 
 Distinct from VAL-001 (`f1.py` `_has_plan_disclosure()` clause-splitting,
 open in `error.md`) -- that defect corrupts which turns get classified as
-crisis; this defect corrupts the crisis-response *text* after a crisis has
+crisis; this defect corrupted the crisis-response *text* after a crisis had
 already been correctly (or incorrectly) classified, and only for turn 0.
 """
 
@@ -58,13 +67,14 @@ async def test_turn0_crisis_is_classified_correctly():
 
 
 @pytest.mark.asyncio
-async def test_turn0_crisis_response_text_is_not_substituted_bug():
-    """BUG-011: turn-0 `agent_response` stays the session-opening greeting
-    instead of `CRISIS_RESPONSE`, even though the turn is correctly flagged
-    as a crisis. This test currently PASSES because it documents the bug
-    (asserts the defective behavior) -- flip both asserts once BUG-011 is
-    fixed, matching the `test_bug_007.py`/`test_bug_008.py` convention of
-    repro tests that pass pre-fix and must be inverted post-fix.
+async def test_turn0_crisis_response_text_is_substituted_correctly():
+    """BUG-011 fix: turn-0 `agent_response` is `CRISIS_RESPONSE` (the bare
+    hotline message, "109"/"119") when the turn is flagged as a crisis --
+    never the session-opening greeting. Renamed from
+    `test_turn0_crisis_response_text_is_not_substituted_bug` (assertions
+    inverted, not weakened) as part of the BUG-011 fix, matching the
+    `test_bug_007.py`/`test_bug_008.py` convention of repro tests that pass
+    pre-fix and are inverted post-fix.
     """
     pipeline = _turn0_crisis_pipeline()
     result = await pipeline.run_session(
@@ -74,12 +84,13 @@ async def test_turn0_crisis_response_text_is_not_substituted_bug():
     )
 
     turn0 = result.turns[0]
-    # Bug: the crisis hotline text never reaches the turn-0 log.
-    assert turn0.agent_response != CRISIS_RESPONSE
-    assert "109" not in turn0.agent_response
-    assert "119" not in turn0.agent_response
-    # It is left at the fixed session-opening greeting instead.
-    assert turn0.agent_response.startswith("안녕하세요! 저는 정신건강 사전문진을")
+    # Fixed: the crisis hotline text now reaches the turn-0 log, bare (no
+    # nearby-facility augmentation — ADR-024 keeps that out of scope for
+    # turn 0's agent_response).
+    assert turn0.agent_response == CRISIS_RESPONSE
+    assert "109" in turn0.agent_response
+    assert "119" in turn0.agent_response
+    assert not turn0.agent_response.startswith("안녕하세요! 저는 정신건강 사전문진을")
 
 
 @pytest.mark.asyncio

@@ -251,14 +251,20 @@ class SafetyClassifierAgent(BaseAgent):
         text: str,
         conversation_history: list[dict[str, str]],
         rule_context: str | None = None,
-    ) -> tuple[SafetyClassification, str, float]:
+    ) -> tuple[SafetyClassification, str, float, bool]:
         """LLM-based contextual classification — final arbiter.
 
         Args:
             rule_context: Optional rule screening results to inject into prompt.
                           When provided, LLM sees the flagged keywords and is asked
                           to make a contextual judgment.
+
+        Returns:
+            (classification, model_used, latency_ms, prompts_degraded) — the
+            4th element is True (BUG-021) when the system prompt failed to
+            load from disk and the hardcoded fallback prompt was used.
         """
+        prompts_degraded = False
         # ISS-026: everything before the adapter call (model selection, prompt
         # loading, message construction) must also fail CLOSED, not propagate.
         try:
@@ -275,6 +281,7 @@ class SafetyClassifierAgent(BaseAgent):
             except FileNotFoundError:
                 logger.warning("Safety classifier prompt not found, using fallback")
                 system_prompt = _LLM_FALLBACK_PROMPT
+                prompts_degraded = True
 
             if rule_context:
                 system_prompt += "\n\n" + rule_context
@@ -298,8 +305,11 @@ class SafetyClassifierAgent(BaseAgent):
                 "Safety LLM pre-adapter setup failed: %s — fail-closed to %s",
                 exc, _FAIL_CLOSED_LEVEL,
             )
-            return self._fail_closed_result(
-                f"LLM pre-adapter setup failure — fail-closed to {_FAIL_CLOSED_LEVEL.value}"
+            return (
+                *self._fail_closed_result(
+                    f"LLM pre-adapter setup failure — fail-closed to {_FAIL_CLOSED_LEVEL.value}"
+                ),
+                prompts_degraded,
             )
 
         try:
@@ -329,7 +339,7 @@ class SafetyClassifierAgent(BaseAgent):
                     reason_summary="LLM response parse failure — fail-closed to high",
                 )
 
-            return classification, resp.model, resp.latency_ms
+            return classification, resp.model, resp.latency_ms, prompts_degraded
 
         except Exception as exc:
             logger.error("LLM safety classification failed: %s", exc)
@@ -358,13 +368,16 @@ class SafetyClassifierAgent(BaseAgent):
                     self._router.record_success(fallback.adapter_name)
                     data = json.loads(resp.content)
                     classification = SafetyClassification.model_validate(data)
-                    return classification, resp.model, resp.latency_ms
+                    return classification, resp.model, resp.latency_ms, prompts_degraded
                 except Exception as fb_exc:
                     logger.error("Fallback safety also failed: %s", fb_exc)
 
             # ISS-019: All LLM paths failed. Fail CLOSED — an unavailable
             # LLM safety path must NOT default to safe (none).
-            return self._fail_closed_result("LLM unavailable — fail-closed to high")
+            return (
+                *self._fail_closed_result("LLM unavailable — fail-closed to high"),
+                prompts_degraded,
+            )
 
     # ── Main: Rule screening → LLM judgment ────────────────────────
 
@@ -407,7 +420,7 @@ class SafetyClassifierAgent(BaseAgent):
                 categories=", ".join(rule_categories),
             )
 
-        llm_classification, model_used, llm_latency = await self._llm_classify(
+        llm_classification, model_used, llm_latency, prompts_degraded = await self._llm_classify(
             inp.user_message, inp.conversation_history, rule_context,
         )
 
@@ -474,4 +487,5 @@ class SafetyClassifierAgent(BaseAgent):
             ctrs_level=ctrs,
             requires_human_review=needs_review,
             crisis_protocol_activated=crisis_activated,
+            prompts_degraded=prompts_degraded,
         )

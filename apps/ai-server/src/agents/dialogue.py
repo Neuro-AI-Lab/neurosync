@@ -110,6 +110,7 @@ class DialogueAgent(BaseAgent):
         started = time.perf_counter()
 
         # 1. Load system prompt
+        prompts_degraded = False
         try:
             system_prompt = self._prompt_loader.load_system_prompt("dialogue", PROMPT_VERSION)
         except FileNotFoundError:
@@ -120,6 +121,7 @@ class DialogueAgent(BaseAgent):
                 "반드시 한국어로 응답하세요. "
                 "JSON으로 응답: {\"assistant_response\": \"응답 텍스트\"}"
             )
+            prompts_degraded = True
 
         # 2. Build slot context (Slot Agent 결과 기반 → 미수집 슬롯 유도 질문)
         slot_context = self._build_slot_context(
@@ -247,6 +249,7 @@ class DialogueAgent(BaseAgent):
             requires_human_review=False,
             all_slots=dict(inp.filled_slots),
             handoff_ready=False,      # Coverage 판단은 f1.py orchestrator의 역할
+            prompts_degraded=prompts_degraded,
         )
 
     @classmethod

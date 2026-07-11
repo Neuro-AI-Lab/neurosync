@@ -47,6 +47,7 @@ from src.eval.f2_grounding import (
     find_orphan_departments,
 )
 from src.f1 import OUTPUT_DIR
+from src.prompts.loader import resolve_prompts_base_dir
 from src.schemas.ai_predicted_disease import AIPredictedDiseaseCandidate, AIPredictedDiseaseOutput
 from src.schemas.domain_inference import (
     DomainCandidate,
@@ -542,8 +543,19 @@ def _build_evidence_provenance_summary(
     unrecognized prefix (should not occur post-whitelist, but this function
     must not silently miscount if it does) falls into ``rag_chunk_other``
     rather than being dropped or merged into one of the two known buckets.
+
+    ``ocr_document`` (PLAN-2026-W28-Q W1, `EvidenceSourceType` addition) gets
+    its own counter — no OCR content is wired into F2's evidence-grounding
+    input yet, so this bucket is 0 today by construction, but it must not
+    silently vanish from the summary the moment a future run does cite one.
     """
-    counts = {"rag_chunk_case_card": 0, "rag_chunk_qa": 0, "rag_chunk_other": 0, "utterance": 0}
+    counts = {
+        "rag_chunk_case_card": 0,
+        "rag_chunk_qa": 0,
+        "rag_chunk_other": 0,
+        "utterance": 0,
+        "ocr_document": 0,
+    }
     for cand in domain_candidates:
         for ev in cand.evidence:
             if ev.source_type == "rag_chunk":
@@ -556,6 +568,8 @@ def _build_evidence_provenance_summary(
                     counts["rag_chunk_other"] += 1
             elif ev.source_type == "utterance":
                 counts["utterance"] += 1
+            elif ev.source_type == "ocr_document":
+                counts["ocr_document"] += 1
     return counts
 
 
@@ -766,6 +780,7 @@ def _build_report(artifact: dict[str, Any]) -> str:
             f"- rag_chunk(qa): {eps.get('rag_chunk_qa', 0)}",
             f"- rag_chunk(other/unrecognized prefix): {eps.get('rag_chunk_other', 0)}",
             f"- utterance: {eps.get('utterance', 0)}",
+            f"- ocr_document: {eps.get('ocr_document', 0)}",
             "",
         ])
 
@@ -982,9 +997,10 @@ def main() -> None:
     except ImportError:
         pass
 
-    import os
-    if not os.environ.get("PROMPTS_BASE_DIR"):
-        os.environ["PROMPTS_BASE_DIR"] = str(PROJECT_ROOT / "docs" / "ai" / "prompts")
+    # BUG-021: fail-fast path-existence validation, not the old unset-only
+    # guard (which silently let an explicit-but-wrong PROMPTS_BASE_DIR
+    # through and degraded every prompt-driven agent to a generic fallback).
+    resolve_prompts_base_dir(PROJECT_ROOT)
 
     asyncio.run(_run(args))
 

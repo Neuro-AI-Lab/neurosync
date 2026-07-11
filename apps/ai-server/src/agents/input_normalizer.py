@@ -85,6 +85,7 @@ class InputNormalizerAgent(BaseAgent):
 
     async def _normalize(self, inp: InputNormalizerInput) -> InputNormalizerOutput:
         """Call LLM for normalization, then validate safety preservation."""
+        prompts_degraded = False
         try:
             system_prompt = self._prompt_loader.load_system_prompt(
                 self.agent_name, _PROMPT_VERSION
@@ -98,6 +99,7 @@ class InputNormalizerAgent(BaseAgent):
                 "JSON으로 응답하세요: "
                 "{normalized_text, changes: [{original, normalized, type, position}]}"
             )
+            prompts_degraded = True
 
         # Build user message
         user_parts = [f"입력 유형: {inp.input_type}", f"원문: {inp.raw_text}"]
@@ -146,7 +148,9 @@ class InputNormalizerAgent(BaseAgent):
             logger.error(
                 "Safety expression lost during normalization — reverting to original"
             )
-            return self._safe_fallback(inp, reason="safety expression lost")
+            return self._safe_fallback(
+                inp, reason="safety expression lost", prompts_degraded=prompts_degraded
+            )
 
         return InputNormalizerOutput(
             model_used=resp.model,
@@ -158,6 +162,7 @@ class InputNormalizerAgent(BaseAgent):
             change_count=len(changes),
             clinical_content_preserved=True,
             risk_expressions_preserved=True,
+            prompts_degraded=prompts_degraded,
         )
 
     @staticmethod
@@ -175,7 +180,10 @@ class InputNormalizerAgent(BaseAgent):
 
     @staticmethod
     def _safe_fallback(
-        inp: InputNormalizerInput, reason: str = "LLM failure"
+        inp: InputNormalizerInput,
+        reason: str = "LLM failure",
+        *,
+        prompts_degraded: bool = False,
     ) -> InputNormalizerOutput:
         """Return original text unchanged — safe fallback on any error."""
         return InputNormalizerOutput(
@@ -187,4 +195,5 @@ class InputNormalizerAgent(BaseAgent):
             change_count=0,
             clinical_content_preserved=True,
             risk_expressions_preserved=True,
+            prompts_degraded=prompts_degraded,
         )
