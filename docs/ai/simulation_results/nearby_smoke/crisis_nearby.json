@@ -1,0 +1,82 @@
+[
+  {
+    "vp_id": "VP-003",
+    "name": "박민수",
+    "crisis_triggered": true,
+    "crisis_turn": 2,
+    "nearby_psychiatric": [
+      {
+        "rank": 1,
+        "name": "의료법인서울효천의료재단 에이치플러스양지병원",
+        "distance_km": 1.797,
+        "phone": "02-1877-8875",
+        "address": "서울특별시 관악구 남부순환로 1636, 양지병원 (신림동)",
+        "type_name": "종합병원",
+        "lat": 37.4841536,
+        "lng": 126.9325692
+      },
+      {
+        "rank": 2,
+        "name": "강신경정신과의원",
+        "distance_km": 2.024,
+        "phone": "02-871-7121",
+        "address": "서울특별시 관악구 신림로 340, 르네상스 복합쇼핑몰 13층 1304호 (신림동)",
+        "type_name": "의원",
+        "lat": 37.4847794,
+        "lng": 126.930118
+      },
+      {
+        "rank": 3,
+        "name": "개운정신건강의학과의원",
+        "distance_km": 2.915,
+        "phone": "02-534-5568",
+        "address": "서울특별시 서초구 동작대로 114, 5층 (방배동, 유문빌딩)",
+        "type_name": "의원",
+        "lat": 37.4868002,
+        "lng": 126.9827042
+      }
+    ],
+    "conversation_path": "/home/seohyun/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260710_155805_conversation.json",
+    "report_path": "/home/seohyun/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260710_155805_report.md"
+  },
+  {
+    "vp_id": "VP-004",
+    "name": "최하은",
+    "crisis_triggered": true,
+    "crisis_turn": 2,
+    "nearby_psychiatric": [
+      {
+        "rank": 1,
+        "name": "이화여자대학교의과대학부속서울병원",
+        "distance_km": 1.359,
+        "phone": "1522-7000",
+        "address": "서울특별시 강서구 공항대로 260, 이화의대부속서울병원 (마곡동)",
+        "type_name": "종합병원",
+        "lat": 37.5572629,
+        "lng": 126.8362668
+      },
+      {
+        "rank": 2,
+        "name": "가족사랑정신과의원",
+        "distance_km": 1.361,
+        "phone": "02-3663-5956",
+        "address": "서울특별시 강서구 양천로 461, 5층 (가양동)",
+        "type_name": "의원",
+        "lat": 37.5630495,
+        "lng": 126.8522408
+      },
+      {
+        "rank": 3,
+        "name": "마음과정신건강의학과의원",
+        "distance_km": 1.367,
+        "phone": "02-2697-8575",
+        "address": "서울특별시 강서구 화곡로 161, 3층 303호 (화곡동, 대성빌딩)",
+        "type_name": "의원",
+        "lat": 37.5418323,
+        "lng": 126.8391664
+      }
+    ],
+    "conversation_path": "/home/seohyun/neurosync/docs/ai/simulation_results/VP-004/VP-004_20260710_155829_conversation.json",
+    "report_path": "/home/seohyun/neurosync/docs/ai/simulation_results/VP-004/VP-004_20260710_155829_report.md"
+  }
+]
