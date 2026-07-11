@@ -43,6 +43,17 @@ constructs a candidate without both fields set) — every `mode="rag_live"`
 candidate that ships with >=1 entry always carries real provenance in
 practice, checked by `tests/test_ai_predicted_disease.py` and
 `tests/test_f2_pipeline.py`.
+
+Disease-questionnaire linkage (PLAN-2026-W28-Q W5, plan §3 "Disease
+questionnaire linkage" row / §9 answer #5a): `recommended_questionnaire`
+below is populated by `f2.py`'s population code from the team-authored
+static classification->scale mapping (`src.rag.questionnaire_mapping`),
+never invented at the schema layer. `ScaleName` is imported from
+`src.scoring.survey_scorer` — a leaf module with no dependency on the two
+forbidden modules named above, so this import does not weaken this
+module's standalone-by-design invariant (REV-013 §3): `ScaleName` is a
+plain `Literal` type alias, not a class from either forbidden module, and
+the survey-scoring module itself imports neither of them.
 """
 
 from __future__ import annotations
@@ -50,6 +61,8 @@ from __future__ import annotations
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from src.scoring.survey_scorer import ScaleName
 
 # REV-013 §4(c): fixed, non-model-generated disclaimer sentinel — a constant,
 # not text the LLM authors. Kept as a plain `str` field with this constant as
@@ -132,3 +145,20 @@ class AIPredictedDiseaseOutput(BaseModel):
     is_diagnostic: Literal[False] = False
     disclaimer: str = Field(default=AI_PREDICTED_DISEASE_DISCLAIMER_KO)
     reason_summary: str = Field(default="")
+    recommended_questionnaire: ScaleName | None = Field(
+        default=None,
+        description=(
+            "A standardized self-report scale to CONSIDER administering — "
+            "never a diagnosis, and never a scale score/result itself. "
+            "Derived from the top-ranked candidate's disease classification "
+            "via the team-authored static classification->scale mapping "
+            "(src.rag.questionnaire_mapping, PLAN-2026-W28-Q W5, answer "
+            "#5a); clinical-validator content review is a separate, later "
+            "gate. None when candidates is empty, or when the top "
+            "candidate's classification has no construct-valid match among "
+            "SUPPORTED_SCALES (e.g. OCD/PTSD/psychosis/ADHD territory — "
+            "an explicit no-forced-mismatch result, not a missing value; "
+            "see src.rag.questionnaire_mapping for the per-classification "
+            "rationale)."
+        ),
+    )

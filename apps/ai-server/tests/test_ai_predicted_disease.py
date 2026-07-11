@@ -185,6 +185,40 @@ class TestAIPredictedDiseaseOutput:
         assert not hasattr(out, "softmax_scores")
 
 
+class TestRecommendedQuestionnaireField:
+    """Container field, PLAN-2026-W28-Q W5 (plan §3 "Disease questionnaire
+    linkage" row / §9 answer #5a). Population-correctness (mapping content,
+    derivation from candidates) is `f2.py`'s and
+    `tests/test_f2_pipeline.py`/`tests/test_questionnaire_mapping.py`'s
+    concern; this class covers the schema-layer contract only."""
+
+    def test_defaults_to_none(self) -> None:
+        out = AIPredictedDiseaseOutput(mode="experimental_unpopulated")
+        assert out.recommended_questionnaire is None
+
+    def test_accepts_each_supported_scale_name(self) -> None:
+        for scale in ("PHQ-9", "GAD-7", "PHQ-4", "WHO-5", "AUDIT-C"):
+            out = AIPredictedDiseaseOutput(mode="rag_live", recommended_questionnaire=scale)
+            assert out.recommended_questionnaire == scale
+
+    def test_rejects_a_scale_name_outside_the_licensed_literal(self) -> None:
+        with pytest.raises(ValidationError):
+            AIPredictedDiseaseOutput(
+                mode="rag_live", recommended_questionnaire="MADRS"  # type: ignore[arg-type]
+            )
+
+    def test_field_present_on_model_fields(self) -> None:
+        assert "recommended_questionnaire" in AIPredictedDiseaseOutput.model_fields
+
+    def test_none_survives_model_dump(self) -> None:
+        out = AIPredictedDiseaseOutput(mode="experimental_unpopulated")
+        assert out.model_dump()["recommended_questionnaire"] is None
+
+    def test_populated_value_survives_model_dump(self) -> None:
+        out = AIPredictedDiseaseOutput(mode="rag_live", recommended_questionnaire="AUDIT-C")
+        assert out.model_dump()["recommended_questionnaire"] == "AUDIT-C"
+
+
 class TestStandaloneModule:
     """REV-013 §3: this module shares no base class/field/inheritance with
     SlotData/HandoffInput/HandoffOutput/DomainCandidate."""

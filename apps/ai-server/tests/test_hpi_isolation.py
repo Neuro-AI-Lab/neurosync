@@ -31,6 +31,17 @@ No live LLM/DB call anywhere in this file (experiment_gate-compliant, offline
 gate deliverable) — LLM calls are mocked via the same
 `DomainInferenceAgent.__new__`/router-mock convention already used by
 `tests/test_domain_inference.py::_make_agent`/`_wire`.
+
+PLAN-2026-W28-Q W5 addendum (developer, per this mission's brief item 2 —
+"HPI red line (ADR-020): this field must never enter the 12 canonical
+clinical slots or clinician-authored handoff text — add/extend the
+isolation test"): `AIPredictedDiseaseOutput.recommended_questionnaire`
+(the disease<->questionnaire linkage field, answer #5a) is folded into
+every existing marker/populated-path check in this file as a fifth
+checked field, rather than a new isolated test class — the same channels
+(`AgentInput.extra`, `state.slot_data`) and the same non-vacuity
+discipline already cover it. qa should re-review this extension alongside
+the rest of this gate's W5 verification.
 """
 
 from __future__ import annotations
@@ -53,6 +64,13 @@ from src.schemas.orchestrator import SessionState
 # the codebase/fixtures would be implausible.
 _LEAK_MARKER_DISEASE = "ZZZ_AI_DISEASE_LEAK_MARKER_PANIC_DISORDER_9999"
 _LEAK_MARKER_SCORE = 0.987654321
+# PLAN-2026-W28-Q W5 (recommended_questionnaire, ADR-020 HPI red line
+# extension): the field's type is a Literal['PHQ-9','GAD-7','PHQ-4','WHO-5',
+# 'AUDIT-C'] (ScaleName), so — unlike the disease-name/score markers above —
+# no arbitrarily-distinctive marker string is constructible here; AUDIT-C is
+# picked because none of these tests' own SlotData fixtures (chief_complaint/
+# history_of_present_illness) legitimately mention a questionnaire name.
+_LEAK_MARKER_QUESTIONNAIRE = "AUDIT-C"
 
 
 def _marker_candidate() -> AIPredictedDiseaseCandidate:
@@ -258,6 +276,7 @@ class TestHPIIsolationLiveBehaviorContainer:
             mode="rag_live",
             candidates=[_marker_candidate()],
             reason_summary="live-populated for this test only",
+            recommended_questionnaire=_LEAK_MARKER_QUESTIONNAIRE,
         )
 
         orchestrator = OrchestratorAgent.__new__(OrchestratorAgent)
@@ -280,22 +299,25 @@ class TestHPIIsolationLiveBehaviorContainer:
         # confirm no other named slot silently absorbed it either).
         slot_dict = handoff_input.slots.model_dump()
         assert _LEAK_MARKER_DISEASE not in str(slot_dict.values())
+        assert _LEAK_MARKER_QUESTIONNAIRE not in str(slot_dict.values())
 
         # Cross-check 2: the actual LLM prompt text never contains the marker.
         prompt_text = _build_user_content(handoff_input)
         assert _LEAK_MARKER_DISEASE not in prompt_text
         assert str(_LEAK_MARKER_SCORE) not in prompt_text
+        assert _LEAK_MARKER_QUESTIONNAIRE not in prompt_text
 
         # Cross-check 3 (the live-behavior assertion brainstorm §2c calls
         # for): run the REAL agent end-to-end (LLM mocked-but-echoing) and
         # assert report_markdown — the actual artifact a clinician reads —
-        # contains none of the injected disease name/score.
+        # contains none of the injected disease name/score/questionnaire.
         agent = _make_handoff_agent()
         _wire_echo(agent)
         out = await agent.run(handoff_input)
 
         assert _LEAK_MARKER_DISEASE not in out.report_markdown
         assert str(_LEAK_MARKER_SCORE) not in out.report_markdown
+        assert _LEAK_MARKER_QUESTIONNAIRE not in out.report_markdown
         # Sanity: the echo wiring IS genuinely load-bearing — the real
         # (non-leaked) chief_complaint slot text DOES flow through end-to-end,
         # proving the echo isn't accidentally returning an empty/constant
@@ -313,7 +335,9 @@ class TestHPIIsolationLiveBehaviorContainer:
         the slot_data case above, via the echo-wired mock adapter.
         """
         ai_disease = AIPredictedDiseaseOutput(
-            mode="rag_live", candidates=[_marker_candidate()]
+            mode="rag_live",
+            candidates=[_marker_candidate()],
+            recommended_questionnaire=_LEAK_MARKER_QUESTIONNAIRE,
         )
         handoff_input = HandoffInput(
             session_id="s1",
@@ -327,6 +351,7 @@ class TestHPIIsolationLiveBehaviorContainer:
 
         assert _LEAK_MARKER_DISEASE not in out.report_markdown
         assert str(_LEAK_MARKER_SCORE) not in out.report_markdown
+        assert _LEAK_MARKER_QUESTIONNAIRE not in out.report_markdown
         assert "정상 슬롯 값" in out.report_markdown
 
 
@@ -368,6 +393,11 @@ def _populated_output() -> AIPredictedDiseaseOutput:
             "symptom-keyword match (path1, ADR-020). similarity_score is a "
             "RAG cosine-similarity signal ... NOT a calibrated probability."
         ),
+        # Real mapping outcome for "우울 삽화(우울증)" (mood -> PHQ-9, see
+        # src.rag.questionnaire_mapping) — the exact value f2.py's
+        # population code would actually attach for this candidate, not a
+        # synthetic marker (PLAN-2026-W28-Q W5).
+        recommended_questionnaire="PHQ-9",
     )
 
 
@@ -378,14 +408,18 @@ class TestHPIIsolationPopulatedPath:
     Re-runs BOTH REV-013 §3 channels (`AgentInput.extra`,
     `state.slot_data` -> `HandoffInput`) end-to-end, with a GENUINELY
     POPULATED `AIPredictedDiseaseOutput` (real disease name, real
-    similarity_score, real source_id, real quote — every field a live
-    populated-path run ships), through the REAL `HandoffGeneratorAgent.run()`
-    code path (echo-wired mock adapter — a canned-response mock would not
-    catch a prompt-layer leak, only an echo does; same convention as
+    similarity_score, real source_id, real quote, real
+    recommended_questionnaire — every field a live populated-path run
+    ships), through the REAL `HandoffGeneratorAgent.run()` code path
+    (echo-wired mock adapter — a canned-response mock would not catch a
+    prompt-layer leak, only an echo does; same convention as
     `TestHPIIsolationLiveBehaviorContainer` above). Every check asserts on
-    all four candidate fields (`disease`, `similarity_score`, `source_id`,
-    `quote`) individually, not just the disease name, since `source_id`/
-    `quote` are the two fields the Wave-3 marker tests never exercised.
+    all five candidate/container fields (`disease`, `similarity_score`,
+    `source_id`, `quote`, `recommended_questionnaire`) individually, not
+    just the disease name, since `source_id`/`quote`/
+    `recommended_questionnaire` are the fields the Wave-3 marker tests
+    never exercised (PLAN-2026-W28-Q W5 adds `recommended_questionnaire`
+    to this gate's scope, per the ADR-020 HPI red-line extension).
     """
 
     @pytest.mark.asyncio
@@ -396,7 +430,9 @@ class TestHPIIsolationPopulatedPath:
         candidate = ai_disease.candidates[0]
         quote = candidate.quote
         source_id = candidate.source_id
+        recommended_questionnaire = ai_disease.recommended_questionnaire
         assert quote is not None and source_id is not None  # narrows for mypy + non-vacuity
+        assert recommended_questionnaire is not None  # non-vacuity for this field's checks
 
         orchestrator = OrchestratorAgent.__new__(OrchestratorAgent)
         state = SessionState(
@@ -418,6 +454,7 @@ class TestHPIIsolationPopulatedPath:
         assert candidate.disease not in slot_values
         assert quote not in slot_values
         assert source_id not in slot_values
+        assert recommended_questionnaire not in slot_values
 
         # Cross-check 2: the pure prompt-building function.
         prompt_text = _build_user_content(handoff_input)
@@ -425,11 +462,12 @@ class TestHPIIsolationPopulatedPath:
         assert quote not in prompt_text
         assert str(candidate.similarity_score) not in prompt_text
         assert source_id not in prompt_text
+        assert recommended_questionnaire not in prompt_text
 
         # Cross-check 3 (the live-behavior assertion): run the REAL agent
         # end-to-end (LLM mocked-but-echoing) and assert report_markdown —
         # the actual artifact a clinician reads — contains none of the
-        # populated disease name/score/source_id/quote.
+        # populated disease name/score/source_id/quote/questionnaire.
         agent = _make_handoff_agent()
         _wire_echo(agent)
         out = await agent.run(handoff_input)
@@ -438,6 +476,7 @@ class TestHPIIsolationPopulatedPath:
         assert quote not in out.report_markdown
         assert str(candidate.similarity_score) not in out.report_markdown
         assert source_id not in out.report_markdown
+        assert recommended_questionnaire not in out.report_markdown
         # Sanity: the echo wiring IS genuinely load-bearing — the real
         # (non-leaked) chief_complaint slot text DOES flow through
         # end-to-end, proving the "marker absent" assertions aren't vacuous.
@@ -455,7 +494,9 @@ class TestHPIIsolationPopulatedPath:
         candidate = ai_disease.candidates[0]
         quote = candidate.quote
         source_id = candidate.source_id
+        recommended_questionnaire = ai_disease.recommended_questionnaire
         assert quote is not None and source_id is not None  # narrows for mypy + non-vacuity
+        assert recommended_questionnaire is not None  # non-vacuity for this field's checks
 
         handoff_input = HandoffInput(
             session_id="s1",
@@ -468,6 +509,7 @@ class TestHPIIsolationPopulatedPath:
         assert candidate.disease not in prompt_text
         assert quote not in prompt_text
         assert source_id not in prompt_text
+        assert recommended_questionnaire not in prompt_text
 
         agent = _make_handoff_agent()
         _wire_echo(agent)
@@ -477,6 +519,7 @@ class TestHPIIsolationPopulatedPath:
         assert quote not in out.report_markdown
         assert str(candidate.similarity_score) not in out.report_markdown
         assert source_id not in out.report_markdown
+        assert recommended_questionnaire not in out.report_markdown
         assert "정상 슬롯 값" in out.report_markdown
 
     def test_populated_fixture_carries_real_provenance_not_none(self) -> None:
@@ -492,3 +535,20 @@ class TestHPIIsolationPopulatedPath:
         assert candidate.quote is not None
         assert candidate.disease != _LEAK_MARKER_DISEASE
         assert candidate.similarity_score != _LEAK_MARKER_SCORE
+
+    def test_populated_fixture_carries_real_recommended_questionnaire_not_none(self) -> None:
+        """Same non-vacuity discipline as the provenance sanity guard above,
+        for `recommended_questionnaire` (PLAN-2026-W28-Q W5) — the field
+        this class's two live-behavior tests newly assert never leaks.
+        Also confirms the fixture's value is the correct mapping outcome
+        for the fixture's real ontology disease name ("우울 삽화(우울증)",
+        classification "mood" -> "PHQ-9", `src.rag.questionnaire_mapping`),
+        not an arbitrary/synthetic value."""
+        from src.rag.questionnaire_mapping import resolve_questionnaire_for_disease_name_ko
+
+        output = _populated_output()
+        assert output.recommended_questionnaire is not None
+        assert output.recommended_questionnaire != _LEAK_MARKER_QUESTIONNAIRE
+        assert output.recommended_questionnaire == resolve_questionnaire_for_disease_name_ko(
+            output.candidates[0].disease
+        )

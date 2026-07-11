@@ -49,6 +49,7 @@ from src.eval.f2_grounding import (
 )
 from src.f1 import OUTPUT_DIR
 from src.prompts.loader import resolve_prompts_base_dir
+from src.rag.questionnaire_mapping import resolve_questionnaire_for_disease_name_ko
 
 # PLAN-2026-W28-Q W4: RAG trigger Policy A/B — `_STAGE1_QUERY_SLOTS` now
 # lives in `src.rag_trigger` (single source of truth for both this module's
@@ -551,7 +552,23 @@ async def _build_ai_predicted_disease_populated(
             "filter before ranking (VAL-011/ADR-020 condition 1)."
         )
 
-    return AIPredictedDiseaseOutput(mode="rag_live", candidates=candidates, reason_summary=reason)
+    # PLAN-2026-W28-Q W5 (disease<->questionnaire linkage, answer #5a):
+    # recommended_questionnaire is derived from the TOP-ranked candidate
+    # only (candidates is already sorted descending by similarity_score by
+    # _aggregate_disease_candidates) via the static classification->scale
+    # mapping. None when there are no candidates this run, or when the top
+    # candidate's disease name doesn't resolve to a construct-valid scale
+    # (an explicit no-forced-mismatch result — src.rag.questionnaire_mapping).
+    recommended_questionnaire = (
+        resolve_questionnaire_for_disease_name_ko(candidates[0].disease) if candidates else None
+    )
+
+    return AIPredictedDiseaseOutput(
+        mode="rag_live",
+        candidates=candidates,
+        reason_summary=reason,
+        recommended_questionnaire=recommended_questionnaire,
+    )
 
 
 # Enhancement #4 code-side half (ADR-021, REV-016(a)) — evidence-provenance
