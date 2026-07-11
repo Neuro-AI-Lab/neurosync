@@ -240,7 +240,11 @@ def main() -> int:
             "raw": resp,
         })
 
-    # Save
+    # Save — BUG-024: vp_dir may no longer pre-exist (e.g. post-archive-move
+    # simulation_results reset); mirror f1.py's own save_f1_result convention
+    # (`out.mkdir(parents=True, exist_ok=True)`) instead of relying on some
+    # other tool having already created it.
+    vp_dir.mkdir(parents=True, exist_ok=True)
     out = vp_dir / f"{vp_id}_stt_smoke_results.json"
     out.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
 

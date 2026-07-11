@@ -128,19 +128,31 @@ class InputNormalizerAgent(BaseAgent):
         )
         self._router.record_success(selection.adapter_name)
 
-        # Parse response
-        data = json.loads(resp.content)
-        normalized_text = data.get("normalized_text", inp.raw_text)
-        raw_changes = data.get("changes", [])
+        # Parse response — BUG-023: any parse failure here MUST route through
+        # THIS method's own _safe_fallback call (carrying the local
+        # prompts_degraded flag), not propagate to run()'s outer catch-all
+        # (which rebuilds a fresh fallback with no knowledge of a compound
+        # prompt-missing + parse-failure case). Mirrors the safety-
+        # expression-loss path below.
+        try:
+            data = json.loads(resp.content)
+            normalized_text = data.get("normalized_text", inp.raw_text)
+            raw_changes = data.get("changes", [])
 
-        changes = []
-        for c in raw_changes:
-            changes.append(NormalizationChange(
-                original=c.get("original", ""),
-                normalized=c.get("normalized", ""),
-                type=c.get("type", "typo"),
-                position=c.get("position", {}),
-            ))
+            changes = []
+            for c in raw_changes:
+                changes.append(NormalizationChange(
+                    original=c.get("original", ""),
+                    normalized=c.get("normalized", ""),
+                    type=c.get("type", "typo"),
+                    position=c.get("position", {}),
+                ))
+        except Exception as exc:
+            logger.warning("InputNormalizer response parse failed: %s", exc)
+            return self._safe_fallback(
+                inp, reason=f"response parse failed: {type(exc).__name__}",
+                prompts_degraded=prompts_degraded,
+            )
 
         # Safety validation: ensure all safety expressions are preserved
         risk_preserved = self._verify_safety_expressions(inp.raw_text, normalized_text)
