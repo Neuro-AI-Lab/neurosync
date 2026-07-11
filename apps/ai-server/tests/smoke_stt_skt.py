@@ -25,8 +25,12 @@ import httpx
 from dotenv import load_dotenv
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+# Input fixtures (audio, TTS index) — permanent home under tests/fixtures/.
+FIXTURES_DIR = REPO_ROOT / "apps" / "ai-server" / "tests" / "fixtures"
+AUDIO_FIXTURES_DIR = FIXTURES_DIR / "audio"
+TTS_INDEX = FIXTURES_DIR / "tts_scripts" / "patient_tts_index.json"
+# Output location for this script's own regenerable results (unrelated to fixtures).
 SIM_ROOT = REPO_ROOT / "docs" / "ai" / "simulation_results"
-TTS_INDEX = SIM_ROOT / "tts_scripts" / "patient_tts_index.json"
 
 # ── SKT env — the .env uses SKT_A_X_K1, docs expect SKT_A_X_API_KEY ─────
 # Accept both.
@@ -157,7 +161,8 @@ def main() -> int:
         print("[ERR] SKT API key not found (SKT_A_X_API_KEY or SKT_A_X_K1)", file=sys.stderr)
         return 1
 
-    vp_dir = SIM_ROOT / vp_id
+    vp_dir = SIM_ROOT / vp_id  # output dir for this script's own results
+    audio_dir = AUDIO_FIXTURES_DIR / vp_id
 
     # Load expected texts from TTS index (if available for this VP)
     expected_by_idx: dict[int, dict] = {}
@@ -167,9 +172,9 @@ def main() -> int:
         utterances = persona.get("utterances", [])
         expected_by_idx = {u["utterance_index"]: u for u in utterances}
 
-    audio_files = sorted(vp_dir.glob(f"{vp_id}-*.mp3"))
+    audio_files = sorted(audio_dir.glob(f"{vp_id}-*.mp3"))
     if not audio_files:
-        print(f"[ERR] no mp3 files in {vp_dir}", file=sys.stderr)
+        print(f"[ERR] no mp3 files in {audio_dir}", file=sys.stderr)
         return 1
 
     print(f"=== SKT A.X STT Batch Smoke Test — {vp_id} ===")

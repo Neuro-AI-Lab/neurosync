@@ -77,6 +77,9 @@ logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]  # apps/ai-server/src/f1.py → neurosync/
 OUTPUT_DIR = PROJECT_ROOT / "docs" / "ai" / "simulation_results"
+# Permanent home for test input fixtures (OCR PDFs, patient-utterance audio),
+# separate from OUTPUT_DIR above which holds run OUTPUT (conversation logs, etc.).
+FIXTURES_DIR = PROJECT_ROOT / "apps" / "ai-server" / "tests" / "fixtures"
 
 # 페르소나별 임의 위치 (persona MD 주소 기준 · Kakao geocoded 좌표).
 # 실 프로덕션에서는 모바일 GPS·환자 프로필 좌표를 사용.
@@ -2135,7 +2138,7 @@ def main() -> None:
         default=None,
         help=(
             "OCR 처리할 문서 경로 (콤마 구분). "
-            "예: --ocr docs/ai/simulation_results/VP-001/VP-001_first_visit_mild_ocr.pdf"
+            "예: --ocr apps/ai-server/tests/fixtures/ocr/VP-001/VP-001_first_visit_mild_ocr.pdf"
         ),
     )
     parser.add_argument(
@@ -2152,7 +2155,7 @@ def main() -> None:
         action="store_true",
         help=(
             "편의 옵션: --persona VP-001 이고 --ocr 미지정이면 "
-            "docs/ai/simulation_results/VP-001/VP-001_*_ocr.pdf를 자동 첨부."
+            "apps/ai-server/tests/fixtures/ocr/VP-001/VP-001_*_ocr.pdf를 자동 첨부."
         ),
     )
     parser.add_argument(
@@ -2168,7 +2171,7 @@ def main() -> None:
         action="store_true",
         help=(
             "편의 옵션: --audio 미지정 시 "
-            "docs/ai/simulation_results/{persona}/{persona}-*.mp3를 정렬 순 자동 첨부."
+            "apps/ai-server/tests/fixtures/audio/{persona}/{persona}-*.mp3를 정렬 순 자동 첨부."
         ),
     )
     args = parser.parse_args()
@@ -2197,7 +2200,7 @@ def main() -> None:
     if args.ocr:
         ocr_docs = [Path(p.strip()) for p in args.ocr.split(",") if p.strip()]
     elif args.ocr_vp_default:
-        default_glob = OUTPUT_DIR / args.persona
+        default_glob = FIXTURES_DIR / "ocr" / args.persona
         matches = sorted(default_glob.glob(f"{args.persona}_*_ocr.pdf"))
         if matches:
             ocr_docs = matches
@@ -2213,7 +2216,7 @@ def main() -> None:
     if args.audio:
         audio_paths = [Path(p.strip()) for p in args.audio.split(",") if p.strip()]
     elif args.audio_vp_default:
-        default_glob = OUTPUT_DIR / args.persona
+        default_glob = FIXTURES_DIR / "audio" / args.persona
         matches = sorted(default_glob.glob(f"{args.persona}-*.mp3"))
         if matches:
             audio_paths = matches
