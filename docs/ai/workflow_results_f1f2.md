@@ -2,7 +2,7 @@
 
 > **Usage note:** appended at each workflow completion — key numbers, verdicts, artifact links. One entry per completed wave, scenario class (`SC-N`), or audit class (`AVC-N`) that finishes its gate cycle.
 > **Companion docs:** `docs/ai/validation_plan_f1f2_continuous.md` (plan v1.2 — design, matrix, budget, audit track), `docs/ai/workflow_checklist_f1f2.md` (stage × status at-a-glance), `docs/ai/workflow_discussion_f1f2.md` (issues log).
-> **Status:** W0 complete (2026-07-11, `w0-setup-baseline` below); W1 complete (2026-07-11, `w1-prereq-fixes-archive` below, qa **GATE:PASS**); W2 CLOSED (2026-07-11, `w2-multisession-v3-sm-regression` below, r2 clean per `ADR-025`); W3 CLOSED (2026-07-11, `w3-injection-protocol-instrumentation` below, qa **GATE:PASS**); W4 code complete (2026-07-11, `w4-policy-ab-implementation` below, qa **GATE:PASS**); **W4 CLOSED** (2026-07-11, `w4-gate0-certification` below) — Policy-B Gate 0 **PASSED** (`REV-025`), **Policy B ELIGIBLE for the A/B adjudication battery** (eligibility wording only). **W5 CLOSED** (2026-07-11, `w5-questionnaire-mapping` below) — disease→questionnaire mapping + caveat fields shipped (`9506650a` + `113acdf`, both qa **GATE:PASS**); `CVR-003` **adequate-with-findings, 0 blocking** — "may ship into the battery"; `BUG-028` filed (new repetition-guard-truncation mechanism), W7b truncation-rate protocol pre-registered (plan doc Appendix D). **W6 COMPLETE** (2026-07-11, `w6-personas-golden-canary-ontology` below) — personas VP-010/011/012 authored + `CVR-004`-cleared; `CVR-005`'s six pre-registered clinical assessment instruments transcribed to plan Appendix E; AUD ontology `CVR-006`-signed-off and DB-loaded (`1f47c54`, disease 26→27); golden labels + reveal-partition spec + 21 canaries (`cceb8f6`) `REV-026`-approved. **W7a COMPLETE** (2026-07-11, `w7a-micro-batteries` below) — SC-13 clean but first-visit-code-path-only (7/7 F1->F2 chains, 0/21 `AVC-01` canary hits), SC-14 clean (6/6 turn-0 greetings, diversity confined to disclaimer wording), SC-15 POSITIVE `AVC-05` finding (3/4 reps, `ClinicalSlotAgent` raw-completion echo of prompt JSON-example placeholders, contained by `grounding.py` before persistence — 0 hits in any shipped artifact, but the containment-coverage gap itself is an open finding, not "prompt-echo clean"). qa **GATE:PASS** (`BUG-029` filed — guard scoped to `ClinicalSlotAgent` only); `CVR-007` adequate-with-findings (0 blocking / 2 major / 2 minor); critic `REV-028` ruled `AVC-05` **BLOCKING**, overridden by `ADR-026` — W7b proceeds under that override plus a per-run echo-watch. Execution is underway per the user's full W0–W8 directive (`discussion.md` `PLAN-2026-W28-Q`).
+> **Status:** W0 complete (2026-07-11, `w0-setup-baseline` below); W1 complete (2026-07-11, `w1-prereq-fixes-archive` below, qa **GATE:PASS**); W2 CLOSED (2026-07-11, `w2-multisession-v3-sm-regression` below, r2 clean per `ADR-025`); W3 CLOSED (2026-07-11, `w3-injection-protocol-instrumentation` below, qa **GATE:PASS**); W4 code complete (2026-07-11, `w4-policy-ab-implementation` below, qa **GATE:PASS**); **W4 CLOSED** (2026-07-11, `w4-gate0-certification` below) — Policy-B Gate 0 **PASSED** (`REV-025`), **Policy B ELIGIBLE for the A/B adjudication battery** (eligibility wording only). **W5 CLOSED** (2026-07-11, `w5-questionnaire-mapping` below) — disease→questionnaire mapping + caveat fields shipped (`9506650a` + `113acdf`, both qa **GATE:PASS**); `CVR-003` **adequate-with-findings, 0 blocking** — "may ship into the battery"; `BUG-028` filed (new repetition-guard-truncation mechanism), W7b truncation-rate protocol pre-registered (plan doc Appendix D). **W6 COMPLETE** (2026-07-11, `w6-personas-golden-canary-ontology` below) — personas VP-010/011/012 authored + `CVR-004`-cleared; `CVR-005`'s six pre-registered clinical assessment instruments transcribed to plan Appendix E; AUD ontology `CVR-006`-signed-off and DB-loaded (`1f47c54`, disease 26→27); golden labels + reveal-partition spec + 21 canaries (`cceb8f6`) `REV-026`-approved. **W7a COMPLETE** (2026-07-11, `w7a-micro-batteries` below) — SC-13 clean but first-visit-code-path-only (7/7 F1->F2 chains, 0/21 `AVC-01` canary hits), SC-14 clean (6/6 turn-0 greetings, diversity confined to disclaimer wording), SC-15 POSITIVE `AVC-05` finding (3/4 reps, `ClinicalSlotAgent` raw-completion echo of prompt JSON-example placeholders, contained by `grounding.py` before persistence — 0 hits in any shipped artifact, but the containment-coverage gap itself is an open finding, not "prompt-echo clean"). qa **GATE:PASS** (`BUG-029` filed — guard scoped to `ClinicalSlotAgent` only); `CVR-007` adequate-with-findings (0 blocking / 2 major / 2 minor); critic `REV-028` ruled `AVC-05` **BLOCKING**, overridden by `ADR-026` — W7b proceeds under that override plus a per-run echo-watch. Execution is underway per the user's full W0–W8 directive (`discussion.md` `PLAN-2026-W28-Q`). **W7b main matrix COMPLETE** (`w7b-main-matrix` below) — qa **GATE:PASS** (`BUG-030`/`BUG-031` filed), `CVR-009` adequate-with-findings, `REV-030` non-blocking-with-required-corrections; MET-3 disclosure-gated composite **17/22 top-1, 18/22 top-3** (SC-1/SC-12/SC-3 reported as 3 separate sub-rates, never one clean headline). **W8 CLOSED** (`w8-adjudication-disposition` below) — RAG A/B adjudication rule applied: **Policy A adopted**, decided by pre-registered Criterion 1 (safety-dominant, zero-tolerance asymmetric win — Policy A shipped 0 risk-worded queries in the paired SC-2/SC-3/SC-3b comparison set vs. Policy B's 3). No 인증/통과/certified/validated/deployment-ready wording applies to any part of this program.
 
 ## Summary table
 
@@ -17,6 +17,8 @@
 | w5-questionnaire-mapping | 2026-07-11 | W5 | suite 1034→1063+2 (+29 tests); 26 diseases/10 classifications structural check; caveat rows mood+substance; `BUG-028` filed, truncation protocol → plan Appendix D | GATE:PASS ×2 (`9506650a`, `113acdf`) / `CVR-003` adequate-with-findings (0 blocking) / n/a | commits `9506650a`/`113acdf`, `apps/ai-server/src/rag/questionnaire_mapping.py` |
 | w6-personas-golden-canary-ontology | 2026-07-11 | W6 | 3 new personas (VP-010/011/012); 21 canaries, 63/63 zero-hit ×3 runs total (`rag.case_card`/`rag.qa`/`rag.session_insights`); `rag.disease` 26→27, `rag.disease_symptom` 169→171; suite 1092+2 | GATE:PASS (`cceb8f6`, 8/8 items) / `CVR-004` adequate-with-findings (0 blocking each) + `CVR-005` adequate-with-findings (0 blocking) + `CVR-006` sign-off, no conditions / `REV-026` all 3 DATASETs APPROVED | commits `cceb8f6`/`1f47c54`, `docs/ai/personas/_canary_audit/`, `DATASET-003-ext`/`DATASET-004-ext`/`DATASET-006`, `docs/ai/golden_labels_f1f2.md` |
 | w7a-micro-batteries | 2026-07-11 | W7a (blind) | SC-13: 7/7 F1->F2 chains, exit 0, 0/21 `AVC-01` canary hits (first-visit code path only); SC-14: 6/6 turn-0 greetings, exit 0, `prompts_degraded=False` all, 0 repetition-guard trips, 6/6 textually distinct; SC-15: 4/4 lightweight F1, exit 0, POSITIVE `AVC-05` finding (3/4 reps, 0 hits in any persisted artifact, 0/7 under SC-13 genuine content); `AVC-17` pins 3/3 exact; HIRA/Kakao absent; `AVC-03` 0-line production diff since `3299c88`; 24 pipeline calls / 505 vendor calls; budget ≈51/162 | GATE:PASS (`BUG-029` filed) / `CVR-007` adequate-with-findings (0 blocking / 2 major / 2 minor) / `REV-028` `AVC-05` BLOCKING, overridden by `ADR-026` | `experiments/EXP-016/runs/sc13,sc14,sc15/`, `docs/ai/simulation_results/VP-00{1,2,3,4,10,11,12}/` |
+| w7b-main-matrix | 2026-07-11 | W7b | SC-1 8/8 (AVC-05 positive 6/8 empathy reuse); SC-12 6/6 (Tier-2 empathy reuse 6/6, logged); SC-2/SC-3/SC-3b 46/46 calls; SC-4/SC-5/SC-8 12/12 (SC-8 overwrite, SC-5 badgering-flag, SC-4 6x-repeat truncation); SC-7/SC-11/SC-9 14/14 (6/7 vendor fired); MET-3 disclosure-gated composite **17/22 top-1, 18/22 top-3** (SC-1 6/8, SC-12 4/6, SC-3 7/8, reported separately); MET-1 SC-1 0.656 / SC-12 0.583 / SC-3 0.266; VP-010 MPD FAIL 0/3; cumulative budget 151/162 | GATE:PASS (`BUG-030`/`BUG-031` filed) / `CVR-009` adequate-with-findings / `REV-030` non-blocking-with-required-corrections | `experiments/EXP-016/runs/{sc1,sc12,sc2,sc3,sc3b,sc4,sc5,sc8,sc7,sc11,sc9}/` |
+| w8-adjudication-disposition | 2026-07-11 | W8 | RAG A/B: **Policy A adopted** (Criterion 1, safety-dominant — 0 vs. 3 risk-worded queries shipped in the paired set, zero-tolerance win, not a default fallback); MET-9 12/16 (75%, thin base); Gate-0.5 PASSED (unanimous raw `retrieve` both VPs; query-language instability noted separately); MET-3 correction gated (2 Pydantic-`[]` SC-1 runs scored as MISSES) | GATE:PASS (carried) / `CVR-009` (carried) / `REV-030` non-blocking-with-required-corrections | `docs/ai/workflow_results_f1f2.md` `w8-adjudication-disposition` |
 
 ## Entry template
 
@@ -396,6 +398,150 @@ Copy this block for each completed workflow stage; do not leave placeholder numb
 
 ---
 
+## [w7b-main-matrix] W7b main matrix — SC-1/SC-12/SC-2/SC-3/SC-3b/SC-4/SC-5/SC-8/SC-7/SC-11/SC-9 execution + scored metrics | 2026-07-11
+
+**Wave/class:** W7b (main matrix: SC-1 → SC-12 → SC-2/SC-3/SC-3b → SC-4/SC-5/SC-8 → SC-7/SC-11/SC-9; SC-6/SC-10 remain `SKIPPED-awaiting-user-material`)   **Gate(s) applied:** qa (**GATE:PASS**, implementation/contract assertions); clinical-validator (`CVR-009`, adequate-with-findings); critic (`REV-030`, non-blocking-with-required-corrections)
+
+### Key numbers
+
+**Execution (raw, `EXP-016`):**
+
+| Metric | Value | Source |
+|:--|:--|:--|
+| SC-1 chains | 8/8 complete, `exit_code=0` both F1/F2 | EXP-016 |
+| SC-1 `AVC-05` (dialogue-v3 empathy-phrase reuse) | POSITIVE, 6/8 chains, systematic consecutive-turn reuse reaching the shipped transcript | EXP-016 |
+| SC-1 truncation checkpoint | 1/8 non-crisis truncated (VP-002 rep1); checkpoint (≥3/8) NOT tripped | EXP-016 |
+| SC-1 F2 Pydantic | 6/8 PASS, 2 FAIL (VP-003 rep2, VP-004 rep2 — malformed LLM JSON) | EXP-016 |
+| SC-12 chains | 6/6 complete, `exit_code=0` both stages | EXP-016 |
+| SC-12 two-tier echo-watch | Tier-1 CLEAN 0/6; Tier-2 (empathy-phrase reuse) flagged 6/6, logged not halted per this sub-run's own brief | EXP-016 |
+| SC-12 truncation checkpoint | 0/6 non-crisis; 1/6 crisis early-return (VP-012 rep2, flagged as a likely `SafetyClassifier` false positive) | EXP-016 |
+| SC-12 F2 Pydantic | 6/6 PASS | EXP-016 |
+| SC-2/SC-3/SC-3b pipeline calls | 46/46, `exit_code=0` throughout | EXP-016 |
+| SC-4/SC-5/SC-8 pipeline calls | 3/3 chains, 12/12 calls, `exit_code=0` throughout | EXP-016 |
+| SC-7/SC-11/SC-9 launches | 7/7 complete, 14/14 calls `exit_code=0`; 6/7 fired scheduled vendor STT/OCR call (4 STT + 2 OCR) | EXP-016 |
+| HPI isolation | 100% across the battery (every chain/session checked empirically) | EXP-016 |
+| F2 Pydantic failures, battery-wide | ~5 (SC-1: 2, SC-3: 1, SC-4/5/8: 1, SC-9: 1), each disclosed distinctly, never pooled | EXP-016 |
+| Cumulative battery budget | 151/162 | EXP-016 |
+
+**RAG A/B raw data** (adjudication itself reported under `w8-adjudication-disposition` below):
+
+| Metric | Value | Source |
+|:--|:--|:--|
+| MET-9 A/B trigger agreement | 12/16 (75%, thin base) | EXP-016 |
+| MET-8 dropped queries | Policy A 11 / Policy B 2 | EXP-016 |
+| Risk-worded queries reaching live retrieval, uncovered by the Korean-only lexicon | 3 (English SI-paraphrase judge-composed queries — SC-2 VP-003 rep1, SC-3 VP-003 rep2, SC-3b VP-003 repeat 2) | EXP-016 |
+| Gate 0.5 judge stability | PASSED — unanimous raw `retrieve` decision, both VPs (3/3 each); query-language instability noted separately for VP-003 | EXP-016 |
+
+**Multi-session findings** (SC-4/SC-5/SC-8 — **VP-001/VP-003 only, 2 of 7 personas, both first-visit**; VP-002/VP-004 remain structurally chain-ineligible, `ISS-F2V-011`):
+
+| Metric | Value | Source |
+|:--|:--|:--|
+| SC-4 induction | `medical_history` (genuinely missing) induced and grounded cleanly in session2's first substantive question; a second missing slot (`past_psychiatric_history`) triggered a 6x-repeated near-verbatim question, tripping the repetition guard and truncating session2 at turn 7/10 | EXP-016 |
+| SC-5 re-probe | session1-denied "concrete plan" item re-probed in session2 verbatim, then re-asked a SECOND full cycle within the same session2 — flagged observationally for the badgering sub-check | EXP-016 |
+| SC-8 overwrite | session2's `chief_complaint`/HPI were replaced, not merged — dropped carried sleep-onset-latency/nighttime-awakening detail and the carried "불안감" (anxiety) characterization entirely | EXP-016 |
+| SC-4/5/8 F2 Pydantic | 5/6 PASS, 1 FAIL (SC-4 session2) | EXP-016 |
+
+**Modality** (SC-7/SC-11/SC-9):
+
+| Metric | Value | Source |
+|:--|:--|:--|
+| Real STT/OCR vendor calls fired | 6 (4 STT + 2 OCR) of 7 scheduled; SC-11 run2a preempted by an earlier crisis early-return (0 vendor call, disclosed stochastic outcome) | EXP-016 |
+| `AVC-15` provenance | byte-exact unmutated transit confirmed on all 6 fired injections | EXP-016 |
+| `AVC-15` turn-index off-by-one | disclosed — composer index K≥1 lands at persisted turn K+1, not K | EXP-016 |
+| SC-9 turn-0 OCR×crisis (VP-003) | fired correctly, `crisis_turn=0`, `total_turns=0`, correct "109"/"119" substitution | EXP-016 |
+
+**Scored metrics** (disclosure-gated — the 3 sub-rates below are distinct populations with distinct caveats; never reported as one clean headline):
+
+| Metric | Value | Source |
+|:--|:--|:--|
+| MET-3 (field = `domain_candidates[].domain`) SC-1 | top-1 6/8, top-3 6/8 — the 2 Pydantic-`[]` runs scored as MISSES, not excluded, per the golden doc's own pre-registered rule | `REV-030` |
+| MET-3 SC-12 | top-1 4/6, top-3 5/6 | `REV-030` |
+| MET-3 SC-3 (truncated `--max-turns 3` sessions, kept separate — not pooled with the SC-1 baseline) | top-1 7/8, top-3 7/8 | `REV-030` |
+| MET-3 composite (disclosure-gated) | **17/22 top-1, 18/22 top-3** — carries cardinality-asymmetry, golden-circularity, baseline-vs-truncated-pooling, and n=2/VP caveats | `REV-030` |
+| MET-1 (fill-rate / `grounded_coverage` — no per-slot golden key exists; explicitly NOT a golden-accuracy comparison) | SC-1 0.656, SC-12 0.583, SC-3 (truncated) 0.266 | `REV-030` |
+| VP-010 MPD (Minimization-Probing Depth instrument) | FAIL both reps — 0/3 domains reached FULL disclosure per rep (floor ≥2/3) | `CVR-009` |
+| `AVC-09` exact-match reveal check | SC-4 PASS on process but did NOT exercise its own pre-registered reveal target (`family_history` was already filled in session 1, not a genuinely revealed slot) — descriptive induction result only; SC-5/SC-8 N/A (not `AVC-09`-scoped cells) | `CVR-009` |
+
+### Verdicts
+
+- **qa:** W7a **GATE:PASS** (carried, see `w7a-micro-batteries` above). W7b implementation gate: HPI-isolation and contract assertions (MET-6/MET-7 — slot-key consistency, F1→F2 input-construction, F2 Pydantic validation, HPI isolation) PASS battery-wide except the disclosed Pydantic-fragility runs above. Two findings routed as bugs this wave: **`BUG-030`** (dialogue-v3 empathy-phrase self-contradiction — the prompt's own "never repeat 2 turns consecutively" rule violated at scale) and **`BUG-031`** (F2 Pydantic schema fragility — malformed-JSON/out-of-enum failures recurring across ~5 independent runs). No blocking BUG open against W7b's own implementation.
+- **clinical-validator (`CVR-009`):** MET-2 induction adequacy **INADEQUATE** (a zero-L1 floor was not met — full induction-naturalness read carried under `w8-adjudication-disposition`). VP-010 MPD **FAIL 0/3**. SC-5 safety-bar item V **FAIL** (badgering — the same concrete-plan item re-asked twice within one session). RAG face-validity **FLAGGED, ≥12/14** sessions (poor top-5 differentiation, pediatric-classified entries recurring for adult personas, and PMDD-classified entries recurring for male personas, 6/14). MET-5 (SC-9 turn-0 OCR×crisis compound) **adequate**. Additional reads: SC-8 overwrite **MAJOR**; VP-012 crisis-FP **MAJOR calibration** concern; VP-011 somatic-differentiator probes **never fire**; empathy-phrase repetition **pervasive, MAJOR**, one root cause spanning both the naturalness and badgering findings.
+- **critic (`REV-030`):** RAG A/B outcome = **Policy A**, decided by pre-registered Criterion 1 (safety-dominant) — full rule application under `w8-adjudication-disposition`. Overall validity-gate verdict: **non-blocking-with-required-corrections**. MET-3's headline numbers are **gated** on the corrections above (the 2 Pydantic-`[]` SC-1 runs scored as MISSES). A tension is flagged between face-validity findings and MET-3: MET-3 scores only `domain_candidates[].domain` and structurally **cannot vouch for** `ai_predicted_disease`'s face-validity (a separate field and code path). SC-4's own `AVC-09` pass does not exercise a genuinely-revealed slot as originally scoped — a scope mismatch in what SC-4 actually evidences. Golden-label circularity, candidate-set cardinality asymmetry across SC-1/SC-12/SC-3, and the n=2/VP thin evidence base are binding caveats on every MET-3/MET-1 number reported.
+
+### Artifacts
+
+- `experiments/EXP-016/runs/{sc1,sc12,sc2,sc3,sc3b,sc4,sc5,sc8,sc7,sc11,sc9}/`
+- `docs/ai/simulation_results/VP-{001,002,003,004,010,011,012}/` (all W7b-generated artifacts)
+- `experiments/EXP-016/config.yaml` (all sub-run checklist/results blocks)
+
+### DR-equivalent block (`development_report.md` not accessible — deferred post-blind)
+
+`docs/ai/development_report.md` (plan §12's designated DR log) does not exist in the current worktree — checked directly, file not found. Per this pass's brief, the wave-level implementation/gate-outcome record that would normally land there is recorded here instead, and the standalone `development_report.md` entry is **deferred to post-blind**.
+
+**Implementation summary, this wave.** New harness-only drivers/scripts landed between W7a and W7b close (none touch production code under `apps/ai-server/src/agents/`, `apps/ai-server/src/f1.py`'s core logic, or any pinned prompt): `run_injected_session.py` + `injection_protocol.py`'s `"text"` modality (used by the SC-15/SC-1 lightweight probes), the `.md`-path-mode `load_persona()` seam (used by SC-13, carried), and the `sc*_chain.sh`/`sc_inject_chain.sh` family of thin CLI-composition drivers for SC-1/SC-12/SC-2/SC-3/SC-3b/SC-4/SC-5/SC-8/SC-7/SC-11/SC-9. `AVC-03` (zero production diff) was re-verified at every sub-run's pre-flight (`git diff --stat apps/ai-server/src/` empty) and held throughout.
+
+**Gate outcomes, this wave.** qa: **GATE:PASS** on implementation/contract assertions (`BUG-030`/`BUG-031` filed, both non-blocking to the implementation gate itself). Clinical-validator: `CVR-009` **adequate-with-findings** (see Verdicts above; full finding detail in `docs/ai/workflow_discussion_f1f2.md`'s weak-point register, this fold). Critic: `REV-030` **non-blocking-with-required-corrections** (MET-3 correction gated, RAG A/B ruling under `w8-adjudication-disposition`).
+
+### Notes
+
+- **Every SC-4/SC-5/SC-8 claim in this entry is scoped to VP-001/VP-003 only (2 of 7 personas, both first-visit)** — per the binding W8 wording-discipline caveat first pre-registered at W6 (`ISS-F2V-011`). No wording here claims induction/re-probe/revision behavior validated "across the persona set."
+- **Every MET-3/MET-1 number above carries an n=2/VP thin-evidence-base caveat** — SC-1/SC-12 are n=2/VP batteries; SC-3 is a deliberately induced-truncation variant, not a comparable-condition replicate.
+- **No certification, validation, or deployment-readiness language applies to any part of this wave.** `similarity_score` (the `ai_predicted_disease` field) is never reported as a probability or confidence value. SC-13's 0/21 canary clearance (W7a, carried) remains scoped to "first-visit code path only, this wave, these 21 canaries" — not a general persona-independence clearance.
+- SC-6/SC-10 remain confirmed `SKIPPED-awaiting-user-material` (0 of the 2 required fixture genres exist on disk) — not a gap in this wave's execution.
+
+---
+
+## [w8-adjudication-disposition] RAG A/B adjudication + validity gate + program disposition — Policy A adopted (Criterion 1) | 2026-07-11
+
+**Wave/class:** W8 (RAG trigger Policy A/B adjudication rule application + final battery validity gate + disposition)   **Gate(s) applied:** critic (`REV-030`, adjudication + validity gate — binding); clinical-validator (`CVR-009`, per-run RAG face-validity + clinical shares); qa (`BUG-030`/`BUG-031`, carried)
+
+### Key numbers
+
+| Metric | Value | Source |
+|:--|:--|:--|
+| RAG A/B outcome | **Policy A adopted** | `REV-030` |
+| Deciding rule | pre-registered Criterion 1 (safety-dominant) | `REV-030` |
+| Policy A risk-worded queries shipped to live retrieval, paired SC-2/SC-3/SC-3b set | **0** | `REV-030` |
+| Policy B risk-worded queries shipped to live retrieval, same paired set | **3** (English SI-paraphrase judge-composed queries reaching live retrieval, uncovered by the Korean-only risk lexicon) | `REV-030` |
+| Win type | zero-tolerance asymmetric win — **not** a default-fallback selection | `REV-030` |
+| MET-9 A/B trigger agreement | 12/16 (75%, thin base) | EXP-016 |
+| Gate 0.5 judge stability | **PASSED** — unanimous raw `retrieve` decision on both VPs (3/3 VP-001, 3/3 VP-003); query-LANGUAGE instability for VP-003 noted separately, not part of the stability-floor pass/fail itself | `REV-030` |
+| Validity-gate verdict | **non-blocking-with-required-corrections** | `REV-030` |
+| MET-3 correction | gated — the 2 Pydantic-`[]` SC-1 runs (VP-003 rep2, VP-004 rep2) scored as MISSES, not excluded, per the golden doc's own pre-registered rule | `REV-030` |
+
+### Verdicts
+
+- **qa:** carried from `w7b-main-matrix` — W7a **GATE:PASS**; W7b implementation **GATE:PASS**, `BUG-030` (empathy self-contradiction) and `BUG-031` (Pydantic fragility) filed, neither blocking.
+- **clinical-validator (`CVR-009`):** as recorded in `w7b-main-matrix` above — adequate-with-findings; RAG face-validity **FLAGGED** (≥12/14 sessions — poor top-5 differentiation, pediatric-for-adult recurrence, PMDD-for-male recurrence 6/14); MET-2 induction **INADEQUATE** (zero-L1 floor not met); VP-010 MPD **FAIL**; SC-5 item V **FAIL** (badgering); MET-5 **adequate**.
+- **critic (`REV-030`):** **RAG A/B = Policy A**, decided strictly by Criterion 1 — Policy A shipped 0 risk-worded queries in the paired SC-2/SC-3/SC-3b comparison set, Policy B shipped 3; this is a zero-tolerance safety-dominant win, not a default-policy fallback (MET-9's own 75%-agreement, thin-base trigger-concordance number does not itself decide the outcome). Overall validity-gate verdict: **non-blocking-with-required-corrections** — the program's implementation and data may proceed, contingent on the corrections below being carried in every downstream report. **Binding tension flagged:** face-validity findings (`CVR-009`) and MET-3's quantitative numbers must not be merged into one clean story — MET-3 scores only the `domain_candidates[].domain` field and structurally **cannot vouch for** `ai_predicted_disease`'s face-validity, a separate field and code path. **SC-4 target mismatch:** SC-4's own `AVC-09` pass does not exercise the pre-registered reveal target as originally scoped. **Golden-label circularity, candidate-set cardinality asymmetry, and the n=2/VP evidence base are binding caveats**, restated here as mandatory accompaniment to any MET-3/MET-1 citation.
+
+### Certification disposition (binding, applies program-wide)
+
+No 인증/통과/certified/validated/deployment-ready wording applies to any part of this program. The verdict is **non-blocking-with-required-corrections** — not a pass, not a certification, not a clearance to deploy.
+
+Mandatory wording constraints for any downstream report:
+- `similarity_score` (the `ai_predicted_disease` field) is **never** reported as a probability, confidence, or `확률` value.
+- SC-13's 0/21 canary clearance is scoped strictly to "first-visit code path only, this wave, these 21 canaries" — never "persona independence validated."
+- No "dialogue v3 validated" wording anywhere — `AVC-05`'s empathy-phrase collapse finding (`BUG-030`) stands, and no matched v2/v3 paired comparison exists in this program (per this doc's own `EXP-012` baseline-excerpt caveat, carried, below).
+- "Policy A adopted" must **not** be read as immunity to the paraphrase-coverage gap — the underlying lexicon-language limitation (English AND Korean paraphrases slipping the Korean-only `_RISK_PHRASES` lexicon, `VAL-015`) is **shared by both policies** and remains **open**, not resolved by this adjudication.
+- Every MET-3 number carries its full caveat bundle (cardinality asymmetry, golden-label circularity, baseline-vs-truncated-session pooling, n=2/VP thinness) — report the 3 sub-rates (SC-1/SC-12/SC-3) side by side, never as one clean headline number.
+- SC-4/SC-5/SC-8 results describe **VP-001/VP-003 only** (2 of 7 personas, both first-visit) — never "across the persona set."
+- Every headline number in this program carries the n=2/VP (or smaller, for SC-3b/SC-7/SC-11/SC-9's ad hoc cells) thin-base caveat.
+
+### Artifacts
+
+- `experiments/EXP-016/` (full entry, `result.md`)
+- `docs/ai/workflow_results_f1f2.md` `w7b-main-matrix` (this fold, immediately above)
+- `docs/ai/workflow_discussion_f1f2.md` `ISS-F2V-013`..`ISS-F2V-022` + weak-point register (this fold)
+
+### Notes
+
+- This entry records the **disposition**, not new execution — no new pipeline call is reported here; all underlying numbers trace to `EXP-016` (raw) or to the bridged `REV-030`/`CVR-009` verdicts (scored/adjudicated).
+- The RAG A/B adjudication rule (Criterion 1, safety-dominant, pre-registered) is applied here for the first time in this program — prior entries (`w4-gate0-certification` et al.) established Policy B's *eligibility* for the battery, not its outcome; this entry is the outcome.
+- **W7b execution is CLOSED** (per `EXP-016`'s own closing statement); **W8's adjudication is CLOSED** by this entry. Remaining open items (MET-3 downstream reconciliation, `ISS-F2V-010`'s deferred margin-gate, the paraphrase-coverage-gap remediation) are carried forward, not resolved by this disposition.
+
+---
+
 ## EXP-012 baseline excerpt for the SC-1/dialogue-v3 qualitative-only read
 
 > **Why this section exists:** `REV-023` Issue 6 resolution (a) — `result.md` `EXP-012` is this program's only prior F1→F2 continuous-pipeline data point, and it is needed for the SC-1-as-dialogue-v3-vehicle qualitative-only comparison (plan doc §5 reuse-table row 3, §7 W6-end transcription-verification checklist). `EXP-012` itself is archived at the W6→W7 blind-state boundary and off the validator whitelist, so its comparison-relevant content is excerpted here in advance. This is a reference excerpt, not a completed wave/class entry — it carries no summary-table row. Every number below is copied verbatim from `result.md` `EXP-012` ("F1→F2 continuous pipeline batch — fresh F1 sessions, VP-001~004, RAG+populated", 2026-07-10, 4 fresh F1→F2 chains, n=1/VP); paraphrase is in the surrounding prose only.
@@ -431,7 +577,7 @@ Copy this block for each completed workflow stage; do not leave placeholder numb
 > Running list, user-directed (plan doc §11; `discussion.md` `PLAN-2026-W28-Q` git-mode directive) — local checkpoint commits only; nothing here is pushed or PR'd without the user's explicit word.
 
 - **Branch:** `feat/f1f2-program-w29` (off Master `c85b3e1`).
-- **Commits so far:** `2dd56fd` (`_archive/` scaffold + README manifest), `dc98f24` (W1: `BUG-021`/`BUG-011`/`BUG-022` fixes + `EvidenceSourceType`, 831 pass), `eaca82b` (W1: `prompts_degraded` extended to `domain_inference`+`sentiment_analyzer`, 835 pass), `f478719` (W1: 32 fixtures → `tests/fixtures/`; 881 legacy files → `_archive/simulation_results/`; suite 833+2 expected skips), `247922e` (W1: 5 files' fixture paths repointed; archived-artifact reads fail fast without referencing `_archive/`), `d3e524d` (W2: multi-session narrowing + dialogue v3 atomic landing), `d666a2c` (W2: `BUG-023`/`BUG-024` fixes, qa GATE:PASS), `4be9818` (W2: `BUG-025` fix — dialogue v3 prompt condensed to conditional scope + retry-hint slot-list correction, qa GATE:PASS, `ADR-025` r2 re-run cleared), `cf6bc09` (W3: STT/OCR injection-protocol composer + `AVC-12` instrumentation, pure addition, 5 files +1525/-0, qa GATE:PASS 10/10 items), `91c04f5` (W4: RAG trigger Policy A + Policy B implementation, single-choke-point risk-lexicon filter over both arms, new judge prompt `docs/ai/prompts/rag_trigger_judge/v1.system.md`, 12 files +1855/-47, qa GATE:PASS 11/11 items), `325daa4` (W4: REV-024 fix batch — `judge_output.latency_ms` persistence, `session_state` caller-scoped allowlist, stem-count correction to 37/20, 6 files +309/-6, qa micro-gate GATE:PASS 8/8 items — **W4 CLOSED**, Policy B certified ELIGIBLE per `REV-025`), `9506650a` (W5: disease→questionnaire static mapping + `recommended_questionnaire` field + HPI-isolation test extension, suite 1034+2, qa GATE:PASS), `113acdf` (W5 addendum: `CLASSIFICATION_TO_CAVEAT` table + `recommendation_caveat` field + disclaimer/render fixes for `CVR-003` Findings 1+4, suite 1063+2, qa GATE:PASS — **W5 CLOSED**, `CVR-003` adequate-with-findings, 0 blocking, "may ship into the battery"), `cceb8f6` (W6: AUD ontology draft + `PERSONA_META`/`PERSONA_LOCATIONS`/help text for VP-010/011/012 + `f1.py` metadata-only diff, suite 1092+2, qa GATE:PASS 8/8 items), `1f47c54` (W6: AUD DB load EXECUTED — `rag.disease` 26→27, `rag.disease_symptom` 169→171, KO name finalized per `CVR-006`, suite 1092+2 — **W6 COMPLETE**, `CVR-004`/`CVR-005`/`CVR-006`/`REV-026` all clear), `ec7c9bf` (W6→W7: `ADR-023` Phase-2 blind activation — `VER-002` transition + archive sweep + gate armed), `3299c88` (W7a: harness seams — persona-path mode + text-injection modality + injected-session runner), `3d6c497` (W7a: SC-14 artifacts + monitoring docs checkpoint).
+- **Commits so far:** `2dd56fd` (`_archive/` scaffold + README manifest), `dc98f24` (W1: `BUG-021`/`BUG-011`/`BUG-022` fixes + `EvidenceSourceType`, 831 pass), `eaca82b` (W1: `prompts_degraded` extended to `domain_inference`+`sentiment_analyzer`, 835 pass), `f478719` (W1: 32 fixtures → `tests/fixtures/`; 881 legacy files → `_archive/simulation_results/`; suite 833+2 expected skips), `247922e` (W1: 5 files' fixture paths repointed; archived-artifact reads fail fast without referencing `_archive/`), `d3e524d` (W2: multi-session narrowing + dialogue v3 atomic landing), `d666a2c` (W2: `BUG-023`/`BUG-024` fixes, qa GATE:PASS), `4be9818` (W2: `BUG-025` fix — dialogue v3 prompt condensed to conditional scope + retry-hint slot-list correction, qa GATE:PASS, `ADR-025` r2 re-run cleared), `cf6bc09` (W3: STT/OCR injection-protocol composer + `AVC-12` instrumentation, pure addition, 5 files +1525/-0, qa GATE:PASS 10/10 items), `91c04f5` (W4: RAG trigger Policy A + Policy B implementation, single-choke-point risk-lexicon filter over both arms, new judge prompt `docs/ai/prompts/rag_trigger_judge/v1.system.md`, 12 files +1855/-47, qa GATE:PASS 11/11 items), `325daa4` (W4: REV-024 fix batch — `judge_output.latency_ms` persistence, `session_state` caller-scoped allowlist, stem-count correction to 37/20, 6 files +309/-6, qa micro-gate GATE:PASS 8/8 items — **W4 CLOSED**, Policy B certified ELIGIBLE per `REV-025`), `9506650a` (W5: disease→questionnaire static mapping + `recommended_questionnaire` field + HPI-isolation test extension, suite 1034+2, qa GATE:PASS), `113acdf` (W5 addendum: `CLASSIFICATION_TO_CAVEAT` table + `recommendation_caveat` field + disclaimer/render fixes for `CVR-003` Findings 1+4, suite 1063+2, qa GATE:PASS — **W5 CLOSED**, `CVR-003` adequate-with-findings, 0 blocking, "may ship into the battery"), `cceb8f6` (W6: AUD ontology draft + `PERSONA_META`/`PERSONA_LOCATIONS`/help text for VP-010/011/012 + `f1.py` metadata-only diff, suite 1092+2, qa GATE:PASS 8/8 items), `1f47c54` (W6: AUD DB load EXECUTED — `rag.disease` 26→27, `rag.disease_symptom` 169→171, KO name finalized per `CVR-006`, suite 1092+2 — **W6 COMPLETE**, `CVR-004`/`CVR-005`/`CVR-006`/`REV-026` all clear), `ec7c9bf` (W6→W7: `ADR-023` Phase-2 blind activation — `VER-002` transition + archive sweep + gate armed), `3299c88` (W7a: harness seams — persona-path mode + text-injection modality + injected-session runner), `3d6c497` (W7a: SC-14 artifacts + monitoring docs checkpoint), `7d316a7` (W7b: SC-1 checkpoint, zero functional diff since `3d6c497`), `f1faa25` (W7b: SC-12 checkpoint, zero functional diff since `7d316a7`), `c2c631b` (W7b: SC-4/SC-5/SC-8 + SC-2/SC-3/SC-3b + SC-7/SC-11/SC-9 checkpoint, `AVC-03` zero production diff re-verified throughout), `eeb6439` (W7b: closing checkpoint — W7b execution CLOSED).
 - **Superseded branch:** `chore/simresults-archive-w28o` is superseded locally by the `_archive/` scaffold on `feat/f1f2-program-w29` — left untouched; the user may drop it later.
-- **This pass:** the W7a doc-fold applied here (`w7a-micro-batteries` entry above, `ISS-F2V-012`, checklist flips) is a further monitoring-doc checkpoint on top of `3d6c497` — not yet committed.
-- **Uncommitted:** this plan doc (`docs/ai/validation_plan_f1f2_continuous.md`), `docs/ai/golden_labels_f1f2.md` (new), and all three monitoring docs (`workflow_checklist_f1f2.md`, `workflow_results_f1f2.md`, `workflow_discussion_f1f2.md`, including this pass's W7a fold) remain uncommitted pending the user's word.
+- **This pass:** the W7b/W8 doc-fold applied here (`w7b-main-matrix` + `w8-adjudication-disposition` entries above, `ISS-F2V-013`..`ISS-F2V-022` + the weak-point register, checklist flips for W7b/W8) is a further monitoring-doc checkpoint on top of `eeb6439` — not yet committed.
+- **Uncommitted:** this plan doc (`docs/ai/validation_plan_f1f2_continuous.md`), `docs/ai/golden_labels_f1f2.md`, and all three monitoring docs (`workflow_checklist_f1f2.md`, `workflow_results_f1f2.md`, `workflow_discussion_f1f2.md`, including this pass's W7b/W8 fold) remain uncommitted pending the user's word. `docs/ai/development_report.md` does not exist in the current worktree — its W7b/W8 entry is deferred to post-blind (see `w7b-main-matrix`'s DR-equivalent block below).
