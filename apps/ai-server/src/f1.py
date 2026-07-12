@@ -211,6 +211,18 @@ class F1TurnLog:
     dialogue_fall_through: bool = False
     dialogue_retry_latency_ms: float = 0.0
     dialogue_crisis_adjacent: bool = False
+    # BUG-037 output-isolation guard telemetry (`docs/ai/fix_design_
+    # exhaustion_bug037.md` §2, PLAN-2026-W28-U) — same threading
+    # discipline as the 5 fields above.
+    dialogue_output_isolation_fallback: bool = False
+    # BUG-036 near-dup catch telemetry (which sub-rule fired, family,
+    # count) — same threading discipline.
+    dialogue_near_dup_detail: list[dict] = field(default_factory=list)
+    # Fix 2 — Option C exhaustion-degrade telemetry (`docs/ai/fix_design_
+    # exhaustion_bug037.md` §3, ADR-030 Decisions 1/2) — same threading
+    # discipline as the fields above.
+    dialogue_exhaustion_degrade: str | None = None
+    dialogue_exhaustion_degrade_phrase: str | None = None
 
 
 @dataclass
@@ -1330,6 +1342,10 @@ class F1Pipeline:
             dialogue_fall_through = False
             dialogue_retry_latency_ms = 0.0
             dialogue_crisis_adjacent = False
+            dialogue_output_isolation_fallback = False
+            dialogue_near_dup_detail: list[dict] = []
+            dialogue_exhaustion_degrade: str | None = None
+            dialogue_exhaustion_degrade_phrase: str | None = None
 
             # ── Step 1b: Safety probe state machine (T1-F1-DEV-022/023) ──
             if not crisis and probe.active and probe.awaiting_answer:
@@ -1561,16 +1577,32 @@ class F1Pipeline:
                         filled_slots=filled_slots,
                         safety_result=safety_result_for_dialogue,
                         session_state=session_state,
+                        # BUG-037 (`docs/ai/fix_design_exhaustion_bug037.md`
+                        # §2): this turn's own slot writes (Step 1b risk_
+                        # assessment + Step 2 extraction, both already
+                        # applied above) — lets the output-isolation guard
+                        # prioritize detecting a same-turn clinical-note
+                        # leak over an older, already-shown one.
+                        slot_updates_this_turn=dict(slot_updates),
                     ))
                     agent_response = _extract_text(dialogue_out.assistant_response)
                     dialogue_prompts_degraded = bool(dialogue_out.prompts_degraded)
-                    # BUG-030 iter-2 / BUG-035 guard telemetry — from
-                    # DialogueAgent alone (no cross-agent OR-fold needed).
+                    # BUG-030 iter-2 / BUG-035 / BUG-037 guard telemetry —
+                    # from DialogueAgent alone (no cross-agent OR-fold
+                    # needed).
                     dialogue_retry_count = dialogue_out.retry_count
                     dialogue_retry_reasons = list(dialogue_out.retry_reasons)
                     dialogue_fall_through = dialogue_out.fall_through
                     dialogue_retry_latency_ms = dialogue_out.retry_latency_ms
                     dialogue_crisis_adjacent = dialogue_out.crisis_adjacent
+                    dialogue_output_isolation_fallback = (
+                        dialogue_out.output_isolation_fallback
+                    )
+                    dialogue_near_dup_detail = list(dialogue_out.near_dup_detail)
+                    dialogue_exhaustion_degrade = dialogue_out.exhaustion_degrade
+                    dialogue_exhaustion_degrade_phrase = (
+                        dialogue_out.exhaustion_degrade_phrase
+                    )
                 except Exception as e:
                     result.errors.append(f"Turn {turn} dialogue error: {e}")
                     logger.error("Dialogue failed: %s", e)
@@ -1623,6 +1655,10 @@ class F1Pipeline:
                 dialogue_fall_through=dialogue_fall_through,
                 dialogue_retry_latency_ms=dialogue_retry_latency_ms,
                 dialogue_crisis_adjacent=dialogue_crisis_adjacent,
+                dialogue_output_isolation_fallback=dialogue_output_isolation_fallback,
+                dialogue_near_dup_detail=dialogue_near_dup_detail,
+                dialogue_exhaustion_degrade=dialogue_exhaustion_degrade,
+                dialogue_exhaustion_degrade_phrase=dialogue_exhaustion_degrade_phrase,
             )
             # 명세 준수: Sentiment (Mode A) — 매 턴 환자 발화 정서 signal.
             turn_sentiment = await self._analyze_utterance_sentiment(
@@ -1777,6 +1813,17 @@ def save_f1_result(result: F1Result, output_dir: Path | None = None) -> dict[str
 
 def _build_checklist(r: F1Result) -> str:
     n_discards = sum(len(t.slot_discards) for t in r.turns)
+    # Fix 2 — Option C elevated-review flag (`docs/ai/fix_design_
+    # exhaustion_bug037.md` §3, ADR-030 Decision 3(1) / CVR-013 condition
+    # 1): the exhaustion_degrade telemetry must reach an actually-reviewed
+    # surface, not just a WARNING log line — the checklist is that surface.
+    degrade_turns = [t for t in r.turns if t.dialogue_exhaustion_degrade]
+    n_degrades = len(degrade_turns)
+    degrade_subrules = sorted({
+        t.dialogue_exhaustion_degrade for t in degrade_turns
+        if t.dialogue_exhaustion_degrade is not None
+    })
+    degrade_subrules_str = ", ".join(degrade_subrules) if degrade_subrules else "none"
     lines = [
         f"# F1 Agent Call Checklist — {r.persona_id or r.session_id}",
         "",
@@ -1798,6 +1845,8 @@ def _build_checklist(r: F1Result) -> str:
         f"{'PASS — 109/119 안내' if r.crisis_triggered else 'N/A — crisis 미발생'} |",
         f"| Grounding filter 적용 | PASS | {n_discards}개 값 폐기 (ungrounded/system/risk) |",
         f"| Safety probe events | {len(r.probe_events)}건 | risk_floor={r.risk_floor} |",
+        f"| Empathy-degrade events (Fix 2 exhaustion) | {n_degrades}건 | "
+        f"sub-rules: {degrade_subrules_str} |",
         f"| Session CTRS (turn 0 포함 최솟값) | {r.session_ctrs} | |",
         f"| Slot coverage (legacy, essential 5) | {r.slot_coverage:.0%} | "
         f"{len(r.final_slots)} slots filled |",
@@ -1817,6 +1866,19 @@ def _build_checklist(r: F1Result) -> str:
                       f"categories={t.safety_categories}, crisis={t.safety_crisis}")
         lines.append(f"- Dialogue: response_length={len(t.agent_response)}chars, "
                       f"targeted_slot={t.targeted_slot or 'none'}")
+        if (t.dialogue_retry_reasons or t.dialogue_fall_through
+                or t.dialogue_output_isolation_fallback or t.dialogue_exhaustion_degrade):
+            lines.append(
+                f"- Dialogue guard: retries={t.dialogue_retry_count}, "
+                f"reasons={t.dialogue_retry_reasons}, "
+                f"fall_through={t.dialogue_fall_through}, "
+                f"output_isolation_fallback={t.dialogue_output_isolation_fallback}, "
+                f"exhaustion_degrade={t.dialogue_exhaustion_degrade or 'none'}"
+                + (
+                    f" (substituted: \"{t.dialogue_exhaustion_degrade_phrase}\")"
+                    if t.dialogue_exhaustion_degrade_phrase else ""
+                )
+            )
         lines.append(
             f"- Slots updated: {list(t.slot_updates.keys()) if t.slot_updates else 'none'}"
         )

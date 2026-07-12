@@ -75,7 +75,11 @@ APPROVED_FIELDS: dict[type[AgentInput], frozenset[str]] = {
     ClinicalSlotInput: _BASE_FIELDS | {"conversation_history", "current_slots"},
     # (a) user_message, conversation_history, filled_slots (incl. carry),
     #     session_state; (c) safety_result, licensed upstream from
-    #     SafetyClassifierAgent
+    #     SafetyClassifierAgent. BUG-037 (`docs/ai/fix_design_exhaustion_
+    #     bug037.md` §2, PLAN-2026-W28-U) adds slot_updates_this_turn —
+    #     still column (a): a narrowed view (this-turn-only) of the
+    #     already-licensed current-session filled_slots, not new upstream
+    #     data or persona ground truth.
     DialogueInput: _BASE_FIELDS
     | {
         "user_message",
@@ -83,6 +87,7 @@ APPROVED_FIELDS: dict[type[AgentInput], frozenset[str]] = {
         "filled_slots",
         "safety_result",
         "session_state",
+        "slot_updates_this_turn",
     },
     # (a) current-turn text (+ own config: input_type/dialect_hint)
     InputNormalizerInput: _BASE_FIELDS | {"raw_text", "input_type", "dialect_hint"},

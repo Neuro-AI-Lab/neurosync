@@ -46,6 +46,20 @@ class DialogueInput(AgentInput):
         default=None,
         description="Orchestrator session state from previous turn (pass-through)",
     )
+    slot_updates_this_turn: dict[str, str] | None = Field(
+        default=None,
+        description=(
+            "Slot values written THIS turn only, before this dialogue call "
+            "(e.g. f1.py Step 1b's risk_assessment composition, or Step 2's "
+            "ClinicalSlotAgent extraction). Used by the BUG-037 output-"
+            "isolation guard (`docs/ai/fix_design_exhaustion_bug037.md` §2) "
+            "to prioritize detection of same-turn clinical-note leaks. "
+            "Distinct from `filled_slots` (the full session-accumulated "
+            "slot state, also checked by the same guard at lower priority). "
+            "Optional — callers that do not thread it (e.g. routes/chat.py) "
+            "still get the `filled_slots`-only check."
+        ),
+    )
 
 
 class DialogueLLMResponse(BaseModel):
@@ -91,14 +105,26 @@ class DialogueOutput(AgentOutput):
         default_factory=list,
         description=(
             "Ordered violation reasons that triggered each attempt: "
-            "exact_repeat | near_dup_back_to_back | near_dup_session_cap | presence_missing"
+            "output_isolation_this_turn | output_isolation_prior_turn | "
+            "output_isolation_patient_echo | presence_missing | exact_repeat | "
+            "near_dup_back_to_back | near_dup_session_cap"
         ),
     )
     fall_through: bool = Field(
         default=False,
         description=(
-            "True if the retry budget was exhausted while a violation still "
-            "held — response shipped anyway"
+            "True if the retry budget was exhausted while a violation "
+            "still held AND no safe-degrade path exists for that "
+            "violation type — response shipped anyway. As of Fix 2/Fix 3 "
+            "(ADR-030, `docs/ai/fix_design_exhaustion_bug037.md` §3) this "
+            "is unreachable for every currently-enumerated violation: "
+            "output_isolation_* ships `output_isolation_fallback` instead, "
+            "and presence_missing/exact_repeat/near_dup_* ship "
+            "`exhaustion_degrade` instead. Kept as a defensive catch-all "
+            "for any future violation type not yet covered by either path. "
+            "Mutually exclusive with `output_isolation_fallback` and "
+            "`exhaustion_degrade` by construction — only one branch of the "
+            "exhaustion decision runs per turn."
         ),
     )
     retry_latency_ms: float = Field(
@@ -108,4 +134,54 @@ class DialogueOutput(AgentOutput):
     crisis_adjacent: bool = Field(
         default=False,
         description="True if this turn qualified for the BUG-035 empathy-presence check",
+    )
+    output_isolation_fallback: bool = Field(
+        default=False,
+        description=(
+            "BUG-037: True if the output-isolation retry budget was "
+            "exhausted while a violation still held — unlike fall_through, "
+            "the violating text was NOT shipped; assistant_response was "
+            "replaced with a minimal neutral continuation instead "
+            "(`docs/ai/fix_design_exhaustion_bug037.md` §2)."
+        ),
+    )
+    near_dup_detail: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description=(
+            "BUG-036 telemetry: one entry per attempt where the near-dup "
+            "sub-check itself detected a match (independent of whether it "
+            "was the acted-upon violation that attempt — a higher-priority "
+            "check may have outranked it). Each entry: "
+            "{reason: back_to_back|session_cap, family: <matched clause "
+            "text>, count: <prior same-family occurrences>} "
+            "(`docs/ai/fix_design_exhaustion_bug037.md` §2)."
+        ),
+    )
+    # Fix 2 — Option C (`docs/ai/fix_design_exhaustion_bug037.md` §3,
+    # ADR-030 Decisions 1/2): the elevated-review flag for the retry-
+    # budget-exhaustion safe-degrade path (CVR-013 condition 1).
+    exhaustion_degrade: str | None = Field(
+        default=None,
+        description=(
+            "The violation reason (presence_missing | exact_repeat | "
+            "near_dup_back_to_back | near_dup_session_cap) if the retry "
+            "budget was exhausted while an empathy-degradable violation "
+            "still held and the leading empathy clause was deterministically "
+            "substituted/prepended with a pool phrase, instead of shipping "
+            "the detected-violating text (`fall_through`) or the "
+            "output-isolation neutral fallback "
+            "(`output_isolation_fallback`). None on every other turn. "
+            "Mutually exclusive with both `fall_through` and "
+            "`output_isolation_fallback` by construction — only one "
+            "branch of the exhaustion decision runs per turn."
+        ),
+    )
+    exhaustion_degrade_phrase: str | None = Field(
+        default=None,
+        description=(
+            "Which `_EMPATHY_DEGRADE_POOL` phrase was substituted/"
+            "prepended, when `exhaustion_degrade` is set (elevated-review "
+            "detail, CVR-013 condition 1). None when `exhaustion_degrade` "
+            "is None."
+        ),
     )

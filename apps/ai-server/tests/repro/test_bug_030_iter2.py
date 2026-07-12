@@ -231,12 +231,19 @@ class TestPresenceDetectorRetriesToCompliance:
         )
 
 
-class TestRetryBudgetExhaustionFallsThrough:
-    """Design §7 item 5 — budget exhaustion → fall-through, ship the LAST
-    attempt (never the first draft), never a 4th call."""
+class TestRetryBudgetExhaustionDegradesEmpathyClause:
+    """Design §7 item 5, SUPERSEDED by Fix 2 (`docs/ai/fix_design_
+    exhaustion_bug037.md` §3, ADR-030 Decisions 1/2, PLAN-2026-W28-U):
+    budget exhaustion on a `near_dup_*` violation no longer falls through
+    shipping the detected-violating text — it safe-degrades the leading
+    empathy clause instead. `fall_through` stays False;
+    `exhaustion_degrade` records the sub-rule. Never a 4th call. See
+    `tests/repro/test_fix2_exhaustion_degrade.py` for the dedicated Fix-2
+    test suite (splice-boundary, byte-identical-remainder, pool rotation,
+    all three empathy-degradable violation types)."""
 
     @pytest.mark.asyncio
-    async def test_exhausts_exactly_the_budget_and_ships_last(self) -> None:
+    async def test_exhausts_exactly_the_budget_and_degrades_last(self) -> None:
         history = [
             {"role": "assistant", "content": f"{_NED_020_A} 잠은 잘 주무세요?"},
         ]
@@ -256,11 +263,18 @@ class TestRetryBudgetExhaustionFallsThrough:
         ))
         assert adapter.chat_timed.call_count == 3  # 1 draft + 2 retries, no 4th
         assert out.retry_count == 2
-        assert out.fall_through is True
+        assert out.fall_through is False
+        assert out.exhaustion_degrade == "near_dup_back_to_back"
         assert out.retry_latency_ms > 0
         assert len(out.retry_reasons) >= out.retry_count
-        # Shipped response is the LAST queued candidate, not the first draft.
-        assert out.assistant_response == f"{_NED_020_B} 오늘 컨디션은요?"
+        # Question content from the LAST queued candidate ships byte-
+        # identical; only the leading empathy clause was substituted.
+        assert out.assistant_response.endswith(". 오늘 컨디션은요?")
+        assert out.assistant_response == (
+            f"{out.exhaustion_degrade_phrase}. 오늘 컨디션은요?"
+        )
+        assert _NED_020_B.rstrip(".") not in out.assistant_response
+        assert out.assistant_response != f"{_NED_020_B} 오늘 컨디션은요?"
 
 
 class TestSessionCapVsBackToBack:
