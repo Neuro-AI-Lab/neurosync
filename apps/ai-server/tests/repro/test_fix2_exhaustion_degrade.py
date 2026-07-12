@@ -345,6 +345,91 @@ class TestDegradeEmpathyClauseSplicing:
         assert phrase == pool[1]
 
 
+class TestCF1TwoQuestionShapeNeverDeletesClinicalContent:
+    """CVR-014 finding CF1 — reproduced live at
+    `docs/ai/simulation_results/VP-003/
+    VP-003_20260711_222843_conversation.json` turn 7 (`safety_risk="medium"`).
+    The CVR-013-cited fail-safe artifacts (`TestSplicePointBoundaryRule`'s
+    `test_comma_joined_single_sentence_real_artifact_shape` /
+    `test_second_real_artifact_shape`) are BOTH single-question shapes with
+    only `?` as terminal punctuation — they exercise `_splice_point`'s
+    `None` branch and were never at risk. This artifact is a DIFFERENT,
+    untested shape: a comma-joined psychiatric-history probe terminated by
+    its OWN `.` before a SECOND, later `?` — `_splice_point` finds a valid
+    index (the `.`), so the pre-fix replace branch fired unconditionally
+    and silently deleted the entire first clinical question (a
+    past-psychiatric-history probe), splicing a pool phrase in its place.
+    Hard constraint: replace is only legitimate when the leading span
+    `_splice_point` identifies actually IS empathy content (per
+    `_is_empathy_clause`) — this artifact's leading span is a clinical
+    question, not empathy, so it must always fail safe to prepend."""
+
+    _CF1_TEXT = (
+        "지난번에 여쭤보지 못했는데, 과거에 정신건강의학과 진료나 진단을 받으신 "
+        "적이 있는지 궁금합니다. 그리고 혹시 현재 다른 신체질환이나 복용 중인 약이 "
+        "있는지 여쭤봐도 될까요?"
+    )
+
+    def test_shape_sanity_splice_point_is_not_none(self) -> None:
+        """Confirms this artifact exercises the REPLACE branch pre-fix —
+        distinguishing it from the CVR-013-cited fail-safe artifacts, which
+        return `None` here."""
+        assert DialogueAgent._splice_point(self._CF1_TEXT) is not None
+
+    def test_shape_sanity_leading_span_is_not_empathy(self) -> None:
+        """The span `_splice_point` would replace is the first CLINICAL
+        question, not an empathy clause — confirms this is the exact CF1
+        gap, not a variant of the already-covered near-dup/exact-repeat
+        replace tests (whose leading spans ARE empathy content)."""
+        clause = DialogueAgent._extract_leading_clause(self._CF1_TEXT)
+        assert DialogueAgent._is_empathy_clause(clause) is False
+
+    def test_exact_repeat_never_deletes_probe_content(self) -> None:
+        degraded, phrase = DialogueAgent._degrade_empathy_clause(
+            self._CF1_TEXT, "exact_repeat", [],
+        )
+        assert self._CF1_TEXT in degraded
+        assert degraded == f"{phrase}. {self._CF1_TEXT}"
+
+    def test_near_dup_never_deletes_probe_content(self) -> None:
+        """`near_dup_*` cannot actually become the run()-acted-upon
+        violation for THIS exact text (near_dup_reason is only computed
+        when `is_empathy` is True for the candidate's own leading clause —
+        see `run()`'s per-iteration check), so this exercises
+        `_degrade_empathy_clause` as a function-level invariant / defense-
+        in-depth against a future caller, not a reachable run() path for
+        this shape (see `TestCF1ExactRepeatExhaustionAtRunLevel` below for
+        the actually-reachable end-to-end path)."""
+        degraded, phrase = DialogueAgent._degrade_empathy_clause(
+            self._CF1_TEXT, "near_dup_back_to_back", [],
+        )
+        assert self._CF1_TEXT in degraded
+        assert degraded == f"{phrase}. {self._CF1_TEXT}"
+
+
+class TestCF1ExactRepeatExhaustionAtRunLevel:
+    """Same CF1 shape, driven through `agent.run()` end-to-end on
+    `exact_repeat` — the only violation type production wiring can
+    actually reach this shape via."""
+
+    @pytest.mark.asyncio
+    async def test_probe_content_ships_intact_after_exhaustion(self) -> None:
+        text = TestCF1TwoQuestionShapeNeverDeletesClinicalContent._CF1_TEXT
+        history = [{"role": "assistant", "content": text}]
+        agent, adapter = _run_agent([
+            _json_response(text), _json_response(text), _json_response(text),
+        ])
+        out = await agent.run(DialogueInput(
+            session_id="t", user_message="괜찮아요.",
+            conversation_history=history,
+            filled_slots={}, safety_result=None, session_state=None,
+        ))
+        assert adapter.chat_timed.call_count == 3
+        assert out.exhaustion_degrade == "exact_repeat"
+        assert text in out.assistant_response
+        assert out.assistant_response != text  # repetition still broken
+
+
 class TestNearDupExhaustionDegradesAtRunLevel:
     @pytest.mark.asyncio
     async def test_near_dup_exhaustion_ships_degraded_not_fall_through(self) -> None:

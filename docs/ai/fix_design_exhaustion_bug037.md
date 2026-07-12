@@ -403,6 +403,61 @@ Verified: `TestChecklistSurfacesExhaustionDegrade` (populated and zero-degrade c
 - **Splice-boundary / comma-joined-sentence coverage** — see "Fail-safe" above; 2 real artifacts
   cited and spot-checked offline, satisfying CVR-013 condition 3.
 
+### CF1 disposition (CVR-014 finding, post-implementation fix)
+
+**Finding.** `CVR-014` (clinical-validator, quoted): the 2 fail-safe artifacts §3
+originally cited (VP-001 turn 5, VP-002 turn 3) are both single-question shapes
+terminated only by `?` — `_splice_point` returns `None` for both, exercising only
+the already-safe prepend branch. CVR-014 independently found a DIFFERENT, untested
+shape live: `docs/ai/simulation_results/VP-003/
+VP-003_20260711_222843_conversation.json` turn 7 (`safety_risk="medium"`) —
+`"지난번에 여쭤보지 못했는데, 과거에 정신건강의학과 진료나 진단을 받으신 적이
+있는지 궁금합니다. 그리고 혹시 현재 다른 신체질환이나 복용 중인 약이 있는지
+여쭤봐도 될까요?"` — a comma-joined psychiatric-history probe terminated by its OWN
+`.` before a SECOND, later `?`. Risk as stated: if `near_dup`/`exact_repeat` ever
+fires on this shape at exhaustion, the probe content is silently deleted.
+
+**Verified real, not theoretical.** Reproduced against the pre-fix production code
+(`apps/ai-server/tests/repro/test_fix2_exhaustion_degrade.py::
+TestCF1TwoQuestionShapeNeverDeletesClinicalContent`, `TestCF1ExactRepeatExhaustionAtRunLevel`):
+`_splice_point` returns a valid index (the `.`, at offset 52) because it exists
+earlier in the string than the trailing `?` — `_leading_clause_boundary`'s rule is
+"earliest of `.`/`!`/`?`; `None` only if that earliest one is `?`", so a SECOND,
+later `?` after an earlier `.` never suppresses the boundary. The span before that
+index is the full first CLINICAL question, not an empathy clause, and pre-fix
+`_degrade_empathy_clause` replaced it unconditionally whenever a splice point
+existed — with no check that the span it was about to delete actually read as
+empathy content. Confirmed reachable via `exact_repeat` end-to-end through
+`agent.run()`; `near_dup_*` cannot reach this exact shape in production
+(`near_dup_reason` is only computed when `is_empathy` already holds for the
+candidate's own leading clause, which this shape never satisfies), so the
+`near_dup` coverage in the cited tests is a function-level invariant / defense-in-
+depth against a future caller, not a currently-reachable `run()` path.
+
+**Fix.** `_degrade_empathy_clause` (`apps/ai-server/src/agents/dialogue.py`) now
+gates the replace branch on `_is_empathy_clause(leading_span)` — the SAME semantic
+test the guard itself uses to decide whether a candidate's leading clause is
+empathy content in the first place. Replace fires only when `_splice_point` finds a
+boundary AND the span before it is empathy content; otherwise (no boundary, or a
+boundary whose span fails the empathy test) the mechanism falls back to prepend —
+never deletes content in either case. This tightens, not loosens, the hard
+constraint stated at the top of this section: the two original fail-safe artifacts
+still fail safe via the `None`-boundary branch (unaffected by the new gate); the
+CF1 shape now additionally fails safe via the new empathy-test gate. No behavior
+change for the two already-tested replace paths (`near_dup`/`exact_repeat` on a
+genuinely empathic leading clause), since a candidate's leading clause that already
+passed the guard's own `is_empathy` check trivially passes the same test again
+here.
+
+**Verification.** 3 new tests
+(`TestCF1TwoQuestionShapeNeverDeletesClinicalContent`,
+`TestCF1ExactRepeatExhaustionAtRunLevel`) — 2 direct-call invariant tests
+(`exact_repeat`, `near_dup_back_to_back`) plus 1 end-to-end `agent.run()` test
+driving 3 identical CF1-shaped responses through the `exact_repeat` exhaustion
+path — all assert the full probe text ships intact (prepended, never replaced).
+Full suite: `ruff check .` clean; `pytest tests/ -q` — 1236 passed, 2 skipped (was
+1231 passed, 2 skipped before this fix; +5 new tests, zero regressions).
+
 ### Residual, documented (not fixed, out of scope)
 
 - Repeated **question/clinical content** on `exact_repeat` exhaustion (the trailing question itself

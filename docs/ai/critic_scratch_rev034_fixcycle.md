@@ -296,3 +296,176 @@ anything found this session — none of today's findings touch the mechanisms th
   structurally immune to the §1.2 contamination mechanism by construction, giving CVR-013 a concrete,
   code-grounded reason (beyond the design's own governance-surface argument) to prefer A/B over C if
   the marker-overlap risk in C's pool cannot be cleanly resolved.
+
+---
+
+# [REV-035] Fix 2 as-implemented verification + fix-cycle wording-license ruling | 2026-07-12 | critic
+
+**Target:** Fix 2 as-implemented (`dialogue.py`, `schemas/dialogue.py`, `f1.py`, per
+`docs/ai/fix_design_exhaustion_bug037.md` §3, ADR-030 Option C) — verifying REV-034's 3 conditions,
+measurement integrity for the future battery, and closing wording license for the whole 3-fix cycle.
+**Scope:** offline evidence only, bounded to the mission brief; no live runs, no clinical-adequacy
+re-litigation (CVR-013's pick stands), no implementation-QA re-pass (qa's gate accepted verbatim).
+**Status:** open
+
+## 1. REV-034 condition verification
+
+**(a) Byte-identical-remainder test — SATISFIED, one gap.** `_splice_point` (`dialogue.py:621-632`)
+returns a raw index into the UNSTRIPPED text via `_leading_clause_boundary`, and
+`_degrade_empathy_clause` (`dialogue.py:819-860`) slices that SAME unstripped string
+(`assistant_response[end:]`) — index and slice target are always the same string object, so no
+cross-string strip-mismatch is possible BY CONSTRUCTION, structurally eliminating the risk class
+REV-034 §1.0 flagged (mixing a stripped-text index against an unstripped slice). Confirmed by
+reading both functions directly, not trusted from the design note's prose.
+`TestDegradeEmpathyClauseSplicing` (`test_fix2_exhaustion_degrade.py:279-345`) independently
+re-derives the expected remainder via `original.find(".")` (not by calling `_splice_point` itself)
+and asserts `degraded[len(phrase):] == original[remainder_start:]` for `near_dup`/`exact_repeat`;
+two further tests exercise the fail-safe-prepend path against 2 real artifact fixtures with
+comma-joined single-sentence, `?`-only-terminal shape (CVR-013 condition 3).
+**Gap:** no fixture has LEADING WHITESPACE on the original text — the exact scenario REV-034 §1.0
+asked for verbatim ("a fixture where the original text has irregular leading whitespace"). Today's
+code is immune to this by construction (above), but a future refactor that made
+`_leading_clause_boundary` strip internally (e.g. "for consistency with `_extract_leading_clause`")
+would silently break the byte-identical guarantee for any LLM output beginning with whitespace, and
+no current test would catch it. Minor, not blocking. Resolution: add one
+`_degrade_empathy_clause`/`_splice_point` test with a `" 정말 힘드셨겠어요. ..."`-shaped (leading
+space) fixture asserting the remainder stays byte-identical.
+
+**(b) Contamination channel / flag-exclusion path — SATISFIED as scoped; deferral acceptable.**
+Confirmed `_DEGRADE_MARKER_CLAUSES`/`_exclude_degrade_marker_clauses` (`dialogue.py:141-154,
+763-775`) is exactly the flag-exclusion path licensed for PRODUCTION — closed-set, exact-string
+match, covers both the Fix-2 pool AND the pre-existing Fix-3 fallback (REV-034's original live
+finding). Tested at `run()` level (`TestGuardDriftExclusionAtRunLevel`, both cases) — confirmed
+working. Direct read of `experiments/EXP-018/analyze_criterion_a.py` (its exclusion list, lines
+28-30, and `_EMPATHY_MARKERS`, lines 38-44) confirms neither has been touched — no
+`exhaustion_degrade`/`output_isolation_fallback` exclusion exists yet; the "deferred as pre-battery
+prerequisite" claim is accurate, not merely asserted. Is deferring the SCORER side acceptable given
+no scoring happens before the battery? **Yes, conditionally:** (i) ADR-030 Decision 4 records it as
+a tracked prerequisite, not a silently dropped item; (ii) no criterion-A (or, §2 below, criterion-B)
+verdict is being cited in any report yet; (iii) the constraint carries forward as a MUST-NOT (§4).
+This is the same "decidable and fixable, not a research-design flaw" framing REV-034 used for its
+own scoped-blocking item — extending it here is consistent, not a softening.
+
+**(c) `test_bug_036` run()-level wiring + upper-bound fix — SATISFIED.**
+`TestBug036RunLevelWiring::test_third_nonadjacent_use_triggers_session_cap_retry`
+(`test_fix2_exhaustion_degrade.py:521-560`) drives a compact A-C-A-B history through `agent.run()`
+end-to-end and asserts `retry_reasons == ["near_dup_session_cap"]` with `count == 2` — closes the
+exact gap REV-034 §2.2 flagged (session_cap and the deeper ABA chain were previously only exercised
+at the helper level, never through `run()`'s actual `session_clauses` wiring).
+`test_x_list_shows_distinct_phrases_only` (`test_bug_036.py:315-335`) now asserts `== 1` (was
+`<= 1`) plus a `len(x_lines) >= 1` non-vacuousness guard — confirmed landed exactly as claimed.
+
+## 2. New finding — criterion B (presence bar) has the SAME contamination class REV-034 found for
+criterion A, in the opposite direction, plus a now-stale telemetry check
+
+Not covered by REV-034 (§1.2 scoped to criterion A/repetition only) or by ADR-030 Decision 4's
+prerequisite list (names "scorer exclusion by flag" generically, written against REV-034's
+criterion-A-only finding).
+
+Verified directly against `experiments/EXP-018/analyze_criterion_b.py`:
+- `_AFFECT_STEM_MARKERS` (lines 48-52) includes `감사합니다`/`힘드`/`이해`/`공감` — every one of the 4
+  `_EMPATHY_DEGRADE_POOL` phrases and `_OUTPUT_ISOLATION_FALLBACK_RESPONSE`'s own opener contain
+  `감사합니다`; `presence_missing` degrades additionally always PREPEND a pool phrase (never replace,
+  per `_degrade_empathy_clause`'s own contract) — so any `presence_missing`-exhaustion-degrade turn,
+  and any `output_isolation_fallback` turn, will register `rubric_semantic_answered=True` in
+  `analyze_criterion_b.py`'s `score()` (lines 85-95, 165-190), inflating the presence rate for a
+  reason that is the GUARD's mechanical backstop, not the LLM's own adherence to BUG-035. A
+  criterion-B PASS on a session containing either event type is not clean evidence of genuine
+  presence-bar adherence — the mirror image of REV-034's §1.2 logic (false-PASS rather than
+  false-FAIL).
+- `b1_telemetry` (lines 193-202) checks `dialogue_fall_through and reasons[-1]=='presence_missing'`
+  — post-Fix-2, `presence_missing` exhaustion always sets `fall_through=False` (routes to
+  `exhaustion_degrade` instead; confirmed by `_is_empathy_degradable`/`run()`'s exhaustion dispatch,
+  `dialogue.py:441-477`), so this specific check can now never fire again, regardless of whether the
+  underlying B.1 concern (a crisis-adjacent turn shipping with no acknowledgment) still occurs
+  through some other path. Same class of defect REV-034 §2.5 already flagged for criterion D's
+  invariant (a scorer/telemetry check written against a field contract a later fix changed), not
+  previously caught for criterion B.
+
+**Resolution required** (parallel to REV-034 §1.2's criterion-A resolution, before the future
+battery can trust criterion-B PASS verdicts on a degrade/fallback-containing session): extend the
+scorer exclusion to `analyze_criterion_b.py` (exclude `exhaustion_degrade`/`output_isolation_fallback`
+turns from the qualifying/answered population, or disclose them as guard-backstop-answered rather
+than organic), and update `b1_telemetry` to check `exhaustion_degrade == "presence_missing"` in
+addition to (or instead of) the now-unreachable `fall_through` condition. Recommend ADR-030
+Decision 4 be amended to name criterion B explicitly, not just "scorer exclusion by flag"
+generically, so this does not silently fall out of scope when the pre-battery prerequisites are
+actioned.
+
+## 3. Measurement integrity for the future battery — remaining channels
+
+Telemetry (`exhaustion_degrade`, `exhaustion_degrade_phrase`, `output_isolation_fallback`,
+`near_dup_detail`) is sufficient to IDENTIFY degraded/fallback turns — confirmed threaded end-to-end
+`DialogueOutput -> F1TurnLog -> conversation.json` (`f1.py:224-225,1347-1348,1602-1604,1660-1661`)
+and surfaced to the per-run checklist (`f1.py:1818-1879`, `TestChecklistSurfacesExhaustionDegrade`).
+It is NOT yet sufficient to EXCLUDE those turns from criterion-A or criterion-B scoring — neither
+scorer reads or acts on these fields today (confirmed by direct read of both files). Remaining
+channels by which a degrade/fallback could masquerade as organic behavior in future scoring:
+
+1. Criterion A (repetition): a degrade/fallback clause scored as a genuine empathy-repetition data
+   point — REV-034's original finding, confirmed still open this session.
+2. Criterion B (presence): a degrade/fallback clause scored as genuine presence-bar adherence — new
+   finding, §2 above.
+3. Criterion D (telemetry sanity): the invariant set does not yet assert
+   `exhaustion_degrade`/`output_isolation_fallback` mutual exclusivity with `fall_through` —
+   REV-034 §2.5, confirmed still open via `analyze_cell4_rollup.py`'s unmodified invariant checks
+   (lines 100-116).
+4. Criterion B's `b1_telemetry`: now-unreachable check, §2 above (new).
+
+No other channel was found — the production-side guard-drift channel (near-dup false-triggering
+against a system-inserted clause) is closed and tested (§1(b)); no residual production-behavior
+contamination path was found beyond the 4 scoring-side items above.
+
+## 4. Wording-license ruling for the fix-cycle report
+
+**Licensed frame:** "code-complete, offline-gated, NOT live-verified" — confirmed correct; no live
+run exists for Fix 2, all evidence is mocked-adapter unit/`run()`-level tests plus
+static/artifact-fixture verification, matching the framing already applied to Fix 1/Fix 3 in
+REV-034.
+
+**MUST-NOT additions specific to this cycle** (extends REV-033 §5 / REV-034 §4 tables):
+
+| # | Wording | Status |
+|:--|:--|:--|
+| 19 | Claims about live repetition rates, presence rates, or ship-through elimination in PRODUCTION traffic | MUST NOT — unlicensed until F1-F5 battery |
+| 20 | "Fix 2 eliminates ship-throughs" (unqualified) | MUST NOT — qualify as "zero DETECTED-violation ship-throughs under the 3 currently-enumerated degradable violation types, code- and test-confirmed"; detection itself has known gaps (REV-033's still-open A-B-A/stem-marker findings) |
+| 21 | Criterion-A PASS/FAIL verdict cited on any session containing an `exhaustion_degrade` or `output_isolation_fallback` ship | MUST NOT (REV-034 #17, reaffirmed — scorer exclusion still absent, confirmed this session) |
+| 22 | Criterion-B PASS cited as evidence of genuine LLM presence-bar adherence on any session containing a `presence_missing`-`exhaustion_degrade` or `output_isolation_fallback` ship | MUST NOT — new this session, §2 |
+| 23 | "REV-034's conditions were met" without the leading-whitespace test-gap disclosure (§1a) | MUST NOT unqualified — the structural (code-level) property holds; the specific regression test REV-034 asked for is not yet present |
+
+**MAY (new, this session):** "Fix 2 (Option C) is implemented and offline-tested: the
+byte-identical-remainder property holds by construction and is test-verified for the non-whitespace
+cases and both fail-safe boundary shapes; the production guard-drift exclusion closes REV-034's live
+finding for both the Fix-2 pool phrases and the pre-existing Fix-3 fallback; the run()-level
+test-hardening items (BUG-036 session_cap, X-list non-vacuousness) landed as specified."
+
+**Pre-registered bars status:** UNCHANGED and decidable — repetition <=2/session + zero b2b;
+presence >=0.90 + zero 2-consecutive; zero detected-violation ship-throughs; zero clinical-note text
+patient-facing; SM assertion-identical; telemetry sanity — all still mechanically computable against
+raw `conversation.json` (confirmed; no code change alters any of these definitions). Pre-battery
+prerequisite list, now 4 items (was 3 in REV-034 §3):
+
+1. (REV-033) criterion-A stem-level marker broadening, or an explicit disclosed decision not to fix.
+2. (REV-034 §1.2) criterion-A scorer exclusion for `exhaustion_degrade`/`output_isolation_fallback`
+   turns.
+3. (this session, §2) criterion-B scorer exclusion for the SAME turn set, plus `b1_telemetry`'s
+   stale `fall_through`-based check corrected to check `exhaustion_degrade`.
+4. (REV-034 §2.5) criterion-D invariant extension for `exhaustion_degrade`/`output_isolation_fallback`
+   mutual exclusivity.
+
+## Tally
+
+- Blocking (scoped to citation, not to shipping): 2 — criterion-A verdict citation (REV-034,
+  reaffirmed) and criterion-B verdict citation (new, §2) on any degrade/fallback-containing session,
+  until their respective scorer exclusions land.
+- Major: 0 new (REV-034's major items are resolved by this cycle's implementation work, per §1).
+- Minor: 2 — leading-whitespace splice test gap (§1a); `b1_telemetry` now-stale check (part of the
+  criterion-B contamination finding, §2).
+- Positive findings: 4 — all 3 REV-034 conditions substantively met with code-level verification;
+  the guard-drift exclusion is correctly scoped and tested for BOTH contamination sources REV-034
+  named; BUG-036 test-hardening closes the exact run()-level gap flagged; telemetry threading is
+  complete end-to-end and reaches an actually-reviewed surface (checklist), not just raw JSON.
+
+**Overall REV-035 disposition:** non-blocking-with-conditions for shipping Fix 2 as
+offline-gated/code-complete; two scoped-blocking citation restrictions carried into the
+future-battery pre-battery-prerequisite list (now 4 items, not 3).

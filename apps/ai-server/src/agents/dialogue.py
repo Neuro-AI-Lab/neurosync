@@ -839,24 +839,32 @@ class DialogueAgent(BaseAgent):
         - `presence_missing`: by definition no leading clause was
           detected on this candidate (that IS the violation) — always
           PREPEND.
-        - `near_dup_*` / `exact_repeat`: REPLACE the leading-clause span.
-          If no splice point exists at this point (fail-safe — normally
-          unreachable for `near_dup_*`, since that violation implies
-          `_extract_leading_clause` already found a non-empty clause on
-          this exact candidate; reachable for `exact_repeat`, e.g. a
-          byte-identical bare-question repeat with no leading clause at
-          all, or a comma-joined single-sentence response with no
-          `.`/`!` boundary — both observed live in this program's own
-          artifacts, see the design note §3), PREPEND instead of guessing
-          a boundary — never corrupts content, and still breaks the
+        - `near_dup_*` / `exact_repeat`: REPLACE the leading-clause span,
+          but ONLY if that span itself reads as empathy content per
+          `_is_empathy_clause` (CVR-014 finding CF1 fix, `docs/ai/
+          fix_design_exhaustion_bug037.md` §3 — a comma-joined response
+          with TWO questions, the first terminated by its own `.` before
+          a second, later `?`, gives `_splice_point` a valid index whose
+          span is the first CLINICAL question, not an empathy clause;
+          replacing it would silently delete clinical content, which the
+          hard constraint above forbids). If no splice point exists, OR a
+          splice point exists but its span fails the empathy test, PREPEND
+          instead — never corrupts content, and still breaks the
           byte-identical repetition (`exact_repeat`'s own requirement:
           prepending new leading text changes the shipped string even
-          though the original candidate's content is untouched)."""
+          though the original candidate's content is untouched). The
+          no-splice-point fail-safe was already exercised by two real
+          single-question artifacts (comma-joined, only `?` — no `.`/`!`
+          anywhere); the empathy-test gate additionally covers the
+          two-question shape where a splice point exists but is not safe
+          to use."""
         phrase = DialogueAgent._select_degrade_phrase(conversation_history)
         if violation != "presence_missing":
             end = DialogueAgent._splice_point(assistant_response)
             if end is not None:
-                return phrase + assistant_response[end:], phrase
+                leading_span = DialogueAgent._extract_leading_clause(assistant_response)
+                if DialogueAgent._is_empathy_clause(leading_span):
+                    return phrase + assistant_response[end:], phrase
         return f"{phrase}. {assistant_response}", phrase
 
     @staticmethod
