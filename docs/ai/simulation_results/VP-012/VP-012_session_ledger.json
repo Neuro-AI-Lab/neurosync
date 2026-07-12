@@ -1,0 +1,57 @@
+[
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-12",
+    "is_revisit": false,
+    "final_slots": {
+      "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 있으며, 술을 줄이려고 시도하지만 중단이 어렵고 스트레스 받을 때마다 술 생각이 먼저 듦. 손이 떨릴 때 한 잔 마시면 일시적으로 나아지지만 결국 더 많이 마시게 됨. 간 수치 상승으로 인해 아침에 컨디션이 안 좋아지고 식당 운영이 힘들어짐. 배우자와 자주 다퉈 미안한 마음이 큼",
+      "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마...\"",
+      "substance_use_history": "매일 소주 한 병 이상 음주",
+      "chief_complaint": "술을 줄이려는 생각이 많이 들지만 스스로 인정하는 것이 어려움",
+      "personal_social_history": "식당 운영 중",
+      "medical_history": "건강검진에서 간 수치 상승"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "family_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260712_204049_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260712_204101_domain_inference.json",
+    "f3": {
+      "outcome": "administered",
+      "scale_name": "PHQ-9",
+      "item_bank_version": "v0",
+      "item_bank_provenance": "construct-labels-v0, persona-file-sourced, non-validated",
+      "responses": [
+        1,
+        2,
+        2,
+        2,
+        0,
+        2,
+        2,
+        2,
+        0
+      ],
+      "total_score": 13,
+      "max_score": 27,
+      "severity": "moderate",
+      "subscale_scores": {},
+      "safety_referral": false,
+      "answer_mode": "llm",
+      "recommendation_provenance": {
+        "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260712_204101_domain_inference.json",
+        "top_candidate_disease": "계절성 정동장애",
+        "top_candidate_similarity_score": 0.533,
+        "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+      },
+      "survey_artifact_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260712_204106_survey.json",
+      "scale_scores_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260712_204106_scale_scores.json"
+    },
+    "written_at": "2026-07-12T20:41:06.032961"
+  }
+]
