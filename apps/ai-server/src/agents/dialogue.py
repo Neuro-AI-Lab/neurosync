@@ -51,6 +51,16 @@ _ALL_SLOTS = [
 _SLOT_COVERAGE_THRESHOLD = 0.7
 _MAX_HISTORY_TURNS = 8
 
+# BUG-030 / ADR-028 (2026-07-12, `docs/ai/fix_proposal_bug030.md`): v4 —
+# empathy-phrase repetition fix. The static prompt's rule-2 example phrases
+# and the runtime `_build_slot_context` `alternatives` re-recommendation
+# menu are both removed (channels (a)/(b) of the diagnosis); replaced with a
+# principle-level "generate natural empathy matched to content/register"
+# instruction plus a negative-constraint-only (never re-recommend) runtime
+# hint. Every other v3 structural constraint (1-sentence cap, no verbatim
+# repetition of the patient's words, no 2-consecutive-turn reuse, opening/
+# continuity sections, absolute rules 1-6, output format) is carried
+# forward unchanged. `safety_classifier` stays pinned v2, untouched.
 # PLAN-2026-W28-Q W2: v3 (dialogue v3 redesign, `docs/ai/prompts/dialogue/
 # v3.system.md`) — DialogueAgent is now called at turn 0 too (autonomous,
 # conditions-aware greeting via session_state["opening_turn"], replacing the
@@ -59,7 +69,7 @@ _MAX_HISTORY_TURNS = 8
 # clinical-dialogue core is preserved unchanged (evolution, not a rewrite).
 # PLAN-2026-W28 C1: v2 (prompt_redesign_v3.md §2.2) — absolute rules 8→6,
 # Safety section 5→1 line (P12 dedup vs runtime-injected slot/safety context).
-PROMPT_VERSION = "v3"
+PROMPT_VERSION = "v4"
 
 # 직접 질문하지 않는 슬롯 (관찰/자동생성/의료진 영역)
 _NO_QUESTION_SLOTS = {
@@ -445,22 +455,13 @@ class DialogueAgent(BaseAgent):
                         used_empathy.append(first_sent)
 
         lines.append("## 공감 표현 규칙")
-        lines.append("- 공감은 1문장으로 끝내고, 바로 새 질문을 하세요.")
+        lines.append("- 공감은 1문장으로 끝내고, 바로 새 질문을 하세요. 공감 문장을 생략하지 마세요.")  # noqa: E501
         lines.append("- 환자 말을 장황하게 반복하지 마세요.")
+        lines.append("- 정해진 문구를 고르지 말고, 환자가 방금 한 말의 내용과 감정에 맞춰 그때그때 새로 표현하세요.")  # noqa: E501
         if used_empathy:
             lines.append("- 아래 표현은 이전 턴에서 이미 사용했으므로 **절대 다시 사용하지 마세요**:")  # noqa: E501
             for e in used_empathy[-5:]:
                 lines.append(f'  X "{e}..."')
-            lines.append("- 대신 다른 표현을 사용하세요:")
-            alternatives = [
-                "그런 상황이라면 정말 지치셨을 것 같아요.",
-                "이야기해 주셔서 감사합니다.",
-                "쉽지 않은 시간이셨겠어요.",
-                "말씀하신 상황이 충분히 이해됩니다.",
-                "그 마음 충분히 공감됩니다.",
-            ]
-            for alt in alternatives[:3]:
-                lines.append(f'  O "{alt}"')
         lines.append("")
 
         # ── 3. 이미 수집된 정보 ──
