@@ -51,6 +51,25 @@ _ALL_SLOTS = [
 _SLOT_COVERAGE_THRESHOLD = 0.7
 _MAX_HISTORY_TURNS = 8
 
+# BUG-030 iter-2 / BUG-035 (2026-07-12, `docs/ai/fix_design_bug030_iter2.md`,
+# ADR-029): unified check-and-retry guard constants.
+_MAX_REGENERATION_ATTEMPTS = 2          # design §3 — max 3 LLM calls/turn
+_NEAR_DUP_JACCARD_THRESHOLD = 0.5       # rubric_bug030_acceptance.md §1
+_NEAR_DUP_NED_THRESHOLD = 0.3           # rubric_bug030_acceptance.md §1
+# ADR-029 Decision 2 (REV-032 Issue 1 ∩ CVR-011 Finding 5): bare "겠" removed
+# as a standalone marker (false-positive channel — procedural Korean like
+# "여쭤보겠습니다" would otherwise score is_empathy=True with zero affective
+# content); "-군요" family added (reflective-acknowledgment coverage, so an
+# unmarked reflective template like "힘드시군요"/"그러시군요" can't repeat
+# undetected — CVR-011 Finding 5's near-dup blind spot).
+_EMPATHY_MARKERS = (
+    "것 같아요", "것 같습니다",
+    "감사합니다", "이해", "공감",
+    "힘드셨", "힘드시", "지치셨", "지치시",
+    "어려우셨", "어려우시",
+    "군요",
+)
+
 # BUG-030 / ADR-028 (2026-07-12, `docs/ai/fix_proposal_bug030.md`): v4 —
 # empathy-phrase repetition fix. The static prompt's rule-2 example phrases
 # and the runtime `_build_slot_context` `alternatives` re-recommendation
@@ -218,37 +237,74 @@ class DialogueAgent(BaseAgent):
         # 6. Parse response — assistant_response만 추출
         llm_resp = self._parse_response(resp.content)
 
-        # 7. Repetition detection
-        prev_responses = self._get_previous_responses(inp.conversation_history)
-        is_repeated = (
-            llm_resp.assistant_response in prev_responses
-            or any(
-                llm_resp.assistant_response == prev
-                for prev in prev_responses
-                if len(prev) >= 80
-            )
-        )
+        # 7. Repetition / near-duplicate / empathy-presence guard.
+        # (BUG-030 iter-2, BUG-035, `docs/ai/fix_design_bug030_iter2.md` §1,
+        # ADR-029.) Single bounded check-and-retry loop replacing the old
+        # exact-equality-only block: on each candidate, evaluate exact-repeat
+        # (unchanged semantics), near-duplicate empathy clause, and
+        # empathy-presence-missing on a crisis-adjacent turn, sharing one
+        # retry budget across all three. ADR-029 Decision 5: when this turn
+        # is crisis-adjacent, presence_missing takes PRIORITY over
+        # exact_repeat/near_dup — checked first below, which is sufficient
+        # since presence_missing is only ever True when crisis_adjacent is.
+        session_clauses = self._extract_used_empathy_clauses(inp.conversation_history)
+        crisis_adjacent = self._is_crisis_adjacent_turn(inp)
 
-        if is_repeated:
-            logger.warning("DialogueAgent repeated — retrying with stronger hint")
-            # BUG-025 fix: this used to filter `_ESSENTIAL_SLOTS` only, which
-            # both (a) omits every non-essential questionable slot (past_
-            # psychiatric_history, medical_history, personal_social_history,
-            # family_history, substance_use_history) — exactly the slots the
-            # round-robin target (`compute_target_slot`/`_build_slot_context`)
-            # most often lands on — and (b) could list non-questionable
-            # essential slots (mental_status_exam, clinical_assessment) that
-            # must never be asked about directly. Reuse the SAME canonical
-            # list the slot-context directive itself used to pick this
-            # turn's target, so a retry's hint can never contradict the
-            # instruction the LLM already ignored once.
-            missing = self.missing_questionable_slots(inp.filled_slots)
-            missing_text = ", ".join(missing) if missing else "risk_assessment (안전 확인)"
-            hint = (
-                f"\n\n[주의: 이전과 동일한 응답입니다. 반드시 다른 질문을 하세요. "
-                f"미수집 슬롯: {missing_text}]"
+        retry_count = 0
+        retry_reasons: list[str] = []
+        fall_through = False
+        retry_latency_ms = 0.0
+
+        while True:
+            prev_responses = self._get_previous_responses(inp.conversation_history)
+            is_repeated = (
+                llm_resp.assistant_response in prev_responses
+                or any(
+                    llm_resp.assistant_response == prev
+                    for prev in prev_responses
+                    if len(prev) >= 80
+                )
             )
+
+            candidate_clause = self._extract_leading_clause(llm_resp.assistant_response)
+            is_empathy = self._is_empathy_clause(candidate_clause)
+            near_dup_reason = (
+                self._empathy_repetition_violation(candidate_clause, session_clauses)
+                if is_empathy else None
+            )
+            presence_missing = crisis_adjacent and not is_empathy
+
+            if presence_missing:
+                violation: str | None = "presence_missing"
+            elif is_repeated:
+                violation = "exact_repeat"
+            elif near_dup_reason:
+                violation = f"near_dup_{near_dup_reason}"
+            else:
+                violation = None
+
+            if violation is None:
+                break
+
+            if retry_count >= _MAX_REGENERATION_ATTEMPTS:
+                fall_through = True
+                logger.warning(
+                    "DialogueAgent guard exhausted retry budget (%d) — shipping "
+                    "with unresolved violation(s) %s",
+                    _MAX_REGENERATION_ATTEMPTS, retry_reasons + [violation],
+                )
+                retry_reasons.append(violation)
+                break
+
+            retry_count += 1
+            retry_reasons.append(violation)
+            logger.warning(
+                "DialogueAgent guard violation (%s) — retry %d/%d",
+                violation, retry_count, _MAX_REGENERATION_ATTEMPTS,
+            )
+            hint = self._build_retry_hint(violation, inp, candidate_clause)
             messages[-1] = ChatMessage(role="user", content=inp.user_message + hint)
+            retry_started = time.perf_counter()
             try:
                 resp = await adapter.chat_timed(
                     messages, model=selection.model_id,
@@ -256,8 +312,23 @@ class DialogueAgent(BaseAgent):
                     response_format=response_format,
                 )
                 llm_resp = self._parse_response(resp.content)
-            except Exception:
-                pass
+            except Exception as exc:
+                # Same "except: pass"-then-ship semantics the pre-iter-2 code
+                # already had for its single retry (design §3) — ship the
+                # last successfully-parsed candidate. `fall_through` is
+                # deliberately NOT set here: its field contract (§6) and
+                # REV-032 criterion D's telemetry invariant
+                # (`fall_through ⟹ retry_count == _MAX_REGENERATION_ATTEMPTS`)
+                # both scope it to budget exhaustion specifically — an
+                # exception can occur on retry 1, which would violate that
+                # invariant if flagged here. Logged (never silent) instead.
+                logger.warning(
+                    "DialogueAgent guard retry LLM call failed: %s — "
+                    "shipping last successfully-parsed response", exc,
+                )
+                break
+            finally:
+                retry_latency_ms += (time.perf_counter() - retry_started) * 1000
 
         latency_ms = (time.perf_counter() - started) * 1000
 
@@ -274,6 +345,11 @@ class DialogueAgent(BaseAgent):
             all_slots=dict(inp.filled_slots),
             handoff_ready=False,      # Coverage 판단은 f1.py orchestrator의 역할
             prompts_degraded=prompts_degraded,
+            retry_count=retry_count,
+            retry_reasons=retry_reasons,
+            fall_through=fall_through,
+            retry_latency_ms=retry_latency_ms,
+            crisis_adjacent=crisis_adjacent,
         )
 
     @classmethod
@@ -327,6 +403,187 @@ class DialogueAgent(BaseAgent):
                 target = all_missing[idx]
 
         return target
+
+    # ── BUG-030 iter-2 / BUG-035 guard primitives ──────────────────────
+    # (`docs/ai/fix_design_bug030_iter2.md` §1/§4/§5, ADR-029)
+
+    @staticmethod
+    def _extract_leading_clause(text: str) -> str:
+        """Leading clause up to (not including) the first '.', '!', or '?' —
+        no length cap. Replaces the old `[:30]`-capped, `.`/`?`-only split
+        (fix_proposal_bug030.md finding c-v: a cap silently under-matches
+        any clause >30 chars). If the earliest terminal punctuation found is
+        '?', the response opens directly with a question — no leading
+        clause exists (return ""). If no terminal punctuation exists at
+        all, conservatively return "" rather than guess a boundary."""
+        stripped = text.strip()
+        if not stripped:
+            return ""
+        positions = [(stripped.find(c), c) for c in (".", "!", "?")]
+        positions = [(p, c) for p, c in positions if p != -1]
+        if not positions:
+            return ""
+        end, term_char = min(positions, key=lambda t: t[0])
+        if term_char == "?":
+            return ""
+        return stripped[:end].strip()
+
+    @staticmethod
+    def _is_empathy_clause(clause: str) -> bool:
+        """Deterministic, string-level, Korean-marker-based check: does
+        `clause` read as an affective acknowledgment? Marker set per
+        ADR-029 Decision 2 (REV-032 Issue 1 ∩ CVR-011 Finding 5) — bare
+        "겠" removed (false-positive risk on procedural Korean like
+        "여쭤보겠습니다"); "-군요" family added (reflective-acknowledgment
+        coverage). Governs retry-triggering only — rubric §10.1's own
+        semantic test, not this marker list, governs the EXP-018
+        acceptance verdict (CVR-011 Finding 5)."""
+        return bool(clause) and any(m in clause for m in _EMPATHY_MARKERS)
+
+    @staticmethod
+    def _extract_used_empathy_clauses(
+        conversation_history: list[dict[str, str]] | None,
+    ) -> list[str]:
+        """Full-session (unwindowed), no-cap extraction of every prior
+        assistant turn's leading clause. Shared by `_build_slot_context`'s
+        X-list (which still windows to the last 5 for the SHOWN prompt
+        hint — unchanged, a separate soft-nudge design choice) and the
+        retry guard below (which needs the FULL session list, unwindowed,
+        to enforce rubric §2's session-wide <=2-uses / zero-back-to-back
+        bar)."""
+        used: list[str] = []
+        if not conversation_history:
+            return used
+        for m in conversation_history:
+            if m.get("role") == "assistant":
+                clause = DialogueAgent._extract_leading_clause(m["content"])
+                if clause and clause not in used:
+                    used.append(clause)
+        return used
+
+    @staticmethod
+    def _levenshtein(a: str, b: str) -> int:
+        """Pure-stdlib edit distance (Wagner-Fischer DP,
+        O(len(a)*len(b))). Empathy clauses are short; no external
+        dependency needed or added."""
+        m, n = len(a), len(b)
+        if m == 0:
+            return n
+        if n == 0:
+            return m
+        prev = list(range(n + 1))
+        for i in range(1, m + 1):
+            curr = [i] + [0] * n
+            for j in range(1, n + 1):
+                cost = 0 if a[i - 1] == b[j - 1] else 1
+                curr[j] = min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost)
+            prev = curr
+        return prev[n]
+
+    @staticmethod
+    def _same_phrase_family(a: str, b: str) -> bool:
+        """rubric_bug030_acceptance.md §1's near-duplicate rule: same
+        family if token Jaccard >= 0.5 OR normalized edit distance <= 0.3.
+        Normalization: strip surrounding whitespace only (punctuation
+        kept — REV-032 criterion A.1 pins this convention as
+        punctuation-INCLUSIVE, matching the production code; see the
+        design note §2 "as-implemented amendments" for the corrected
+        citation); tokenize on whitespace (어절 units), no stemming."""
+        a_n, b_n = a.strip(), b.strip()
+        if not a_n or not b_n:
+            return False
+        tokens_a, tokens_b = set(a_n.split()), set(b_n.split())
+        union = tokens_a | tokens_b
+        if union and len(tokens_a & tokens_b) / len(union) >= _NEAR_DUP_JACCARD_THRESHOLD:
+            return True
+        ned = DialogueAgent._levenshtein(a_n, b_n) / max(len(a_n), len(b_n))
+        return ned <= _NEAR_DUP_NED_THRESHOLD
+
+    @staticmethod
+    def _empathy_repetition_violation(
+        candidate_clause: str, session_clauses: list[str],
+    ) -> str | None:
+        """Operationalizes rubric §2 exactly: zero back-to-back (checked
+        first, zero-tolerance even on a single prior use) + session cap of
+        2 uses per phrase family (checked second — a 3rd same-family use
+        violates). Returns a reason string or None. `session_clauses` must
+        be the FULL, unwindowed session list."""
+        if not candidate_clause or not session_clauses:
+            return None
+        if DialogueAgent._same_phrase_family(candidate_clause, session_clauses[-1]):
+            return "back_to_back"
+        prior_family_count = sum(
+            1 for c in session_clauses
+            if DialogueAgent._same_phrase_family(candidate_clause, c)
+        )
+        if prior_family_count >= 2:
+            return "session_cap"
+        return None
+
+    @staticmethod
+    def _is_crisis_adjacent_turn(inp: DialogueInput) -> bool:
+        """BUG-035 'crisis-adjacent turn' definition — reuses only runtime
+        signals already threaded onto `DialogueInput` by `f1.py`; zero new
+        classifier call, zero persona/ground-truth read.
+
+        1. `session_state["probe_instruction"]` truthy: the SI safety-probe
+           state machine or the mandatory end-of-session SI screen is
+           driving this turn.
+        2. `session_state["probe_just_concluded"]` truthy (ADR-029
+           Decision 3 / design §8 de-escalation-turn boundary, rubric
+           §10.3 ruling): the probe/de-escalation-CONCLUDING turn — the
+           highest-need moment for empathic bridging, per CVR-011 Finding
+           4. Threaded from `f1.py`'s own pre-existing `probe_just_concluded`
+           local (set when the probe state machine's "deescalate" outcome
+           or stage-exhaustion fires, `f1.py` Step 1b) into the EXISTING
+           `session_state` field at the round-robin branch's construction
+           site — no new `DialogueInput` field, no new business logic, only
+           the already-computed flag threaded through the already-licensed
+           unconstrained `session_state: dict[str, Any]` field (schema
+           docstring), the same mechanism `prior_missing_slots` already
+           uses. Structurally guarantees coverage of THIS turn independent
+           of its own recomputed CTRS (CVR-011 binding condition 1) — the
+           wider post-de-escalation sentiment population (later turns) is
+           NOT runtime-enforceable (sentiment computed after the dialogue
+           call) and is measured in EXP-018 instead (ADR-029 Decision 3).
+        3. `safety_result["risk_level"] in {"medium","high"}` — this
+           turn's own just-computed safety verdict. "critical"/CTRS 1-2
+           never reaches here (crisis turns are intercepted before
+           `DialogueAgent.run` is called)."""
+        if inp.session_state and inp.session_state.get("probe_instruction"):
+            return True
+        if inp.session_state and inp.session_state.get("probe_just_concluded"):
+            return True
+        if inp.safety_result and inp.safety_result.get("risk_level") in ("medium", "high"):
+            return True
+        return False
+
+    @staticmethod
+    def _build_retry_hint(
+        violation: str, inp: DialogueInput, candidate_clause: str,
+    ) -> str:
+        """Runtime hint injected into the per-call user_message (code, not
+        a prompt-file edit — same mechanism as the pre-existing
+        exact-repeat hint)."""
+        if violation == "exact_repeat":
+            missing = DialogueAgent.missing_questionable_slots(inp.filled_slots)
+            missing_text = ", ".join(missing) if missing else "risk_assessment (안전 확인)"
+            return (
+                f"\n\n[주의: 이전과 동일한 응답입니다. 반드시 다른 질문을 하세요. "
+                f"미수집 슬롯: {missing_text}]"
+            )
+        if violation.startswith("near_dup"):
+            return (
+                f'\n\n[주의: 방금 응답의 공감 표현("{candidate_clause}")이 이전 턴과 '
+                "거의 같은 표현입니다. 완전히 다른 표현으로, 환자가 방금 한 말에 맞춰 "
+                "새로 공감하세요. 같은 문구나 비슷한 문구를 반복하지 마세요.]"
+            )
+        if violation == "presence_missing":
+            return (
+                "\n\n[주의: 지금은 위기 인접 상황입니다. 질문만으로 바로 시작하지 말고, "
+                "반드시 공감하는 문장 1개로 먼저 시작한 뒤 질문하세요.]"
+            )
+        return ""
 
     @staticmethod
     def _build_opening_context(session_state: dict[str, Any]) -> str:
@@ -446,13 +703,9 @@ class DialogueAgent(BaseAgent):
         lines.append("")
 
         # ── 2. 공감 표현 반복 금지 ──
-        used_empathy: list[str] = []
-        if conversation_history:
-            for m in conversation_history:
-                if m.get("role") == "assistant":
-                    first_sent = m["content"].split(".")[0].split("?")[0][:30]
-                    if first_sent and first_sent not in used_empathy:
-                        used_empathy.append(first_sent)
+        # BUG-030 iter-2: shared, uncapped extraction (was inlined here with
+        # a `[:30]` cap — `_extract_used_empathy_clauses` has none).
+        used_empathy: list[str] = self._extract_used_empathy_clauses(conversation_history)
 
         lines.append("## 공감 표현 규칙")
         lines.append("- 공감은 1문장으로 끝내고, 바로 새 질문을 하세요. 공감 문장을 생략하지 마세요.")  # noqa: E501

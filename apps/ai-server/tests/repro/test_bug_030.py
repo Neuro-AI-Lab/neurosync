@@ -86,6 +86,26 @@ class TestNegativeConstraintOnly:
         assert 'X "' not in ctx
         assert "이미 사용했으므로" not in ctx
 
+    def test_long_prior_clause_rendered_uncapped(self) -> None:
+        """BUG-030 iter-2 (`docs/ai/fix_design_bug030_iter2.md` §1): the old
+        inline extraction capped at `[:30]` — `fix_proposal_bug030.md`
+        finding c-v flagged this as a latent under-match risk once a filter
+        is compared against it (the near-dup guard, `test_bug_030_iter2.py`).
+        A prior assistant clause >30 chars must render in the X-list FULL,
+        not truncated."""
+        long_clause = (
+            "그런 상황이라면 정말 많이 힘드셨을 것 같고 걱정도 되셨을 것 같아요"
+        )
+        assert len(long_clause) > 30
+        history = [
+            {"role": "assistant", "content": f"{long_clause}. 잠은 잘 주무세요?"},
+        ]
+        ctx = _agent()._build_slot_context(
+            filled_slots={}, session_state=None, conversation_history=history,
+        )
+        assert f'X "{long_clause}...' in ctx
+        assert long_clause[:30] + '..."' not in ctx
+
 
 class TestPrincipleLevelInstructionPresent:
     """The replacement instruction — natural generation, not menu

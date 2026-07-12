@@ -80,3 +80,32 @@ class DialogueOutput(AgentOutput):
         default=False,
         description="True when slot coverage threshold reached — trigger handoff",
     )
+    # BUG-030 iter-2 / BUG-035 guard telemetry (`docs/ai/fix_design_bug030_
+    # iter2.md` §6, ADR-029). Additive, safe defaults — the two non-guard
+    # construction sites (`routes/chat.py:95,111`) never set these.
+    retry_count: int = Field(
+        default=0,
+        description="Regeneration attempts this turn (BUG-030 iter-2 / BUG-035 guard)",
+    )
+    retry_reasons: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Ordered violation reasons that triggered each attempt: "
+            "exact_repeat | near_dup_back_to_back | near_dup_session_cap | presence_missing"
+        ),
+    )
+    fall_through: bool = Field(
+        default=False,
+        description=(
+            "True if the retry budget was exhausted while a violation still "
+            "held — response shipped anyway"
+        ),
+    )
+    retry_latency_ms: float = Field(
+        default=0.0,
+        description="Wall-clock time spent in regeneration LLM calls only (subset of latency_ms)",
+    )
+    crisis_adjacent: bool = Field(
+        default=False,
+        description="True if this turn qualified for the BUG-035 empathy-presence check",
+    )

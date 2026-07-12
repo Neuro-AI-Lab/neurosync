@@ -10,16 +10,32 @@ CONTENTS are unchecked. Direct read of every `session_state` construction
 site in `f1.py` (`discussion.md` REV-024 ruling 3) shows the actual key
 space `src.f1.F1Pipeline` uses is small and fully enumerable:
 
-  - `f1.py` ~1068-1075 (`opening_session_state`, turn 0): a subset of
+  - `f1.py` ~1083-1090 (`opening_session_state`, turn 0): a subset of
     ``{opening_turn, is_revisit, carry_summary, prior_missing_slots}``.
-  - `f1.py` ~1493-1512 (`session_state`, every other turn): a subset of
-    ``{probe_instruction, prior_missing_slots}``.
+  - `f1.py` ~1505-1541 (`session_state`, every other turn): a subset of
+    ``{probe_instruction, prior_missing_slots, probe_just_concluded}``.
 
-Union across both call sites is exactly the 5 keys pinned below.
+Union across both call sites is exactly the 6 keys pinned below.
+
+**2026-07-12 update (BUG-030 iter-2 / BUG-035, ADR-029 Decision 3,
+`docs/ai/fix_design_bug030_iter2.md` §8/§1 `_is_crisis_adjacent_turn`).**
+`probe_just_concluded` added to the round-robin branch's construction site:
+threads `f1.py`'s own already-computed `probe_just_concluded` local
+(Step 1b — set when the safety-probe state machine's "deescalate" outcome
+or stage-exhaustion fires) through the EXISTING `session_state` field for
+exactly the one turn where a probe/de-escalation just concluded, so
+`DialogueAgent._is_crisis_adjacent_turn` can structurally guarantee
+covering that turn's empathy-presence check independent of its own
+recomputed CTRS — no new `DialogueInput` field, no new business logic, the
+same "thread an existing local through the existing unconstrained
+`session_state` dict" mechanism `prior_missing_slots` already established.
+Exercised end-to-end (no fixture changes needed) by
+`test_probe_mode_trigger_and_deescalation` below, whose `_U_PLAN_DENIAL`
+turn already reaches the "deescalate" outcome.
 
 **No schema-level production guard was added — deliberately, not by
 omission.** A `DialogueInput.session_state` `field_validator` allowlisting
-these 5 keys was attempted first and reverted: `DialogueInput` is shared by
+these keys was attempted first and reverted: `DialogueInput` is shared by
 a SECOND, independent, currently-live production producer —
 `src.routes.chat`'s `OrchestratorAgent` flow (`src/routes/chat.py:130-136`,
 registered in `src/main.py`) — which passes `SessionState.model_dump()`, a
@@ -79,9 +95,12 @@ from tests.f1_testkit import (
 # Caller-scoped allowlist for `src.f1.F1Pipeline`'s own `session_state`
 # construction sites ONLY (not a `DialogueInput` schema-wide constraint —
 # see this module's docstring for why). Union of both traced call sites
-# (`f1.py` ~1068-1075, ~1493-1512).
+# (`f1.py` ~1083-1090, ~1505-1541).
 APPROVED_SESSION_STATE_KEYS: frozenset[str] = frozenset(
-    {"opening_turn", "is_revisit", "carry_summary", "prior_missing_slots", "probe_instruction"}
+    {
+        "opening_turn", "is_revisit", "carry_summary", "prior_missing_slots",
+        "probe_instruction", "probe_just_concluded",
+    }
 )
 
 _U_BENIGN = "요즘 잠을 잘 못 자요."
@@ -106,13 +125,14 @@ def _assert_every_call_is_allowlisted(dialogue: StubDialogueAgent) -> None:
 class TestApprovedSessionStateKeysPin:
     """Guards the guard (mirrors test_bug_022.py's own forbidden-fields pin)."""
 
-    def test_exactly_the_five_traced_keys(self) -> None:
+    def test_exactly_the_six_traced_keys(self) -> None:
         assert APPROVED_SESSION_STATE_KEYS == {
             "opening_turn",
             "is_revisit",
             "carry_summary",
             "prior_missing_slots",
             "probe_instruction",
+            "probe_just_concluded",
         }
 
 
@@ -140,6 +160,19 @@ class TestComposedPayloadShapesAreAllowlisted:
 
     def test_prior_missing_slots_only_shape(self) -> None:
         payload = {"prior_missing_slots": ["substance_use_history"]}
+        assert set(payload) <= APPROVED_SESSION_STATE_KEYS
+
+    def test_probe_just_concluded_shape(self) -> None:
+        """BUG-030 iter-2 / BUG-035 (ADR-029 Decision 3) — the
+        de-escalation-concluding turn's round-robin session_state shape."""
+        payload = {"probe_just_concluded": True}
+        assert set(payload) <= APPROVED_SESSION_STATE_KEYS
+
+    def test_probe_just_concluded_with_prior_missing_slots_shape(self) -> None:
+        payload = {
+            "prior_missing_slots": ["family_history"],
+            "probe_just_concluded": True,
+        }
         assert set(payload) <= APPROVED_SESSION_STATE_KEYS
 
     def test_a_hypothetical_drifted_key_would_be_caught(self) -> None:
@@ -198,6 +231,13 @@ class TestConstructionSitesEndToEnd:
         # at least one probe-mode call actually happened (fixture sanity)
         assert any(p is not None for p in dialogue.probe_instructions)
         _assert_every_call_is_allowlisted(dialogue)
+        # BUG-030 iter-2 / BUG-035 (ADR-029 Decision 3): _U_PLAN_DENIAL
+        # negates the "plan" stage -> `_process_probe_answer` returns
+        # "deescalate" -> the SAME turn's round-robin dialogue call must
+        # carry `probe_just_concluded=True`.
+        assert any(
+            (c.session_state or {}).get("probe_just_concluded") for c in dialogue.calls
+        )
 
     @pytest.mark.asyncio
     async def test_mandatory_si_screen_forced_turn(self) -> None:

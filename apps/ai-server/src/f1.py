@@ -203,6 +203,14 @@ class F1TurnLog:
     # BUG-021: True if ANY agent called this turn (safety/clinical_slot/
     # dialogue/input_normalizer) fell back to a generic hardcoded prompt.
     prompts_degraded: bool = False
+    # BUG-030 iter-2 / BUG-035 guard telemetry (`docs/ai/fix_design_bug030_
+    # iter2.md` §6, ADR-029) — threaded from DialogueAgent alone (no
+    # cross-agent OR-fold needed, unlike prompts_degraded).
+    dialogue_retry_count: int = 0
+    dialogue_retry_reasons: list[str] = field(default_factory=list)
+    dialogue_fall_through: bool = False
+    dialogue_retry_latency_ms: float = 0.0
+    dialogue_crisis_adjacent: bool = False
 
 
 @dataclass
@@ -1313,6 +1321,15 @@ class F1Pipeline:
             slot_prompts_degraded = False
             dialogue_prompts_degraded = False
             post_safety_prompts_degraded = False
+            # BUG-030 iter-2 / BUG-035 guard telemetry — same reset
+            # discipline as dialogue_prompts_degraded above (never carry a
+            # stale value forward from a turn that skipped the dialogue
+            # call, e.g. a crisis turn).
+            dialogue_retry_count = 0
+            dialogue_retry_reasons: list[str] = []
+            dialogue_fall_through = False
+            dialogue_retry_latency_ms = 0.0
+            dialogue_crisis_adjacent = False
 
             # ── Step 1b: Safety probe state machine (T1-F1-DEV-022/023) ──
             if not crisis and probe.active and probe.awaiting_answer:
@@ -1515,8 +1532,22 @@ class F1Pipeline:
                     # Dialogue v3 (b): continuity phrasing for slots missing
                     # from a prior session — key names only (AVC-02), never
                     # values/prose.
+                    round_robin_state: dict[str, Any] = {}
                     if prior_missing_slots:
-                        session_state = {"prior_missing_slots": list(prior_missing_slots)}
+                        round_robin_state["prior_missing_slots"] = list(prior_missing_slots)
+                    # BUG-030 iter-2 / BUG-035 (ADR-029 Decision 3, design §8
+                    # de-escalation-turn boundary, rubric §10.3): thread the
+                    # ALREADY-COMPUTED `probe_just_concluded` local (Step 1b
+                    # above) into the existing session_state field — no new
+                    # DialogueInput field, no new logic — so
+                    # DialogueAgent._is_crisis_adjacent_turn can structurally
+                    # guarantee coverage of the probe/de-escalation-
+                    # concluding turn independent of this turn's own
+                    # recomputed CTRS.
+                    if probe_just_concluded:
+                        round_robin_state["probe_just_concluded"] = True
+                    if round_robin_state:
+                        session_state = round_robin_state
 
                 try:
                     safety_result_for_dialogue = {
@@ -1533,6 +1564,13 @@ class F1Pipeline:
                     ))
                     agent_response = _extract_text(dialogue_out.assistant_response)
                     dialogue_prompts_degraded = bool(dialogue_out.prompts_degraded)
+                    # BUG-030 iter-2 / BUG-035 guard telemetry — from
+                    # DialogueAgent alone (no cross-agent OR-fold needed).
+                    dialogue_retry_count = dialogue_out.retry_count
+                    dialogue_retry_reasons = list(dialogue_out.retry_reasons)
+                    dialogue_fall_through = dialogue_out.fall_through
+                    dialogue_retry_latency_ms = dialogue_out.retry_latency_ms
+                    dialogue_crisis_adjacent = dialogue_out.crisis_adjacent
                 except Exception as e:
                     result.errors.append(f"Turn {turn} dialogue error: {e}")
                     logger.error("Dialogue failed: %s", e)
@@ -1580,6 +1618,11 @@ class F1Pipeline:
                 targeted_slot=targeted_slot,
                 slot_discards=slot_discards,
                 grounded_coverage=g_coverage,
+                dialogue_retry_count=dialogue_retry_count,
+                dialogue_retry_reasons=dialogue_retry_reasons,
+                dialogue_fall_through=dialogue_fall_through,
+                dialogue_retry_latency_ms=dialogue_retry_latency_ms,
+                dialogue_crisis_adjacent=dialogue_crisis_adjacent,
             )
             # 명세 준수: Sentiment (Mode A) — 매 턴 환자 발화 정서 signal.
             turn_sentiment = await self._analyze_utterance_sentiment(
