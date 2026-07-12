@@ -94,5 +94,53 @@
     "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_095056_conversation.json",
     "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_095111_domain_inference.json",
     "written_at": "2026-07-12T09:51:11.927826"
+  },
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-12",
+    "is_revisit": false,
+    "final_slots": {
+      "chief_complaint": "회사에서 잘린 후 모든 게 무너졌고 이혼도 내 탓인 것 같아 힘들어요",
+      "history_of_present_illness": "15년 다닌 회사에서 구조조정으로 해고된 후 모든 것이 무너졌고 이혼도 자신의 탓으로 생각하며 살고 싶지 않은 생각이 거의 매일 하루 종일 지속됨",
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"형이... 있긴 한데... 연락 안 해요. 짐이 되기 싫어서. ... 도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"구체적으로는... 생각 안 했어요. 그냥 사라지고 싶은 거예요. 어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.\""
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "family_history",
+      "substance_use_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_142022_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_142040_domain_inference.json",
+    "written_at": "2026-07-12T14:20:40.548270"
+  },
+  {
+    "session_index": 2,
+    "simulated_date": "2026-07-26",
+    "is_revisit": true,
+    "final_slots": {
+      "chief_complaint": "회사에서 잘린 후 모든 게 무너졌고 이혼도 내 탓인 것 같아 힘들어요",
+      "history_of_present_illness": "살아가는 의미가 없고 사라지고 싶은 생각이 지속됨",
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"형이 있긴 한데... 연락 안 해요. 짐이 되기 싫어서. 도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"...어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.\""
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "family_history",
+      "substance_use_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_142223_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_142242_domain_inference.json",
+    "written_at": "2026-07-12T14:22:42.078091"
   }
 ]

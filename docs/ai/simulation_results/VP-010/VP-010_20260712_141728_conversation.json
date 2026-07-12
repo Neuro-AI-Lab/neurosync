@@ -1,0 +1,906 @@
+{
+  "session_id": "f1_VP-010",
+  "persona_id": "VP-010",
+  "persona_name": "강태민",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "요즘 피로감과 스트레스로 힘듦"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "퇴근 후 지치고 무기력해져 집에 오면 아무것도 못하고 눕기만 함. 예전에는 퇴근 후 게임을 즐겼으나 최근에는 그런 활동이 잘 안 됨"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 전혀 안 들어요.\""
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "아, 그냥 요즘 좀 피곤하고 스트레스 좀 받는 것 같아요. 별거 아닐 수도 있는데, 한번 점검 차원에서 와봤어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "피곤하고 스트레스"
+      ],
+      "agent_response": "안녕하세요, 저는 정신건강 사전문진을 돕는 AI 상담 도우미입니다. 편하게 말씀해 주세요. 오늘 가장 도움받고 싶은 문제나 증상이 무엇인가요?",
+      "slot_updates": {
+        "chief_complaint": "요즘 피곤하고 스트레스 받는 것 같아요",
+        "history_of_present_illness": "별거 아닐 수도 있지만 점검 차원에서 방문"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피곤하고 스트레스 받는 것 같아요",
+        "history_of_present_illness": "별거 아닐 수도 있지만 점검 차원에서 방문"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 6450.67591778934,
+      "timestamp": "2026-07-12T14:16:14.172231",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아, 그냥 요즘 좀 피곤하고 스트레스 좀 받는 것 같아요. 별거 아닐 수도 있는데, 한번 점검 차원에서 와봤어요.",
+        "normalized": "아, 그냥 요즘 좀 피곤하고 스트레스 좀 받는 것 같아요. 별거 아닐 수도 있는데, 한번 점검 차원에서 와봤어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1031.4817419275641,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.3,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "요즘 좀 피곤하고 스트레스 좀 받는 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false
+    },
+    {
+      "turn": 1,
+      "patient_message": "아, 그냥 요즘 좀 피곤하고 스트레스 좀 받는 것 같아요. 별거 아닐 수도 있는데, 한번 점검 차원에서 와봤어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "요즘 피로감과 스트레스로 힘드실 텐데, 그 마음을 이해해요. 혹시 이전에 정신건강의학과 진료를 받으신 적이 있거나, 진단을 받으신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "요즘 피로감과 스트레스",
+        "history_of_present_illness": "최근 피로감과 스트레스를 경험하고 있으며, 특별한 심각성은 없으나 점검 차원에서 진료를 받음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피로감과 스트레스",
+        "history_of_present_illness": "최근 피로감과 스트레스를 경험하고 있으며, 특별한 심각성은 없으나 점검 차원에서 진료를 받음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4559.195399750024,
+      "timestamp": "2026-07-12T14:16:18.731456",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아, 그냥 요즘 좀 피곤하고 스트레스 좀 받는 것 같아요. 별거 아닐 수도 있는데, 한번 점검 차원에서 와봤어요.",
+        "normalized": "아, 그냥 요즘 좀 피곤하고 스트레스 좀 받는 것 같아요. 별거 아닐 수도 있는데, 한번 점검 차원에서 와봤어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1031.4817419275641,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "요즘 좀 피곤하고 스트레스 좀 받는 것 같아요. 별거 아닐 수도 있는데, 한번 점검 차원에서 와봤어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false
+    },
+    {
+      "turn": 2,
+      "patient_message": "아니요, 그런 적은 없어요. 그냥 요즘 좀 그래요. 다들 이 정도는 힘들지 않나요?",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "피곤하고 스트레스"
+      ],
+      "agent_response": "다들 비슷한 어려움을 겪는다고 생각하지만, 본인의 상황이 어떤지 구체적으로 살펴보는 게 도움이 될 수 있어요. 혹시 기존에 진단받은 신체질환이 있거나, 현재 복용 중인 약이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "요즘 피로감과 스트레스로 힘듦"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피로감과 스트레스로 힘듦",
+        "history_of_present_illness": "최근 피로감과 스트레스를 경험하고 있으며, 특별한 심각성은 없으나 점검 차원에서 진료를 받음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 2737.762506119907,
+      "timestamp": "2026-07-12T14:16:24.738425",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요, 그런 적은 없어요. 그냥 요즘 좀 그래요. 다들 이 정도는 힘들지 않나요?",
+        "normalized": "아니요, 그런 적은 없어요. 그냥 요즘 좀 그래요. 다들 이 정도는 힘들지 않나요?",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 933.3107131533325,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "다들 이 정도는 힘들지 않나요?",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false
+    },
+    {
+      "turn": 3,
+      "patient_message": "아니요, 딱히 없어요. 약도 안 먹고, 병도 없고. 그냥 요즘 좀 그래요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "피곤하고 스트레스"
+      ],
+      "agent_response": "특별한 신체질환이나 복용 중인 약이 없으신데도 피로감과 스트레스가 계속되시는군요. 혹시 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "요즘 피로감과 스트레스로 힘듦"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피로감과 스트레스로 힘듦",
+        "history_of_present_illness": "최근 피로감과 스트레스를 경험하고 있으며, 특별한 심각성은 없으나 점검 차원에서 진료를 받음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 2932.761154137552,
+      "timestamp": "2026-07-12T14:16:31.147070",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요, 딱히 없어요. 약도 안 먹고, 병도 없고. 그냥 요즘 좀 그래요.",
+        "normalized": "아니요, 딱히 없어요. 약도 안 먹고, 병도 없고. 그냥 요즘 좀 그래요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1113.014921080321,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "특별한 신체질환이나 복용 중인 약이 없으신데도 피로감과 스트레스가 계속되시는군요. 혹시 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있으신가요?",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false
+    },
+    {
+      "turn": 4,
+      "patient_message": "글쎄요… 어머니 계신데, 요즘은 잘 연락도 안 하고 지내요. 그런데 이런 걸 말하면 좀… 그런가요? 다들 힘들다고는 하잖아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "가족분들 중에 비슷한 어려움을 겪으셨던 분이 계신지 궁금해요.",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피로감과 스트레스로 힘듦",
+        "history_of_present_illness": "최근 피로감과 스트레스를 경험하고 있으며, 특별한 심각성은 없으나 점검 차원에서 진료를 받음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 2992.6977050490677,
+      "timestamp": "2026-07-12T14:16:39.809840",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "글쎄요… 어머니 계신데, 요즘은 잘 연락도 안 하고 지내요. 그런데 이런 걸 말하면 좀… 그런가요? 다들 힘들다고는 하잖아요.",
+        "normalized": "글쎄요… 어머니 계신데, 요즘은 잘 연락도 안 하고 지내요. 그런데 이런 걸 말하면 좀… 그런가요? 다들 힘들다고는 하잖아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 980.7887938804924,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "어머니 계신데, 요즘은 잘 연락도 안 하고 지내요. 그런데 이런 걸 말하면 좀… 그런가요? 다들 힘들다고는 하잖아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false
+    },
+    {
+      "turn": 5,
+      "patient_message": "아니요, 어머니도 딱히 그런 적은 없으신 것 같아요. 그냥… 요즘 제가 좀 그래요. 다들 힘들다니까, 제가 좀 예민한 것일 수도 있고요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "요즘 피로감과 스트레스로 힘드실 텐데, 그 마음을 이해해요. 혹시 하루 중 특히 힘들거나 지치는 시간대가 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "요즘 피로감과 스트레스로 힘듦"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피로감과 스트레스로 힘듦",
+        "history_of_present_illness": "최근 피로감과 스트레스를 경험하고 있으며, 특별한 심각성은 없으나 점검 차원에서 진료를 받음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3242.425911128521,
+      "timestamp": "2026-07-12T14:16:48.195773",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요, 어머니도 딱히 그런 적은 없으신 것 같아요. 그냥… 요즘 제가 좀 그래요. 다들 힘들다니까, 제가 좀 예민한 것일 수도 있고요.",
+        "normalized": "아니요, 어머니도 딱히 그런 적은 없으신 것 같아요. 그냥… 요즘 제가 좀 그래요. 다들 힘들다니까, 제가 좀 예민한 것일 수도 있고요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 898.8481750711799,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "요즘 제가 좀 그래요. 다들 힘들다니까, 제가 좀 예민한 것일 수도 있고요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false
+    },
+    {
+      "turn": 6,
+      "patient_message": "퇴근 후가 제일 힘들어요. 집에 오면 그냥 아무것도 못 하고 눕기만 해요. 에너지가 거의 없어서 그런지… 사실 예전엔 퇴근하고 게임이라도 했는데, 요즘은 그런 게 잘 안 되더라고요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "퇴근 후에 특히 지치고 무기력해지시는군요. 혹시 그런 상태에서 스스로를 해치고 싶거나 죽고 싶다는 생각이 드신 적이 있으신가요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피로감과 스트레스로 힘듦",
+        "history_of_present_illness": "최근 피로감과 스트레스를 경험하고 있으며, 특별한 심각성은 없으나 점검 차원에서 진료를 받음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 2593.3553599752486,
+      "timestamp": "2026-07-12T14:16:54.963383",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "퇴근 후가 제일 힘들어요. 집에 오면 그냥 아무것도 못 하고 눕기만 해요. 에너지가 거의 없어서 그런지… 사실 예전엔 퇴근하고 게임이라도 했는데, 요즘은 그런 게 잘 안 되더라고요.",
+        "normalized": "퇴근 후가 제일 힘들어요. 집에 오면 그냥 아무것도 못 하고 눕기만 해요. 에너지가 거의 없어서 그런지… 사실 예전엔 퇴근하고 게임이라도 했는데, 요즘은 그런 게 잘 안 되더라고요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1257.288683205843,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "퇴근 후가 제일 힘들어요. 집에 오면 그냥 아무것도 못 하고 눕기만 해요. 에너지가 거의 없어서 그런지… 사실 예전엔 퇴근하고 게임이라도 했는데, 요즘은 그런 게 잘 안 되더라고요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 전혀 안 들어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 전혀 안 들어요.",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 전혀 안 들어요.\""
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피로감과 스트레스로 힘듦",
+        "history_of_present_illness": "최근 피로감과 스트레스를 경험하고 있으며, 특별한 심각성은 없으나 점검 차원에서 진료를 받음",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 전혀 안 들어요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3120.4297090880573,
+      "timestamp": "2026-07-12T14:17:01.399598",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 전혀 안 들어요.",
+        "normalized": "아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 전혀 안 들어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 874.1231113672256,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 전혀 안 들어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요, 전혀요. 진짜로요. 그런 생각은 전혀 안 들어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "아니요, 그런 생각은 전혀 없으신가요? 그렇다면 다행이에요. 혹시 이전에 정신건강의학과 진료를 받으신 적이 있거나, 진단을 받으신 적이 있으신가요?",
+      "slot_updates": {
+        "history_of_present_illness": "퇴근 후 집에 오면 아무것도 못 하고 눕기만 하며, 예전에는 퇴근 후 게임을 즐겼으나 최근에는 그런 활동이 어려워짐"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피로감과 스트레스로 힘듦",
+        "history_of_present_illness": "퇴근 후 집에 오면 아무것도 못 하고 눕기만 하며, 예전에는 퇴근 후 게임을 즐겼으나 최근에는 그런 활동이 어려워짐",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 전혀 안 들어요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3878.2781520858407,
+      "timestamp": "2026-07-12T14:17:08.852099",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "아니요, 전혀요. 진짜로요. 그런 생각은 전혀 안 들어요.",
+        "normalized": "아니요, 전혀요. 진짜로요. 그런 생각은 전혀 안 들어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1101.382386405021,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 전혀요. 진짜로요. 그런 생각은 전혀 안 들어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1162.2569668106735,
+      "dialogue_crisis_adjacent": false
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 그런 적은 없어요. 그냥… 요즘 좀 그래요. 다들 이 정도는 힘들지 않나요?",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "다들 비슷한 어려움을 겪는다고 생각하지만, 본인의 상황이 어떤지 구체적으로 살펴보는 게 도움이 될 수 있어요. 혹시 이전에 정신건강의학과 진료를 받으신 적이 있거나, 진단을 받으신 적이 있으신가요?",
+      "slot_updates": {
+        "history_of_present_illness": "퇴근 후 지치고 무기력해져 집에 오면 아무것도 못하고 눕기만 함. 예전에는 퇴근 후 게임을 즐겼으나 최근에는 그런 활동이 잘 안 됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피로감과 스트레스로 힘듦",
+        "history_of_present_illness": "퇴근 후 지치고 무기력해져 집에 오면 아무것도 못하고 눕기만 함. 예전에는 퇴근 후 게임을 즐겼으나 최근에는 그런 활동이 잘 안 됨",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 전혀 안 들어요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 2857.3078396730125,
+      "timestamp": "2026-07-12T14:17:15.552105",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "아니요, 그런 적은 없어요. 그냥… 요즘 좀 그래요. 다들 이 정도는 힘들지 않나요?",
+        "normalized": "아니요, 그런 적은 없어요. 그냥… 요즘 좀 그래요. 다들 이 정도는 힘들지 않나요?",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 989.0855369158089,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.2,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "\"그냥… 요즘 좀 그래요. 다들 이 정도는 힘들지 않나요?\"",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 그런 적은 없어요. 그냥 요즘 좀 그래요. 다들 이 정도는 힘들지 않나요?",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "다들 비슷한 어려움을 겪는다고 생각하지만, 본인의 상황이 어떤지 구체적으로 살펴보는 게 도움이 될 수 있어요. 혹시 과거에 정신건강의학과 진료를 받으신 적이 있거나, 우울감이나 불안 같은 증상을 경험하신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "요즘 피로감과 스트레스로 힘듦"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피로감과 스트레스로 힘듦",
+        "history_of_present_illness": "퇴근 후 지치고 무기력해져 집에 오면 아무것도 못하고 눕기만 함. 예전에는 퇴근 후 게임을 즐겼으나 최근에는 그런 활동이 잘 안 됨",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 전혀 안 들어요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4855.839054100215,
+      "timestamp": "2026-07-12T14:17:25.058837",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "아니요, 그런 적은 없어요. 그냥 요즘 좀 그래요. 다들 이 정도는 힘들지 않나요?",
+        "normalized": "아니요, 그런 적은 없어요. 그냥 요즘 좀 그래요. 다들 이 정도는 힘들지 않나요?",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 901.4063002541661,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.1,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "\"그냥 요즘 좀 그래요. 다들 이 정도는 힘들지 않나요?\"",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1267.5110371783376,
+      "dialogue_crisis_adjacent": false
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-12T14:16:07.721534",
+  "ended_at": "2026-07-12T14:17:28.939800",
+  "grounded_coverage": 0.375,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 6,
+      "forced": false
+    },
+    {
+      "type": "si_screen_result",
+      "turn": 7,
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 전혀 안 들어요.\""
+    }
+  ],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5636,
+  "patient_lng": 127.0369,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.13953307643532753,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.43,
+      "anxiety": 0.29,
+      "neutral": 0.24,
+      "despair": 0.05
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.3
+      },
+      {
+        "turn": 1,
+        "polarity": -0.5
+      },
+      {
+        "turn": 2,
+        "polarity": -0.5
+      },
+      {
+        "turn": 3,
+        "polarity": -0.6
+      },
+      {
+        "turn": 4,
+        "polarity": -0.6
+      },
+      {
+        "turn": 5,
+        "polarity": -0.6
+      },
+      {
+        "turn": 6,
+        "polarity": -0.65
+      },
+      {
+        "turn": 7,
+        "polarity": 0.0
+      },
+      {
+        "turn": 8,
+        "polarity": 0.0
+      },
+      {
+        "turn": 9,
+        "polarity": -0.2
+      },
+      {
+        "turn": 10,
+        "polarity": -0.1
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 9회 반복",
+      "anxiety 표현 6회 반복",
+      "neutral 표현 5회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.3
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "sadness",
+          "despair",
+          "neutral"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.2
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.1
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-12",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": null,
+  "carried_slot_provenance": {}
+}
