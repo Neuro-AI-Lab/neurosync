@@ -98,9 +98,14 @@ class TestRunMultiSessionChain:
             scale_scores_path=None,
         )
 
-        assert [r.status for r in results] == ["pass", "pass", "pass", "pass"]
+        # F3 stage is now real (PLAN-2026-W28-V) — the fake F2 stage above
+        # never sets f2_ctx.domain_inference_path, so F3 "skip"s each
+        # session (no upstream artifact to read); it is still one
+        # StageResult per session, never silently dropped.
+        assert [r.status for r in results] == ["pass", "pass", "skip", "pass", "pass", "skip"]
         assert [r.name for r in results] == [
-            "F1[session=1]", "F2[session=1]", "F1[session=2]", "F2[session=2]",
+            "F1[session=1]", "F2[session=1]", "F3[session=1]",
+            "F1[session=2]", "F2[session=2]", "F3[session=2]",
         ]
         # session 1 has no followup; session 2 follows up from session 1's
         # OWN saved artifact path (never a "latest for persona" lookup).
@@ -113,6 +118,9 @@ class TestRunMultiSessionChain:
         assert entries[0]["final_slots"] == {"chief_complaint": "session 1 cc"}
         assert entries[1]["missing_slots"], "session 2 should report some missing slots"
         assert entries[0]["repro"] == {"model": "stub-model", "prompt_version": "v3"}
+        # F3 stage never produced a survey.json this test (no domain_inference
+        # artifact) — the ledger key is present with a null value, never absent.
+        assert "f3" in entries[0] and entries[0]["f3"] is None
 
     @pytest.mark.asyncio
     async def test_f1_failure_halts_chain(
@@ -163,12 +171,12 @@ class TestCliSessionsFlag:
 
 class TestProductionNeverReadsLedger:
     """AVC-03 (`docs/ai/validation_plan_f1f2_continuous.md` §6) / REV-022
-    standing rule: no production module (f1.py, f2.py) references the
+    standing rule: no production module (f1.py, f2.py, f3.py) references the
     session ledger."""
 
-    def test_f1_and_f2_never_reference_session_ledger(self) -> None:
+    def test_f1_f2_f3_never_reference_session_ledger(self) -> None:
         repo_src = Path(__file__).resolve().parents[1] / "src"
-        for name in ("f1.py", "f2.py"):
+        for name in ("f1.py", "f2.py", "f3.py"):
             source = (repo_src / name).read_text(encoding="utf-8")
             assert "session_ledger" not in source, (
                 f"{name} references the harness-only session ledger — REV-022 finding"
