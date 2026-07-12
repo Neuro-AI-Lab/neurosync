@@ -46,5 +46,53 @@
     "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260711_222843_conversation.json",
     "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260711_222853_domain_inference.json",
     "written_at": "2026-07-11T22:28:53.902063"
+  },
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-12",
+    "is_revisit": false,
+    "final_slots": {
+      "chief_complaint": "살고 싶지 않다, 매일 그런 생각이 든다",
+      "history_of_present_illness": "매일 사라지고 싶다는 생각이 반복되며, 형이 짐이 될까 봐 연락도 하지 않고 있다",
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"... 형이 있긴 한데, 연락 안 해요. 짐이 되기 싫어서. 도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"생각 안 했어요. 어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.\"",
+      "family_history": "형이 있으나 연락하지 않음"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "substance_use_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_095027_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_095033_domain_inference.json",
+    "written_at": "2026-07-12T09:50:33.893647"
+  },
+  {
+    "session_index": 2,
+    "simulated_date": "2026-07-26",
+    "is_revisit": true,
+    "final_slots": {
+      "chief_complaint": "사라지고 싶은 마음이 더 커요",
+      "history_of_present_illness": "사라지고 싶은 마음이 더 커요",
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"... 형이 있긴 한데, 연락 안 해요. 짐이 되기 싫어서. 도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"생각 안 했어요. 어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.\"",
+      "family_history": "형이 있으나 연락하지 않음"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "substance_use_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_095056_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_095111_domain_inference.json",
+    "written_at": "2026-07-12T09:51:11.927826"
   }
 ]
