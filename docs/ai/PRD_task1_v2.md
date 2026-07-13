@@ -36,6 +36,7 @@
 | v2.10 | 2026-07-12 | **F3 재정의 (§4.1 신설, `PLAN-2026-W28-V`/`ADR-031`, 설계 v1, pre-implementation):** 사용자 지시로 F3의 정의가 갈라진다 — §4 원문이 서술하는 스테이트풀 설문 플래너(`OrchestratorAgent.plan_surveys`/`score_and_check_safety`, 라이브 11-state 채팅 플로우)는 **본 미션에서 변경 없이 유지**되며, "F3 v2.1"로 명명한 **별도·병행하는** 신규 경로가 §4.1에 추가된다: F2의 `ai_predicted_disease.recommended_questionnaire`(및 `recommendation_caveat`)가 지목한 설문 1개만 실행 → item bank 기반 문항 제시 → VP-simulator LLM이 in-persona로 점수 선택(F1 `patient_input_fn` 패턴) → `survey_scorer.py` 재사용 결정론적 채점 → VP별/세션별 원장에 기록해 향후 F5가 소비. Item bank v0: PHQ-9/AUDIT-C만 persona 파일 출처 구성개념 라벨로 populated, GAD-7/PHQ-4/WHO-5는 저장소 전역에 문항 원문·응답 anchor가 부재하여 unpopulated(허구 생성 금지) — v1 item bank는 사용자 결정 대기. 비진단 프레이밍 유지(`similarity_score`/설문 결과 모두 확률·진단 아님, `is_diagnostic: Literal[False]`). 이번 갱신은 **설계·문서 반영만**이며 구현·검증은 이 시점에 미착수(구현은 `PLAN-2026-W28-V` step 5, 별도 디스패치) — "구현 완료"/"검증됨" 서술 없음. 근거: `discussion.md` PLAN-2026-W28-V, ADR-031; `docs/ai/f3_quick_dev_plan.md` |
 | v2.11 | 2026-07-13 | **Item bank v1 로드 완료 (`PLAN-2026-W29-A`):** PHQ-9(Pfizer-primary)/GAD-7/PHQ-4(파생)/AUDIT-C 4개 척도가 연구 기반 출처 검증(brainstorm `item_bank_v1_sources.md`, clinical-validator content-fidelity gate `CVR-016` adequate-with-conditions → 5개 binding condition 전건 `CVR-017`§4에서 종결)을 거쳐 sourced-verbatim·appendix-audited 상태로 실장(WHO-5는 저장소 전역 원문 부재로 0/5 unpopulated 유지, exhaustive 재시도 로그 보유, 허구생성 0 원칙 준수). anchor·timeframe 문구가 시뮬레이터 응답-LLM 프롬프트 경로에 배선되고, forced-questionnaire 하네스 모드(`--force-questionnaire`, `administration_mode` 구조적 필드, `ADR-033`(6) — natural-chain/F2-linkage 증거와 별개의 evidence class로 제한, 프로덕션 `f3.py`/`f2.py` 동작 무변경)와 PHQ-9 문항9 결정론적 safety-pathway 소비자-seam 배선(코드 검증만, 라이브 미검증)이 추가됐다. AUDIT-C `threshold_caveat` 및 GAD-7 동등 caveat 필드(`CVR-017` binding condition 1 / `REV-039` correction D)가 실장·qa 검증됐다. **행동적 충실도(behavioral fidelity) 상태 — `CVR-017` binding condition 2에 따라 명시:** 문항 원문 sourcing 정확도 개선이 시뮬레이터 응답-LLM의 페르소나 충실도 개선을 의미하지 않는다 — `EXP-020` 실측에서 PHQ-9 세션당 총점 18/20(v0 13/15, 문서치 7), GAD-7 총점 17/중증(문서치 ~8/경증)으로 v0보다 문서치에서 더 멀어졌다(PHQ-9 9개 항목 중 5개 더 이탈/4개 동률/0개 근접). 이 whole-instrument 과다-인정(over-endorsement) 발견은 **열려있고(open) 완화되지 않았으며**, 메커니즘은 미검증(`REV-039`)이다 — v1 콘텐츠를 인용하는 어떤 향후 보고서도 이를 동반 공시해야 한다. item-8(정신운동 지연/초조)은 완전 anchor 문구 하에서도 동일 크기(+2)로 재현되어 "이 인스턴스(들)에서 아티팩트 지속"으로 판정(n=2, VP-001-only, bundled-change) — "resolved"/"fixed" 문구 금지. 별도 프로세스 사고 `BUG-038`(qa의 `git checkout --` 오류로 미커밋 `src/f3.py` 전체 소실, critical)은 byte-faithful 복원 + qa 재게이트 **GATE:PASS**(1415 passed/2 skipped, 정확 일치)로 종결 — 검토 대상 코드 자체의 결함이 아니다. 근거: `discussion.md` PLAN-2026-W29-A, CVR-016, ADR-033, REV-038, CVR-017, REV-039; `result.md` EXP-020; `error.md` BUG-038 |
 | v2.12 | 2026-07-13 | **`PLAN-2026-W29-B` 완료 (§4.1 갱신):** AUDIT-C Korean-primary 컷오프(male/unknown≥6·female≥5, Lee JH et al. 2018 KNHANES) 채택, 국제 컷오프(Bush et al. 1998, 4/3)는 non-action-driving metadata로 보존; 문항 원문은 sourced-verbatim 별지 제15호의3서식 소주-트랙(AUDIT-C v2)으로 이동; WHO-5 gap은 26회 재시도(retry-2) 후에도 재확인; `ISS-F2V-028` 요인분해(EXP-021, 10회 투여, Tier-1)는 "no dominant factor/inconclusive" 판정, 어떤 fix도 licensed되지 않음(`CVR-019` ∥ `REV-042` 독립 수렴); EXP-022 라이브 재검증에서 AUDIT-C v2 척도-천장 응답([4,4,4]=12/12, F3 검증사상 최초) 신규 관찰 — over-endorsement 패턴이 3번째·구조적으로 다른 척도로 확산 확인, 메커니즘은 미검증. `BUG-039`/`BUG-040` 해결. 근거: `discussion.md` PLAN-2026-W29-B, CVR-018, ADR-034, REV-040, REV-041, CVR-019, REV-042; `result.md` EXP-021, EXP-022; `error.md` BUG-039(resolved)/BUG-040(resolved) |
+| v2.13 | 2026-07-13 | **F4 quick development 완료 (§5 갱신, `PLAN-2026-W29-D`):** 종단 N-세션 분석 엔진(`src/f4.py`, commit `75472ee`) 구현 완료 — F1(slot/CTRS/crisis/probe/sentiment)+F2(domain/disease-similarity trend)+F3(item/total/band) 세션별 데이터를 VP당 1회 종단 분석으로 통합, aggregation basis/combination rule을 코드에서 사전공시(Criterion-0/0b). `REV-044`(critic) 사전-구현 검토 non-blocking-with-conditions → `CVR-020`(clinical-validator) adequate-with-conditions → `ADR-036`이 전 조건 dispositioned, 구현 licensed. qa **GATE:PASS**(suite 1669 passed/2 skipped; `BUG-041`/`BUG-042` mutation-coverage gap 발견·동일 세션 해결). `EXP-023`(VP-001×VP-003, 11세션×2, 22/22 세션 cell 완료, 0 실패) 약식 검증 — `CVR-021` 콘텐츠 pass → `REV-045`(post-evidence) evidence-sound-with-conditions(사전등록 8개 기준 전건 PASS) → `CVR-022`(post-evidence 임상 검토) adequate-with-conditions(binding condition 3건: VP-003 S8 사건의 S9 비지속성 공시, VP-001 item-9/CTRS 동일세션 불일치 공시, F3 계열 완전성의 급성도-반비례 성질 공시). 신규 전용 체크리스트: `docs/ai/f4_checklist.md`(`checklist_task1.md`의 T1-F4-* ID 시퀀스 승계, DEV-006/VER-007부터). 근거: `discussion.md` PLAN-2026-W29-D, ADR-036, REV-044, REV-045, CVR-020, CVR-021, CVR-022; `result.md` EXP-023; `error.md` BUG-041(resolved)/BUG-042(resolved) |
 
 ### 0.3 v1 대비 핵심 변경 요약
 
@@ -501,6 +502,50 @@ as-built 반영 사항:
 - Plot-ready 시계열 출력 (날짜별 척도 점수 + CTRS + 이벤트).
 
 **Phase 2 핵심**: F1 follow-up 세션 연쇄(§9.3)에서 생성된 **실제** prior/current 데이터(수집 slot 변화, 설문 점수 변화, sentiment 추이)로 direction 판정을 재검증한다. Evidence 필수 원칙(evidence 없는 판정 → unknown) 준수를 EvidenceVerifier 수준에서 확인한다.
+
+**상태 갱신 (2026-07-13, `PLAN-2026-W29-D` 완료 — 종단 N-세션 분석 엔진 구현 + 약식 기능 검증):** 위
+"합성 입력 기반 검증 통과... 실제 F1 세션 연쇄 데이터로는 미검증" 상태가 갱신됐다. 신규
+`src/f4.py`(N-세션 종단 분석 엔진, zero-LLM, commit `75472ee`)가 기존 pairwise
+`agents/temporal_summary.py`(위 as-built 서술, 프로덕션 라우트 무변경) 위에 구축됐다 — F1(slot-fill/
+session_ctrs/crisis/probe_events/sentiment 시계열), F2(domain_candidates confidence 추이 +
+`ai_predicted_disease`의 per-disease `similarity_score` 추이 — TREND이며 **확률 아님**, `VAL-014`
+계승), F3(per-item/총점/severity-band 전이, `critical_item_positive`) 3개 기능 전체의 세션별 데이터를
+VP당 1회 종단 분석으로 통합한다. `overall_direction`/`phq9_total`/`session_ctrs`/`sentiment` 등 각
+`TrendVerdict`의 산출 근거(aggregation basis)와 N-차원 결합 규칙은 코드 docstring에 구현 전
+사전공시된다(Criterion-0/0b, `REV-044`→`ADR-036` item 1). 산출물: `<VP>_<ts>_temporal.json` +
+`_temporal_report.md` + PNG 차트(scale/CTRS/sentiment 복합 패널, CTRS 줌, domain-confidence,
+disease-similarity, slot-fill).
+
+**약식 검증(`EXP-023`):** VP-001(개선-우세) × VP-003(부분개선 후 재발) 2개 페르소나 × 11세션
+(day 0~183, ~6개월) 시나리오 arc, F1→F2→F3 체이닝 후 VP당 1회 F4 분석 — 22/22 세션 셀 완료,
+0 실패, 0 재시도. qa 코드 게이트 **GATE:PASS**(suite 1669 passed/2 skipped; `BUG-041`/`BUG-042`
+mutation-survivor 발견 및 동일 세션 해결). qa step-8 독립 재계산이 shipped `temporal.json`과
+정확히 일치(Check 2/3). `REV-045`(critic, post-evidence adjudication): **evidence-sound-with-
+conditions** — 사전등록 Criteria 0/0b/1-6 전건 PASS, 0 blocking. `CVR-021`(콘텐츠 pass) →
+`CVR-022`(사후 임상 검토): **adequate-with-conditions** — 이미 실행된 배터리 자체를 막는 blocking
+없음, 향후 보고에 구속되는 binding condition 3건.
+
+**바인딩 워딩 (모든 향후 F4/`EXP-023` 인용에 적용, `REV-045` 최종 wording table[8행] 및
+`CVR-022` binding condition 1-3 — 상세는 `discussion.md` REV-045/CVR-022, `docs/ai/f4_checklist.md`
+참조):** F4는 실제 raw score 대비 산출된 방향성 판정의 산술적 정확성만을 보인다 —
+**"임상 상태 변화를 탐지/검증한다"는 서술, 민감도/특이도 주장, 안정 상태(no-change) 환자에 대한
+검증 주장은 어디에도 쓰지 않는다**(각본화된 arc만 존재, 비-각본 비교군 없음, `REV-044`
+circularity ruling / `REV-044` Issue 3 / `ADR-036` item 2 — 이번 미션에서 해소되지 않은 채로
+accepted). `similarity_score`/질환후보 추이는 **TREND이며 확률이 아니다**(`VAL-014` 계승, open).
+VP-001의 `overall_direction=improved`를 인용할 때는 반드시 sentiment 포함 여부에 대한 민감성
+(제외 시 `unchanged`로 뒤집힘, `REV-045` wording-table row 2)을 동반 공시한다. VP-003 S8
+"형-연계" 사건은 시스템에 존재하지 않는 보호자-연계-권고 기능을 검증한 것으로 서술하지 않는다
+(`CVR-021` Finding 1). S8 사건은 S9에서 지속되지 않음이 `CVR-022` Finding 2로 확인됐으므로,
+지속적 돌봄-연계 개선의 증거로 인용할 때는 반드시 S9 비지속성을 동반 공시한다(`CVR-022`
+binding condition 1). VP-001의 item-9 양성 세션(S1/S3/S7)을 안전-경로 증거로 인용할 때는 동일
+세션의 F1 CTRS/crisis 신호가 상승하지 않았음을 동반 공시한다(`CVR-022` binding condition 2).
+F3 계열 완전성이 이 배터리에서 환자 급성도와 반비례했음(VP-003 10/11 세션 결측, 그중 7건이
+crisis-triggered와 일치)을 F4의 종단 능력을 서술하는 모든 향후 문서가 명시해야 한다(`CVR-022`
+binding condition 3).
+
+전체 체크리스트: `docs/ai/f4_checklist.md`(신규, T1-F4-* ID 시퀀스 계승). 근거: `discussion.md`
+PLAN-2026-W29-D, REV-044, CVR-020, ADR-036, CVR-021, REV-045, CVR-022; `result.md` EXP-023;
+`error.md` BUG-041(resolved)/BUG-042(resolved).
 
 ---
 

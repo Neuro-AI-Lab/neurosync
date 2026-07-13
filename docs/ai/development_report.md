@@ -1404,3 +1404,231 @@ Two code defects the Track-1 gate found were fixed and independently re-gated: `
 **Linked:** `PLAN-2026-W29-B`, `CVR-018`, `ADR-034`, `REV-040`, `REV-041`, `CVR-019`, `REV-042`, `EXP-021`, `EXP-022`, `BUG-039`, `BUG-040`, `ISS-F2V-028`, `ISS-F2V-029`, `docs/ai/audit_c_korean_research.md`, `docs/ai/who5_sourcing_retry2.md`, `docs/ai/exp021_factorial_design.md`, `docs/ai/workflow_results_f1f2.md` `trustworthy-f3-decisions`.
 
 ---
+
+## DR-021 | 2026-07-13 | F4 quick development — longitudinal N-session state-change analysis engine (`PLAN-2026-W29-D`) — design, dual pre-implementation gates, implementation, qa gate, `CVR-021` pack pass, `EXP-023`, qa recompute, `REV-045`/`CVR-022` post-evidence review
+
+> **Scope and sourcing:** every number below is already recorded in `discussion.md` (`PLAN-2026-W29-D`,
+> `REV-044`, `CVR-020`, `ADR-036`, `CVR-021`, `REV-045`, `CVR-022`), `result.md` (`EXP-023`), and
+> `error.md` (`BUG-041`, `BUG-042`, both resolved; `VAL-010`/`VAL-014` status lines updated). No new
+> measurement or reinterpretation is performed here. Wording is bound by `REV-045`'s final wording
+> table (reproduced verbatim in §7 below), which extends/supersedes `REV-044`'s table, plus `CVR-022`'s
+> three binding conditions (§8).
+
+### 1. Mission
+
+`PLAN-2026-W29-D`, a single mission spanning design, implementation, and 약식 (abbreviated) functional
+validation for F4 — longitudinal (between-session) state-change analysis. User directive (verbatim,
+held): "F4 기능 quick 개발 및 필수 워크플로우 약식 기능 검증 하자," with a binding data-source
+directive that the longitudinal analysis consume each VP's F1 **and** F2 **and** F3 per-session
+information (slot/CTRS/risk/crisis/probe/sentiment from F1; domain candidates + `ai_predicted_disease`
+similarity trend from F2 — trend, never probability; per-item/total/severity-band transitions from
+F3).
+
+### 2. Design and dual pre-implementation gates
+
+Developer authored `docs/ai/f4_quick_dev_plan.md` (§0-§9 + self-check): a 2-VP × 11-session arc
+protocol (VP-001 `improvement_plateau`, VP-003 `relapse_after_partial_improvement`), a state taxonomy
+spanning all three upstream functions, a production/harness architecture split (`src/f4.py` zero-LLM
+vs. a `continuous_test.py` harness stage), and pre-registerable acceptance criteria.
+
+**`REV-044` (critic, pre-implementation):** non-blocking-with-conditions — 4 major issues (2
+blocking-scoped to Wave 1: the `scale_series` aggregation basis was unspecified and the one
+concretely-named mechanism, naive pairwise `_compare_scale` reuse with `SCALE_THRESHOLD=5`, was
+mathematically guaranteed by the arc tables' own numbers to suppress the intended signal; the
+`overall_direction` combination rule was undefined; 2 disclosure items: no stable/no-change archetype
+scripted this mission, F2/F3 artifacts lacked their own scenario-pack provenance tag), 2 minor. A
+circularity ruling established what a clean run would and would not validate (pipeline capability and
+F4's own arithmetic correctness — not independent change-detection sensitivity/specificity). Filed
+pre-registered acceptance Criteria 0/0b/1-6 and a MAY/MUST-NOT wording table, binding on the eventual
+EXP report.
+
+**`CVR-020` (clinical-validator, pre-implementation):** adequate-with-conditions — 1 finding rated
+blocking, scoped to Wave 3/7 (VP-003's persona names guardian-liaison recommendation as its expected
+system validation target, but the original 11-session arc depicted zero connection to actual care), 7
+major, 4 minor, 4 binding conditions. Independently converged with `REV-044`'s circularity ruling from
+a clinical-simulation-fidelity angle (Finding 12), with an honest independence disclosure where partial
+`REV-044` exposure could not be ruled out for one adjacent point.
+
+**`ADR-036` (orchestrator):** dispositioned every condition — adopted Criteria 0/0b as Wave-1
+requirements (first-vs-last delta + slope sign + band transitions as the primary basis, per-pair
+comparisons demoted to supplementary evidence; `overall_direction` = PRD §5's majority-vote-with-
+worsened-priority rule generalized to N dimensions); accepted the stable-arc coverage gap explicitly
+(no 3rd VP this mission, budget-driven); threaded `scenario_pack_id`/`arc_mode` onto F2/F3 artifact
+builders too; resolved `CVR-020` condition 1 by scripting a VP-003 care-connection event (S8) rather
+than caveat alone; corrected VP-001's S1 design-intent target to the persona-documented mild baseline
+(~7); adopted zero-marginal-cost schema/report upgrades (per-session `risk_signal` count, Mode-B
+`signal_strength`/`emotional_shift_detected`, `course_shape` field, cross-dimension concordance flag,
+band-transition constant-bias disclosure, on-chart low-confidence cue for the disease-similarity
+chart).
+
+### 3. Implementation
+
+Landed at commit `75472ee` (branch `feat/f4-longitudinal`): `src/f4.py` (N-session longitudinal
+analysis engine, zero LLM calls, Criterion-0/0b aggregation basis and combination rule disclosed in
+code docstrings) + `src/schemas/longitudinal.py` (`LongitudinalAnalysisOutput` and series-point models)
++ `src/services/f4_report.py` (file I/O split out, tightening Criterion 6 so `src/f4.py` itself has
+zero `open(` calls); `src/f1.py`'s narrow isolation seam (Option C: `scenario_guideline`/
+`scenario_pack_id` optional kwargs, inert for every non-scripted caller); `apps/ai-server/tests/
+simulation/scenario_pack.py` (both 11-session arc packs); `continuous_test.py`'s variable-cadence
+scheduling and F4 post-loop stage; `src/services/trend_plotter.py` extensions (slot-fill panel, new
+similarity/domain trend chart functions); `scenario_pack_id`/`arc_mode` provenance threading into F2/F3
+artifact builders (`REV-044` Issue 4 / `ADR-036` item 3).
+
+### 4. qa code gate
+
+**GATE:PASS** — CI-mirror suite 1669 passed / 2 skipped. Mutation-checks on the trend-math functions
+found two coverage gaps, both filed and resolved same session, no production-code change in either
+case (`git diff` empty, confirmed): `BUG-041` (`_first_last_slope_trend`'s confirmatory slope-sign
+computation — a sign-negated-slope mutant survived the full suite; regression test added, mutation
+re-applied and confirmed caught, then reverted) and `BUG-042` (`_SEVERITY_BAND_RANK`'s PHQ-9 ordinal
+ranking — an adjacent-band rank-swap mutant survived the full suite; same resolution pattern). Suite
+after fix: 1669 passed / 2 skipped, unchanged (the fix was test-only).
+
+### 5. `CVR-021` — scenario-pack content pass
+
+Clinical-validator reviewed the authored pack text (`scenario_pack.py`, both 11-session arcs) against
+each persona's own documented detail. **Verdict: adequate-with-conditions** — `CVR-020` conditions 1
+and 2 both SATISFIED as-implemented (VP-003's S8 care-connection event scripted as required; VP-001's
+S1 PHQ-9 target corrected to `~7`, matching the persona-documented mild baseline exactly). One new
+major, report-scoped (not execution-blocking) finding: the S8 event's causal framing ("계기로") is
+grounded only in the system's actual crisis behavior (a hotline referral plus a protective-factors
+probe question naming family as one example) — not a guardian-liaison-recommendation feature, which
+does not exist anywhere in `apps/ai-server/src` (0 grep hits for `보호자`). This finding became a
+binding caveat (carried into `REV-045`'s wording table row 6 below). **The live battery was clinically
+cleared to run** — nothing in this review blocked Wave 7 execution, only its reporting.
+
+### 6. `EXP-023` — 약식 validation battery
+
+2 VPs (VP-001 `improvement_plateau`, VP-003 `relapse_after_partial_improvement`) × 11 scripted
+sessions each (day 0 to day 183, ~6 months, weekly→biweekly→monthly cadence taper), F1→F2→F3 chained,
+followed by one F4 analysis per VP. **22/22 session-cells completed, 0 session-level failures, 0
+retries**, 1570/1570 HTTP calls returned 200. Git HEAD `75472ee` throughout; prompt pins re-verified
+unchanged.
+
+- **VP-001:** all 11 sessions F1 exit pass, F2 `mode=rag` (11/11), F3 `outcome=administered` (11/11,
+  PHQ-9), 0 crisis-triggered. Observed PHQ-9 series `[22,18,22,20,17,17,19,20,18,18,17]` — direction
+  `improved` (S1→S11: 22→17, severe→moderately_severe), `session_ctrs=unchanged` (flat at 4),
+  `sentiment=improved`, `slot_fill_count=improved` (4→7). `course_shape=unknown` (an honest fallback —
+  the observed series has one ≥2-step worsening run, sessions 6→7→8, plus one isolated single-step
+  worsening blip at session 2→3, and PHQ-9's global max ties at session 1, disqualifying every named
+  archetype under the disclosed decision order — corrected count per `REV-045` Issue 5, superseding
+  the original entry's overstated "two separate ≥2-step runs" language). Item-9 (SI) positive in 3/11
+  administered sessions (S1, S3, S7) on a persona documented as no-SI-at-any-point.
+- **VP-003:** F2 fell to `mode=llm_only` (empty candidates) in 10/11 sessions — only session 9 reached
+  `mode=rag`; F3 `outcome=no_questionnaire_indicated` (0 items) in the same 10/11 sessions, so
+  `phq9_total=unknown` (n=1 comparable point, the S9 administration, which landed at the scale's
+  absolute ceiling, 27/27, `critical_item_positive=True`). `overall_direction=worsened` is carried
+  entirely by `session_ctrs`'s first-vs-last decline (3→2), not by the survey-score series. All 3
+  pre-registered S5-S7 watch-window sessions plus 4 more (10 of 11 total, 7 coinciding with
+  `crisis_triggered=True`) are recorded in `crisis_f3_gaps` and surfaced prominently in the shipped
+  markdown report's risk section, per `CVR-020`/`ADR-036`'s mandated mechanism. `concordance_flag=
+  discordant` (`session_ctrs=worsened` vs. `sentiment=improved` in the same series) — the new
+  cross-dimension check caught a real contradiction it was built to catch.
+- **Ledger isolation:** both VPs' shared session ledgers carried 9/7 pre-existing entries from
+  unrelated prior batteries. `_run_f4_analysis` consumes a persona's entire ledger with no
+  scenario-pack filtering; left at the default path, F4 would have silently blended historical
+  sessions into this battery's series. Isolated via `--out` into `experiments/EXP-023/runs/<vp>/
+  artifacts/` — self-identified pre-run by the tracker, before it could contaminate any output.
+
+### 7. qa step-8 recompute and `REV-045` post-evidence adjudication
+
+qa independently recomputed severity bands (12/12 administered sessions exact match, 0 BUG), replayed
+the full production pipeline byte-for-byte against both shipped `temporal.json` files (exact match
+excl. timestamp), spot-checked plot-point traceability, confirmed non-silent crisis-session sentiment
+degradation, and swept both artifacts for wording-law compliance (7 sub-checks, all clean).
+
+**`REV-045` (critic, post-evidence): evidence-sound-with-conditions.** All 8 pre-registered criteria
+(0, 0b, 1, 2, 3, 4, 5, 6) **PASS**, 0 blocking. Two disclosed deviations both ruled sound: (a)
+`overall_direction`'s N-dimension vote deliberately includes `sentiment` beyond the as-built PRD §5
+membership (PHQ-9/GAD-7/CTRS only) — disclosed, outcome-blind, and independently confirmed
+**outcome-determinative** for VP-001 specifically (excluding sentiment would flip `improved` to
+`unchanged` for this exact series) — licensed to stand, but now bound to a new wording-table row; (b)
+the `--out` ledger-isolation workaround, confirmed sound by direct code trace, with a harness-side
+`--fresh-ledger`/scenario-scoped-filter fix licensed as non-urgent, opportunistic follow-up. Three
+further dispositions, none warranting a new VAL: (c) VP-003's F2 gap-at-scale extends the already-open
+`VAL-010` (Stage-1 query-exclusion precondition), now reproduced at 10/11 sessions across a full
+longitudinal arc; (d) item-9/SI positives on both VPs extend the already-open `ISS-F2V-028`
+whole-instrument over-endorsement finding; (e) VP-001's observed-vs-design-intent PHQ-9 magnitude
+divergence (22→17 vs. ~7→3-4 intended) is a reportable finding per Criterion 1's own carve-out, not an
+F4 arithmetic error (qa's byte-exact replay confirms the arithmetic given the actual raw scores). One
+narrative-only correction directed to `result.md`: Key Finding 2's original "two separate ≥2-step
+worsening runs" overstated the code-verified count by one (§6 above).
+
+### `REV-045` final wording table (verbatim — binding on `EXP-023` and every downstream doc citing it)
+
+| # | MAY say | MUST NOT say |
+|:--|:--|:--|
+| 1 | (carried) F4 correctly computed the shipped direction verdicts given the actual raw scores this battery produced — qa's step-8 recompute (Checks 2/3) confirms this exactly for both VPs | F4 "detects"/"validates" clinical state change in general — no non-scripted comparison condition exists (circularity ruling, REV-044) |
+| 2 | (new) `overall_direction`'s N-dimension vote deliberately includes `sentiment` (ADR-036 item 1, concretized in `_overall_direction`, f4.py:534-574) — a disclosed, outcome-blind, principled design choice grounded in the user's own directive and licensed to stand for future runs | Cite VP-001's `overall_direction=improved` without disclosing that this specific verdict is sensitive to the inclusion choice: excluding `sentiment` (the as-built PRD §5 membership) would yield `unchanged` instead for this exact series (independently re-derived, Issue 1) — a standing property whenever a series has an even number of non-excluded voting dimensions (e.g., GAD-7 not administered), not unique to this run |
+| 3 | (carried) `similarity_score`/disease-candidate content is a similarity TREND over noisy inputs (VAL-014 inherited, open) | Treat disease-candidate trend content as clinically validated, or treat VAL-014 as closed — VP-003 S9's rank-4 PMDD candidate for a documented-male patient is a fresh, live reconfirmation of VAL-014, not a new issue |
+| 4 | (carried) This is a single-batch (n=1 arc per VP) technical, pipeline-functional exercise; no non-scripted comparison condition exists | Generalize from 2 VPs, or claim F4's stable/no-change-patient behavior was tested (REV-044 Issue 3/ADR-036 item 2 stands, unremediated this mission) |
+| 5 | (new) VP-003's `overall_direction=worsened` is carried entirely by `session_ctrs`'s first-vs-last decline (3->2); `phq9_total` itself reads `unknown` (n=1, S9 only). S5 and S6 (2 of the pre-registered S5-S7 watch window's 3 sessions) both appear in `crisis_f3_gaps` with `session_ctrs` at its series minimum, consistent with (not proof of) elevated risk in that window | Say F4 "identified"/"flagged" S5-S7 as a distinct worsening episode as a machine-computed output — no such field exists; the S5-S7 framing in EXP-023 is the tracker's own CVR-020/ADR-036-mandated narrative disclosure of a data gap, not an F4-computed signal, and S7 itself (session_ctrs=3, non-crisis-triggered) is absent from every gap/crisis evidence list |
+| 6 | (carried, CVR-021 binding) VP-003's S8 event is patient-initiated narrative content loosely motivated by the system's actual crisis-response output (hotline referral + protective-factors probe naming family as one example) | Characterize S8 as validating a guardian-liaison-recommendation capability — none exists in apps/ai-server/src (0 grep hits for 보호자, CVR-021 Finding 1, re-confirmed) |
+| 7 | (new) VP-001's observed PHQ-9 trajectory (22->17) is directionally congruent with, but numerically far more severe than, the arc's design intent (~7->3-4); an upstream (simulator/F1/F3) divergence, not an F4 arithmetic error (qa Check 3 confirms exact arithmetic given actual scores); this, together with VP-001's 3/11 item-9-positive sessions on a no-SI-documented persona and VP-003's S9 ceiling response, extends the standing ISS-F2V-028 over-endorsement finding with a new longitudinal-scale instance | Describe this divergence as evidence against F4's own correctness, or as a newly diagnosed, independent mechanism requiring separate remediation this mission — it is one more data point on an already-open, disclosed issue |
+| 8 | (new) The isolated-ledger workaround (--out into experiments/EXP-023/) is confirmed, by direct code trace (this review), to produce a clean, contamination-free 11-entry series per VP for this battery | Assume ledger isolation happens automatically in any future scripted F4 battery that omits --out — the default path silently blends all historical sessions for a persona (Key Finding 1) until the licensed harness-side fix (Deviation (b) above) lands |
+
+### 8. `CVR-022` — post-evidence clinical review
+
+**Verdict: adequate-with-conditions.** The F4 report format has genuine, working clinical value — the
+`CVR-020`-mandated crisis/F3-gap surfacing mechanism fires cleanly and prominently, the new
+cross-dimension concordance check caught a real same-arc contradiction, and the per-session sentiment
+upgrades add real color at zero marginal cost. 0 findings are blocking to what already ran; all bind
+future reporting/development. Two new major findings drove three binding conditions: (1) VP-003's S8
+"care-connection" event — the exact event `CVR-021` conditionally accepted as resolving `CVR-020`'s
+original blocking finding — does not survive into S9's own F1 dialogue or slots one month later (a
+same-session slot-update lag plus a full narrative/slot reversal, including an explicit denial of any
+psychiatric contact); (2) no same-session reconciliation mechanism exists between F3's item-9
+(suicidal-ideation) positive/`safety_referral` and F1's `session_ctrs`/`crisis_triggered` — VP-001's
+3/11 item-9-positive sessions all showed flat CTRS and no crisis flag, and nothing in the shipped
+output co-displays the two signals; (3) F3-series completeness in this battery is not randomly missing
+— it is inversely correlated with patient acuity (VP-003: 10/11 gapped, 7 of those coinciding with
+crisis-triggered sessions), because the same risk-adjacent dialogue content that makes quantified
+tracking most valuable is exactly what trips the F2 gate that suppresses `recommended_questionnaire`.
+Six further minor findings (PHQ-9 panel chart-legibility defects, gap-interpolation charts implying
+false continuity, a fresh VP-001 PMDD top-ranking instance, `crisis_f3_gaps`' binary-threshold scope
+gap, `course_shape`'s 0/2 informative-but-uninterpreted yield, a garbled slot-quote fragment) round out
+real, fixable thinness. Five non-binding recommendations were routed to orchestrator (§8 of `f4_
+checklist.md`).
+
+**`CVR-022` binding conditions (paraphrased; full text `discussion.md` `CVR-022`):**
+1. Any future citation of VP-003's S8 event as evidence of durable improvement must first check S9's
+   own record and disclose the event's substance is absent from S9's captured dialogue/slots.
+2. Any future citation of VP-001's item-9-positive sessions as safety-pathway evidence must disclose,
+   alongside it, that the same sessions' F1-derived CTRS/crisis signal showed no elevation.
+3. Any future clinician-facing description of F4's longitudinal capability must state explicitly that
+   F3-series completeness was inversely correlated with patient acuity in this battery.
+
+### 9. Coverage boundary and standing disclosures (stated plainly)
+
+**This battery demonstrates pipeline capability and F4's own arithmetic correctness — not F4's
+sensitivity or specificity as an independent change-detection algorithm.** No non-scripted comparison
+condition exists in this battery (`REV-044` circularity ruling, unchanged). No stable/no-net-change
+archetype was scripted this mission — F4's false-positive-rate behavior on a genuinely stable patient
+remains untested (`REV-044` Issue 3 / `ADR-036` item 2, accepted, unremediated, reserved for a future
+wider battery). `VAL-010` (F2 Stage-1 query-exclusion precondition) and `VAL-014` (RAG candidate
+face-validity, including a fresh male-patient-adjacent PMDD instance for VP-001) are both open and both
+reconfirmed at a larger scale by this battery — no fix is licensed by this evidence for either.
+`ISS-F2V-028` (whole-instrument over-endorsement) gains a new longitudinal-scale instance, narrowed-not-
+resolved. `VP-001`'s `overall_direction=improved` is sensitive to a disclosed, principled but
+outcome-determinative design choice (sentiment inclusion) that must accompany any citation. The single
+scripted event this mission built specifically to resolve VP-003's care-continuity gap does not survive
+into the very next session's own record. No wording anywhere in this report or its downstream folds may
+imply F4 detects or validates clinical state change in general, that similarity trends are
+probabilities, or that a stable-patient false-positive rate was measured.
+
+### 10. Linked items and cross-cutting notes
+
+`BUG-041` and `BUG-042` are both resolved (test-only fixes, same session, independently re-verified by
+qa). `VAL-010`'s `error.md` status line is updated to record this battery's larger-scale reconfirmation
+(10/11 sessions, vs. the earlier single-session evidence base). `VAL-014`'s `error.md` status line is
+updated to record the VP-003 S9 male-patient-adjacent PMDD reconfirmation. `ISS-F2V-028` receives a
+longitudinal-scale instance, tracked in `docs/ai/workflow_discussion_f1f2.md` (not an `error.md`
+VAL-numbered entry). Full checklist, including 9 licensed-but-open follow-up items (harness ledger
+filter, a Mode-B sentiment-fallback regression test, the reserved stable-arc battery cell, `CVR-022`'s
+5 recommendations, and an F2 Stage-1 slot-coverage revisit): `docs/ai/f4_checklist.md`.
+
+**Linked:** `PLAN-2026-W29-D`, `REV-044`, `CVR-020`, `ADR-036`, `CVR-021`, `EXP-023`, `REV-045`,
+`CVR-022`, `BUG-041`, `BUG-042`, `VAL-010`, `VAL-014`, `ISS-F2V-028`, `docs/ai/f4_quick_dev_plan.md`,
+`docs/ai/f4_checklist.md`.
+
+---
