@@ -278,10 +278,20 @@ class TestExpectedAnswerFn:
 
     @pytest.mark.asyncio
     async def test_vp012_audit_c_matches_documented_total(self) -> None:
+        """REV-041 Resolution 1 / CVR-018 binding condition 6: VP-012's §3
+        AUDIT-C table (item vector `[4, 3, 4]`, total 11) is explicitly
+        marked superseded (`VP-012_first_visit_alcohol.md:125-126`) by
+        §9.4's soju-track re-derivation (item vector `[4, 1, 3]`, total 8,
+        disclosed range 7-9) — `_extract_expected_scores_table`'s
+        supersession-awareness (this REV-041 fix) means `expected_answer_fn`
+        now returns the CURRENT (§9) values, never the superseded 11, so
+        `--answer-mode expected` can no longer silently violate binding
+        condition 6."""
         fn = expected_answer_fn("VP-012", "AUDIT-C")
         entry = get_item_bank("AUDIT-C")
         responses = [await fn(item) for item in entry.items]
-        assert sum(responses) == 11  # VP-012 persona doc: AUDIT-C 합계 11
+        assert responses == [4, 1, 3]  # VP-012 persona doc §9.4 (supersedes §3's [4, 3, 4])
+        assert sum(responses) == 8  # §9.4 point-estimate total (disclosed range 7-9)
 
     @pytest.mark.asyncio
     async def test_vp012_phq9_matches_documented_total(self) -> None:
@@ -334,3 +344,119 @@ class TestExtractExpectedScoresTable:
 
         with pytest.raises(ValueError, match="No '### GAD-7"):
             _extract_expected_scores_table("no such table here", "GAD-7")
+
+
+class TestExtractExpectedScoresTableSupersession:
+    """REV-041 Resolution 1 / CVR-018 binding condition 6: an append-only
+    persona doc may mark a `### {scale} 예상 항목별 점수` table explicitly
+    superseded without editing it in place; `_extract_expected_scores_table`
+    must then prefer a later, complete replacement table over the flagged
+    values — never silently return the superseded numbers. Synthetic
+    fixtures here exercise the parsing logic directly (not dependent on the
+    real `VP-012_first_visit_alcohol.md` file staying byte-unchanged);
+    `TestExpectedAnswerFn.test_vp012_audit_c_matches_documented_total`
+    covers the real-file integration path.
+    """
+
+    def test_prefers_complete_replacement_table_after_superseded_marker(self) -> None:
+        from tests.simulation.survey_answer_llm import _extract_expected_scores_table
+
+        md = (
+            "### AUDIT-C 예상 항목별 점수\n\n"
+            "| 항목 | 점수 | 근거 |\n|---|---|---|\n"
+            "| 1. 음주 빈도 | 4 | x |\n"
+            "| 2. 1회 음주량 | 3 | x |\n"
+            "| 3. 폭음 빈도 | 4 | x |\n"
+            "| **합계** | **11** | |\n\n"
+            "> **Status:** superseded by the derivation note in §9 below.\n\n"
+            "---\n\n"
+            "## 9. Re-derivation note\n\n"
+            "| 항목 | 새 점수 | 근거 |\n|---|---|---|\n"
+            "| 1. 음주 빈도 | 4 | x |\n"
+            "| 2. 1회 음주량 | 1 | x |\n"
+            # Trailing prose in the score cell (point-estimate + disclosed
+            # range) — the lenient supersession row-matcher must still
+            # extract the leading integer, matching VP-012 §9.4's own item 3.
+            "| 3. 폭음 빈도 | 3 (point est., range 2-4) | x |\n"
+            "| **합계** | **8** (range 7-9) | |\n"
+        )
+        scores = _extract_expected_scores_table(md, "AUDIT-C")
+        assert scores == {1: 4, 2: 1, 3: 3}  # the replacement table, not the superseded [4,3,4]
+
+    def test_no_replacement_table_raises_loudly_not_silent_fallback(self) -> None:
+        from tests.simulation.survey_answer_llm import _extract_expected_scores_table
+
+        md = (
+            "### AUDIT-C 예상 항목별 점수\n\n"
+            "| 항목 | 점수 | 근거 |\n|---|---|---|\n"
+            "| 1. 음주 빈도 | 4 | x |\n"
+            "| 2. 1회 음주량 | 3 | x |\n"
+            "| 3. 폭음 빈도 | 4 | x |\n"
+            "| **합계** | **11** | |\n\n"
+            "> **Status:** superseded by a derivation note that, in this fixture, never "
+            "actually ships a replacement table.\n\n"
+            "---\n\n"
+            "## 9. Re-derivation note (prose only, no table)\n\n"
+            "Some prose explaining the re-derivation, with no parseable item table.\n"
+        )
+        with pytest.raises(ValueError, match="marked superseded but no complete replacement"):
+            _extract_expected_scores_table(md, "AUDIT-C")
+
+    def test_incomplete_partial_table_after_marker_is_ignored(self) -> None:
+        """A partial/example table (not covering all 3 AUDIT-C item indices)
+        appearing after the superseded marker must never be mistaken for
+        the real replacement — only a table whose key set is exactly
+        `{1, 2, 3}` counts."""
+        from tests.simulation.survey_answer_llm import _extract_expected_scores_table
+
+        md = (
+            "### AUDIT-C 예상 항목별 점수\n\n"
+            "| 항목 | 점수 | 근거 |\n|---|---|---|\n"
+            "| 1. 음주 빈도 | 4 | x |\n"
+            "| 2. 1회 음주량 | 3 | x |\n"
+            "| 3. 폭음 빈도 | 4 | x |\n"
+            "| **합계** | **11** | |\n\n"
+            "> **Status:** superseded, see §9.\n\n"
+            "---\n\n"
+            "## 9. Re-derivation note\n\n"
+            "An illustrative partial example (item 2 only, not the real replacement):\n\n"
+            "| 항목 | 점수 |\n|---|---|\n| 2. 1회 음주량 | 1 |\n\n"
+            "The full replacement table:\n\n"
+            "| 항목 | 새 점수 | 근거 |\n|---|---|---|\n"
+            "| 1. 음주 빈도 | 4 | x |\n"
+            "| 2. 1회 음주량 | 1 | x |\n"
+            "| 3. 폭음 빈도 | 3 | x |\n"
+        )
+        scores = _extract_expected_scores_table(md, "AUDIT-C")
+        assert scores == {1: 4, 2: 1, 3: 3}
+
+    def test_no_superseded_marker_returns_primary_table_unchanged(self) -> None:
+        """Sanity/non-regression: a table with no supersession marker at all
+        (every persona/scale table except VP-012's AUDIT-C) is returned
+        exactly as before -- supersession-awareness is opt-in via the
+        marker, never triggered spuriously."""
+        from tests.simulation.survey_answer_llm import _extract_expected_scores_table
+
+        md = (
+            "### PHQ-9 예상 항목별 점수\n\n"
+            "| 항목 | 점수 | 근거 |\n|---|---|---|\n"
+            "| 1. 흥미/즐거움 감소 | 1 | x |\n"
+            "| 2. 우울감 | 2 | x |\n"
+            "| **합계** | **3** | |\n\n---\n"
+        )
+        scores = _extract_expected_scores_table(md, "PHQ-9")
+        assert scores == {1: 1, 2: 2}
+
+    def test_vp012_real_persona_file_returns_superseding_table(self) -> None:
+        """Integration check against the REAL `VP-012_first_visit_alcohol.md`
+        file (not a synthetic fixture) — confirms the supersession-aware
+        parser actually resolves §9.4's replacement table for the real
+        document, not just a hand-built one."""
+        from tests.simulation.patient_llm import PERSONAS_DIR
+        from tests.simulation.survey_answer_llm import _extract_expected_scores_table
+
+        matches = list(PERSONAS_DIR.glob("VP-012_*.md"))
+        assert matches, "VP-012 persona file not found"
+        content = matches[0].read_text(encoding="utf-8")
+        scores = _extract_expected_scores_table(content, "AUDIT-C")
+        assert scores == {1: 4, 2: 1, 3: 3}

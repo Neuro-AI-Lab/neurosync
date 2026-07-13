@@ -47,6 +47,13 @@ class PatientPersona:
     example_utterances: str  # Section 5 from MD file
     prior_handoff: str = ""  # Section 4: 이전 handoff report (재진 시)
     prior_conversation: str = ""  # Section 5 이전 대화 기록 (재진 시)
+    # "male" / "female" / "unknown" — parsed from Section 1's "성별" row
+    # (REV-041 Resolution 2). Feeds F3 AUDIT-C's sex-conditional Korean
+    # threshold (`src.scoring.survey_scorer._score_audit_c`), matching the
+    # domain `tests/simulation/factorial_driver.py`'s own `--patient-sex`
+    # flag already uses. Defaults to "unknown" when Section 1 has no
+    # parseable 성별 row — never guessed.
+    patient_sex: str = "unknown"
 
 
 def load_persona(persona_id: str) -> PatientPersona:
@@ -106,6 +113,12 @@ def load_persona(persona_id: str) -> PatientPersona:
     ctrs_match = re.search(r"CTRS.*?(\d)", content)
     ctrs_expected = int(ctrs_match.group(1)) if ctrs_match else 5
 
+    # Extract Section 1's "성별" (sex) demographics row (REV-041 Resolution
+    # 2) — e.g. `| 성별 | 남성 |`. Matches the FIRST such row (every persona
+    # file's Section 1 table has exactly one); defaults to "unknown" rather
+    # than guessing when absent or unrecognized.
+    patient_sex = _extract_patient_sex(content)
+
     # Extract Section 6: Patient LLM simulation prompt (between ``` markers)
     section6 = _extract_section_content(content, "Patient LLM simulation prompt")
     if not section6:
@@ -161,7 +174,30 @@ def load_persona(persona_id: str) -> PatientPersona:
         example_utterances=section5 or "",
         prior_handoff=prior_handoff,
         prior_conversation=prior_conversation,
+        patient_sex=patient_sex,
     )
+
+
+_PATIENT_SEX_ROW_RE = re.compile(r"\|\s*성별\s*\|\s*([^|]+?)\s*\|")
+
+
+def _extract_patient_sex(content: str) -> str:
+    """Parse the `| 성별 | <값> |` demographics row into "male"/"female"/
+    "unknown" (REV-041 Resolution 2, `CVR-018`/`ADR-034` sex-conditional
+    AUDIT-C threshold — `src.scoring.survey_scorer._score_audit_c`). Never
+    guesses: an absent row, or a value that is neither "남성" nor "여성",
+    both degrade to "unknown" (the scorer's own safe default), same
+    discipline as `factorial_driver.py --patient-sex`'s own default.
+    """
+    match = _PATIENT_SEX_ROW_RE.search(content)
+    if match is None:
+        return "unknown"
+    value = match.group(1)
+    if "여성" in value:
+        return "female"
+    if "남성" in value:
+        return "male"
+    return "unknown"
 
 
 def _extract_section_content(md: str, section_name: str) -> str:

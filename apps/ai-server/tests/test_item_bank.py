@@ -284,6 +284,23 @@ class TestAuditCV2ByteFidelity:
         assert item2.secondary_track_conversion_note_ko is not None
         assert item2.secondary_track_conversion_note_ko in audit_c_research_note_text
 
+    def test_item2_primary_track_label_byte_matches_research_note(
+        self, audit_c_research_note_text: str
+    ) -> None:
+        """BUG-039 fix: item 2's primary (소주) track needs its own sourced
+        label so `build_item_prompt` can render both tracks distinguishably
+        — verbatim from `docs/ai/audit_c_korean_research.md` §3.2's own
+        bolded "소주 트랙" table-row label, never invented in the harness."""
+        item2 = get_item_bank("AUDIT-C").items[1]
+        assert item2.primary_track_label == "소주 트랙"
+        assert item2.primary_track_label in audit_c_research_note_text
+
+    def test_only_item2_has_primary_track_label(self) -> None:
+        entry = get_item_bank("AUDIT-C")
+        assert entry.items[0].primary_track_label is None
+        assert entry.items[1].primary_track_label is not None
+        assert entry.items[2].primary_track_label is None
+
     def test_item1_ships_mirror1_complete_five_anchor_set(self) -> None:
         """CVR-018 Q2(a) / binding condition 3: item 1 ships mirror 1's
         complete five-anchor set, including the zero/never anchor mirror 2

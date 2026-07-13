@@ -180,12 +180,16 @@ class SurveyResultOutput(BaseModel):
         description=(
             "Machine-readable band-output caveat, populated for an AUDIT-C or GAD-7 "
             "'administered' outcome (CVR-016 condition 3 / ADR-033 decision 2; extended "
-            "to GAD-7 by CVR-016/CVR-017 binding condition 1 / REV-039 correction D) — "
-            "AUDIT-C: the byte-frozen male>=4/female>=3 threshold's non-reconciliation "
-            "with Korean-population evidence. GAD-7: the byte-frozen severity bands' "
-            "Korean-language scoring-table citation was retracted during v1 sourcing; "
-            "bands now rest on international-convention-only sourcing (Spitzer et al. "
-            "2006). `None` for every other scale."
+            "to GAD-7 by CVR-016/CVR-017 binding condition 1 / REV-039 correction D; "
+            "AUDIT-C rewritten for the Korean-primary threshold by CVR-018 Q4 / ADR-034 "
+            "decision 1-2, BUG-040 fix) — AUDIT-C: the Korean-primary male>=6/female>=5 "
+            "threshold's basis (Lee JH et al. 2018 KNHANES) and the international "
+            "cutoff's (Bush et al. 1998) non-adoption rationale, retained only as "
+            "non-action-driving metadata (see audit_c_international_threshold for its "
+            "numeric values). GAD-7: the byte-frozen "
+            "severity bands' Korean-language scoring-table citation was retracted "
+            "during v1 sourcing; bands now rest on international-convention-only "
+            "sourcing (Spitzer et al. 2006). `None` for every other scale."
         ),
     )
     audit_c_international_threshold: AuditCInternationalThresholdMetadata | None = Field(

@@ -110,16 +110,21 @@ class ScaleItem:
     one source); `source` matters most for PHQ-4, whose 4 items trace to
     TWO different parent-instrument appendix blocks.
 
-    `secondary_track_label`/`secondary_response_anchors`/
+    `primary_track_label`/`secondary_track_label`/`secondary_response_anchors`/
     `secondary_track_conversion_note_ko`: AUDIT-C v2 item 2 only (`CVR-018`
-    Q2(c) / `ADR-034` decision 2). The sourced [별지 제15호의3서식] form
-    bifurcates item 2 into a native 소주-bottle track (`response_anchors`,
-    the primary/administered-by-default track) and a glasses-based "기타
-    술" track with its own explicit beer/makgeolli/draft-beer unit-
-    conversion table — adopted specifically because it structurally
-    eliminates the Western/soju unit-conversion confound `CVR-017` Finding
-    4 live-confirmed under v1's Western-unit-only item 2. `None` for every
-    item that is not dual-tracked (every item except AUDIT-C v2 item 2).
+    Q2(c) / `ADR-034` decision 2, `BUG-039` fix). The sourced [별지
+    제15호의3서식] form bifurcates item 2 into a native 소주-bottle track
+    (`response_anchors`, the primary/administered-by-default track,
+    labeled "소주 트랙" verbatim in `docs/ai/audit_c_korean_research.md`
+    §3.2's own table row) and a glasses-based "기타 술" track with its own
+    explicit beer/makgeolli/draft-beer unit-conversion table — adopted
+    specifically because it structurally eliminates the Western/soju
+    unit-conversion confound `CVR-017` Finding 4 live-confirmed under v1's
+    Western-unit-only item 2. `primary_track_label` is populated ONLY when
+    `secondary_response_anchors` is also populated (i.e. only for a
+    dual-tracked item) — a single-tracked item's `response_anchors` needs
+    no distinguishing label. `None` for every item that is not dual-tracked
+    (every item except AUDIT-C v2 item 2).
     """
 
     index: int  # 1-based
@@ -128,6 +133,7 @@ class ScaleItem:
     response_max: int
     response_anchors: dict[int, str] | None = None
     source: str = ""
+    primary_track_label: str | None = None
     secondary_track_label: str | None = None
     secondary_response_anchors: dict[int, str] | None = None
     secondary_track_conversion_note_ko: str | None = None
@@ -246,6 +252,7 @@ def _audit_c_item_v2(
     anchors: dict[int, str],
     source: str,
     *,
+    primary_track_label: str | None = None,
     secondary_track_label: str | None = None,
     secondary_response_anchors: dict[int, str] | None = None,
     secondary_track_conversion_note_ko: str | None = None,
@@ -253,6 +260,7 @@ def _audit_c_item_v2(
     return ScaleItem(
         index=index, text_ko=text_ko, response_min=0, response_max=4,
         response_anchors=anchors, source=source,
+        primary_track_label=primary_track_label,
         secondary_track_label=secondary_track_label,
         secondary_response_anchors=secondary_response_anchors,
         secondary_track_conversion_note_ko=secondary_track_conversion_note_ko,
@@ -511,6 +519,7 @@ _AUDIT_C_ITEMS_V2: tuple[ScaleItem, ...] = (
         "술을 마시는 날은 보통 어느 정도 마십니까? (아래의 두 곳 중 주로 드시는 술을 "
         "선택하여 한 곳에 표시해 주시면 됩니다.)",
         _AUDIT_C_ITEM2_SOJU_ANCHORS_V2, AUDIT_C_V2_PROVENANCE,
+        primary_track_label="소주 트랙",
         secondary_track_label="기타 술 트랙",
         secondary_response_anchors=_AUDIT_C_ITEM2_OTHER_ANCHORS_V2,
         secondary_track_conversion_note_ko=_AUDIT_C_ITEM2_OTHER_CONVERSION_NOTE_V2,

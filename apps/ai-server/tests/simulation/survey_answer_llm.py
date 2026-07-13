@@ -79,8 +79,13 @@ def build_item_prompt(
     response_max: int,
     response_anchors: dict[int, str] | None,
     instruction_ko: str | None,
+    primary_track_label: str | None = None,
+    secondary_track_label: str | None = None,
+    secondary_response_anchors: dict[int, str] | None = None,
+    secondary_track_conversion_note_ko: str | None = None,
 ) -> str:
-    """Pure, side-effect-free prompt construction (EXP-021/REV-040 (2)).
+    """Pure, side-effect-free prompt construction (EXP-021/REV-040 (2);
+    dual-track rendering added by `BUG-039`'s fix).
 
     Decouples instruction-line presence from anchor-menu presence: the
     original `_build_prompt` only ever emitted `instruction_ko` inside the
@@ -96,7 +101,24 @@ def build_item_prompt(
     reproduces the v0 bare-integer ask exactly (§EXP-021 Cell 1); anchors
     populated + instruction present reproduces the v1 anchor-menu ask
     exactly (§EXP-021 Cell 8) — see the golden tests in
-    `test_survey_answer_llm.py`.
+    `test_survey_answer_llm.py`. Also byte-identical to the pre-BUG-039
+    single-track rendering whenever `secondary_response_anchors` is not
+    supplied (every item except AUDIT-C v2 item 2) — the dual-track branch
+    below is additive, never a change to any existing call site's output.
+
+    `secondary_response_anchors` (`BUG-039`, `CVR-018` Q2(c) / `ADR-034`
+    decision 2): when populated (AUDIT-C v2 item 2 only), both response
+    tracks are rendered — `primary_track_label`/`secondary_track_label`
+    distinguish them and `secondary_track_conversion_note_ko` (the sourced
+    unit-conversion table) is appended — mirroring the sourced item text's
+    own "아래의 두 곳 중... 선택하여" (choose whichever of the two below)
+    instruction. Both tracks' anchor values are on the SAME 0-4 point
+    scale (each anchor's own label already carries its point value, e.g.
+    "1병 이하(1점)" / "3~4잔(1점)" both = 1 point) — this is presentation-
+    only: no parsing/scoring changes are needed, the respondent (real or
+    simulated) just answers with whichever track's number matches their
+    own drinking pattern. An item without a secondary track never reaches
+    this branch, so its rendering is unchanged.
     """
     lines: list[str] = []
     if instruction_ko:
@@ -109,10 +131,32 @@ def build_item_prompt(
         )
         return "\n".join(lines)
 
+    lines.append(f"문항: {text_ko}")
+
+    if secondary_response_anchors:
+        primary_anchor_text = " / ".join(
+            f"{value}: {label}" for value, label in sorted(response_anchors.items())
+        )
+        secondary_anchor_text = " / ".join(
+            f"{value}: {label}"
+            for value, label in sorted(secondary_response_anchors.items())
+        )
+        primary_label = primary_track_label or "1번 트랙"
+        secondary_label = secondary_track_label or "2번 트랙"
+        lines.append(f"{primary_label} 응답 척도: {primary_anchor_text}")
+        lines.append(f"{secondary_label} 응답 척도: {secondary_anchor_text}")
+        if secondary_track_conversion_note_ko:
+            lines.append(secondary_track_conversion_note_ko)
+        lines.append(
+            "위 두 트랙 중 실제 마시는 술 종류에 해당하는 트랙을 선택하여, 그 트랙의 응답 척도 중 "
+            "당신의 상태를 가장 잘 나타내는 숫자 하나만 답하세요 "
+            f"({response_min}-{response_max})."
+        )
+        return "\n".join(lines)
+
     anchor_text = " / ".join(
         f"{value}: {label}" for value, label in sorted(response_anchors.items())
     )
-    lines.append(f"문항: {text_ko}")
     lines.append(f"응답 척도: {anchor_text}")
     lines.append(
         "위 응답 척도 중 당신의 상태를 가장 잘 나타내는 숫자 하나만 답하세요 "
@@ -236,6 +280,9 @@ class SurveyAnswerLLM:
         anchor wording that isn't on `item` itself. Delegates to the pure
         `build_item_prompt` (EXP-021/REV-040 (2)) — see that function's
         docstring for the instruction/anchor decoupling this enables.
+        Also threads `item`'s secondary-track fields through (`BUG-039`
+        fix) — a `None` on every item except AUDIT-C v2 item 2, so this is
+        a no-op for every other consumer of this method.
         """
         return build_item_prompt(
             text_ko=item.text_ko,
@@ -243,6 +290,10 @@ class SurveyAnswerLLM:
             response_max=item.response_max,
             response_anchors=item.response_anchors,
             instruction_ko=self._instruction_ko,
+            primary_track_label=item.primary_track_label,
+            secondary_track_label=item.secondary_track_label,
+            secondary_response_anchors=item.secondary_response_anchors,
+            secondary_track_conversion_note_ko=item.secondary_track_conversion_note_ko,
         )
 
     async def _ask(self, user_content: str) -> str:
@@ -266,11 +317,68 @@ class SurveyAnswerLLM:
 
 _EXPECTED_TABLE_ROW_RE = re.compile(r"\|\s*(\d+)\.[^|]*\|\s*(\d+)\s*\|")
 
+# REV-041 Resolution 1 (`CVR-018` binding condition 6): a persona doc may
+# mark a "### {scale} 예상 항목별 점수" table explicitly superseded without
+# editing it in place (this project's append-only audit-trail discipline —
+# `VP-012_first_visit_alcohol.md:125-126`, §9). `_SUPERSEDED_MARKER_RE`
+# detects that marker inside the matched primary section;
+# `_SUPERSEDING_ROW_RE` is a lenient row-matcher (no trailing-pipe
+# requirement, unlike `_EXPECTED_TABLE_ROW_RE`) used ONLY to scan the rest
+# of the document for the replacement table, since a superseding table's
+# score cell may carry trailing prose (e.g. `VP-012` §9.4's item 3:
+# "3 (point est., range 2-4)" — the leading integer is the point estimate
+# `expected_answer_fn` must use).
+_SUPERSEDED_MARKER_RE = re.compile(r"superseded", re.IGNORECASE)
+_SUPERSEDING_ROW_RE = re.compile(r"^\|\s*(\d+)\.[^|]*\|\s*(\d+)", re.MULTILINE)
+
+
+def _find_superseding_scores_table(
+    remainder: str, expected_item_count: int
+) -> dict[int, int] | None:
+    """Scan `remainder` (document text AFTER a table explicitly marked
+    "superseded") for the LAST contiguous markdown-table block whose parsed
+    item-index set is exactly `{1, ..., expected_item_count}` — a complete,
+    directly-substitutable replacement (e.g. `VP-012_first_visit_alcohol.md`
+    §9.4's re-derived AUDIT-C vector, `[4, 1, 3]`). A block is a maximal run
+    of consecutive matching lines; any non-matching line between rows ends
+    it. Partial/example tables (key set not exactly `{1..N}`) are ignored —
+    never mistaken for the real replacement. Returns `None` (never guesses)
+    if no complete replacement table exists anywhere in `remainder`.
+    """
+    expected_keys = set(range(1, expected_item_count + 1))
+    latest_complete: dict[int, int] | None = None
+    block: dict[int, int] = {}
+
+    def _flush() -> None:
+        nonlocal latest_complete
+        if block and set(block) == expected_keys:
+            latest_complete = dict(block)
+
+    for line in remainder.splitlines():
+        row_match = _SUPERSEDING_ROW_RE.match(line)
+        if row_match:
+            idx, score = int(row_match.group(1)), int(row_match.group(2))
+            block[idx] = score
+            continue
+        _flush()
+        block = {}
+    _flush()
+    return latest_complete
+
 
 def _extract_expected_scores_table(persona_md_content: str, scale_name: str) -> dict[int, int]:
     """Parse the persona markdown's own "### {scale} 예상 항목별 점수" table
     into ``{item_index: expected_score}``. Raises `ValueError` (loud, never a
     guess) if no such table exists in the given content.
+
+    Supersession-aware (REV-041 Resolution 1): if the matched table's own
+    section explicitly says "superseded" (e.g. a dated append-only note
+    pointing at a later section — never an in-place edit, per this
+    project's audit-trail discipline), this does NOT silently return the
+    superseded values. It instead searches the rest of the document for a
+    later, complete replacement table (`_find_superseding_scores_table`)
+    and returns that instead — raising loudly if no such replacement is
+    found, rather than falling back to the flagged-stale table.
     """
     section_pattern = re.compile(
         rf"###\s*{re.escape(scale_name)}\s*예상\s*항목별\s*점수(.*?)(?=\n###|\n##\s|\n---|\Z)",
@@ -292,6 +400,19 @@ def _extract_expected_scores_table(persona_md_content: str, scale_name: str) -> 
         raise ValueError(
             f"'### {scale_name} 예상 항목별 점수' table found but no item rows parsed"
         )
+
+    if _SUPERSEDED_MARKER_RE.search(section_match.group(1)):
+        remainder = persona_md_content[section_match.end():]
+        replacement = _find_superseding_scores_table(remainder, expected_item_count=len(scores))
+        if replacement is None:
+            raise ValueError(
+                f"'### {scale_name} 예상 항목별 점수' table is marked superseded but no "
+                "complete replacement table (covering the same item indices) was found "
+                "later in the persona document — expected_answer_fn refuses to silently "
+                "fall back to the superseded values"
+            )
+        return replacement
+
     return scores
 
 
