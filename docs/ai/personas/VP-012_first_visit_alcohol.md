@@ -95,7 +95,7 @@
 |---|---|---|
 | PHQ-9 | ~10 | Mild-moderate depression (comorbid, 알코올사용장애가 주 진단) |
 | GAD-7 | ~5 | Mild anxiety (부수적) |
-| AUDIT-C | ~11 (0-12 범위) | High risk / probable dependence pattern |
+| AUDIT-C | 8 (range 7-9, 0-12 범위) -- v2 soju-track 기준, §9 derivation note 참조; 구 값 ~11 superseded | High risk / probable dependence pattern |
 | PHQ-9 Q9 (자살 사고) | 0 | 없음 |
 
 ### PHQ-9 예상 항목별 점수

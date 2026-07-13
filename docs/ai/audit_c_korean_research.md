@@ -345,6 +345,16 @@ item-text appendix (same limitation already disclosed for the SBIRT-Oregon text 
 > as if it were a scored item, and must not ship without `clinical-validator` review/gate. Flagged
 > per the brief's explicit requirement that this is the only composed text this file may contain.
 
+> **Changelog (§4 only):** **2026-07-13 (correction dispatch, brainstorm):** `data` found that this
+> section's "Korean MOHW's own 7g convention" claim cited `item_bank_v1_sources.md` §5.3 as already
+> carrying that figure's citation — a grep of that file for `7g`/`MOHW`/`그램`/`표준잔`/`pure
+> alcohol`/`standard drink` returns zero hits; the cross-reference did not trace (also independently
+> found by `data` in `docs/ai/personas/VP-012_first_visit_alcohol.md` §9.3/§9.5). Fixed below with a
+> real, fetched, page-referenced citation for the 7g figure itself — see the "Correction addendum"
+> subsection at the end of §4. Original composed text is preserved unedited above/below except for
+> one inline strike-through + annotation at the broken cross-reference itself, per this project's
+> disclosed-not-silent correction convention.
+
 **Purpose:** a short metadata note explaining the relationship between this project's current
 Western-standard-drink AUDIT-C item text (`item_bank_v1_sources.md` §5, "1 잔의 기준: 12
 온스(355mL) 맥주 / 5 온스(148mL) 와인 / 1.5 온스(44mL) 독주") and the soju-unit convention already
@@ -373,9 +383,10 @@ approximate and is not an official scale item."
   dispatch — it is presented here as an internal-consistency choice (matching what the project
   already uses elsewhere), not as a clinically validated conversion factor. A soju bottle's actual
   standard-drink count depends on the ABV assumption and the standard-drink-gram definition used
-  (WHO ≈10g pure alcohol vs. Korean MOHW's own 7g convention, both already noted with citations in
-  `item_bank_v1_sources.md` §5.3) — this note does not resolve which convention is correct, only
-  restates the figure already in use.
+  (WHO ≈10g pure alcohol vs. Korean MOHW's own 7g convention — ~~both already noted with citations
+  in `item_bank_v1_sources.md` §5.3~~ **[CORRECTION 2026-07-13: this cross-reference did not trace —
+  see "Correction addendum" below for a real, fetched source]**) — this note does not resolve which
+  convention is correct, only restates the figure already in use.
   - Recommended alternative if clinical-validator prefers the *officially sourced* Korean anchor
     system over a composed conversion note: **replace item 2's western-unit anchor set with §3.2's
     verbatim 소주-track anchors (반병 이하/1병 이하/1.5병정도/2병정도/2.5병 이상)** — this sidesteps
@@ -388,6 +399,74 @@ approximate and is not an official scale item."
 - Composed by brainstorm under time/scope constraints of a single dispatch — has not been reviewed
   for tone, register-appropriateness, or clinical adequacy by anyone. Treat as a strawman starting
   point only.
+
+### Correction addendum (2026-07-13, brainstorm) — citation-integrity fix for the MOHW 7g cross-reference
+
+**Defect found:** `data` flagged (and `docs/ai/personas/VP-012_first_visit_alcohol.md` §9.3/§9.5
+independently found the same gap) that the "Known weaknesses" bullet above claimed the "Korean
+MOHW's own 7g convention" was "already noted with citations in `item_bank_v1_sources.md` §5.3." A
+grep of `item_bank_v1_sources.md` for `7g`, `MOHW`, `그램`, `표준잔`, `pure alcohol`, and `standard
+drink` (re-run independently this session) returns **zero hits** for any MOHW-7g figure or
+citation — that file's §5.3 discusses only the Western ~14g standard-drink convention (v1
+SBIRT-Oregon item text's oz-based anchors: "1 잔의 기준: 12 온스(355mL) 맥주 / 5 온스(148mL) 와인 /
+1.5 온스(44mL) 독주") and item 3's own 60g binge-threshold footnote (a different construct — the
+*occasion* total for the 별지 form's binge item, not a *per-drink* gram definition). The
+cross-reference did not trace; confirmed as a real citation-integrity defect, not a paraphrase
+artifact.
+
+**Fix — a real, fetched, page-referenced citation for the MOHW 7g figure, located this session:**
+
+Kim YS, Kim ES, Ahn YS, Baek JY, Park SY, Ko HB, Kim DJ (2024). "WHO 알코올 정책 종합 지표를 활용한
+국내 알코올 정책 평가" ["Evaluation of Korea's Alcohol Policy Using the WHO Alcohol Policy Composite
+Indicator"]. *보건사회연구 (Health and Social Welfare Review)* 44(3):72-98.
+doi:10.15709/hswr.2024.44.3.72. Published by 한국보건사회연구원 (Korea Institute for Health and
+Social Affairs, KIHASA). Fetched 2026-07-13:
+`https://www.kihasa.re.kr/hswr/assets/pdf/1496/journal-44-3-72.pdf`. **[full PDF read, pp. 1-8 of
+the PDF, article pp. 72-79]**.
+
+Quoted verbatim, article p. 78 (body text):
+
+> 또한, '음주폐해예방 실행계획(한국건강증진개발원, 2018)'에서는 표준잔을 소주나 맥주 한 잔에 함유된
+> 순수 알코올을 7g으로 정의하고 있다. 이 정의는 세계적인 추세인 10g보다는 다소 낮으나, WHO의 방침을
+> 충실히 준수하고 있어(WHO, 2018a, p. 114), 세부 지표 1.3에도 만점인 1점을 부여하였다.
+
+English gloss (not a source text, for reviewers only): "The '음주폐해예방 실행계획' [Alcohol Harm
+Prevention Implementation Plan] (한국건강증진개발원 [Korea Health Promotion Institute], 2018)
+defines the standard drink as 7g of pure alcohol contained in one glass of soju or beer. This
+definition is somewhat lower than the global trend of 10g but faithfully follows WHO policy...
+and was accordingly given the maximum score on sub-indicator 1.3."
+
+The same article's Table 1 (표 1, p. 78), row "1.3 표준잔의 정의," cites the source directly in its
+"우리나라 이행 현황(출처)" column as: *"한국건강증진개발원(2018). 음주폐해예방 실행계획 - 소주/맥주
+기준 1잔 7g."*
+
+**Corroborating (weaker tier, summary basis — not independently re-rendered as raw text):**
+한국건강증진개발원's own 절주온 (alcohol-moderation) public page, fetched 2026-07-13:
+`https://www.khepi.or.kr/board/view?pageNum=1&rowCnt=8&no1=13&linkId=999370&menuId=MENU00645&schType=0&schText=&boardStyle=Gallery&categoryId=&continent=&country=`
+— per WebFetch's rendering: "보건복지부에서는 <음주폐해예방 실행계획(2018)>에서 순수알코올량 7g을
+1표준잔으로 정의한 바 있음." Same primary source (음주폐해예방 실행계획, 2018) as the KIHASA paper
+above, independently corroborating it, but this page was rendered via WebFetch's own summarization
+rather than a directly re-read raw document — flagged at the weaker evidentiary tier per this
+project's tiering convention, not relied on alone.
+
+**Disclosed nuance, not smoothed over:** a 질병관리청 (KDCA) public-health page
+(`https://health.kdca.go.kr/healthinfo/biz/health/gnrlzHealthInfo/gnrlzHealthInfo/gnrlzHealthInfoView.do?cntnts_sn=5355`,
+fetched 2026-07-13) uses a different, non-7g figure for its own general standard-drink description
+("한 잔에 포함된 알코올의 양은 대략 8~12그램 정도로 비슷해집니다") and does not cite MOHW or the 7g
+figure at all. Korean government-affiliated sources are **not uniform** on which standard-drink
+gram convention they publish — the 7g figure is specifically MOHW/한국건강증진개발원's 2018 policy
+plan ("음주폐해예방 실행계획"), not a single government-wide constant.
+
+**Attempt log (this correction dispatch):**
+
+| # | Source tried | Method | Outcome |
+|:--|:--|:--|:--|
+| 1 | WebSearch "보건복지부 저위험 음주 가이드라인 표준잔 그램 알코올" | WebSearch | Surfaced khepi.or.kr, bgnmh.go.kr, health.kdca.go.kr candidates; search-synthesis only, not itself a citation |
+| 2 | `khepi.or.kr` 절주온 "표준잔(Standard drink)이란?" | WebFetch | **Corroborating find** — MOHW/음주폐해예방 실행계획(2018)/7g stated; summary-basis tier |
+| 3 | `bgnmh.go.kr` (국립부곡병원) "음주 표준잔이란?" | WebFetch | No MOHW/7g citation on this page (states ~10g without attribution) — not used |
+| 4 | `health.kdca.go.kr` 위험음주 page | WebFetch | KDCA's own page uses "8-12g," no MOHW/7g citation — used above as disclosed nuance, not as the citation |
+| 5 | WebSearch "음주폐해예방 실행계획 2018 보건복지부 표준잔 7g PDF" | WebSearch | Located the KIHASA 2024 journal article (see Fix, above) and a `mohw.go.kr` direct-download link for the plan itself (not fetched this session — the KIHASA citation was sufficient and already at full-PDF-read tier) |
+| 6 | `kihasa.re.kr` journal PDF (김용석 외, 2024) | WebFetch (saved PDF) → Read, pages 1-8 | **Primary fix, full PDF read** — verbatim quote + table citation, p. 78 |
 
 ---
 

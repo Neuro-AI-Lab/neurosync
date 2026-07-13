@@ -1,0 +1,282 @@
+{
+  "session_id": "f1_VP-012",
+  "persona_id": "VP-012",
+  "repro": {
+    "git_head": "ac6e1f33a99737ed373db13fc3138d1aa07a1452",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_145036_conversation.json",
+    "input_sha256": "3468cfeae313c236e65d13053475eb9daa6350133c2d3bb65f74ef4d172176f8",
+    "mode": "rag",
+    "latency_ms": 5534.1,
+    "generated_at": "2026-07-13T14:50:43.232675",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 3479,
+      "completion_tokens": 858,
+      "total_tokens": 4337
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "alcohol",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:740",
+          "quote": "내담자는 매일 저녁 술을 마시며, 하루에 소주 5병 이상을 섭취하는 경우가 많다. 술을 마시지 않으면 현기증과 짜증을 느끼며, 술을 통해 스트레스를 해소하고 감정을 잊고자 한다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:733",
+          "quote": "내담자는 술에 대한 통제 상실과 충동적인 갈망을 경험하고 있다. 술을 마시는 이유로는 스트레스 해소와 보상 심리가 작용하고 있으며, 술을 마시지 않으면 불안감이 커지는 경향이 있다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:534",
+          "quote": "내담자는 술을 마시는 빈도가 잦고, 술을 마시지 않으면 불안감과 스트레스를 느끼며, 술을 통해 긴장을 해소하려는 경향이 있다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:516",
+          "quote": "내담자는 알코올 중독의 여러 증상을 보이고 있다. 그는 술을 마시지 않으면 안방에서 나오지 않고, 술을 통해 아내와의 대화를 유지하려는 경향이 있다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:1398",
+          "quote": "Q: 68세 남자가 아내를 알아보지 못하고 횡설수설하여 병원에 왔다. 보호자에 따르면 환자는 50년 전부터 매일 소주 1병 이상을 마셔왔으며, 금주를 시도할 때마다 손 떨림과 불안 초조로 실패했다고 한다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:63",
+          "quote": "Q: 40세 남성이 매일 소주 3병 이상을 2년간 마신 후 금주를 시도한 지 3일째 되는 날, 식은땀과 몸 떨림 증상을 호소하며 응급실에 내원했다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:1005",
+          "quote": "Q: 63세 남자 환자가 3일 전부터 잠을 자지 못하고 이상한 소리를 한다고 하여 가족들에게 이끌려 응급실에 내원하였다. 환자는 30년 동안 매일 소주 2~3병을 마셨으나, 1주일 전부터 술을 끊었다고 한다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:1392",
+          "quote": "Q: 60세 남자가 술을 줄이고 싶다고 병원에 왔다. 환자는 20대부터 음주를 해왔으며, 10년 전 아내와 사별한 후 매일 막걸리를 2~3병 마셔왔다고 한다."
+        }
+      ],
+      "recommended_surveys": [
+        "AUDIT",
+        "CAGE"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "알코올 사용장애 및 금단 증상(손 떨림, 불안, 수면 장애 등)이 확인되었으며, CAGE 스크리닝 결과 3개 항목 해당으로 알코올 사용장애 가능성이 높음.",
+      "domain_ref": "alcohol"
+    }
+  ],
+  "summary": "환자는 장기간 과도한 음주(소주 1~5병/일)로 인해 간 수치 상승, 손 떨림, 금주 시 불안 및 신체적 금단 증상(식은땀, 떨림)을 경험하고 있으며, 스트레스 해소 및 감정 조절을 위해 술에 의존하고 있음. CAGE 스크리닝에서 금주 시도 실패, 아침 해장술, 주변 간섭 경험 등으로 알코올 사용장애 가능성이 높음.",
+  "retrieval_meta": {
+    "mode": "rag",
+    "chunks_returned": 8,
+    "chunk_ids": [
+      "case_card:740",
+      "case_card:733",
+      "case_card:534",
+      "qa:1398",
+      "qa:63",
+      "qa:1005",
+      "case_card:516",
+      "qa:1392"
+    ],
+    "queries": [
+      "술을 줄여야 한다는 건 알지만 스트레스 받을 때마다 술 생각이 나고, 한 번 시작하면 멈추기 어려우며, 손 떨림 완화를 위해 매일 소주 한 병 이상 마시고 있음",
+      "건강검진에서 간 수치 상승 결과를 받은 후 술을 줄여야겠다는 생각을 했으나, 매일 소주 한 병 이상 마시는 습관이 지속됨. 손 떨림 완화를 위해 술을 마시며, 술 없이는 못 마시지 않을까 하는 생각이 듦. 집사람과의 다툼으로 인해 미안한 마음이 있음"
+    ]
+  },
+  "chunk_texts": {
+    "case_card:740": "내담자는 매일 저녁 술을 마시며, 하루에 소주 5병 이상을 섭취하는 경우가 많다. 술을 마시지 않으면 현기증과 짜증을 느끼며, 술을 통해 스트레스를 해소하고 감정을 잊고자 한다. 이러한 음주 패턴은 고등학교 시절부터 시작되었으며, 가족 간의 갈등과 공연 전 긴장감 해소를 위해 술을 의존하게 되었다.  내담자는 술을 줄이려는 시도를 여러 번 했지만, 주변 사람들의 부정적인 기대와 자신의 불안정한 감정 조절로 인해 어려움을 겪고 있다. 또한, 매운 음식에 대한 강한 선호도와 함께 술을 줄이려는 노력을 방해하는 요소로 작용하고 있다.",
+    "case_card:733": "내담자는 술에 대한 통제 상실과 충동적인 갈망을 경험하고 있다. 술을 마시는 패턴은 주 3~4회로, 피곤할 때는 맥주 4캔이나 소주 1~2병을 마시며, 늦게 출근하거나 쉬는 날에는 술 생각이 더 많이 난다고 한다. 술을 마시는 이유로는 스트레스 해소와 보상 심리가 작용하고 있으며, 술을 마시지 않으면 불안감이 커지는 경향이 있다. 내담자는 술을 통해 일상에서 벗어나고자 하는 욕구가 강하며, 술을 마시는 것이 일상생활에 부정적인 영향을 미치고 있음을 인식하고 있다. 또한, 술을 마신 후 자책감과 후회를 느끼고 있다.  내담자는 과거 정신질환과 스트레스 사건을 경험한 바 있으며, 이러한 경험이 술에 대한 의존성을 높이는 위험요인으로 작용하고 있다. 내담자는 육아와 가사로 인한 스트레스와 남편과의 관계에서 오는 불안감을 술로 해소하려는 경향이 있다. 또한, 완벽주의 성향으로 인해 자신과 타인에게 높은 기준을 적용하며, 이러한 기준에 미치지 못할 때 자책과 분노를 경험한다. 내담자는 자신의 감정을 조절하는 데 어려움을 겪고 있으며, 이러한 정서적 변화가 술에 대한 의존성을 강화시키고 있다.",
+    "case_card:534": "내담자는 술을 마시는 빈도가 잦고, 술을 마시지 않으면 불안감과 스트레스를 느끼며, 술을 통해 긴장을 해소하려는 경향이 있다. 술을 마신 후에는 일상생활에 지장이 가고, 다음 날 컨디션이 떨어지는 부정적 결과를 경험한다. 또한, 술을 마시지 않으면 감정 표현이 어렵다고 느끼며, 술을 통해서만 진솔한 대화를 나눌 수 있다고 생각한다.  내담자는 술을 통해 스트레스를 해소하려는 경향이 있으며, 술을 마시지 않으면 긴장과 불안이 증가한다고 느낀다. 또한, 술을 마시는 것이 일상생활의 일부가 되어버렸고, 술을 마시지 않으면 일상생활이 밋밋하고 재미없다고 느낀다. 이러한 위험 요인들은 내담자가 술에 의존하게 되는 원인이 되며, 중독 상태에서 벗어나기 위한 동기 부여와 대처 전략이 부족한 상태임을 나타낸다.",
+    "qa:1398": "Q: 68세 남자가 아내를 알아보지 못하고 횡설수설하여 병원에 왔다. 보호자에 따르면 환자는 50년 전부터 매일 소주 1병 이상을 마셔왔으며, 금주를 시도할 때마다 손 떨림과 불안 초조로 실패했다고 한다. 1주 전 간수치 이상을 듣고 금주를 결심했으며, 4일 전부터 걸음이 휘청거리고 자주 넘어지며, 속이 울렁거려 식사를 제대로 하지 못했다고 한다. 신경학적 검사에서 눈떨림이 관찰되었다. 이 환자의 가장 가능성 높은 진단은 무엇인가?  \n1) 알코올 금단 불안  \n2) 알코올 금단 경련  \n3) 알코올 유발 정신병적 장애  \n4) 베르니케 뇌병증  \n5) 루이소체 치매\nA: 4) 베르니케 뇌병증",
+    "qa:63": "Q: 40세 남성이 매일 소주 3병 이상을 2년간 마신 후 금주를 시도한 지 3일째 되는 날, 식은땀과 몸 떨림 증상을 호소하며 응급실에 내원했다. 이 환자의 상태를 평가하고 적절한 치료 방안을 설명하시오.\nA: 이 환자는 알코올 금단 증후군(alcohol withdrawal syndrome)이 의심된다. 금단 증후군은 장기간 과도한 음주 후 금주 시 발생할 수 있는 증상으로, 초기에는 식은땀, 떨림, 불안, 불면증 등이 나타날 수 있다. 환자의 상태를 평가하기 위해 지남력, 의식 상태, 활력 징후를 확인하고, 금단 증상이 심화될 경우 환각, 섬망, 경련 발작 등의 합병증이 발생할 수 있으므로 주의 깊은 관찰이 필요하다. 치료로는 금단 증상 완화와 경련 예방을 위해 벤조디아제핀(benzodiazepine)을 투여하며, 베르니케 뇌병증 예방을 위해 비타민 B1(티아민)을 투여한다. 또한, 수분 및 전해질 균형을 유지하고, 금주 상담 및 알코올 의존 치료를 병행해야 한다.",
+    "qa:1005": "Q: 63세 남자 환자가 3일 전부터 잠을 자지 못하고 이상한 소리를 한다고 하여 가족들에게 이끌려 응급실로 내원하였다. 환자는 30년 동안 매일 소주 2~3병을 마셨으나, 1주일 전부터 술을 끊었다고 한다. 딸의 결혼식을 앞두고 금주를 시작한 것으로 보인다. 신체검진 결과 혈압 130/100 mmHg, 맥박 103회/분, 호흡 16회/분, 체온 36.5도였으며, 환자는 작은 소리에도 과하게 반응하고 양손이 심하게 떨리며 식은땀을 많이 흘렸다. 혈액검사에서는 특이 소견이 없었다. 이 환자의 상태를 치료하기 위해 가장 적합한 약제는 무엇인가?  \n1) 아캄프로세이트  \n2) 프로프라놀롤  \n3) 로라제팜  \n4) 타이레놀  \n5) 날트렉손\nA: 3) 로라제팜",
+    "case_card:516": "내담자는 알코올 중독의 여러 증상을 보이고 있다. 그는 술을 마시지 않으면 안방에서 나오지 않고, 술을 통해 아내와의 대화를 유지하려는 경향이 있다. 술을 마신 다음 날에는 두통약을 먹어야 할 정도로 신체적 부작용을 경험하고 있으며, 간 수치가 나쁘고 수전증과 오십견 같은 건강 문제도 겪고 있다. 내담자는 술을 끊고 싶다는 의지를 보이지만, 실천하지 못하고 있으며, 술을 마시는 것이 일상적인 보상으로 자리 잡고 있다. 그는 술을 줄이기 위해 무알코올 맥주를 시도했으나, 여전히 술을 마시는 습관을 유지하고 있다.  내담자는 여러 위험요인에 노출되어 있다. 그는 과거에 술을 거의 마시지 않았으나, 아내와의 관계에서 술이 중요한 매개체가 되면서 술을 마시기 시작했다. 가족력 또한 술을 좋아하는 집안으로, 내담자는 술에 대한 잠재적인 의존성을 가지고 있었다. 경제적인 스트레스와 일의 피로도 술을 마시게 되는 주요 요인으로 작용하고 있다. 내담자는 술을 통해 스트레스를 해소하고, 아내와의 대화를 유지하려는 경향이 있다.",
+    "qa:1392": "Q: 60세 남자가 술을 줄이고 싶다고 병원에 왔다. 환자는 20대부터 음주를 해왔으며, 10년 전 아내와 사별한 후 매일 막걸리를 2~3병 마셔왔다고 한다. 음주 시에는 안주 없이 막걸리만 마시다가 아침에 해장국과 함께 소주를 곁들여 먹는 것을 즐긴다고 한다. 환자는 5년 전부터 자녀들의 조언으로 금주를 결심했으나 실패했으며, 자녀들과 명절 때마다 음주 문제로 갈등이 있지만 본인의 음주습관으로 인해 죄책감을 느낀 적은 없다고 한다. CAGE 스크리닝 기준에 따라 이 환자가 알코올 사용장애에 해당하는지 설명하시오.\nA: CAGE 스크리닝 기준은 음주 문제를 평가하기 위해 사용되는 4가지 질문으로 구성된다. 첫째, 술을 줄이려는 노력을 한 적이 있는지, 둘째, 음주 문제에 대해 주변 사람들의 간섭이 번거로웠던 적이 있는지, 셋째, 음주로 인해 죄책감을 느낀 적이 있는지, 넷째, 아침에 해장술을 마신 적이 있는지를 묻는다. 이 환자는 금주를 결심한 적이 있으나 실패한 경험이 있고, 자녀들과 음주 문제로 갈등을 겪은 적이 있으며, 아침에 해장술을 마시는 습관이 있다. 그러나 음주로 인해 죄책감을 느낀 적은 없다고 한다. 따라서 이 환자는 CAGE 기준 중 3가지 항목에 해당하며, 2가지 이상에 해당할 경우 알코올 사용장애 가능성이 높다고 판단할 수 있으므로, 이 환자는 알코올 사용장애에 해당한다고 볼 수 있다."
+  },
+  "utterances": {
+    "turn_0": "최근에 건강검진에서 간 수치가 많이 올라갔다는 결과를 받아서 술을 줄여야겠다고 생각했는데, 잘 안 되네요. 거의 매일 소주 한 병 이상 마시다 보니 이제는 예전보다 훨씬 많이 마셔야 취기가 느껴져요.",
+    "turn_1": "최근에 건강검진에서 간 수치가 많이 올라갔다는 결과를 받아서 술을 줄여야겠다고 생각했는데, 잘 안 되네요. 거의 매일 소주 한 병 이상 마시다 보니 이제는 예전보다 훨씬 많이 마셔야 취기가 느껴져요.",
+    "turn_2": "네, 술을 줄여야 한다는 건 알겠는데, 한 번 마시기 시작하면 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 더 나요.",
+    "turn_3": "새로 복용 중인 약은 없고, 기존에 복용하는 것도 없어요. 건강검진이 계기가 되어 술을 줄여야겠다는 생각은 하는데, 스트레스 받을 때마다 술 생각이 더 나요. 손이 떨릴 때 한 잔 마시면 좀 나아지는 것 같기도 하고요.",
+    "turn_4": "가끔 손이 떨릴 때 한 잔 마시면 좀 나아지긴 해요. 그런데 그게 오히려 술 없이는 못 싶지 않다는 생각이 들어요. 집사람이랑도 자주 다퉈서, 저한테 미안한 마음은 늘 있어요.",
+    "turn_5": "아니요, 그런 분은 없었어요. 다만 집사람이랑 술 때문에 걱정을 많이 하고, 그것 때문에 다툰 적도 많고요. 건강이 걱정되고, 이제라도 줄여야 할 것 같아서요.",
+    "turn_6": "아니요, 그런 분은 없었어요. 다만 집사람이랑 술 때문에 걱정을 많이 하고, 그것 때문에 다툰 적도 많고요. 건강이 걱정되고, 이제라도 줄여야 할 것 같아서요.",
+    "turn_7": "아니요, 그런 분은 없었어요. 다만 집사람이랑 술 때문에 걱정을 많이 하고, 그것 때문에 다툰 적도 많고요. 건강이 걱정되고, 이제라도 줄여야 할 것 같아서요.",
+    "turn_8": "아니요, 그런 분은 없었어요. 다만 집사람이랑 술 때문에 걱정을 많이 하고, 그것 때문에 다툰 적도 많고요. 건강이 걱정되고, 이제라도 줄여야 할 것 같아서요.",
+    "turn_9": "가끔 손이 떨릴 때 한 잔 마시면 좀 나아지긴 해요. 그런데 그게 오히려 술 없이는 못 싶지 않다는 생각이 들어요. 집사람이랑도 자주 다퉈서, 저한테 미안한 마음은 늘 있어요.",
+    "turn_10": "네, 술을 줄이려고 해도 스트레스 받을 때마다 술 생각이 나고, 한 번 시작하면 멈추기가 어렵네요. 건강이 걱정되고, 이제라도 줄여야 할 것 같아서요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 8,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 0
+    },
+    "verdicts": [
+      {
+        "domain": "alcohol",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:740",
+        "quote": "내담자는 매일 저녁 술을 마시며, 하루에 소주 5병 이상을 섭취하는 경우가 많다. 술을 마시지 않으면 현기증과 짜증을 느끼며, 술을 통해 스트레스를 해소하고 감정을 잊고자 한다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:733",
+        "quote": "내담자는 술에 대한 통제 상실과 충동적인 갈망을 경험하고 있다. 술을 마시는 이유로는 스트레스 해소와 보상 심리가 작용하고 있으며, 술을 마시지 않으면 불안감이 커지는 경향이 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:534",
+        "quote": "내담자는 술을 마시는 빈도가 잦고, 술을 마시지 않으면 불안감과 스트레스를 느끼며, 술을 통해 긴장을 해소하려는 경향이 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:516",
+        "quote": "내담자는 알코올 중독의 여러 증상을 보이고 있다. 그는 술을 마시지 않으면 안방에서 나오지 않고, 술을 통해 아내와의 대화를 유지하려는 경향이 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "rag_chunk",
+        "source_id": "qa:1398",
+        "quote": "Q: 68세 남자가 아내를 알아보지 못하고 횡설수설하여 병원에 왔다. 보호자에 따르면 환자는 50년 전부터 매일 소주 1병 이상을 마셔왔으며, 금주를 시도할 때마다 손 떨림과 불안 초조로 실패했다고 한다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "rag_chunk",
+        "source_id": "qa:63",
+        "quote": "Q: 40세 남성이 매일 소주 3병 이상을 2년간 마신 후 금주를 시도한 지 3일째 되는 날, 식은땀과 몸 떨림 증상을 호소하며 응급실에 내원했다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "rag_chunk",
+        "source_id": "qa:1005",
+        "quote": "Q: 63세 남자 환자가 3일 전부터 잠을 자지 못하고 이상한 소리를 한다고 하여 가족들에게 이끌려 응급실에 내원하였다. 환자는 30년 동안 매일 소주 2~3병을 마셨으나, 1주일 전부터 술을 끊었다고 한다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "rag_chunk",
+        "source_id": "qa:1392",
+        "quote": "Q: 60세 남자가 술을 줄이고 싶다고 병원에 왔다. 환자는 20대부터 음주를 해왔으며, 10년 전 아내와 사별한 후 매일 막걸리를 2~3병 마셔왔다고 한다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 1,
+    "candidates_after": 1,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 0,
+    "evidence_stripped_risk_lexicon": 0
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "술을 줄이려는 구체적인 시도 방법과 실패 원인을 더 자세히 설명해 주실 수 있나요?",
+    "손 떨림 외에 다른 신체적 증상(두통, 메스꺼움, 수면 장애 등)이 있는지요?",
+    "가족과의 관계에서 술이 어떤 역할을 하는지 구체적으로 말씀해 주실 수 있나요?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 5534.08865397796,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 3479,
+    "completion_tokens": 858,
+    "total_tokens": 4337
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [
+      {
+        "disease": "알코올 금단",
+        "similarity_score": 0.506,
+        "source_id": "qa:1398",
+        "quote": "...일 소주 1병 이상을 마셔왔으며, 금주를 시도할 때마다 손 떨림과 불안 초조로 실패했다고 한다. 1주 전 간수치 이상을 듣고 금주를 결심했으며, 4..."
+      },
+      {
+        "disease": "범불안장애",
+        "similarity_score": 0.506,
+        "source_id": "qa:1398",
+        "quote": "...일 소주 1병 이상을 마셔왔으며, 금주를 시도할 때마다 손 떨림과 불안 초조로 실패했다고 한다. 1주 전 간수치 이상을 듣고 금주를 결심했으며, 4..."
+      },
+      {
+        "disease": "계절성 정동장애",
+        "similarity_score": 0.504,
+        "source_id": "case_card:740",
+        "quote": "...줄이려는 시도를 여러 번 했지만, 주변 사람들의 부정적인 기대와 자신의 불안정한 감정 조절로 인해 어려움을 겪고 있다. 또한, 매운 음식에 대한 강..."
+      },
+      {
+        "disease": "월경전 불쾌장애",
+        "similarity_score": 0.504,
+        "source_id": "case_card:740",
+        "quote": "...줄이려는 시도를 여러 번 했지만, 주변 사람들의 부정적인 기대와 자신의 불안정한 감정 조절로 인해 어려움을 겪고 있다. 또한, 매운 음식에 대한 강..."
+      },
+      {
+        "disease": "우울 삽화(우울증)",
+        "similarity_score": 0.502,
+        "source_id": "qa:1392",
+        "quote": "...녀들과 명절 때마다 음주 문제로 갈등이 있지만 본인의 음주습관으로 인해 죄책감을 느낀 적은 없다고 한다. CAGE 스크리닝 기준에 따라 이 환자가 알..."
+      }
+    ],
+    "mode": "rag_live",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "5 disease candidate(s) derived from 8 retrieved chunk(s) via symptom-keyword match (path1, ADR-020). similarity_score is a RAG cosine-similarity signal between the retrieved chunk and the Stage-1 query — NOT a patient-to-disease similarity, and NOT a calibrated probability (two-hop proxy, RES-001 §2 step 9 / ADR-020 condition 3).",
+    "recommended_questionnaire": "AUDIT-C",
+    "recommendation_caveat": "AUDIT-C screens alcohol consumption/frequency (hazardous-use pattern) only, not dependence severity or withdrawal acuity — for a dependence-level presentation, a result here is a first-line/gateway signal, not a severity determination; clinician follow-up is required regardless of score."
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 4,
+    "rag_chunk_qa": 4,
+    "rag_chunk_other": 0,
+    "utterance": 0,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "A",
+    "retrieve": true,
+    "queries": [
+      "술을 줄여야 한다는 건 알지만 스트레스 받을 때마다 술 생각이 나고, 한 번 시작하면 멈추기 어려우며, 손 떨림 완화를 위해 매일 소주 한 병 이상 마시고 있음",
+      "건강검진에서 간 수치 상승 결과를 받은 후 술을 줄여야겠다는 생각을 했으나, 매일 소주 한 병 이상 마시는 습관이 지속됨. 손 떨림 완화를 위해 술을 마시며, 술 없이는 못 마시지 않을까 하는 생각이 듦. 집사람과의 다툼으로 인해 미안한 마음이 있음"
+    ],
+    "dropped_queries": [],
+    "trigger_reason": "sufficient_no_fallback_retrieve",
+    "fallback_used": false,
+    "judge_output": null
+  }
+}
