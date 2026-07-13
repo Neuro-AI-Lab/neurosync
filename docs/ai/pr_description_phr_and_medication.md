@@ -169,7 +169,88 @@ else:
 
 ---
 
-## 6. 테스트 (신규 30건 · 전체 842 통과)
+## 6. 샘플 데이터 · 위치 · 생성 방법 · 의도
+
+본 PR이 소비하는 익명화 샘플 데이터는 두 종류이며, 모두 페르소나 MD의 임상 시나리오와 정합되도록 설계됨.
+
+### 6.1 PHR JSON 샘플 (8 파일)
+
+**위치**: `docs/ai/samples/phr/`
+```
+VP-001_medications.json   VP-001_visits.json
+VP-002_medications.json   VP-002_visits.json
+VP-003_medications.json   VP-003_visits.json
+VP-004_medications.json   VP-004_visits.json
+README.md                 smoke_summary.json
+```
+
+**생성 방법**:
+- 실제 마이헬스웨이(`myhealthway.go.kr`) 계열 PHR export 실 샘플(사용자 로컬 파일 2건)의 스키마를 관찰해 구조 파악 · 실 프로파일 그대로 재현
+- Python 스크립트로 hand-craft 생성 (`patient()`, `med_dispense()`, `eob()` 헬퍼 함수로 조립)
+- 원본 마이헬스웨이 필드 그대로 사용: `resourceType`, `identifier`, `code.coding[system=kdcode|hira]`, `medicationReference.resource` inline, `contained[Organization]`, `whenPrepared`, `daysSupply`, `dosageInstruction.timing.repeat.frequency`, `doseAndRate[0].doseQuantity` 등
+- **원본 100% 매칭**: 각 페르소나의 `docs/ai/personas/VP-*.md`에 기재된 약물명·용량·처방일·복용 기간을 그대로 이식
+  - VP-002: `Escitalopram 10mg 초진 2026-05-07 (6주째)` → 조제 2회 (2026-05-07 · 06-04)
+  - VP-004: `Sertraline 50mg 2026-04-15` → `Escitalopram 10mg 2026-05-01` → `Escitalopram 20mg + Alprazolam PRN 2026-05-20` → 조제 6건 완전 재현
+- **개인정보 안전**: 성명은 페르소나명(김서연/이준호/박민수/최하은), 주민번호는 뒷자리 모두 `******` 마스킹, MHID는 임의 8자리 (20530001~20530004)
+
+**의도**:
+1. **파서 회귀 방어** — 국내 마이헬스웨이 프로파일 편차를 실 데이터 없이 CI에서 검증할 수 있는 fixture 확보
+2. **F1 통합 실증** — 페르소나별 정신과 이력 스펙트럼(없음/단독 유지/응급 단회/다약제 병용) 대표 케이스로 dialogue LLM이 PHR 인지 여부 관찰
+3. **실 사용자 데이터 반입 회피** — 개인정보 원문을 저장소에 넣지 않고도 파서·통합 로직 완결 검증
+
+### 6.2 처방전 이미지 (11 파일)
+
+**위치**: `docs/ai/simulation_results/VP-*/`
+```
+VP-001/VP-001_medicine_1.jpg   VP-001/VP-001_medicine_2.jpg
+VP-002/VP-002_medicine_1.jpg   VP-002/VP-002_medicine_2.jpg
+VP-003/VP-003_medicine_1.jpg   VP-003/VP-003_medicine_2.jpg   VP-003/VP-003_medicine_3.jpg
+VP-004/VP-004_medicine_1.jpg   VP-004/VP-004_medicine_2.jpg
+VP-004/VP-004_medicine_3.jpg   VP-004/VP-004_medicine_4.jpg
+```
+
+**생성 방법**:
+- 국내 표준 처방전 서식(`의료법 시행규칙 [별지 제9호서식]`)에 따른 실물 유사 이미지 (~180 KB/JPG)
+- **위 PHR JSON의 각 `MedicationDispense` 이벤트와 1:1 대응**해서 발급 (예: VP-004 medicine_4 이미지 = PHR `m004-3` + `m004-4` = 2026-05-20 · 렉사프로20mg + 자낙스0.25mg)
+- 개인 식별정보는 페르소나명 · 주민번호 마스킹 · 임의 요양기관·약국명 사용
+- 실 KDCode(9자리) 정확 기재 (예: 659900290 = 렉사프로20mg)
+
+**의도**:
+1. **OCR 파서 신뢰도 확보** — 실제 국내 처방전 서식 구조(반복 셀·표 병합·HTML/Markdown mix)에 대한 파서 검증. 진단서 위주로 최적화된 기존 OCR agent의 사각지대 노출 및 fix.
+2. **PHR JSON 교차 검증** — 이미지 OCR 결과가 PHR JSON `whenPrepared`/`medicationReference` 필드와 100% 일치하는지 확인해 파서 독립성 실증 (fabrication 방지).
+3. **F1 조합 검증** — `--phr-vp-default` + `--ocr <image>` 동시 주입 시 두 소스가 상충 없이 통합됨을 확인 (§7.3 시나리오 C 실증).
+
+### 6.3 F1 세션 산출물 (3 파일 세트)
+
+**위치**: `docs/ai/simulation_results/VP-{002,004}/VP-*_20260713_*.{json,md}`
+
+**생성 방법**:
+- 이번 PR 검증 과정에서 실제 F1 파이프라인을 실행하고 저장된 결과 (`save_f1_result()` 자동 생성)
+- 각 세트 = `conversation.json` (턴별 원문) + `checklist.md` (T1-F1-DEV 체크리스트) + `report.md` (Handoff 형태 종합)
+- LLM 응답은 UPSTAGE Solar Pro3 실 호출 결과 · patient 발화는 STT 실 전사 or K-EXAONE PatientLLM 생성
+
+**의도**:
+1. **§7 검증 결과의 재현 가능한 증거** — PR 리뷰어가 markdown claim(`Turn 1의 "현재 정신건강의학과 진료를 받고 계신가요?"` 등)의 원본을 직접 확인 가능
+2. **회귀 감지 baseline** — 향후 dialogue prompt·PHR 로직·OCR 파서 변경 시 대화 품질 저하 여부 비교
+3. **fabrication 없음의 감사 자국** — 실행 시간(파일명 `20260713_164859` 등)까지 실 시각으로 남아 있어 임의 조작 가능성 배제
+
+### 6.4 총 샘플 파일 개수 (커밋됨)
+
+| 카테고리 | 파일 수 | 저장 위치 |
+|---|---|---|
+| PHR JSON 샘플 | 8 (+ README + smoke_summary) | `docs/ai/samples/phr/` |
+| 처방전 이미지 | 11 | `docs/ai/simulation_results/VP-*/` |
+| F1 세션 산출물 | 9 (3 세션 × 3 파일) | `docs/ai/simulation_results/VP-*/` |
+| **합계** | **28 + 2 메타** | — |
+
+### 6.5 개인정보 · 재사용 안내
+- 모든 샘플은 페르소나 fake 데이터 · 실 개인정보 없음
+- `.gitignore`에서 `~/Downloads/phr_*.json` 등 실 데이터 경로는 별도 관리 (본 저장소 반입 금지 정책은 `docs/ai/samples/phr/README.md`에 명시)
+- 새 페르소나 추가 시 위 §6.1·§6.2 방식 동일 적용
+
+---
+
+## 7. 테스트 (신규 30건 · 전체 842 통과)
 
 ### 6.1 PHR 파서 유닛 (`tests/test_phr_reader.py` · 20건)
 - `TestPsychotropicCatalog` (5): 성분 카탈로그 매칭 · 대소문자 · 부분일치
@@ -196,11 +277,11 @@ else:
 
 ---
 
-## 7. F1 종합 기능 검증 (실 세션 결과 · 페르소나 4-way triangulation)
+## 8. F1 종합 기능 검증 (실 세션 결과 · 페르소나 4-way triangulation)
 
 파서/유닛 테스트를 넘어 **실제 F1 파이프라인에서 PHR + STT + OCR + Crisis + Nearby** 5개 소스를 동시에 흘려서 페르소나 원본 시나리오와 일치하는지 종합 검증. 아래 3개 세션 로그가 `docs/ai/simulation_results/` 에 실 산출물로 저장됨.
 
-### 7.1 시나리오 A · VP-002 (재진 경증, PHR only)
+### 8.1 시나리오 A · VP-002 (재진 경증, PHR only)
 
 CLI:
 ```bash
@@ -219,7 +300,7 @@ Patient 첫 발화 (persona MD 원문 매칭):
 
 산출물: `simulation_results/VP-002/VP-002_20260713_164859_{conversation.json, checklist.md, report.md}`
 
-### 7.2 시나리오 B · VP-004 (재진 중증 · PHR + STT)
+### 8.2 시나리오 B · VP-004 (재진 중증 · PHR + STT)
 
 CLI:
 ```bash
@@ -257,7 +338,7 @@ Turn 3 (CRISIS 발동)
 
 Turn 1 응답 "현재 정신건강의학과 진료를 받고 계신가요?"는 LLM이 **PHR system prompt 컨텍스트를 인지**한 자연스러운 재진 확인 (Patient가 명시적으로 "정신과 다녀요" 표현 안 했음에도).
 
-### 7.3 시나리오 C · VP-004 (5중 통합 · PHR + STT + OCR + Crisis + Nearby)
+### 8.3 시나리오 C · VP-004 (5중 통합 · PHR + STT + OCR + Crisis + Nearby)
 
 CLI:
 ```bash
@@ -300,7 +381,7 @@ Report(`.md`) 자동 삽입 섹션 실물:
 Audio 1~3
 ```
 
-### 7.4 4-way Triangulation 대조표 (VP-004)
+### 8.4 4-way Triangulation 대조표 (VP-004)
 
 | 소스 | 담긴 정보 |
 |---|---|
@@ -311,12 +392,12 @@ Audio 1~3
 
 → **4개 소스 100% 상호 일치** — 상품명·성분명·용량·처방일·재진 상태 모두 대응. Fabrication 없음. 이 corroboration은 F1 파이프라인이 각 소스를 독립적으로 처리하되 일관된 임상 결과를 반환함을 실증.
 
-### 7.5 산출물 파일 목록 (git-tracked, `docs/ai/simulation_results/`)
+### 8.5 산출물 파일 목록 (git-tracked, `docs/ai/simulation_results/`)
 - `VP-002/VP-002_20260713_164859_conversation.json` · `_checklist.md` · `_report.md`
 - `VP-004/VP-004_20260713_164959_conversation.json` · `_checklist.md` · `_report.md` (PHR+STT)
 - `VP-004/VP-004_20260713_165113_conversation.json` · `_checklist.md` · `_report.md` (PHR+STT+OCR)
 
-### 7.6 결론
+### 8.6 결론
 - ✅ **F1 종합 기능 테스트 진행 완료**
 - ✅ **Persona MD ↔ PHR JSON ↔ 처방전 이미지 ↔ STT 음성 4-way 완벽 일치**
 - ✅ **Crisis + Nearby psychiatric 통합 정상** (map-api PR #42 연동)
@@ -325,7 +406,7 @@ Audio 1~3
 
 ---
 
-## 8. 개인정보 · 보안
+## 9. 개인정보 · 보안
 
 - **실 PHR 파일 저장소 반입 금지** · `docs/ai/samples/phr/`엔 페르소나 fake 데이터만
 - 성명 저장: `PatientMeta.name_hash = sha256(name)[:16]` (원문 저장 금지)
@@ -335,7 +416,7 @@ Audio 1~3
 
 ---
 
-## 9. Known Issues / Limitations
+## 10. Known Issues / Limitations
 
 ### 8.1 데이터 소스 제약 (fix 불가)
 1. **PHR 진단명(ICD-10) 부재** — 국내 EOB `diagnosis`를 마스킹. 방문 사실과 요양기관·비용만 활용.
@@ -355,7 +436,7 @@ Audio 1~3
 
 ---
 
-## 10. Test plan
+## 11. Test plan
 
 ```bash
 cd apps/ai-server
@@ -397,7 +478,7 @@ asyncio.run(m())
 
 ---
 
-## 11. Migration / Rollout
+## 12. Migration / Rollout
 
 - 기존 F1 사용자는 변경 없음 — `phr_paths` 인자 안 넘기면 `F1Result.phr_summary == {}`
 - `pyproject.toml` 변경 없음 · 신규 의존성 없음
@@ -406,7 +487,7 @@ asyncio.run(m())
 
 ---
 
-## 12. Commit log
+## 13. Commit log
 
 브랜치 `add/phr-and-medication` (Master 대비 3 feature + 2 merge commits, 최신 순):
 
@@ -418,7 +499,7 @@ asyncio.run(m())
 
 ---
 
-## 13. Notes
+## 14. Notes
 
 - 본 PR body는 실측 근거만 기재 (실제 카탈로그 크기, 파일 라인수, pytest 카운트, OCR 이미지 파싱 결과 모두 실행 결과 인용).
 - 이전 별도 PR body 문서(`docs/ai/pr_description_phr_integration.md`)는 PHR-only 범위에 대한 것으로, 이번 통합 PR에서는 본 문서(`pr_description_phr_and_medication.md`)를 사용.
