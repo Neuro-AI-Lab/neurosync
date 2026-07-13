@@ -136,7 +136,7 @@
           }
         },
         "billablePeriod": {
-          "start": "2026-01-08"
+          "start": "2026-04-15"
         },
         "provider": {
           "reference": "Organization/v004-1-org"
@@ -174,13 +174,13 @@
                   {
                     "system": "미정",
                     "code": "미정",
-                    "display": "병의원"
+                    "display": "약국"
                   }
                 ],
-                "text": "병의원"
+                "text": "약국"
               }
             ],
-            "name": "마음의지도정신건강의학과의원",
+            "name": "가양마음약국",
             "address": [
               {
                 "text": "서울특별시 강서구 화곡로"
@@ -193,8 +193,8 @@
           "coding": [
             {
               "system": "http://terminology.hl7.org/CodeSystem/claim-type",
-              "code": "professional",
-              "display": "professional"
+              "code": "pharmacy",
+              "display": "pharmacy"
             }
           ]
         },
@@ -243,14 +243,14 @@
           }
         },
         "billablePeriod": {
-          "start": "2026-02-05"
+          "start": "2026-04-15"
         },
         "provider": {
           "reference": "Organization/v004-2-org"
         },
         "outcome": "complete",
         "total": {
-          "value": 20000,
+          "value": 12000,
           "currency": "KRW"
         },
         "diagnosis": []
@@ -350,7 +350,7 @@
           }
         },
         "billablePeriod": {
-          "start": "2026-03-05"
+          "start": "2026-05-01"
         },
         "provider": {
           "reference": "Organization/v004-3-org"
@@ -388,13 +388,13 @@
                   {
                     "system": "미정",
                     "code": "미정",
-                    "display": "병의원"
+                    "display": "약국"
                   }
                 ],
-                "text": "병의원"
+                "text": "약국"
               }
             ],
-            "name": "마음의지도정신건강의학과의원",
+            "name": "가양마음약국",
             "address": [
               {
                 "text": "서울특별시 강서구 화곡로"
@@ -407,8 +407,8 @@
           "coding": [
             {
               "system": "http://terminology.hl7.org/CodeSystem/claim-type",
-              "code": "professional",
-              "display": "professional"
+              "code": "pharmacy",
+              "display": "pharmacy"
             }
           ]
         },
@@ -457,14 +457,14 @@
           }
         },
         "billablePeriod": {
-          "start": "2026-04-02"
+          "start": "2026-05-01"
         },
         "provider": {
           "reference": "Organization/v004-4-org"
         },
         "outcome": "complete",
         "total": {
-          "value": 20000,
+          "value": 12000,
           "currency": "KRW"
         },
         "diagnosis": []
@@ -564,7 +564,7 @@
           }
         },
         "billablePeriod": {
-          "start": "2026-05-01"
+          "start": "2026-05-20"
         },
         "provider": {
           "reference": "Organization/v004-5-org"
@@ -596,6 +596,113 @@
           {
             "resourceType": "Organization",
             "id": "v004-6-org",
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "미정",
+                    "code": "미정",
+                    "display": "약국"
+                  }
+                ],
+                "text": "약국"
+              }
+            ],
+            "name": "가양마음약국",
+            "address": [
+              {
+                "text": "서울특별시 강서구 화곡로"
+              }
+            ]
+          }
+        ],
+        "status": "active",
+        "type": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+              "code": "pharmacy",
+              "display": "pharmacy"
+            }
+          ]
+        },
+        "use": "claim",
+        "patient": {
+          "reference": "Patient/10000000",
+          "resource": {
+            "resourceType": "Patient",
+            "id": "10000000",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+              ]
+            },
+            "identifier": [
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://myhealthway.go.kr(가칭)",
+                      "code": "MHID"
+                    }
+                  ]
+                },
+                "system": "미정",
+                "value": "20530004"
+              },
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                      "code": "NNKOR"
+                    }
+                  ]
+                },
+                "system": "http://mois.go.kr/rnn",
+                "value": "9612345******"
+              }
+            ],
+            "name": [
+              {
+                "text": "최하은"
+              }
+            ]
+          }
+        },
+        "billablePeriod": {
+          "start": "2026-05-20"
+        },
+        "provider": {
+          "reference": "Organization/v004-6-org"
+        },
+        "outcome": "complete",
+        "total": {
+          "value": 15500,
+          "currency": "KRW"
+        },
+        "diagnosis": []
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "ExplanationOfBenefit",
+        "id": "v004-7",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicExplanationOfBenefit"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "리소스식별자(미정)",
+            "value": "v004-7"
+          }
+        ],
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "v004-7-org",
             "type": [
               {
                 "coding": [
@@ -671,121 +778,14 @@
           }
         },
         "billablePeriod": {
-          "start": "2026-04-18"
-        },
-        "provider": {
-          "reference": "Organization/v004-6-org"
-        },
-        "outcome": "complete",
-        "total": {
-          "value": 85000,
-          "currency": "KRW"
-        },
-        "diagnosis": []
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "ExplanationOfBenefit",
-        "id": "v004-7",
-        "meta": {
-          "profile": [
-            "https://simplifier.net/myhealthway/StructureDefinition/PublicExplanationOfBenefit"
-          ]
-        },
-        "identifier": [
-          {
-            "system": "리소스식별자(미정)",
-            "value": "v004-7"
-          }
-        ],
-        "contained": [
-          {
-            "resourceType": "Organization",
-            "id": "v004-7-org",
-            "type": [
-              {
-                "coding": [
-                  {
-                    "system": "미정",
-                    "code": "미정",
-                    "display": "약국"
-                  }
-                ],
-                "text": "약국"
-              }
-            ],
-            "name": "가양마음약국",
-            "address": [
-              {
-                "text": "서울특별시 강서구 화곡로"
-              }
-            ]
-          }
-        ],
-        "status": "active",
-        "type": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/claim-type",
-              "code": "pharmacy",
-              "display": "pharmacy"
-            }
-          ]
-        },
-        "use": "claim",
-        "patient": {
-          "reference": "Patient/10000000",
-          "resource": {
-            "resourceType": "Patient",
-            "id": "10000000",
-            "meta": {
-              "profile": [
-                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
-              ]
-            },
-            "identifier": [
-              {
-                "type": {
-                  "coding": [
-                    {
-                      "system": "http://myhealthway.go.kr(가칭)",
-                      "code": "MHID"
-                    }
-                  ]
-                },
-                "system": "미정",
-                "value": "20530004"
-              },
-              {
-                "type": {
-                  "coding": [
-                    {
-                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
-                      "code": "NNKOR"
-                    }
-                  ]
-                },
-                "system": "http://mois.go.kr/rnn",
-                "value": "9612345******"
-              }
-            ],
-            "name": [
-              {
-                "text": "최하은"
-              }
-            ]
-          }
-        },
-        "billablePeriod": {
-          "start": "2026-01-08"
+          "start": "2026-06-15"
         },
         "provider": {
           "reference": "Organization/v004-7-org"
         },
         "outcome": "complete",
         "total": {
-          "value": 12000,
+          "value": 85000,
           "currency": "KRW"
         },
         "diagnosis": []
@@ -816,13 +816,13 @@
                   {
                     "system": "미정",
                     "code": "미정",
-                    "display": "약국"
+                    "display": "병의원"
                   }
                 ],
-                "text": "약국"
+                "text": "병의원"
               }
             ],
-            "name": "가양마음약국",
+            "name": "마음의지도정신건강의학과의원",
             "address": [
               {
                 "text": "서울특별시 강서구 화곡로"
@@ -835,8 +835,8 @@
           "coding": [
             {
               "system": "http://terminology.hl7.org/CodeSystem/claim-type",
-              "code": "pharmacy",
-              "display": "pharmacy"
+              "code": "professional",
+              "display": "professional"
             }
           ]
         },
@@ -885,14 +885,14 @@
           }
         },
         "billablePeriod": {
-          "start": "2026-02-05"
+          "start": "2026-06-17"
         },
         "provider": {
           "reference": "Organization/v004-8-org"
         },
         "outcome": "complete",
         "total": {
-          "value": 12000,
+          "value": 20000,
           "currency": "KRW"
         },
         "diagnosis": []
@@ -992,7 +992,7 @@
           }
         },
         "billablePeriod": {
-          "start": "2026-03-05"
+          "start": "2026-06-17"
         },
         "provider": {
           "reference": "Organization/v004-9-org"
@@ -1000,220 +1000,6 @@
         "outcome": "complete",
         "total": {
           "value": 15500,
-          "currency": "KRW"
-        },
-        "diagnosis": []
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "ExplanationOfBenefit",
-        "id": "v004-10",
-        "meta": {
-          "profile": [
-            "https://simplifier.net/myhealthway/StructureDefinition/PublicExplanationOfBenefit"
-          ]
-        },
-        "identifier": [
-          {
-            "system": "리소스식별자(미정)",
-            "value": "v004-10"
-          }
-        ],
-        "contained": [
-          {
-            "resourceType": "Organization",
-            "id": "v004-10-org",
-            "type": [
-              {
-                "coding": [
-                  {
-                    "system": "미정",
-                    "code": "미정",
-                    "display": "약국"
-                  }
-                ],
-                "text": "약국"
-              }
-            ],
-            "name": "가양마음약국",
-            "address": [
-              {
-                "text": "서울특별시 강서구 화곡로"
-              }
-            ]
-          }
-        ],
-        "status": "active",
-        "type": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/claim-type",
-              "code": "pharmacy",
-              "display": "pharmacy"
-            }
-          ]
-        },
-        "use": "claim",
-        "patient": {
-          "reference": "Patient/10000000",
-          "resource": {
-            "resourceType": "Patient",
-            "id": "10000000",
-            "meta": {
-              "profile": [
-                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
-              ]
-            },
-            "identifier": [
-              {
-                "type": {
-                  "coding": [
-                    {
-                      "system": "http://myhealthway.go.kr(가칭)",
-                      "code": "MHID"
-                    }
-                  ]
-                },
-                "system": "미정",
-                "value": "20530004"
-              },
-              {
-                "type": {
-                  "coding": [
-                    {
-                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
-                      "code": "NNKOR"
-                    }
-                  ]
-                },
-                "system": "http://mois.go.kr/rnn",
-                "value": "9612345******"
-              }
-            ],
-            "name": [
-              {
-                "text": "최하은"
-              }
-            ]
-          }
-        },
-        "billablePeriod": {
-          "start": "2026-04-02"
-        },
-        "provider": {
-          "reference": "Organization/v004-10-org"
-        },
-        "outcome": "complete",
-        "total": {
-          "value": 16800,
-          "currency": "KRW"
-        },
-        "diagnosis": []
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "ExplanationOfBenefit",
-        "id": "v004-11",
-        "meta": {
-          "profile": [
-            "https://simplifier.net/myhealthway/StructureDefinition/PublicExplanationOfBenefit"
-          ]
-        },
-        "identifier": [
-          {
-            "system": "리소스식별자(미정)",
-            "value": "v004-11"
-          }
-        ],
-        "contained": [
-          {
-            "resourceType": "Organization",
-            "id": "v004-11-org",
-            "type": [
-              {
-                "coding": [
-                  {
-                    "system": "미정",
-                    "code": "미정",
-                    "display": "약국"
-                  }
-                ],
-                "text": "약국"
-              }
-            ],
-            "name": "가양마음약국",
-            "address": [
-              {
-                "text": "서울특별시 강서구 화곡로"
-              }
-            ]
-          }
-        ],
-        "status": "active",
-        "type": {
-          "coding": [
-            {
-              "system": "http://terminology.hl7.org/CodeSystem/claim-type",
-              "code": "pharmacy",
-              "display": "pharmacy"
-            }
-          ]
-        },
-        "use": "claim",
-        "patient": {
-          "reference": "Patient/10000000",
-          "resource": {
-            "resourceType": "Patient",
-            "id": "10000000",
-            "meta": {
-              "profile": [
-                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
-              ]
-            },
-            "identifier": [
-              {
-                "type": {
-                  "coding": [
-                    {
-                      "system": "http://myhealthway.go.kr(가칭)",
-                      "code": "MHID"
-                    }
-                  ]
-                },
-                "system": "미정",
-                "value": "20530004"
-              },
-              {
-                "type": {
-                  "coding": [
-                    {
-                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
-                      "code": "NNKOR"
-                    }
-                  ]
-                },
-                "system": "http://mois.go.kr/rnn",
-                "value": "9612345******"
-              }
-            ],
-            "name": [
-              {
-                "text": "최하은"
-              }
-            ]
-          }
-        },
-        "billablePeriod": {
-          "start": "2026-05-01"
-        },
-        "provider": {
-          "reference": "Organization/v004-11-org"
-        },
-        "outcome": "complete",
-        "total": {
-          "value": 17200,
           "currency": "KRW"
         },
         "diagnosis": []

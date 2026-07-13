@@ -78,10 +78,11 @@ def test_persona_phr_files_paths_exist():
 @pytest.mark.parametrize(
     "vp_id,expected_has_history,expected_psycho_count",
     [
-        ("VP-001", False, 0),
-        ("VP-002", True, 3),   # SSRI × 3
-        ("VP-003", True, 1),   # BENZO 응급
-        ("VP-004", True, 8),   # SSRI + BENZO + ZDRUG 총 8건
+        # 원본 페르소나 MD 100% 재현
+        ("VP-001", False, 0),  # 정신과 이력 없음
+        ("VP-002", True, 2),   # Escitalopram 10mg × 2회 재조제 (6주 이력)
+        ("VP-003", False, 0),  # 정신과 이력 없음 · 고혈압 자가중단
+        ("VP-004", True, 6),   # Sertraline + Esc10 + Esc20×2 + Alprazolam×2
     ],
 )
 def test_f1_run_session_loads_phr(vp_id, expected_has_history, expected_psycho_count):

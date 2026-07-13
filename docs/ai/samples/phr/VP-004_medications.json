@@ -96,11 +96,11 @@
               "coding": [
                 {
                   "system": "https://biz.kpis.or.kr/CodeSystem/kdcode",
-                  "code": "659900290",
-                  "display": "렉사프로정20mg (에스시탈로프람)"
+                  "code": "649900070",
+                  "display": "졸로푸트정50mg (서트랄린)"
                 }
               ],
-              "text": "렉사프로정20mg (에스시탈로프람)"
+              "text": "졸로푸트정50mg (서트랄린)"
             },
             "ingredient": [
               {
@@ -113,8 +113,8 @@
                       "coding": [
                         {
                           "system": "https://www.hira.or.kr",
-                          "code": "245801ATB",
-                          "display": "escitalopram"
+                          "code": "244401ATB",
+                          "display": "sertraline"
                         }
                       ]
                     }
@@ -167,16 +167,16 @@
             ]
           }
         },
-        "whenPrepared": "2026-01-08",
+        "whenPrepared": "2026-04-15",
         "daysSupply": {
-          "value": 28,
+          "value": 14,
           "unit": "일",
           "system": "http://unitsofmeasure.org",
           "code": "d"
         },
         "dosageInstruction": [
           {
-            "text": "1정 1회/일 28일",
+            "text": "1정 1회/일 14일",
             "timing": {
               "repeat": {
                 "frequency": 1,
@@ -249,11 +249,11 @@
               "coding": [
                 {
                   "system": "https://biz.kpis.or.kr/CodeSystem/kdcode",
-                  "code": "659900290",
-                  "display": "렉사프로정20mg (에스시탈로프람)"
+                  "code": "659900280",
+                  "display": "렉사프로정10mg (에스시탈로프람)"
                 }
               ],
-              "text": "렉사프로정20mg (에스시탈로프람)"
+              "text": "렉사프로정10mg (에스시탈로프람)"
             },
             "ingredient": [
               {
@@ -320,16 +320,16 @@
             ]
           }
         },
-        "whenPrepared": "2026-02-05",
+        "whenPrepared": "2026-05-01",
         "daysSupply": {
-          "value": 28,
+          "value": 21,
           "unit": "일",
           "system": "http://unitsofmeasure.org",
           "code": "d"
         },
         "dosageInstruction": [
           {
-            "text": "1정 1회/일 28일",
+            "text": "1정 1회/일 21일",
             "timing": {
               "repeat": {
                 "frequency": 1,
@@ -473,7 +473,7 @@
             ]
           }
         },
-        "whenPrepared": "2026-03-05",
+        "whenPrepared": "2026-05-20",
         "daysSupply": {
           "value": 28,
           "unit": "일",
@@ -555,11 +555,11 @@
               "coding": [
                 {
                   "system": "https://biz.kpis.or.kr/CodeSystem/kdcode",
-                  "code": "659900290",
-                  "display": "렉사프로정20mg (에스시탈로프람)"
+                  "code": "641800110",
+                  "display": "자낙스정0.25mg (알프라졸람)"
                 }
               ],
-              "text": "렉사프로정20mg (에스시탈로프람)"
+              "text": "자낙스정0.25mg (알프라졸람)"
             },
             "ingredient": [
               {
@@ -572,8 +572,8 @@
                       "coding": [
                         {
                           "system": "https://www.hira.or.kr",
-                          "code": "245801ATB",
-                          "display": "escitalopram"
+                          "code": "196501ATB",
+                          "display": "alprazolam"
                         }
                       ]
                     }
@@ -626,19 +626,19 @@
             ]
           }
         },
-        "whenPrepared": "2026-04-02",
+        "whenPrepared": "2026-05-20",
         "daysSupply": {
-          "value": 28,
+          "value": 14,
           "unit": "일",
           "system": "http://unitsofmeasure.org",
           "code": "d"
         },
         "dosageInstruction": [
           {
-            "text": "1정 1회/일 28일",
+            "text": "0.25mg PRN 공황 발작 시 14일 분량",
             "timing": {
               "repeat": {
-                "frequency": 1,
+                "frequency": 0,
                 "period": 1,
                 "periodUnit": "d"
               }
@@ -708,11 +708,11 @@
               "coding": [
                 {
                   "system": "https://biz.kpis.or.kr/CodeSystem/kdcode",
-                  "code": "641801740",
-                  "display": "아티반정1mg (로라제팜)"
+                  "code": "659900290",
+                  "display": "렉사프로정20mg (에스시탈로프람)"
                 }
               ],
-              "text": "아티반정1mg (로라제팜)"
+              "text": "렉사프로정20mg (에스시탈로프람)"
             },
             "ingredient": [
               {
@@ -725,8 +725,8 @@
                       "coding": [
                         {
                           "system": "https://www.hira.or.kr",
-                          "code": "203301ATB",
-                          "display": "lorazepam"
+                          "code": "245801ATB",
+                          "display": "escitalopram"
                         }
                       ]
                     }
@@ -779,19 +779,19 @@
             ]
           }
         },
-        "whenPrepared": "2026-03-05",
+        "whenPrepared": "2026-06-17",
         "daysSupply": {
-          "value": 14,
+          "value": 28,
           "unit": "일",
           "system": "http://unitsofmeasure.org",
           "code": "d"
         },
         "dosageInstruction": [
           {
-            "text": "1정 필요시 2회/일 14일",
+            "text": "1정 1회/일 28일",
             "timing": {
               "repeat": {
-                "frequency": 2,
+                "frequency": 1,
                 "period": 1,
                 "periodUnit": "d"
               }
@@ -861,11 +861,11 @@
               "coding": [
                 {
                   "system": "https://biz.kpis.or.kr/CodeSystem/kdcode",
-                  "code": "641801740",
-                  "display": "아티반정1mg (로라제팜)"
+                  "code": "641800110",
+                  "display": "자낙스정0.25mg (알프라졸람)"
                 }
               ],
-              "text": "아티반정1mg (로라제팜)"
+              "text": "자낙스정0.25mg (알프라졸람)"
             },
             "ingredient": [
               {
@@ -878,8 +878,8 @@
                       "coding": [
                         {
                           "system": "https://www.hira.or.kr",
-                          "code": "203301ATB",
-                          "display": "lorazepam"
+                          "code": "196501ATB",
+                          "display": "alprazolam"
                         }
                       ]
                     }
@@ -932,7 +932,7 @@
             ]
           }
         },
-        "whenPrepared": "2026-05-01",
+        "whenPrepared": "2026-06-17",
         "daysSupply": {
           "value": 14,
           "unit": "일",
@@ -941,316 +941,10 @@
         },
         "dosageInstruction": [
           {
-            "text": "1정 필요시 2회/일 14일",
+            "text": "0.25mg PRN 공황 발작 시 14일 분량",
             "timing": {
               "repeat": {
-                "frequency": 2,
-                "period": 1,
-                "periodUnit": "d"
-              }
-            },
-            "doseAndRate": [
-              {
-                "doseQuantity": {
-                  "value": 1.0
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "MedicationDispense",
-        "id": "m004-7",
-        "meta": {
-          "profile": [
-            "https://simplifier.net/myhealthway/StructureDefinition/PublicMedicationDispense"
-          ]
-        },
-        "identifier": [
-          {
-            "system": "리소스식별자(미정)",
-            "value": "m004-7"
-          }
-        ],
-        "contained": [
-          {
-            "resourceType": "Organization",
-            "id": "m004-7-org",
-            "type": [
-              {
-                "coding": [
-                  {
-                    "system": "미정",
-                    "code": "미정",
-                    "display": "약국"
-                  }
-                ],
-                "text": "약국"
-              }
-            ],
-            "name": "가양마음약국",
-            "address": [
-              {
-                "text": "서울특별시 강서구 화곡로"
-              }
-            ]
-          }
-        ],
-        "status": "completed",
-        "medicationReference": {
-          "reference": "Medication/m004-7-m",
-          "resource": {
-            "resourceType": "Medication",
-            "id": "m004-7-m",
-            "meta": {
-              "profile": [
-                "https://simplifier.net/myhealthway/StructureDefinition/PublicMedication"
-              ]
-            },
-            "code": {
-              "coding": [
-                {
-                  "system": "https://biz.kpis.or.kr/CodeSystem/kdcode",
-                  "code": "645502560",
-                  "display": "스틸녹스정10mg (졸피뎀)"
-                }
-              ],
-              "text": "스틸녹스정10mg (졸피뎀)"
-            },
-            "ingredient": [
-              {
-                "itemReference": {
-                  "reference": "Substance/m004-7-s",
-                  "resource": {
-                    "resourceType": "Substance",
-                    "id": "m004-7-s",
-                    "code": {
-                      "coding": [
-                        {
-                          "system": "https://www.hira.or.kr",
-                          "code": "192302ATB",
-                          "display": "zolpidem"
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "subject": {
-          "reference": "Patient/10000000",
-          "resource": {
-            "resourceType": "Patient",
-            "id": "10000000",
-            "meta": {
-              "profile": [
-                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
-              ]
-            },
-            "identifier": [
-              {
-                "type": {
-                  "coding": [
-                    {
-                      "system": "http://myhealthway.go.kr(가칭)",
-                      "code": "MHID"
-                    }
-                  ]
-                },
-                "system": "미정",
-                "value": "20530004"
-              },
-              {
-                "type": {
-                  "coding": [
-                    {
-                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
-                      "code": "NNKOR"
-                    }
-                  ]
-                },
-                "system": "http://mois.go.kr/rnn",
-                "value": "9612345******"
-              }
-            ],
-            "name": [
-              {
-                "text": "최하은"
-              }
-            ]
-          }
-        },
-        "whenPrepared": "2026-04-02",
-        "daysSupply": {
-          "value": 14,
-          "unit": "일",
-          "system": "http://unitsofmeasure.org",
-          "code": "d"
-        },
-        "dosageInstruction": [
-          {
-            "text": "1정 취침전 14일",
-            "timing": {
-              "repeat": {
-                "frequency": 1,
-                "period": 1,
-                "periodUnit": "d"
-              }
-            },
-            "doseAndRate": [
-              {
-                "doseQuantity": {
-                  "value": 1.0
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "MedicationDispense",
-        "id": "m004-8",
-        "meta": {
-          "profile": [
-            "https://simplifier.net/myhealthway/StructureDefinition/PublicMedicationDispense"
-          ]
-        },
-        "identifier": [
-          {
-            "system": "리소스식별자(미정)",
-            "value": "m004-8"
-          }
-        ],
-        "contained": [
-          {
-            "resourceType": "Organization",
-            "id": "m004-8-org",
-            "type": [
-              {
-                "coding": [
-                  {
-                    "system": "미정",
-                    "code": "미정",
-                    "display": "약국"
-                  }
-                ],
-                "text": "약국"
-              }
-            ],
-            "name": "가양마음약국",
-            "address": [
-              {
-                "text": "서울특별시 강서구 화곡로"
-              }
-            ]
-          }
-        ],
-        "status": "completed",
-        "medicationReference": {
-          "reference": "Medication/m004-8-m",
-          "resource": {
-            "resourceType": "Medication",
-            "id": "m004-8-m",
-            "meta": {
-              "profile": [
-                "https://simplifier.net/myhealthway/StructureDefinition/PublicMedication"
-              ]
-            },
-            "code": {
-              "coding": [
-                {
-                  "system": "https://biz.kpis.or.kr/CodeSystem/kdcode",
-                  "code": "645502560",
-                  "display": "스틸녹스정10mg (졸피뎀)"
-                }
-              ],
-              "text": "스틸녹스정10mg (졸피뎀)"
-            },
-            "ingredient": [
-              {
-                "itemReference": {
-                  "reference": "Substance/m004-8-s",
-                  "resource": {
-                    "resourceType": "Substance",
-                    "id": "m004-8-s",
-                    "code": {
-                      "coding": [
-                        {
-                          "system": "https://www.hira.or.kr",
-                          "code": "192302ATB",
-                          "display": "zolpidem"
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "subject": {
-          "reference": "Patient/10000000",
-          "resource": {
-            "resourceType": "Patient",
-            "id": "10000000",
-            "meta": {
-              "profile": [
-                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
-              ]
-            },
-            "identifier": [
-              {
-                "type": {
-                  "coding": [
-                    {
-                      "system": "http://myhealthway.go.kr(가칭)",
-                      "code": "MHID"
-                    }
-                  ]
-                },
-                "system": "미정",
-                "value": "20530004"
-              },
-              {
-                "type": {
-                  "coding": [
-                    {
-                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
-                      "code": "NNKOR"
-                    }
-                  ]
-                },
-                "system": "http://mois.go.kr/rnn",
-                "value": "9612345******"
-              }
-            ],
-            "name": [
-              {
-                "text": "최하은"
-              }
-            ]
-          }
-        },
-        "whenPrepared": "2026-05-01",
-        "daysSupply": {
-          "value": 14,
-          "unit": "일",
-          "system": "http://unitsofmeasure.org",
-          "code": "d"
-        },
-        "dosageInstruction": [
-          {
-            "text": "1정 취침전 14일",
-            "timing": {
-              "repeat": {
-                "frequency": 1,
+                "frequency": 0,
                 "period": 1,
                 "periodUnit": "d"
               }

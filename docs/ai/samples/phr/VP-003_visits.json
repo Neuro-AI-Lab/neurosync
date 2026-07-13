@@ -73,7 +73,7 @@
                 "text": "병의원"
               }
             ],
-            "name": "관악성모의원",
+            "name": "낙성대내과의원",
             "address": [
               {
                 "text": "서울특별시 관악구 남부순환로"
@@ -136,14 +136,14 @@
           }
         },
         "billablePeriod": {
-          "start": "2026-03-22"
+          "start": "2026-01-15"
         },
         "provider": {
           "reference": "Organization/v003-1-org"
         },
         "outcome": "complete",
         "total": {
-          "value": 13000,
+          "value": 14000,
           "currency": "KRW"
         },
         "diagnosis": []
@@ -243,14 +243,14 @@
           }
         },
         "billablePeriod": {
-          "start": "2026-03-22"
+          "start": "2026-01-15"
         },
         "provider": {
           "reference": "Organization/v003-2-org"
         },
         "outcome": "complete",
         "total": {
-          "value": 4500,
+          "value": 6800,
           "currency": "KRW"
         },
         "diagnosis": []
@@ -287,7 +287,7 @@
                 "text": "병의원"
               }
             ],
-            "name": "낙성대내과의원",
+            "name": "관악성모의원",
             "address": [
               {
                 "text": "서울특별시 관악구 남부순환로"
@@ -350,14 +350,14 @@
           }
         },
         "billablePeriod": {
-          "start": "2026-04-15"
+          "start": "2026-03-22"
         },
         "provider": {
           "reference": "Organization/v003-3-org"
         },
         "outcome": "complete",
         "total": {
-          "value": 15000,
+          "value": 13000,
           "currency": "KRW"
         },
         "diagnosis": []
@@ -457,14 +457,14 @@
           }
         },
         "billablePeriod": {
-          "start": "2026-04-15"
+          "start": "2026-03-22"
         },
         "provider": {
           "reference": "Organization/v003-4-org"
         },
         "outcome": "complete",
         "total": {
-          "value": 7200,
+          "value": 4500,
           "currency": "KRW"
         },
         "diagnosis": []
@@ -501,10 +501,10 @@
                 "text": "병의원"
               }
             ],
-            "name": "서울특별시보라매병원",
+            "name": "낙성대내과의원",
             "address": [
               {
-                "text": "서울특별시 동작구 보라매로 5길"
+                "text": "서울특별시 관악구 남부순환로"
               }
             ]
           }
@@ -564,14 +564,14 @@
           }
         },
         "billablePeriod": {
-          "start": "2026-06-25"
+          "start": "2026-04-15"
         },
         "provider": {
           "reference": "Organization/v003-5-org"
         },
         "outcome": "complete",
         "total": {
-          "value": 68000,
+          "value": 15000,
           "currency": "KRW"
         },
         "diagnosis": []
@@ -608,10 +608,10 @@
                 "text": "약국"
               }
             ],
-            "name": "봉천새롬약국",
+            "name": "관악프라자약국",
             "address": [
               {
-                "text": "서울특별시 관악구 봉천로"
+                "text": "서울특별시 관악구 관악로"
               }
             ]
           }
@@ -671,14 +671,14 @@
           }
         },
         "billablePeriod": {
-          "start": "2026-06-25"
+          "start": "2026-04-15"
         },
         "provider": {
           "reference": "Organization/v003-6-org"
         },
         "outcome": "complete",
         "total": {
-          "value": 3800,
+          "value": 7200,
           "currency": "KRW"
         },
         "diagnosis": []

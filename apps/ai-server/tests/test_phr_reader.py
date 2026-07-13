@@ -74,11 +74,12 @@ class TestSafeDate:
 
 
 PERSONA_EXPECTATIONS = {
+    # 원본 페르소나 MD 100% 재현 (docs/ai/personas/VP-*.md 기준)
     # (has_psychiatric_history, min_meds, min_visits, expected_classes)
-    "VP-001": (False, 3, 4, set()),
-    "VP-002": (True, 4, 7, {"SSRI"}),
-    "VP-003": (True, 3, 6, {"BENZO"}),  # 응급 로라제팜 단회
-    "VP-004": (True, 8, 11, {"SSRI", "BENZO", "ZDRUG"}),
+    "VP-001": (False, 3, 4, set()),        # 정신과 이력 없음 · 감기·소화 3건
+    "VP-002": (True, 2, 4, {"SSRI"}),      # Escitalopram 10mg 2회 재조제 (6주째)
+    "VP-003": (False, 3, 6, set()),        # 정신과 이력 없음 · 고혈압 자가중단 + 감기·소화
+    "VP-004": (True, 6, 9, {"SSRI", "BENZO"}),  # Sertraline→Esc10→Esc20 + Alprazolam PRN
 }
 
 
@@ -188,7 +189,8 @@ def test_handoff_snippet_structure():
     assert "phr" in snippet
     phr = snippet["phr"]
     assert phr["has_psychiatric_history"] is True
-    assert phr["total_medications"] >= 4
+    # VP-002: Escitalopram 10mg × 2회 재조제 (원본 6주 이력)
+    assert phr["total_medications"] >= 2
     assert isinstance(phr["psychotropic_medications"], list)
     assert phr["psychotropic_medications"][0]["psychotropic_class"] == "SSRI"
 

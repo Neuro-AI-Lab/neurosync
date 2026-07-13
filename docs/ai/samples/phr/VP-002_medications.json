@@ -167,7 +167,7 @@
             ]
           }
         },
-        "whenPrepared": "2026-04-05",
+        "whenPrepared": "2026-05-07",
         "daysSupply": {
           "value": 28,
           "unit": "일",
@@ -176,7 +176,7 @@
         },
         "dosageInstruction": [
           {
-            "text": "1정 1회/일 28일",
+            "text": "1정 1회/일 아침 28일",
             "timing": {
               "repeat": {
                 "frequency": 1,
@@ -320,7 +320,7 @@
             ]
           }
         },
-        "whenPrepared": "2026-05-03",
+        "whenPrepared": "2026-06-04",
         "daysSupply": {
           "value": 28,
           "unit": "일",
@@ -329,316 +329,10 @@
         },
         "dosageInstruction": [
           {
-            "text": "1정 1회/일 28일",
+            "text": "1정 1회/일 아침 28일",
             "timing": {
               "repeat": {
                 "frequency": 1,
-                "period": 1,
-                "periodUnit": "d"
-              }
-            },
-            "doseAndRate": [
-              {
-                "doseQuantity": {
-                  "value": 1.0
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "MedicationDispense",
-        "id": "m002-3",
-        "meta": {
-          "profile": [
-            "https://simplifier.net/myhealthway/StructureDefinition/PublicMedicationDispense"
-          ]
-        },
-        "identifier": [
-          {
-            "system": "리소스식별자(미정)",
-            "value": "m002-3"
-          }
-        ],
-        "contained": [
-          {
-            "resourceType": "Organization",
-            "id": "m002-3-org",
-            "type": [
-              {
-                "coding": [
-                  {
-                    "system": "미정",
-                    "code": "미정",
-                    "display": "약국"
-                  }
-                ],
-                "text": "약국"
-              }
-            ],
-            "name": "판교마음약국",
-            "address": [
-              {
-                "text": "경기도 성남시 분당구 판교역로"
-              }
-            ]
-          }
-        ],
-        "status": "completed",
-        "medicationReference": {
-          "reference": "Medication/m002-3-m",
-          "resource": {
-            "resourceType": "Medication",
-            "id": "m002-3-m",
-            "meta": {
-              "profile": [
-                "https://simplifier.net/myhealthway/StructureDefinition/PublicMedication"
-              ]
-            },
-            "code": {
-              "coding": [
-                {
-                  "system": "https://biz.kpis.or.kr/CodeSystem/kdcode",
-                  "code": "659900280",
-                  "display": "렉사프로정10mg (에스시탈로프람)"
-                }
-              ],
-              "text": "렉사프로정10mg (에스시탈로프람)"
-            },
-            "ingredient": [
-              {
-                "itemReference": {
-                  "reference": "Substance/m002-3-s",
-                  "resource": {
-                    "resourceType": "Substance",
-                    "id": "m002-3-s",
-                    "code": {
-                      "coding": [
-                        {
-                          "system": "https://www.hira.or.kr",
-                          "code": "245801ATB",
-                          "display": "escitalopram"
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "subject": {
-          "reference": "Patient/10000000",
-          "resource": {
-            "resourceType": "Patient",
-            "id": "10000000",
-            "meta": {
-              "profile": [
-                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
-              ]
-            },
-            "identifier": [
-              {
-                "type": {
-                  "coding": [
-                    {
-                      "system": "http://myhealthway.go.kr(가칭)",
-                      "code": "MHID"
-                    }
-                  ]
-                },
-                "system": "미정",
-                "value": "20530002"
-              },
-              {
-                "type": {
-                  "coding": [
-                    {
-                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
-                      "code": "NNKOR"
-                    }
-                  ]
-                },
-                "system": "http://mois.go.kr/rnn",
-                "value": "9012345******"
-              }
-            ],
-            "name": [
-              {
-                "text": "이준호"
-              }
-            ]
-          }
-        },
-        "whenPrepared": "2026-06-01",
-        "daysSupply": {
-          "value": 28,
-          "unit": "일",
-          "system": "http://unitsofmeasure.org",
-          "code": "d"
-        },
-        "dosageInstruction": [
-          {
-            "text": "1정 1회/일 28일",
-            "timing": {
-              "repeat": {
-                "frequency": 1,
-                "period": 1,
-                "periodUnit": "d"
-              }
-            },
-            "doseAndRate": [
-              {
-                "doseQuantity": {
-                  "value": 1.0
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "resource": {
-        "resourceType": "MedicationDispense",
-        "id": "m002-4",
-        "meta": {
-          "profile": [
-            "https://simplifier.net/myhealthway/StructureDefinition/PublicMedicationDispense"
-          ]
-        },
-        "identifier": [
-          {
-            "system": "리소스식별자(미정)",
-            "value": "m002-4"
-          }
-        ],
-        "contained": [
-          {
-            "resourceType": "Organization",
-            "id": "m002-4-org",
-            "type": [
-              {
-                "coding": [
-                  {
-                    "system": "미정",
-                    "code": "미정",
-                    "display": "약국"
-                  }
-                ],
-                "text": "약국"
-              }
-            ],
-            "name": "서현약국",
-            "address": [
-              {
-                "text": "경기도 성남시 분당구 성남대로"
-              }
-            ]
-          }
-        ],
-        "status": "completed",
-        "medicationReference": {
-          "reference": "Medication/m002-4-m",
-          "resource": {
-            "resourceType": "Medication",
-            "id": "m002-4-m",
-            "meta": {
-              "profile": [
-                "https://simplifier.net/myhealthway/StructureDefinition/PublicMedication"
-              ]
-            },
-            "code": {
-              "coding": [
-                {
-                  "system": "https://biz.kpis.or.kr/CodeSystem/kdcode",
-                  "code": "657200100",
-                  "display": "타이레놀정500mg"
-                }
-              ],
-              "text": "타이레놀정500mg"
-            },
-            "ingredient": [
-              {
-                "itemReference": {
-                  "reference": "Substance/m002-4-s",
-                  "resource": {
-                    "resourceType": "Substance",
-                    "id": "m002-4-s",
-                    "code": {
-                      "coding": [
-                        {
-                          "system": "https://www.hira.or.kr",
-                          "code": "165201ATB",
-                          "display": "acetaminophen"
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "subject": {
-          "reference": "Patient/10000000",
-          "resource": {
-            "resourceType": "Patient",
-            "id": "10000000",
-            "meta": {
-              "profile": [
-                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
-              ]
-            },
-            "identifier": [
-              {
-                "type": {
-                  "coding": [
-                    {
-                      "system": "http://myhealthway.go.kr(가칭)",
-                      "code": "MHID"
-                    }
-                  ]
-                },
-                "system": "미정",
-                "value": "20530002"
-              },
-              {
-                "type": {
-                  "coding": [
-                    {
-                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
-                      "code": "NNKOR"
-                    }
-                  ]
-                },
-                "system": "http://mois.go.kr/rnn",
-                "value": "9012345******"
-              }
-            ],
-            "name": [
-              {
-                "text": "이준호"
-              }
-            ]
-          }
-        },
-        "whenPrepared": "2026-03-10",
-        "daysSupply": {
-          "value": 5,
-          "unit": "일",
-          "system": "http://unitsofmeasure.org",
-          "code": "d"
-        },
-        "dosageInstruction": [
-          {
-            "text": "1정 3회/일 5일",
-            "timing": {
-              "repeat": {
-                "frequency": 3,
                 "period": 1,
                 "periodUnit": "d"
               }
