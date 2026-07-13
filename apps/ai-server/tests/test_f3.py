@@ -212,8 +212,10 @@ class TestScoringCorrectnessBoundaryFixtures:
 
     @pytest.mark.asyncio
     async def test_audit_c_sex_thresholds(self) -> None:
-        # total=3: below male/unknown threshold(4), at/above female threshold(3).
-        responses = [1, 1, 1]
+        # Korean-primary threshold (CVR-018 Q1 / ADR-034 decision 1):
+        # male/unknown >= 6, female >= 5. total=5: below male/unknown
+        # threshold, at/above female threshold.
+        responses = [2, 2, 1]
         _, male_result = await f3.administer_survey(
             "AUDIT-C", _fixed_answer_fn(responses), patient_sex="male"
         )
@@ -294,22 +296,21 @@ class TestRunF3AdministrationAdministered:
 
     @pytest.mark.asyncio
     async def test_audit_c_administered_carries_threshold_caveat(self, tmp_path: Path) -> None:
-        """CVR-016 condition 3 / ADR-033 decision 2: AUDIT-C severity output
-        must carry the Korean-population non-reconciliation caveat — never
-        silently shipped bare."""
+        """CVR-018 Q4 / ADR-034 decision 1-2: AUDIT-C severity output must
+        carry the Korean-primary-threshold caveat — never silently shipped
+        bare."""
         artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire="AUDIT-C"))
         result = await f3.run_f3_administration(
             domain_inference_path=artifact_path,
-            answer_fn=_fixed_answer_fn([4, 3, 4]),
+            answer_fn=_fixed_answer_fn([4, 3, 4]),  # total=11
             answer_mode="expected",
             output_dir=tmp_path / "out",
         )
         output = result["output"]
         assert output.threshold_caveat is not None
         assert "Seong" in output.threshold_caveat
-        assert "Woo" in output.threshold_caveat
-        # Threshold itself unchanged (byte-frozen) — severity still computed
-        # by the untouched survey_scorer.py band.
+        assert "Bush" in output.threshold_caveat  # international cutoff, retained as metadata
+        # Korean-primary threshold (male/unknown >= 6) drives severity.
         assert output.score_result.severity == "hazardous_drinking"
 
     @pytest.mark.asyncio
@@ -354,6 +355,95 @@ class TestRunF3AdministrationAdministered:
             output_dir=tmp_path / "out",
         )
         assert result["output"].threshold_caveat is None
+
+
+class TestAuditCInternationalThresholdMetadata:
+    """CVR-018 Q1 Recommendation 1 / ADR-034 decision 1: the international
+    AUDIT-C cutoff (Bush et al. 1998) ships as non-action-driving structured
+    metadata alongside the Korean-primary threshold (male/unknown >= 6,
+    female >= 5) that actually drives severity/recommended_action."""
+
+    @pytest.mark.asyncio
+    async def test_audit_c_administered_carries_international_metadata(
+        self, tmp_path: Path
+    ) -> None:
+        artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire="AUDIT-C"))
+        result = await f3.run_f3_administration(
+            domain_inference_path=artifact_path,
+            answer_fn=_fixed_answer_fn([4, 3, 4]),  # total=11
+            answer_mode="expected",
+            output_dir=tmp_path / "out",
+            patient_sex="male",
+        )
+        meta = result["output"].audit_c_international_threshold
+        assert meta is not None
+        assert meta.male_or_unknown_threshold == 4
+        assert meta.female_threshold == 3
+        assert meta.crossed_international_threshold is True
+        assert "Bush" in meta.source
+
+    @pytest.mark.asyncio
+    async def test_international_metadata_never_drives_severity_or_action(
+        self, tmp_path: Path
+    ) -> None:
+        """total=4, male: crosses the international threshold (>=4) but NOT
+        the Korean-primary threshold (>=6) -- severity/recommended_action/
+        safety_referral must reflect the Korean threshold only; the
+        international metadata must not leak into any of them."""
+        artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire="AUDIT-C"))
+        result = await f3.run_f3_administration(
+            domain_inference_path=artifact_path,
+            answer_fn=_fixed_answer_fn([2, 1, 1]),  # total=4
+            answer_mode="expected",
+            output_dir=tmp_path / "out",
+            patient_sex="male",
+        )
+        output = result["output"]
+        assert output.score_result.severity == "low_risk"
+        assert output.score_result.recommended_action == "none"
+        assert output.safety_referral is False
+        assert output.audit_c_international_threshold.crossed_international_threshold is True
+
+    @pytest.mark.asyncio
+    async def test_international_metadata_female_boundary(self, tmp_path: Path) -> None:
+        """total=3, female: crosses the international female threshold
+        (>=3) but not the Korean-primary female threshold (>=5)."""
+        artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire="AUDIT-C"))
+        result = await f3.run_f3_administration(
+            domain_inference_path=artifact_path,
+            answer_fn=_fixed_answer_fn([1, 1, 1]),  # total=3
+            answer_mode="expected",
+            output_dir=tmp_path / "out",
+            patient_sex="female",
+        )
+        output = result["output"]
+        assert output.score_result.severity == "low_risk"
+        assert output.audit_c_international_threshold.crossed_international_threshold is True
+
+    @pytest.mark.asyncio
+    async def test_non_audit_c_scale_has_no_international_metadata(
+        self, tmp_path: Path
+    ) -> None:
+        artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire="PHQ-9"))
+        result = await f3.run_f3_administration(
+            domain_inference_path=artifact_path,
+            answer_fn=_fixed_answer_fn([1, 1, 1, 1, 1, 1, 1, 1, 1]),
+            answer_mode="expected",
+            output_dir=tmp_path / "out",
+        )
+        assert result["output"].audit_c_international_threshold is None
+
+    @pytest.mark.asyncio
+    async def test_no_questionnaire_outcome_has_no_international_metadata(
+        self, tmp_path: Path
+    ) -> None:
+        artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire=None))
+        result = await f3.run_f3_administration(
+            domain_inference_path=artifact_path,
+            answer_fn=_never_called,
+            output_dir=tmp_path / "out",
+        )
+        assert result["output"].audit_c_international_threshold is None
 
 
 class TestRunF3AdministrationForcedScale:
@@ -552,6 +642,27 @@ class TestSurveyResultOutputSchema:
     def test_threshold_caveat_accepts_a_string(self) -> None:
         out = SurveyResultOutput(**self._valid_kwargs(), threshold_caveat="some caveat")
         assert out.threshold_caveat == "some caveat"
+
+    def test_audit_c_international_threshold_defaults_to_none(self) -> None:
+        out = SurveyResultOutput(**self._valid_kwargs())
+        assert out.audit_c_international_threshold is None
+
+    def test_audit_c_international_threshold_accepts_a_model(self) -> None:
+        from src.schemas.survey_result import AuditCInternationalThresholdMetadata
+
+        meta = AuditCInternationalThresholdMetadata(crossed_international_threshold=True)
+        out = SurveyResultOutput(**self._valid_kwargs(), audit_c_international_threshold=meta)
+        assert out.audit_c_international_threshold.crossed_international_threshold is True
+        assert out.audit_c_international_threshold.male_or_unknown_threshold == 4
+        assert out.audit_c_international_threshold.female_threshold == 3
+
+    def test_audit_c_international_threshold_metadata_extra_forbidden(self) -> None:
+        from src.schemas.survey_result import AuditCInternationalThresholdMetadata
+
+        with pytest.raises(ValidationError):
+            AuditCInternationalThresholdMetadata(
+                crossed_international_threshold=True, unexpected_field="x"
+            )  # type: ignore[call-arg]
 
     def test_extra_field_still_forbidden_with_new_fields_present(self) -> None:
         """`extra="forbid"` must still hold after this mission's schema

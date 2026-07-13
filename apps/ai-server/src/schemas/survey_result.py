@@ -37,16 +37,29 @@ unchanged — see `src/f3.py::run_f3_administration`'s `forced_scale` kwarg).
 Every artifact self-describes which mode produced it.
 
 `threshold_caveat` (`CVR-016` condition 3 / `ADR-033` decision 2, extended to
-GAD-7 by `CVR-016`/`CVR-017` binding condition 1 and `REV-039` correction D):
-populated for an AUDIT-C or GAD-7 `administered` outcome (`None` for every
-other scale) — AUDIT-C: the byte-frozen male>=4/female>=3 threshold's non-
-reconciliation with Korean-population evidence; GAD-7: the byte-frozen 0-4/
-5-9/10-14/15-21 bands' Korean-language scoring-table citation was retracted
-during v1 sourcing (`item_bank_v1_sources.md` §2.4) and now rest on
-international-convention-only sourcing (Spitzer et al. 2006). Carried as a
-machine-readable field alongside `score_result.severity` so a consumer never
-sees "hazardous_drinking"/"severe"/etc. without it. The source table lives in
-`src.f3._SEVERITY_CAVEATS`, never recomputed here.
+GAD-7 by `CVR-016`/`CVR-017` binding condition 1 and `REV-039` correction D;
+rewritten for AUDIT-C's Korean-primary threshold by `CVR-018` Q4 / `ADR-034`
+decision 1-2): populated for an AUDIT-C or GAD-7 `administered` outcome
+(`None` for every other scale) — AUDIT-C: the Korean-primary male>=6/
+female>=5 threshold's basis and the international cutoff's non-adoption
+rationale; GAD-7: the byte-frozen 0-4/5-9/10-14/15-21 bands' Korean-language
+scoring-table citation was retracted during v1 sourcing (`item_bank_v1_
+sources.md` §2.4) and now rest on international-convention-only sourcing
+(Spitzer et al. 2006). Carried as a machine-readable field alongside
+`score_result.severity` so a consumer never sees "hazardous_drinking"/
+"severe"/etc. without it. The source table lives in `src.f3._SEVERITY_
+CAVEATS`, never recomputed here.
+
+`audit_c_international_threshold` (`CVR-018` Q1 Recommendation 1 / `ADR-034`
+decision 1): AUDIT-C-only, populated for an AUDIT-C `administered` outcome
+(`None` for every other scale/outcome). Carries the international cutoff
+(Bush et al. 1998, male/unknown >= 4, female >= 3) as non-action-driving
+structured reference metadata alongside the Korean-primary threshold that
+actually drives `score_result.severity`/`recommended_action` — this field is
+a RECORD only, computed once at administration time by `src.f3.run_f3_
+administration` and never read back by any severity/action/`clinician_review`
+decision anywhere in this codebase (enforced by
+`tests/test_f3.py::TestAuditCInternationalThresholdMetadata`).
 """
 
 from __future__ import annotations
@@ -87,6 +100,33 @@ class ScoreResultModel(BaseModel):
     subscale_scores: dict[str, int] = Field(default_factory=dict)
     interpretation: str = ""
     recommended_action: str = ""
+
+
+class AuditCInternationalThresholdMetadata(BaseModel):
+    """Non-action-driving structured metadata (`CVR-018` Q1 Recommendation 1
+    / `ADR-034` decision 1): the international AUDIT-C cutoff (Bush et al.
+    1998), retained on the artifact for reference alongside the
+    Korean-primary threshold (male/unknown >= 6, female >= 5,
+    `src.scoring.survey_scorer._score_audit_c`) that actually drives
+    `score_result.severity`/`score_result.recommended_action`. A RECORD
+    only — nothing in `src.f3`/`src.scoring.survey_scorer` reads this field
+    to decide severity, `recommended_action`, or `safety_referral`.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    source: str = "Bush et al. 1998"
+    male_or_unknown_threshold: int = 4
+    female_threshold: int = 3
+    crossed_international_threshold: bool = Field(
+        description=(
+            "Whether the raw AUDIT-C total crossed the international threshold "
+            "applicable to the administered patient_sex (male_or_unknown_threshold "
+            "for male/unknown, female_threshold for female) -- CVR-018 Q1 "
+            "Recommendation 1. Computed once at administration time from "
+            "score_result.total_score, never recomputed downstream."
+        )
+    )
 
 
 class RecommendationProvenance(BaseModel):
@@ -146,6 +186,16 @@ class SurveyResultOutput(BaseModel):
             "Korean-language scoring-table citation was retracted during v1 sourcing; "
             "bands now rest on international-convention-only sourcing (Spitzer et al. "
             "2006). `None` for every other scale."
+        ),
+    )
+    audit_c_international_threshold: AuditCInternationalThresholdMetadata | None = Field(
+        default=None,
+        description=(
+            "AUDIT-C-only, populated for an 'administered' AUDIT-C outcome (None for "
+            "every other scale/outcome) -- CVR-018 Q1 Recommendation 1 / ADR-034 "
+            "decision 1. The international cutoff (Bush et al. 1998) retained as "
+            "non-action-driving reference metadata; never independently triggers "
+            "severity, recommended_action, or clinician_review."
         ),
     )
     recommendation_provenance: RecommendationProvenance
