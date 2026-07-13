@@ -197,6 +197,7 @@ class TestBuildF3LedgerSubobject:
             "answer_mode", "recommendation_provenance", "survey_artifact_path",
             "scale_scores_path",
         }
+        expected_keys |= {"scenario_pack_id", "arc_mode"}  # F4 quick-dev provenance, ADR-036 item 3
         assert set(sub.keys()) == expected_keys
         assert sub["outcome"] == "administered"
         assert sub["scale_name"] == "PHQ-9"
@@ -312,6 +313,7 @@ class TestRunMultiSessionChainF3Integration:
         results = await ct.run_multi_session_chain(
             "VP-001", n_sessions=1, max_turns=3, k=3, out_dir=tmp_path,
             scale_scores_path=None, answer_mode="expected",
+            run_f4=False,  # this test's scope is F3 integration, not F4 (covered separately)
         )
         assert [r.name for r in results] == ["F1[session=1]", "F2[session=1]", "F3[session=1]"]
         assert results[2].status == "pass"

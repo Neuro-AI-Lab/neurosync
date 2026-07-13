@@ -359,6 +359,10 @@ async def run_f3_administration(
             recommendation_caveat=recommendation.recommendation_caveat,
         ),
         answer_mode=answer_mode,  # type: ignore[arg-type]
+        # F4 quick-dev provenance (§2.7, ADR-036 item 3) — reprojected from
+        # the F2 artifact's own top-level fields, never re-derived.
+        scenario_pack_id=artifact.get("scenario_pack_id"),
+        arc_mode=artifact.get("arc_mode"),
     )
     paths = save_f3_result(output, output_dir)
     return {"outcome": outcome, "output": output, "paths": paths}

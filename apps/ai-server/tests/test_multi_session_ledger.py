@@ -96,6 +96,7 @@ class TestRunMultiSessionChain:
         results = await ct.run_multi_session_chain(
             "VP-001", n_sessions=2, max_turns=3, k=3, out_dir=tmp_path,
             scale_scores_path=None,
+            run_f4=False,  # this test's scope is F1/F2/F3 chaining, not F4 (covered separately)
         )
 
         # F3 stage is now real (PLAN-2026-W28-V) — the fake F2 stage above

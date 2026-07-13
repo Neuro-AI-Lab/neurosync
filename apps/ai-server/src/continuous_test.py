@@ -637,6 +637,11 @@ def _build_f3_ledger_subobject(ctx: ChainContext) -> dict[str, Any] | None:
         "scale_scores_path": (
             str(ctx.f3_scale_scores_path) if ctx.f3_scale_scores_path else None
         ),
+        # F4 quick-dev provenance (§2.7, ADR-036 item 3) — reprojected
+        # straight from the saved survey.json, same `.get(...)`-default
+        # discipline as every other field above (absent on pre-F4 artifacts).
+        "scenario_pack_id": data.get("scenario_pack_id"),
+        "arc_mode": data.get("arc_mode"),
     }
 
 
@@ -656,6 +661,8 @@ async def run_multi_session_chain(
     answer_mode: str = "llm",
     forced_scale: str | None = None,
     patient_sex: str | None = None,
+    scenario_pack: tuple[Any, ...] | None = None,
+    run_f4: bool = True,
 ) -> list[StageResult]:
     """Chain N F1 sessions via the existing PUBLIC `followup_from` seam
     (`f1._run_simulation(..., followup_from=<prior session's own
@@ -677,9 +684,43 @@ async def run_multi_session_chain(
     A hard F1 failure halts the chain at that session (mirrors
     `run_chain`'s own halt-on-fail discipline) — sessions already completed
     keep their StageResults and ledger entries.
+
+    `scenario_pack` (`docs/ai/f4_quick_dev_plan.md` §2/§9 wave 4,
+    `PLAN-2026-W29-D`): an optional ordered tuple of
+    `tests.simulation.scenario_pack.ScenarioSession` — when supplied, its
+    length MUST equal `n_sessions` (raises `ValueError` otherwise, fail-fast
+    rather than silently truncating/padding). Each session then:
+      - uses `scenario_pack[i].day_offset` for its `simulated_date` INSTEAD
+        of the uniform `session_interval_days * (session_index - 1)`
+        formula (variable-cadence support — weekly -> biweekly -> monthly);
+      - has that session's OWN rendered guideline text
+        (`tests.simulation.scenario_pack.render_scenario_guideline`)
+        injected via `f1._run_simulation(scenario_guideline=...)` — ONLY
+        that session's text ever reaches `persona.system_prompt`, never the
+        whole arc table (isolation invariant, test-proven);
+      - self-identifies via `scenario_pack_id`/`arc_mode`, threaded through
+        every artifact class (§2.7).
+    `scenario_pack=None` (every existing/natural caller) preserves the
+    EXACT prior behavior — uniform interval, no guideline injection, no
+    provenance tags.
+
+    `run_f4` (design doc §6.3): after the LAST session in the loop, runs
+    the F4 longitudinal-analysis stage ONCE (post-loop, not in-loop) over
+    the VP's now-complete session ledger — a NEW invocation shape distinct
+    from F1-F3's per-session stages. Defaults `True`; a caller wanting the
+    F1->F2->F3 chain without triggering F4 (e.g. a deliberately partial
+    run) sets it `False`. Never runs when the chain HALTED early on a hard
+    F1 failure (mirrors `run_chain`'s own halt-on-fail discipline — no
+    point analyzing a series that never got recorded this invocation).
     """
     from src import f1
     from src.grounding import QUESTIONABLE_SLOT_KEYS
+
+    if scenario_pack is not None and len(scenario_pack) != n_sessions:
+        raise ValueError(
+            f"scenario_pack has {len(scenario_pack)} session(s) but n_sessions={n_sessions} "
+            "— they must match exactly (fail-fast, never silently truncate/pad)"
+        )
 
     all_results: list[StageResult] = []
     prev_conversation_path: Path | None = None
@@ -687,10 +728,27 @@ async def run_multi_session_chain(
     resolved_base_date = base_date or datetime.now().date()
     ledger_path = _ledger_path(persona_id, out_dir)
 
+    halted = False
     for session_index in range(1, n_sessions + 1):
-        simulated_date = (
-            resolved_base_date + timedelta(days=session_interval_days * (session_index - 1))
-        ).isoformat()
+        scenario_session = scenario_pack[session_index - 1] if scenario_pack is not None else None
+        scenario_guideline: str | None = None
+        scenario_pack_id: str | None = None
+        scenario_arc_mode: str | None = None
+        if scenario_session is not None:
+            from tests.simulation.scenario_pack import render_scenario_guideline
+
+            simulated_date = (
+                resolved_base_date + timedelta(days=scenario_session.day_offset)
+            ).isoformat()
+            scenario_guideline = render_scenario_guideline(
+                scenario_session, n_sessions, simulated_date
+            )
+            scenario_pack_id = scenario_session.scenario_pack_id
+            scenario_arc_mode = scenario_session.arc_mode
+        else:
+            simulated_date = (
+                resolved_base_date + timedelta(days=session_interval_days * (session_index - 1))
+            ).isoformat()
         followup_from = str(prev_conversation_path) if prev_conversation_path else None
 
         t0 = time.perf_counter()
@@ -698,6 +756,8 @@ async def run_multi_session_chain(
             f1_result = await f1._run_simulation(
                 persona_id, max_turns, followup_from=followup_from,
                 session_index=session_index, simulated_date=simulated_date,
+                scenario_guideline=scenario_guideline,
+                scenario_pack_id=scenario_pack_id, arc_mode=scenario_arc_mode,
             )
         except SystemExit as exc:
             all_results.append(StageResult(
@@ -705,6 +765,7 @@ async def run_multi_session_chain(
                 f"F1 exited (code={exc.code}) — check persona file / API keys",
                 duration_ms=_ms(t0),
             ))
+            halted = True
             break
         except Exception as exc:  # noqa: BLE001 — harness must report, not crash
             logger.exception("continuous_test.multi_session.f1.failed")
@@ -712,6 +773,7 @@ async def run_multi_session_chain(
                 f"F1[session={session_index}]", "fail", f"F1 session raised: {exc}",
                 duration_ms=_ms(t0),
             ))
+            halted = True
             break
 
         conv_path = _find_latest_f1_conversation(persona_id)
@@ -721,6 +783,7 @@ async def run_multi_session_chain(
                 "F1 completed but no conversation.json was found on disk",
                 duration_ms=_ms(t0),
             ))
+            halted = True
             break
         all_results.append(StageResult(
             f"F1[session={session_index}]", "pass",
@@ -773,11 +836,21 @@ async def run_multi_session_chain(
                 str(f2_ctx.domain_inference_path) if f2_ctx.domain_inference_path else None
             ),
             "f3": _build_f3_ledger_subobject(f2_ctx),
+            # F4 quick-dev provenance (§2.7) — read straight off the
+            # F1Result, never re-derived/guessed (`None`/absent for a
+            # natural, non-scripted session, same as every f1_result-sourced
+            # field above).
+            "scenario_pack_id": f1_result.scenario_pack_id if f1_result else None,
+            "arc_mode": f1_result.arc_mode if f1_result else None,
             "written_at": datetime.now().isoformat(),
         }
         _append_ledger_entry(ledger_path, ledger_entry)
 
         prev_conversation_path = conv_path
+
+    if run_f4 and not halted:
+        f4_result = await _run_f4_analysis(persona_id, out_dir)
+        all_results.append(f4_result)
 
     return all_results
 
@@ -794,13 +867,150 @@ def print_multi_session_report(persona_id: str, results: list[StageResult]) -> N
     print(f"{'=' * 70}")
 
 
+# ── F4 stage (PLAN-2026-W29-D) ───────────────────────────────────────────
+#
+# F4 is NOT per-session (design doc §6.3) — it runs ONCE, over a VP's
+# now-complete session ledger, reading `conversation_path`/
+# `domain_inference_path` pointers + the ledger's own reprojected `"f3"`
+# sub-object. `src.f4.analyze_longitudinal_series` itself never touches any
+# of these files — building the explicit `SessionRecord`s below IS the
+# harness-side input-assembly the production/harness split requires
+# (design doc §4, REV-044 Criterion 6).
+
+
+def _build_session_record(entry: dict[str, Any]) -> Any | None:
+    """One `src.f4.SessionRecord` per ledger entry — reads the entry's own
+    `conversation_path`/`domain_inference_path` pointers (never re-derives
+    them) plus the ledger's already-reprojected `"f3"` sub-object. Returns
+    `None` (never raises) when the entry's own `conversation_path` is
+    missing/unreadable — a corrupt/partial entry is skipped honestly, never
+    fabricated.
+    """
+    from src.f4 import SessionRecord
+
+    conv_path_str = entry.get("conversation_path")
+    if not conv_path_str:
+        return None
+    conv_path = Path(conv_path_str)
+    if not conv_path.exists():
+        logger.warning("continuous_test.f4.conversation_unreadable — %s", conv_path)
+        return None
+    try:
+        conv = json.loads(conv_path.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001 — a corrupt artifact must not crash F4 assembly
+        logger.warning("continuous_test.f4.conversation_unparseable — %s", conv_path)
+        return None
+
+    domain_candidates: list[dict[str, Any]] = []
+    ai_predicted_disease: dict[str, Any] | None = None
+    di_path_str = entry.get("domain_inference_path")
+    if di_path_str:
+        di_path = Path(di_path_str)
+        if di_path.exists():
+            try:
+                di = json.loads(di_path.read_text(encoding="utf-8"))
+                domain_candidates = di.get("domain_candidates", [])
+                ai_predicted_disease = di.get("ai_predicted_disease")
+            except Exception:  # noqa: BLE001 — same discipline as above
+                logger.warning("continuous_test.f4.domain_inference_unparseable — %s", di_path)
+
+    turns = conv.get("turns", [])
+    turn_polarities = [
+        t["sentiment"]["polarity"]
+        for t in turns
+        if isinstance(t.get("sentiment"), dict) and t["sentiment"].get("polarity") is not None
+    ]
+    turn_risk_signal_count = sum(
+        1
+        for t in turns
+        if isinstance(t.get("sentiment"), dict) and t["sentiment"].get("risk_signal")
+    )
+
+    return SessionRecord(
+        session_index=entry["session_index"],
+        simulated_date=entry["simulated_date"],
+        scenario_pack_id=entry.get("scenario_pack_id"),
+        arc_mode=entry.get("arc_mode"),
+        final_slots=entry.get("final_slots", {}),
+        missing_slots=entry.get("missing_slots", []),
+        session_ctrs=conv.get("session_ctrs"),
+        crisis_triggered=bool(conv.get("crisis_triggered", False)),
+        crisis_turn=conv.get("crisis_turn"),
+        probe_events=conv.get("probe_events", []),
+        risk_floor=conv.get("risk_floor"),
+        turn_sentiment_polarities=turn_polarities,
+        turn_risk_signal_count=turn_risk_signal_count,
+        session_sentiment_summary=conv.get("session_sentiment") or None,
+        domain_candidates=domain_candidates,
+        ai_predicted_disease=ai_predicted_disease,
+        f3=entry.get("f3"),
+    )
+
+
+async def _run_f4_analysis(persona_id: str, out_dir: Path | None) -> StageResult:
+    """Read the VP's session ledger, assemble `SessionRecord`s, call
+    `src.f4.analyze_longitudinal_series`, save via
+    `src.services.f4_report.save_f4_result`. Shared by `run_f4_stage`
+    (STAGE_REGISTRY, single-session path) and `run_multi_session_chain`'s
+    own post-loop step — same assembly logic, never duplicated.
+    """
+    from src import f4
+    from src.services import f4_report
+
+    t0 = time.perf_counter()
+    ledger_path = _ledger_path(persona_id, out_dir)
+    entries = _load_ledger(ledger_path)
+    if len(entries) < 2:
+        return StageResult(
+            "F4", "skip",
+            f"F4 needs >=2 ledger entries for {persona_id} (got {len(entries)}) — "
+            "trend analysis has nothing to compare yet",
+            duration_ms=_ms(t0),
+        )
+
+    records = [r for r in (_build_session_record(e) for e in entries) if r is not None]
+    if len(records) < 2:
+        return StageResult(
+            "F4", "warn",
+            f"only {len(records)}/{len(entries)} ledger entries had readable artifacts "
+            "— F4 needs >=2 to run",
+            duration_ms=_ms(t0),
+        )
+    records.sort(key=lambda r: r.session_index)
+
+    series_input = f4.LongitudinalSeriesInput(vp_id=persona_id, sessions=tuple(records))
+    try:
+        output = f4.analyze_longitudinal_series(series_input)
+    except Exception as exc:  # noqa: BLE001 — harness must report, not crash, on stage failure
+        logger.exception("continuous_test.f4.failed")
+        return StageResult("F4", "fail", f"F4 analysis raised: {exc}", duration_ms=_ms(t0))
+
+    paths = f4_report.save_f4_result(output, out_dir, vp_id=persona_id)
+    detail = (
+        f"F4 longitudinal analysis complete: n_sessions={output.n_sessions} "
+        f"overall_direction={output.overall_direction} course_shape={output.course_shape} "
+        f"concordance_flag={output.concordance_flag} -> {paths['json'].name}"
+    )
+    if output.crisis_f3_gaps:
+        detail += f" | crisis_f3_gaps={len(output.crisis_f3_gaps)}"
+    return StageResult("F4", "pass", detail, artifacts=paths, duration_ms=_ms(t0))
+
+
+async def run_f4_stage(ctx: ChainContext) -> StageResult:
+    """STAGE_REGISTRY entry point (single-session `run_chain` path) — reads
+    whatever ledger entries have accumulated for `ctx.persona_id` across
+    however many separate invocations (not per-invocation-only), same
+    honest "skip if <2 entries" discipline as `_run_f4_analysis`."""
+    return await _run_f4_analysis(ctx.persona_id, ctx.out_dir)
+
+
 # ── Unimplemented stages — explicit, logged skip stubs (never silent) ───
 
 STAGE_REGISTRY: list[Stage] = [
     Stage("F1", True, run_f1_stage),
     Stage("F2", True, run_f2_stage),
     Stage("F3", True, run_f3_stage),
-    Stage("F4", False, None, note="F4 not yet implemented — no src/f4.py in this repo."),
+    Stage("F4", True, run_f4_stage),
     Stage("F5", False, None, note="F5 not yet implemented — no src/f5.py in this repo."),
     Stage("F6", False, None, note="F6 not yet implemented — no src/f6.py in this repo."),
 ]
@@ -920,6 +1130,26 @@ def build_arg_parser() -> argparse.ArgumentParser:
             "tests/simulation/factorial_driver.py --patient-sex와 동일한 값 도메인."
         ),
     )
+    parser.add_argument(
+        "--scenario-pack",
+        default=None,
+        choices=["VP-001", "VP-003"],
+        help=(
+            "F4 quick-dev (PLAN-2026-W29-D): tests/simulation/scenario_pack.py의 "
+            "해당 VP 11-세션 스크립트를 로드해 --sessions 체인에 threading한다 "
+            "(--sessions > 1 필수 조합). 지정 시 --sessions/--session-interval-days는 "
+            "무시되고 팩 고유의 세션 수/day_offset 스케줄이 사용된다 — 팩이 없는 "
+            "자연(natural) 세션은 이 플래그를 절대 지정하지 않는다."
+        ),
+    )
+    parser.add_argument(
+        "--no-f4",
+        action="store_true",
+        help=(
+            "다중 세션 체인(--sessions > 1) 완료 후 자동으로 실행되는 F4 종단 분석 "
+            "post-loop 단계를 건너뛴다 (기본값: F4 실행)."
+        ),
+    )
     return parser
 
 
@@ -937,6 +1167,8 @@ def _build_single_session_ledger_entry(
     final_slots: dict[str, str] = {}
     model = ""
     prompt_version = ""
+    scenario_pack_id: str | None = None
+    arc_mode: str | None = None
     if ctx.conversation_path is not None and ctx.conversation_path.exists():
         try:
             data = json.loads(ctx.conversation_path.read_text(encoding="utf-8"))
@@ -945,6 +1177,8 @@ def _build_single_session_ledger_entry(
             }
             model = data.get("model", "")
             prompt_version = data.get("prompt_version", "")
+            scenario_pack_id = data.get("scenario_pack_id")
+            arc_mode = data.get("arc_mode")
         except Exception:  # noqa: BLE001 — ledger bookkeeping must not crash the harness
             logger.warning(
                 "continuous_test.ledger.conversation_unreadable — %s", ctx.conversation_path
@@ -963,6 +1197,10 @@ def _build_single_session_ledger_entry(
             str(ctx.domain_inference_path) if ctx.domain_inference_path else None
         ),
         "f3": _build_f3_ledger_subobject(ctx),
+        # F4 quick-dev provenance (§2.7) — reprojected from the saved
+        # conversation.json, `None`/absent for a natural session.
+        "scenario_pack_id": scenario_pack_id,
+        "arc_mode": arc_mode,
         "written_at": datetime.now().isoformat(),
     }
 
@@ -972,14 +1210,28 @@ async def _main(args: argparse.Namespace) -> int:
     answer_mode = getattr(args, "answer_mode", "llm") or "llm"
     forced_scale = getattr(args, "force_questionnaire", None)
     patient_sex = getattr(args, "patient_sex", None)
+    scenario_pack_name = getattr(args, "scenario_pack", None)
+    run_f4 = not getattr(args, "no_f4", False)
 
-    if args.sessions and args.sessions > 1:
+    scenario_pack = None
+    n_sessions = args.sessions
+    if scenario_pack_name:
+        from tests.simulation.scenario_pack import get_scenario_pack
+
+        scenario_pack = get_scenario_pack(scenario_pack_name)
+        n_sessions = len(scenario_pack)
+        print(
+            f"[F4 scenario-pack] Loaded {scenario_pack_name} ({n_sessions} sessions) — "
+            f"overriding --sessions={args.sessions} -> {n_sessions}"
+        )
+
+    if n_sessions and n_sessions > 1:
         if args.start_from_conversation:
             print("--start-from-conversation is not supported together with --sessions > 1")
             return 1
         results = await run_multi_session_chain(
             args.persona,
-            n_sessions=args.sessions,
+            n_sessions=n_sessions,
             max_turns=args.max_turns,
             k=args.k,
             out_dir=out_dir,
@@ -988,6 +1240,8 @@ async def _main(args: argparse.Namespace) -> int:
             answer_mode=answer_mode,
             forced_scale=forced_scale,
             patient_sex=patient_sex,
+            scenario_pack=scenario_pack,
+            run_f4=run_f4,
         )
         print_multi_session_report(args.persona, results)
         return 0 if all(r.status != "fail" for r in results) else 1

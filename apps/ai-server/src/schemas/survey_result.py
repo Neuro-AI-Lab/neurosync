@@ -207,5 +207,14 @@ class SurveyResultOutput(BaseModel):
         default=None,
         description="The caller-requested answer_fn mode, recorded verbatim regardless of outcome.",
     )
+    # F4 quick-dev provenance (`docs/ai/f4_quick_dev_plan.md` §2.7, `REV-044`
+    # Issue 4 / `ADR-036` item 3): reprojected verbatim from the upstream F2
+    # `domain_inference.json` artifact's own top-level fields
+    # (`src.f3.run_f3_administration` reads `artifact.get("scenario_pack_id")`
+    # / `artifact.get("arc_mode")`, never re-derived) — a scripted session
+    # self-identifies in this artifact class too. `None`/absent for every
+    # natural (non-scripted) F2 input, including every pre-F4 artifact.
+    scenario_pack_id: str | None = None
+    arc_mode: str | None = None
     is_diagnostic: Literal[False] = False
     disclaimer: str = Field(default=SURVEY_RESULT_DISCLAIMER_KO)

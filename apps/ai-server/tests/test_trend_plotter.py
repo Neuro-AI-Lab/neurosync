@@ -10,7 +10,10 @@ import base64
 
 from src.services.trend_plotter import (
     ClinicalEvent,
+    NamedSeriesPoint,
     TrendDataPoint,
+    generate_domain_trend_plot,
+    generate_similarity_trend_plot,
     generate_trend_plot,
     generate_trend_plot_base64,
 )
@@ -199,3 +202,70 @@ class TestBackwardCompatibility:
         b64 = generate_trend_plot_base64(VP002_SHORT, "test")
         assert b64 is not None
         assert len(b64) > 100
+
+
+# ── F4 quick-dev extensions (`docs/ai/f4_quick_dev_plan.md` §5.2, wave 5) ──
+
+
+class TestSlotFillPanel:
+    """Chart 5 extension — `TrendDataPoint.slot_fill_count`."""
+
+    def test_slot_fill_panel_renders(self):
+        data = [
+            TrendDataPoint(date="2026-01-01", phq9=13, slot_fill_count=4),
+            TrendDataPoint(date="2026-01-08", phq9=10, slot_fill_count=6),
+            TrendDataPoint(date="2026-01-15", phq9=8, slot_fill_count=8),
+        ]
+        result = generate_trend_plot(data)
+        assert result is not None
+        assert result.png_bytes[:8] == b"\x89PNG\r\n\x1a\n"
+
+    def test_slot_fill_only_series_renders(self):
+        data = [
+            TrendDataPoint(date="2026-01-01", slot_fill_count=2),
+            TrendDataPoint(date="2026-01-08", slot_fill_count=5),
+        ]
+        result = generate_trend_plot(data)
+        assert result is not None
+
+    def test_no_slot_fill_field_unaffected(self):
+        """Backward compat: omitting slot_fill_count entirely (every
+        pre-F4 caller) behaves exactly as before — no extra panel."""
+        result = generate_trend_plot(VP002_SHORT)
+        assert result is not None
+
+
+class TestSimilarityAndDomainTrendCharts:
+    """Charts 3-4 — new multi-series line-chart functions."""
+
+    def test_similarity_trend_plot_renders_for_recurring_disease(self):
+        points = [
+            NamedSeriesPoint(date="2026-01-01", name="우울 삽화(우울증)", value=0.45),
+            NamedSeriesPoint(date="2026-01-08", name="우울 삽화(우울증)", value=0.52),
+            NamedSeriesPoint(date="2026-01-15", name="우울 삽화(우울증)", value=0.60),
+            NamedSeriesPoint(date="2026-01-01", name="범불안장애", value=0.40),
+        ]
+        result = generate_similarity_trend_plot(points, patient_name="VP-001")
+        assert result is not None
+        assert result.png_bytes[:8] == b"\x89PNG\r\n\x1a\n"
+
+    def test_similarity_trend_plot_none_when_nothing_recurs(self):
+        points = [
+            NamedSeriesPoint(date="2026-01-01", name="우울 삽화(우울증)", value=0.45),
+            NamedSeriesPoint(date="2026-01-01", name="범불안장애", value=0.40),
+        ]
+        # Each disease appears in only 1 distinct session -> below
+        # min_sessions=2 default -> nothing plottable -> None, not a crash.
+        result = generate_similarity_trend_plot(points)
+        assert result is None
+
+    def test_domain_trend_plot_renders_for_recurring_domain(self):
+        points = [
+            NamedSeriesPoint(date="2026-01-01", name="anxiety", value=0.6),
+            NamedSeriesPoint(date="2026-01-08", name="anxiety", value=0.7),
+        ]
+        result = generate_domain_trend_plot(points, patient_name="VP-001")
+        assert result is not None
+
+    def test_domain_trend_plot_empty_list_is_none(self):
+        assert generate_domain_trend_plot([]) is None

@@ -21,15 +21,18 @@ import src.continuous_test as ct
 
 
 class TestStageRegistryShape:
-    def test_f1_f2_f3_are_implemented(self) -> None:
+    def test_f1_through_f4_are_implemented(self) -> None:
+        """F4 flips to implemented once `src/f4.py` ships (`PLAN-2026-W29-D`,
+        `ADR-036`) — the exact extension seam `STAGE_REGISTRY`'s own
+        docstring describes."""
         by_name = {s.name: s for s in ct.STAGE_REGISTRY}
-        for name in ("F1", "F2", "F3"):
+        for name in ("F1", "F2", "F3", "F4"):
             assert by_name[name].implemented is True
             assert callable(by_name[name].run)
 
-    def test_f4_through_f6_are_explicit_logged_skip_stubs(self) -> None:
+    def test_f5_f6_are_explicit_logged_skip_stubs(self) -> None:
         by_name = {s.name: s for s in ct.STAGE_REGISTRY}
-        for name in ("F4", "F5", "F6"):
+        for name in ("F5", "F6"):
             stage = by_name[name]
             assert stage.implemented is False
             assert stage.run is None
