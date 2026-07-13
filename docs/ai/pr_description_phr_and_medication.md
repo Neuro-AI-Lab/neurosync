@@ -104,6 +104,58 @@ Layer 1 · adapters/myhealthway_reader.py — load_bundle + iter_resources + red
 - `F1Result.phr_summary` 저장 · Report `## PHR — 개인건강기록 요약` 섹션 자동 삽입
 - CLI: `--phr file1,file2` / `--phr-vp-default` (PERSONA_PHR_FILES 매핑)
 
+### 3.4b `f1.py` 약효분류 연동 — 이번 변경 상세 (4곳)
+정신과 판정을 API 기반으로 바꾸면서 F1 파이프라인이 (a) 약효 어댑터를 주입하고
+(b) 표시 문자열을 약효분류명으로 바꾼다. `f1.py` diff는 아래 4개 지점뿐이며,
+파이프라인 제어 흐름은 그대로다 (판정 로직은 `PatientHistoryAgent` 내부로 위임).
+
+**① import 추가** (L46)
+```python
+from src.dependencies import (
+    get_hira_drug_efficacy_adapter,   # 신규
+    get_model_router, get_nearby_agent, ...
+)
+```
+
+**② `_get_history_agent()` — 어댑터 주입 + graceful fallback** (L498)
+```python
+def _get_history_agent(self) -> PatientHistoryAgent:
+    if self._history is None:
+        # HIRA_SERVICE_KEY 없으면 factory가 None → 에이전트는 로컬 캐시만 사용.
+        try:
+            efficacy_adapter = get_hira_drug_efficacy_adapter()
+        except Exception as exc:
+            logger.warning("Drug-efficacy adapter unavailable, cache-only: %s", exc)
+            efficacy_adapter = None
+        self._history = PatientHistoryAgent(efficacy_adapter=efficacy_adapter)
+    return self._history
+```
+- 이전엔 인자 없는 `PatientHistoryAgent()`. 이제 어댑터를 lazy-주입한다.
+- 어댑터 생성 자체가 실패해도(설정 이슈 등) 세션은 죽지 않고 **캐시-온리**로 계속.
+- 어댑터가 `None`이어도(키 미설정) 캐시로 오프라인 판정 가능 → 텍스트 전용 세션 안전.
+
+**③ `_format_phr_for_context()` — DialogueAgent 주입용 컨텍스트 표시** (L389)
+```diff
+- f"  · {when} · {m.product_name} [{m.psychotropic_class}] "
++ f"  · {when} · {m.product_name} "
++ f"[{m.efficacy_class_name or m.psychotropic_class}] "
+```
+- system prompt에 들어가는 약물 라벨이 enum(`PSYCHONEUROTIC`)이 아니라 **HIRA
+  약효분류명(`정신신경용제`)** 으로 노출 → LLM이 읽는 컨텍스트가 임상 용어로 자연스러움.
+- `efficacy_class_name`이 비면(미조회) 파생 enum으로 폴백.
+
+**④ `_build_report()` — 리포트 「정신과 계열 약물 이력」 표시** (L1930)
+```diff
+- cls = m.get("psychotropic_class", "?")
++ cls = m.get("efficacy_class_name") or m.get("psychotropic_class", "?")
+```
+- 리포트도 동일하게 약효분류명 우선 표시 (handoff snippet에 `efficacy_class_name`
+  필드를 추가했기에 가능 — §3.3 handoff 계약 참조).
+
+> 요약: F1은 **판정을 하지 않는다**. 어댑터를 주입하고 결과(약효분류명)를 표시할 뿐이며,
+> 캐시→API→UNKNOWN 폴백 체인은 전부 `PatientHistoryAgent._classify_medications()`
+> 안에 있다. 그래서 F1 diff가 4줄 남짓으로 작고, 오프라인/무키 환경에서도 안전하다.
+
 ### 3.5 안전장치 (`fix` 커밋 반영)
 - **Bug 1 fix** `_first_coding` — system_hint 매칭 실패 시 `{}` 반환 (다른 시스템 code로 kd_code 오염 방지)
 - **Bug 2 fix** — 다른 MHID Patient가 여러 bundle에 섞이면 `logger.warning` (개인정보 오염 조기 감지)
