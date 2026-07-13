@@ -94,7 +94,14 @@ def _safe_decimal(value: Any) -> Decimal | None:
 
 
 def _first_coding(node: dict[str, Any] | None, system_hint: str | None = None) -> dict[str, Any]:
-    """`code.coding[]` 중 system 힌트 우선, 없으면 첫 번째."""
+    """`code.coding[]` 중 system 힌트 일치를 우선 반환.
+
+    - system_hint 지정 & 매칭 있으면 그 coding 반환.
+    - system_hint 지정 & 매칭 **없으면 빈 dict 반환** (silent contamination 방지).
+      호출자가 다른 system code를 원치 않는 필드(kd_code, hira_code 등)에
+      실수로 저장하는 것을 막는다.
+    - system_hint 미지정이면 첫 번째 coding 반환.
+    """
     if not isinstance(node, dict):
         return {}
     codings = node.get("coding") or []
@@ -104,6 +111,8 @@ def _first_coding(node: dict[str, Any] | None, system_hint: str | None = None) -
         for c in codings:
             if isinstance(c, dict) and system_hint in str(c.get("system", "")):
                 return c
+        # system_hint 매칭 실패 → 빈 dict (Bug fix: 다른 system code 오염 방지)
+        return {}
     return codings[0] if isinstance(codings[0], dict) else {}
 
 
@@ -327,8 +336,18 @@ class PatientHistoryAgent(BaseAgent):
         for bundle in bundles:
             for resource in self._reader.iter_resources(bundle):
                 rtype = resource.get("resourceType")
-                if rtype == "Patient" and patient is None:
-                    patient = parse_patient(resource)
+                if rtype == "Patient":
+                    parsed = parse_patient(resource)
+                    if patient is None:
+                        patient = parsed
+                    elif parsed.mhid and patient.mhid and parsed.mhid != patient.mhid:
+                        # 여러 파일이 다른 사람의 데이터를 담고 있음 — 개인정보
+                        # 오염 위험. 첫 Patient만 유지하되 경고를 남긴다.
+                        logger.warning(
+                            "PHR bundle contains different MHID: seen=%s, ignored=%s. "
+                            "다른 사람의 데이터가 섞였을 가능성 — 첫 번째 Patient만 사용.",
+                            patient.mhid, parsed.mhid,
+                        )
                 elif rtype == "MedicationDispense":
                     key = self._resource_key(resource)
                     if key not in med_events:

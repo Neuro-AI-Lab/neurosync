@@ -193,6 +193,67 @@ def test_handoff_snippet_structure():
     assert phr["psychotropic_medications"][0]["psychotropic_class"] == "SSRI"
 
 
+def test_first_coding_returns_empty_on_system_mismatch():
+    """Bug fix regression: system_hint 매칭 실패 시 다른 system coding으로 오염 방지."""
+    from src.agents.patient_history import _first_coding
+
+    node = {
+        "coding": [
+            {"system": "https://other.system", "code": "OTHER-123", "display": "Other"},
+        ]
+    }
+    # KDCode 힌트인데 실제로는 다른 system만 있음 → 빈 dict 반환해야 함
+    assert _first_coding(node, system_hint="kdcode") == {}
+    # 힌트 없으면 fallback으로 첫 coding
+    assert _first_coding(node)["code"] == "OTHER-123"
+    # 매칭되면 그 coding 반환
+    node2 = {
+        "coding": [
+            {"system": "https://other.system", "code": "OTHER-123"},
+            {"system": "https://biz.kpis.or.kr/CodeSystem/kdcode", "code": "KD-456"},
+        ]
+    }
+    assert _first_coding(node2, system_hint="kdcode")["code"] == "KD-456"
+
+
+def test_summarize_warns_on_different_mhid(caplog):
+    """Bug fix regression: 여러 파일에 다른 MHID가 있으면 warning 로그."""
+    import asyncio
+    import logging
+
+    from src.agents.patient_history import PatientHistoryAgent
+
+    def _bundle(mhid: str) -> dict:
+        return {
+            "publicData": [
+                {
+                    "resource": {
+                        "resourceType": "Patient",
+                        "identifier": [
+                            {
+                                "type": {"coding": [{"code": "MHID"}]},
+                                "value": mhid,
+                            }
+                        ],
+                        "name": [{"text": f"person-{mhid}"}],
+                    }
+                },
+            ],
+            "medicalData": [],
+            "healthData": {},
+        }
+
+    async def _run():
+        agent = PatientHistoryAgent()
+        return await agent.summarize([_bundle("11111111"), _bundle("22222222")])
+
+    with caplog.at_level(logging.WARNING, logger="src.agents.patient_history"):
+        summary = asyncio.run(_run())
+    assert summary.patient.mhid == "11111111"
+    warnings = [r for r in caplog.records if "different MHID" in r.getMessage()]
+    assert warnings, "MHID mismatch warning not emitted"
+
+
 def test_missing_file_returns_empty_summary():
     """존재하지 않는 파일은 스킵 · summary에서 안 나타남 (no exception)."""
 
