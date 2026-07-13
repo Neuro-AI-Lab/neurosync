@@ -53,5 +53,57 @@
       "scale_scores_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260712_204106_scale_scores.json"
     },
     "written_at": "2026-07-12T20:41:06.032961"
+  },
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-13",
+    "is_revisit": false,
+    "final_slots": {
+      "history_of_present_illness": "건강검진에서 간 수치 상승 확인 후 술 줄이기 시도했으나 매일 소주 한 병 이상 마시며 조절 어려움. 손 떨림, 스트레스 시 술 생각이 먼저 들고 한 잔 마시면 일시적 완화되나 오히려 조절 더 어려워짐. 배우자와의 다툼으로 인한 미안함 지속",
+      "personal_social_history": "매일 소주 한 병 이상 음주, 배우자와의 다툼으로 인한 미안함",
+      "substance_use_history": "매일 소주 한 병 이상 음주, 술 줄이기 시도했으나 조절 어려움, 손 떨림 및 스트레스 시 술 생각 증가",
+      "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"네, 걱정이 크네요. 술을 줄이려고 해도 자꾸 손이 떨리고, 한 잔 마시면 좀 나아지긴 해요. 스트레스를 받으면 술 생각이 자꾸 나서 멈추기가 ...\"",
+      "chief_complaint": "술 줄이기가 어렵고 손 떨림, 스트레스 시 술 생각이 먼저 들며, 배우자와의 다툼으로 인한 미안함"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "family_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_114513_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_114534_domain_inference.json",
+    "f3": {
+      "outcome": "administered",
+      "scale_name": "AUDIT-C",
+      "administration_mode": "forced",
+      "item_bank_version": "v1",
+      "item_bank_provenance": "v1, verbatim SBIRT Oregon Korean AUDIT PDF (items 1-3 = AUDIT-C), retrieved 2026-07-13 (item_bank_v1_sources.md §5.2/§5.3, appendix §A5). CVR-016 Finding 8 / condition 2: translation-identity of this item wording to the Korean-population cutoff-validation studies (Seong 2009, Woo 2017) is UNCONFIRMED — those studies did not reproduce their own item-text appendix; the '1잔의 기준' block is Western-unit-only (no 소주 reference point)",
+      "responses": [
+        4,
+        1,
+        4
+      ],
+      "total_score": 9,
+      "max_score": 12,
+      "severity": "hazardous_drinking",
+      "subscale_scores": {},
+      "safety_referral": false,
+      "threshold_caveat": "AUDIT-C severity threshold (male/unknown >= 4, female >= 3) is the international standard (Bush et al. 1998) and has NOT been reconciled with Korean-population evidence: Seong et al. 2009 (N=302 Korean men, full-PDF-read) found an optimal cutoff of >= 8; Woo et al. 2017 (N=509, summary-basis) found men >= 7 / women >= 6. Threshold is unchanged this mission (ADR-033 decision 2) -- reported as an open disposition question for the user, not a value change. See item_bank_v1_sources.md section 5.4.",
+      "safety_pathway": null,
+      "answer_mode": "llm",
+      "recommendation_provenance": {
+        "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_114534_domain_inference.json",
+        "top_candidate_disease": "계절성 정동장애",
+        "top_candidate_similarity_score": 0.532,
+        "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+      },
+      "survey_artifact_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_114535_survey.json",
+      "scale_scores_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_114535_scale_scores.json"
+    },
+    "written_at": "2026-07-13T11:45:35.720855"
   }
 ]
