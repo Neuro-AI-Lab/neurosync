@@ -31,6 +31,15 @@
 > (WHO's own 2024 official translation list excludes Korean from all 26 published languages) and
 > the scoring-boundary sentence now confirmed on a 4th independent mirror. PHQ-9/GAD-7/PHQ-4 are
 > untouched, out of scope this pass.
+> **2026-07-13 addendum (fifth, user decision — WHO-5 excluded):** per the user's verbatim
+> direction ("WHO-5는 제외하자"), WHO-5 is EXCLUDED from the F3 v1 supported-instrument set,
+> conditionally — eligible for re-sourcing only if F4 (longitudinal analysis) later establishes a
+> well-being-trend use case. This is a scope decision, not a retraction of the evidence below: the
+> 26-attempt retry log (§4.1, §4.6, §4.7) stands unchanged as the record this exclusion rests on.
+> The raw≤13-vs-"below 13" boundary discrepancy (§4.4) goes dormant with the exclusion — it is not
+> resolved, just no longer live scope. PHQ-9/GAD-7/AUDIT-C stay active (sourced-verbatim,
+> live-verified this program); PHQ-4 stays a sourced reserve (composed from already-verbatim
+> PHQ-9/GAD-7 items, no mapping issues it, zero cost to retain). See §4's new status line.
 
 ---
 
@@ -374,6 +383,17 @@ fully confirmed in a future session.
 ---
 
 ## 4. WHO-5 (well-being, 5 items)
+
+> **Status: EXCLUDED (user decision 2026-07-13, conditional re-add if F4 well-being tracking
+> needs it).** WHO-5 is out of the F3 v1 supported-instrument set by explicit user direction, not
+> by a change in sourcing evidence — §4.1-§4.7 below (the 26-attempt exhaustive retry record) are
+> unchanged and remain the evidence base for this exclusion. Structurally, no F2 mapping issues
+> WHO-5 in this repository, and PHQ-9 already covers depression severity for this project's
+> current F2→F3 linkage — the gap is unreachable under current F3 v1 scope. Unblock path
+> (unchanged): user-supplied KCI/DBpia/RISS credential access, a cached copy of Kim et al. 2010's
+> full text, or an official Korean WHO-5 PDF; F4's own eventual well-being-trend design could also
+> re-open the case for sourcing effort. The raw≤13 boundary caveat (§4.4) stays dormant with this
+> exclusion, not resolved.
 
 ### 4.1 Chosen source + rationale
 
@@ -1187,7 +1207,7 @@ Full sourcing session: `docs/ai/audit_c_korean_research.md` §1, study #4.
 | PHQ-9 | 9/9 (+ 9/9 alternate) | 9/9 both variants, §A1/§A3 | yes (both texts) | CONFIRMED (5 bands + item-9 flag) | CONFIRMED (Pfizer text only — government-form footer claim retracted, §1.5) | Pfizer phqscreeners.com; alternate = KR government form |
 | GAD-7 | 7/7 | 7/7 primary + 7/7 alternate cross-check, §A2/§A2b | yes | structure unchanged; band **sourcing** downgraded to international-convention-only — Korean-PDF scoring-table citation retracted, §2.4 | CONFIRMED (Pfizer, verbatim) | Pfizer phqscreeners.com |
 | PHQ-4 | 4/4 (composed, each half verbatim-sourced) | 4/4 traceable via §A1/§A2 (parent items), §A4 | yes (inherited, unharmonized) | CONFIRMED (structure + flag point) | CONFIRMED (inherited) | Composed per Kim et al. 2021 from Pfizer PHQ-9+GAD-7 |
-| WHO-5 | 0/5 — full gap, retried twice 2026-07-13 (26-attempt 2nd retry, §4.7), still open | n/a — out of scope this pass (ADR-033 decision 7) | 0/5 — full gap | partial (percentage formula CONFIRMED; raw≤13 boundary CONFIRMED off-by-one, now 4-mirror-sourced, §4.7) | UNVERIFIED (summary basis) | none found — WHO's own 2024 translation list confirms Korean absent from all 26 published languages (§4.7); unblock = user-supplied material |
+| WHO-5 | 0/5 — full gap, retried twice 2026-07-13 (26-attempt 2nd retry, §4.7); **EXCLUDED (user decision 2026-07-13, conditional re-add pending F4 well-being use case)** | n/a — out of scope this pass (ADR-033 decision 7) | 0/5 — full gap | partial (percentage formula CONFIRMED; raw≤13 boundary CONFIRMED off-by-one, now 4-mirror-sourced, §4.7 — dormant under the exclusion, not resolved) | UNVERIFIED (summary basis) | none found — WHO's own 2024 translation list confirms Korean absent from all 26 published languages (§4.7); unblock = user-supplied material or an F4 well-being-trend use case |
 | AUDIT-C | 3/3 v2 (ADOPTED) + 3/3 v1 (documented alternate) | 3/3 v2 §A11; 3/3 v1 §A5; cutoff evidence §A6/§A12/§A12b | yes (v2 native soju-track, no general instruction line captured; v1 Western-unit, full instruction line) | ADOPTED: Korean-primary male≥6/female≥5 (Lee JH 2018 KNHANES, corroborated by Kwon 2013 male=6); Seong 2009/Lee BW 2000 (both =8) considered, not adopted; international Bush 1998 4/3 retained as non-action-driving metadata (`CVR-018`/`ADR-034`) | UNVERIFIED (regulatory-form status for v2, WHO guideline status for v1 — no explicit permission text found for either) | 별지 제15호의3서식 (v2, ADOPTED); SBIRT Oregon Korean AUDIT (v1, documented alternate) |
 
 **Total: 23/23 claimed-verbatim items now appendix-quoted and independently auditable (CVR-016

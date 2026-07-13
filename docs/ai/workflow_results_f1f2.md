@@ -1007,6 +1007,7 @@ qa **GATE:PASS ×3** (`2351e07` factorial harness — suite 1483 passed/2 skippe
 - No 인증/통과/certified/validated/deployment-ready wording applies to any part of this entry.
 - `result.md` `EXP-021`/`EXP-022` are the source of record for every number above; this entry synthesizes, it does not restate the full per-cell tables.
 - `CVR-019` binding condition 1's second half (a live non-soju-drinking-persona administration exercising the newly-rendered secondary track) and `CVR-019` binding condition 3 (a live female-persona administration exercising the sex-conditional threshold branch) both remain open, tracked forward — neither is a code-correctness gap.
+- **Post-mission update (2026-07-13c, user decision):** WHO-5 is now EXCLUDED (conditional, re-openable if F4 establishes a well-being-trend use case) from the F3 v1 supported-instrument set — a scope decision, not a change to the "gap stands" evidence above; see `item_bank_v1_sources.md` §4, `PRD_task1_v2.md` §4.1 (v2.13), `checklist_task1.md` T1-F3-DEV-014/T1-F3-VER-006.
 
 ---
 

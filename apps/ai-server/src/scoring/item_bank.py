@@ -5,9 +5,11 @@ sourcing note, `CVR-016` content-fidelity gate, `ADR-033` dispositions).
 
 v1 replaces v0's abbreviated construct labels with verbatim official item
 text, response anchors, and instruction/timeframe wording for PHQ-9, GAD-7,
-PHQ-4, and AUDIT-C. WHO-5 stays unpopulated (0/5 items sourced after an
-exhaustive documented retry — `item_bank_v1_sources.md` §4.6 — fabrication-0
-means an unreachable instrument ships empty, never invented).
+PHQ-4, and AUDIT-C. WHO-5 is EXCLUDED from the F3 v1 supported set by user
+decision 2026-07-13 (conditionally re-openable if F4 establishes a
+well-being-trend use case) — a scope decision, not an evidence retraction;
+the exhaustive documented sourcing-gap retry (`item_bank_v1_sources.md`
+§4.6, fabrication-0 discipline) stands as the record.
 
 Fidelity discipline (CVR-016 condition 1, binding): every `text_ko` and
 `response_anchors` string below is transcribed from
@@ -591,12 +593,15 @@ GAD7_BAND_CAVEAT = (
     "disclosure-symmetry fix, not a value change."
 )
 
-# WHO-5: 0/5 items sourced after an exhaustive, documented two-session retry
-# (item_bank_v1_sources.md §4.6) — psykiatri-regionh.dk 5/5 timeouts; Kim
-# et al. 2010 / Moon et al. 2014 both abstract-only (KCI/DBpia/ScienceDirect
-# gated, no OA PDF per direct OpenAlex/Semantic Scholar queries); NCMH
-# standard-guide PDF blocked via 3 independent routes (JS-triggered
-# handlers). Fabrication-0: ships empty, never invented.
+# WHO-5: EXCLUDED from the F3 v1 supported set by user decision 2026-07-13,
+# conditionally re-openable if F4 establishes a well-being-trend use case —
+# a scope decision, not an evidence retraction. The sourcing-gap record
+# (item_bank_v1_sources.md §4.6) is retained as-is: 0/5 items sourced after
+# an exhaustive, documented two-session retry — psykiatri-regionh.dk 5/5
+# timeouts; Kim et al. 2010 / Moon et al. 2014 both abstract-only
+# (KCI/DBpia/ScienceDirect gated, no OA PDF per direct OpenAlex/Semantic
+# Scholar queries); NCMH standard-guide PDF blocked via 3 independent routes
+# (JS-triggered handlers). Fabrication-0: ships empty, never invented.
 WHO5_V1_PROVENANCE = (
     "unpopulated-v1, sourcing gap documented (item_bank_v1_sources.md §4.6): "
     "psykiatri-regionh.dk 5/5 timeouts across 2 sessions; Kim et al. 2010 / Moon et al. "
