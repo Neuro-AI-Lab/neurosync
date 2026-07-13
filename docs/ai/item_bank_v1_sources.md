@@ -20,6 +20,26 @@
 > errors found and corrected loudly, not silently: §1.5's government-form license-footer overclaim,
 > and §2.4/§A2b's now-unconfirmable GAD-7 Korean-PDF scoring-table citation (see §6's changelog for
 > the full account). WHO-5/§4 and AUDIT-C/§5 untouched, out of scope this pass.
+> **2026-07-13 addendum (fourth dispatch — Track 1/Track 2 sourcing fold-in, `CVR-018`/`ADR-034`):**
+> folds in two new sourcing dispatches per `ADR-034`'s single-writer instruction: (1)
+> `docs/ai/audit_c_korean_research.md` (9-study Korean AUDIT-C validation catalogue + verbatim
+> 별지 제15호의3서식 soju-track item-text re-sourcing) — §5 now adopts the soju-track text as
+> **AUDIT-C v2** and Korean-primary cutoffs **male≥6/female≥5** (Lee JH et al. 2018, KNHANES),
+> demoting the SBIRT-Oregon text to a documented v1 alternate/rollback path, not deleted; new
+> appendix entries §A11/§A12/§A12b. (2) `docs/ai/who5_sourcing_retry2.md` (26-attempt second
+> WHO-5 retry) — §4 gains a §4.7 addendum; the gap stands (0/5 items), with new negative evidence
+> (WHO's own 2024 official translation list excludes Korean from all 26 published languages) and
+> the scoring-boundary sentence now confirmed on a 4th independent mirror. PHQ-9/GAD-7/PHQ-4 are
+> untouched, out of scope this pass.
+> **2026-07-13 addendum (fifth, user decision — WHO-5 excluded):** per the user's verbatim
+> direction ("WHO-5는 제외하자"), WHO-5 is EXCLUDED from the F3 v1 supported-instrument set,
+> conditionally — eligible for re-sourcing only if F4 (longitudinal analysis) later establishes a
+> well-being-trend use case. This is a scope decision, not a retraction of the evidence below: the
+> 26-attempt retry log (§4.1, §4.6, §4.7) stands unchanged as the record this exclusion rests on.
+> The raw≤13-vs-"below 13" boundary discrepancy (§4.4) goes dormant with the exclusion — it is not
+> resolved, just no longer live scope. PHQ-9/GAD-7/AUDIT-C stay active (sourced-verbatim,
+> live-verified this program); PHQ-4 stays a sourced reserve (composed from already-verbatim
+> PHQ-9/GAD-7 items, no mapping issues it, zero cost to retain). See §4's new status line.
 
 ---
 
@@ -364,6 +384,17 @@ fully confirmed in a future session.
 
 ## 4. WHO-5 (well-being, 5 items)
 
+> **Status: EXCLUDED (user decision 2026-07-13, conditional re-add if F4 well-being tracking
+> needs it).** WHO-5 is out of the F3 v1 supported-instrument set by explicit user direction, not
+> by a change in sourcing evidence — §4.1-§4.7 below (the 26-attempt exhaustive retry record) are
+> unchanged and remain the evidence base for this exclusion. Structurally, no F2 mapping issues
+> WHO-5 in this repository, and PHQ-9 already covers depression severity for this project's
+> current F2→F3 linkage — the gap is unreachable under current F3 v1 scope. Unblock path
+> (unchanged): user-supplied KCI/DBpia/RISS credential access, a cached copy of Kim et al. 2010's
+> full text, or an official Korean WHO-5 PDF; F4's own eventual well-being-trend design could also
+> re-open the case for sourcing effort. The raw≤13 boundary caveat (§4.4) stays dormant with this
+> exclusion, not resolved.
+
 ### 4.1 Chosen source + rationale
 
 **No verbatim Korean item text could be obtained across two sessions (2026-07-13, both dispatches).**
@@ -485,46 +516,145 @@ credential access to Kim et al. 2010's full text, or (c) asking the user directl
 a copy of the Korean WHO-5 from prior clinical/research use — repeating the same WebFetch attempts
 on the same URLs is very unlikely to succeed a 6th/3rd/4th time.
 
+### 4.7 Retry 2026-07-13 (third WHO-5 dispatch, `docs/ai/who5_sourcing_retry2.md`) — gap still stands, new negative evidence
+
+**Pointer:** full retry log in `docs/ai/who5_sourcing_retry2.md` (26 attempts across 4 priority
+target categories: official WHO-5 host, WHO document repositories, Korean validation-paper
+appendices/mirrors, Korean university repositories/opportunistic avenues).
+
+**Result: still 0/5 items, 0/5 anchors, no instruction/timeframe text found in Korean.** No item
+table content changes as a result of this retry.
+
+**New negative evidence — WHO's own 2024 official translation list:** directly fetched from
+`who.int/publications/m/item/WHO-UCN-MSD-MHE-2024.01` (WHO's own current, post-copyright-transfer
+official WHO-5 publication page), this page lists WHO's complete current set of 26 official
+translation-PDF links (Albanian through Urdu); quoted verbatim: **"Korean is not among them"**
+(`who5_sourcing_retry2.md` §2.1). Combined with a confirmed 404 on the Korean URL at the same
+naming pattern used for all 26 other languages, this indicates the absence reflects WHO's own
+current publication state, not merely this project's fetch-tool limitations — a materially
+stronger negative finding than the prior dispatch's URL-guess 404 alone.
+
+**Scoring-boundary sentence — now confirmed on a 4th independent mirror:** the same verbatim
+sentence already quoted in this file's appendix §A9b ("The total score of WHO-5 below 13 indicates
+low well-being," Kim et al. 2010) was independently re-confirmed this retry from a fourth mirror —
+`m.riss.kr`'s mobile detail page — joining the three mirrors (KCI, DBpia, RISS-desktop) already
+recorded in §A9b. This strengthens the evidence tier only; it does not change §4.4's off-by-one
+discrepancy finding (raw≤13 implementation vs. "below 13" = raw<13 source).
+
+**Newly ruled-out hosts (documented so a future session does not re-attempt):**
+`psykiatri-regionh.dk` now stands at 7/7 failed fetch attempts across 3 sessions (a categorical
+dead end, not a fluke of any one URL); `journal.kagp.or.kr` newly confirmed 403-blocked on 2
+attempts (host-level block, not article-specific); the WHO-5 project's Drupal localization `.po`
+file was checked and ruled out (2 translated UI-label strings only — "Submit"/"Summary" — no
+instrument item text of any kind).
+
+**Gap stands, per `ADR-034` decision 4:** no items load; the raw≤13-vs-"below 13" boundary
+discrepancy (§4.4) stays byte-unchanged behind its existing source-caveat comment. **Unblock
+path:** user-supplied material — institutional KCI/DBpia/RISS credential access, or a cached copy
+of Kim et al. 2010's full text or an official Korean WHO-5 PDF from prior clinical/research use.
+Repeating the same WebFetch attempts on the same hosts in a future session is not recommended
+(`who5_sourcing_retry2.md` §3).
+
+**Linked:** `docs/ai/who5_sourcing_retry2.md`, `ADR-034` decision 4, §4.6 (original gap statement,
+unchanged).
+
 ---
 
 ## 5. AUDIT-C (alcohol use, 3 items)
 
+> **2026-07-13 addendum (fourth dispatch — ADOPTED, `CVR-018` Q1/Q2/Q4, `ADR-034` decisions 1-3):**
+> this section now ships **AUDIT-C v2** (별지 제15호의3서식 soju-track Korean item text) as the
+> primary item text, and **Korean-primary cutoffs male≥6/female≥5** (Lee JH et al. 2018, KNHANES)
+> as the primary scoring threshold. The v1 (SBIRT Oregon) item text and the international Bush et
+> al. 1998 (4/3) cutoff are **retained below as a documented alternate / rollback path, not
+> deleted** — `ADR-034`'s own rollback plan is "revert to v1 SBIRT-Oregon entry + 4/3 primary
+> thresholds (single commit revert); documented alternate status makes this lossless." Source
+> dispatch: `docs/ai/audit_c_korean_research.md` (brainstorm, `PLAN-2026-W29-B`); adjudicated
+> `CVR-018`; adopted `ADR-034`.
+
 ### 5.1 Chosen source + rationale
 
-**Primary source for item text:** SBIRT Oregon's Korean AUDIT translation (the full 10-item AUDIT;
-items 1-3 constitute AUDIT-C), retrieved 2026-07-13:
-`http://www.sbirtoregon.org/wp-content/uploads/AUDIT-Korean-pdf.pdf`. This is a clean,
+**Primary source for item text — ADOPTED, v2:** Korea's official national/workplace
+health-screening form **[별지 제15호의3서식] 음주 생활습관 평가 도구** ("Drinking Lifestyle
+Assessment Tool"), issued under the same 보건복지부고시 "건강검진 실시기준" (Ministry of Health and
+Welfare notice, "Health Examination Implementation Standards") regulatory instrument that already
+supplies this project's government-form PHQ-9 alternate (§1.1, §A3). Items 1-3 of the 10-item form
+are the AUDIT-C-equivalent subset. Retrieved from two independent mirrors, both 2026-07-13:
+
+1. `https://www.elandclinic.com/Download/Documents/음주생활습관평가도구(검진자용).pdf` — a
+   standalone PDF; its companion "금주/절주 처방전" page labels the total score field "음주생활습관
+   평가 점수(AUDIT-KR)."
+2. `https://epower.hanilmed.net/upload/2021_생활습관포함서식.pdf` — a compiled, multi-form
+   regulatory packet that also contains this project's already-verified government-form PHQ-9
+   (byte-identical to §A3), establishing the exact official form number (별지 제15호의3서식) and
+   cross-confirming both instruments' shared regulatory family.
+
+Full sourcing detail: `docs/ai/audit_c_korean_research.md` §3; item text quoted in full at
+appendix §A11.
+
+**Rationale for adopting v2 over v1 (`CVR-018` Q2):** (a) item 2 is bifurcated into a native
+소주(soju)-bottle response track and a separate glasses-based "기타 술" track with its own
+conversion table, and item 3's binge question is calibrated in 소주/맥주-unit terms — this
+structurally eliminates the precondition for the live-confirmed soju/Western-unit confound
+(CVR-017 Finding 4, `VP-012_20260713_114535_survey.json` items [4,1,4] vs. documented [4,3,4],
+only the unit-dependent item-2 deviated) rather than requiring a composed conversion note; (b) it
+is Korea's own official regulatory health-screening instrument, and several of the
+population-matched Korean AUDIT-C validation studies (Kim CG 2014, Seo YR 2016) sample directly
+from health-promotion-center comprehensive-exam visitors — the population most likely to have
+actually encountered this exact form; (c) items 2 and 3 are byte-identical across both independent
+mirrors, no discrepancy to gate.
+
+**Item-1 cross-mirror discrepancy — disclosed, adjudicated, not silently resolved (`CVR-018`
+Finding 3):** mirror 1 (elandclinic) gives item 1 five response anchors including "전혀 안
+마신다(0점)"; mirror 2 (hanilmed/epower) gives only four anchors, apparently missing that
+zero/never anchor (item 1 begins directly at "한 달에 1번 이하(1점)"). All other items (2-10) are
+byte-identical between the two mirrors. **`CVR-018` rules for mirror 1's complete five-anchor
+set** (shipped in §5.2's table below): every other AUDIT/AUDIT-K variant this project has
+sourced — including v1's own item 1 below, "마시지 않음(0)" — carries an explicit zero/never
+anchor, and omitting one from a frequency item leaves a non-drinking patient with no valid response
+option, a concrete usability/scoring defect rather than a cosmetic OCR quirk. This is plausibly a
+page-render dropout in mirror 2, not a genuine form variant, but is reported honestly as an
+unresolved discrepancy rather than silently picked.
+
+**Standing translation-identity caveat (`CVR-018` Finding 6, persists regardless of which text
+ships):** byte-identity between the Korean cutoff-validation studies (§5.4, §A6/§A12/§A12b) and
+either AUDIT-C item text — v1 SBIRT-Oregon or v2 별지 soju-track — is **unconfirmed**: none of the
+nine Korean validation studies catalogued in `docs/ai/audit_c_korean_research.md` §1 reproduce a
+Korean item-text appendix of their own. Adopting v2 does not worsen this gap (it already applied
+identically to v1); v2's official-regulatory-form status makes byte-identity plausible on stronger
+structural grounds (population overlap with several validation studies' own sampling frames) but
+does not confirm it.
+
+**v1 (SBIRT Oregon) — documented alternate, superseded by v2, retained unchanged:** SBIRT Oregon's
+Korean AUDIT translation (the full 10-item AUDIT; items 1-3 constitute AUDIT-C), retrieved
+2026-07-13: `http://www.sbirtoregon.org/wp-content/uploads/AUDIT-Korean-pdf.pdf`. This is a clean,
 professionally produced Korean translation (unlike the same site's garbled GAD-7-Korean file,
 §2.1) funded by a US state SBIRT (Screening, Brief Intervention, Referral to Treatment) grant
 program, explicitly citing the WHO AUDIT manual (Babor, Higgins-Biddle, Saunders, Monteiro (2001).
 *The Alcohol Use Disorders Identification Test: Guidelines for Use in Primary Care*, 2nd ed. WHO
-Dept. of Mental Health and Substance Dependence, Geneva) as its instrument source.
-
-**Critical translation-version-identity caveat (per this note's constraint (d)):** this SBIRT
-Oregon text's item 3 asks about "4잔 이상" (4-or-more standard drinks) in a single occasion, and its
-item 1-2 response options are calibrated to explicitly-stated **US** standard-drink sizes (12oz
-beer / 5oz wine / 1.5oz spirits, printed on the document itself). This is the US-adapted AUDIT-C
-(Bush, Kivlahan, McDonell, Fihn, Bradley 1998) binge-item convention, not the original WHO AUDIT's
-"6 or more drinks" item-3 framing, and — more importantly for this project — **not necessarily
-identical to the item wording used by the two Korean-population AUDIT-C validation studies cited in
-§5.4**, whose surrounding literature describes the Korean AUDIT-K's binge item as calibrated to
-Korean drink units ("소주 1병 또는 맥주 4병 이상," i.e. ~6 Korean standard units, per the
-introduction of Seong et al. 2009, which I read in full — see appendix §A6). **I could not retrieve
-the byte-exact item wording of the actual instrument Kim et al. (1999) or Seong et al. (2009) used**
-— their published papers report methodology and results but the item-text itself was not
-reproduced in the article pages I could access (both were read in full as PDFs; neither includes an
-appendix with the Korean question text). This is an open, disclosed gap: **the item table below is
-verbatim-sourced and translation-quality-checked, but is not confirmed to be the same translation
-instance used in the Korean-population cutoff studies that inform §5.4's scoring discussion.**
-
-**Alternates found, not used:** `sbirtoregon.org`'s AUDIT-Korean PDF was the only source that
-yielded clean, complete, verbatim item text within this session's effort budget. A Korean
-self-test aggregator site (dsr5000.com) shows a full 10-item AUDIT-K with plausible-looking item
-text and response categories, but as a non-authoritative self-test aggregator (not a
-government/WHO/peer-reviewed primary source) it is **not used** as a citation source here — noted
-for completeness, not included in the item table.
+Dept. of Mental Health and Substance Dependence, Geneva) as its instrument source. Its item 3 asks
+about "4잔 이상" (4-or-more standard drinks) calibrated to US standard-drink sizes (12oz beer/5oz
+wine/1.5oz spirits, printed on the document itself) — the Bush et al. 1998 US-adapted AUDIT-C
+binge-item convention, structurally distinct from v2's native soju/beer-can calibration. Not
+independently confirmed byte-identical to the item wording used by Kim et al. (1999) or Seong et
+al. (2009) (same standing gap as v2, above). A Korean self-test aggregator site (dsr5000.com) shows
+a full 10-item AUDIT-K with plausible-looking item text, but is a non-authoritative self-test
+aggregator, not used as a citation source.
 
 ### 5.2 Item table
+
+**AUDIT-C v2 (ADOPTED) — 별지 제15호의3서식, soju-track (verbatim, copied byte-identical from
+`docs/ai/audit_c_korean_research.md` §3.2):**
+
+| # | Korean item text (원문, verbatim) | Response anchors (verbatim) | Verbatim-confidence | Source |
+|:--|:--|:--|:--|:--|
+| 1 | 술을 마시는 횟수는 어느 정도입니까? | 전혀 안 마신다(0점) / 한 달에 1번 이하(1점) / 한 달에 2~4번(2점) / 일주일에 2~3번(3점) / 일주일에 4번 이상(4점) | verbatim-from-source | 별지 제15호의3서식, mirror 1 (elandclinic.com), retrieved 2026-07-13 — see §5.1 discrepancy note on mirror 2's apparent 0-anchor dropout |
+| 2 | 술을 마시는 날은 보통 어느 정도 마십니까? (아래의 두 곳 중 주로 드시는 술을 선택하여 한 곳에 표시해 주시면 됩니다.) | **소주 트랙**: 반병 이하(0점) / 1병 이하(1점) / 1.5병정도(2점) / 2병정도(3점) / 2.5병 이상(4점). **기타 술 트랙** (양주·와인은 각각의 술잔; 막걸리는 한 사발=1잔; 맥주는 캔맥주 1캔 또는 작은 병맥주 1병=1잔, 생맥주 500cc=1.3잔): 1~2잔(0점) / 3~4잔(1점) / 5~6잔(2점) / 7~9잔(3점) / 10잔 이상(4점) | verbatim-from-source | 별지 제15호의3서식, both mirrors, byte-identical, retrieved 2026-07-13 |
+| 3 | 한 번의 술좌석에서 소주 1병을 초과하거나 맥주 5캔(생맥주 2,000cc) 이상*을 마시는 횟수는 어느 정도입니까? (*알코올 60g에 해당하는 음주량을 의미한다. / 양주, 와인, 막걸리는 각각의 술잔으로 5잔 이상) | 전혀 없다(0점) / 한 달에 한 번 미만(1점) / 한 달에 한 번 정도(2점) / 일주일에 한 번 정도(3점) / 거의 매일(4점) | verbatim-from-source | 별지 제15호의3서식, both mirrors, byte-identical, retrieved 2026-07-13 |
+
+Full block quoted in appendix §A11.
+
+**AUDIT-C v1 (SBIRT Oregon) — documented alternate, superseded by v2, retained unchanged:**
 
 | # | Korean item text (원문, verbatim) | Verbatim-confidence | Source |
 |:--|:--|:--|:--|
@@ -534,6 +664,12 @@ for completeness, not included in the item table.
 
 ### 5.3 Response anchors + timeframe
 
+**v2 (ADOPTED):** anchors are embedded per-item in §5.2's v2 table above (native to the sourced
+form's own layout). No general instruction/timeframe line preceding items 1-3 was captured for
+this form in `docs/ai/audit_c_korean_research.md` (unlike v1's SBIRT-Oregon intro line below) —
+flagged as a gap, not fabricated (§5.6).
+
+**v1 (SBIRT Oregon), documented alternate, retained unchanged:**
 Item 1 anchors: 마시지 않음(0) / 월 1회 또는 미만(1) / 월 2~4회(2) / 주 2~3회(3) / 주 4회 이상(4).
 Item 2 anchors: 0~2잔(0) / 3~4잔(1) / 5~6잔(2) / 7~9잔(3) / 10잔 이상(4).
 Item 3 anchors: 없음(0) / 월 1회 미만(1) / 월 1회(2) / 주 1회(3) / 매일 또는 거의 매일(4).
@@ -545,71 +681,133 @@ year" framing appears explicitly only on AUDIT's items 4-10, which are not part 
 document's general intro line is: *"알코올 섭취는 귀하의 건강과 복용하는 일부 약에 영향을 미칠 수
 있습니다. 귀하께 최선의 치료를 제공할 수 있도록 아래의 질문에 답해 주십시오."* A "1잔의 기준"
 (standard-drink definition) block precedes the items: *"1 잔의 기준: 12 온스(355mL) 맥주 / 5
-온스(148mL) 와인 / 1.5 온스(44mL) 독주(1 잔)"* (source: appendix §A5; note the OCR/extraction in
-this session rendered "12 온스" with an extra leading "1" as "112 온스" in one pass — the corrected
-reading, cross-checked against the standard US drink definition and the image's separate "BEER"
-icon context, is 12 온스/355mL, the standard US beer serving size; flagged here rather than silently
-corrected, since exact OCR fidelity matters for this deliverable).
+온스(148mL) 와인 / 1.5 온스(44mL) 독주(1 잔)"* (source: appendix §A5).
 
 ### 5.4 Scoring confirmation
 
-**Implementation:** `patient_sex == "female"` → threshold 3; else (male/unknown) → threshold 4;
-`total >= threshold` → `hazardous_drinking`.
+**2026-07-13 addendum — ADOPTED (`CVR-018` Q1/Q4, `ADR-034` decision 1):** `_score_audit_c` ships
+**Korean-primary cutoffs male≥6/female≥5** (Lee JH et al. 2018, KNHANES, N=46,450, appendix §A12),
+driving `severity`/`recommended_action`. The international cutoff (Bush et al. 1998,
+male/unknown≥4, female≥3) ships as **non-action-driving structured metadata** only — recorded on
+the artifact but never independently triggers `clinician_review`.
+
+**Adopted cutoff, sourced (appendix §A12):**
+
+> The most appropriate cut-off values for the AUDIT-Q3 alone, AUDIT-QF, AUDIT-C, AUDIT-4, and
+> AUDIT-PC for all adults over 19 years were 2, 4, 5, 6, and 4 points, respectively.
+
+— Lee JH et al. 2018, KNHANES, quoted verbatim (confirms the **unified** AUDIT-C cutoff = 5
+directly). **Honest evidentiary-tier note:** the *sex-split* values actually shipped
+(male≥6/female≥5) are `docs/ai/audit_c_korean_research.md`'s own structured extraction from the
+paper's tables, not themselves a directly-quoted verbatim sentence — the female value (5) is
+unaffected by this distinction since it equals the unified value either way; the male value (6) is
+independently corroborated by Kwon et al. 2013's own structured-extraction finding (appendix
+§A12b):
+
+> At-risk-drinking AUDIT-C cutoff ≥6 males (sens 81.3%/spec 88.8%, AUROC 0.927), ≥4 females (sens
+> 77.2%/spec 93.6%, AUROC 0.921).
+
+Two studies of different design (national KNHANES survey vs. DSM-IV-TR-interviewed
+college-health-center sample) converging on male=6 is treated by `CVR-018` as a real corroboration
+signal, not a single-study artifact. The adopted female value (5) sits triangulated between Kwon's
+at-risk female value (4) and Woo et al. 2017's female value (6, table below) — inside the
+convergent range rather than at either extreme.
+
+**Not adopted — Seong 2009 / Lee BW 2000, reasoned (`CVR-018` Q1, `ADR-034` decision 1):** Seong et
+al. 2009 (appendix §A6, N=302, male-only, "we designated the score 8 or more as problem drinking")
+and Lee BW et al. 2000 (unified 8, N=86, case-control) were both considered and **not adopted**.
+Reasons: (i) Seong 2009 has no female arm — a male-only study cannot found a dual-sex screening
+tool's cutoff without pairing an unrelated study's female number, producing an internally
+inconsistent M/F pair drawn from different populations/eras/criteria; (ii) Lee BW 2000 is an
+explicit case-control design (43 AUD patients vs. 43 non-AUD controls, sex composition not
+reported) — extreme-groups designs are known to inflate accuracy metrics relative to a continuous
+general population; (iii) both share the same-instrument criterion-circularity concern (validated
+against an AUDIT-K/AUDIT total score derived from the same instrument) as the adopted KNHANES
+study, so neither offers an independent-criterion advantage to offset its weaker population match.
+Seong 2009's number (8) is retained as directional corroboration only — that the international 4/3
+floor likely undercounts for this population — the adopted 6/5 already reflects that at a more
+conservative (lower, more sensitive) point on the same evidence range.
+
+**International cutoff, retained as metadata (not adopted as primary):** Bush et al. 1998 (US) —
+male/unknown≥4, female≥3, per `docs/ai/audit_c_korean_research.md` §1's "international reference
+point" framing (matches the pre-adoption v1 implementation's threshold below). **Discrepancy
+disclosed, not resolved:** Seong et al. 2009's own citation of the same Bush et al. 1998 US
+convention, already quoted in this file's appendix §A6, states the US figure as
+**male≥4/female≥2** — a different female value than the "female≥3" figure used above and by the
+pre-adoption v1 implementation. This file has not independently fetched Bush et al. 1998's
+original text to resolve which secondary citation is more accurate; both are reported honestly
+rather than silently reconciled. Ships as a structured metadata field recording whether the raw
+total also crossed the 4/3 threshold — never independently triggers `clinician_review` (`CVR-018`
+Q3, `ADR-034` decision 1, Recommendation 1).
+
+**Criterion-circularity disclosure (`CVR-018` Finding 9):** the adopted KNHANES study validates
+AUDIT-C against a whole-AUDIT score derived from the same 10-item instrument (AUDIT-C = items
+1-3) — a standard, field-wide limitation shared by most of the Korean AUDIT-C literature (§A6, §A7
+also), not disqualifying but material to disclosed confidence.
+
+**Age-stratified cutoffs — not adopted this pass:** KNHANES elderly=3 and Lee KW 2018 ED elderly=4
+exist in the literature (`docs/ai/audit_c_korean_research.md` §1) but `_score_audit_c` has no
+age-conditional branch; register item only (`CVR-018` condition 7, `ADR-034` decision 7).
+
+**Response range (0-4 per item, max 12):** unchanged, still CONFIRMED for both v1 and v2 (both are
+5-point 0-4-per-item scales) — matches Seong et al. (2009)'s explicit description below and
+`survey_scorer.py`'s own `0 <= responses[i] <= 4` validation.
+
+**Prior (pre-adoption) scoring-evidence record, retained unchanged for audit trail:**
+
+**Implementation (pre-adoption v1):** `patient_sex == "female"` → threshold 3; else (male/unknown)
+→ threshold 4; `total >= threshold` → `hazardous_drinking`.
 
 **Korean-population evidence found (both read in full as PDFs, not summary basis):**
 
 | Study | Population | Criterion | AUDIT-C optimal cutoff found |
 |:--|:--|:--|:--|
 | Seong JH, Lee CH, Do HJ, Oh SW, Lym YL, Choi JK, Joh HK, Kweon KJ, Cho DY (2009). "일차진료에서 문제음주자 선별을 위한 AUDIT-C의 타당도 조사." *Korean J Fam Med* 30(9):695-702. doi:10.4082/kjfm.2009.30.9.695 | N=302, Korean men only, university-hospital patients with drinking history (2007-2008) | AUDIT-K-defined "problem drinking" | ≥8 (sensitivity 82%, specificity 76%). No female cutoff derived (male-only study). |
-| Woo SM, Jang OJ, Choi HK, Lee YR (2017). "위험음주자 선별을 위한 한국판 알코올사용장애 선별검사(AUDIT-K), 알코올 소비 점수(AUDIT-C), 3번 문항(AUDIT3)의 유용성과 최적 절단값." *J Korean Acad Addict Psychiatry* 21(2):62-67. doi:10.37122/kaap.2017.21.2.62. **Summary basis only** (fetched via a scholarly-portal summary page, not the raw PDF). | N=509 (265 men, 244 women), online community survey (Feb 2016) | NIAAA hazardous-drinking definition | Men: 7. Women: 6. |
+| Woo SM, Jang OJ, Choi HK, Lee YR (2017). "위험음주자 선별을 위한 한국판 알코올사용장애 선별검사(AUDIT-K), 알코올 소비 점수(AUDIT-C), 3번 문항(AUDIT3)의 유용성과 최적 절단값." *J Korean Acad Addict Psychiatry* 21(2):62-67. doi:10.37122/kaap.2017.21.2.62. **[≥2 independent DB pages, per `docs/ai/audit_c_korean_research.md` §1 study #7 — upgraded from this file's original summary-basis-only tier]**. | N=509 (265 men, 244 women), online community survey (Feb 2016) | NIAAA hazardous-drinking definition | Men: 7. Women: 6. |
 
-Both Korean-population studies report AUDIT-C optimal cutoffs **substantially higher** than the
-current implementation's 4 (male) / 3 (female) — roughly double for men (7-8 vs 4) and roughly
-double for women (6 vs 3, though the only female-specific Korean figure found, 6, is summary-basis
-only and not independently re-verified). Seong et al. (2009) explicitly discuss *why* their
-Korean-derived cutoff is higher than the commonly-cited international AUDIT-C conventions they
-themselves cite (US: male ≥4/female ≥2 per Bush et al. 1998; Spain: male ≥5/female ≥4) — they
-attribute it to their diagnostic criterion being the Korean AUDIT-K's own screening threshold (≥12
-for "problem drinking" on the full 10-item AUDIT-K, itself higher than the international AUDIT's
-≥8), not necessarily a true population difference in drinking-related harm at a given consumption
-level; they explicitly recommend future research to establish independently-derived Korean
-risk-drinking criteria and note "AUDIT-C ... 역시 본 연구에서 제시하는 점수보다 낮은 점수를 적용하는
-것도 어느 정도 타당할 것으로 사료된다" (applying a somewhat lower cutoff than this study's finding
-may also be reasonably valid) — appendix §A6.
-
-**I am reporting this evidence, not deciding a change.** This is a discrepancy meeting the brief's
-explicit instruction to flag for orchestrator disposition — the direction (Korean-population data
-suggests higher AUDIT-C thresholds than current implementation) is consistent across both studies
-found, but the exact number to use (7? 8? gender-specific vs unified?) is contested even within the
-Korean literature itself, and neither source's underlying item translation is confirmed identical
-to the SBIRT Oregon text chosen as primary in §5.1.
-
-**Response range (0-4 per item, max 12):** CONFIRMED correct — matches both the SBIRT Oregon item
-text (5-point 0-4 scale per item) and Seong et al. (2009)'s explicit description ("1,2번 문항의
-응답점수는 '전혀 안 마신다'가 0점, '일주일에 4번 이상'이 4점으로 계산되고 ... AUDIT-C 총점은 최대
-12점"), which matches `survey_scorer.py`'s own `0 <= responses[i] <= 4` validation exactly.
+Both studies report AUDIT-C optimal cutoffs higher than the pre-adoption v1 implementation's 4
+(male) / 3 (female). Seong et al. (2009) explicitly discuss *why* their Korean-derived cutoff is
+higher than the international AUDIT-C conventions they themselves cite (US: male ≥4/female ≥2 per
+Bush et al. 1998; Spain: male ≥5/female ≥4) — they attribute it to their diagnostic criterion being
+the Korean AUDIT-K's own screening threshold (≥12 for "problem drinking" on the full 10-item
+AUDIT-K, itself higher than the international AUDIT's ≥8), not necessarily a true population
+difference in drinking-related harm; appendix §A6.
 
 ### 5.5 License note
 
-WHO (Saunders JB, Aasland OG, Babor TF, de la Fuente JR, Grant M. 1993. "Development of the
-alcohol use disorders identification test (AUDIT)..." *Addiction* 88:791-804; Babor, Higgins-Biddle,
-Saunders, Monteiro 2001, *AUDIT: Guidelines for Use in Primary Care*, 2nd ed., WHO). I could **not**
-find an explicit "no permission required" statement for AUDIT the way Pfizer states it verbatim on
-every PHQ-family document (§1.5, §2.5) — UNVERIFIED on the precise licensing wording. The
-instrument's status as a WHO public-health guideline document, and its free redistribution by a US
-state government program (SBIRT Oregon) and multiple Korean public-health-center self-test pages
-found during this session's searches, indicates open public-health use is standard practice, but
+**v2 (별지 form):** no explicit reproduction/license statement was captured for this form in
+`docs/ai/audit_c_korean_research.md` — its use basis is its status as an official regulatory form
+published under 보건복지부고시 "건강검진 실시기준," the same basis already disclosed for this
+project's government-form PHQ-9 alternate (§1.5). UNVERIFIED whether a separate license applies;
+not confirmed either way from what was fetched.
+
+**v1 (SBIRT Oregon), unchanged:** WHO (Saunders JB, Aasland OG, Babor TF, de la Fuente JR, Grant M.
+1993. "Development of the alcohol use disorders identification test (AUDIT)..." *Addiction*
+88:791-804; Babor, Higgins-Biddle, Saunders, Monteiro 2001, *AUDIT: Guidelines for Use in Primary
+Care*, 2nd ed., WHO). No explicit "no permission required" statement was found for AUDIT the way
+Pfizer states it verbatim on every PHQ-family document (§1.5, §2.5) — UNVERIFIED on the precise
+licensing wording. The instrument's status as a WHO public-health guideline document, and its free
+redistribution by a US state government program (SBIRT Oregon) and multiple Korean
+public-health-center self-test pages, indicates open public-health use is standard practice, but
 this is an inference from usage pattern, not a confirmed license-text quote.
 
 ### 5.6 Gaps
 
-Byte-exact item wording of the specific instrument used by Kim et al. (1999) and Seong et al.
-(2009) — the two Korean-population-validated AUDIT-K/AUDIT-C sources — was not retrieved (paywalled
-methodology sections describe response categories and cutoffs but the papers I could access do not
-reproduce a Korean-text item appendix). The SBIRT-Oregon-sourced item text used above is a
-legitimate, verbatim, quality-checked Korean AUDIT-C translation, but its identity-match to the
-Korean-validated instrument is unconfirmed. Explicit WHO AUDIT licensing-terms text (equivalent to
-Pfizer's) was not located.
+**v2 (별지 form):** item-1 cross-mirror anchor discrepancy (§5.1, resolved by `CVR-018` pick, not
+independently re-verified against a third mirror or the canonical `law.go.kr` host — not
+independently reached this session, see `docs/ai/audit_c_korean_research.md` §3.4/§5); no general
+instruction/timeframe line preceding items 1-3 captured; byte-identity to any of the nine Korean
+validation studies' own item wording unconfirmed (standing gap, shared with v1).
+
+**v1 (SBIRT Oregon), unchanged:** byte-exact item wording of the specific instrument used by Kim et
+al. (1999) and Seong et al. (2009) was not retrieved (paywalled methodology sections describe
+response categories and cutoffs but the papers accessed do not reproduce a Korean-text item
+appendix). Explicit WHO AUDIT licensing-terms text (equivalent to Pfizer's) was not located.
+
+**Cutoff evidence:** Bush et al. 1998's original text was not independently fetched to resolve the
+female-value discrepancy (§3 vs. §5.4) between the two secondary citations of it found in this
+project's sources (female≥3 per `docs/ai/audit_c_korean_research.md` §1 vs. female≥2 per Seong et
+al. 2009's own citation, appendix §A6).
 
 ---
 
@@ -905,6 +1103,101 @@ Quoted from fetch-tool summary of a scholarly-portal page: "N=509 participants (
 women)"; "AUDIT-C Optimal Cutoff Scores: Men: 7, Women: 6"; "AUDIT-C and AUDIT3 were available for
 detecting of hazardous drinking" per NIAAA criteria.
 
+### §A11 — 별지 제15호의3서식 음주 생활습관 평가 도구 (AUDIT-C v2, soju-track, items 1-3) **[full PDF read, 2 independent mirrors — copied byte-identical from `docs/ai/audit_c_korean_research.md` §3.2]**
+
+Retrieved 2026-07-13 from two independent mirrors:
+1. `https://www.elandclinic.com/Download/Documents/음주생활습관평가도구(검진자용).pdf`
+2. `https://epower.hanilmed.net/upload/2021_생활습관포함서식.pdf`
+
+| # | Korean item text (원문, verbatim) | Response anchors (verbatim) | Verbatim-confidence | Source |
+|:--|:--|:--|:--|:--|
+| 1 | 술을 마시는 횟수는 어느 정도입니까? | 전혀 안 마신다(0점) / 한 달에 1번 이하(1점) / 한 달에 2~4번(2점) / 일주일에 2~3번(3점) / 일주일에 4번 이상(4점) | verbatim-from-source | mirror 1 (elandclinic.com) — see discrepancy note below |
+| 2 | 술을 마시는 날은 보통 어느 정도 마십니까? (아래의 두 곳 중 주로 드시는 술을 선택하여 한 곳에 표시해 주시면 됩니다.) | **소주 트랙**: 반병 이하(0점) / 1병 이하(1점) / 1.5병정도(2점) / 2병정도(3점) / 2.5병 이상(4점). **기타 술 트랙** (양주·와인은 각각의 술잔; 막걸리는 한 사발=1잔; 맥주는 캔맥주 1캔 또는 작은 병맥주 1병=1잔, 생맥주 500cc=1.3잔): 1~2잔(0점) / 3~4잔(1점) / 5~6잔(2점) / 7~9잔(3점) / 10잔 이상(4점) | verbatim-from-source | both mirrors, byte-identical |
+| 3 | 한 번의 술좌석에서 소주 1병을 초과하거나 맥주 5캔(생맥주 2,000cc) 이상*을 마시는 횟수는 어느 정도입니까? (*알코올 60g에 해당하는 음주량을 의미한다. / 양주, 와인, 막걸리는 각각의 술잔으로 5잔 이상) | 전혀 없다(0점) / 한 달에 한 번 미만(1점) / 한 달에 한 번 정도(2점) / 일주일에 한 번 정도(3점) / 거의 매일(4점) | verbatim-from-source | both mirrors, byte-identical |
+
+**Item-1 mirror discrepancy (disclosed, adjudicated by `CVR-018` Finding 3):** mirror 2
+(hanilmed/epower) gives item 1 only four anchors — apparently missing "전혀 안 마신다(0점),"
+beginning directly at "한 달에 1번 이하(1점)." All other items (2-10) are byte-identical between
+the two mirrors. `CVR-018` rules for mirror 1's complete five-anchor set (table above), reasoning
+that every other AUDIT/AUDIT-K variant sourced by this project (including v1's own item 1, §A5,
+"마시지 않음(0)") carries an explicit zero/never anchor — plausibly an OCR/page-render dropout in
+mirror 2, not a genuine form variant, but reported honestly as unresolved rather than silently
+picked.
+
+**Provenance corroboration:** mirror 2 is a compiled multi-form regulatory packet that also
+contains this project's already-verified government-form PHQ-9 (byte-identical to §A3) —
+cross-confirming both instruments' shared regulatory family (보건복지부고시 "건강검진 실시기준").
+
+**Gap (unchanged from `docs/ai/audit_c_korean_research.md` §3.4):** no general instruction/
+timeframe line preceding items 1-3 was captured for this form (unlike v1's SBIRT-Oregon intro
+line, §A5) — items 4-10 (dependence/harm items, outside AUDIT-C's 3-item scope) were also
+verbatim-sourced from the same two mirrors but are out of scope here. Byte-identity to the item
+wording used by any of the nine Korean AUDIT-C validation studies (§A6, §A12, §A12b) is **not
+confirmed** — the same standing gap already disclosed for v1 (§A5).
+
+Full sourcing session: `docs/ai/audit_c_korean_research.md` §3.
+
+### §A12 — Lee JH, Kong KA, Lee DH, Choi YH, Jung KY (2018), KNHANES AUDIT-C cutoff validation (adopted primary cutoff source) **[direct fetch, structured extraction, plus targeted verbatim-quote re-fetch — copied from `docs/ai/audit_c_korean_research.md` §1, study #9]**
+
+Lee JH, Kong KA, Lee DH, Choi YH, Jung KY. "Validation and proposal for cut-off values of an
+abbreviated version of the Alcohol Use Disorder Identification Test using the Korean National
+Health and Nutrition Examination Survey." *Clin Exp Emerg Med* 2018;5(2):113-119.
+doi:10.15441/ceem.17.228. PMID 29973036. Retrieved 2026-07-13:
+`https://pmc.ncbi.nlm.nih.gov/articles/PMC6039362/`.
+
+N=46,450 adults ≥19 (19,703M/26,747F) from KNHANES waves 4-6 (2007-2015), Korea's nationally
+representative health and nutrition survey. Reference standard: whole-AUDIT score against WHO
+cutoffs (8M/7F/7 elderly).
+
+Quoted verbatim:
+
+> The most appropriate cut-off values for the AUDIT-Q3 alone, AUDIT-QF, AUDIT-C, AUDIT-4, and
+> AUDIT-PC for all adults over 19 years were 2, 4, 5, 6, and 4 points, respectively.
+
+This confirms the **unified** AUDIT-C cutoff = 5 as directly quoted. The **sex-split** breakdown
+adopted for `_score_audit_c` (male≥6/female≥5) is reported by `docs/ai/audit_c_korean_research.md`
+§1 as structured extraction, **not itself directly quoted verbatim from the PMC render**:
+AUDIT-C 6(M)/5(F)/3(elderly), AUROC 0.981 overall, sens/spec 93.0%/87.5%(M), 90.3%/93.6%(F).
+Disclosed per `CVR-018` Q1: the female-split value (5) is unaffected by the verbatim/extracted
+distinction since it equals the unified value either way; the male-split value (6) rests on
+structured extraction, independently corroborated by Kwon et al. 2013 (§A12b below).
+
+**Adopted per `CVR-018` Q1 / `ADR-034` decision 1** as the primary Korean AUDIT-C cutoff basis —
+reasoning: only study among the nine catalogued in `docs/ai/audit_c_korean_research.md` §1 whose
+population is an actual general-adult national sample (not clinic/ED/college/online-panel); male
+value corroborated by an independent DSM-IV-TR-anchored study (Kwon 2013); deliberately not the
+highest Korean number found (Seong 2009/Lee BW 2000 both give 8), chosen at the more sensitive end
+to bound under-triage risk.
+
+Full sourcing session: `docs/ai/audit_c_korean_research.md` §1, study #9.
+
+### §A12b — Kwon US, Kim JS, Kim SS, Jung JG, Yoon SJ, Kim SG (2013), Korean college-student AUDIT-C cutoffs (corroborating source, male value) **[full text read — copied from `docs/ai/audit_c_korean_research.md` §1, study #4]**
+
+Kwon US, Kim JS, Kim SS, Jung JG, Yoon SJ, Kim SG. "Utility of the Alcohol Consumption Questions
+in the Alcohol Use Disorders Identification Test for Screening At-Risk Drinking and Alcohol Use
+Disorders among Korean College Students." *Korean J Fam Med* 2013;34(4):272-280.
+doi:10.4082/kjfm.2013.34.4.272. Retrieved 2026-07-13:
+`https://www.kjfm.or.kr/journal/view.php?doi=10.4082/kjfm.2013.34.4.272`.
+
+N=387 (198M/189F), Chungnam National University student health center, March-May 2011. Reference
+standard: DSM-IV-TR structured diagnostic interview.
+
+Structured extraction from the paper's own rendered tables (per `docs/ai/audit_c_korean_research.md`
+§1, study #4 detail — not a single-sentence verbatim quote of the paper's prose):
+
+> At-risk-drinking AUDIT-C cutoff ≥6 males (sens 81.3%/spec 88.8%, AUROC 0.927), ≥4 females (sens
+> 77.2%/spec 93.6%, AUROC 0.921).
+
+**Corroborating role (per `CVR-018` Q1):** the male at-risk-tier value (6) independently converges
+with Lee JH et al. 2018 KNHANES's structurally-extracted male-split value (6, §A12) — two studies
+with different designs (national survey vs. college-health-center sample) and different criteria
+(whole-AUDIT-WHO-cutoff vs. DSM-IV-TR interview) converging on the same male number. Kwon's own
+female at-risk value (4) is lower than the adopted female cutoff (5) — `CVR-018` reports the
+adopted female value (5) as "triangulated between Kwon's at-risk female (4) and Woo's female (6),"
+not directly matched to Kwon alone.
+
+Full sourcing session: `docs/ai/audit_c_korean_research.md` §1, study #4.
+
 ---
 
 ## 7. Summary table (developer quick reference)
@@ -914,8 +1207,8 @@ detecting of hazardous drinking" per NIAAA criteria.
 | PHQ-9 | 9/9 (+ 9/9 alternate) | 9/9 both variants, §A1/§A3 | yes (both texts) | CONFIRMED (5 bands + item-9 flag) | CONFIRMED (Pfizer text only — government-form footer claim retracted, §1.5) | Pfizer phqscreeners.com; alternate = KR government form |
 | GAD-7 | 7/7 | 7/7 primary + 7/7 alternate cross-check, §A2/§A2b | yes | structure unchanged; band **sourcing** downgraded to international-convention-only — Korean-PDF scoring-table citation retracted, §2.4 | CONFIRMED (Pfizer, verbatim) | Pfizer phqscreeners.com |
 | PHQ-4 | 4/4 (composed, each half verbatim-sourced) | 4/4 traceable via §A1/§A2 (parent items), §A4 | yes (inherited, unharmonized) | CONFIRMED (structure + flag point) | CONFIRMED (inherited) | Composed per Kim et al. 2021 from Pfizer PHQ-9+GAD-7 |
-| WHO-5 | 0/5 — full gap, retried 2026-07-13, still open | n/a — out of scope this pass (ADR-033 decision 7) | 0/5 — full gap | partial (percentage formula CONFIRMED; raw≤13 boundary now a CONFIRMED off-by-one discrepancy, directly sourced, not just unverified) | UNVERIFIED (summary basis) | none found — item text needs a non-WebFetch access path (§4.6) |
-| AUDIT-C | 3/3 | 3/3, §A5 (unchanged this pass) | yes | DISCREPANCY flagged (Korean data suggests cutoffs ~2x current; translation-identity to Korean-validated instrument unconfirmed) | UNVERIFIED (WHO, no explicit permission text found) | SBIRT Oregon Korean AUDIT |
+| WHO-5 | 0/5 — full gap, retried twice 2026-07-13 (26-attempt 2nd retry, §4.7); **EXCLUDED (user decision 2026-07-13, conditional re-add pending F4 well-being use case)** | n/a — out of scope this pass (ADR-033 decision 7) | 0/5 — full gap | partial (percentage formula CONFIRMED; raw≤13 boundary CONFIRMED off-by-one, now 4-mirror-sourced, §4.7 — dormant under the exclusion, not resolved) | UNVERIFIED (summary basis) | none found — WHO's own 2024 translation list confirms Korean absent from all 26 published languages (§4.7); unblock = user-supplied material or an F4 well-being-trend use case |
+| AUDIT-C | 3/3 v2 (ADOPTED) + 3/3 v1 (documented alternate) | 3/3 v2 §A11; 3/3 v1 §A5; cutoff evidence §A6/§A12/§A12b | yes (v2 native soju-track, no general instruction line captured; v1 Western-unit, full instruction line) | ADOPTED: Korean-primary male≥6/female≥5 (Lee JH 2018 KNHANES, corroborated by Kwon 2013 male=6); Seong 2009/Lee BW 2000 (both =8) considered, not adopted; international Bush 1998 4/3 retained as non-action-driving metadata (`CVR-018`/`ADR-034`) | UNVERIFIED (regulatory-form status for v2, WHO guideline status for v1 — no explicit permission text found for either) | 별지 제15호의3서식 (v2, ADOPTED); SBIRT Oregon Korean AUDIT (v1, documented alternate) |
 
 **Total: 23/23 claimed-verbatim items now appendix-quoted and independently auditable (CVR-016
 condition 4 closed this pass; WHO-5's separate 0/5 item-text gap is untouched, out of scope per

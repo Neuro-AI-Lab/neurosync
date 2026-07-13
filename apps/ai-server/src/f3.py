@@ -57,6 +57,7 @@ from typing import Any, Literal
 
 from src.f1 import OUTPUT_DIR
 from src.schemas.survey_result import (
+    AuditCInternationalThresholdMetadata,
     RecommendationProvenance,
     ScoreResultModel,
     SurveyResultOutput,
@@ -311,12 +312,31 @@ async def run_f3_administration(
     # CVR-016 condition 3 / CVR-017 binding condition 1 / REV-039 correction
     # D: machine-readable, non-value-changing caveat attached whenever a
     # scale in `_SEVERITY_CAVEATS` is actually administered (AUDIT-C:
-    # threshold not reconciled with Korean-population evidence; GAD-7: band-
-    # sourcing citation retracted this mission). `None` for every other
-    # scale, same as before this table existed.
+    # Korean-primary threshold basis + international-cutoff non-adoption
+    # rationale, CVR-018 Q4; GAD-7: band-sourcing citation retracted this
+    # mission). `None` for every other scale, same as before this table
+    # existed.
     threshold_caveat: str | None = None
     if outcome == ADMINISTERED_OUTCOME and effective_scale is not None:
         threshold_caveat = _SEVERITY_CAVEATS.get(effective_scale)
+
+    # CVR-018 Q1 Recommendation 1 / ADR-034 decision 1: the international
+    # AUDIT-C cutoff (Bush et al. 1998) ships as non-action-driving
+    # structured metadata alongside the Korean-primary threshold that
+    # actually drives severity/recommended_action (survey_scorer.py's own
+    # byte-frozen 4/3 int'l values, mirrored here for the boundary check
+    # only — never re-imported into the scoring decision itself). `None`
+    # for every scale other than AUDIT-C.
+    audit_c_international_threshold: AuditCInternationalThresholdMetadata | None = None
+    if (
+        outcome == ADMINISTERED_OUTCOME
+        and effective_scale == "AUDIT-C"
+        and score_result is not None
+    ):
+        intl_threshold = 3 if patient_sex == "female" else 4  # male or unknown
+        audit_c_international_threshold = AuditCInternationalThresholdMetadata(
+            crossed_international_threshold=score_result.total_score >= intl_threshold,
+        )
 
     output = SurveyResultOutput(
         vp_id=resolved_vp_id,
@@ -331,6 +351,7 @@ async def run_f3_administration(
         safety_referral=safety_referral,
         administration_mode=administration_mode,
         threshold_caveat=threshold_caveat,
+        audit_c_international_threshold=audit_c_international_threshold,
         recommendation_provenance=RecommendationProvenance(
             domain_inference_path=str(domain_inference_path),
             top_candidate_disease=recommendation.top_candidate_disease,
@@ -383,6 +404,8 @@ def _build_report(output: SurveyResultOutput) -> str:
                 f"- subscale_scores: {sr.subscale_scores}",
                 f"- answer_mode: {output.answer_mode}",
                 f"- threshold_caveat: {output.threshold_caveat}",
+                f"- audit_c_international_threshold (non-action-driving metadata): "
+                f"{output.audit_c_international_threshold}",
                 "",
             ]
         )

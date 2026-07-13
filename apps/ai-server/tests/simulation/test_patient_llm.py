@@ -143,3 +143,86 @@ class TestPathModeSeam:
         via_path = load_persona(str(canary_path))
         via_id = load_persona("VP-001")
         assert via_path.persona_id == via_id.persona_id == "VP-001"
+
+
+class TestPatientSexExtraction:
+    """REV-041 Resolution 2: `PatientPersona.patient_sex`, parsed from
+    Section 1's `| 성별 | <값> |` demographics row. Feeds F3 AUDIT-C's
+    sex-conditional Korean threshold via `continuous_test._resolve_patient_sex`.
+    """
+
+    _SEX_ROW_PERSONA_MD = """# {persona_id}: 테스트 페르소나 — 테스트환자
+
+## 1. Demographics
+
+| 항목 | 값 |
+|---|---|
+| 이름 | 테스트 (가명) |
+| 성별 | {sex_value} |
+
+## 5. Expected dialogue patterns
+- 예시 발화: "테스트 발화입니다."
+
+## 6. Patient LLM simulation prompt
+
+```
+당신은 테스트 환자입니다. 항상 1문장으로 짧게 답하세요.
+```
+"""
+
+    def _write_sex_persona(
+        self, dir_path: Path, sex_value: str, persona_id: str = "VP-778"
+    ) -> Path:
+        path = dir_path / f"{persona_id}_first_visit_mild.md"
+        path.write_text(
+            self._SEX_ROW_PERSONA_MD.format(persona_id=persona_id, sex_value=sex_value),
+            encoding="utf-8",
+        )
+        return path
+
+    def test_extracts_female_from_table_row(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        self._write_sex_persona(tmp_path, "여성")
+        monkeypatch.setattr(patient_llm, "PERSONAS_DIR", tmp_path)
+        persona = load_persona("VP-778")
+        assert persona.patient_sex == "female"
+
+    def test_extracts_male_from_table_row(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        self._write_sex_persona(tmp_path, "남성")
+        monkeypatch.setattr(patient_llm, "PERSONAS_DIR", tmp_path)
+        persona = load_persona("VP-778")
+        assert persona.patient_sex == "male"
+
+    def test_defaults_to_unknown_when_no_sex_row_present(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The pre-existing minimal fixture (no `| 성별 | ... |` table row,
+        only free-text "25세 여성") must degrade to "unknown" — never
+        guessed from prose."""
+        _write_persona(tmp_path, "VP-777_first_visit_mild.md", persona_id="VP-777")
+        monkeypatch.setattr(patient_llm, "PERSONAS_DIR", tmp_path)
+        persona = load_persona("VP-777")
+        assert persona.patient_sex == "unknown"
+
+    def test_unrecognized_sex_value_defaults_to_unknown(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        self._write_sex_persona(tmp_path, "기타")
+        monkeypatch.setattr(patient_llm, "PERSONAS_DIR", tmp_path)
+        persona = load_persona("VP-778")
+        assert persona.patient_sex == "unknown"
+
+    def test_real_vp012_persona_is_male(self) -> None:
+        """Integration check against the real repo file
+        (`VP-012_first_visit_alcohol.md:16`, `| 성별 | 남성 |`)."""
+        persona = load_persona("VP-012")
+        assert persona.patient_sex == "male"
+
+    def test_real_vp001_persona_is_female(self) -> None:
+        """Integration check against the real repo file
+        (`VP-001_first_visit_mild.md:14`, `| 성별 | 여성 |`)."""
+        persona = load_persona("VP-001")
+        assert persona.patient_sex == "female"

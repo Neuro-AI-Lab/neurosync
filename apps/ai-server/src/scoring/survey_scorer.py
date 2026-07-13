@@ -6,7 +6,10 @@ References:
   - GAD-7: Spitzer et al., 2006
   - PHQ-4: Kroenke et al., 2009
   - WHO-5: WHO, 1998
-  - AUDIT-C: Bush et al., 1998
+  - AUDIT-C: severity threshold is Korean-primary (Lee JH et al. 2018,
+    KNHANES; CVR-018 Q1 / ADR-034 decision 1) — Bush et al., 1998 (the
+    prior international threshold) is retained as non-action-driving
+    metadata on the F3 artifact only, see `src.scoring.item_bank`.
 """
 
 from __future__ import annotations
@@ -212,21 +215,24 @@ def _score_audit_c(
 
     total = sum(responses)
 
-    # Source-caveat comment only (CVR-016 condition 3 / ADR-033 decision 2)
-    # — NO behavior change, thresholds byte-frozen this mission. Two
-    # independent Korean-population studies (docs/ai/item_bank_v1_sources.md
-    # §5.4/§A6) suggest substantially higher cutoffs than the international
-    # standard below: Seong et al. 2009 (N=302 Korean men, full-PDF-read)
-    # found an optimal cutoff of >= 8; Woo et al. 2017 (N=509, summary-basis)
-    # found men >= 7 / women >= 6. Neither study's item wording is confirmed
-    # identical to this project's SBIRT-Oregon-sourced AUDIT-C text. Reported
-    # to the user as an open disposition question, not applied here — see
-    # `src.scoring.item_bank.AUDIT_C_THRESHOLD_CAVEAT`, attached to the F3
-    # artifact by `src.f3.run_f3_administration` for AUDIT-C outcomes.
+    # Korean-primary threshold (CVR-018 Q1 adopted / ADR-034 decision 1,
+    # binding condition 1) — Lee JH et al. 2018 (KNHANES waves 4-6,
+    # N=46,450 nationally representative Korean adults) sex-split cutoff:
+    # male/unknown >= 6, female >= 5. Male value independently corroborated
+    # by Kwon et al. 2013's DSM-IV-TR-anchored at-risk-drinking cutoff (also
+    # 6). Seong et al. 2009 (>=8, male-only) and Lee BW et al. 2000 (>=8,
+    # N=86 case-control) were considered and NOT adopted — see
+    # `src.scoring.item_bank.AUDIT_C_THRESHOLD_CAVEAT` for the full
+    # rationale. This replaces the byte-frozen international value shipped
+    # through ADR-033 decision 2 / CVR-016 condition 3; the international
+    # cutoff (Bush et al. 1998, male/unknown >= 4, female >= 3) is retained
+    # as non-action-driving structured metadata on the F3 artifact by
+    # `src.f3.run_f3_administration` — it is NOT applied here and never
+    # independently drives `severity`/`recommended_action`.
     if patient_sex == "female":
-        threshold = 3
+        threshold = 5
     else:
-        threshold = 4  # male or unknown
+        threshold = 6  # male or unknown
 
     if total >= threshold:
         severity = "hazardous_drinking"

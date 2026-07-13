@@ -5,9 +5,11 @@ sourcing note, `CVR-016` content-fidelity gate, `ADR-033` dispositions).
 
 v1 replaces v0's abbreviated construct labels with verbatim official item
 text, response anchors, and instruction/timeframe wording for PHQ-9, GAD-7,
-PHQ-4, and AUDIT-C. WHO-5 stays unpopulated (0/5 items sourced after an
-exhaustive documented retry — `item_bank_v1_sources.md` §4.6 — fabrication-0
-means an unreachable instrument ships empty, never invented).
+PHQ-4, and AUDIT-C. WHO-5 is EXCLUDED from the F3 v1 supported set by user
+decision 2026-07-13 (conditionally re-openable if F4 establishes a
+well-being-trend use case) — a scope decision, not an evidence retraction;
+the exhaustive documented sourcing-gap retry (`item_bank_v1_sources.md`
+§4.6, fabrication-0 discipline) stands as the record.
 
 Fidelity discipline (CVR-016 condition 1, binding): every `text_ko` and
 `response_anchors` string below is transcribed from
@@ -32,17 +34,29 @@ word below is therefore copy-identical to an already-sourced GAD-7/PHQ-9
 row (traced individually via `ScaleItem.source`), not independently
 translated.
 
-AUDIT-C (`CVR-016` conditions 2-3 / `ADR-033` decisions 2-3): the "1잔의
-기준" standard-drink-definition block ships as ADMINISTERED content
-(`_AUDIT_C_INSTRUCTION_KO_V1`), with the translation-identity-to-Korean-
-validation-studies caveat carried in `AUDIT_C_V1_PROVENANCE` (not silently
-dropped). `AUDIT_C_THRESHOLD_CAVEAT` is a separate, English-language,
-machine-readable caveat for the (unchanged, byte-frozen — `ADR-033`
-decision 2) male>=4/female>=3 threshold's non-reconciliation with Korean-
-population evidence (Seong 2009, Woo 2017) — English, not a Korean
-instrument string, so it is outside this module's Korean-fabrication-0
-scope by construction, and `survey_scorer.py`'s bands/thresholds are not
-touched by this module at all.
+AUDIT-C is **v2** as of `PLAN-2026-W29-B` / `CVR-018` / `ADR-034` (decisions
+1-2, binding conditions 1-4) — the earlier v1 SBIRT Oregon Korean AUDIT text
+(`CVR-016` conditions 2-3 / `ADR-033` decisions 2-3) is SUPERSEDED, not
+shipped in this item bank; it remains documented as an alternate in
+`item_bank_v1_sources.md` §5. v2 ships the sourced-verbatim [별지
+제15호의3서식] 음주 생활습관 평가 도구 (Korea's official 보건복지부고시
+health-screening alcohol-lifestyle assessment form), items 1-3 — every
+`text_ko`/`response_anchors` string below is transcribed from
+`docs/ai/audit_c_korean_research.md` §3.2's own table row (copied, never
+retyped); THAT file, not `item_bank_v1_sources.md`, is the canonical
+byte-fidelity source for AUDIT-C specifically (`CVR-018` binding condition
+8). `AUDIT_C_V2_PROVENANCE` carries the two-mirror cross-verification, the
+mirror-1 item-1 five-anchor pick + mirror-2 discrepancy disclosure
+(`CVR-018` Q2(a)), and the standing translation-identity caveat (`CVR-018`
+Finding 6). `AUDIT_C_THRESHOLD_CAVEAT` is a separate, English-language,
+machine-readable caveat for the Korean-primary male>=6/female>=5 threshold
+(Lee JH et al. 2018 KNHANES, `CVR-018` Q1 / `ADR-034` decision 1) — English,
+not a Korean instrument string, so it is outside this module's Korean-
+fabrication-0 scope by construction. The threshold VALUES themselves live in
+`survey_scorer.py::_score_audit_c`, not this module; the international
+cutoff (Bush et al. 1998, male/unknown>=4, female>=3) is retained as
+non-action-driving metadata on the F3 artifact by `src/f3.py`, also outside
+this module.
 
 GAD-7 (`CVR-016` binding condition 1 / `CVR-017` binding condition 1 /
 `REV-039` correction D): `GAD7_BAND_CAVEAT` is the same-pattern,
@@ -97,14 +111,34 @@ class ScaleItem:
     `ItemBankEntry.provenance` already covers the common case (one scale,
     one source); `source` matters most for PHQ-4, whose 4 items trace to
     TWO different parent-instrument appendix blocks.
+
+    `primary_track_label`/`secondary_track_label`/`secondary_response_anchors`/
+    `secondary_track_conversion_note_ko`: AUDIT-C v2 item 2 only (`CVR-018`
+    Q2(c) / `ADR-034` decision 2, `BUG-039` fix). The sourced [별지
+    제15호의3서식] form bifurcates item 2 into a native 소주-bottle track
+    (`response_anchors`, the primary/administered-by-default track,
+    labeled "소주 트랙" verbatim in `docs/ai/audit_c_korean_research.md`
+    §3.2's own table row) and a glasses-based "기타 술" track with its own
+    explicit beer/makgeolli/draft-beer unit-conversion table — adopted
+    specifically because it structurally eliminates the Western/soju
+    unit-conversion confound `CVR-017` Finding 4 live-confirmed under v1's
+    Western-unit-only item 2. `primary_track_label` is populated ONLY when
+    `secondary_response_anchors` is also populated (i.e. only for a
+    dual-tracked item) — a single-tracked item's `response_anchors` needs
+    no distinguishing label. `None` for every item that is not dual-tracked
+    (every item except AUDIT-C v2 item 2).
     """
 
     index: int  # 1-based
-    text_ko: str  # construct label (v0) or verbatim item text (v1)
+    text_ko: str  # construct label (v0) or verbatim item text (v1/v2)
     response_min: int
     response_max: int
     response_anchors: dict[int, str] | None = None
     source: str = ""
+    primary_track_label: str | None = None
+    secondary_track_label: str | None = None
+    secondary_response_anchors: dict[int, str] | None = None
+    secondary_track_conversion_note_ko: str | None = None
 
 
 @dataclass(frozen=True)
@@ -214,12 +248,24 @@ def _phq4_item_v1(
     )
 
 
-def _audit_c_item_v1(
-    index: int, text_ko: str, anchors: dict[int, str], source: str
+def _audit_c_item_v2(
+    index: int,
+    text_ko: str,
+    anchors: dict[int, str],
+    source: str,
+    *,
+    primary_track_label: str | None = None,
+    secondary_track_label: str | None = None,
+    secondary_response_anchors: dict[int, str] | None = None,
+    secondary_track_conversion_note_ko: str | None = None,
 ) -> ScaleItem:
     return ScaleItem(
         index=index, text_ko=text_ko, response_min=0, response_max=4,
         response_anchors=anchors, source=source,
+        primary_track_label=primary_track_label,
+        secondary_track_label=secondary_track_label,
+        secondary_response_anchors=secondary_response_anchors,
+        secondary_track_conversion_note_ko=secondary_track_conversion_note_ko,
     )
 
 
@@ -382,64 +428,148 @@ _PHQ4_ITEMS_V1: tuple[ScaleItem, ...] = (
     ),
 )
 
-# AUDIT-C: SBIRT Oregon Korean AUDIT, items 1-3 (item_bank_v1_sources.md
-# §5.2/§5.3, appendix §A5, appendix-verbatim). The intro sentence + "1잔의
-# 기준" standard-drink block precede the items on the source document itself
-# and ship here as administered content per CVR-016 condition 2 / ADR-033
-# decision 3.
-_AUDIT_C_INSTRUCTION_KO_V1 = (
-    "알코올 섭취는 귀하의 건강과 복용하는 일부 약에 영향을 미칠 수 있습니다. 귀하께 최선의 "
-    "치료를 제공할 수 있도록 아래의 질문에 답해 주십시오. "
-    "1 잔의 기준: 12 온스(355mL) 맥주 / 5 온스(148mL) 와인 / 1.5 온스(44mL) 독주 (1 잔)"
-)
+# AUDIT-C v2 (CVR-018 Q2 adopted / ADR-034 decision 2, binding conditions
+# 3-4): [별지 제15호의3서식] 음주 생활습관 평가 도구 (Korea's official
+# 보건복지부고시 "건강검진 실시기준" health-screening alcohol-lifestyle
+# assessment form), items 1-3 (the AUDIT-C-equivalent subset) — SUPERSEDES
+# v1's SBIRT Oregon Korean AUDIT text (v1 remains documented as an
+# alternate in item_bank_v1_sources.md §5, not shipped here). Every
+# text_ko/response_anchors string below is copied verbatim from
+# docs/ai/audit_c_korean_research.md §3.2's own table row — CVR-018 binding
+# condition 8 / the qa byte-fidelity gate checks directly against THAT
+# file, not this module's own copy.
 
-AUDIT_C_V1_PROVENANCE = (
-    "v1, verbatim SBIRT Oregon Korean AUDIT PDF (items 1-3 = AUDIT-C), retrieved "
-    "2026-07-13 (item_bank_v1_sources.md §5.2/§5.3, appendix §A5). CVR-016 Finding 8 / "
-    "condition 2: translation-identity of this item wording to the Korean-population "
-    "cutoff-validation studies (Seong 2009, Woo 2017) is UNCONFIRMED — those studies "
-    "did not reproduce their own item-text appendix; the '1잔의 기준' block is "
-    "Western-unit-only (no 소주 reference point)"
-)
-
-_AUDIT_C_ITEM1_ANCHORS_V1: dict[int, str] = {
-    0: "마시지 않음", 1: "월 1회 또는 미만", 2: "월 2~4회", 3: "주 2~3회", 4: "주 4회 이상",
-}
-_AUDIT_C_ITEM2_ANCHORS_V1: dict[int, str] = {
-    0: "0~2잔", 1: "3~4잔", 2: "5~6잔", 3: "7~9잔", 4: "10잔 이상",
-}
-_AUDIT_C_ITEM3_ANCHORS_V1: dict[int, str] = {
-    0: "없음", 1: "월 1회 미만", 2: "월 1회", 3: "주 1회", 4: "매일 또는 거의 매일",
+# Item 1 — mirror 1 (elandclinic.com)'s complete five-anchor set, ruled for
+# per CVR-018 Q2(a) (mirror 2 shows only four anchors, apparently missing
+# "전혀 안 마신다(0점)" — a plausible OCR/page-render dropout, not a
+# confirmed genuine form variant; disclosed in AUDIT_C_V2_PROVENANCE below).
+_AUDIT_C_ITEM1_ANCHORS_V2: dict[int, str] = {
+    0: "전혀 안 마신다(0점)",
+    1: "한 달에 1번 이하(1점)",
+    2: "한 달에 2~4번(2점)",
+    3: "일주일에 2~3번(3점)",
+    4: "일주일에 4번 이상(4점)",
 }
 
-_AUDIT_C_ITEMS_V1: tuple[ScaleItem, ...] = (
-    _audit_c_item_v1(
-        1, "알코올 음료를 얼마나 자주 마십니까?",
-        _AUDIT_C_ITEM1_ANCHORS_V1, AUDIT_C_V1_PROVENANCE,
+# Item 2 primary track — 소주(soju)-bottle-based response anchors, both
+# mirrors byte-identical.
+_AUDIT_C_ITEM2_SOJU_ANCHORS_V2: dict[int, str] = {
+    0: "반병 이하(0점)",
+    1: "1병 이하(1점)",
+    2: "1.5병정도(2점)",
+    3: "2병정도(3점)",
+    4: "2.5병 이상(4점)",
+}
+
+# Item 2 secondary track — glasses-based "기타 술" (other drinks) response
+# anchors + the form's own explicit unit-conversion note, both mirrors
+# byte-identical.
+_AUDIT_C_ITEM2_OTHER_ANCHORS_V2: dict[int, str] = {
+    0: "1~2잔(0점)",
+    1: "3~4잔(1점)",
+    2: "5~6잔(2점)",
+    3: "7~9잔(3점)",
+    4: "10잔 이상(4점)",
+}
+_AUDIT_C_ITEM2_OTHER_CONVERSION_NOTE_V2 = (
+    "양주·와인은 각각의 술잔; 막걸리는 한 사발=1잔; 맥주는 캔맥주 1캔 또는 작은 병맥주 "
+    "1병=1잔, 생맥주 500cc=1.3잔"
+)
+
+_AUDIT_C_ITEM3_ANCHORS_V2: dict[int, str] = {
+    0: "전혀 없다(0점)",
+    1: "한 달에 한 번 미만(1점)",
+    2: "한 달에 한 번 정도(2점)",
+    3: "일주일에 한 번 정도(3점)",
+    4: "거의 매일(4점)",
+}
+
+AUDIT_C_V2_PROVENANCE = (
+    "v2, verbatim [별지 제15호의3서식] 음주 생활습관 평가 도구 (Korea's official "
+    "보건복지부고시 '건강검진 실시기준' health-screening alcohol-lifestyle assessment "
+    "form), items 1-3 (the AUDIT-C-equivalent subset). Cross-verified via two "
+    "independent mirrors, both retrieved 2026-07-13: elandclinic.com "
+    "'음주생활습관평가도구(검진자용).pdf' (mirror 1) and epower.hanilmed.net "
+    "'2021_생활습관포함서식.pdf' (mirror 2) -- docs/ai/audit_c_korean_research.md "
+    "§3.1/§3.2. Item 1 ships mirror 1's complete five-anchor set (incl. '전혀 안 "
+    "마신다(0점)'); mirror 2 shows only four anchors for item 1, apparently missing "
+    "the 0-anchor -- CVR-018 Q2(a) rules for mirror 1's complete set (universal AUDIT "
+    "item-1 zero/never-anchor shape; plausible OCR/page-render dropout in mirror 2, "
+    "not a confirmed genuine form variant). Items 2-3 are byte-identical across both "
+    "mirrors, no discrepancy to disclose. Item 2 is bifurcated into a native "
+    "소주-bottle track (response_anchors) and a glasses-based '기타 술' track with its "
+    "own explicit beer/makgeolli/draft-beer unit-conversion table "
+    "(secondary_response_anchors / secondary_track_conversion_note_ko) -- adopted "
+    "specifically because it structurally eliminates the Western/soju unit-conversion "
+    "confound CVR-017 Finding 4 live-confirmed under v1's Western-unit-only item 2 "
+    "(CVR-018 Q2(c)). CVR-018 Finding 6 translation-identity caveat, unresolved either "
+    "way: byte-identity of this item wording to the Korean-population cutoff-validation "
+    "studies underlying the adopted threshold (Lee JH et al. 2018 KNHANES, Kwon et al. "
+    "2013) is UNCONFIRMED -- none of those studies reproduce their own item-text "
+    "appendix (docs/ai/audit_c_korean_research.md §3.4). Supersedes v1's SBIRT Oregon "
+    "Korean AUDIT text (ADR-034 decision 2) -- the v1 text remains documented as an "
+    "alternate in item_bank_v1_sources.md §5, not shipped in this item bank as of v2."
+)
+
+_AUDIT_C_ITEMS_V2: tuple[ScaleItem, ...] = (
+    _audit_c_item_v2(
+        1, "술을 마시는 횟수는 어느 정도입니까?",
+        _AUDIT_C_ITEM1_ANCHORS_V2, AUDIT_C_V2_PROVENANCE,
     ),
-    _audit_c_item_v1(
-        2, "술을 마실 때 보통 알코올 음료를 몇 잔 정도 마십니까?",
-        _AUDIT_C_ITEM2_ANCHORS_V1, AUDIT_C_V1_PROVENANCE,
+    _audit_c_item_v2(
+        2,
+        "술을 마시는 날은 보통 어느 정도 마십니까? (아래의 두 곳 중 주로 드시는 술을 "
+        "선택하여 한 곳에 표시해 주시면 됩니다.)",
+        _AUDIT_C_ITEM2_SOJU_ANCHORS_V2, AUDIT_C_V2_PROVENANCE,
+        primary_track_label="소주 트랙",
+        secondary_track_label="기타 술 트랙",
+        secondary_response_anchors=_AUDIT_C_ITEM2_OTHER_ANCHORS_V2,
+        secondary_track_conversion_note_ko=_AUDIT_C_ITEM2_OTHER_CONVERSION_NOTE_V2,
     ),
-    _audit_c_item_v1(
-        3, "한 번에 4 잔 이상을 얼마나 자주 마십니까?",
-        _AUDIT_C_ITEM3_ANCHORS_V1, AUDIT_C_V1_PROVENANCE,
+    _audit_c_item_v2(
+        3,
+        "한 번의 술좌석에서 소주 1병을 초과하거나 맥주 5캔(생맥주 2,000cc) 이상*을 마시는 "
+        "횟수는 어느 정도입니까? (*알코올 60g에 해당하는 음주량을 의미한다. / 양주, 와인, "
+        "막걸리는 각각의 술잔으로 5잔 이상)",
+        _AUDIT_C_ITEM3_ANCHORS_V2, AUDIT_C_V2_PROVENANCE,
     ),
 )
 
-# Machine-readable AUDIT-C threshold caveat (CVR-016 condition 3 / ADR-033
-# decision 2) — English, not a Korean instrument string (outside this
-# module's Korean-fabrication-0 scope by construction). Attached to the F3
-# artifact by `src/f3.py` for AUDIT-C administered outcomes; the threshold
-# ITSELF (survey_scorer.py male/unknown>=4, female>=3) is byte-unchanged.
+# Machine-readable AUDIT-C threshold caveat (CVR-018 Q4 / ADR-034 decision
+# 1, binding condition 2) -- English, not a Korean instrument string
+# (outside this module's Korean-fabrication-0 scope by construction).
+# Attached to the F3 artifact by `src/f3.py` for AUDIT-C administered
+# outcomes; the threshold ITSELF lives in survey_scorer.py::_score_audit_c.
+# Rewritten per CVR-018 Q4's five content requirements: (i) adopted
+# threshold + basis, (ii) non-adopted alternatives + explicit reasons,
+# (iii) international-cutoff-as-metadata note, (iv) residual
+# translation-identity caveat, (v) criterion-circularity disclosure.
 AUDIT_C_THRESHOLD_CAVEAT = (
-    "AUDIT-C severity threshold (male/unknown >= 4, female >= 3) is the international "
-    "standard (Bush et al. 1998) and has NOT been reconciled with Korean-population "
-    "evidence: Seong et al. 2009 (N=302 Korean men, full-PDF-read) found an optimal "
-    "cutoff of >= 8; Woo et al. 2017 (N=509, summary-basis) found men >= 7 / women >= 6. "
-    "Threshold is unchanged this mission (ADR-033 decision 2) -- reported as an open "
-    "disposition question for the user, not a value change. "
-    "See item_bank_v1_sources.md section 5.4."
+    "AUDIT-C severity threshold is Korean-primary: male/unknown >= 6, female >= 5 "
+    "(Lee JH et al. 2018, KNHANES waves 4-6, N=46,450 nationally representative Korean "
+    "adults, sex-split cutoff; male value independently corroborated by Kwon et al. "
+    "2013's DSM-IV-TR-anchored at-risk-drinking male cutoff, also 6). Adopted per "
+    "CVR-018 Q1 / ADR-034 decision 1 -- chosen as the more sensitive (lower, more "
+    "inclusive) end of the Korean evidence range to bound under-triage risk on a "
+    "substance-use screen. "
+    "Two higher Korean cutoffs were considered and NOT adopted: Seong et al. 2009 "
+    "(N=302 Korean men, cutoff >=8) has no female arm and cannot alone found a "
+    "dual-sex threshold; Lee BW et al. 2000 (N=86, cutoff >=8) is an explicit "
+    "case-control design with unreported sex composition, a weaker population match "
+    "than a nationally representative sample. "
+    "The international cutoff (Bush et al. 1998, male/unknown >= 4, female >= 3) is "
+    "retained on the F3 artifact as non-action-driving structured reference metadata "
+    "only -- it never independently triggers severity or clinician_review. "
+    "Residual caveat: no study in the evidentiary base (Korean or international) "
+    "reproduces its own item-text appendix, so byte-identity between these adopted "
+    "cutoff numbers and whichever AUDIT-C item text is administered (v1 SBIRT Oregon "
+    "or v2 soju-track) is unconfirmed either way. "
+    "The adopted cutoff study (KNHANES) and most of the underlying Korean literature "
+    "validate AUDIT-C against a whole-AUDIT total score derived from the same 10-item "
+    "instrument (AUDIT-C is items 1-3 of it) -- a same-instrument criterion-circularity "
+    "limitation, disclosed here rather than smoothed over. "
+    "See docs/ai/audit_c_korean_research.md section 1 (study #9 Lee JH 2018, study #4 "
+    "Kwon 2013) and CVR-018 Q1/Q4."
 )
 
 # Machine-readable GAD-7 band-sourcing caveat (CVR-016 binding condition 1 /
@@ -463,12 +593,15 @@ GAD7_BAND_CAVEAT = (
     "disclosure-symmetry fix, not a value change."
 )
 
-# WHO-5: 0/5 items sourced after an exhaustive, documented two-session retry
-# (item_bank_v1_sources.md §4.6) — psykiatri-regionh.dk 5/5 timeouts; Kim
-# et al. 2010 / Moon et al. 2014 both abstract-only (KCI/DBpia/ScienceDirect
-# gated, no OA PDF per direct OpenAlex/Semantic Scholar queries); NCMH
-# standard-guide PDF blocked via 3 independent routes (JS-triggered
-# handlers). Fabrication-0: ships empty, never invented.
+# WHO-5: EXCLUDED from the F3 v1 supported set by user decision 2026-07-13,
+# conditionally re-openable if F4 establishes a well-being-trend use case —
+# a scope decision, not an evidence retraction. The sourcing-gap record
+# (item_bank_v1_sources.md §4.6) is retained as-is: 0/5 items sourced after
+# an exhaustive, documented two-session retry — psykiatri-regionh.dk 5/5
+# timeouts; Kim et al. 2010 / Moon et al. 2014 both abstract-only
+# (KCI/DBpia/ScienceDirect gated, no OA PDF per direct OpenAlex/Semantic
+# Scholar queries); NCMH standard-guide PDF blocked via 3 independent routes
+# (JS-triggered handlers). Fabrication-0: ships empty, never invented.
 WHO5_V1_PROVENANCE = (
     "unpopulated-v1, sourcing gap documented (item_bank_v1_sources.md §4.6): "
     "psykiatri-regionh.dk 5/5 timeouts across 2 sessions; Kim et al. 2010 / Moon et al. "
@@ -487,9 +620,12 @@ ITEM_BANK: dict[ScaleName, ItemBankEntry] = {
         "PHQ-4", _PHQ4_ITEMS_V1, PHQ4_V1_PROVENANCE, "v1", _PHQ4_INSTRUCTION_KO_V1
     ),
     "WHO-5": _make_entry("WHO-5", (), WHO5_V1_PROVENANCE, "v1", None),
-    "AUDIT-C": _make_entry(
-        "AUDIT-C", _AUDIT_C_ITEMS_V1, AUDIT_C_V1_PROVENANCE, "v1", _AUDIT_C_INSTRUCTION_KO_V1
-    ),
+    # instruction_ko=None: unlike v1's SBIRT Oregon source, no standalone
+    # instruction/framing sentence for the [별지 제15호의3서식] form is
+    # quoted verbatim anywhere in docs/ai/audit_c_korean_research.md's §3 —
+    # fabrication-0 means this ships absent, never invented (same
+    # discipline as WHO-5's empty item list above).
+    "AUDIT-C": _make_entry("AUDIT-C", _AUDIT_C_ITEMS_V2, AUDIT_C_V2_PROVENANCE, "v2", None),
 }
 
 
@@ -516,12 +652,21 @@ def validate_item_bank_completeness(
 
 
 # Fail fast at import time, same discipline as questionnaire_mapping.py —
-# checked against BOTH the live v1 bank and the retained v0 bank.
+# checked against BOTH the live v1/v2 bank and the retained v0 bank.
 validate_item_bank_completeness(ITEM_BANK)
 validate_item_bank_completeness(ITEM_BANK_V0)
 
+# AUDIT-C is v2 as of CVR-018/ADR-034; every other scale in ITEM_BANK stays
+# v1 this mission (PHQ-9/GAD-7/PHQ-4/WHO-5 byte-untouched).
+_EXPECTED_ITEM_BANK_VERSION: dict[ScaleName, str] = {
+    "PHQ-9": "v1", "GAD-7": "v1", "PHQ-4": "v1", "WHO-5": "v1", "AUDIT-C": "v2",
+}
+
 for _scale_name, _entry in ITEM_BANK.items():
-    assert _entry.version == "v1", f"ITEM_BANK[{_scale_name!r}] version must be 'v1'"
+    _expected_version = _EXPECTED_ITEM_BANK_VERSION[_scale_name]
+    assert _entry.version == _expected_version, (
+        f"ITEM_BANK[{_scale_name!r}] version must be {_expected_version!r}"
+    )
     if _entry.populated:
         assert len(_entry.items) == _EXPECTED_ITEM_COUNTS[_scale_name], (
             f"ITEM_BANK[{_scale_name!r}] marked populated with the wrong item count"

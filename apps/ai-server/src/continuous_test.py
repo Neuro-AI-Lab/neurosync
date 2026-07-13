@@ -71,6 +71,9 @@ Usage:
     # saved artifact + ledger "f3" sub-object both record
     # administration_mode="forced" — never natural-chain/F2-linkage evidence.
     .venv/bin/python -m src.continuous_test --persona VP-001 --force-questionnaire GAD-7
+    # AUDIT-C sex-conditional threshold (REV-041 Resolution 2): defaults to
+    # the persona's own Section 1 성별 row; --patient-sex overrides it:
+    .venv/bin/python -m src.continuous_test --persona VP-012 --patient-sex female
 """
 
 from __future__ import annotations
@@ -212,6 +215,14 @@ class ChainContext:
     domain_inference_path: Path | None = None  # set by F2
     answer_mode: str = "llm"  # "llm" | "expected" — consumed by F3
     forced_scale: str | None = None  # harness-only F2->F3 override (PLAN-2026-W29-A step 6)
+    # "male" / "female" / "unknown", or `None` (REV-041 Resolution 2): `None`
+    # means "derive from the persona's own Section 1 성별 row automatically"
+    # (`run_f3_stage`, via `tests.simulation.patient_llm.load_persona`); an
+    # explicit value (e.g. from `--patient-sex`) always overrides that
+    # derivation. Consumed by F3's AUDIT-C sex-conditional Korean threshold
+    # (`src.scoring.survey_scorer._score_audit_c`) — porting the pattern
+    # already implemented in `tests/simulation/factorial_driver.py:299,379`.
+    patient_sex: str | None = None
     f3_survey_path: Path | None = None  # set by F3
     f3_scale_scores_path: Path | None = None  # set by F3 (only when outcome=="administered")
     f3_safety_pathway: dict[str, Any] | None = None  # set by F3 (PHQ-9 item-9 wiring, step 3)
@@ -419,6 +430,25 @@ def _build_survey_answer_fn(persona_id: str, scale_name: str, answer_mode: str):
     return SurveyAnswerLLM(persona, scale_name=scale_name)
 
 
+def _resolve_patient_sex(persona_id: str, override: str | None) -> str:
+    """REV-041 Resolution 2: `override` (`ChainContext.patient_sex`, set
+    from `--patient-sex` when the caller passed it explicitly) always wins
+    when supplied; otherwise derive from the persona's own Section 1 성별
+    row (`tests.simulation.patient_llm.load_persona`) — never silently
+    defaults to "unknown" the way this harness's F3 stage previously did
+    (`f3.py`'s own `patient_sex: str = "unknown"` default, unreached by any
+    caller of this harness before this fix). Loading the persona here is
+    cheap (a file read + regex, no LLM/DB call) and mirrors what
+    `_build_survey_answer_fn`'s `llm` branch already does for the same
+    persona in the same stage.
+    """
+    if override is not None:
+        return override
+    from tests.simulation.patient_llm import load_persona
+
+    return load_persona(persona_id).patient_sex
+
+
 def _route_phq9_safety_pathway(
     persona_id: str, responses: list[int], patient_sex: str = "unknown"
 ) -> dict[str, Any]:
@@ -480,6 +510,18 @@ async def run_f3_stage(ctx: ChainContext) -> StageResult:
     (`_route_phq9_safety_pathway`, `PLAN-2026-W29-A` step 3) whenever the
     outcome is `administered` and `scale_name == "PHQ-9"` — regardless of
     natural/forced mode.
+
+    `ctx.patient_sex` (REV-041 Resolution 2): resolved once, via
+    `_resolve_patient_sex` (explicit `ctx.patient_sex` override, else the
+    persona's own Section 1 성별 row) — BEFORE this fix this stage always
+    called `run_f3_administration` with no `patient_sex` argument at all,
+    silently defaulting to `"unknown"` for every persona (`f3.py:251`),
+    which `_score_audit_c` treats identically to `"male"` (both threshold
+    6). Threaded into both the F3 administration call (drives the
+    Korean-primary AUDIT-C threshold) and the PHQ-9 safety-pathway call
+    (for consistency within this one stage — `patient_sex` is currently
+    unused by PHQ-9 scoring itself, but the two calls should never disagree
+    about which sex value this session used).
     """
     if ctx.domain_inference_path is None:
         return StageResult(
@@ -489,6 +531,7 @@ async def run_f3_stage(ctx: ChainContext) -> StageResult:
         )
 
     t0 = time.perf_counter()
+    effective_patient_sex = _resolve_patient_sex(ctx.persona_id, ctx.patient_sex)
     try:
         from src import f3
 
@@ -509,6 +552,7 @@ async def run_f3_stage(ctx: ChainContext) -> StageResult:
         result = await f3.run_f3_administration(
             domain_inference_path=ctx.domain_inference_path,
             answer_fn=answer_fn,
+            patient_sex=effective_patient_sex,
             answer_mode=ctx.answer_mode,
             output_dir=ctx.out_dir,
             vp_id=ctx.persona_id,
@@ -525,11 +569,13 @@ async def run_f3_stage(ctx: ChainContext) -> StageResult:
 
     ctx.f3_safety_pathway = None
     if output.outcome == f3.ADMINISTERED_OUTCOME and output.scale_name == "PHQ-9":
-        ctx.f3_safety_pathway = _route_phq9_safety_pathway(ctx.persona_id, output.responses)
+        ctx.f3_safety_pathway = _route_phq9_safety_pathway(
+            ctx.persona_id, output.responses, patient_sex=effective_patient_sex
+        )
 
     detail = (
         f"F3 outcome={output.outcome} answer_mode={ctx.answer_mode} "
-        f"administration_mode={output.administration_mode}"
+        f"administration_mode={output.administration_mode} patient_sex={effective_patient_sex}"
     )
     if output.outcome == f3.ADMINISTERED_OUTCOME and output.score_result is not None:
         detail += (
@@ -609,6 +655,7 @@ async def run_multi_session_chain(
     base_date: date | None = None,
     answer_mode: str = "llm",
     forced_scale: str | None = None,
+    patient_sex: str | None = None,
 ) -> list[StageResult]:
     """Chain N F1 sessions via the existing PUBLIC `followup_from` seam
     (`f1._run_simulation(..., followup_from=<prior session's own
@@ -692,7 +739,7 @@ async def run_multi_session_chain(
         f2_ctx = ChainContext(
             persona_id=persona_id, max_turns=max_turns, k=k, out_dir=out_dir,
             scale_scores_path=effective_scale_scores_path, conversation_path=conv_path,
-            answer_mode=answer_mode, forced_scale=forced_scale,
+            answer_mode=answer_mode, forced_scale=forced_scale, patient_sex=patient_sex,
         )
         f2_result = await run_f2_stage(f2_ctx)
         f2_result.name = f"F2[session={session_index}]"
@@ -861,6 +908,18 @@ def build_arg_parser() -> argparse.ArgumentParser:
             "F2-연계(F2-linkage) 근거로 인용하면 안 됨."
         ),
     )
+    parser.add_argument(
+        "--patient-sex",
+        default=None,
+        choices=["male", "female", "unknown"],
+        help=(
+            "F3 AUDIT-C의 성별-조건부 Korean-primary threshold(male/unknown>=6, "
+            "female>=5)에 사용할 patient_sex를 명시적으로 override (REV-041 Resolution "
+            "2). 기본값(미지정)은 페르소나 문서 Section 1의 '성별' 행에서 자동 유도 "
+            "('남성'->male, '여성'->female, 그 외/누락->unknown) — "
+            "tests/simulation/factorial_driver.py --patient-sex와 동일한 값 도메인."
+        ),
+    )
     return parser
 
 
@@ -912,6 +971,7 @@ async def _main(args: argparse.Namespace) -> int:
     out_dir = Path(args.out) if args.out else None
     answer_mode = getattr(args, "answer_mode", "llm") or "llm"
     forced_scale = getattr(args, "force_questionnaire", None)
+    patient_sex = getattr(args, "patient_sex", None)
 
     if args.sessions and args.sessions > 1:
         if args.start_from_conversation:
@@ -927,6 +987,7 @@ async def _main(args: argparse.Namespace) -> int:
             session_interval_days=args.session_interval_days,
             answer_mode=answer_mode,
             forced_scale=forced_scale,
+            patient_sex=patient_sex,
         )
         print_multi_session_report(args.persona, results)
         return 0 if all(r.status != "fail" for r in results) else 1
@@ -939,6 +1000,7 @@ async def _main(args: argparse.Namespace) -> int:
         scale_scores_path=args.scale_scores,
         answer_mode=answer_mode,
         forced_scale=forced_scale,
+        patient_sex=patient_sex,
     )
     if args.start_from_conversation:
         path = Path(args.start_from_conversation)

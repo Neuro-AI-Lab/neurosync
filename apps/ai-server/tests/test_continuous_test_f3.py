@@ -643,6 +643,166 @@ class TestPhq9SafetyPathwayWiring:
         assert ctx.f3_safety_pathway is None
 
 
+class TestResolvePatientSex:
+    """REV-041 Resolution 2: `_resolve_patient_sex` — explicit override
+    always wins; otherwise derived from the persona's own Section 1 성별
+    row via `load_persona` (Issue 2 / Resolution 2)."""
+
+    def test_explicit_override_wins_regardless_of_persona(self) -> None:
+        # VP-012 is documented male; an explicit override must still win.
+        assert ct._resolve_patient_sex("VP-012", "female") == "female"
+
+    def test_explicit_unknown_override_is_respected_verbatim(self) -> None:
+        # VP-001 is documented female; "unknown" must not be silently
+        # replaced by the persona's own value once explicitly passed.
+        assert ct._resolve_patient_sex("VP-001", "unknown") == "unknown"
+
+    def test_none_override_derives_from_real_persona_male(self) -> None:
+        assert ct._resolve_patient_sex("VP-012", None) == "male"
+
+    def test_none_override_derives_from_real_persona_female(self) -> None:
+        assert ct._resolve_patient_sex("VP-001", None) == "female"
+
+
+_FEMALE_AUDIT_C_PERSONA_MD = """# VP-778: 테스트 페르소나 — 테스트환자
+
+## 1. Demographics
+
+| 항목 | 값 |
+|---|---|
+| 이름 | 테스트 (가명) |
+| 성별 | 여성 |
+
+## 5. Expected dialogue patterns
+- 예시 발화: "테스트 발화입니다."
+
+## 6. Patient LLM simulation prompt
+
+```
+당신은 테스트 환자입니다. 항상 1문장으로 짧게 답하세요.
+```
+"""
+
+
+class TestRunF3StagePatientSexWiring:
+    """REV-041 Resolution 2, end-to-end through `run_f3_stage`: a
+    female-sex persona (§1 성별 = 여성, auto-derived — no explicit
+    `--patient-sex`) must hit AUDIT-C's female threshold branch
+    (`_score_audit_c`: female >= 5, male/unknown >= 6), never the
+    male/unknown default this stage silently used before this fix. No live
+    LLM/network calls — `SurveyAnswerLLM._ask` is monkeypatched, matching
+    `TestRunF3StageLLMModeConstructsSurveyAnswerLLM`'s existing pattern.
+    """
+
+    @pytest.mark.asyncio
+    async def test_female_persona_auto_derived_crosses_female_threshold(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from unittest.mock import AsyncMock
+
+        from tests.simulation import patient_llm as patient_llm_module
+        from tests.simulation import survey_answer_llm as sal_module
+
+        persona_dir = tmp_path / "personas"
+        persona_dir.mkdir()
+        (persona_dir / "VP-778_first_visit_mild.md").write_text(
+            _FEMALE_AUDIT_C_PERSONA_MD, encoding="utf-8"
+        )
+        monkeypatch.setattr(patient_llm_module, "PERSONAS_DIR", persona_dir)
+
+        original_init = sal_module.SurveyAnswerLLM.__init__
+
+        def _patched_init(self, persona, api_key=None, base_url=None, model=None, scale_name=None):
+            original_init(self, persona, api_key="k", model="m", scale_name=scale_name)
+
+        monkeypatch.setattr(sal_module.SurveyAnswerLLM, "__init__", _patched_init)
+        # Total = 2 + 2 + 1 = 5: crosses the FEMALE threshold (>=5) but would
+        # NOT cross the male/unknown threshold (>=6) — a distinctive total
+        # that proves the female branch, specifically, was exercised.
+        monkeypatch.setattr(
+            sal_module.SurveyAnswerLLM, "_ask", AsyncMock(side_effect=["2", "2", "1"])
+        )
+
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-778", recommended_questionnaire="AUDIT-C"
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-778", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="llm",  # patient_sex=None (default) -> auto-derive from persona
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert "patient_sex=female" in result.detail
+
+        saved = json.loads(ctx.f3_survey_path.read_text(encoding="utf-8"))
+        assert saved["responses"] == [2, 2, 1]
+        assert saved["score_result"]["total_score"] == 5
+        assert saved["score_result"]["severity"] == "hazardous_drinking"  # female threshold=5
+
+    @pytest.mark.asyncio
+    async def test_explicit_patient_sex_override_beats_female_persona(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The SAME female persona/responses as above, but with an explicit
+        `ctx.patient_sex="unknown"` override — must use the male/unknown
+        threshold (>=6) instead, proving the override truly takes
+        precedence over persona-derivation, not just coexists with it."""
+        from unittest.mock import AsyncMock
+
+        from tests.simulation import patient_llm as patient_llm_module
+        from tests.simulation import survey_answer_llm as sal_module
+
+        persona_dir = tmp_path / "personas"
+        persona_dir.mkdir()
+        (persona_dir / "VP-778_first_visit_mild.md").write_text(
+            _FEMALE_AUDIT_C_PERSONA_MD, encoding="utf-8"
+        )
+        monkeypatch.setattr(patient_llm_module, "PERSONAS_DIR", persona_dir)
+
+        original_init = sal_module.SurveyAnswerLLM.__init__
+
+        def _patched_init(self, persona, api_key=None, base_url=None, model=None, scale_name=None):
+            original_init(self, persona, api_key="k", model="m", scale_name=scale_name)
+
+        monkeypatch.setattr(sal_module.SurveyAnswerLLM, "__init__", _patched_init)
+        monkeypatch.setattr(
+            sal_module.SurveyAnswerLLM, "_ask", AsyncMock(side_effect=["2", "2", "1"])
+        )
+
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-778", recommended_questionnaire="AUDIT-C"
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-778", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="llm", patient_sex="unknown",
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert "patient_sex=unknown" in result.detail
+
+        saved = json.loads(ctx.f3_survey_path.read_text(encoding="utf-8"))
+        assert saved["score_result"]["total_score"] == 5
+        assert saved["score_result"]["severity"] == "low_risk"  # male/unknown threshold=6, 5<6
+
+
+class TestCliPatientSexFlag:
+    """REV-041 Resolution 2."""
+
+    def test_default_is_none(self) -> None:
+        args = ct.build_arg_parser().parse_args([])
+        assert args.patient_sex is None
+
+    def test_override_female(self) -> None:
+        args = ct.build_arg_parser().parse_args(["--patient-sex", "female"])
+        assert args.patient_sex == "female"
+
+    def test_invalid_choice_rejected(self) -> None:
+        with pytest.raises(SystemExit):
+            ct.build_arg_parser().parse_args(["--patient-sex", "bogus"])
+
+
 class TestForcedModeLedgerCollisionSafety:
     """`PLAN-2026-W29-A` step 6 / `REV-038` Resolution 1: a forced run must
     NOT overwrite a natural run's ledger `"f3"` record for the same

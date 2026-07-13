@@ -39,6 +39,13 @@ _SOURCES_NOTE_PATH = (
     Path(__file__).resolve().parents[3] / "docs" / "ai" / "item_bank_v1_sources.md"
 )
 
+# AUDIT-C v2's own canonical byte-fidelity source (CVR-018 binding condition
+# 8) — a SEPARATE file from item_bank_v1_sources.md, which only documents
+# v1's (now-superseded) SBIRT Oregon AUDIT-C text.
+_AUDIT_C_RESEARCH_NOTE_PATH = (
+    Path(__file__).resolve().parents[3] / "docs" / "ai" / "audit_c_korean_research.md"
+)
+
 
 def _dewrap_appendix_block(text: str, start_marker: str, end_marker: str) -> str:
     """Join a `> `-prefixed markdown blockquote's wrapped lines with single
@@ -80,6 +87,13 @@ def appendix_a2(sources_note_text: str) -> str:
 @pytest.fixture(scope="module")
 def appendix_a5(sources_note_text: str) -> str:
     return _dewrap_appendix_block(sources_note_text, "### §A5 —", "### §A6 —")
+
+
+@pytest.fixture(scope="module")
+def audit_c_research_note_text() -> str:
+    if not _AUDIT_C_RESEARCH_NOTE_PATH.exists():
+        pytest.skip(f"AUDIT-C research note not found at {_AUDIT_C_RESEARCH_NOTE_PATH}")
+    return _AUDIT_C_RESEARCH_NOTE_PATH.read_text(encoding="utf-8")
 
 
 class TestRegistryCompleteness:
@@ -224,25 +238,82 @@ class TestPHQ4V1Composition:
         assert phq4[2].response_anchors[2] == get_item_bank("PHQ-9").items[0].response_anchors[2]
 
 
-class TestAuditCV1ByteFidelity:
-    def test_populated_three_items_v1(self) -> None:
+class TestAuditCV2ByteFidelity:
+    """AUDIT-C v2 (CVR-018 Q2 adopted / ADR-034 decision 2) — the [별지
+    제15호의3서식] soju-track text. Canonical byte-fidelity source is
+    `docs/ai/audit_c_korean_research.md` §3.2 (CVR-018 binding condition
+    8), NOT `item_bank_v1_sources.md` (that file only documents v1's
+    now-superseded SBIRT Oregon text)."""
+
+    def test_populated_three_items_v2(self) -> None:
         entry = get_item_bank("AUDIT-C")
         assert entry.populated is True
-        assert entry.version == "v1"
+        assert entry.version == "v2"
         assert len(entry.items) == 3
 
-    def test_every_item_text_byte_matches_appendix_a5(self, appendix_a5: str) -> None:
+    def test_every_item_text_byte_matches_research_note(
+        self, audit_c_research_note_text: str
+    ) -> None:
         entry = get_item_bank("AUDIT-C")
         for item in entry.items:
-            assert item.text_ko in appendix_a5, f"AUDIT-C item {item.index} not byte-exact vs §A5"
+            assert item.text_ko in audit_c_research_note_text, (
+                f"AUDIT-C item {item.index} not byte-exact vs audit_c_korean_research.md"
+            )
 
-    def test_item_specific_anchors_byte_match_appendix(self, appendix_a5: str) -> None:
+    def test_item_anchors_byte_match_research_note(
+        self, audit_c_research_note_text: str
+    ) -> None:
         entry = get_item_bank("AUDIT-C")
         for item in entry.items:
             assert item.response_anchors is not None
             assert set(item.response_anchors.keys()) == {0, 1, 2, 3, 4}
             for label in item.response_anchors.values():
-                assert label in appendix_a5
+                assert label in audit_c_research_note_text
+
+    def test_item2_secondary_track_anchors_byte_match_research_note(
+        self, audit_c_research_note_text: str
+    ) -> None:
+        """CVR-018 Q2(c): item 2's '기타 술' secondary track + its explicit
+        beer/makgeolli/draft-beer conversion note."""
+        item2 = get_item_bank("AUDIT-C").items[1]
+        assert item2.secondary_track_label == "기타 술 트랙"
+        assert item2.secondary_response_anchors is not None
+        assert set(item2.secondary_response_anchors.keys()) == {0, 1, 2, 3, 4}
+        for label in item2.secondary_response_anchors.values():
+            assert label in audit_c_research_note_text
+        assert item2.secondary_track_conversion_note_ko is not None
+        assert item2.secondary_track_conversion_note_ko in audit_c_research_note_text
+
+    def test_item2_primary_track_label_byte_matches_research_note(
+        self, audit_c_research_note_text: str
+    ) -> None:
+        """BUG-039 fix: item 2's primary (소주) track needs its own sourced
+        label so `build_item_prompt` can render both tracks distinguishably
+        — verbatim from `docs/ai/audit_c_korean_research.md` §3.2's own
+        bolded "소주 트랙" table-row label, never invented in the harness."""
+        item2 = get_item_bank("AUDIT-C").items[1]
+        assert item2.primary_track_label == "소주 트랙"
+        assert item2.primary_track_label in audit_c_research_note_text
+
+    def test_only_item2_has_primary_track_label(self) -> None:
+        entry = get_item_bank("AUDIT-C")
+        assert entry.items[0].primary_track_label is None
+        assert entry.items[1].primary_track_label is not None
+        assert entry.items[2].primary_track_label is None
+
+    def test_item1_ships_mirror1_complete_five_anchor_set(self) -> None:
+        """CVR-018 Q2(a) / binding condition 3: item 1 ships mirror 1's
+        complete five-anchor set, including the zero/never anchor mirror 2
+        appears to be missing."""
+        item1 = get_item_bank("AUDIT-C").items[0]
+        assert item1.response_anchors[0] == "전혀 안 마신다(0점)"
+        assert len(item1.response_anchors) == 5
+
+    def test_only_item2_is_dual_tracked(self) -> None:
+        entry = get_item_bank("AUDIT-C")
+        assert entry.items[0].secondary_response_anchors is None
+        assert entry.items[1].secondary_response_anchors is not None
+        assert entry.items[2].secondary_response_anchors is None
 
     def test_item_anchors_are_item_specific_not_shared(self) -> None:
         entry = get_item_bank("AUDIT-C")
@@ -254,41 +325,117 @@ class TestAuditCV1ByteFidelity:
         for item in entry.items:
             assert (item.response_min, item.response_max) == (0, 4)
 
-    def test_standard_drink_definition_block_ships_in_instruction(
-        self, appendix_a5: str
-    ) -> None:
-        """CVR-016 condition 2 / ADR-033 decision 3: the '1잔의 기준' block
-        ships as ADMINISTERED content (instruction_ko), not left as
-        sourcing-note-only context."""
-        entry = get_item_bank("AUDIT-C")
-        assert entry.instruction_ko is not None
-        assert "1 잔의 기준" in entry.instruction_ko
-        assert "12 온스" in entry.instruction_ko
-        assert entry.instruction_ko in appendix_a5
+    def test_instruction_ko_is_none_no_fabricated_framing(self) -> None:
+        """No standalone instruction/framing sentence for the [별지
+        제15호의3서식] form is quoted verbatim in the research note's §3 —
+        fabrication-0 means this stays None, never invented (unlike v1's
+        SBIRT-sourced instruction_ko, which WAS quoted verbatim)."""
+        assert get_item_bank("AUDIT-C").instruction_ko is None
 
     def test_provenance_discloses_translation_identity_unconfirmed(self) -> None:
-        """CVR-016 Finding 8: translation-identity to the Korean-population
-        cutoff-validation studies (Seong 2009, Woo 2017) is unconfirmed —
-        must be disclosed in the provenance, not silently dropped."""
+        """CVR-018 Finding 6: translation-identity to the Korean-population
+        cutoff-validation studies underlying the adopted threshold (Lee JH
+        2018 KNHANES, Kwon 2013) is unconfirmed — must be disclosed in the
+        provenance, not silently dropped."""
         entry = get_item_bank("AUDIT-C")
         assert "unconfirmed" in entry.provenance.lower()
-        assert "Seong" in entry.provenance
-        assert "Woo" in entry.provenance
+        assert "Lee JH" in entry.provenance
+        assert "Kwon" in entry.provenance
+
+    def test_provenance_discloses_mirror2_discrepancy_and_pick_rationale(self) -> None:
+        """CVR-018 binding condition 3: provenance must disclose the
+        mirror-2 four-anchor discrepancy AND the mirror-1 pick rationale,
+        not just silently ship mirror 1's set."""
+        entry = get_item_bank("AUDIT-C")
+        assert "mirror 1" in entry.provenance
+        assert "mirror 2" in entry.provenance
+        assert "0-anchor" in entry.provenance or "0점" in entry.provenance
+
+    def test_provenance_notes_v1_superseded(self) -> None:
+        entry = get_item_bank("AUDIT-C")
+        assert "supersede" in entry.provenance.lower()
+        assert "item_bank_v1_sources.md" in entry.provenance
+
+    def test_v2_item_text_differs_from_no_longer_shipped_v1_text(self) -> None:
+        """Sanity: v2's item text is genuinely different from the
+        no-longer-shipped v1 SBIRT-Oregon text (the specific v1 item-1
+        string is no longer what ships) — otherwise 'AUDIT-C is v2' would
+        be a version-stamp-only change."""
+        item1 = get_item_bank("AUDIT-C").items[0]
+        assert item1.text_ko != "알코올 음료를 얼마나 자주 마십니까?"
+
+
+class TestAuditCV2NoFabrication:
+    """Fabrication-0 for AUDIT-C v2 specifically — every Korean string on
+    every item/anchor (including the item-2 secondary track) must exist
+    verbatim in `docs/ai/audit_c_korean_research.md` (AUDIT-C's OWN
+    canonical source, separate from item_bank_v1_sources.md)."""
+
+    def test_every_item_text_exists_in_research_note(
+        self, audit_c_research_note_text: str
+    ) -> None:
+        entry = get_item_bank("AUDIT-C")
+        for item in entry.items:
+            assert item.text_ko in audit_c_research_note_text
+
+    def test_every_item_anchor_exists_in_research_note(
+        self, audit_c_research_note_text: str
+    ) -> None:
+        entry = get_item_bank("AUDIT-C")
+        for item in entry.items:
+            for label in (item.response_anchors or {}).values():
+                assert label in audit_c_research_note_text
+            for label in (item.secondary_response_anchors or {}).values():
+                assert label in audit_c_research_note_text
 
 
 class TestAuditCThresholdCaveat:
-    """CVR-016 condition 3 / ADR-033 decision 2: machine-readable caveat,
-    threshold values themselves untouched (that's `survey_scorer.py`'s own
-    byte-frozen territory, not this module's)."""
+    """CVR-018 Q4 / ADR-034 decision 1-2: machine-readable caveat, rewritten
+    per Q4's five content requirements. Threshold VALUES themselves live in
+    `survey_scorer.py::_score_audit_c` (male/unknown>=6, female>=5), not
+    this module — checked separately in `test_survey_scoring.py`."""
 
     def test_caveat_constant_is_nonempty_and_english(self) -> None:
         assert AUDIT_C_THRESHOLD_CAVEAT
-        assert "Seong" in AUDIT_C_THRESHOLD_CAVEAT
-        assert "Woo" in AUDIT_C_THRESHOLD_CAVEAT
         assert "male" in AUDIT_C_THRESHOLD_CAVEAT.lower()
 
-    def test_caveat_does_not_claim_a_threshold_change(self) -> None:
-        assert "unchanged" in AUDIT_C_THRESHOLD_CAVEAT.lower()
+    def test_point_i_adopted_threshold_and_basis(self) -> None:
+        """(i) adopted threshold + basis: male>=6/female>=5, KNHANES/Lee JH
+        2018, corroborated by Kwon 2013."""
+        assert "6" in AUDIT_C_THRESHOLD_CAVEAT
+        assert "5" in AUDIT_C_THRESHOLD_CAVEAT
+        assert "Lee JH" in AUDIT_C_THRESHOLD_CAVEAT
+        assert "KNHANES" in AUDIT_C_THRESHOLD_CAVEAT
+        assert "Kwon" in AUDIT_C_THRESHOLD_CAVEAT
+
+    def test_point_ii_non_adopted_alternatives_with_explicit_reasons(self) -> None:
+        """(ii) Seong 2009 and Lee BW 2000 considered and NOT adopted, with
+        the explicit reason (not merely 'a different number')."""
+        assert "Seong" in AUDIT_C_THRESHOLD_CAVEAT
+        assert "Lee BW" in AUDIT_C_THRESHOLD_CAVEAT
+        assert "NOT adopted" in AUDIT_C_THRESHOLD_CAVEAT
+        assert "female arm" in AUDIT_C_THRESHOLD_CAVEAT
+        assert "case-control" in AUDIT_C_THRESHOLD_CAVEAT
+
+    def test_point_iii_international_cutoff_as_metadata(self) -> None:
+        """(iii) international cutoff (Bush et al. 1998, male/unknown>=4,
+        female>=3) retained as non-action-driving reference metadata,
+        cited by name."""
+        assert "Bush" in AUDIT_C_THRESHOLD_CAVEAT
+        assert "1998" in AUDIT_C_THRESHOLD_CAVEAT
+        assert "non-action-driving" in AUDIT_C_THRESHOLD_CAVEAT
+        assert "clinician_review" in AUDIT_C_THRESHOLD_CAVEAT
+
+    def test_point_iv_residual_translation_identity_caveat(self) -> None:
+        """(iv) no study reproduces its own item-text appendix; byte-
+        identity to whichever item text ships is unconfirmed either way."""
+        assert "unconfirmed" in AUDIT_C_THRESHOLD_CAVEAT.lower()
+        assert "item-text appendix" in AUDIT_C_THRESHOLD_CAVEAT
+
+    def test_point_v_criterion_circularity_disclosure(self) -> None:
+        """(v) same-instrument criterion-circularity limitation, disclosed
+        not smoothed over."""
+        assert "circularity" in AUDIT_C_THRESHOLD_CAVEAT.lower()
 
 
 class TestGad7BandCaveat:
@@ -334,9 +481,13 @@ class TestNoFabrication:
     """Fabrication-0: every Korean string on every v1 item/anchor/
     instruction must exist verbatim in the sourcing note (not just the
     appendix subset checked above item-by-item — a whole-note substring
-    check across all 5 scales)."""
+    check across all 4 v1 scales). AUDIT-C is v2 as of this mission and is
+    checked separately, against its own canonical source
+    (`TestAuditCV2NoFabrication` above, `docs/ai/audit_c_korean_research.md`
+    — NOT `item_bank_v1_sources.md`, which only documents v1's now-
+    superseded AUDIT-C text)."""
 
-    @pytest.mark.parametrize("scale_name", ["PHQ-9", "GAD-7", "PHQ-4", "AUDIT-C"])
+    @pytest.mark.parametrize("scale_name", ["PHQ-9", "GAD-7", "PHQ-4"])
     def test_every_populated_item_text_exists_in_sources_note(
         self, scale_name: str, sources_note_text: str
     ) -> None:
@@ -347,7 +498,7 @@ class TestNoFabrication:
                 "item_bank_v1_sources.md"
             )
 
-    @pytest.mark.parametrize("scale_name", ["PHQ-9", "GAD-7", "PHQ-4", "AUDIT-C"])
+    @pytest.mark.parametrize("scale_name", ["PHQ-9", "GAD-7", "PHQ-4"])
     def test_every_populated_item_anchor_exists_in_sources_note(
         self, scale_name: str, sources_note_text: str
     ) -> None:

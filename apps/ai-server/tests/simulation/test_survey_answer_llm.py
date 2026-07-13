@@ -14,12 +14,13 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from src.scoring.item_bank import ScaleItem, get_item_bank
+from src.scoring.item_bank import ScaleItem, get_item_bank, get_item_bank_v0
 from tests.simulation.patient_llm import PatientPersona
 from tests.simulation.survey_answer_llm import (
     ExpectedAnswerFn,
     SurveyAnswerLLM,
     _parse_first_integer,
+    build_item_prompt,
     expected_answer_fn,
 )
 
@@ -164,6 +165,101 @@ class TestSurveyAnswerLLMAnswerFlow:
         assert llm._instruction_ko is None
 
 
+class TestExp021FactorialGoldenPrompts:
+    """REV-040 (2)/Issue 1's three REQUIRED golden prompt tests, gating
+    `docs/ai/exp021_factorial_design.md` implementation. Item text/anchors
+    are always read directly from `get_item_bank`/`get_item_bank_v0` — never
+    hand-retyped (§3 of the design; CVR-016 Finding 3 transcription-fidelity
+    discipline).
+    """
+
+    def test_golden_cell1_v0_bare_reproduction(self) -> None:
+        """Cell 1 (v0 text, F_anchor=off, F_instr=off) must byte-reproduce
+        the pre-EXP-021 bare-integer ask exactly — no instruction, no anchor
+        menu, regardless of the `build_item_prompt` refactor."""
+        item = get_item_bank_v0("PHQ-9").items[0]
+        assert item.response_anchors is None, "sanity: v0 items carry no anchors"
+        llm = SurveyAnswerLLM(_PERSONA, api_key="k", model="m")  # no scale_name, no override
+        prompt = llm._build_prompt(item)
+        expected = (
+            "다음 항목에 대해 지난 2주간 당신의 상태를 가장 잘 나타내는 숫자를 "
+            f"{item.response_min}-{item.response_max} 사이에서 하나만 답하세요: {item.text_ko}"
+        )
+        assert prompt == expected
+        assert "\n" not in prompt  # single-line, byte-identical to the pre-refactor branch
+
+    def test_golden_cell8_v1_full_reproduction(self) -> None:
+        """Cell 8 (v1 text, F_anchor=on, F_instr=on — the shipped v1
+        combination) must byte-reproduce the pre-EXP-021 anchor-menu ask
+        exactly, sourced through the original `scale_name`-based resolution
+        path (no override involved), matching every existing v1 caller."""
+        item = get_item_bank("PHQ-9").items[0]
+        entry = get_item_bank("PHQ-9")
+        llm = SurveyAnswerLLM(_PERSONA, api_key="k", model="m", scale_name="PHQ-9")
+        prompt = llm._build_prompt(item)
+        anchor_text = " / ".join(
+            f"{value}: {label}" for value, label in sorted(item.response_anchors.items())
+        )
+        expected = "\n".join(
+            [
+                entry.instruction_ko,
+                f"문항: {item.text_ko}",
+                f"응답 척도: {anchor_text}",
+                "위 응답 척도 중 당신의 상태를 가장 잘 나타내는 숫자 하나만 답하세요 "
+                f"({item.response_min}-{item.response_max}).",
+            ]
+        )
+        assert prompt == expected
+
+    def test_cell3_shaped_instruction_override_prevents_leak(self) -> None:
+        """REV-040 Issue 1 (blocking-scoped) / Resolution 1: a Cell-3/Cell-7-
+        shaped administration (F_anchor=on, F_instr=off) must NOT silently
+        receive the live v1 instruction merely because `scale_name="PHQ-9"`
+        was ALSO passed (e.g. for bookkeeping) — explicitly passing
+        `instruction_ko_override=None` must take precedence over the
+        scale_name-based live-registry fallback. If this precedence is ever
+        removed or the `_UNSET` sentinel is reintroduced without honoring an
+        explicit override, `llm._instruction_ko` resolves to the live
+        instruction text and BOTH assertions below fail — this test fails
+        by construction if the leak this review found is reintroduced.
+        """
+        item = get_item_bank("PHQ-9").items[0]  # v1 text + anchors -> F_anchor=on
+        entry = get_item_bank("PHQ-9")
+        assert entry.instruction_ko  # sanity: the live registry DOES carry an instruction
+        llm = SurveyAnswerLLM(
+            _PERSONA,
+            api_key="k",
+            model="m",
+            scale_name="PHQ-9",  # bookkeeping only — deliberately ALSO supplied
+            instruction_ko_override=None,  # F_instr=off, explicit per Resolution 1
+        )
+        assert llm._instruction_ko is None
+        prompt = llm._build_prompt(item)
+        assert entry.instruction_ko not in prompt
+        # F_anchor=on is still reached — this isn't accidentally falling back
+        # to the bare-ask branch too.
+        assert "문항:" in prompt
+        assert "응답 척도:" in prompt
+
+    def test_build_item_prompt_all_four_instruction_anchor_combinations_independent(self) -> None:
+        """Direct coverage of `build_item_prompt`'s decoupling for all four
+        (F_anchor, F_instr) combinations the factorial design needs — anchor
+        presence and instruction presence never imply each other."""
+        item = get_item_bank("PHQ-9").items[1]
+        instruction = get_item_bank("PHQ-9").instruction_ko
+        for anchors_on, instr_on in [(False, False), (False, True), (True, False), (True, True)]:
+            prompt = build_item_prompt(
+                text_ko=item.text_ko,
+                response_min=item.response_min,
+                response_max=item.response_max,
+                response_anchors=item.response_anchors if anchors_on else None,
+                instruction_ko=instruction if instr_on else None,
+            )
+            assert (instruction in prompt) is instr_on, (anchors_on, instr_on)
+            assert ("문항:" in prompt) is anchors_on, (anchors_on, instr_on)
+            assert item.text_ko in prompt
+
+
 class TestExpectedAnswerFn:
     @pytest.mark.asyncio
     async def test_vp001_phq9_matches_documented_total(self) -> None:
@@ -182,10 +278,20 @@ class TestExpectedAnswerFn:
 
     @pytest.mark.asyncio
     async def test_vp012_audit_c_matches_documented_total(self) -> None:
+        """REV-041 Resolution 1 / CVR-018 binding condition 6: VP-012's §3
+        AUDIT-C table (item vector `[4, 3, 4]`, total 11) is explicitly
+        marked superseded (`VP-012_first_visit_alcohol.md:125-126`) by
+        §9.4's soju-track re-derivation (item vector `[4, 1, 3]`, total 8,
+        disclosed range 7-9) — `_extract_expected_scores_table`'s
+        supersession-awareness (this REV-041 fix) means `expected_answer_fn`
+        now returns the CURRENT (§9) values, never the superseded 11, so
+        `--answer-mode expected` can no longer silently violate binding
+        condition 6."""
         fn = expected_answer_fn("VP-012", "AUDIT-C")
         entry = get_item_bank("AUDIT-C")
         responses = [await fn(item) for item in entry.items]
-        assert sum(responses) == 11  # VP-012 persona doc: AUDIT-C 합계 11
+        assert responses == [4, 1, 3]  # VP-012 persona doc §9.4 (supersedes §3's [4, 3, 4])
+        assert sum(responses) == 8  # §9.4 point-estimate total (disclosed range 7-9)
 
     @pytest.mark.asyncio
     async def test_vp012_phq9_matches_documented_total(self) -> None:
@@ -238,3 +344,119 @@ class TestExtractExpectedScoresTable:
 
         with pytest.raises(ValueError, match="No '### GAD-7"):
             _extract_expected_scores_table("no such table here", "GAD-7")
+
+
+class TestExtractExpectedScoresTableSupersession:
+    """REV-041 Resolution 1 / CVR-018 binding condition 6: an append-only
+    persona doc may mark a `### {scale} 예상 항목별 점수` table explicitly
+    superseded without editing it in place; `_extract_expected_scores_table`
+    must then prefer a later, complete replacement table over the flagged
+    values — never silently return the superseded numbers. Synthetic
+    fixtures here exercise the parsing logic directly (not dependent on the
+    real `VP-012_first_visit_alcohol.md` file staying byte-unchanged);
+    `TestExpectedAnswerFn.test_vp012_audit_c_matches_documented_total`
+    covers the real-file integration path.
+    """
+
+    def test_prefers_complete_replacement_table_after_superseded_marker(self) -> None:
+        from tests.simulation.survey_answer_llm import _extract_expected_scores_table
+
+        md = (
+            "### AUDIT-C 예상 항목별 점수\n\n"
+            "| 항목 | 점수 | 근거 |\n|---|---|---|\n"
+            "| 1. 음주 빈도 | 4 | x |\n"
+            "| 2. 1회 음주량 | 3 | x |\n"
+            "| 3. 폭음 빈도 | 4 | x |\n"
+            "| **합계** | **11** | |\n\n"
+            "> **Status:** superseded by the derivation note in §9 below.\n\n"
+            "---\n\n"
+            "## 9. Re-derivation note\n\n"
+            "| 항목 | 새 점수 | 근거 |\n|---|---|---|\n"
+            "| 1. 음주 빈도 | 4 | x |\n"
+            "| 2. 1회 음주량 | 1 | x |\n"
+            # Trailing prose in the score cell (point-estimate + disclosed
+            # range) — the lenient supersession row-matcher must still
+            # extract the leading integer, matching VP-012 §9.4's own item 3.
+            "| 3. 폭음 빈도 | 3 (point est., range 2-4) | x |\n"
+            "| **합계** | **8** (range 7-9) | |\n"
+        )
+        scores = _extract_expected_scores_table(md, "AUDIT-C")
+        assert scores == {1: 4, 2: 1, 3: 3}  # the replacement table, not the superseded [4,3,4]
+
+    def test_no_replacement_table_raises_loudly_not_silent_fallback(self) -> None:
+        from tests.simulation.survey_answer_llm import _extract_expected_scores_table
+
+        md = (
+            "### AUDIT-C 예상 항목별 점수\n\n"
+            "| 항목 | 점수 | 근거 |\n|---|---|---|\n"
+            "| 1. 음주 빈도 | 4 | x |\n"
+            "| 2. 1회 음주량 | 3 | x |\n"
+            "| 3. 폭음 빈도 | 4 | x |\n"
+            "| **합계** | **11** | |\n\n"
+            "> **Status:** superseded by a derivation note that, in this fixture, never "
+            "actually ships a replacement table.\n\n"
+            "---\n\n"
+            "## 9. Re-derivation note (prose only, no table)\n\n"
+            "Some prose explaining the re-derivation, with no parseable item table.\n"
+        )
+        with pytest.raises(ValueError, match="marked superseded but no complete replacement"):
+            _extract_expected_scores_table(md, "AUDIT-C")
+
+    def test_incomplete_partial_table_after_marker_is_ignored(self) -> None:
+        """A partial/example table (not covering all 3 AUDIT-C item indices)
+        appearing after the superseded marker must never be mistaken for
+        the real replacement — only a table whose key set is exactly
+        `{1, 2, 3}` counts."""
+        from tests.simulation.survey_answer_llm import _extract_expected_scores_table
+
+        md = (
+            "### AUDIT-C 예상 항목별 점수\n\n"
+            "| 항목 | 점수 | 근거 |\n|---|---|---|\n"
+            "| 1. 음주 빈도 | 4 | x |\n"
+            "| 2. 1회 음주량 | 3 | x |\n"
+            "| 3. 폭음 빈도 | 4 | x |\n"
+            "| **합계** | **11** | |\n\n"
+            "> **Status:** superseded, see §9.\n\n"
+            "---\n\n"
+            "## 9. Re-derivation note\n\n"
+            "An illustrative partial example (item 2 only, not the real replacement):\n\n"
+            "| 항목 | 점수 |\n|---|---|\n| 2. 1회 음주량 | 1 |\n\n"
+            "The full replacement table:\n\n"
+            "| 항목 | 새 점수 | 근거 |\n|---|---|---|\n"
+            "| 1. 음주 빈도 | 4 | x |\n"
+            "| 2. 1회 음주량 | 1 | x |\n"
+            "| 3. 폭음 빈도 | 3 | x |\n"
+        )
+        scores = _extract_expected_scores_table(md, "AUDIT-C")
+        assert scores == {1: 4, 2: 1, 3: 3}
+
+    def test_no_superseded_marker_returns_primary_table_unchanged(self) -> None:
+        """Sanity/non-regression: a table with no supersession marker at all
+        (every persona/scale table except VP-012's AUDIT-C) is returned
+        exactly as before -- supersession-awareness is opt-in via the
+        marker, never triggered spuriously."""
+        from tests.simulation.survey_answer_llm import _extract_expected_scores_table
+
+        md = (
+            "### PHQ-9 예상 항목별 점수\n\n"
+            "| 항목 | 점수 | 근거 |\n|---|---|---|\n"
+            "| 1. 흥미/즐거움 감소 | 1 | x |\n"
+            "| 2. 우울감 | 2 | x |\n"
+            "| **합계** | **3** | |\n\n---\n"
+        )
+        scores = _extract_expected_scores_table(md, "PHQ-9")
+        assert scores == {1: 1, 2: 2}
+
+    def test_vp012_real_persona_file_returns_superseding_table(self) -> None:
+        """Integration check against the REAL `VP-012_first_visit_alcohol.md`
+        file (not a synthetic fixture) — confirms the supersession-aware
+        parser actually resolves §9.4's replacement table for the real
+        document, not just a hand-built one."""
+        from tests.simulation.patient_llm import PERSONAS_DIR
+        from tests.simulation.survey_answer_llm import _extract_expected_scores_table
+
+        matches = list(PERSONAS_DIR.glob("VP-012_*.md"))
+        assert matches, "VP-012 persona file not found"
+        content = matches[0].read_text(encoding="utf-8")
+        scores = _extract_expected_scores_table(content, "AUDIT-C")
+        assert scores == {1: 4, 2: 1, 3: 3}
