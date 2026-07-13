@@ -22,7 +22,7 @@
     "visits": 4,
     "psychiatric_visits": 2,
     "classes": [
-      "SSRI"
+      "PSYCHONEUROTIC"
     ],
     "date_range": [
       "2026-05-07",
@@ -52,8 +52,7 @@
     "visits": 9,
     "psychiatric_visits": 4,
     "classes": [
-      "BENZO",
-      "SSRI"
+      "PSYCHONEUROTIC"
     ],
     "date_range": [
       "2026-04-15",

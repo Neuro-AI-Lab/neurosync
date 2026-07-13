@@ -58,7 +58,8 @@ def test_format_phr_for_context_positive():
     summary, ctx = asyncio.run(_run())
     assert summary.has_psychiatric_history
     assert "정신과 계열 약물 최근 조제" in ctx
-    assert "SSRI" in ctx or "BENZO" in ctx or "ZDRUG" in ctx
+    # 약효분류명 노출 (VP-004 약물 전부 117 정신신경용제)
+    assert "정신신경용제" in ctx
 
 
 # ── PERSONA_PHR_FILES sanity ─────────────────────────────────────────

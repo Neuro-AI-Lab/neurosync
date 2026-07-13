@@ -19,12 +19,14 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+from src.adapters.hira_drug_efficacy import EfficacyInfo, HiraDrugEfficacyAdapter
 from src.adapters.myhealthway_reader import (
     MyHealthWayReader,
     MyHealthWayReadError,
 )
 from src.agents.base import BaseAgent
-from src.data.psychotropic_ingredients import classify
+from src.data import hira_efficacy_cache
+from src.data.psychotropic_classification import classify_efficacy, label
 from src.schemas.phr import (
     ClaimType,
     FacilityKind,
@@ -241,7 +243,8 @@ def parse_medication_dispense(resource: dict[str, Any]) -> MedicationEvent:
         daily_frequency=daily_freq,
         dose_per_take=dose_per_take,
         dose_form_text=dose_form_text,
-        psychotropic_class=classify(ingredient_name),
+        # 약효분류는 파싱 단계에서 결정하지 않는다. summarize()의 비동기
+        # 분류 패스(_classify_medications)가 캐시/HIRA API로 채운다.
     )
 
 
@@ -296,8 +299,15 @@ def parse_visit(resource: dict[str, Any]) -> HealthcareVisit:
 class PatientHistoryAgent(BaseAgent):
     """PHR 원본 bundle(들) → PhrSummary + F1 소비 요약 텍스트."""
 
-    def __init__(self, reader: MyHealthWayReader | None = None) -> None:
+    def __init__(
+        self,
+        reader: MyHealthWayReader | None = None,
+        efficacy_adapter: HiraDrugEfficacyAdapter | None = None,
+    ) -> None:
         self._reader = reader or MyHealthWayReader()
+        # None이면 로컬 캐시만 사용 (오프라인/테스트). 주입 시 캐시 miss를
+        # HIRA 의약품성분약효정보조회서비스로 보충.
+        self._efficacy_adapter = efficacy_adapter
 
     @property
     def agent_name(self) -> str:
@@ -370,6 +380,9 @@ class PatientHistoryAgent(BaseAgent):
             key=lambda v: (v.visited_at or date.min, v.facility_name),
         )
 
+        # 약효분류 판정 (캐시 → HIRA API). MedicationEvent in-place 갱신.
+        await self._classify_medications(medications)
+
         psycho = [m for m in medications if m.is_psychotropic]
         psych_visits = sum(1 for v in visit_list if "정신" in v.facility_name)
 
@@ -391,12 +404,42 @@ class PatientHistoryAgent(BaseAgent):
             psychiatric_visit_count=psych_visits,
         )
 
+    async def _classify_medications(self, medications: list[MedicationEvent]) -> None:
+        """각 조제 이벤트의 약효분류를 채운다 (캐시 우선, miss 시 HIRA API).
+
+        같은 일반명코드는 run 내 1회만 조회. 코드 없음/미조회 시 psychotropic_class
+        는 기본값 UNKNOWN 유지 (정신과로 단정하지 않음)."""
+        resolved: dict[str, EfficacyInfo | None] = {}
+        for m in medications:
+            code = (m.hira_ingredient_code or "").strip()
+            if not code:
+                continue
+            if code not in resolved:
+                resolved[code] = await self._resolve_efficacy(code)
+            info = resolved[code]
+            if info is None:
+                continue
+            m.efficacy_class_no = info.meft_div_no
+            m.efficacy_class_name = info.div_nm
+            m.psychotropic_class = classify_efficacy(info.meft_div_no)
+
+    async def _resolve_efficacy(self, code: str) -> EfficacyInfo | None:
+        """캐시 hit 우선, miss & 어댑터 존재 시 HIRA API 조회."""
+        info = hira_efficacy_cache.lookup(code)
+        if info is not None:
+            return info
+        if self._efficacy_adapter is not None:
+            return await self._efficacy_adapter.get_efficacy(code)
+        return None
+
     def to_system_prompt_note(self, summary: PhrSummary) -> str:
         """LLM system prompt에 붙일 짧은 자연어 요약."""
         if not summary.has_psychiatric_history:
             base = "환자의 개인건강기록(PHR)에서 정신과 진료·투약 이력은 확인되지 않습니다."
         else:
-            classes = sorted({m.psychotropic_class for m in summary.psychotropic_medications})
+            classes = sorted(
+                {label(m.psychotropic_class) for m in summary.psychotropic_medications}
+            )
             recent = (
                 summary.psychotropic_medications[-1]
                 if summary.psychotropic_medications
@@ -435,6 +478,8 @@ class PatientHistoryAgent(BaseAgent):
                         "product_name": m.product_name,
                         "ingredient_name": m.ingredient_name,
                         "psychotropic_class": m.psychotropic_class,
+                        "efficacy_class_no": m.efficacy_class_no,
+                        "efficacy_class_name": m.efficacy_class_name,
                         "days_supply": m.days_supply,
                         "daily_frequency": m.daily_frequency,
                     }
@@ -493,7 +538,8 @@ def _cli() -> int:
         print("=== Psychotropic medications ===")
         for m in summary.psychotropic_medications:
             print(f"  {m.dispensed_at} · {m.product_name} · {m.ingredient_name} "
-                  f"[{m.psychotropic_class}] · {m.days_supply}일 · {m.daily_frequency}회/일")
+                  f"[{m.efficacy_class_name or m.psychotropic_class}] "
+                  f"· {m.days_supply}일 · {m.daily_frequency}회/일")
         return 0
 
     return asyncio.run(run())

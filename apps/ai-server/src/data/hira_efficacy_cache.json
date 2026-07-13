@@ -1,0 +1,52 @@
+{
+  "_meta": {
+    "source": "HIRA 의약품성분약효정보조회서비스 (getMajorCmpnNmCdList)",
+    "endpoint": "https://apis.data.go.kr/B551182/msupCmpnMeftInfoService/getMajorCmpnNmCdList",
+    "key": "gnlNmCd (일반명코드)",
+    "generated": "2026-07-13",
+    "note": "API 응답 스냅샷. 각 엔트리는 HIRA API로 검증됨.",
+    "regen_command": "python -m src.data.build_efficacy_cache"
+  },
+  "codes": {
+    "101408ATB": {
+      "meftDivNo": 114,
+      "divNm": "해열·진통·소염제",
+      "gnlNm": "acetaminophen encapsulated(as acetaminophen)"
+    },
+    "105502ATB": {
+      "meftDivNo": 117,
+      "divNm": "정신신경용제",
+      "gnlNm": "alprazolam"
+    },
+    "207404COO": {
+      "meftDivNo": 131,
+      "divNm": "안과용제",
+      "gnlNm": "oxytetracycline HCl"
+    },
+    "227001ATB": {
+      "meftDivNo": 117,
+      "divNm": "정신신경용제",
+      "gnlNm": "sertraline hydrochloride (as sertraline)"
+    },
+    "421001ATB": {
+      "meftDivNo": 239,
+      "divNm": "기타의 소화기관용약",
+      "gnlNm": "mosapride citrate hydrate (as mosapride)"
+    },
+    "474802ATB": {
+      "meftDivNo": 117,
+      "divNm": "정신신경용제",
+      "gnlNm": "escitalopram oxalate (as escitalopram)"
+    },
+    "474803ATB": {
+      "meftDivNo": 117,
+      "divNm": "정신신경용제",
+      "gnlNm": "escitalopram oxalate (as escitalopram)"
+    },
+    "492800ATB": {
+      "meftDivNo": 214,
+      "divNm": "혈압강하제",
+      "gnlNm": "amlodipine besylate (as amlodipine)"
+    }
+  }
+}

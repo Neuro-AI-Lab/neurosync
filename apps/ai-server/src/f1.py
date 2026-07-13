@@ -45,6 +45,7 @@ from src.agents.safety_classifier import SafetyClassifierAgent
 from src.agents.sentiment_analyzer import SentimentAnalyzerAgent
 from src.agents.stt import STTAgent
 from src.dependencies import (
+    get_hira_drug_efficacy_adapter,
     get_model_router,
     get_nearby_agent,
     get_ocr_agent,
@@ -387,7 +388,8 @@ def _format_phr_for_context(summary: PhrSummary, agent: PatientHistoryAgent) -> 
             days = m.days_supply if m.days_supply is not None else "?"
             freq = m.daily_frequency if m.daily_frequency is not None else "?"
             lines.append(
-                f"  · {when} · {m.product_name} [{m.psychotropic_class}] "
+                f"  · {when} · {m.product_name} "
+                f"[{m.efficacy_class_name or m.psychotropic_class}] "
                 f"{days}일치 · {freq}회/일"
             )
     else:
@@ -496,7 +498,13 @@ class F1Pipeline:
 
     def _get_history_agent(self) -> PatientHistoryAgent:
         if self._history is None:
-            self._history = PatientHistoryAgent()
+            # 약효분류 어댑터 주입 (HIRA_SERVICE_KEY 없으면 None → 로컬 캐시만 사용).
+            try:
+                efficacy_adapter = get_hira_drug_efficacy_adapter()
+            except Exception as exc:
+                logger.warning("Drug-efficacy adapter unavailable, cache-only: %s", exc)
+                efficacy_adapter = None
+            self._history = PatientHistoryAgent(efficacy_adapter=efficacy_adapter)
         return self._history
 
     def _get_nearby_agent(self) -> NearbyFacilitiesAgent | None:
@@ -1922,7 +1930,7 @@ def _build_report(r: F1Result) -> str:
             lines.append("### 정신과 계열 약물 이력")
             for m in psycho:
                 when = m.get("dispensed_at") or "-"
-                cls = m.get("psychotropic_class", "?")
+                cls = m.get("efficacy_class_name") or m.get("psychotropic_class", "?")
                 name = m.get("product_name", "-")
                 days = m.get("days_supply")
                 freq = m.get("daily_frequency")

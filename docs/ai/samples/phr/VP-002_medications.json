@@ -113,7 +113,7 @@
                       "coding": [
                         {
                           "system": "https://www.hira.or.kr",
-                          "code": "245801ATB",
+                          "code": "474802ATB",
                           "display": "escitalopram"
                         }
                       ]
@@ -266,7 +266,7 @@
                       "coding": [
                         {
                           "system": "https://www.hira.or.kr",
-                          "code": "245801ATB",
+                          "code": "474802ATB",
                           "display": "escitalopram"
                         }
                       ]

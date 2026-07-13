@@ -11,38 +11,61 @@ from pathlib import Path
 import pytest
 
 from src.agents.patient_history import PatientHistoryAgent, _safe_date
-from src.data.psychotropic_ingredients import classify, is_psychotropic
+from src.data import hira_efficacy_cache
+from src.data.psychotropic_classification import classify_efficacy, is_psychiatric
 from src.schemas.phr import PhrLoadInput
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SAMPLES_DIR = REPO_ROOT / "docs" / "ai" / "samples" / "phr"
 
 
-# ── 성분 카탈로그 유닛 테스트 ─────────────────────────────────────────
+# ── 약효분류 판정 유닛 테스트 (HIRA 약효분류번호 기반) ────────────────
 
 
-class TestPsychotropicCatalog:
-    def test_ssri_recognized(self):
-        assert classify("escitalopram") == "SSRI"
-        assert classify("Escitalopram") == "SSRI"  # 대소문자 무관
-        assert is_psychotropic("sertraline")
+class TestEfficacyClassification:
+    def test_psychoneurotic_117(self):
+        # 117 정신신경용제 — 항우울제/항불안제/항정신병약 포괄
+        assert classify_efficacy(117) == "PSYCHONEUROTIC"
+        assert is_psychiatric("PSYCHONEUROTIC")
 
-    def test_benzo_recognized(self):
-        assert classify("lorazepam") == "BENZO"
-        assert classify("alprazolam") == "BENZO"
+    def test_sedative_hypnotic_112(self):
+        assert classify_efficacy(112) == "SEDATIVE_HYPNOTIC"
+        assert is_psychiatric("SEDATIVE_HYPNOTIC")
 
-    def test_zdrug_recognized(self):
-        assert classify("zolpidem") == "ZDRUG"
+    def test_non_psychiatric_codes(self):
+        # 114 해열진통, 239 소화기, 214 혈압강하 등은 정신과 아님
+        assert classify_efficacy(114) == "NON_PSYCHIATRIC"
+        assert classify_efficacy(214) == "NON_PSYCHIATRIC"
+        assert not is_psychiatric("NON_PSYCHIATRIC")
 
-    def test_non_psychiatric(self):
-        assert classify("acetaminophen") == "NON_PSYCHIATRIC"
-        assert classify("mosapride") == "NON_PSYCHIATRIC"
-        assert not is_psychotropic("finasteride")
+    def test_unknown_when_none(self):
+        # 약효분류 미조회 → UNKNOWN (정신과로 단정하지 않음)
+        assert classify_efficacy(None) == "UNKNOWN"
+        assert not is_psychiatric("UNKNOWN")
 
-    def test_empty_and_none(self):
-        assert classify(None) == "NON_PSYCHIATRIC"
-        assert classify("") == "NON_PSYCHIATRIC"
-        assert classify("   ") == "NON_PSYCHIATRIC"
+
+class TestEfficacyCache:
+    """캐시(HIRA API 스냅샷)가 샘플 코드를 authoritative 하게 매핑."""
+
+    def test_escitalopram_code_is_psychoneurotic(self):
+        info = hira_efficacy_cache.lookup("474802ATB")
+        assert info is not None
+        assert info.meft_div_no == 117
+        assert info.div_nm == "정신신경용제"
+
+    def test_alprazolam_code_is_psychoneurotic(self):
+        # 국내 분류상 항불안제(alprazolam)도 117 정신신경용제
+        info = hira_efficacy_cache.lookup("105502ATB")
+        assert info is not None and info.meft_div_no == 117
+
+    def test_acetaminophen_code_non_psychiatric(self):
+        info = hira_efficacy_cache.lookup("101408ATB")
+        assert info is not None
+        assert classify_efficacy(info.meft_div_no) == "NON_PSYCHIATRIC"
+
+    def test_cache_miss_returns_none(self):
+        assert hira_efficacy_cache.lookup("000000XXX") is None
+        assert hira_efficacy_cache.lookup(None) is None
 
 
 # ── 날짜 파서 유닛 테스트 ─────────────────────────────────────────────
@@ -75,11 +98,13 @@ class TestSafeDate:
 
 PERSONA_EXPECTATIONS = {
     # 원본 페르소나 MD 100% 재현 (docs/ai/personas/VP-*.md 기준)
+    # 약효분류(HIRA meftDivNo) 기반 판정. escitalopram/sertraline/alprazolam은
+    # 모두 117 정신신경용제 → PSYCHONEUROTIC (국내 분류상 항불안제도 117).
     # (has_psychiatric_history, min_meds, min_visits, expected_classes)
-    "VP-001": (False, 3, 4, set()),        # 정신과 이력 없음 · 감기·소화 3건
-    "VP-002": (True, 2, 4, {"SSRI"}),      # Escitalopram 10mg 2회 재조제 (6주째)
-    "VP-003": (False, 3, 6, set()),        # 정신과 이력 없음 · 고혈압 자가중단 + 감기·소화
-    "VP-004": (True, 6, 9, {"SSRI", "BENZO"}),  # Sertraline→Esc10→Esc20 + Alprazolam PRN
+    "VP-001": (False, 3, 4, set()),                    # 정신과 이력 없음 · 감기·소화 3건
+    "VP-002": (True, 2, 4, {"PSYCHONEUROTIC"}),        # Escitalopram 10mg 2회 재조제
+    "VP-003": (False, 3, 6, set()),                    # 정신과 이력 없음 · 고혈압+감기·소화
+    "VP-004": (True, 6, 9, {"PSYCHONEUROTIC"}),        # Sertraline→Esc→Alprazolam 전부 117
 }
 
 
@@ -163,8 +188,8 @@ def test_summary_prompt_note_positive():
 
     summary, note = asyncio.run(_run())
     assert summary.has_psychiatric_history
-    assert "SSRI" in note
-    assert "BENZO" in note
+    # 약효분류 라벨 (VP-004 약물 전부 117 정신신경용제)
+    assert "정신신경용제" in note
     assert "최근 조제" in note
 
 
@@ -192,7 +217,10 @@ def test_handoff_snippet_structure():
     # VP-002: Escitalopram 10mg × 2회 재조제 (원본 6주 이력)
     assert phr["total_medications"] >= 2
     assert isinstance(phr["psychotropic_medications"], list)
-    assert phr["psychotropic_medications"][0]["psychotropic_class"] == "SSRI"
+    first = phr["psychotropic_medications"][0]
+    assert first["psychotropic_class"] == "PSYCHONEUROTIC"
+    assert first["efficacy_class_no"] == 117
+    assert first["efficacy_class_name"] == "정신신경용제"
 
 
 def test_first_coding_returns_empty_on_system_mismatch():

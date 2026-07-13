@@ -28,10 +28,10 @@ PERSONAS = [
 EXPECTED = {
     # 원본 페르소나 MD 100% 재현 (docs/ai/personas/VP-*.md)
     # (has_psy_history, min_meds, min_visits, expected_classes)
-    "VP-001": (False, 3, 4, set()),        # 정신과 이력 없음
-    "VP-002": (True, 2, 4, {"SSRI"}),      # Escitalopram 10mg × 2회 (6주)
-    "VP-003": (False, 3, 6, set()),        # 정신과 이력 없음
-    "VP-004": (True, 6, 9, {"SSRI", "BENZO"}),  # Sertraline→Esc10→Esc20+Alprazolam
+    "VP-001": (False, 3, 4, set()),                 # 정신과 이력 없음
+    "VP-002": (True, 2, 4, {"PSYCHONEUROTIC"}),     # Escitalopram 10mg × 2회 (6주)
+    "VP-003": (False, 3, 6, set()),                 # 정신과 이력 없음
+    "VP-004": (True, 6, 9, {"PSYCHONEUROTIC"}),     # Sertraline→Esc→Alprazolam 전부 117
 }
 
 

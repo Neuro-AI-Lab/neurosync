@@ -113,7 +113,7 @@
                       "coding": [
                         {
                           "system": "https://www.hira.or.kr",
-                          "code": "244401ATB",
+                          "code": "227001ATB",
                           "display": "sertraline"
                         }
                       ]
@@ -266,7 +266,7 @@
                       "coding": [
                         {
                           "system": "https://www.hira.or.kr",
-                          "code": "245801ATB",
+                          "code": "474802ATB",
                           "display": "escitalopram"
                         }
                       ]
@@ -419,7 +419,7 @@
                       "coding": [
                         {
                           "system": "https://www.hira.or.kr",
-                          "code": "245801ATB",
+                          "code": "474803ATB",
                           "display": "escitalopram"
                         }
                       ]
@@ -572,7 +572,7 @@
                       "coding": [
                         {
                           "system": "https://www.hira.or.kr",
-                          "code": "196501ATB",
+                          "code": "105502ATB",
                           "display": "alprazolam"
                         }
                       ]
@@ -725,7 +725,7 @@
                       "coding": [
                         {
                           "system": "https://www.hira.or.kr",
-                          "code": "245801ATB",
+                          "code": "474803ATB",
                           "display": "escitalopram"
                         }
                       ]
@@ -878,7 +878,7 @@
                       "coding": [
                         {
                           "system": "https://www.hira.or.kr",
-                          "code": "196501ATB",
+                          "code": "105502ATB",
                           "display": "alprazolam"
                         }
                       ]

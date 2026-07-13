@@ -16,7 +16,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.agents.base import AgentInput, AgentOutput
-from src.data.psychotropic_ingredients import PsychotropicClass
+from src.data.psychotropic_classification import PsychotropicClass, is_psychiatric
 
 FacilityKind = Literal["pharmacy", "medical", "insurer", "other"]
 ClaimType = Literal["pharmacy", "professional", "institutional", "oral", "vision", "other"]
@@ -55,17 +55,24 @@ class MedicationEvent(BaseModel):
     dose_per_take: float | None = Field(default=None, ge=0, description="회당 용량")
     dose_form_text: str = Field(default="", description="'1정' 등 자유 텍스트")
 
-    # 분류
+    # 약효분류 (HIRA 의약품성분약효정보조회서비스 결과 — authoritative)
+    efficacy_class_no: int | None = Field(
+        default=None, description="약효분류번호 meftDivNo (예: 117 정신신경용제)"
+    )
+    efficacy_class_name: str = Field(
+        default="", description="약효분류명 divNm (예: '정신신경용제')"
+    )
+    # 파생 정신과 약물군 (약효분류번호 → PsychotropicClass)
     psychotropic_class: PsychotropicClass = Field(
-        default="NON_PSYCHIATRIC",
-        description="정신과 약물군 (성분명 카탈로그 조회 결과)",
+        default="UNKNOWN",
+        description="정신과 약물군 (약효분류번호 기반). 미조회 시 UNKNOWN.",
     )
 
     model_config = ConfigDict(extra="ignore")
 
     @property
     def is_psychotropic(self) -> bool:
-        return self.psychotropic_class != "NON_PSYCHIATRIC"
+        return is_psychiatric(self.psychotropic_class)
 
 
 class HealthcareVisit(BaseModel):
