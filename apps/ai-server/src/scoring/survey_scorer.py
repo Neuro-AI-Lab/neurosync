@@ -167,6 +167,17 @@ def _score_who5(responses: list[int]) -> ScoreResult:
     raw = sum(responses)
     percentage = raw * 4  # WHO-5 percentage score = raw × 4
 
+    # Source-caveat comment only (CVR-016 condition 5 / ADR-033 decision 5)
+    # — NO behavior change, band boundary byte-frozen. Kim et al. 2010 (한국판
+    # WHO-5, docs/ai/item_bank_v1_sources.md §4.4/§A9b, directly fetched from
+    # 3 independent database mirrors): "The total score of WHO-5 below 13
+    # indicates low well-being" (i.e. raw < 13, not raw <= 13). The `<= 13`
+    # boundary below flags raw == 13 as low_wellbeing where the Korean source
+    # would not — a real, sourced off-by-one, in the over-triage (safer)
+    # direction. WHO-5 currently ships 0 items (item_bank.py v1) and is
+    # structurally unreachable via CLASSIFICATION_TO_SCALE, so this has no
+    # live consequence today; flagged here so it is not forgotten if WHO-5
+    # ever ships items.
     if raw <= 13:
         severity = "low_wellbeing"
         action = "further_assessment"
@@ -201,6 +212,17 @@ def _score_audit_c(
 
     total = sum(responses)
 
+    # Source-caveat comment only (CVR-016 condition 3 / ADR-033 decision 2)
+    # — NO behavior change, thresholds byte-frozen this mission. Two
+    # independent Korean-population studies (docs/ai/item_bank_v1_sources.md
+    # §5.4/§A6) suggest substantially higher cutoffs than the international
+    # standard below: Seong et al. 2009 (N=302 Korean men, full-PDF-read)
+    # found an optimal cutoff of >= 8; Woo et al. 2017 (N=509, summary-basis)
+    # found men >= 7 / women >= 6. Neither study's item wording is confirmed
+    # identical to this project's SBIRT-Oregon-sourced AUDIT-C text. Reported
+    # to the user as an open disposition question, not applied here — see
+    # `src.scoring.item_bank.AUDIT_C_THRESHOLD_CAVEAT`, attached to the F3
+    # artifact by `src.f3.run_f3_administration` for AUDIT-C outcomes.
     if patient_sex == "female":
         threshold = 3
     else:

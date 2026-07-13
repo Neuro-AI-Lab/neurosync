@@ -1,7 +1,7 @@
 """F3 simulator score-selection modes — HARNESS ONLY, never `src/`.
 
-`docs/ai/f3_quick_dev_plan.md` §7. Builds the `answer_fn` seam
-`src.f3.administer_survey`/`run_f3_administration` expects:
+`docs/ai/f3_quick_dev_plan.md` §7, `PLAN-2026-W29-A` step 3. Builds the
+`answer_fn` seam `src.f3.administer_survey`/`run_f3_administration` expects:
 ``Callable[[ScaleItem], Awaitable[int]]``. `src/f3.py` imports nothing from
 this module (or any other module under `tests/`) — the harness
 (`src/continuous_test.py`) is the sole caller, exactly the direction
@@ -14,11 +14,16 @@ Two modes:
   `LG_K_EXAONE_ENDPOINT_ID`, temperature 0.7 — same vendor as
   `tests/simulation/patient_llm.py::PatientLLM`, verified byte-accurate by
   REV-036). A NEW, separate client instance per survey administration — no
-  shared `_history` with an in-progress F1 conversation.
+  shared `_history` with an in-progress F1 conversation. As of item bank v1
+  (`PLAN-2026-W29-A`), `_build_prompt` presents the item's own
+  `response_anchors` (when populated) and — when `scale_name` is supplied —
+  the scale's entry-level `instruction_ko` (timeframe/instruction wording),
+  replacing v0's bare `[min,max]` integer ask.
 - `expected_answer_fn` (§7.2, fallback): deterministic, zero LLM — reads the
   persona markdown's own "### {SCALE} 예상 항목별 점수" table. Raises
   loudly (never guesses) if a persona has no such table for the requested
-  scale.
+  scale. Unaffected by item bank v1 (matches by item INDEX against the
+  persona's own table, not by item text).
 """
 
 from __future__ import annotations
@@ -47,8 +52,11 @@ def _parse_first_integer(text: str) -> int | None:
 class SurveyAnswerLLM:
     """In-persona per-item score selection over K-EXAONE (plan §7.1).
 
-    Per item: one-shot prompt = persona system prompt + a bare `[min,max]`
-    integer ask (no anchor phrases — none exist repo-wide, plan §2.2).
+    Per item: one-shot prompt = persona system prompt + an anchor-aware ask
+    (item text, its `response_anchors` when populated, and — when
+    `scale_name` is supplied — the scale's `instruction_ko` timeframe
+    wording; item bank v1, `PLAN-2026-W29-A`). Falls back to v0's bare
+    `[min,max]` integer ask only when an item has no `response_anchors`.
     Strict first-standalone-integer parse; out-of-range/unparseable -> ONE
     re-prompt; still failing -> clamp to the nearest valid bound + WARNING
     log (never a silent default). `self.clamped_items` records which item
@@ -61,6 +69,7 @@ class SurveyAnswerLLM:
         api_key: str | None = None,
         base_url: str = "https://api.friendli.ai/dedicated/v1",
         model: str | None = None,
+        scale_name: str | None = None,
     ) -> None:
         _api_key = api_key or os.environ.get("LG_K_EXAONE_API_KEY", "")
         _model = model or os.environ.get("LG_K_EXAONE_ENDPOINT_ID", "")
@@ -72,6 +81,25 @@ class SurveyAnswerLLM:
         self._client = openai.AsyncOpenAI(api_key=_api_key, base_url=base_url)
         self._model = _model
         self.clamped_items: list[int] = []
+        self.scale_name = scale_name
+        self._instruction_ko = self._resolve_instruction(scale_name)
+
+    @staticmethod
+    def _resolve_instruction(scale_name: str | None) -> str | None:
+        """Entry-level `instruction_ko` lookup (item bank v1) — `None` when
+        `scale_name` wasn't supplied (backward-compatible construction) or
+        the scale has no instruction wording on record. Never raises: an
+        unrecognized scale degrades to no instruction line, same as v0's
+        behavior, rather than crashing prompt construction.
+        """
+        if scale_name is None:
+            return None
+        from src.scoring.item_bank import get_item_bank  # noqa: PLC0415 — avoid import cycles
+
+        try:
+            return get_item_bank(scale_name).instruction_ko  # type: ignore[arg-type]
+        except KeyError:
+            return None
 
     async def __call__(self, item: ScaleItem) -> int:
         return await self.answer(item)
@@ -114,10 +142,30 @@ class SurveyAnswerLLM:
         return value
 
     def _build_prompt(self, item: ScaleItem) -> str:
-        return (
-            "다음 항목에 대해 지난 2주간 당신의 상태를 가장 잘 나타내는 숫자를 "
-            f"{item.response_min}-{item.response_max} 사이에서 하나만 답하세요: {item.text_ko}"
+        """Anchor-aware ask (item bank v1). Falls back to v0's bare
+        `[min,max]` integer ask when `item.response_anchors` is empty (e.g.
+        a future not-yet-anchored entry) — this method never fabricates
+        anchor wording that isn't on `item` itself.
+        """
+        if not item.response_anchors:
+            return (
+                "다음 항목에 대해 지난 2주간 당신의 상태를 가장 잘 나타내는 숫자를 "
+                f"{item.response_min}-{item.response_max} 사이에서 하나만 답하세요: {item.text_ko}"
+            )
+
+        anchor_text = " / ".join(
+            f"{value}: {label}" for value, label in sorted(item.response_anchors.items())
         )
+        lines = []
+        if self._instruction_ko:
+            lines.append(self._instruction_ko)
+        lines.append(f"문항: {item.text_ko}")
+        lines.append(f"응답 척도: {anchor_text}")
+        lines.append(
+            "위 응답 척도 중 당신의 상태를 가장 잘 나타내는 숫자 하나만 답하세요 "
+            f"({item.response_min}-{item.response_max})."
+        )
+        return "\n".join(lines)
 
     async def _ask(self, user_content: str) -> str:
         messages = [

@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 
 import src.continuous_test as ct
+import src.f3 as f3
 from src.f1 import F1Result
 
 
@@ -85,17 +86,20 @@ class TestRunF3StageExpectedModeAdministered:
 class TestRunF3StageExpectedModeUnpopulated:
     @pytest.mark.asyncio
     async def test_unpopulated_outcome_never_calls_answer_fn(self, tmp_path: Path) -> None:
+        # WHO-5 is item bank v1's only remaining unpopulated scale
+        # (PLAN-2026-W29-A) — GAD-7/PHQ-4/AUDIT-C are populated now.
         artifact_path = _write_domain_inference_artifact(
-            tmp_path, persona_id="VP-001", recommended_questionnaire="GAD-7"
+            tmp_path, persona_id="VP-001", recommended_questionnaire="WHO-5"
         )
         ctx = ct.ChainContext(
             persona_id="VP-001", max_turns=1, k=1, out_dir=tmp_path,
             scale_scores_path=None, domain_inference_path=artifact_path,
             answer_mode="expected",
         )
-        # VP-001 has no "### GAD-7 예상 항목별 점수" table — if this stage
-        # accidentally tried to construct/call an expected_answer_fn for
-        # GAD-7, it would raise. It must not.
+        # If this stage accidentally tried to construct/call an
+        # expected_answer_fn for an unpopulated scale, `_build_survey_answer_fn`
+        # would only ever be reached for outcome=="administered" — this
+        # proves it never is for WHO-5.
         result = await ct.run_f3_stage(ctx)
         assert result.status == "pass"
         assert "outcome=item_bank_unpopulated" in result.detail
@@ -134,8 +138,8 @@ class TestRunF3StageLLMModeConstructsSurveyAnswerLLM:
 
         original_init = sal_module.SurveyAnswerLLM.__init__
 
-        def _patched_init(self, persona, api_key=None, base_url=None, model=None):
-            original_init(self, persona, api_key="k", model="m")
+        def _patched_init(self, persona, api_key=None, base_url=None, model=None, scale_name=None):
+            original_init(self, persona, api_key="k", model="m", scale_name=scale_name)
 
         monkeypatch.setattr(sal_module.SurveyAnswerLLM, "__init__", _patched_init)
         monkeypatch.setattr(sal_module.SurveyAnswerLLM, "_ask", AsyncMock(return_value="1"))
@@ -187,23 +191,31 @@ class TestBuildF3LedgerSubobject:
         sub = ct._build_f3_ledger_subobject(ctx)
         assert sub is not None
         expected_keys = {
-            "outcome", "scale_name", "item_bank_version", "item_bank_provenance",
-            "responses", "total_score", "max_score", "severity", "subscale_scores",
-            "safety_referral", "answer_mode", "recommendation_provenance",
-            "survey_artifact_path", "scale_scores_path",
+            "outcome", "scale_name", "administration_mode", "item_bank_version",
+            "item_bank_provenance", "responses", "total_score", "max_score", "severity",
+            "subscale_scores", "safety_referral", "threshold_caveat", "safety_pathway",
+            "answer_mode", "recommendation_provenance", "survey_artifact_path",
+            "scale_scores_path",
         }
         assert set(sub.keys()) == expected_keys
         assert sub["outcome"] == "administered"
         assert sub["scale_name"] == "PHQ-9"
+        assert sub["administration_mode"] == "natural"
         assert sub["total_score"] == 7
         assert sub["scale_scores_path"] is not None
+        # PHQ-9 item-9 safety-pathway wiring (PLAN-2026-W29-A step 3): fires
+        # for every administered PHQ-9 outcome, regardless of Q9 value.
+        assert sub["safety_pathway"] is not None
+        assert sub["safety_pathway"]["safety_pathway_invoked"] is True
+        assert sub["safety_pathway"]["safety_triggered"] is False  # VP-001 doc Q9=0
 
     @pytest.mark.asyncio
     async def test_present_with_null_score_fields_for_unpopulated_outcome(
         self, tmp_path: Path
     ) -> None:
+        # WHO-5 is item bank v1's only remaining unpopulated scale.
         artifact_path = _write_domain_inference_artifact(
-            tmp_path, persona_id="VP-001", recommended_questionnaire="GAD-7"
+            tmp_path, persona_id="VP-001", recommended_questionnaire="WHO-5"
         )
         ctx = ct.ChainContext(
             persona_id="VP-001", max_turns=1, k=1, out_dir=tmp_path,
@@ -215,7 +227,44 @@ class TestBuildF3LedgerSubobject:
         assert sub is not None
         assert sub["outcome"] == "item_bank_unpopulated"
         assert sub["total_score"] is None
+        assert sub["safety_pathway"] is None  # only fires for administered PHQ-9
         assert sub["scale_scores_path"] is None
+
+    @pytest.mark.asyncio
+    async def test_threshold_caveat_reprojects_for_gad7(self, tmp_path: Path) -> None:
+        """CVR-017 binding condition 1 / REV-039 correction D: the ledger's
+        "f3" sub-object must carry GAD-7's band caveat the same way it
+        already carries AUDIT-C's threshold caveat — both reprojected
+        verbatim from the saved survey.json, never recomputed by the
+        harness (no persona GAD-7 item-level table is required — this
+        drives `src.f3` directly with a fixed answer_fn, no LLM/expected-
+        table dependency)."""
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-001", recommended_questionnaire="GAD-7"
+        )
+
+        async def _answer_fn(item):
+            return 2
+
+        result = await f3.run_f3_administration(
+            domain_inference_path=artifact_path,
+            answer_fn=_answer_fn,
+            answer_mode="expected",
+            output_dir=tmp_path / "out",
+            vp_id="VP-001",
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-001", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected", f3_survey_path=result["paths"]["json"],
+        )
+        sub = ct._build_f3_ledger_subobject(ctx)
+        assert sub is not None
+        assert sub["outcome"] == "administered"
+        assert sub["scale_name"] == "GAD-7"
+        assert sub["threshold_caveat"] is not None
+        assert "Spitzer" in sub["threshold_caveat"]
+        assert "retract" in sub["threshold_caveat"].lower()
 
 
 def _make_f1_result(session_index: int, *, final_slots: dict[str, str]) -> F1Result:
@@ -441,3 +490,257 @@ class TestCliAnswerModeFlag:
     def test_invalid_choice_rejected(self) -> None:
         with pytest.raises(SystemExit):
             ct.build_arg_parser().parse_args(["--answer-mode", "bogus"])
+
+
+class TestCliForceQuestionnaireFlag:
+    """`PLAN-2026-W29-A` step 6 / `ADR-033` decision 6."""
+
+    def test_default_is_none(self) -> None:
+        args = ct.build_arg_parser().parse_args([])
+        assert args.force_questionnaire is None
+
+    def test_override_gad7(self) -> None:
+        args = ct.build_arg_parser().parse_args(["--force-questionnaire", "GAD-7"])
+        assert args.force_questionnaire == "GAD-7"
+
+    def test_all_supported_scales_are_valid_choices(self) -> None:
+        for scale in ("PHQ-9", "GAD-7", "PHQ-4", "WHO-5", "AUDIT-C"):
+            args = ct.build_arg_parser().parse_args(["--force-questionnaire", scale])
+            assert args.force_questionnaire == scale
+
+    def test_invalid_choice_rejected(self) -> None:
+        with pytest.raises(SystemExit):
+            ct.build_arg_parser().parse_args(["--force-questionnaire", "NOT-A-SCALE"])
+
+
+class TestRunF3StageForcedScale:
+    @pytest.mark.asyncio
+    async def test_forced_scale_overrides_f2_recommendation_administered_outcome(
+        self, tmp_path: Path
+    ) -> None:
+        # F2 recommends PHQ-9; ctx.forced_scale overrides to AUDIT-C
+        # (VP-012 has a documented AUDIT-C table, so answer_mode="expected"
+        # works with zero LLM).
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-012", recommended_questionnaire="PHQ-9"
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-012", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected", forced_scale="AUDIT-C",
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert "administration_mode=forced" in result.detail
+        assert "scale=AUDIT-C" in result.detail
+        saved = json.loads(ctx.f3_survey_path.read_text(encoding="utf-8"))
+        assert saved["scale_name"] == "AUDIT-C"
+        assert saved["administration_mode"] == "forced"
+        assert saved["threshold_caveat"] is not None  # AUDIT-C is in _SEVERITY_CAVEATS
+
+    @pytest.mark.asyncio
+    async def test_no_forced_scale_is_natural_mode(self, tmp_path: Path) -> None:
+        artifact_path = _write_domain_inference_artifact(tmp_path, persona_id="VP-001")
+        ctx = ct.ChainContext(
+            persona_id="VP-001", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        assert ctx.forced_scale is None
+        result = await ct.run_f3_stage(ctx)
+        assert "administration_mode=natural" in result.detail
+
+
+class TestPhq9SafetyPathwayWiring:
+    """`PLAN-2026-W29-A` step 3 (mission directive): item-9 >= 1 on a PHQ-9
+    administration deterministically routes to the EXISTING safety
+    machinery, `OrchestratorAgent.score_and_check_safety` — proven by
+    directly confirming that method actually ran (mocked + asserted-called
+    in the first test; genuinely exercised, unmocked, in the rest), never
+    merely a string in the score result."""
+
+    def test_route_phq9_safety_pathway_calls_the_existing_orchestrator_method(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from src.agents.orchestrator import OrchestratorAgent
+        from src.scoring.survey_scorer import score_survey
+
+        captured: dict[str, object] = {}
+
+        def _fake_score_and_check_safety(state, scale_name, responses, patient_sex="unknown"):
+            captured["state"] = state
+            captured["scale_name"] = scale_name
+            captured["responses"] = responses
+            result = score_survey(scale_name, responses, patient_sex=patient_sex)
+            return result, result.recommended_action == "safety_referral"
+
+        monkeypatch.setattr(
+            OrchestratorAgent,
+            "score_and_check_safety",
+            staticmethod(_fake_score_and_check_safety),
+        )
+
+        positive_responses = [0, 0, 0, 0, 0, 0, 0, 0, 2]  # Q9 = 2, positive
+        outcome = ct._route_phq9_safety_pathway("VP-TEST", positive_responses)
+
+        # Proves the REAL orchestrator method was actually invoked with the
+        # right arguments — not a locally re-derived flag.
+        assert captured["scale_name"] == "PHQ-9"
+        assert captured["responses"] == positive_responses
+        assert outcome["safety_pathway_invoked"] is True
+        assert outcome["safety_triggered"] is True
+        assert outcome["recommended_action"] == "safety_referral"
+        assert outcome["critical_item_positive"] is True
+
+    def test_route_phq9_safety_pathway_negative_item9_no_trigger(self) -> None:
+        # NOT mocked — exercises the real OrchestratorAgent.score_and_check_safety.
+        negative_responses = [1, 1, 1, 0, 0, 0, 0, 0, 0]  # Q9 = 0
+        outcome = ct._route_phq9_safety_pathway("VP-TEST", negative_responses)
+        assert outcome["safety_pathway_invoked"] is True
+        assert outcome["safety_triggered"] is False
+        assert outcome["critical_item_positive"] is False
+
+    @pytest.mark.asyncio
+    async def test_run_f3_stage_item9_positive_invokes_safety_pathway_end_to_end(
+        self, tmp_path: Path
+    ) -> None:
+        """VP-003's documented PHQ-9 table has Q9=2 (positive) — end-to-end
+        through `run_f3_stage` with the deterministic expected answer_fn,
+        zero LLM, and the real (unmocked) safety machinery."""
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-003", recommended_questionnaire="PHQ-9"
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-003", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert ctx.f3_safety_pathway is not None
+        assert ctx.f3_safety_pathway["safety_pathway_invoked"] is True
+        assert ctx.f3_safety_pathway["safety_triggered"] is True
+        assert "safety_pathway_triggered=True" in result.detail
+
+        sub = ct._build_f3_ledger_subobject(ctx)
+        assert sub is not None
+        assert sub["safety_pathway"]["safety_triggered"] is True
+
+    @pytest.mark.asyncio
+    async def test_run_f3_stage_non_phq9_scale_never_routes_safety_pathway(
+        self, tmp_path: Path
+    ) -> None:
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-012", recommended_questionnaire="AUDIT-C"
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-012", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert ctx.f3_safety_pathway is None
+
+
+class TestForcedModeLedgerCollisionSafety:
+    """`PLAN-2026-W29-A` step 6 / `REV-038` Resolution 1: a forced run must
+    NOT overwrite a natural run's ledger `"f3"` record for the same
+    session — proven by running natural-then-forced on the same persona and
+    showing both ledger records survive untouched."""
+
+    @pytest.mark.asyncio
+    async def test_natural_then_forced_same_persona_both_ledger_records_survive(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        conv_path = tmp_path / "VP-012" / "VP-012_20260101_000000_conversation.json"
+        conv_path.parent.mkdir(parents=True, exist_ok=True)
+        conv_path.write_text(
+            json.dumps(
+                {
+                    "final_slots": [{"key": "chief_complaint", "value": "음주 문제"}],
+                    "model": "stub", "prompt_version": "v3",
+                }
+            ),
+            encoding="utf-8",
+        )
+        # F2 always recommends PHQ-9 in both runs — the SAME F1/F2 artifacts
+        # are reused, mirroring REV-038's "Cell B reuses Cell A's F1/F2
+        # artifacts" design intent.
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-012", recommended_questionnaire="PHQ-9"
+        )
+
+        async def _fake_run_f1_stage(ctx):
+            ctx.conversation_path = conv_path
+            return ct.StageResult("F1", "pass", "ok", artifacts={"conversation": conv_path})
+
+        async def _fake_run_f2_stage(ctx):
+            ctx.domain_inference_path = artifact_path
+            return ct.StageResult(
+                "F2", "pass", "ok", artifacts={"domain_inference": artifact_path}
+            )
+
+        monkeypatch.setattr(
+            ct, "STAGE_REGISTRY",
+            [
+                ct.Stage("F1", True, _fake_run_f1_stage),
+                ct.Stage("F2", True, _fake_run_f2_stage),
+                ct.Stage("F3", True, ct.run_f3_stage),
+            ],
+        )
+
+        # Run 1: natural — F2's own PHQ-9 recommendation is administered.
+        args_natural = ct.build_arg_parser().parse_args(
+            ["--persona", "VP-012", "--out", str(tmp_path), "--answer-mode", "expected"]
+        )
+        rc1 = await ct._main(args_natural)
+        assert rc1 == 0
+
+        ledger_path = ct._ledger_path("VP-012", tmp_path)
+        entries_after_run1 = json.loads(ledger_path.read_text(encoding="utf-8"))
+        assert len(entries_after_run1) == 1
+        assert entries_after_run1[0]["f3"]["scale_name"] == "PHQ-9"
+        assert entries_after_run1[0]["f3"]["administration_mode"] == "natural"
+        natural_snapshot = entries_after_run1[0]
+
+        # Run 2: forced AUDIT-C — same persona, same (mocked) F1/F2
+        # artifacts, same day (session_index/simulated_date collide with
+        # run 1's entry exactly as REV-037/REV-038 flagged) — must still
+        # NOT overwrite run 1's record.
+        args_forced = ct.build_arg_parser().parse_args(
+            [
+                "--persona", "VP-012", "--out", str(tmp_path), "--answer-mode", "expected",
+                "--force-questionnaire", "AUDIT-C",
+            ]
+        )
+        rc2 = await ct._main(args_forced)
+        assert rc2 == 0
+
+        entries_after_run2 = json.loads(ledger_path.read_text(encoding="utf-8"))
+        assert len(entries_after_run2) == 2, (
+            "the forced run must append a NEW ledger entry, never overwrite run 1's"
+        )
+
+        # Run 1's record survives byte-for-byte.
+        assert entries_after_run2[0] == natural_snapshot
+        assert entries_after_run2[0]["f3"]["scale_name"] == "PHQ-9"
+        assert entries_after_run2[0]["f3"]["administration_mode"] == "natural"
+
+        # Run 2's record is the new, distinct, self-describing forced entry.
+        assert entries_after_run2[1]["f3"]["scale_name"] == "AUDIT-C"
+        assert entries_after_run2[1]["f3"]["administration_mode"] == "forced"
+        assert entries_after_run2[1]["f3"]["outcome"] == "administered"
+        assert entries_after_run2[1]["f3"]["threshold_caveat"] is not None
+
+        # Both share the same session_index/simulated_date collision REV-037
+        # already disclosed as a pre-existing harness property — proving
+        # the collision-safety guarantee is about the WRITE (append-only,
+        # never in-place mutation), not about avoiding the key collision
+        # itself.
+        assert (
+            entries_after_run2[0]["session_index"] == entries_after_run2[1]["session_index"]
+        )
+        assert (
+            entries_after_run2[0]["simulated_date"] == entries_after_run2[1]["simulated_date"]
+        )

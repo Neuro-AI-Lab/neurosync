@@ -76,8 +76,10 @@ class TestResolveOutcome:
         assert entry is not None and entry.populated is True
 
     def test_unpopulated_scale_is_item_bank_unpopulated(self, caplog) -> None:
+        # WHO-5 is item bank v1's only remaining unpopulated scale
+        # (PLAN-2026-W29-A) — GAD-7/PHQ-4/AUDIT-C are populated now.
         with caplog.at_level(logging.WARNING):
-            outcome, entry = f3.resolve_outcome("GAD-7")
+            outcome, entry = f3.resolve_outcome("WHO-5")
         assert outcome == f3.UNPOPULATED_OUTCOME
         assert entry is not None and entry.populated is False
         assert any("SKIPPED-item-bank-unpopulated" in r.message for r in caplog.records)
@@ -133,7 +135,7 @@ class TestAdministerSurveyUnpopulatedSkip:
     @pytest.mark.asyncio
     async def test_unpopulated_scale_raises_never_improvises(self) -> None:
         with pytest.raises(ValueError, match="unpopulated"):
-            await f3.administer_survey("GAD-7", _never_called)
+            await f3.administer_survey("WHO-5", _never_called)
 
     @pytest.mark.asyncio
     async def test_answer_fn_never_called_for_unpopulated_scale(self) -> None:
@@ -250,7 +252,7 @@ class TestRunF3AdministrationAdministered:
         assert output.vp_id == "VP-TEST"
         assert output.session_id == "s1"
         assert output.scale_name == "PHQ-9"
-        assert output.item_bank_version == "v0"
+        assert output.item_bank_version == "v1"
         assert output.responses == [1, 1, 2, 1, 1, 0, 1, 0, 0]
         assert output.score_result is not None
         assert output.score_result.total_score == 7
@@ -259,6 +261,8 @@ class TestRunF3AdministrationAdministered:
         assert output.recommendation_provenance.recommendation_caveat == "mood caveat"
         assert output.answer_mode == "expected"
         assert output.is_diagnostic is False
+        assert output.administration_mode == "natural"
+        assert output.threshold_caveat is None  # PHQ-9 isn't in _SEVERITY_CAVEATS (AUDIT-C/GAD-7)
 
         json_path = result["paths"]["json"]
         report_path = result["paths"]["report"]
@@ -288,6 +292,136 @@ class TestRunF3AdministrationAdministered:
         assert loaded[0].total_score == 11
         assert loaded[0].severity == result["output"].score_result.severity
 
+    @pytest.mark.asyncio
+    async def test_audit_c_administered_carries_threshold_caveat(self, tmp_path: Path) -> None:
+        """CVR-016 condition 3 / ADR-033 decision 2: AUDIT-C severity output
+        must carry the Korean-population non-reconciliation caveat — never
+        silently shipped bare."""
+        artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire="AUDIT-C"))
+        result = await f3.run_f3_administration(
+            domain_inference_path=artifact_path,
+            answer_fn=_fixed_answer_fn([4, 3, 4]),
+            answer_mode="expected",
+            output_dir=tmp_path / "out",
+        )
+        output = result["output"]
+        assert output.threshold_caveat is not None
+        assert "Seong" in output.threshold_caveat
+        assert "Woo" in output.threshold_caveat
+        # Threshold itself unchanged (byte-frozen) — severity still computed
+        # by the untouched survey_scorer.py band.
+        assert output.score_result.severity == "hazardous_drinking"
+
+    @pytest.mark.asyncio
+    async def test_gad7_administered_carries_band_caveat(self, tmp_path: Path) -> None:
+        """CVR-016 binding condition 1 / CVR-017 binding condition 1 /
+        REV-039 correction D: GAD-7 severity output must carry the same
+        structural caveat AUDIT-C carries — the Korean-language band-sourcing
+        citation was retracted this mission and the bands rest on
+        international-convention-only evidence."""
+        artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire="GAD-7"))
+        result = await f3.run_f3_administration(
+            domain_inference_path=artifact_path,
+            answer_fn=_fixed_answer_fn([2, 2, 2, 2, 2, 2, 2]),
+            answer_mode="expected",
+            output_dir=tmp_path / "out",
+        )
+        output = result["output"]
+        assert output.outcome == "administered"
+        assert output.scale_name == "GAD-7"
+        assert output.threshold_caveat is not None
+        assert "Spitzer" in output.threshold_caveat
+        assert "retract" in output.threshold_caveat.lower()
+        # Bands themselves unchanged (byte-frozen) — severity still computed
+        # by the untouched survey_scorer.py band.
+        assert output.score_result.total_score == 14
+        assert output.score_result.severity is not None
+
+        saved = json.loads(result["paths"]["json"].read_text(encoding="utf-8"))
+        assert saved["threshold_caveat"] is not None
+        assert "Spitzer" in saved["threshold_caveat"]
+
+    @pytest.mark.asyncio
+    async def test_phq4_administered_carries_no_caveat(self, tmp_path: Path) -> None:
+        """Only AUDIT-C and GAD-7 are in `_SEVERITY_CAVEATS` — every other
+        populated scale (e.g. PHQ-4) must stay `None`, unaffected by this
+        mission's addition."""
+        artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire="PHQ-4"))
+        result = await f3.run_f3_administration(
+            domain_inference_path=artifact_path,
+            answer_fn=_fixed_answer_fn([1, 1, 1, 1]),
+            answer_mode="expected",
+            output_dir=tmp_path / "out",
+        )
+        assert result["output"].threshold_caveat is None
+
+
+class TestRunF3AdministrationForcedScale:
+    """`forced_scale` (`PLAN-2026-W29-A` step 6 / `ADR-033` decision 6) —
+    the production entry point's override kwarg. Default `None` must
+    preserve every pre-existing caller's exact behavior."""
+
+    @pytest.mark.asyncio
+    async def test_default_none_preserves_natural_behavior(self, tmp_path: Path) -> None:
+        artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire="PHQ-9"))
+        result = await f3.run_f3_administration(
+            domain_inference_path=artifact_path,
+            answer_fn=_fixed_answer_fn([0, 0, 0, 0, 0, 0, 0, 0, 0]),
+            answer_mode="expected",
+            output_dir=tmp_path / "out",
+        )
+        assert result["output"].scale_name == "PHQ-9"
+        assert result["output"].administration_mode == "natural"
+
+    @pytest.mark.asyncio
+    async def test_forced_scale_overrides_f2_recommendation(self, tmp_path: Path) -> None:
+        # F2 recommended PHQ-9; forced_scale overrides to GAD-7.
+        artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire="PHQ-9"))
+        result = await f3.run_f3_administration(
+            domain_inference_path=artifact_path,
+            answer_fn=_fixed_answer_fn([1, 1, 1, 1, 1, 1, 1]),
+            answer_mode="expected",
+            output_dir=tmp_path / "out",
+            forced_scale="GAD-7",
+        )
+        output = result["output"]
+        assert output.scale_name == "GAD-7"
+        assert output.administration_mode == "forced"
+        assert output.outcome == "administered"
+        assert output.score_result.total_score == 7
+        # F2's ACTUAL recommendation is still carried for traceability, even
+        # though it did not drive this administration.
+        assert output.recommendation_provenance.top_candidate_disease == "우울 삽화(우울증)"
+
+    @pytest.mark.asyncio
+    async def test_forced_scale_works_when_f2_recommended_nothing(self, tmp_path: Path) -> None:
+        artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire=None))
+        result = await f3.run_f3_administration(
+            domain_inference_path=artifact_path,
+            answer_fn=_fixed_answer_fn([4, 3, 4]),
+            answer_mode="expected",
+            output_dir=tmp_path / "out",
+            forced_scale="AUDIT-C",
+        )
+        output = result["output"]
+        assert output.scale_name == "AUDIT-C"
+        assert output.administration_mode == "forced"
+        assert output.outcome == "administered"
+
+    @pytest.mark.asyncio
+    async def test_forced_unpopulated_scale_never_improvises(self, tmp_path: Path) -> None:
+        artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire="PHQ-9"))
+        result = await f3.run_f3_administration(
+            domain_inference_path=artifact_path,
+            answer_fn=_never_called,
+            output_dir=tmp_path / "out",
+            forced_scale="WHO-5",
+        )
+        output = result["output"]
+        assert output.outcome == f3.UNPOPULATED_OUTCOME
+        assert output.administration_mode == "forced"
+        assert output.responses == []
+
 
 class TestRunF3AdministrationSkipOutcomes:
     @pytest.mark.asyncio
@@ -314,7 +448,8 @@ class TestRunF3AdministrationSkipOutcomes:
 
     @pytest.mark.asyncio
     async def test_item_bank_unpopulated_answer_fn_never_called(self, tmp_path: Path) -> None:
-        artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire="GAD-7"))
+        # WHO-5 is item bank v1's only remaining unpopulated scale.
+        artifact_path = _write_artifact(tmp_path, _artifact(recommended_questionnaire="WHO-5"))
         result = await f3.run_f3_administration(
             domain_inference_path=artifact_path,
             answer_fn=_never_called,
@@ -322,11 +457,11 @@ class TestRunF3AdministrationSkipOutcomes:
         )
         output = result["output"]
         assert result["outcome"] == f3.UNPOPULATED_OUTCOME
-        assert output.scale_name == "GAD-7"
+        assert output.scale_name == "WHO-5"
         assert output.responses == []
         assert output.score_result is None
-        assert output.item_bank_version == "v0"
-        assert output.item_bank_provenance == "unpopulated-v0"
+        assert output.item_bank_version == "v1"
+        assert output.item_bank_provenance.startswith("unpopulated-v1")
         assert "scale_scores" not in result["paths"]
 
     @pytest.mark.asyncio
@@ -397,6 +532,36 @@ class TestSurveyResultOutputSchema:
         kwargs["outcome"] = "made_up_outcome"
         with pytest.raises(ValidationError):
             SurveyResultOutput(**kwargs)
+
+    def test_administration_mode_defaults_to_natural(self) -> None:
+        out = SurveyResultOutput(**self._valid_kwargs())
+        assert out.administration_mode == "natural"
+
+    def test_administration_mode_accepts_forced(self) -> None:
+        out = SurveyResultOutput(**self._valid_kwargs(), administration_mode="forced")
+        assert out.administration_mode == "forced"
+
+    def test_administration_mode_invalid_literal_rejected(self) -> None:
+        with pytest.raises(ValidationError):
+            SurveyResultOutput(**self._valid_kwargs(), administration_mode="made_up_mode")
+
+    def test_threshold_caveat_defaults_to_none(self) -> None:
+        out = SurveyResultOutput(**self._valid_kwargs())
+        assert out.threshold_caveat is None
+
+    def test_threshold_caveat_accepts_a_string(self) -> None:
+        out = SurveyResultOutput(**self._valid_kwargs(), threshold_caveat="some caveat")
+        assert out.threshold_caveat == "some caveat"
+
+    def test_extra_field_still_forbidden_with_new_fields_present(self) -> None:
+        """`extra="forbid"` must still hold after this mission's schema
+        additions (`administration_mode`/`threshold_caveat`) — a new field
+        elsewhere in the model must not accidentally loosen the model
+        config."""
+        with pytest.raises(ValidationError):
+            SurveyResultOutput(
+                **self._valid_kwargs(), administration_mode="forced", unexpected_field="x"
+            )  # type: ignore[arg-type]
 
     def test_module_shares_no_import_with_handoff_schema(self) -> None:
         """Standalone-by-design invariant (this module's own half) —
