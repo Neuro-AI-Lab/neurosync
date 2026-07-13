@@ -71,6 +71,7 @@ class ClinicalSlotAgent(BaseAgent):
             raise TypeError(f"Expected ClinicalSlotInput, got {type(inp).__name__}")
 
         # 1. Load system prompt
+        prompts_degraded = False
         try:
             system_prompt = self._prompt_loader.load_system_prompt(
                 "clinical_slot", PROMPT_VERSION
@@ -83,6 +84,7 @@ class ClinicalSlotAgent(BaseAgent):
                 "묻고 답하지 않은 슬롯은 반드시 null. 추론/날조 금지. "
                 "risk_assessment는 명시적 위험 문답이 없으면 null."
             )
+            prompts_degraded = True
 
         # 2. Context: already collected slots
         slot_context = ""
@@ -132,6 +134,7 @@ class ClinicalSlotAgent(BaseAgent):
                 reason_summary=f"LLM call failed: {exc}",
                 missing_slots=ALL_SLOT_KEYS,
                 essential_missing=ESSENTIAL_SLOT_KEYS,
+                prompts_degraded=prompts_degraded,
             )
 
         # 5. Parse response — flat string values only
@@ -198,4 +201,5 @@ class ClinicalSlotAgent(BaseAgent):
             essential_filled=essential_filled,
             essential_missing=essential_missing,
             slot_coverage=round(coverage, 2),
+            prompts_degraded=prompts_degraded,
         )

@@ -1,0 +1,862 @@
+{
+  "session_id": "f1_VP-001",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 새벽에도 자주 깨는 수면 문제"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "잠을 잘 못 자는 증상이 최근 시작되어 누울 때 머릿속이 시끄러워지고 새벽에도 자주 깨는 상태"
+    },
+    {
+      "key": "personal_social_history",
+      "value": "직장 동료와 어머니와의 대화가 도움이 되며, 술은 주에 한두 번 맥주 한 캔 정도 마시고 수면제, 진정제, 카페인은 거의 섭취하지 않음"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "주에 한두 번 맥주 한 캔 정도 마심"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\""
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "아니요, 제가 도와드릴 문제는 아니고... 사실 요즘 잠을 잘 못 자서 좀 걱정이에요. 누우면 머릿속이 시끄러워져서 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자서 좀 걱정이에요",
+        "머릿속이 시끄러워져서",
+        "새벽에도 자주 깨요"
+      ],
+      "agent_response": "안녕하세요, 저는 정신건강 사전 문진을 도와드리는 AI 상담 도우미입니다. 실제 의사와의 상담이 아니며, 편하게 이야기해 주셔도 괜찮아요. 오늘 가장 도움받고 싶은 문제나 증상이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자서 걱정, 누우면 머릿속이 시끄러워져 뒤척이다가 겨우 잠들고 새벽에도 자주 깸",
+        "history_of_present_illness": "잠을 잘 못 자는 문제가 최근 발생, 누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자서 걱정, 누우면 머릿속이 시끄러워져 뒤척이다가 겨우 잠들고 새벽에도 자주 깸",
+        "history_of_present_illness": "잠을 잘 못 자는 문제가 최근 발생, 누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상 지속"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 12457.807486876845,
+      "timestamp": "2026-07-11T15:00:20.522152",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요, 제가 도와드릴 문제는 아니고... 사실 요즘 잠을 잘 못 자서 좀 걱정이에요. 누우면 머릿속이 시끄러워져서 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨요.",
+        "normalized": "아니요, 제가 도와드릴 문제는 아니고... 사실 요즘 잠을 잘 못 자서 좀 걱정이에요. 누우면 머릿속이 시끄러워져서 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2322.914356831461,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "누우면 머릿속이 시끄러워져서 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false
+    },
+    {
+      "turn": 1,
+      "patient_message": "아니요, 제가 도와드릴 문제는 아니고... 사실 요즘 잠을 잘 못 자서 좀 걱정이에요. 누우면 머릿속이 시끄러워져서 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 과거 정신건강의학과 진료나 심리상담을 받아보신 적이 있으신가요? 아니면 진단받은 병명이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자서 걱정, 누우면 머릿속이 시끄러워져 뒤척이다가 겨우 잠들고 새벽에도 자주 깸",
+        "history_of_present_illness": "잠을 잘 못 자는 문제가 최근 발생, 누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자서 걱정, 누우면 머릿속이 시끄러워져 뒤척이다가 겨우 잠들고 새벽에도 자주 깸",
+        "history_of_present_illness": "잠을 잘 못 자는 문제가 최근 발생, 누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상 지속"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 6584.893704392016,
+      "timestamp": "2026-07-11T15:00:27.107073",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요, 제가 도와드릴 문제는 아니고... 사실 요즘 잠을 잘 못 자서 좀 걱정이에요. 누우면 머릿속이 시끄러워져서 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨요.",
+        "normalized": "아니요, 제가 도와드릴 문제는 아니고... 사실 요즘 잠을 잘 못 자서 좀 걱정이에요. 누우면 머릿속이 시끄러워져서 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2322.914356831461,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "누우면 머릿속이 시끄러워져서 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 2,
+      "patient_message": "아니요, 정신과에 가 본 적은 없고 진단받은 적도 없어요. 이런 식으로 잠을 못 자는 건 처음이라 좀 당황스럽네요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자서 좀 걱정이에요",
+        "머릿속이 시끄러워져서",
+        "새벽에도 자주 깨요"
+      ],
+      "agent_response": "이야기해 주셔서 감사합니다. 혹시 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 주변에 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 문제로, 누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상",
+        "history_of_present_illness": "잠을 잘 못 자는 문제가 최근 시작되었으며, 누울 때 머릿속이 시끄러워져 잠들기 어렵고 새벽에도 자주 깨는 증상이 지속되고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 문제로, 누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상",
+        "history_of_present_illness": "잠을 잘 못 자는 문제가 최근 시작되었으며, 누울 때 머릿속이 시끄러워져 잠들기 어렵고 새벽에도 자주 깨는 증상이 지속되고 있음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 6379.252013750374,
+      "timestamp": "2026-07-11T15:00:40.580558",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요, 정신과에 가 본 적은 없고 진단받은 적도 없어요.  \n이런 식으로 잠을 못 자는 건 처음이라 좀 당황스럽네요.",
+        "normalized": "아니요, 정신과에 가 본 적은 없고 진단받은 적도 없어요. 이런 식으로 잠을 못 자는 건 처음이라 좀 당황스럽네요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1692.9436507634819,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "정신과에 가 본 적은 없고 진단받은 적도 없어요. 이런 식으로 잠을 못 자는 건 처음이라 좀 당황스럽네요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 3,
+      "patient_message": "네, 직장 동료 중에 몇 명은 편하게 말할 수 있어서 가끔 이야기해요. 어머니랑도 일주일에 두 번 정도 통화하고요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자서 좀 걱정이에요",
+        "누우면 머릿속이 시끄러워져서 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨요"
+      ],
+      "agent_response": "그렇군요, 직장 동료와 어머니와의 대화가 도움이 되시는 것 같아요. 혹시 가족 중에 비슷한 수면 문제나 정신건강 관련 어려움을 겪으신 분이 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 문제로, 누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상",
+        "history_of_present_illness": "잠을 잘 못 자는 문제로, 누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상이 지속되고 있음",
+        "personal_social_history": "직장 동료 중 몇 명과는 편하게 이야기할 수 있고, 어머니와는 일주일에 두 번 정도 통화함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 문제로, 누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상",
+        "history_of_present_illness": "잠을 잘 못 자는 문제로, 누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상이 지속되고 있음",
+        "personal_social_history": "직장 동료 중 몇 명과는 편하게 이야기할 수 있고, 어머니와는 일주일에 두 번 정도 통화함"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 6538.469610735774,
+      "timestamp": "2026-07-11T15:00:52.755315",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "네, 직장 동료 중에 몇 명은 편하게 말할 수 있어서 가끔 이야기해요. 어머니랑도 일주일에 두 번 정도 통화하고요.",
+        "normalized": "네, 직장 동료 중에 몇 명은 편하게 말할 수 있어서 가끔 이야기해요. 어머니랑도 일주일에 두 번 정도 통화하고요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1924.5858336798847,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "직장 동료 중에 몇 명은 편하게 말할 수 있어서 가끔 이야기해요. 어머니랑도 일주일에 두 번 정도 통화하고요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 4,
+      "patient_message": "아니요, 그런 분은 없어요. 가족 중에 비슷한 경험을 한 사람은 전혀 없네요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자서 좀 걱정이에요",
+        "누우면 머릿속이 시끄러워져서 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨요"
+      ],
+      "agent_response": "그렇군요, 가족 중에 비슷한 경험을 하신 분은 없으시군요. 혹시 요즘 수면이나 정신건강에 영향을 줄 수 있는 술, 수면제, 진정제, 카페인 같은 것을 자주 섭취하고 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 문제로, 누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상",
+        "history_of_present_illness": "최근 들어 잠을 잘 못 자는 문제가 발생하여 누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상이 지속되고 있음",
+        "personal_social_history": "직장 동료 중 몇 명과는 편하게 이야기할 수 있으며, 어머니와는 일주일에 두 번 정도 통화함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 문제로, 누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상",
+        "history_of_present_illness": "최근 들어 잠을 잘 못 자는 문제가 발생하여 누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상이 지속되고 있음",
+        "personal_social_history": "직장 동료 중 몇 명과는 편하게 이야기할 수 있으며, 어머니와는 일주일에 두 번 정도 통화함"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 6886.041964869946,
+      "timestamp": "2026-07-11T15:01:05.024625",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "아니요, 그런 분은 없어요.  \n가족 중에 비슷한 경험을 한 사람은 전혀 없네요.",
+        "normalized": "아니요, 그런 분은 없어요. 가족 중에 비슷한 경험을 한 사람은 전혀 없네요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1853.7879078648984,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "가족 중에 비슷한 경험을 한 사람은 전혀 없네요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 5,
+      "patient_message": "술은 주에 한두 번 맥주 한 캔 정도 마시고, 수면제나 진정제, 카페인은 거의 안 마셔요. 약물 복용은 전혀 없고요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그렇군요, 약물 복용은 전혀 없으시군요. 혹시 이전에 정신건강의학과 진료나 심리상담을 받아보신 적이 있으신가요? 아니면 진단받은 병명이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 새벽에도 자주 깨는 수면 문제",
+        "history_of_present_illness": "누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 수면 장애",
+        "personal_social_history": "직장 동료와 편하게 이야기할 수 있고 어머니와 일주일에 두 번 통화함",
+        "substance_use_history": "주에 한두 번 맥주 한 캔 정도 마시고 수면제, 진정제, 카페인은 거의 섭취하지 않음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 새벽에도 자주 깨는 수면 문제",
+        "history_of_present_illness": "누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 수면 장애",
+        "personal_social_history": "직장 동료와 편하게 이야기할 수 있고 어머니와 일주일에 두 번 통화함",
+        "substance_use_history": "주에 한두 번 맥주 한 캔 정도 마시고 수면제, 진정제, 카페인은 거의 섭취하지 않음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 6145.497018005699,
+      "timestamp": "2026-07-11T15:01:17.157110",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "술은 주에 한두 번 맥주 한 캔 정도 마시고, 수면제나 진정제, 카페인은 거의 안 마셔요.  \n약물 복용은 전혀 없고요.",
+        "normalized": "술은 주에 한두 번 맥주 한 캔 정도 마시고, 수면제나 진정제, 카페인은 거의 안 마셔요. 약물 복용은 전혀 없고요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1812.4759052880108,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "술은 주에 한두 번 맥주 한 캔 정도 마시고, 수면제나 진정제, 카페인은 거의 안 마셔요. 약물 복용은 전혀 없고요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 6,
+      "patient_message": "아니요, 그런 적은 없어요. 처음이라 잘 몰라서 일단 앱으로 시작해 보는 거예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그렇군요, 처음이라 잘 몰라서 일단 앱으로 시작해 보시는군요. 혹시 최근에 스트레스나 불안, 우울 같은 감정을 자주 느끼시거나, 일상 생활에서 특별히 힘든 점이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 새벽에도 자주 깨는 수면 문제",
+        "history_of_present_illness": "누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨는 수면 문제가 지속되고 있음",
+        "personal_social_history": "직장 동료 몇 명과 편하게 이야기할 수 있고, 어머니와 일주일에 두 번 통화함",
+        "substance_use_history": "주에 한두 번 맥주 한 캔 정도 마시고, 수면제, 진정제, 카페인은 거의 섭취하지 않음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 새벽에도 자주 깨는 수면 문제",
+        "history_of_present_illness": "누우면 머릿속이 시끄러워져 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨는 수면 문제가 지속되고 있음",
+        "personal_social_history": "직장 동료 몇 명과 편하게 이야기할 수 있고, 어머니와 일주일에 두 번 통화함",
+        "substance_use_history": "주에 한두 번 맥주 한 캔 정도 마시고, 수면제, 진정제, 카페인은 거의 섭취하지 않음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 6236.383790615946,
+      "timestamp": "2026-07-11T15:01:28.965720",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "아니요, 그런 적은 없어요.  \n처음이라 잘 몰라서 일단 앱으로 시작해 보는 거예요.",
+        "normalized": "아니요, 그런 적은 없어요. 처음이라 잘 몰라서 일단 앱으로 시작해 보는 거예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2004.4495244510472,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 적은 없어요. 처음이라 잘 몰라서 일단 앱으로 시작해 보는 거예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 7,
+      "patient_message": "불안하고 집중이 안 돼서 회사에서 실수가 잦아졌어요. 가슴이 답답하고 목과 어깨도 뻐근한 편이에요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "불안하고 집중이 안 돼서 회사에서 실수가 잦아졌어요",
+        "가슴이 답답하고 목과 어깨도 뻐근한 편이에요"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 과거에 정신건강의학과 진료나 심리상담을 받아보신 적이 있으신가요? 아니면 진단받은 병명이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 새벽에도 자주 깨는 수면 문제",
+        "history_of_present_illness": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨는 증상이 지속됨",
+        "personal_social_history": "직장 동료와 어머니와의 대화가 도움이 되며, 직장 동료 중 몇 명은 편하게 말할 수 있고 어머니와 일주일에 두 번 통화함",
+        "substance_use_history": "주에 한두 번 맥주 한 캔 정도 마시고, 수면제나 진정제, 카페인은 거의 섭취하지 않음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 새벽에도 자주 깨는 수면 문제",
+        "history_of_present_illness": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨는 증상이 지속됨",
+        "personal_social_history": "직장 동료와 어머니와의 대화가 도움이 되며, 직장 동료 중 몇 명은 편하게 말할 수 있고 어머니와 일주일에 두 번 통화함",
+        "substance_use_history": "주에 한두 번 맥주 한 캔 정도 마시고, 수면제나 진정제, 카페인은 거의 섭취하지 않음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5593.823353294283,
+      "timestamp": "2026-07-11T15:01:39.320643",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "불안하고 집중이 안 돼서 회사에서 실수가 잦아졌어요.  \n가슴이 답답하고 목과 어깨도 뻐근한 편이에요.",
+        "normalized": "불안하고 집중이 안 돼서 회사에서 실수가 잦아졌어요. 가슴이 답답하고 목과 어깨도 뻐근한 편이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1320.955354720354,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "불안하고 집중이 안 돼서 회사에서 실수가 잦아졌어요. 가슴이 답답하고 목과 어깨도 뻐근한 편이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요, 그런 적은 없어요. 처음이라 잘 몰라서 일단 앱으로 시작해 보는 거예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그렇군요, 처음이라 잘 몰라서 일단 앱으로 시작해 보시는군요. 혹시 최근 스스로를 해치고 싶거나 죽고 싶다는 생각이 드신 적이 있으신가요? 아니면 다른 사람을 해치고 싶다는 충동도 느껴보신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 새벽에도 자주 깨는 수면 문제",
+        "history_of_present_illness": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상이 지속됨",
+        "personal_social_history": "직장 동료와 가끔 이야기하며, 어머니와 일주일에 두 번 통화함",
+        "substance_use_history": "주에 한두 번 맥주 한 캔 정도 마시고, 수면제, 진정제, 카페인은 거의 섭취하지 않음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 새벽에도 자주 깨는 수면 문제",
+        "history_of_present_illness": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 한참 뒤척이다가 겨우 잠들고 새벽에도 자주 깨는 증상이 지속됨",
+        "personal_social_history": "직장 동료와 가끔 이야기하며, 어머니와 일주일에 두 번 통화함",
+        "substance_use_history": "주에 한두 번 맥주 한 캔 정도 마시고, 수면제, 진정제, 카페인은 거의 섭취하지 않음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5595.690342132002,
+      "timestamp": "2026-07-11T15:01:50.522840",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {},
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "아니요, 그런 적은 없어요.  \n처음이라 잘 몰라서 일단 앱으로 시작해 보는 거예요.",
+        "normalized": "아니요, 그런 적은 없어요. 처음이라 잘 몰라서 일단 앱으로 시작해 보는 거예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1187.1399539522827,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 적은 없어요. 처음이라 잘 몰라서 일단 앱으로 시작해 보는 거예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 그런 생각은 없어요.  그냥 좀 힘들 뿐이지 그 정도는 아니에요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그렇군요, 그런 생각은 없으시군요. 혹시 과거에 정신건강의학과 진료나 심리상담을 받아보신 적이 있으신가요? 아니면 진단받은 병명이 있으신가요?",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\"",
+        "chief_complaint": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 새벽에도 자주 깨는 수면 문제",
+        "history_of_present_illness": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨는 증상이 지속됨",
+        "personal_social_history": "직장 동료와 어머니와의 대화가 도움이 되며, 술은 주에 한두 번 맥주 한 캔 정도 마시고, 수면제·진정제·카페인은 거의 섭취하지 않음",
+        "substance_use_history": "주에 한두 번 맥주 한 캔 정도 섭취, 수면제·진정제·카페인은 거의 섭취하지 않음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 새벽에도 자주 깨는 수면 문제",
+        "history_of_present_illness": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 한참 뒤척이다가 겨우 잠들고, 새벽에도 자주 깨는 증상이 지속됨",
+        "personal_social_history": "직장 동료와 어머니와의 대화가 도움이 되며, 술은 주에 한두 번 맥주 한 캔 정도 마시고, 수면제·진정제·카페인은 거의 섭취하지 않음",
+        "substance_use_history": "주에 한두 번 맥주 한 캔 정도 섭취, 수면제·진정제·카페인은 거의 섭취하지 않음",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6757.6685436069965,
+      "timestamp": "2026-07-11T15:02:02.815841",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아니요, 그런 생각은 없어요.  \n그냥 좀 힘들 뿐이지 그 정도는 아니에요.",
+        "normalized": "아니요, 그런 생각은 없어요.  그냥 좀 힘들 뿐이지 그 정도는 아니에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1588.3285966701806,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 생각은 없어요.  그냥 좀 힘들 뿐이지 그 정도는 아니에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 그런 적은 없어요. 처음이라 잘 몰라서 일단 앱으로 시작해 보는 거예요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그렇군요, 처음이라 잘 몰라서 일단 앱으로 시작해 보시는군요. 혹시 최근 자신을 해치고 싶다는 생각이 들거나, 다른 사람을 해치고 싶다는 충동을 느껴보신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 새벽에도 자주 깨는 수면 문제",
+        "history_of_present_illness": "잠을 잘 못 자는 증상이 최근 시작되어 누울 때 머릿속이 시끄러워지고 새벽에도 자주 깨는 상태",
+        "personal_social_history": "직장 동료와 어머니와의 대화가 도움이 되며, 술은 주에 한두 번 맥주 한 캔 정도 마시고 수면제, 진정제, 카페인은 거의 섭취하지 않음",
+        "substance_use_history": "주에 한두 번 맥주 한 캔 정도 마심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자서 누우면 머릿속이 시끄러워지고 새벽에도 자주 깨는 수면 문제",
+        "history_of_present_illness": "잠을 잘 못 자는 증상이 최근 시작되어 누울 때 머릿속이 시끄러워지고 새벽에도 자주 깨는 상태",
+        "personal_social_history": "직장 동료와 어머니와의 대화가 도움이 되며, 술은 주에 한두 번 맥주 한 캔 정도 마시고 수면제, 진정제, 카페인은 거의 섭취하지 않음",
+        "substance_use_history": "주에 한두 번 맥주 한 캔 정도 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 7613.445123191923,
+      "timestamp": "2026-07-11T15:02:15.640114",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아니요, 그런 적은 없어요.  \n처음이라 잘 몰라서 일단 앱으로 시작해 보는 거예요.",
+        "normalized": "아니요, 그런 적은 없어요. 처음이라 잘 몰라서 일단 앱으로 시작해 보는 거예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1302.1544977091253,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 적은 없어요. 처음이라 잘 몰라서 일단 앱으로 시작해 보는 거예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-11T15:00:08.064311",
+  "ended_at": "2026-07-11T15:02:20.841764",
+  "grounded_coverage": 0.625,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 8,
+      "forced": false
+    },
+    {
+      "type": "si_screen_result",
+      "turn": 9,
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\""
+    }
+  ],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5807,
+  "patient_lng": 126.8898,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 1.4407332055270672,
+    "reason_summary": "Session sentiment: ['neutral', 'sadness'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "neutral",
+      "sadness"
+    ],
+    "emotion_distribution": {
+      "neutral": 0.44,
+      "sadness": 0.31,
+      "anxiety": 0.25
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.65
+      },
+      {
+        "turn": 1,
+        "polarity": -0.75
+      },
+      {
+        "turn": 2,
+        "polarity": -0.65
+      },
+      {
+        "turn": 3,
+        "polarity": 0.0
+      },
+      {
+        "turn": 4,
+        "polarity": 0.0
+      },
+      {
+        "turn": 5,
+        "polarity": 0.0
+      },
+      {
+        "turn": 6,
+        "polarity": 0.0
+      },
+      {
+        "turn": 7,
+        "polarity": -0.7
+      },
+      {
+        "turn": 8,
+        "polarity": 0.0
+      },
+      {
+        "turn": 9,
+        "polarity": -0.4
+      },
+      {
+        "turn": 10,
+        "polarity": 0.0
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "neutral 표현 7회 반복",
+      "sadness 표현 5회 반복",
+      "anxiety 표현 4회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-11",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v3",
+  "prior_handoff": null,
+  "carried_slot_provenance": {}
+}

@@ -1,0 +1,872 @@
+{
+  "session_id": "f1_VP-001",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "history_of_present_illness",
+      "value": "최근 회사 프로젝트 스트레스로 인해 수면 시작 지연 및 새벽 각성 빈도 증가, 아침 기상 시 기운 없음, 머리 무거움, 의욕 저하 및 업무 실수 증가"
+    },
+    {
+      "key": "chief_complaint",
+      "value": "잠들기 어려움, 새벽 각성, 아침 무기력감 및 집중력 저하"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "주 1-2회 맥주 1캔 섭취, 수면제 및 카페인 사용 없음"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 근데 가끔은 \"이러다 어떻게 되려나\" 싶을 땐 있어요. 그래도 구체적인...\""
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "음... 글쎄요, 요즘 제일 걱정되는 건 역시 잠이에요. 잠들기까지 너무 오래 걸리고, 새벽에 자꾸 깨서 그런지 아침에 머리가 맑지 않아요.  \n\n그 외에도 일할 때 집중이 잘 안 돼서 실수도 늘고, 그런 게 좀 찝찝하긴 해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 편안한 마음으로 이야기를 나눠보실 준비가 되셨나요? 오늘은 어떤 점이 가장 마음에 걸리시나요?",
+      "slot_updates": {},
+      "cumulative_slots": {},
+      "slot_coverage": 0.0,
+      "latency_ms": 9001.08894193545,
+      "timestamp": "2026-07-12T09:44:52.021341",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.0,
+      "normalizer_meta": {
+        "original": "음... 글쎄요, 요즘 제일 걱정되는 건 역시 잠이에요. 잠들기까지 너무 오래 걸리고, 새벽에 자꾸 깨서 그런지 아침에 머리가 맑지 않아요.  \n\n그 외에도 일할 때 집중이 잘 안 돼서 실수도 늘고, 그런 게 좀 찝찝하긴 해요.",
+        "normalized": "음... 글쎄요, 요즘 제일 걱정되는 건 역시 잠이에요. 잠들기까지 너무 오래 걸리고, 새벽에 자꾸 깨서 그런지 아침에 머리가 맑지 않아요.  \n\n그 외에도 일할 때 집중이 잘 안 돼서 실수도 늘고, 그런 게 좀 찝찝하긴 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3702.690343838185,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "잠들기까지 너무 오래 걸리고, 새벽에 자꾸 깨서 그런지 아침에 머리가 맑지 않아요. 일할 때 집중이 잘 안 돼서 실수도 늘고, 그런 게 좀 찝찝하긴 해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false
+    },
+    {
+      "turn": 1,
+      "patient_message": "음... 글쎄요, 요즘 제일 걱정되는 건 역시 잠이에요. 잠들기까지 너무 오래 걸리고, 새벽에 자꾸 깨서 그런지 아침에 머리가 맑지 않아요.  \n\n그 외에도 일할 때 집중이 잘 안 돼서 실수도 늘고, 그런 게 좀 찝찝하긴 해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠들기까지 오래 걸리고 새벽에 자주 깨는 게 정말 힘드셨겠어요. 그러한 수면 문제가 최근 들어 더 심해지거나 나아지고 있는지, 그리고 일상 중 특히 어떤 부분이 가장 힘들게 느껴지시는지 말씀해 주실 수 있을까요?",
+      "slot_updates": {},
+      "cumulative_slots": {},
+      "slot_coverage": 0.0,
+      "latency_ms": 3797.8904228657484,
+      "timestamp": "2026-07-12T09:44:55.819258",
+      "targeted_slot": "history_of_present_illness",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.0,
+      "normalizer_meta": {
+        "original": "음... 글쎄요, 요즘 제일 걱정되는 건 역시 잠이에요. 잠들기까지 너무 오래 걸리고, 새벽에 자꾸 깨서 그런지 아침에 머리가 맑지 않아요.  \n\n그 외에도 일할 때 집중이 잘 안 돼서 실수도 늘고, 그런 게 좀 찝찝하긴 해요.",
+        "normalized": "음... 글쎄요, 요즘 제일 걱정되는 건 역시 잠이에요. 잠들기까지 너무 오래 걸리고, 새벽에 자꾸 깨서 그런지 아침에 머리가 맑지 않아요.  \n\n그 외에도 일할 때 집중이 잘 안 돼서 실수도 늘고, 그런 게 좀 찝찝하긴 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3702.690343838185,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "despair",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "잠들기까지 너무 오래 걸리고, 새벽에 자꾸 깨서 그런지 아침에 머리가 맑지 않아요. 일할 때 집중이 잘 안 돼서 실수도 늘고, 그런 게 좀 찝찝하긴 해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 2,
+      "patient_message": "아, 감사합니다.  \n\n잠이 늦게 드는 거랑 새벽에 자주 깨는 건 요즘 더 심해졌어요. 특히 회사 프로젝트가 바빠지면서 스트레스도 늘고, 그 생각들 때문에 더 잠이 안 오는 것 같아요.  \n\n가장 힘든 건 아침에 눈 떠서 일을 시작할 기운이 안 난다는 거예요. 머리도 무겁고, 뭘 해야 할지 막막해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 늦게 들고 새벽에 자주 깨는 게 더 심해지셨다니 정말 힘드셨겠어요. 그런 수면 문제와 함께 아침에 기운이 없고 머리가 무겁게 느껴지시는 점이 특히 힘들게 느껴지시나요? 혹시 이전에 정신건강의학과 진료를 받으신 적이 있거나 진단을 받으신 적이 있으신가요?",
+      "slot_updates": {
+        "history_of_present_illness": "최근 회사 프로젝트 바쁨으로 인한 스트레스 증가와 함께 수면 시작 지연 및 새벽 각성 증상이 악화됨. 아침에 머리가 무겁고 기운이 없으며 집중력 저하와 실수 증가 동반"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 회사 프로젝트 바쁨으로 인한 스트레스 증가와 함께 수면 시작 지연 및 새벽 각성 증상이 악화됨. 아침에 머리가 무겁고 기운이 없으며 집중력 저하와 실수 증가 동반"
+      },
+      "slot_coverage": 0.2,
+      "latency_ms": 3242.326166946441,
+      "timestamp": "2026-07-12T09:45:22.561228",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.125,
+      "normalizer_meta": {
+        "original": "아, 감사합니다.  \n\n잠이 늦게 드는 거랑 새벽에 자주 깨는 건 요즘 더 심해졌어요. 특히 회사 프로젝트가 바빠지면서 스트레스도 늘고, 그 생각들 때문에 더 잠이 안 오는 것 같아요.  \n\n가장 힘든 건 아침에 눈 떠서 일을 시작할 기운이 안 난다는 거예요. 머리도 무겁고, 뭘 해야 할지 막막해요.",
+        "normalized": "아, 감사합니다.  \n\n잠이 늦게 드는 거랑 새벽에 자주 깨는 건 요즘 더 심해졌어요. 특히 회사 프로젝트가 바빠지면서 스트레스도 늘고, 그 생각들 때문에 더 잠이 안 오는 것 같아요.  \n\n가장 힘든 건 아침에 눈 떠서 일을 시작할 기운이 안 난다는 거예요. 머리도 무겁고, 뭘 해야 할지 막막해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 19244.08987397328,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.8
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "잠이 늦게 드는 거랑 새벽에 자주 깨는 건 요즘 더 심해졌어요. 특히 회사 프로젝트가 바빠지면서 스트레스도 늘고, 그 생각들 때문에 더 잠이 안 오는 것 같아요. 가장 힘든 건 아침에 눈 떠서 일을 시작할 기운이 안 난다는 거예요. 머리도 무겁고, 뭘 해야 할지 막막해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 3,
+      "patient_message": "네, 정말 힘들어요. 아침에 눈 뜨는 게 제일 무서워요. 머리가 둔 데다 뭘 해야 할지 전혀 의욕이 안 나니까 더 지치고요. 정신과 진료는 한 번도 받은 적 없어요. 이런 상태 보니 병원에 갈 정도인지 잘 모르겠어요. 일단 이렇게 대화해 보려고 시작한 거예요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "아침에 눈 뜨는 게 제일 무서워요",
+        "머리가 둔 데다 뭘 해야 할지 전혀 의욕이 안 나니까 더 지치고요"
+      ],
+      "agent_response": "아침에 눈 뜨는 게 무섭고 기운이 없으시다고 하니 정말 힘드셨겠어요. 혹시 가족분들 중에도 비슷한 수면 문제나 무기력감을 겪으신 분이 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 기운 없음 및 무기력",
+        "history_of_present_illness": "최근 회사 프로젝트 스트레스로 인해 수면 시작 지연 및 새벽 각성 증상이 악화되었으며, 아침에 머리가 무겁고 기운이 없으며 의욕이 없어 일상 시작이 어려움"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 회사 프로젝트 스트레스로 인해 수면 시작 지연 및 새벽 각성 증상이 악화되었으며, 아침에 머리가 무겁고 기운이 없으며 의욕이 없어 일상 시작이 어려움",
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 기운 없음 및 무기력"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5131.236657034606,
+      "timestamp": "2026-07-12T09:45:33.809682",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "네, 정말 힘들어요. 아침에 눈 뜨는 게 제일 무서워요. 머리가 둔 데다 뭘 해야 할지 전혀 의욕이 안 나니까 더 지치고요.  \n\n정신과 진료는 한 번도 받은 적 없어요. 이런 상태 보니 병원에 갈 정도인지 잘 모르겠어요. 일단 이렇게 대화해 보려고 시작한 거예요.",
+        "normalized": "네, 정말 힘들어요. 아침에 눈 뜨는 게 제일 무서워요. 머리가 둔 데다 뭘 해야 할지 전혀 의욕이 안 나니까 더 지치고요. 정신과 진료는 한 번도 받은 적 없어요. 이런 상태 보니 병원에 갈 정도인지 잘 모르겠어요. 일단 이렇게 대화해 보려고 시작한 거예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1610.4540950618684,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.9
+          },
+          {
+            "label": "despair",
+            "intensity": 0.8
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "아침에 눈 뜨는 게 제일 무서워요. 머리가 둔 데다 뭘 해야 할지 전혀 의욕이 안 나니까 더 지치고요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 4,
+      "patient_message": "음... 글쎄요, 어머니는 제가 요즘 좀 이상하다고 걱정하시긴 하는데, 본인은 예전에도 가끔 그런 적 있다고 하시더라고요. 하지만 저와 정확히 비슷한 상황은 아니신 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "아침에 눈 뜨는 게 제일 무서워요",
+        "머리가 둔 데다 뭘 해야 할지 전혀 의욕이 안 나니까 더 지치고요"
+      ],
+      "agent_response": "어머니께서 걱정해 주시는 마음이 느껴져요. 혹시 최근에 술이나 수면제, 카페인 같은 것들을 평소보다 더 많이 섭취하거나 사용하신 적이 있으신가요? 그런 것들이 현재 증상에 영향을 줄 수 있을 것 같아서요.",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 무기력 및 의욕 저하",
+        "history_of_present_illness": "잠들기 어려움과 새벽 각성이 최근 회사 프로젝트 스트레스로 인해 악화됨. 아침에 머리가 무겁고 기운이 없으며 의욕이 없음. 수면 문제로 인해 일상 기능 저하 및 실수 증가."
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "잠들기 어려움과 새벽 각성이 최근 회사 프로젝트 스트레스로 인해 악화됨. 아침에 머리가 무겁고 기운이 없으며 의욕이 없음. 수면 문제로 인해 일상 기능 저하 및 실수 증가.",
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 무기력 및 의욕 저하"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3776.0832868516445,
+      "timestamp": "2026-07-12T09:45:44.035454",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "음... 글쎄요, 어머니는 제가 요즘 좀 이상하다고 걱정하시긴 하는데, 본인은 예전에도 가끔 그런 적 있다고 하시더라고요.  \n\n하지만 저와 정확히 비슷한 상황은 아니신 것 같아요.",
+        "normalized": "음... 글쎄요, 어머니는 제가 요즘 좀 이상하다고 걱정하시긴 하는데, 본인은 예전에도 가끔 그런 적 있다고 하시더라고요. 하지만 저와 정확히 비슷한 상황은 아니신 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1389.6015170030296,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "어머니는 제가 요즘 좀 이상하다고 걱정하시긴 하는데, 본인은 예전에도 가끔 그런 적 있다고 하시더라고요. 하지만 저와 정확히 비슷한 상황은 아니신 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 5,
+      "patient_message": "아, 술은 주 1-2회 맥주 1캔 정도 마셔요. 수면제나 카페인은 따로 안 먹고 있어요. 근데 요즘은 커피도 덜 마시게 됐어요. 아침을 거르다 보니까 더 안 땡기지도 않고… 오히려 속이 좀 불편해서 피하게 되더라고요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 늦게 들고 새벽에 자주 깨는 게 정말 힘드셨겠어요. 그런 수면 문제와 함께 아침에 기운이 없고 머리가 무겁게 느껴지시는 점이 특히 힘들게 느껴지시나요? 혹시 이전에 정신건강의학과 진료를 받으신 적이 있거나 진단을 받으신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 무기력 및 의욕 저하",
+        "history_of_present_illness": "최근 회사 프로젝트 스트레스로 인해 수면 문제 악화, 잠들기 오래 걸림, 새벽 각성, 아침 머리 무거움 및 기운 없음, 집중력 저하 및 실수 증가",
+        "substance_use_history": "주 1-2회 맥주 1캔"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 회사 프로젝트 스트레스로 인해 수면 문제 악화, 잠들기 오래 걸림, 새벽 각성, 아침 머리 무거움 및 기운 없음, 집중력 저하 및 실수 증가",
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 무기력 및 의욕 저하",
+        "substance_use_history": "주 1-2회 맥주 1캔"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5257.615702692419,
+      "timestamp": "2026-07-12T09:45:54.126802",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "아, 술은 주 1-2회 맥주 1캔 정도 마셔요. 수면제나 카페인은 따로 안 먹고 있어요.  \n\n근데 요즘은 커피도 덜 마시게 됐어요. 아침을 거르다 보니까 더 안 땡기지도 않고… 오히려 속이 좀 불편해서 피하게 되더라고요.",
+        "normalized": "아, 술은 주 1-2회 맥주 1캔 정도 마셔요. 수면제나 카페인은 따로 안 먹고 있어요. 근데 요즘은 커피도 덜 마시게 됐어요. 아침을 거르다 보니까 더 안 땡기지도 않고… 오히려 속이 좀 불편해서 피하게 되더라고요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1908.8442851789296,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아침을 거르다 보니까 더 안 땡기지도 않고… 오히려 속이 좀 불편해서 피하게 되더라고요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 6,
+      "patient_message": "정신과 진료는 한 번도 받은 적 없어요. 이런 상태 보니 병원에 갈 정도인지 잘 모르겠어요. 일단 이렇게 대화해 보려고 시작한 거예요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 늦게 들고 새벽에 자주 깨는 게 정말 힘드셨겠어요. 혹시 이전에 정신건강의학과 진료를 받으신 적이 있거나 진단을 받으신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 무기력 및 의욕 저하",
+        "history_of_present_illness": "최근 회사 프로젝트 바쁨으로 인한 스트레스 증가, 수면 시작 지연 및 새벽 각성 빈도 증가, 아침 기상 시 기운 없음, 머리 무거움, 집중력 저하 및 실수 증가",
+        "substance_use_history": "주 1-2회 맥주 1캔 섭취, 수면제 및 카페인 사용 없음"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 회사 프로젝트 바쁨으로 인한 스트레스 증가, 수면 시작 지연 및 새벽 각성 빈도 증가, 아침 기상 시 기운 없음, 머리 무거움, 집중력 저하 및 실수 증가",
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 무기력 및 의욕 저하",
+        "substance_use_history": "주 1-2회 맥주 1캔 섭취, 수면제 및 카페인 사용 없음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3142.9589237086475,
+      "timestamp": "2026-07-12T09:46:02.956193",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "정신과 진료는 한 번도 받은 적 없어요. 이런 상태 보니 병원에 갈 정도인지 잘 모르겠어요. 일단 이렇게 대화해 보려고 시작한 거예요.",
+        "normalized": "정신과 진료는 한 번도 받은 적 없어요. 이런 상태 보니 병원에 갈 정도인지 잘 모르겠어요. 일단 이렇게 대화해 보려고 시작한 거예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1147.5462689995766,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "정신과 진료는 한 번도 받은 적 없어요. 이런 상태 보니 병원에 갈 정도인지 잘 모르겠어요. 일단 이렇게 대화해 보려고 시작한 거예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 7,
+      "patient_message": "정신과 진료는 한 번도 받은 적 없어요. 이런 상태 보니 병원에 갈 정도인지 잘 모르겠어요. 일단 이렇게 대화해 보려고 시작한 거예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 늦게 들고 새벽에 자주 깨는 게 정말 힘드셨겠어요. 혹시 가족분들 중에도 비슷한 수면 문제나 무기력감을 겪으신 분이 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 기운 없음 및 무기력감",
+        "history_of_present_illness": "잠들기 어려움과 새벽 각성이 최근 회사 프로젝트 스트레스로 인해 악화되었으며, 아침에 머리가 무겁고 기운이 없으며 의욕이 없음",
+        "substance_use_history": "주 1-2회 맥주 1캔 섭취, 수면제 및 카페인 미사용"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "잠들기 어려움과 새벽 각성이 최근 회사 프로젝트 스트레스로 인해 악화되었으며, 아침에 머리가 무겁고 기운이 없으며 의욕이 없음",
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 기운 없음 및 무기력감",
+        "substance_use_history": "주 1-2회 맥주 1캔 섭취, 수면제 및 카페인 미사용"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4318.923958111554,
+      "timestamp": "2026-07-12T09:46:11.189608",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "정신과 진료는 한 번도 받은 적 없어요. 이런 상태 보니 병원에 갈 정도인지 잘 모르겠어요. 일단 이렇게 대화해 보려고 시작한 거예요.",
+        "normalized": "정신과 진료는 한 번도 받은 적 없어요. 이런 상태 보니 병원에 갈 정도인지 잘 모르겠어요. 일단 이렇게 대화해 보려고 시작한 거예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1348.9147839136422,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "정신과 진료는 한 번도 받은 적 없어요. 이런 상태 보니 병원에 갈 정도인지 잘 모르겠어요. 일단 이렇게 대화해 보려고 시작한 거예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 8,
+      "patient_message": "음... 글쎄요, 어머니는 제가 요즘 좀 이상하다고 걱정하시긴 하는데, 본인은 예전에도 가끔 그런 적 있다고 하시더라고요. 하지만 저와 정확히 비슷한 상황은 아니신 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 늦게 들고 새벽에 자주 깨는 게 정말 힘드셨겠어요. 혹시 가족분들 중에도 비슷한 수면 문제나 무기력감을 겪으신 분이 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 무기력감 및 집중력 저하",
+        "history_of_present_illness": "최근 회사 프로젝트 스트레스로 인해 수면 시작 지연 및 새벽 각성 빈도 증가, 아침 기상 시 기운 없음, 머리 무거움, 의욕 저하, 업무 실수 증가",
+        "substance_use_history": "주 1-2회 맥주 1캔 섭취, 수면제 및 카페인 사용 없음"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 회사 프로젝트 스트레스로 인해 수면 시작 지연 및 새벽 각성 빈도 증가, 아침 기상 시 기운 없음, 머리 무거움, 의욕 저하, 업무 실수 증가",
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 무기력감 및 집중력 저하",
+        "substance_use_history": "주 1-2회 맥주 1캔 섭취, 수면제 및 카페인 사용 없음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4953.603257890791,
+      "timestamp": "2026-07-12T09:46:19.857935",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "음... 글쎄요, 어머니는 제가 요즘 좀 이상하다고 걱정하시긴 하는데, 본인은 예전에도 가끔 그런 적 있다고 하시더라고요.  \n\n하지만 저와 정확히 비슷한 상황은 아니신 것 같아요.",
+        "normalized": "음... 글쎄요, 어머니는 제가 요즘 좀 이상하다고 걱정하시긴 하는데, 본인은 예전에도 가끔 그런 적 있다고 하시더라고요. 하지만 저와 정확히 비슷한 상황은 아니신 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1194.9649937450886,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.3,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "어머니는 제가 요즘 좀 이상하다고 걱정하시긴 하는데, 본인은 예전에도 가끔 그런 적 있다고 하시더라고요. 하지만 저와 정확히 비슷한 상황은 아니신 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 9,
+      "patient_message": "음... 글쎄요, 어머니는 제가 요즘 좀 이상하다고 걱정하시긴 하는데, 본인은 예전에도 가끔 그런 적 있다고 하시더라고요. 하지만 저와 정확히 비슷한 상황은 아니신 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠이 늦게 들고 새벽에 자주 깨는 게 정말 힘드셨겠어요"
+      ],
+      "agent_response": "잠이 늦게 들고 새벽에 자주 깨는 게 정말 힘드셨겠어요. 혹시 최근에 스스로를 해치고 싶거나 죽고 싶다는 생각이 드신 적이 있으신가요? 그런 생각이 떠오를 때는 어떤 상황이었는지 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 무기력 및 집중력 저하",
+        "history_of_present_illness": "최근 회사 프로젝트 스트레스로 인해 수면 시작 지연 및 새벽 각성 빈도 증가, 아침 기상 시 기운 없음, 머리 무거움, 업무 집중력 저하 및 실수 증가",
+        "substance_use_history": "주 1-2회 맥주 1캔 섭취, 수면제 및 카페인 사용 없음"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 회사 프로젝트 스트레스로 인해 수면 시작 지연 및 새벽 각성 빈도 증가, 아침 기상 시 기운 없음, 머리 무거움, 업무 집중력 저하 및 실수 증가",
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 무기력 및 집중력 저하",
+        "substance_use_history": "주 1-2회 맥주 1캔 섭취, 수면제 및 카페인 사용 없음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5283.635138999671,
+      "timestamp": "2026-07-12T09:46:28.584436",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "음... 글쎄요, 어머니는 제가 요즘 좀 이상하다고 걱정하시긴 하는데, 본인은 예전에도 가끔 그런 적 있다고 하시더라고요.  \n\n하지만 저와 정확히 비슷한 상황은 아니신 것 같아요.",
+        "normalized": "음... 글쎄요, 어머니는 제가 요즘 좀 이상하다고 걱정하시긴 하는데, 본인은 예전에도 가끔 그런 적 있다고 하시더라고요. 하지만 저와 정확히 비슷한 상황은 아니신 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1285.7311367988586,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.3,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "어머니는 제가 요즘 좀 이상하다고 걱정하시긴 하는데, 본인은 예전에도 가끔 그런 적 있다고 하시더라고요. 하지만 저와 정확히 비슷한 상황은 아니신 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 근데 가끔은 \"이러다 어떻게 되려나\" 싶을 땐 있어요. 그래도 구체적인 계획이나 충동은 없어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 늦게 들고 새벽에 자주 깨는 게 정말 힘드셨겠어요. 혹시 이전에 정신건강의학과 진료를 받으신 적이 있거나 진단을 받으신 적이 있으신가요?",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 근데 가끔은 \"이러다 어떻게 되려나\" 싶을 땐 있어요. 그래도 구체적인...\"",
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 무기력감 및 집중력 저하",
+        "history_of_present_illness": "최근 회사 프로젝트 스트레스로 인해 수면 시작 지연 및 새벽 각성 빈도 증가, 아침 기상 시 기운 없음, 머리 무거움, 의욕 저하 및 업무 실수 증가",
+        "substance_use_history": "주 1-2회 맥주 1캔 섭취, 수면제 및 카페인 사용 없음"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 회사 프로젝트 스트레스로 인해 수면 시작 지연 및 새벽 각성 빈도 증가, 아침 기상 시 기운 없음, 머리 무거움, 의욕 저하 및 업무 실수 증가",
+        "chief_complaint": "잠들기 어려움, 새벽 각성, 아침 무기력감 및 집중력 저하",
+        "substance_use_history": "주 1-2회 맥주 1캔 섭취, 수면제 및 카페인 사용 없음",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 근데 가끔은 \"이러다 어떻게 되려나\" 싶을 땐 있어요. 그래도 구체적인...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5516.154767014086,
+      "timestamp": "2026-07-12T09:46:39.258620",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.  \n\n근데 가끔은 \"이러다 어떻게 되려나\" 싶을 땐 있어요. 그래도 구체적인 계획이나 충동은 없어요.",
+        "normalized": "아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 근데 가끔은 \"이러다 어떻게 되려나\" 싶을 땐 있어요. 그래도 구체적인 계획이나 충동은 없어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1069.38266614452,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.3,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "잠이 늦게 들고 새벽에 자주 깨는 게 정말 힘드셨겠어요. 혹시 이전에 정신건강의학과 진료를 받으신 적이 있거나 진단을 받으신 적이 있으신가요?",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    }
+  ],
+  "errors": [
+    "Agent repetition at turn 8 (count=1)"
+  ],
+  "started_at": "2026-07-12T09:44:43.020232",
+  "ended_at": "2026-07-12T09:46:44.491386",
+  "grounded_coverage": 0.5,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 9,
+      "forced": false
+    },
+    {
+      "type": "si_screen_result",
+      "turn": 10,
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 근데 가끔은 \"이러다 어떻게 되려나\" 싶을 땐 있어요. 그래도 구체적인...\""
+    }
+  ],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5807,
+  "patient_lng": 126.8898,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.1366729848086834,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.44,
+      "anxiety": 0.32,
+      "despair": 0.12,
+      "neutral": 0.12
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.6
+      },
+      {
+        "turn": 1,
+        "polarity": -0.75
+      },
+      {
+        "turn": 2,
+        "polarity": -0.75
+      },
+      {
+        "turn": 3,
+        "polarity": -0.85
+      },
+      {
+        "turn": 4,
+        "polarity": -0.4
+      },
+      {
+        "turn": 5,
+        "polarity": -0.6
+      },
+      {
+        "turn": 6,
+        "polarity": -0.65
+      },
+      {
+        "turn": 7,
+        "polarity": -0.6
+      },
+      {
+        "turn": 8,
+        "polarity": -0.3
+      },
+      {
+        "turn": 9,
+        "polarity": -0.3
+      },
+      {
+        "turn": 10,
+        "polarity": -0.3
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 11회 반복",
+      "anxiety 표현 8회 반복",
+      "despair 표현 3회 반복",
+      "neutral 표현 3회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "anxiety",
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "sadness",
+          "anxiety",
+          "despair"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "sadness",
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.3
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.3
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.3
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-12",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": null,
+  "carried_slot_provenance": {}
+}

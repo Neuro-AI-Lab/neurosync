@@ -30,6 +30,15 @@ as an explicit WARN, not folded into a silent PASS.
 Safe to re-run: F1/F2 both save timestamped output files (never overwrite),
 so re-running this harness never clobbers a prior run's artifacts.
 
+Multi-session chaining (PLAN-2026-W28-Q W2, `--sessions N`): chains N F1
+sessions via the existing PUBLIC `followup_from` seam (session N+1 follows
+up from session N's own saved `conversation.json`), running F2 after each
+and appending one entry to a per-VP session ledger
+(`<OUTPUT_DIR>/<persona>/<persona>_session_ledger.json`) — session ordinal,
+simulated date, final/missing slots, repro metadata. The ledger is a
+HARNESS ARTIFACT ONLY (`run_multi_session_chain`'s own docstring, REV-022
+standing rule) — production code (`f1.py`/`f2.py`) never reads it.
+
 Usage:
     cd apps/ai-server
     .venv/bin/python -m src.continuous_test --persona VP-001
@@ -38,6 +47,9 @@ Usage:
     # iteration, PLAN-2026-W28-H Track C intent) — skips F1 entirely:
     .venv/bin/python -m src.continuous_test --persona VP-001 \\
         --start-from-conversation docs/ai/simulation_results/VP-001/VP-001_..._conversation.json
+    # Chain 3 sessions (multi-session continuity + question induction),
+    # 14 simulated days apart by default:
+    .venv/bin/python -m src.continuous_test --persona VP-001 --sessions 3
 """
 
 from __future__ import annotations
@@ -51,10 +63,16 @@ import os
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
+from datetime import date, datetime, timedelta
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
 logger = logging.getLogger(__name__)
+
+# Multi-session chaining default (PLAN-2026-W28-Q W2, plan §3 "Multi-session
+# + question induction") — 2 simulated weeks between chained sessions.
+DEFAULT_SESSION_INTERVAL_DAYS = 14
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]  # src/continuous_test.py -> neurosync/
 
@@ -95,6 +113,49 @@ async def _db_preflight() -> tuple[bool, str]:
 
 def _ms(t0: float) -> float:
     return (time.perf_counter() - t0) * 1000
+
+
+# ── Per-VP session ledger — HARNESS ARTIFACT ONLY ──────────────────────
+#
+# PLAN-2026-W28-Q W2 (plan §3 "Multi-session + question induction" row,
+# `docs/ai/validation_plan_f1f2_continuous.md`): an append-only per-VP
+# record of session ordinal, simulated date, final/missing slots, and repro
+# metadata, for this harness's OWN multi-session bookkeeping.
+#
+# REV-022 standing rule (plan §5 "Other battery-level gates" /
+# invariant 1): production code (f1.py, f2.py, orchestrator.py) MUST NEVER
+# READ this file — it is not a product session store. Only this module
+# (continuous_test.py) writes/reads it.
+
+
+def _ledger_path(persona_id: str, out_dir: Path | None) -> Path:
+    """`<OUTPUT_DIR>/<persona_id>/<persona_id>_session_ledger.json`."""
+    from src.f1 import OUTPUT_DIR
+
+    base = out_dir or OUTPUT_DIR
+    return base / persona_id / f"{persona_id}_session_ledger.json"
+
+
+def _load_ledger(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return data if isinstance(data, list) else []
+    except Exception:  # noqa: BLE001 — a corrupt ledger must not crash the harness
+        logger.warning("continuous_test.ledger.unreadable — %s (starting fresh)", path)
+        return []
+
+
+def _append_ledger_entry(path: Path, entry: dict[str, Any]) -> None:
+    """Append-only (read-modify-write the whole list — ledgers are small,
+    bounded by the number of chained sessions per VP, never a live DB)."""
+    entries = _load_ledger(path)
+    entries.append(entry)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(entries, ensure_ascii=False, indent=2, default=str), encoding="utf-8"
+    )
 
 
 # ── Stage result / chain context ───────────────────────────────────────
@@ -300,6 +361,130 @@ async def run_f2_stage(ctx: ChainContext) -> StageResult:
     )
 
 
+# ── Multi-session chain (PLAN-2026-W28-Q W2) ────────────────────────────
+
+
+async def run_multi_session_chain(
+    persona_id: str,
+    *,
+    n_sessions: int,
+    max_turns: int,
+    k: int,
+    out_dir: Path | None,
+    scale_scores_path: str | None,
+    session_interval_days: int = DEFAULT_SESSION_INTERVAL_DAYS,
+    base_date: date | None = None,
+) -> list[StageResult]:
+    """Chain N F1 sessions via the existing PUBLIC `followup_from` seam
+    (`f1._run_simulation(..., followup_from=<prior session's own
+    conversation.json path>)`) — session N+1 follows up from session N's
+    OWN saved artifact, not a "latest for persona" glob lookup (avoids a
+    race with unrelated concurrent runs for the same persona). Runs F2
+    after each F1 session and appends one entry to the per-VP session
+    ledger (harness artifact only — `_ledger_path`/`_append_ledger_entry`
+    above; production code never reads it, REV-022 standing rule).
+
+    A hard F1 failure halts the chain at that session (mirrors
+    `run_chain`'s own halt-on-fail discipline) — sessions already completed
+    keep their StageResults and ledger entries.
+    """
+    from src import f1
+    from src.grounding import QUESTIONABLE_SLOT_KEYS
+
+    all_results: list[StageResult] = []
+    prev_conversation_path: Path | None = None
+    resolved_base_date = base_date or datetime.now().date()
+    ledger_path = _ledger_path(persona_id, out_dir)
+
+    for session_index in range(1, n_sessions + 1):
+        simulated_date = (
+            resolved_base_date + timedelta(days=session_interval_days * (session_index - 1))
+        ).isoformat()
+        followup_from = str(prev_conversation_path) if prev_conversation_path else None
+
+        t0 = time.perf_counter()
+        try:
+            f1_result = await f1._run_simulation(
+                persona_id, max_turns, followup_from=followup_from,
+                session_index=session_index, simulated_date=simulated_date,
+            )
+        except SystemExit as exc:
+            all_results.append(StageResult(
+                f"F1[session={session_index}]", "fail",
+                f"F1 exited (code={exc.code}) — check persona file / API keys",
+                duration_ms=_ms(t0),
+            ))
+            break
+        except Exception as exc:  # noqa: BLE001 — harness must report, not crash
+            logger.exception("continuous_test.multi_session.f1.failed")
+            all_results.append(StageResult(
+                f"F1[session={session_index}]", "fail", f"F1 session raised: {exc}",
+                duration_ms=_ms(t0),
+            ))
+            break
+
+        conv_path = _find_latest_f1_conversation(persona_id)
+        if conv_path is None:
+            all_results.append(StageResult(
+                f"F1[session={session_index}]", "fail",
+                "F1 completed but no conversation.json was found on disk",
+                duration_ms=_ms(t0),
+            ))
+            break
+        all_results.append(StageResult(
+            f"F1[session={session_index}]", "pass",
+            f"session_index={session_index} simulated_date={simulated_date} "
+            f"is_revisit={session_index > 1} -> {conv_path.name}",
+            artifacts={"conversation": conv_path}, duration_ms=_ms(t0),
+        ))
+
+        f2_ctx = ChainContext(
+            persona_id=persona_id, max_turns=max_turns, k=k, out_dir=out_dir,
+            scale_scores_path=scale_scores_path, conversation_path=conv_path,
+        )
+        f2_result = await run_f2_stage(f2_ctx)
+        f2_result.name = f"F2[session={session_index}]"
+        all_results.append(f2_result)
+
+        final_slots = (
+            {s["key"]: s["value"] for s in f1_result.final_slots} if f1_result else {}
+        )
+        missing_slots = [k for k in QUESTIONABLE_SLOT_KEYS if not final_slots.get(k)]
+        ledger_entry: dict[str, Any] = {
+            "session_index": session_index,
+            "simulated_date": simulated_date,
+            "is_revisit": session_index > 1,
+            "final_slots": final_slots,
+            "missing_slots": missing_slots,
+            "repro": {
+                "model": f1_result.model if f1_result else "",
+                "prompt_version": f1_result.prompt_version if f1_result else "",
+            },
+            "conversation_path": str(conv_path),
+            "domain_inference_path": (
+                str(f2_ctx.domain_inference_path) if f2_ctx.domain_inference_path else None
+            ),
+            "written_at": datetime.now().isoformat(),
+        }
+        _append_ledger_entry(ledger_path, ledger_entry)
+
+        prev_conversation_path = conv_path
+
+    return all_results
+
+
+def print_multi_session_report(persona_id: str, results: list[StageResult]) -> None:
+    icon = {"pass": "[PASS]", "warn": "[WARN]", "fail": "[FAIL]", "skip": "[SKIP]"}
+    print(f"\n{'=' * 70}")
+    print(f"  continuous_test — multi-session chain — persona={persona_id}")
+    print(f"{'=' * 70}")
+    for r in results:
+        print(f"  {icon.get(r.status, '[?]')} {r.name:<14} ({r.duration_ms:>7.0f}ms)  {r.detail}")
+        for label, path in r.artifacts.items():
+            print(f"           {label}: {path}")
+    print(f"{'=' * 70}")
+
+
 # ── Unimplemented stages — explicit, logged skip stubs (never silent) ───
 
 STAGE_REGISTRY: list[Stage] = [
@@ -378,15 +563,45 @@ def build_arg_parser() -> argparse.ArgumentParser:
             "(반복 bug/DB-setup 실험용, PLAN-2026-W28-H Track C)"
         ),
     )
+    parser.add_argument(
+        "--sessions", type=int, default=1,
+        help=(
+            "다중 세션 체이닝 세션 개수 (PLAN-2026-W28-Q W2). 1(기본값)이면 기존 "
+            "단일 세션 F1->F2 체인. >1이면 --followup-from seam으로 세션을 연쇄 "
+            "실행하고 매 세션마다 F2 + per-VP session ledger 항목을 기록한다."
+        ),
+    )
+    parser.add_argument(
+        "--session-interval-days", type=int, default=DEFAULT_SESSION_INTERVAL_DAYS,
+        help="세션 간 시뮬레이션 날짜 간격(일). --sessions > 1일 때만 사용.",
+    )
     return parser
 
 
 async def _main(args: argparse.Namespace) -> int:
+    out_dir = Path(args.out) if args.out else None
+
+    if args.sessions and args.sessions > 1:
+        if args.start_from_conversation:
+            print("--start-from-conversation is not supported together with --sessions > 1")
+            return 1
+        results = await run_multi_session_chain(
+            args.persona,
+            n_sessions=args.sessions,
+            max_turns=args.max_turns,
+            k=args.k,
+            out_dir=out_dir,
+            scale_scores_path=args.scale_scores,
+            session_interval_days=args.session_interval_days,
+        )
+        print_multi_session_report(args.persona, results)
+        return 0 if all(r.status != "fail" for r in results) else 1
+
     ctx = ChainContext(
         persona_id=args.persona,
         max_turns=args.max_turns,
         k=args.k,
-        out_dir=Path(args.out) if args.out else None,
+        out_dir=out_dir,
         scale_scores_path=args.scale_scores,
     )
     if args.start_from_conversation:
@@ -416,8 +631,14 @@ def main() -> int:
     except ImportError:
         pass
 
-    if not os.environ.get("PROMPTS_BASE_DIR"):
-        os.environ["PROMPTS_BASE_DIR"] = str(PROJECT_ROOT / "docs" / "ai" / "prompts")
+    # BUG-021: fail-fast path-existence validation, not the old unset-only
+    # guard (which silently let an explicit-but-wrong PROMPTS_BASE_DIR
+    # through and degraded every prompt-driven agent to a generic fallback).
+    # Lazy import, matching this module's own light-import-at-parse-time
+    # convention (module docstring).
+    from src.prompts.loader import resolve_prompts_base_dir
+
+    resolve_prompts_base_dir(PROJECT_ROOT)
 
     return asyncio.run(_main(args))
 

@@ -50,24 +50,49 @@ class PatientPersona:
 
 
 def load_persona(persona_id: str) -> PatientPersona:
-    """Load persona from docs/ai/personas/VP-NNN_*.md file.
+    """Load persona from docs/ai/personas/VP-NNN_*.md file, or an explicit path.
+
+    Harness-only path-mode seam (`validation_plan_f1f2_continuous.md` §6
+    canary design): if `persona_id` ends with ``.md`` and resolves to an
+    existing file, that file is loaded DIRECTLY — enabling audit-only
+    persona copies stored outside `PERSONAS_DIR` (e.g.
+    `docs/ai/personas/_canary_audit/`, provably disjoint from this
+    function's own non-recursive `PERSONAS_DIR.glob(f"{persona_id}_*.md")`
+    below) to be loaded for SC-13's canary battery. A nonexistent path
+    fails loudly (`FileNotFoundError`) — it never silently falls back to
+    ID-glob mode. Any string not ending in ``.md`` keeps the original
+    ID-glob resolution, byte-for-byte unchanged — f1.py's own `--persona`
+    CLI argument (a plain VP-NNN ID) passes through this function exactly
+    as before.
 
     Extracts:
     - Section 6 (Patient LLM simulation prompt) → system_prompt
     - Section 5 (Expected dialogue patterns) → example_utterances
     - Demographics from Section 1
     """
-    # Find the MD file
-    pattern = f"{persona_id}_*.md"
-    matches = list(PERSONAS_DIR.glob(pattern))
-    if not matches:
-        raise FileNotFoundError(f"Persona file not found: {PERSONAS_DIR}/{pattern}")
-    md_path = matches[0]
+    if persona_id.endswith(".md"):
+        md_path = Path(persona_id)
+        if not md_path.is_file():
+            raise FileNotFoundError(f"Persona file path not found: {md_path}")
+        # Path-mode id: the filename's own leading token, matching the same
+        # `{persona_id}_*.md` naming convention ID-glob mode relies on (e.g.
+        # `_canary_audit/VP-001_first_visit_mild.md` -> "VP-001") so
+        # downstream session-id/PERSONA_LOCATIONS lookups behave identically
+        # to a normal ID-mode load of the same VP.
+        resolved_persona_id = md_path.stem.split("_", 1)[0]
+    else:
+        # Find the MD file
+        pattern = f"{persona_id}_*.md"
+        matches = list(PERSONAS_DIR.glob(pattern))
+        if not matches:
+            raise FileNotFoundError(f"Persona file not found: {PERSONAS_DIR}/{pattern}")
+        md_path = matches[0]
+        resolved_persona_id = persona_id
 
     content = md_path.read_text(encoding="utf-8")
 
     # Extract persona name from title (# VP-001: 초진 경증 -- 김서연)
-    name = persona_id
+    name = resolved_persona_id
     title_match = re.search(r"#.*?[—–-]{1,2}\s*(\S+)\s*$", content, re.MULTILINE)
     if title_match:
         name = title_match.group(1).strip()
@@ -127,7 +152,7 @@ def load_persona(persona_id: str) -> PatientPersona:
 """
 
     return PatientPersona(
-        persona_id=persona_id,
+        persona_id=resolved_persona_id,
         name=name,
         severity=severity,
         ctrs_expected=ctrs_expected,

@@ -21,11 +21,11 @@ from src.dependencies import get_ocr_agent
 from src.schemas.ocr import OCRInput
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-SIM_DIR = REPO_ROOT / "docs" / "ai" / "simulation_results"
+OCR_FIXTURES_DIR = REPO_ROOT / "apps" / "ai-server" / "tests" / "fixtures" / "ocr"
 
 
 def _pdfs() -> list[Path]:
-    return sorted(SIM_DIR.glob("VP-*/VP-*_ocr.pdf"))
+    return sorted(OCR_FIXTURES_DIR.glob("VP-*/VP-*_ocr.pdf"))
 
 
 async def _run_one(agent, pdf_path: Path) -> dict:
@@ -123,7 +123,7 @@ async def main() -> int:
     pdfs = _pdfs()
 
     if not pdfs:
-        print(f"[ERR] no PDFs found in {SIM_DIR}", file=sys.stderr)
+        print(f"[ERR] no PDFs found in {OCR_FIXTURES_DIR}", file=sys.stderr)
         return 1
 
     print("=== OCR Agent Integration Test ===")

@@ -1,0 +1,266 @@
+{
+  "session_id": "f1_VP-001",
+  "persona_id": "VP-001",
+  "repro": {
+    "git_head": "7d316a7b753612af29e90763c82ea68802eef0ae",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260711_211256_conversation.json",
+    "input_sha256": "ad3f6a35ade32bcf073a1dfebce62f7155ee9c2f6907bee05a90ac276b416b6f",
+    "mode": "rag",
+    "latency_ms": 12415.3,
+    "generated_at": "2026-07-11T21:13:11.659600",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 3253,
+      "completion_tokens": 752,
+      "total_tokens": 4005
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "sleep",
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:933",
+          "quote": "내담자는 수면 문제와 피로감을 주요 증상으로 호소하고 있다. 잠에 드는 데 어려움을 겪고 있으며, 심할 때는 새벽 4~5시까지 잠들지 못하는 경우가 있다. 이러한 수면 패턴의 변화로 인해 피로감이 지속되고 있으며, 이는 일상생활에 영향을 미치고 있다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:1215",
+          "quote": "내담자는 수면 문제를 겪고 있으며, 하루에 1시간에서 1시간 반 정도밖에 잠을 자지 못하고 있다. 이로 인해 일상생활에서 멍한 느낌을 지속적으로 경험하고 있으며, 주의 집중이 잘 되지 않는다고 한다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:745",
+          "quote": "35세 여성이 최근 3개월간 주 4일 이상 잠들기 어렵고, 한밤중에 자주 깨어나며, 아침에 일찍 깨는 증상을 호소합니다. 이러한 증상으로 인해 일상생활에 심각한 지장을 받고 있습니다. 이 환자의 상태를 가장 적절히 설명하는 진단명은 무엇인가요? A: 불면장애"
+        }
+      ],
+      "recommended_surveys": [
+        "불면장애 척도(Insomnia Severity Index, ISI)"
+      ]
+    },
+    {
+      "domain": "anxiety",
+      "confidence": 0.4,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:606",
+          "quote": "내담자는 여러 가지 걱정을 많이 한다고 했으며, 수면 문제와 피로감을 호소했다. 내담자는 잠들기가 어렵고 자다가 자주 깨는 문제를 겪고 있으며, 이전보다 쉽게 지친다고 했다. 이러한 증상들은 내담자가 일상생활에서 경험하는 불안과 관련이 있을 수 있다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:471",
+          "quote": "내담자가 불안과 초조함을 자주 느끼고, 여러 가지 일에 대해 걱정이 많으며, 쉽게 짜증이 나고 성을 내는 경향이 있다. 또한, 끔찍한 일이 생길 것 같은 두려움과 몽유병 증상으로 인한 불안감도 있다."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_7",
+          "quote": "회사에서 대규모 프로젝트 마감일이 다가오면서부터 일이 많아지고, 실수도 좀 늘었어요. 그게 계속되니까 스트레스가 쌓인 것 같아요."
+        }
+      ],
+      "recommended_surveys": [
+        "GAD-7"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "수면 문제와 불안 증상이 복합적으로 나타나며, 인지행동치료(CBT) 및 수면제한 요법이 권고되는 상황입니다.",
+      "domain_ref": "sleep"
+    }
+  ],
+  "summary": "환자는 수면 문제와 피로감을 주요 증상으로 호소하며, 잠들기 어려움과 새벽 각성, 수면 시간 감소(1시간~1시간 반)가 관찰됩니다. 불안과 초조함, 걱정, 짜증 등의 정서적 증상도 동반되어 있으며, 직장 스트레스와 관련이 있습니다. 수면위생교육과 수면제한 요법이 권고되며, 불안 관련 설문지(GAD-7) 실시가 필요합니다.",
+  "retrieval_meta": {
+    "mode": "rag",
+    "chunks_returned": 9,
+    "chunk_ids": [
+      "case_card:933",
+      "case_card:1215",
+      "case_card:606",
+      "qa:1262",
+      "qa:745",
+      "qa:488",
+      "case_card:471",
+      "qa:831",
+      "qa:1393"
+    ],
+    "queries": [
+      "잠을 잘 못 자는 것이 제일 걱정됨. 침대에 누워도 한 시간 넘게 뒤척이고, 새벽에 두세 번씩 깨서 다시 잘 수 없음",
+      "최근 대규모 프로젝트 마감일이 다가오면서 일이 많아지고 실수가 늘어 스트레스가 쌓임. 이로 인해 수면 문제가 발생함. 침대에 누워도 한 시간 넘게 뒤척이고, 새벽에 두세 번씩 깨서 다시 잘 수 없음"
+    ]
+  },
+  "chunk_texts": {
+    "case_card:933": "내담자는 수면 문제와 피로감을 주요 증상으로 호소하고 있다. 잠에 드는 데 어려움을 겪고 있으며, 심할 때는 새벽 4~5시까지 잠들지 못하는 경우가 있다. 이러한 수면 패턴의 변화로 인해 피로감이 지속되고 있으며, 이는 일상생활에 영향을 미치고 있다. 내담자는 잠을 잘 자지 못하는 이유로 잡생각이 많고, 핸드폰 사용이 영향을 미친다고 느끼고 있다. 또한, 수면 패턴의 불규칙성으로 인해 하루가 짧게 느껴지고, 이로 인해 자는 시간이 아깝다는 생각을 하게 된다.  내담자는 낮은 정서조절 능력과 대처전략 부족을 위험 요인으로 가지고 있다. 수면 문제와 관련하여 잡생각이 많고, 핸드폰 사용을 줄이려는 시도가 잘 이루어지지 않고 있다. 또한, 내담자는 자신의 생활 패턴에 대한 부정적인 평가를 하며, 남들의 기준에 맞추려는 경향이 있다. 이러한 생각들은 내담자에게 스트레스를 주고 있으며, 이는 수면 문제를 악화시키는 요인으로 작용하고 있다.",
+    "case_card:1215": "내담자는 수면 문제를 겪고 있으며, 하루에 1시간에서 1시간 반 정도밖에 잠을 자지 못하고 있다. 이로 인해 일상생활에서 멍한 느낌을 지속적으로 경험하고 있으며, 주의 집중이 잘 되지 않는다고 한다. 또한, 내담자는 일상 활동에 대한 흥미가 줄어들었다고 느끼고 있으며, 쉽게 지치는 경향이 있다고 언급했다. 이러한 증상들은 내담자의 전반적인 삶의 질에 부정적인 영향을 미치고 있다.  내담자는 최근에 스트레스 사건을 겪으며 사회적 지지 부족을 느끼고 있다. 내담자는 교회에서의 인간관계 문제로 인해 스트레스를 받고 있으며, 교회 언니와의 관계에서 불편함을 느끼고 있다. 또한, 가족과의 관계에서도 어색함과 단절에 대한 두려움을 가지고 있다. 이러한 요인들은 내담자의 정서적 안정에 부정적인 영향을 미치고 있다.",
+    "case_card:606": "내담자는 여러 가지 걱정을 많이 한다고 했으며, 수면 문제와 피로감을 호소했다. 내담자는 잠들기가 어렵고 자다가 자주 깨는 문제를 겪고 있으며, 이전보다 쉽게 지친다고 했다. 이러한 증상들은 내담자가 일상생활에서 경험하는 불안과 관련이 있을 수 있다.  내담자는 과거에 겪었던 사고와 관련된 불안이 있으며, 이는 내담자가 운전할 때 불안감을 느끼는 것으로 나타났다. 또한, 내담자는 자신의 감정이 존중받지 못한 경험이 많았다고 느끼고 있으며, 이는 대인관계에서의 어려움으로 이어질 수 있다.",
+    "qa:1262": "Q: 61세 남자가 6개월 전부터 잠을 잘 못 잔다고 병원에 왔다. 환자는 1년 전 퇴직한 뒤 낮잠을 1~2시간씩 자게 되었으며, 밤에는 잠들기까지 1~2시간을 뒤척이다가 잠에 들고, 2~3시간 내로 다시 깬다고 한다. 잠에서 깬 뒤 다시 잠들기 어려워 침대에 누워있다가 기상한다고 한다. 환자의 혈압은 120/75mmHg, 맥박은 90회/분, 호흡은 20회/분이며, 키는 175cm, 몸무게는 70kg이다. 이 환자에게 적합한 치료는 무엇인가?  \n1) 노출과 반응방지  \n2) 바이오피드백  \n3) 광치료  \n4) 지속기도양압  \n5) 수면제한\nA: 5) 수면제한",
+    "qa:745": "Q: 35세 여성이 최근 3개월간 주 4일 이상 잠들기 어렵고, 한밤중에 자주 깨어나며, 아침에 일찍 깨는 증상을 호소합니다. 이러한 증상으로 인해 일상생활에 심각한 지장을 받고 있습니다. 이 환자의 상태를 가장 적절히 설명하는 진단명은 무엇인가요?\nA: 불면장애",
+    "qa:488": "Q: 40세 여성이 잠을 잘 이루지 못해 병원에 방문했다. 환자는 반년 전부터 일주일에 4~5번 쉽게 잠들지 못하고 자주 깬다고 호소한다. 수면다원검사 결과는 정상이었다. 환자에게 수면위생교육을 실시할 때 올바르게 전달해야 할 내용은 무엇인가?  \n1) 낮잠은 졸릴 때마다 자도록 권장한다.  \n2) 졸리지 않더라도 정해진 취침 시간에는 침대에 머무른다.  \n3) 잠에서 깬 경우 침대 밖으로 나와 TV를 시청한다.  \n4) 잠들기 전 1~2시간 내에 격렬한 운동은 피한다.  \n5) 저녁 시간에 적당한 음주는 수면에 도움이 된다.\nA: 4) 잠들기 전 1~2시간 내에 격렬한 운동은 피한다.",
+    "case_card:471": "내담자가 불안과 초조함을 자주 느끼고, 여러 가지 일에 대해 걱정이 많으며, 쉽게 짜증이 나고 성을 내는 경향이 있다. 또한, 끔찍한 일이 생길 것 같은 두려움과 몽유병 증상으로 인한 불안감도 있다. 이러한 증상들은 주로 업무와 관련된 스트레스와 관련이 있으며, 특히 큰 행사를 준비하면서 통제 불가능한 상황에 대한 걱정이 크다.  내담자가 완벽주의 성향을 가지고 있어 실수에 대한 두려움이 크고, 다른 사람들의 시선을 많이 의식하는 경향이 있다. 또한, 몽유병 증상으로 인해 수면의 질이 떨어지고, 이로 인해 피로감과 불안감이 증폭되고 있다. 내담자는 혼자서 큰 업무를 맡고 있어 부담감이 크며, 이러한 상황이 불안을 가중시키고 있다.",
+    "qa:831": "Q: 35세 여성이 최근 몇 주간 집중력이 떨어지고, 사소한 일에도 쉽게 짜증을 내며, 업무 중 실수가 잦아져 병원을 찾았습니다. 환자는 일주일에 60시간 이상 일을 하며, 매일 5시간 이하로 수면을 취한다고 합니다. 환자는 특히 중요한 회의 후 더 피로감을 느끼며, 집에서는 소음이 심한 환경에서 생활하고 있습니다. 이 환자의 증상과 관련된 가장 가능성이 높은 진단은 무엇인가요?  \n1) 주요우울장애  \n2) 일반불안장애  \n3) 수면부족으로 인한 피로  \n4) 만성 피로 증후군  \n5) 주의력결핍 과잉행동장애\nA: 3) 수면부족으로 인한 피로",
+    "qa:1393": "Q: 45세 남성이 최근 스트레스와 불안감으로 인해 수면 장애를 호소하며 병원에 방문하였다. 그는 최근 직장에서의 업무 부담이 증가하면서 긴장성 두통도 자주 발생한다고 한다. 이 환자에게 적절한 비약물적 치료법을 추천하시오.\nA: 이 환자에게는 스트레스와 불안감, 수면 장애 및 긴장성 두통을 완화하기 위해 인지행동치료(Cognitive Behavioral Therapy, CBT)를 추천할 수 있다. 인지행동치료는 스트레스와 불안을 관리하는 데 효과적이며, 수면 위생 교육과 함께 진행될 경우 수면의 질을 개선하는 데 도움을 줄 수 있다. 또한, 긴장성 두통 완화를 위해 이완 요법(예: 점진적 근육 이완법)과 명상 또는 심호흡 훈련을 병행하는 것도 효과적이다. 이러한 비약물적 치료법은 환자의 전반적인 정신적, 신체적 건강을 증진시키는 데 기여할 수 있다."
+  },
+  "utterances": {
+    "turn_0": "음... 글쎄요. 요즘 잠을 잘 못 자는 게 제일 걱정이에요. 침대에 누워도 한 시간 넘게 뒤척이고, 새벽에 두세 번씩 깨서 다시 잘 수가 없어요.",
+    "turn_1": "음... 글쎄요. 요즘 잠을 잘 못 자는 게 제일 걱정이에요. 침대에 누워도 한 시간 넘게 뒤척이고, 새벽에 두세 번씩 깨서 다시 잘 수가 없어요.",
+    "turn_2": "아뇨, 정신과나 상담은 한 번도 안 가봤어요. 그냥 스스로 해결해 보려고 했는데 잘 안 되는 것 같아서요.",
+    "turn_3": "아니요, 특별히 진단받은 병은 없어요. 약도 평소엔 안 먹고, 요즘도 복용 중인 건 없어요.",
+    "turn_4": "네, 직장 동료 두세 명이랑은 꽤 친하게 지내고, 어머니랑도 주 이틀에 한 번씩은 통화해요. 그래도 요즘은 퇴근 후엔 그냥 쉬고 싶어서 연락도 줄이게 되네요.",
+    "turn_5": "음. 평소엔 거의 안 마셨는데, 요즘 프로젝트 마감이 다가와서 스트레스를 받는지 주 1-2회 맥주 한 캔씩 마시고 있어요. 수면제나 진정제 같은 건 전혀 안 먹어요.",
+    "turn_6": "아니요, 가족 중에 그런 경험이 있는 분은 없어요. 어머니는 가끔 스트레스로 힘들다고 하시긴 하는데, 병원에 가신 적은 없어요.",
+    "turn_7": "음... 글쎄요. 딱히 큰 사건은 없었는데, 회사에서 대규모 프로젝트 마감일이 다가오면서부터 일이 많아지고, 실수도 좀 늘었어요. 그게 계속되니까 스트레스가 쌓인 것 같아요.",
+    "turn_8": "아니요, 그런 적은 없어요. 처음 해보는 건데, 이게 병원에 갈 정도 싶기도 하고… 그냥 한번 점검해 보는 거예요.",
+    "turn_9": "아니요, 그런 생각은 전혀 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.",
+    "turn_10": "아니요, 그런 적은 없어요. 처음 해보는 건데, 이게 병원에 갈 정도 싶기도 하고… 그냥 한번 점검해 보는 거예요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 6,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 0
+    },
+    "verdicts": [
+      {
+        "domain": "sleep",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:933",
+        "quote": "내담자는 수면 문제와 피로감을 주요 증상으로 호소하고 있다. 잠에 드는 데 어려움을 겪고 있으며, 심할 때는 새벽 4~5시까지 잠들지 못하는 경우가 있다. 이러한 수면 패턴의 변화로 인해 피로감이 지속되고 있으며, 이는 일상생활에 영향을 미치고 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:1215",
+        "quote": "내담자는 수면 문제를 겪고 있으며, 하루에 1시간에서 1시간 반 정도밖에 잠을 자지 못하고 있다. 이로 인해 일상생활에서 멍한 느낌을 지속적으로 경험하고 있으며, 주의 집중이 잘 되지 않는다고 한다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "rag_chunk",
+        "source_id": "qa:745",
+        "quote": "35세 여성이 최근 3개월간 주 4일 이상 잠들기 어렵고, 한밤중에 자주 깨어나며, 아침에 일찍 깨는 증상을 호소합니다. 이러한 증상으로 인해 일상생활에 심각한 지장을 받고 있습니다. 이 환자의 상태를 가장 적절히 설명하는 진단명은 무엇인가요? A: 불면장애",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:606",
+        "quote": "내담자는 여러 가지 걱정을 많이 한다고 했으며, 수면 문제와 피로감을 호소했다. 내담자는 잠들기가 어렵고 자다가 자주 깨는 문제를 겪고 있으며, 이전보다 쉽게 지친다고 했다. 이러한 증상들은 내담자가 일상생활에서 경험하는 불안과 관련이 있을 수 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:471",
+        "quote": "내담자가 불안과 초조함을 자주 느끼고, 여러 가지 일에 대해 걱정이 많으며, 쉽게 짜증이 나고 성을 내는 경향이 있다. 또한, 끔찍한 일이 생길 것 같은 두려움과 몽유병 증상으로 인한 불안감도 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "utterance",
+        "source_id": "turn_7",
+        "quote": "회사에서 대규모 프로젝트 마감일이 다가오면서부터 일이 많아지고, 실수도 좀 늘었어요. 그게 계속되니까 스트레스가 쌓인 것 같아요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 2,
+    "candidates_after": 2,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 0,
+    "evidence_stripped_risk_lexicon": 0
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "수면 위생 개선을 위해 현재 어떤 습관을 가지고 계신가요?",
+    "수면 문제 외에 다른 정서적 증상(예: 우울감, 무기력감)이 있으신가요?",
+    "수면 문제 외에 다른 신체적 증상(예: 두통, 소화 문제)이 있으신가요?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 12415.268737822771,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 3253,
+    "completion_tokens": 752,
+    "total_tokens": 4005
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [
+      {
+        "disease": "우울 삽화(우울증)",
+        "similarity_score": 0.463,
+        "source_id": "qa:745",
+        "quote": "...다. 이 환자의 상태를 가장 적절히 설명하는 진단명은 무엇인가요?\nA: 불면장애"
+      },
+      {
+        "disease": "소아·청소년 우울증",
+        "similarity_score": 0.463,
+        "source_id": "qa:745",
+        "quote": "...다. 이 환자의 상태를 가장 적절히 설명하는 진단명은 무엇인가요?\nA: 불면장애"
+      },
+      {
+        "disease": "계절성 정동장애",
+        "similarity_score": 0.444,
+        "source_id": "case_card:471",
+        "quote": "내담자가 불안과 초조함을 자주 느끼고, 여러 가지 일에 대해 걱정이 많으며, 쉽게 짜증이 나..."
+      },
+      {
+        "disease": "범불안장애",
+        "similarity_score": 0.444,
+        "source_id": "case_card:471",
+        "quote": "내담자가 불안과 초조함을 자주 느끼고, 여러 가지 일에 대해 걱정이 많으며, 쉽게 짜증이 나..."
+      },
+      {
+        "disease": "월경전 불쾌장애",
+        "similarity_score": 0.442,
+        "source_id": "qa:831",
+        "quote": "...장 가능성이 높은 진단은 무엇인가요?  \n1) 주요우울장애  \n2) 일반불안장애  \n3) 수면부족으로 인한 피로  \n4) 만성 피로 증후군  \n5)..."
+      }
+    ],
+    "mode": "rag_live",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "5 disease candidate(s) derived from 9 retrieved chunk(s) via symptom-keyword match (path1, ADR-020). similarity_score is a RAG cosine-similarity signal between the retrieved chunk and the Stage-1 query — NOT a patient-to-disease similarity, and NOT a calibrated probability (two-hop proxy, RES-001 §2 step 9 / ADR-020 condition 3).",
+    "recommended_questionnaire": "PHQ-9",
+    "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 4,
+    "rag_chunk_qa": 1,
+    "rag_chunk_other": 0,
+    "utterance": 1,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "A",
+    "retrieve": true,
+    "queries": [
+      "잠을 잘 못 자는 것이 제일 걱정됨. 침대에 누워도 한 시간 넘게 뒤척이고, 새벽에 두세 번씩 깨서 다시 잘 수 없음",
+      "최근 대규모 프로젝트 마감일이 다가오면서 일이 많아지고 실수가 늘어 스트레스가 쌓임. 이로 인해 수면 문제가 발생함. 침대에 누워도 한 시간 넘게 뒤척이고, 새벽에 두세 번씩 깨서 다시 잘 수 없음"
+    ],
+    "dropped_queries": [],
+    "trigger_reason": "sufficient_no_fallback_retrieve",
+    "fallback_used": false,
+    "judge_output": null
+  }
+}

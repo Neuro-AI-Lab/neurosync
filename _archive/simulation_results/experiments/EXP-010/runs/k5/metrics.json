@@ -1,0 +1,16 @@
+{
+  "top1_hit_count": 7,
+  "top3_hit_count": 8,
+  "n_runs": 8,
+  "whitelist_accepted": 87,
+  "whitelist_rejected_risk_lexicon": 41,
+  "whitelist_rejected_other": 0,
+  "taxonomy_hits": 0,
+  "taxonomy_quotes_checked": 126,
+  "finish_reason_length_count": 0,
+  "validation_error_count": 0,
+  "latency_ms_min": 6061.1,
+  "latency_ms_p50": 14718.8,
+  "latency_ms_mean": 15898.1,
+  "latency_ms_max": 35116.0
+}

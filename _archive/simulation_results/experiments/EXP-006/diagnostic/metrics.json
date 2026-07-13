@@ -1,0 +1,69 @@
+{
+  "purpose": "BUG-017 VP-003 RAG-mode diagnostic (PLAN-2026-W28-G T2-exp/W4, sub-step 'BUG-017 진단런') — falsify or confirm max_tokens=1536 truncation hypothesis using phase A instrumentation (finish_reason/usage capture).",
+  "branch": "feat/f2-rag-remediation",
+  "git_head": "9d857fe403567fd2c501879e5ab30bbe5a5500e0",
+  "max_tokens_config": 1536,
+  "max_tokens_source": "apps/ai-server/src/agents/domain_inference.py:159 (grep-confirmed unchanged before and after this run)",
+  "db_preflight": {
+    "verdict": "PASS",
+    "log": "experiments/EXP-006/diagnostic/preflight.log",
+    "row_counts": {
+      "rag.case_card": 1248,
+      "rag.qa": 1789,
+      "rag.symptom": 40,
+      "rag.disease": 26
+    },
+    "delta_vs_exp005": {
+      "rag.case_card": 0,
+      "rag.qa": 0,
+      "rag.symptom": 0,
+      "rag.disease": 0
+    }
+  },
+  "runs": [
+    {
+      "vp": "VP-003",
+      "run": "run1",
+      "mode_requested": "rag",
+      "mode_confirmed": "rag",
+      "input_file": "docs/ai/simulation_results/VP-003/VP-003_20260707_155149_conversation.json",
+      "input_sha256": "fbabd8202367322d338ea99eb154cf818f43de1094278b3e85340b5da02ccb96",
+      "artifact": "experiments/EXP-006/diagnostic/runs/VP-003/run1/VP-003_20260709_110457_domain_inference.json",
+      "stdout_log": "experiments/EXP-006/diagnostic/runs/VP-003/run1/stdout.log",
+      "chunks_returned": 6,
+      "chunk_ids": ["case_card:940", "case_card:933", "case_card:687", "qa:290", "qa:1685", "qa:745"],
+      "queries_used": [
+        "살고 싶지 않음, 매일 밤 자살 생각, 수면 장애(새벽 3시 기상 후 재입면 불가)",
+        "매일 밤 자살 생각 지속, 새벽 3시 기상 후 재입면 불가, 천장만 보며 '살아서 뭐하나' 생각 반복"
+      ],
+      "queries_note": "Only 2 query slots present (chief_complaint, HPI) — risk_assessment excluded per VAL-010 mitigation (f2.py:75). Both remaining queries are still risk-worded, because VP-003's chief_complaint/HPI are themselves passive-SI content by persona design (REV-011 section 2 finding, confirmed live here).",
+      "parse_outcome": "parse_failure_unterminated_string",
+      "parse_error_verbatim": "LLM response JSON parse failure: Unterminated string starting at: line 157 column 20 (char 5054)",
+      "finish_reason": "length",
+      "usage": {
+        "prompt_tokens": 2665,
+        "completion_tokens": 1536,
+        "total_tokens": 4201
+      },
+      "completion_tokens_equals_max_tokens": true,
+      "candidates_before": 0,
+      "candidates_after": 0,
+      "latency_ms": 15620.8
+    }
+  ],
+  "comparison_vs_exp005_rag_vp003_run1": {
+    "exp005_chunks_returned": 11,
+    "this_run_chunks_returned": 6,
+    "chunks_delta_reason": "EXP-005 predates the VAL-010 mitigation (3 query slots incl. risk_assessment); this run has only 2 slots (chief_complaint, HPI) post-mitigation — fewer/different queries retrieve fewer chunks.",
+    "exp005_parse_error_char_offset": 5053,
+    "this_run_parse_error_char_offset": 5054,
+    "exp005_finish_reason_reported": null,
+    "this_run_finish_reason_reported": "length",
+    "note": "EXP-005 could not report finish_reason (pre-phase-A instrumentation); this run is the first time the value has ever been captured for a VP-003 RAG failure."
+  },
+  "verdict": {
+    "truncation": "CONFIRMED",
+    "basis": "finish_reason == 'length' (OpenAI-compatible API's direct signal for a token-budget cutoff) AND usage.completion_tokens (1536) == configured max_tokens (1536) exactly. The parse failure (unterminated JSON string near the response's very end, char 5054 of the response) is the direct downstream consequence of the completion being cut off mid-string by the token ceiling, not an unrelated formatting defect."
+  },
+  "n_runs": "1 (sufficient per brief: n=2 only required if run1 parses cleanly to test reproducibility; run1 failed with the same signature as both EXP-005 VP-003 RAG runs, so no second run was needed to settle the hypothesis)"
+}

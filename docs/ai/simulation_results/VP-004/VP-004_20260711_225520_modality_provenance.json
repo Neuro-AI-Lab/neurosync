@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-004/VP-004_20260711_225520_conversation.json",
+  "persona_id": "VP-004",
+  "events": [
+    {
+      "turn_index": 1,
+      "modality": "stt",
+      "fixture_path": "tests/fixtures/audio/VP-004/VP-004-002.mp3",
+      "label": "SC11_VP-004_risk-cell_stt_rep2_early-turn",
+      "source_id": "stt:SC11_VP-004_risk-cell_stt_rep2_early-turn",
+      "vendor": "skt-ak-stt",
+      "char_count": 87,
+      "latency_ms": 905.1633640192449,
+      "extracted_at": "2026-07-11T22:54:07.179842",
+      "text": "아니요 근데 그런 생각이 자꾸 들어요 갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요.",
+      "text_preview": "아니요 근데 그런 "
+    }
+  ],
+  "written_at": "2026-07-11T22:55:20.778275"
+}

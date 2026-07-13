@@ -1,0 +1,110 @@
+# EXP-008 — RAG-arm certification re-verification (ADR-016 step 4) — VP-003 + VP-001, RAG mode, n=2 each
+# Genuinely new live LLM calls on the BUG-019-fixed tree (_normalize_source_type_collision).
+# Load-bearing empirical step the RAG-arm certification has been blocked on.
+
+git_head: 61317c41a2a034cebaccabbd961990aa33f33f0c
+git_branch: feat/f2-continuation-w28h
+git_status_note: >
+  Working tree carries uncommitted changes beyond HEAD (git status): apps/ai-server/.env.example
+  (modified), apps/ai-server/src/main.py (modified), apps/ai-server/src/rag/auth.py (deleted),
+  apps/ai-server/src/rag/route.py (deleted), apps/ai-server/tests/rag/test_route_auth.py (deleted),
+  docs/ai/PRD_task1_v2.md (modified), docs/ai/checklist_task1.md (modified) — all Track A
+  (RAG HTTP retirement) / doc-sync scope, not touching apps/ai-server/src/agents/domain_inference.py
+  or apps/ai-server/src/eval/f2_grounding.py (the BUG-019 fix files, confirmed unmodified at HEAD).
+  No code/prompt edits made by this agent (run-only, per brief).
+
+suite_reverified: >
+  cd apps/ai-server && .venv/bin/python -m pytest tests/ -q -> 760 passed, 0 failed
+  (independently re-run by experiment-tracker before launch; matches the brief's own noted
+  "suite 768/now 760 post-deletion" — 8 fewer than BUG-019's Wave-6 768, consistent with the
+  tests/rag/test_route_auth.py deletion visible in git status).
+
+python: apps/ai-server/.venv (Python 3.12.13)
+working_dir: apps/ai-server
+prompts_base_dir_used: /home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/prompts
+prompts_base_dir_note: >
+  BUG-013 operational workaround (documented, no .env/code edit): PROMPTS_BASE_DIR exported
+  repo-root-absolute at invocation; conversation input paths passed absolute. Same workaround
+  as EXP-004/005/006/007.
+
+prompt_version_pins:
+  domain_inference: v2   # docs/ai/prompts/domain_inference/v2.system.md, unchanged since EXP-006/007
+
+model:
+  primary_vendor: upstage
+  chat_model: solar-pro3
+  base_url: https://api.upstage.ai/v1
+  secondary_vendor: lg_k_exaone (K-EXAONE, strategy=benchmarked fallback, not observed to fire)
+  agent: DomainInferenceAgent
+  max_tokens: 4096   # domain_inference.py, unchanged since BUG-017 phase B (EXP-006), confirmed at HEAD
+
+bug_019_fix_confirmed_at_head:
+  function: _normalize_source_type_collision (apps/ai-server/src/agents/domain_inference.py:145)
+  call_site: _parse (apps/ai-server/src/agents/domain_inference.py:253, pre-validation)
+
+pre_run_checklist:
+  plan: "ADR-016 step 4 (discussion.md) — the RAG-arm certification path's 'remaining 2 stages' step:
+    live clean VP-003(+VP-001) RAG n=2 re-verification on the BUG-019-fixed tree, then critic W4/lift.
+    This EXP is step 4 only (the live re-verification); certification verdict is critic's separate step 5."
+  critic_review: "REV-014 (discussion.md) — NON-BLOCKING (0 blocking / 1 major / 2 minor). Pre-registers
+    the binding interpretable-output-vs-legitimate-0-candidate-cascade decision rule (REV-014 sec2) and
+    an 8-item binding metric checklist (REV-014 sec3), both applied below. REV-014 sec1 confirms no
+    critical BUG in the F2 code path and no GATE_OVERRIDE required."
+  qa_gate: "GATE: PASS (error.md BUG-019, Wave-6 root-cause-fix re-verification, 2026-07-09) — suite
+    768 green at that gate; independently re-run here at 760 (post Track A route/auth deletion,
+    unrelated to domain_inference.py/f2_grounding.py which are confirmed unmodified since Wave 6)."
+  dataset: "DATASET-004 (F2 golden domain labels) APPROVED with amendments (REV-007) — not scored this
+    run (diagnostic/re-verification scope per brief, mirrors EXP-007's convention). DATASET-005 (RAG
+    corpus, rag.case_card+rag.qa) active, no VP-content leakage found. Reused, row counts re-verified
+    0 delta below."
+  db_preflight: "PASS — see preflight.log. Corpus counts match EXP-005/006/007 exactly (case_card 1248,
+    qa 1789, symptom 40, disease 26), 0 delta. No DATABASE_URL/password printed."
+  gate_hook: "experiment_gate.py PreToolUse hook respected — confirmed by REV-014 sec1 direct regex read
+    (python src/f2.py does not match models/*.py) and by this agent's own launch (no GATE_OVERRIDE used,
+    none needed)."
+
+db_preflight:
+  method: "src.dependencies.get_settings()/get_sessionmaker() — project's own settings path, no CLI
+    overrides, SELECT 1 + rag.{case_card,qa,symptom,disease} row counts"
+  timeout_s: 10
+  retries: 0
+  log: experiments/EXP-008/preflight.log
+  verdict: PASS
+
+runs:
+  rag_arm_reverification:
+    command: ".venv/bin/python -m src.f2 --conversation <F1 conversation.json, absolute path> --out <run dir> (no --no-rag)"
+    personas: [VP-003, VP-001]
+    n_per_vp: 2
+    input_selection: "byte-identical EXP-006/007-era F1 conversation artifacts (20260707/EXP-002-era),
+      reused for reproducibility — input_sha256 independently re-verified to match EXP-007's own
+      recorded values (all 4) before launch, see sha256_verification below."
+    inputs:
+      VP-003:
+        run1: docs/ai/simulation_results/VP-003/VP-003_20260707_155149_conversation.json  # sha256 fbabd8202367322d338ea99eb154cf818f43de1094278b3e85340b5da02ccb96
+        run2: docs/ai/simulation_results/VP-003/VP-003_20260707_155446_conversation.json  # sha256 126f5c012cf69e798ddfbe5fd10d2142432e44785f54a9607bf117203c4dabe9
+      VP-001:
+        run1: docs/ai/simulation_results/VP-001/VP-001_20260707_152922_conversation.json  # sha256 c6af3fa9e5d6f2aa5e8db1108c59c283f38c625b8ef7e363fcb51f3242582816
+        run2: docs/ai/simulation_results/VP-001/VP-001_20260707_153451_conversation.json  # sha256 5f5e0b5d6fa6c22e6145a09fa195867aadc8b758ce1a862b41ec9569d0a95a47
+    sha256_verification: "all 4 independently recomputed by this agent via sha256sum, byte-for-byte
+      match against EXP-007's recorded values (VP-001/run2 confirmed here for the first time against
+      an explicit prior hash — EXP-007 itself did not cross-check it against a separate artifact field)."
+    binding_requirement: "genuinely NEW live LLM calls (REV-014 sec2 'Binding requirement'), NOT a
+      replay of cached EXP-006/007 response bytes — the input files are reused, but each of the 4
+      command invocations below issues a fresh live LLM call."
+    decision_rule: "REV-014 sec2, pre-registered before this run: a run is 'interpretable' iff
+      DomainInferenceAgent._parse() returns non-None (JSON-decode + Pydantic validation both pass),
+      REGARDLESS of downstream risk-lexicon-cascade candidate count. A legitimate 0-candidate cascade
+      outcome (all evidence risk-lexicon-stripped) is PASS on interpretability, separately scored 0 for
+      top-1/top-3. Only a JSON-parse or schema-validation FAILURE counts against 'clean n=2'."
+    verification: "every run's retrieval_meta.mode must == 'rag' (direct field read, no silent
+      llm_only downgrade check per REV-006 condition 6). finish_reason/usage and (on failure)
+      raw_response/validation_errors must be captured per-run per REV-011 sec3 rule iv / REV-014 sec3
+      item 5."
+
+not_in_scope:
+  - "RAG-arm certification lift/no-lift verdict (critic W4/W5)"
+  - "Any code/prompt fix"
+  - "TASK 4 deletion"
+  - "docs updates"
+  - "llm_only arm, VP-002/VP-004"

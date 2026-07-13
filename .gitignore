@@ -58,6 +58,12 @@ audio/
 uploads/
 tmp/
 
+# Re-include: F1/F2 test-fixture audio (PLAN-2026-W28-Q answer #8a) — the
+# generic `audio/` rule above would otherwise silently swallow new fixture
+# mp3s added under this canonical location.
+!apps/ai-server/tests/fixtures/audio/
+!apps/ai-server/tests/fixtures/audio/**
+
 # AI artifacts (local model caches, eval outputs)
 .langsmith/
 # Ignore ML model weight directories at repo root or under AI server,

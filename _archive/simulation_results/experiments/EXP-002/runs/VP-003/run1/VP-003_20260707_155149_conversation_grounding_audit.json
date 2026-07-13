@@ -1,0 +1,36 @@
+{
+  "session_id": "f1_VP-003",
+  "persona_id": "VP-003",
+  "total_turns": 12,
+  "n_patient_utterances": 12,
+  "reported_slot_coverage": 0.6,
+  "reported_grounded_coverage": 0.375,
+  "recomputed_grounded_coverage": 0.375,
+  "counts": {
+    "grounded": 3,
+    "negative_grounded": 0,
+    "system_slot": 0,
+    "ungrounded": 0
+  },
+  "slots": [
+    {
+      "key": "chief_complaint",
+      "value": "살고 싶지 않음, 매일 밤 자살 생각, 수면 장애(새벽 3시 기상 후 재입면 불가)",
+      "verdict": "grounded",
+      "reason": "lexical evidence with polarity-consistent negation (negated patient statement supports the value)"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "매일 밤 자살 생각 지속, 새벽 3시 기상 후 재입면 불가, 천장만 보며 '살아서 뭐하나' 생각 반복",
+      "verdict": "grounded",
+      "reason": "lexical evidence in patient utterances"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 표현 있음 — 환자 발화: \"... 도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"... 어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.\"",
+      "verdict": "grounded",
+      "reason": "populated by the safety probe protocol (probe_events)"
+    }
+  ],
+  "source_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260707_155149_conversation.json"
+}

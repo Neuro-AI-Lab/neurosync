@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260711_225022_conversation.json",
+  "persona_id": "VP-001",
+  "events": [
+    {
+      "turn_index": 4,
+      "modality": "stt",
+      "fixture_path": "tests/fixtures/audio/VP-001/VP-001-002.mp3",
+      "label": "SC7_VP-001_mid-dialogue_stt",
+      "source_id": "stt:SC7_VP-001_mid-dialogue_stt",
+      "vendor": "skt-ak-stt",
+      "char_count": 48,
+      "latency_ms": 894.415725953877,
+      "extracted_at": "2026-07-11T22:49:26.327973",
+      "text": "아직 병원은 가지 않았어요. 이번이 처음이라서요. 그냥 랩으로 한번 살펴보는 수준이에요",
+      "text_preview": "아직 병원은 가지 "
+    }
+  ],
+  "written_at": "2026-07-11T22:50:22.703237"
+}

@@ -1,0 +1,662 @@
+{
+  "runs": {
+    "llm_only/VP-001/run1": {
+      "arm": "llm_only",
+      "vp": "VP-001",
+      "run": "run1",
+      "artifact": "experiments/EXP-005/runs/llm_only/VP-001/run1/VP-001_20260708_200012_domain_inference.json",
+      "mode": "llm_only",
+      "domain_candidates": [
+        "sleep"
+      ],
+      "golden_set": [
+        "anxiety",
+        "sleep"
+      ],
+      "top1_hit": true,
+      "top3_hit": true,
+      "n_evidence_accepted": 1,
+      "whitelist_counts": {
+        "accepted": 1,
+        "rejected_unknown_source": 0,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 0
+      },
+      "filter_summary": {
+        "candidates_before": 1,
+        "candidates_after": 1,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 0,
+        "evidence_stripped_risk_lexicon": 0
+      },
+      "orphan_departments": [],
+      "latency_ms": 6314.1,
+      "chunks_returned": 0,
+      "queries": null,
+      "department_candidates_n": 1
+    },
+    "llm_only/VP-001/run2": {
+      "arm": "llm_only",
+      "vp": "VP-001",
+      "run": "run2",
+      "artifact": "experiments/EXP-005/runs/llm_only/VP-001/run2/VP-001_20260708_200150_domain_inference.json",
+      "mode": "llm_only",
+      "domain_candidates": [
+        "sleep",
+        "anxiety"
+      ],
+      "golden_set": [
+        "anxiety",
+        "sleep"
+      ],
+      "top1_hit": true,
+      "top3_hit": true,
+      "n_evidence_accepted": 4,
+      "whitelist_counts": {
+        "accepted": 4,
+        "rejected_unknown_source": 0,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 0
+      },
+      "filter_summary": {
+        "candidates_before": 2,
+        "candidates_after": 2,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 0,
+        "evidence_stripped_risk_lexicon": 0
+      },
+      "orphan_departments": [],
+      "latency_ms": 5881.4,
+      "chunks_returned": 0,
+      "queries": null,
+      "department_candidates_n": 1
+    },
+    "llm_only/VP-002/run1": {
+      "arm": "llm_only",
+      "vp": "VP-002",
+      "run": "run1",
+      "artifact": "experiments/EXP-005/runs/llm_only/VP-002/run1/VP-002_20260708_200156_domain_inference.json",
+      "mode": "llm_only",
+      "domain_candidates": [
+        "depression"
+      ],
+      "golden_set": [
+        "depression"
+      ],
+      "top1_hit": true,
+      "top3_hit": true,
+      "n_evidence_accepted": 1,
+      "whitelist_counts": {
+        "accepted": 1,
+        "rejected_unknown_source": 0,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 0
+      },
+      "filter_summary": {
+        "candidates_before": 1,
+        "candidates_after": 1,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 0,
+        "evidence_stripped_risk_lexicon": 0
+      },
+      "orphan_departments": [],
+      "latency_ms": 5004.0,
+      "chunks_returned": 0,
+      "queries": null,
+      "department_candidates_n": 1
+    },
+    "llm_only/VP-002/run2": {
+      "arm": "llm_only",
+      "vp": "VP-002",
+      "run": "run2",
+      "artifact": "experiments/EXP-005/runs/llm_only/VP-002/run2/VP-002_20260708_200203_domain_inference.json",
+      "mode": "llm_only",
+      "domain_candidates": [
+        "depression"
+      ],
+      "golden_set": [
+        "depression"
+      ],
+      "top1_hit": true,
+      "top3_hit": true,
+      "n_evidence_accepted": 3,
+      "whitelist_counts": {
+        "accepted": 3,
+        "rejected_unknown_source": 0,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 0
+      },
+      "filter_summary": {
+        "candidates_before": 1,
+        "candidates_after": 1,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 0,
+        "evidence_stripped_risk_lexicon": 0
+      },
+      "orphan_departments": [],
+      "latency_ms": 7275.9,
+      "chunks_returned": 0,
+      "queries": null,
+      "department_candidates_n": 1
+    },
+    "llm_only/VP-003/run1": {
+      "arm": "llm_only",
+      "vp": "VP-003",
+      "run": "run1",
+      "artifact": "experiments/EXP-005/runs/llm_only/VP-003/run1/VP-003_20260708_200214_domain_inference.json",
+      "mode": "llm_only",
+      "domain_candidates": [
+        "depression"
+      ],
+      "golden_set": [
+        "depression"
+      ],
+      "top1_hit": true,
+      "top3_hit": true,
+      "n_evidence_accepted": 3,
+      "whitelist_counts": {
+        "accepted": 3,
+        "rejected_unknown_source": 0,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 10
+      },
+      "filter_summary": {
+        "candidates_before": 1,
+        "candidates_after": 1,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 10,
+        "evidence_stripped_risk_lexicon": 10
+      },
+      "orphan_departments": [],
+      "latency_ms": 10405.0,
+      "chunks_returned": 0,
+      "queries": null,
+      "department_candidates_n": 1
+    },
+    "llm_only/VP-003/run2": {
+      "arm": "llm_only",
+      "vp": "VP-003",
+      "run": "run2",
+      "artifact": "experiments/EXP-005/runs/llm_only/VP-003/run2/VP-003_20260708_200219_domain_inference.json",
+      "mode": "llm_only",
+      "domain_candidates": [],
+      "golden_set": [
+        "depression"
+      ],
+      "top1_hit": false,
+      "top3_hit": false,
+      "n_evidence_accepted": 0,
+      "whitelist_counts": {
+        "accepted": 0,
+        "rejected_unknown_source": 0,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 3
+      },
+      "filter_summary": {
+        "candidates_before": 1,
+        "candidates_after": 0,
+        "candidates_eliminated": 1,
+        "eliminated_domains": [
+          "depression"
+        ],
+        "evidence_stripped": 3,
+        "evidence_stripped_risk_lexicon": 3
+      },
+      "orphan_departments": [
+        {
+          "department": "정신건강의학과",
+          "reason": "자살 생각이 포함된 우울감 호소",
+          "domain_ref": "depression"
+        }
+      ],
+      "latency_ms": 4429.9,
+      "chunks_returned": 0,
+      "queries": null,
+      "department_candidates_n": 1
+    },
+    "llm_only/VP-004/run1": {
+      "arm": "llm_only",
+      "vp": "VP-004",
+      "run": "run1",
+      "artifact": "experiments/EXP-005/runs/llm_only/VP-004/run1/VP-004_20260708_200226_domain_inference.json",
+      "mode": "llm_only",
+      "domain_candidates": [
+        "anxiety"
+      ],
+      "golden_set": [
+        "anxiety",
+        "depression"
+      ],
+      "top1_hit": true,
+      "top3_hit": true,
+      "n_evidence_accepted": 3,
+      "whitelist_counts": {
+        "accepted": 3,
+        "rejected_unknown_source": 0,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 0
+      },
+      "filter_summary": {
+        "candidates_before": 1,
+        "candidates_after": 1,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 0,
+        "evidence_stripped_risk_lexicon": 0
+      },
+      "orphan_departments": [],
+      "latency_ms": 5791.4,
+      "chunks_returned": 0,
+      "queries": null,
+      "department_candidates_n": 1
+    },
+    "llm_only/VP-004/run2": {
+      "arm": "llm_only",
+      "vp": "VP-004",
+      "run": "run2",
+      "artifact": "experiments/EXP-005/runs/llm_only/VP-004/run2/VP-004_20260708_200229_domain_inference.json",
+      "mode": "llm_only",
+      "domain_candidates": [
+        "depression"
+      ],
+      "golden_set": [
+        "anxiety",
+        "depression"
+      ],
+      "top1_hit": true,
+      "top3_hit": true,
+      "n_evidence_accepted": 2,
+      "whitelist_counts": {
+        "accepted": 2,
+        "rejected_unknown_source": 0,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 0
+      },
+      "filter_summary": {
+        "candidates_before": 1,
+        "candidates_after": 1,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 0,
+        "evidence_stripped_risk_lexicon": 0
+      },
+      "orphan_departments": [],
+      "latency_ms": 2353.8,
+      "chunks_returned": 0,
+      "queries": null,
+      "department_candidates_n": 1
+    },
+    "rag/VP-001/run1": {
+      "arm": "rag",
+      "vp": "VP-001",
+      "run": "run1",
+      "artifact": "experiments/EXP-005/runs/rag/VP-001/run1/VP-001_20260708_200259_domain_inference.json",
+      "mode": "rag",
+      "domain_candidates": [
+        "depression",
+        "sleep",
+        "anxiety"
+      ],
+      "golden_set": [
+        "anxiety",
+        "sleep"
+      ],
+      "top1_hit": false,
+      "top3_hit": true,
+      "n_evidence_accepted": 4,
+      "whitelist_counts": {
+        "accepted": 4,
+        "rejected_unknown_source": 6,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 0
+      },
+      "filter_summary": {
+        "candidates_before": 3,
+        "candidates_after": 3,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 6,
+        "evidence_stripped_risk_lexicon": 0
+      },
+      "orphan_departments": [],
+      "latency_ms": 17275.8,
+      "chunks_returned": 16,
+      "queries": [
+        "잠들기 어려움, 새벽 각성, 낮 시간 피로 및 집중력 저하",
+        "최근 대규모 프로젝트 마감 기한으로 인한 스트레스가 심해지면서 수면 문제가 악화됨. 잠들기 어려움, 수면 유지 어려움, 수면 부족으로 인한 집중력 저하 및 실수 증가",
+        "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\""
+      ],
+      "department_candidates_n": 2
+    },
+    "rag/VP-001/run2": {
+      "arm": "rag",
+      "vp": "VP-001",
+      "run": "run2",
+      "artifact": "experiments/EXP-005/runs/rag/VP-001/run2/VP-001_20260708_200311_domain_inference.json",
+      "mode": "rag",
+      "domain_candidates": [
+        "anxiety",
+        "depression",
+        "sleep"
+      ],
+      "golden_set": [
+        "anxiety",
+        "sleep"
+      ],
+      "top1_hit": true,
+      "top3_hit": true,
+      "n_evidence_accepted": 7,
+      "whitelist_counts": {
+        "accepted": 7,
+        "rejected_unknown_source": 0,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 0
+      },
+      "filter_summary": {
+        "candidates_before": 3,
+        "candidates_after": 3,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 0,
+        "evidence_stripped_risk_lexicon": 0
+      },
+      "orphan_departments": [],
+      "latency_ms": 10407.5,
+      "chunks_returned": 18,
+      "queries": [
+        "잠을 잘 못 자요. 한 시간은 뒤척이는 것 같아요.",
+        "회사 대규모 프로젝트 데드라인이 다가오면서부터 증상이 시작됨. 최근 집중도 잘 안 되고 실수도 잦아 힘들어함.",
+        "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\""
+      ],
+      "department_candidates_n": 1
+    },
+    "rag/VP-002/run1": {
+      "arm": "rag",
+      "vp": "VP-002",
+      "run": "run1",
+      "artifact": "experiments/EXP-005/runs/rag/VP-002/run1/VP-002_20260708_200322_domain_inference.json",
+      "mode": "rag",
+      "domain_candidates": [
+        "depression",
+        "anxiety",
+        "sleep"
+      ],
+      "golden_set": [
+        "depression"
+      ],
+      "top1_hit": true,
+      "top3_hit": true,
+      "n_evidence_accepted": 4,
+      "whitelist_counts": {
+        "accepted": 4,
+        "rejected_unknown_source": 2,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 0
+      },
+      "filter_summary": {
+        "candidates_before": 3,
+        "candidates_after": 3,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 2,
+        "evidence_stripped_risk_lexicon": 0
+      },
+      "orphan_departments": [],
+      "latency_ms": 9175.0,
+      "chunks_returned": 18,
+      "queries": [
+        "수면 개선 및 일상 회복 상태 확인",
+        "6주 전 에시탈로프람 10mg 복용 시작, 초기 위장 불편 있었으나 현재는 호전됨. 주말 기분 호전 및 우울감 감소, 에너지 증가로 퇴근 후 산책 가능. 새로운 일 시작 어려움 있으나 아내 도움으로 일상 회복 중",
+        "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그런 생각은 전혀 없었어요.\""
+      ],
+      "department_candidates_n": 1
+    },
+    "rag/VP-002/run2": {
+      "arm": "rag",
+      "vp": "VP-002",
+      "run": "run2",
+      "artifact": "experiments/EXP-005/runs/rag/VP-002/run2/VP-002_20260708_200334_domain_inference.json",
+      "mode": "rag",
+      "domain_candidates": [
+        "depression"
+      ],
+      "golden_set": [
+        "depression"
+      ],
+      "top1_hit": true,
+      "top3_hit": true,
+      "n_evidence_accepted": 1,
+      "whitelist_counts": {
+        "accepted": 1,
+        "rejected_unknown_source": 2,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 0
+      },
+      "filter_summary": {
+        "candidates_before": 1,
+        "candidates_after": 1,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 2,
+        "evidence_stripped_risk_lexicon": 0
+      },
+      "orphan_departments": [],
+      "latency_ms": 9762.4,
+      "chunks_returned": 16,
+      "queries": [
+        "약 복용 6주 후 증상 호전 확인 및 회복 경과 보고",
+        "약 복용 6주 경과, 수업 준비 가능, 주말 외식 가능, 수면 개선(잠들기 30분 이내, 6~7시간 수면), 간헐적 야간 각성, 식욕 정상화, 새로운 일에 대한 집중력 저하 지속",
+        "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없었어요. 아내가 많이 도와줘서 그런지, 그런 생각은 한 번도 안 들었어요. 지금은 그냥 피곤하긴 해도, 마음이 무겁...\""
+      ],
+      "department_candidates_n": 1
+    },
+    "rag/VP-003/run1": {
+      "arm": "rag",
+      "vp": "VP-003",
+      "run": "run1",
+      "artifact": "experiments/EXP-005/runs/rag/VP-003/run1/VP-003_20260708_200356_domain_inference.json",
+      "mode": "rag",
+      "domain_candidates": [],
+      "golden_set": [
+        "depression"
+      ],
+      "top1_hit": false,
+      "top3_hit": false,
+      "n_evidence_accepted": 0,
+      "whitelist_counts": {
+        "accepted": 0,
+        "rejected_unknown_source": 0,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 0
+      },
+      "filter_summary": {
+        "candidates_before": 0,
+        "candidates_after": 0,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 0,
+        "evidence_stripped_risk_lexicon": 0
+      },
+      "orphan_departments": [],
+      "latency_ms": 20263.0,
+      "chunks_returned": 11,
+      "queries": [
+        "살고 싶지 않음, 매일 밤 자살 생각, 수면 장애(새벽 3시 기상 후 재입면 불가)",
+        "매일 밤 자살 생각 지속, 새벽 3시 기상 후 재입면 불가, 천장만 보며 '살아서 뭐하나' 생각 반복",
+        "자살/자해 사고 표현 있음 — 환자 발화: \"... 도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"... 어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.\""
+      ],
+      "department_candidates_n": 0,
+      "llm_output_failure": "JSON parse failure: Unterminated string starting at: line 157 column 20 (char 5053)"
+    },
+    "rag/VP-003/run2": {
+      "arm": "rag",
+      "vp": "VP-003",
+      "run": "run2",
+      "artifact": "experiments/EXP-005/runs/rag/VP-003/run2/VP-003_20260708_200413_domain_inference.json",
+      "mode": "rag",
+      "domain_candidates": [],
+      "golden_set": [
+        "depression"
+      ],
+      "top1_hit": false,
+      "top3_hit": false,
+      "n_evidence_accepted": 0,
+      "whitelist_counts": {
+        "accepted": 0,
+        "rejected_unknown_source": 0,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 0
+      },
+      "filter_summary": {
+        "candidates_before": 0,
+        "candidates_after": 0,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 0,
+        "evidence_stripped_risk_lexicon": 0
+      },
+      "orphan_departments": [],
+      "latency_ms": 15211.4,
+      "chunks_returned": 6,
+      "queries": [
+        "살고 싶지 않다는 생각이 매일 들어 힘들다고 표현",
+        "살고 싶지 않다는 생각이 매일 들어 힘들다고 표현"
+      ],
+      "department_candidates_n": 0,
+      "llm_output_failure": "schema validation failure: 6 error(s)"
+    },
+    "rag/VP-004/run1": {
+      "arm": "rag",
+      "vp": "VP-004",
+      "run": "run1",
+      "artifact": "experiments/EXP-005/runs/rag/VP-004/run1/VP-004_20260708_200427_domain_inference.json",
+      "mode": "rag",
+      "domain_candidates": [
+        "anxiety",
+        "depression"
+      ],
+      "golden_set": [
+        "anxiety",
+        "depression"
+      ],
+      "top1_hit": true,
+      "top3_hit": true,
+      "n_evidence_accepted": 5,
+      "whitelist_counts": {
+        "accepted": 5,
+        "rejected_unknown_source": 0,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 0
+      },
+      "filter_summary": {
+        "candidates_before": 2,
+        "candidates_after": 2,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 0,
+        "evidence_stripped_risk_lexicon": 0
+      },
+      "orphan_departments": [],
+      "latency_ms": 12925.3,
+      "chunks_returned": 6,
+      "queries": [
+        "약을 두 번이나 바꿨는데도 증상이 개선되지 않고 오히려 악화되었으며, 공황 발작 시 죽을 것 같은 공포와 재발에 대한 두려움을 호소함"
+      ],
+      "department_candidates_n": 1
+    },
+    "rag/VP-004/run2": {
+      "arm": "rag",
+      "vp": "VP-004",
+      "run": "run2",
+      "artifact": "experiments/EXP-005/runs/rag/VP-004/run2/VP-004_20260708_200438_domain_inference.json",
+      "mode": "rag",
+      "domain_candidates": [
+        "depression"
+      ],
+      "golden_set": [
+        "anxiety",
+        "depression"
+      ],
+      "top1_hit": true,
+      "top3_hit": true,
+      "n_evidence_accepted": 4,
+      "whitelist_counts": {
+        "accepted": 4,
+        "rejected_unknown_source": 0,
+        "rejected_quote_mismatch": 0,
+        "rejected_unknown_source_type": 0,
+        "rejected_risk_lexicon": 1
+      },
+      "filter_summary": {
+        "candidates_before": 1,
+        "candidates_after": 1,
+        "candidates_eliminated": 0,
+        "eliminated_domains": [],
+        "evidence_stripped": 1,
+        "evidence_stripped_risk_lexicon": 1
+      },
+      "orphan_departments": [],
+      "latency_ms": 8936.7,
+      "chunks_returned": 8,
+      "queries": [
+        "약을 먹는데도 전혀 나아지지 않고 오히려 더 나빠진 느낌, 감정에서 벗어날 수 없을 것 같은 절망감",
+        "약을 복용 중임에도 증상이 개선되지 않고 악화되는 느낌, 감정에서 벗어날 수 있을지에 대한 절망감 표현"
+      ],
+      "department_candidates_n": 1
+    }
+  },
+  "llm_only_summary": {
+    "n": 8,
+    "top1_hits": 7,
+    "top3_hits": 7,
+    "latency_min": 2353.8,
+    "latency_p50": 5836.4,
+    "latency_mean": 5931.9375,
+    "latency_p95": 9309.814999999999,
+    "latency_max": 10405.0,
+    "total_evidence_stripped_risk_lexicon": 13,
+    "total_accepted_evidence": 17,
+    "total_rejected_unknown_source": 0,
+    "total_rejected_quote_mismatch": 0,
+    "total_rejected_unknown_source_type": 0,
+    "zero_candidate_runs": 1
+  },
+  "rag_summary": {
+    "n": 8,
+    "top1_hits": 5,
+    "top3_hits": 6,
+    "latency_min": 8936.7,
+    "latency_p50": 11666.4,
+    "latency_mean": 12994.6375,
+    "latency_p95": 19217.48,
+    "latency_max": 20263.0,
+    "total_evidence_stripped_risk_lexicon": 1,
+    "total_accepted_evidence": 25,
+    "total_rejected_unknown_source": 10,
+    "total_rejected_quote_mismatch": 0,
+    "total_rejected_unknown_source_type": 0,
+    "zero_candidate_runs": 2
+  },
+  "rag_arm_source_id_format_note": "rejected_unknown_source (10 total, VP-001/run1=6, VP-002/run1=2, VP-002/run2=2): independently verified all 10 are source_id FORMAT mismatches, not content fabrication -- the underlying chunk_id (stripped of a spurious \"chunk_id=\" prefix the model sometimes emits) is present in that run's actual retrieved chunk_ids in all 10 cases, and the quote text matches chunk_texts verbatim in all 10 cases. Root cause traced to the prompt's per-chunk listing format (apps/ai-server/src/agents/domain_inference.py:75,77: header reads \"source_id=chunk_id\" and each line is formatted \"chunk_id={id} [...]\", which the model sometimes echoes literally into the source_id field as chunk_id=X instead of just X). Flagged for orchestrator to route to qa/critic -- not filed as BUG/VAL by this agent (out of charter).",
+  "rag_arm_vp003_llm_output_failure_note": "Both VP-003 RAG runs (0/2) returned domain_candidates=[] NOT because of risk-lexicon cascade elimination (candidates_before=0 in both -- the cascade never ran) but because the raw LLM response failed to parse (run1: unterminated JSON string) or failed schema validation (run2: 6 errors) -- a distinct LLM-output-reliability failure mode, correctly handled by f2.py's designed fail-safe (empty candidates, no crash, mode still honestly reported as rag). VP-003 is also the persona whose Stage-1 queries and retrieved chunks are the most risk-topic-heavy in the batch (VAL-010 finding); a causal link between retrieval-topic-bias and output-length/truncation is plausible but not established by this data -- reported as a correlation only."
+}

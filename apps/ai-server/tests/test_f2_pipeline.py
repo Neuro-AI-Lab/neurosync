@@ -22,6 +22,7 @@ from src.eval.f2_grounding import (
     audit_domain_candidates,
     filter_domain_candidates,
 )
+from src.schemas.ai_predicted_disease import AIPredictedDiseaseCandidate, AIPredictedDiseaseOutput
 from src.schemas.domain_inference import (
     DepartmentCandidate,
     DomainCandidate,
@@ -280,6 +281,87 @@ class TestArtifactAndReport:
         assert "sleep" in report
         assert "git HEAD" in report
         assert "Grounding cascade" in report
+
+    def test_report_renders_recommended_questionnaire_and_caveat_alongside(self) -> None:
+        """CVR-003 Findings 1/3/4 (W5 addendum): both fields must reach
+        f2.py's rendered report line for the AI-predicted-disease field —
+        not just the JSON artifact. The caveat is rendered alongside
+        (never in place of) the recommendation."""
+        output = self._output()
+        chunk_texts: dict[str, str] = {}
+        utterances = {"turn_0": "요즘 잠을 잘 못 자요"}
+        filtered, verdicts, counts = filter_domain_candidates(
+            output.domain_candidates, chunk_texts=chunk_texts, utterances=utterances
+        )
+        orphans = f2.find_orphan_departments(filtered, output.department_candidates)
+        filter_summary = f2._build_filter_summary(
+            candidates_before=output.domain_candidates, candidates_after=filtered, counts=counts
+        )
+        repro = {
+            "git_head": "deadbeef", "model_used": "test-model", "prompt_version": "v1",
+            "input_file": "x.json", "input_sha256": "abc", "mode": "llm_only",
+            "latency_ms": 12.3, "generated_at": "2026-07-08T00:00:00",
+        }
+        ai_disease = AIPredictedDiseaseOutput(
+            mode="rag_live",
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="우울 삽화(우울증)", similarity_score=0.9,
+                    source_id="case_card:1", quote="우울감",
+                )
+            ],
+            reason_summary="1 disease candidate(s) derived...",
+            recommended_questionnaire="PHQ-9",
+            recommendation_caveat=(
+                "PHQ-9 screens depressive-symptom burden only, does not "
+                "screen manic/hypomanic symptoms — bipolar-spectrum "
+                "presentations need clinician follow-up regardless of score."
+            ),
+        )
+        artifact = f2._build_artifact(
+            output=output, domain_candidates=filtered, repro=repro,
+            chunk_texts=chunk_texts, utterances=utterances,
+            verdicts=verdicts, counts=counts, filter_summary=filter_summary, orphans=orphans,
+            session_id="t", persona_id="VP-001",
+            ai_predicted_disease=ai_disease.model_dump(),
+        )
+        report = f2._build_report(artifact)
+
+        assert "recommended_questionnaire: **PHQ-9**" in report
+        assert "recommendation_caveat:" in report
+        assert "manic/hypomanic symptoms" in report
+
+    def test_report_omits_questionnaire_and_caveat_lines_when_both_none(self) -> None:
+        """Additive/honest-only rendering: no noise lines when the run has
+        no top candidate / no construct-valid mapping (e.g.
+        experimental_unpopulated)."""
+        output = self._output()
+        chunk_texts: dict[str, str] = {}
+        utterances = {"turn_0": "요즘 잠을 잘 못 자요"}
+        filtered, verdicts, counts = filter_domain_candidates(
+            output.domain_candidates, chunk_texts=chunk_texts, utterances=utterances
+        )
+        orphans = f2.find_orphan_departments(filtered, output.department_candidates)
+        filter_summary = f2._build_filter_summary(
+            candidates_before=output.domain_candidates, candidates_after=filtered, counts=counts
+        )
+        repro = {
+            "git_head": "deadbeef", "model_used": "test-model", "prompt_version": "v1",
+            "input_file": "x.json", "input_sha256": "abc", "mode": "llm_only",
+            "latency_ms": 12.3, "generated_at": "2026-07-08T00:00:00",
+        }
+        ai_disease = AIPredictedDiseaseOutput(mode="experimental_unpopulated")
+        artifact = f2._build_artifact(
+            output=output, domain_candidates=filtered, repro=repro,
+            chunk_texts=chunk_texts, utterances=utterances,
+            verdicts=verdicts, counts=counts, filter_summary=filter_summary, orphans=orphans,
+            session_id="t", persona_id="VP-001",
+            ai_predicted_disease=ai_disease.model_dump(),
+        )
+        report = f2._build_report(artifact)
+
+        assert "recommended_questionnaire:" not in report
+        assert "recommendation_caveat:" not in report
 
     def test_save_f2_result_writes_json_and_report(self, tmp_path) -> None:
         output = self._output()
@@ -898,6 +980,71 @@ class TestBuildAiPredictedDiseasePopulated:
         assert "risk-lexicon filter" in out.reason_summary
         assert "1 candidate vote(s)" in out.reason_summary
 
+    @pytest.mark.asyncio
+    async def test_recommendation_caveat_populated_for_real_mood_top_candidate(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """CVR-003 Findings 1/3 (W5 addendum): recommendation_caveat is
+        derived from the SAME top-ranked candidate's disease name as
+        recommended_questionnaire, via the same
+        src.rag.questionnaire_mapping module. Uses a real ontology disease
+        name ("우울 삽화(우울증)", mood classification) so both fields
+        resolve to real, non-None values."""
+        chunks = [
+            {
+                "chunk_id": "case_card:1", "source_type": "case_card",
+                "text": "환자가 2주 이상 지속된 우울감을 호소함", "score": 0.9,
+            }
+        ]
+        monkeypatch.setattr(
+            "src.rag.retrieval.match_diseases_for_chunk_text",
+            AsyncMock(return_value=[("우울 삽화(우울증)", 1, "우울감")]),
+        )
+
+        out = await f2._build_ai_predicted_disease_populated(object(), chunks)
+
+        assert out.recommended_questionnaire == "PHQ-9"
+        assert out.recommendation_caveat is not None
+        assert "manic" in out.recommendation_caveat or "mania" in out.recommendation_caveat.lower()
+
+    @pytest.mark.asyncio
+    async def test_recommendation_caveat_none_when_top_candidate_has_no_disclosed_caveat(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A real ontology disease name whose classification (anxiety) DOES
+        map to a scale but has no disclosed caveat -- recommended_
+        questionnaire is set, recommendation_caveat stays None."""
+        chunks = [
+            {
+                "chunk_id": "case_card:2", "source_type": "case_card",
+                "text": "환자가 만성적인 불안과 걱정을 호소함", "score": 0.9,
+            }
+        ]
+        monkeypatch.setattr(
+            "src.rag.retrieval.match_diseases_for_chunk_text",
+            AsyncMock(return_value=[("범불안장애", 1, "불안")]),
+        )
+
+        out = await f2._build_ai_predicted_disease_populated(object(), chunks)
+
+        assert out.recommended_questionnaire == "GAD-7"
+        assert out.recommendation_caveat is None
+
+    @pytest.mark.asyncio
+    async def test_recommendation_caveat_none_when_zero_candidates(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(
+            "src.rag.retrieval.match_diseases_for_chunk_text", AsyncMock(return_value=[])
+        )
+        chunks = [{"chunk_id": "qa:9", "source_type": "qa", "text": "일반 상담", "score": 0.5}]
+
+        out = await f2._build_ai_predicted_disease_populated(object(), chunks)
+
+        assert out.candidates == []
+        assert out.recommended_questionnaire is None
+        assert out.recommendation_caveat is None
+
 
 class TestBuildEvidenceProvenanceSummary:
     """Enhancement #4 code-side half (ADR-021, REV-016(a))."""
@@ -919,11 +1066,13 @@ class TestBuildEvidenceProvenanceSummary:
         summary = f2._build_evidence_provenance_summary(candidates)
         assert summary == {
             "rag_chunk_case_card": 1, "rag_chunk_qa": 2, "rag_chunk_other": 0, "utterance": 1,
+            "ocr_document": 0,
         }
 
     def test_empty_candidates_all_zero(self) -> None:
         assert f2._build_evidence_provenance_summary([]) == {
             "rag_chunk_case_card": 0, "rag_chunk_qa": 0, "rag_chunk_other": 0, "utterance": 0,
+            "ocr_document": 0,
         }
 
     def test_unrecognized_prefix_falls_into_other_not_silently_dropped(self) -> None:
@@ -977,6 +1126,7 @@ class TestBuildEvidenceProvenanceSummary:
         )
         assert artifact["evidence_provenance_summary"] == {
             "rag_chunk_case_card": 1, "rag_chunk_qa": 0, "rag_chunk_other": 0, "utterance": 0,
+            "ocr_document": 0,
         }
         report = f2._build_report(artifact)
         assert "Evidence provenance (enhancement #4)" in report

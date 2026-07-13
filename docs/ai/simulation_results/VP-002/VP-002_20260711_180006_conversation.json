@@ -1,0 +1,126 @@
+{
+  "session_id": "f1_VP-002_followup",
+  "persona_id": "VP-002",
+  "persona_name": "이준호",
+  "total_turns": 0,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [],
+  "slot_coverage": 0.0,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요, 선생님.  \n오늘은 약 먹고 난 지 6주쯤 되어서 그런지 전반적으로 좀 나아진 것 같아서 왔어요.  \n잠도 예전처럼 한 시간씩 뒤척이지 않고, 아침엔 좀 속이 안 좋았는데 지금은 괜찮아졌어요.  \n아내가 많이 도와줘서 술도 거의 안 마시고, 주말엔 가끔 외식도 할 수 있게 됐어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 지난번에 이어서 상담을 이어가실 수 있어 기쁩니다. 오늘은 어떤 점이 가장 힘드신지 편하게 말씀해 주시면 함께 생각해 볼게요.",
+      "slot_updates": {
+        "chief_complaint": "약 복용 6주 후 전반적으로 호전됨",
+        "personal_social_history": "아내 도움으로 술 거의 안 마심, 주말 외식 가능"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "약 복용 6주 후 전반적으로 호전됨",
+        "personal_social_history": "아내 도움으로 술 거의 안 마심, 주말 외식 가능"
+      },
+      "slot_coverage": 0.2,
+      "latency_ms": 12294.452094938606,
+      "timestamp": "2026-07-11T18:00:06.083041",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negative template without ask evidence (slot was never asked and answered with negation)"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "안녕하세요, 선생님.  \n오늘은 약 먹고 난 지 6주쯤 되어서 그런지 전반적으로 좀 나아진 것 같아서 왔어요.  \n잠도 예전처럼 한 시간씩 뒤척이지 않고, 아침엔 좀 속이 안 좋았는데 지금은 괜찮아졌어요.  \n아내가 많이 도와줘서 술도 거의 안 마시고, 주말엔 가끔 외식도 할 수 있게 됐어요.",
+        "normalized": "안녕하세요, 선생님.  \n오늘은 약 먹고 난 지 6주쯤 되어서 그런지 전반적으로 좀 나아진 것 같아서 왔어요.  \n잠도 예전처럼 한 시간씩 뒤척이지 않고, 아침엔 좀 속이 안 좋았는데 지금은 괜찮아졌어요.  \n아내가 많이 도와줘서 술도 거의 안 마시고, 주말엔 가끔 외식도 할 수 있게 됐어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 4349.003434646875,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.7,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.8
+          },
+          {
+            "label": "hope",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "오늘은 약 먹고 난 지 6주쯤 되어서 그런지 전반적으로 좀 나아진 것 같아서 왔어요. 잠도 예전처럼 한 시간씩 뒤척이지 않고, 아침엔 좀 속이 안 좋았는데 지금은 괜찮아졌어요. 아내가 많이 도와줘서 술도 거의 안 마시고, 주말엔 가끔 외식도 할 수 있게 됐어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-11T17:59:53.788554",
+  "ended_at": "2026-07-11T18:00:06.083207",
+  "grounded_coverage": 0.25,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 5,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.402,
+  "patient_lng": 127.1087,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.047081150114536285,
+    "reason_summary": "Session sentiment: ['relief', 'hope'], strength=none",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "relief",
+      "hope"
+    ],
+    "emotion_distribution": {
+      "relief": 0.5,
+      "hope": 0.5
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": 0.7
+      }
+    ],
+    "signal_strength": "none",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "relief",
+          "hope"
+        ],
+        "polarity": 0.7
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 2,
+  "simulated_date": "2026-07-11",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v3",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n(수집된 정보 없음)\n\n[이전 세션 요약 — 미수집 정보]\nchief_complaint, history_of_present_illness, past_psychiatric_history, medical_history, personal_social_history, family_history, substance_use_history, risk_assessment",
+  "carried_slot_provenance": {}
+}

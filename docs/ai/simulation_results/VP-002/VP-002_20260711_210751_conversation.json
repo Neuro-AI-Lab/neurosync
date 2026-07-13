@@ -1,0 +1,827 @@
+{
+  "session_id": "f1_VP-002",
+  "persona_id": "VP-002",
+  "persona_name": "이준호",
+  "total_turns": 9,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없었어요. 오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요.\""
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "약 복용 6주 경과, 수면 개선 및 기분 안정"
+    },
+    {
+      "key": "past_psychiatric_history",
+      "value": "정신건강의학과 첫 방문 경험 있음"
+    },
+    {
+      "key": "family_history",
+      "value": "가족 중 우울감 경험 있으나 치료받은 사람 없음"
+    },
+    {
+      "key": "chief_complaint",
+      "value": "약 복용 6주 후 증상 호전 확인"
+    },
+    {
+      "key": "personal_social_history",
+      "value": "아내와 외출 증가, 음주 주 1회로 감소"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "음주 주 1회, 에시탈로프람 외 약물 복용 없음"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "아, 안녕하세요.  \n약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.  \n수면은 확실히 나아졌고, 기분도 예전보다는 덜 가라앉아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요. 저는 정신건강 사전문진을 돕는 AI 상담 도우미입니다. 실제 의사와의 대화가 아니며, 편하게 이야기해 주셔도 괜찮아요. 오늘 가장 도움받고 싶은 문제나 증상이 있으신가요?",
+      "slot_updates": {},
+      "cumulative_slots": {},
+      "slot_coverage": 0.0,
+      "latency_ms": 9865.898274350911,
+      "timestamp": "2026-07-11T21:06:11.421185",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.0,
+      "normalizer_meta": {
+        "original": "아, 안녕하세요.  \n약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.  \n수면은 확실히 나아졌고, 기분도 예전보다는 덜 가라앉아요.",
+        "normalized": "아, 안녕하세요.  \n약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.  \n수면은 확실히 나아졌고, 기분도 예전보다는 덜 가라앉아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2524.977580178529,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.8
+          },
+          {
+            "label": "hope",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요. 수면은 확실히 나아졌고, 기분도 예전보다는 덜 가라앉아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false
+    },
+    {
+      "turn": 1,
+      "patient_message": "아, 안녕하세요.  \n약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.  \n수면은 확실히 나아졌고, 기분도 예전보다는 덜 가라앉아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 최근 스스로를 해치고 싶거나 죽고 싶다는 생각이 드신 적이 있으신가요?",
+      "slot_updates": {},
+      "cumulative_slots": {},
+      "slot_coverage": 0.0,
+      "latency_ms": 4432.543714996427,
+      "timestamp": "2026-07-11T21:06:15.853754",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.0,
+      "normalizer_meta": {
+        "original": "아, 안녕하세요.  \n약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.  \n수면은 확실히 나아졌고, 기분도 예전보다는 덜 가라앉아요.",
+        "normalized": "아, 안녕하세요.  \n약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.  \n수면은 확실히 나아졌고, 기분도 예전보다는 덜 가라앉아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2524.977580178529,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.7
+          },
+          {
+            "label": "hope",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "수면은 확실히 나아졌고, 기분도 예전보다는 덜 가라앉아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 2,
+      "patient_message": "아니요, 그런 생각은 전혀 없었어요. 오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "이야기해 주셔서 감사합니다. 진단받은 신체질환이 있으신가요? 또는 기존에 처방받은 약 외에 새로 복용 중인 약이나 변경된 약이 있으신가요?",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없었어요. 오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요.\"",
+        "history_of_present_illness": "약 복용 6주 경과, 수면 개선 및 기분 안정"
+      },
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없었어요. 오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요.\"",
+        "history_of_present_illness": "약 복용 6주 경과, 수면 개선 및 기분 안정"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4931.002160999924,
+      "timestamp": "2026-07-11T21:06:25.014817",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요, 그런 생각은 전혀 없었어요.  \n오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요.",
+        "normalized": "아니요, 그런 생각은 전혀 없었어요. 오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1494.414186105132,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.85,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.9
+          },
+          {
+            "label": "hope",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 3,
+      "patient_message": "아니요, 특별히 진단받은 신체질환은 없어요.  \n처방받은 약은 아침에 먹는 에시탈... 에스시탈로프람이요. 가끔 빠뜨리긴 해도 거의 매일 챙기고 있어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 과거에 정신건강 문제로 치료를 받으신 적이 있으신가요? 또는 가족 중에 비슷한 증상을 겪은 분이 계신가요?",
+      "slot_updates": {
+        "history_of_present_illness": "약 복용 6주 경과, 수면 개선 및 기분 안정"
+      },
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없었어요. 오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요.\"",
+        "history_of_present_illness": "약 복용 6주 경과, 수면 개선 및 기분 안정"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4958.575506228954,
+      "timestamp": "2026-07-11T21:06:36.430107",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요, 특별히 진단받은 신체질환은 없어요.  \n처방받은 약은 아침에 먹는 에시탈... 에스시탈로프람이요. 가끔 빠뜨리긴 해도 거의 매일 챙기고 있어요.",
+        "normalized": "아니요, 특별히 진단받은 신체질환은 없어요.  \n처방받은 약은 아침에 먹는 에시탈... 에스시탈로프람이요. 가끔 빠뜨리긴 해도 거의 매일 챙기고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2659.7223188728094,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 특별히 진단받은 신체질환은 없어요. 처방받은 약은 아침에 먹는 에시탈... 에스시탈로프람이요. 가끔 빠뜨리긴 해도 거의 매일 챙기고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 4,
+      "patient_message": "이전에 정신건강의학과를 처음 방문해 상담 받은 적이 있어요.\n가족 중에 우울감을 겪은 분은 있지만, 특별히 치료받은 분은 없어요.\n지금은 제 상태가 예전보다 나아져서, 꾸준히 약도 먹고 있어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 현재 복용 중인 에시탈로프람 외에 다른 약을 추가로 복용하고 계신가요? 또는 음주나 흡연 습관이 있으신가요?",
+      "slot_updates": {
+        "history_of_present_illness": "수면 개선 및 기분 안정",
+        "past_psychiatric_history": "정신건강의학과 첫 방문 경험",
+        "family_history": "가족 중 우울감 경험자 있으나 치료받은 사람 없음"
+      },
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없었어요. 오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요.\"",
+        "history_of_present_illness": "수면 개선 및 기분 안정",
+        "past_psychiatric_history": "정신건강의학과 첫 방문 경험",
+        "family_history": "가족 중 우울감 경험자 있으나 치료받은 사람 없음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4452.465326990932,
+      "timestamp": "2026-07-11T21:06:46.816463",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "이전에 정신건강의학과를 처음 방문해 상담 받은 적이 있어요.  \n가족 중에 우울감을 겪은 분은 있지만, 특별히 치료받은 분은 없어요.  \n지금은 제 상태가 예전보다 나아져서, 꾸준히 약도 먹고 있어요.",
+        "normalized": "이전에 정신건강의학과를 처음 방문해 상담 받은 적이 있어요.\n가족 중에 우울감을 겪은 분은 있지만, 특별히 치료받은 분은 없어요.\n지금은 제 상태가 예전보다 나아져서, 꾸준히 약도 먹고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1782.245724927634,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.85,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.9
+          },
+          {
+            "label": "hope",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "지금은 제 상태가 예전보다 나아져서, 꾸준히 약도 먹고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 5,
+      "patient_message": "에시탈로프람 외에 다른 약은 복용하지 않아요.  \n음주는 예전보다 많이 줄였고, 요즘은 주 1회 정도예요.  \n아내가 걱정해서 그런지 자연스럽게 줄이게 됐어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 현재 복용 중인 에시탈로프람 외에 다른 약을 추가로 복용하고 계신가요? 또는 음주나 흡연 습관이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "약 복용 6주 후 상태 확인",
+        "history_of_present_illness": "약 복용 6주 후 수면 개선 및 기분 안정",
+        "past_psychiatric_history": "정신건강의학과 첫 방문 경험",
+        "personal_social_history": "주 1회 음주",
+        "family_history": "가족 중 우울감 경험자 있으나 치료받은 사람 없음",
+        "substance_use_history": "주 1회 음주"
+      },
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없었어요. 오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요.\"",
+        "history_of_present_illness": "약 복용 6주 후 수면 개선 및 기분 안정",
+        "past_psychiatric_history": "정신건강의학과 첫 방문 경험",
+        "family_history": "가족 중 우울감 경험자 있으나 치료받은 사람 없음",
+        "chief_complaint": "약 복용 6주 후 상태 확인",
+        "personal_social_history": "주 1회 음주",
+        "substance_use_history": "주 1회 음주"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4504.671182017773,
+      "timestamp": "2026-07-11T21:06:57.361087",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "에시탈로프람 외에 다른 약은 복용하지 않아요.  \n음주는 예전보다 많이 줄였고, 요즘은 주 1회 정도예요.  \n아내가 걱정해서 그런지 자연스럽게 줄이게 됐어요.",
+        "normalized": "에시탈로프람 외에 다른 약은 복용하지 않아요.  \n음주는 예전보다 많이 줄였고, 요즘은 주 1회 정도예요.  \n아내가 걱정해서 그런지 자연스럽게 줄이게 됐어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2194.7379019111395,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "에시탈로프람 외에 다른 약은 복용하지 않아요. 음주는 예전보다 많이 줄였고, 요즘은 주 1회 정도예요. 아내가 걱정해서 그런지 자연스럽게 줄이게 됐어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 6,
+      "patient_message": "아니요, 에시탈로프람 외에 다른 약은 복용하지 않아요.  \n음주는 예전보다 많이 줄였고, 요즘은 주 1회 정도예요.  \n아내가 걱정해서 그런지 자연스럽게 줄이게 됐어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 다른 신체질환으로 진단받아 치료를 받고 계신 게 있으신가요? 또는 기존에 처방받은 에시탈로프람 외에 새로 시작하거나 중단한 약이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "약 복용 6주 후 상태 확인",
+        "history_of_present_illness": "수면 개선 및 기분 안정",
+        "past_psychiatric_history": "정신건강의학과 첫 방문 경험",
+        "personal_social_history": "아내와 외출 증가, 음주 주 1회로 감소",
+        "family_history": "가족 중 우울감 경험 있으나 치료받은 사람 없음",
+        "substance_use_history": "음주 주 1회"
+      },
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없었어요. 오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요.\"",
+        "history_of_present_illness": "수면 개선 및 기분 안정",
+        "past_psychiatric_history": "정신건강의학과 첫 방문 경험",
+        "family_history": "가족 중 우울감 경험 있으나 치료받은 사람 없음",
+        "chief_complaint": "약 복용 6주 후 상태 확인",
+        "personal_social_history": "아내와 외출 증가, 음주 주 1회로 감소",
+        "substance_use_history": "음주 주 1회"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6301.526898983866,
+      "timestamp": "2026-07-11T21:07:10.571270",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 에시탈로프람 외에 다른 약은 복용하지 않아요.  \n음주는 예전보다 많이 줄였고, 요즘은 주 1회 정도예요.  \n아내가 걱정해서 그런지 자연스럽게 줄이게 됐어요.",
+        "normalized": "아니요, 에시탈로프람 외에 다른 약은 복용하지 않아요.  \n음주는 예전보다 많이 줄였고, 요즘은 주 1회 정도예요.  \n아내가 걱정해서 그런지 자연스럽게 줄이게 됐어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2807.4242039583623,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 에시탈로프람 외에 다른 약은 복용하지 않아요. 음주는 예전보다 많이 줄였고, 요즘은 주 1회 정도예요. 아내가 걱정해서 그런지 자연스럽게 줄이게 됐어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 7,
+      "patient_message": "다른 신체질환은 없고, 특별히 새로 시작하거나 끊은 약도 없어요.  \n에시탈... 에스시탈로프람만 아침에 먹고 있어요. 가끔 깜빡하고 안 먹은 날은 있지만, 대체로 꾸준히 챙기고 있어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 진단받은 신체질환이 있으신가요? 또는 기존에 처방받은 약 외에 새로 복용 중인 약이나 변경된 약 여부가 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "약 복용 6주 후 증상 호전 확인",
+        "history_of_present_illness": "6주간 에시탈로프람 복용 후 수면 개선 및 기분 안정",
+        "past_psychiatric_history": "정신건강의학과 첫 방문 경험",
+        "personal_social_history": "주 1회 음주, 아내와의 외출 증가",
+        "family_history": "가족 중 우울감 경험자 있으나 치료받은 사람 없음"
+      },
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없었어요. 오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요.\"",
+        "history_of_present_illness": "6주간 에시탈로프람 복용 후 수면 개선 및 기분 안정",
+        "past_psychiatric_history": "정신건강의학과 첫 방문 경험",
+        "family_history": "가족 중 우울감 경험자 있으나 치료받은 사람 없음",
+        "chief_complaint": "약 복용 6주 후 증상 호전 확인",
+        "personal_social_history": "주 1회 음주, 아내와의 외출 증가",
+        "substance_use_history": "음주 주 1회"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6238.881621044129,
+      "timestamp": "2026-07-11T21:07:23.333892",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "substance_use_history": "ungrounded: negative template without ask evidence (slot was never asked and answered with negation)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "다른 신체질환은 없고, 특별히 새로 시작하거나 끊은 약도 없어요.  \n에시탈... 에스시탈로프람만 아침에 먹고 있어요. 가끔 깜빡하고 안 먹은 날은 있지만, 대체로 꾸준히 챙기고 있어요.",
+        "normalized": "다른 신체질환은 없고, 특별히 새로 시작하거나 끊은 약도 없어요.  \n에시탈... 에스시탈로프람만 아침에 먹고 있어요. 가끔 깜빡하고 안 먹은 날은 있지만, 대체로 꾸준히 챙기고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2450.930864084512,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "다른 신체질환은 없고, 특별히 새로 시작하거나 끊은 약도 없어요. 에시탈... 에스시탈로프람만 아침에 먹고 있어요. 가끔 깜빡하고 안 먹은 날은 있지만, 대체로 꾸준히 챙기고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 8,
+      "patient_message": "다른 신체질환은 없고, 특별히 새로 시작하거나 끊은 약도 없어요.  \n에시탈... 에스시탈로프람만 아침에 먹고 있어요. 가끔 깜빡하고 안 먹은 날은 있지만, 대체로 꾸준히 챙기고 있어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 진단받은 신체질환이 있으신가요? 또는 기존에 처방받은 약 외에 새로 복용 중인 약이나 변경된 약 여부가 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "약 복용 6주 후 상태 호전 확인",
+        "history_of_present_illness": "약 복용 6주 경과, 수면 개선 및 기분 안정",
+        "past_psychiatric_history": "정신건강의학과 첫 방문 경험 있음",
+        "personal_social_history": "아내와 외출 증가, 음주 주 1회로 감소",
+        "family_history": "가족 중 우울감 경험자 있으나 치료받은 사람 없음"
+      },
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없었어요. 오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요.\"",
+        "history_of_present_illness": "약 복용 6주 경과, 수면 개선 및 기분 안정",
+        "past_psychiatric_history": "정신건강의학과 첫 방문 경험 있음",
+        "family_history": "가족 중 우울감 경험자 있으나 치료받은 사람 없음",
+        "chief_complaint": "약 복용 6주 후 상태 호전 확인",
+        "personal_social_history": "아내와 외출 증가, 음주 주 1회로 감소",
+        "substance_use_history": "음주 주 1회"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5622.796863783151,
+      "timestamp": "2026-07-11T21:07:35.565816",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "substance_use_history": "ungrounded: negative template without ask evidence (slot was never asked and answered with negation)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "다른 신체질환은 없고, 특별히 새로 시작하거나 끊은 약도 없어요.  \n에시탈... 에스시탈로프람만 아침에 먹고 있어요. 가끔 깜빡하고 안 먹은 날은 있지만, 대체로 꾸준히 챙기고 있어요.",
+        "normalized": "다른 신체질환은 없고, 특별히 새로 시작하거나 끊은 약도 없어요.  \n에시탈... 에스시탈로프람만 아침에 먹고 있어요. 가끔 깜빡하고 안 먹은 날은 있지만, 대체로 꾸준히 챙기고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2617.741351015866,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "다른 신체질환은 없고, 특별히 새로 시작하거나 끊은 약도 없어요. 에시탈... 에스시탈로프람만 아침에 먹고 있어요. 가끔 깜빡하고 안 먹은 날은 있지만, 대체로 꾸준히 챙기고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 9,
+      "patient_message": "다른 신체질환은 없고, 특별히 새로 시작하거나 끊은 약도 없어요.  \n에시탈... 에스시탈로프람만 아침에 먹고 있어요. 가끔 깜빡하고 안 먹은 날은 있지만, 대체로 꾸준히 챙기고 있어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 진단받은 신체질환이 있으신가요? 또는 기존에 처방받은 약 외에 새로 복용 중인 약이나 변경된 약 여부가 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "약 복용 6주 후 증상 호전 확인",
+        "history_of_present_illness": "약 복용 6주 경과, 수면 개선 및 기분 안정",
+        "past_psychiatric_history": "정신건강의학과 첫 방문 경험 있음",
+        "personal_social_history": "아내와 외출 증가, 음주 주 1회로 감소",
+        "family_history": "가족 중 우울감 경험 있으나 치료받은 사람 없음",
+        "substance_use_history": "음주 주 1회, 에시탈로프람 외 약물 복용 없음"
+      },
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없었어요. 오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요.\"",
+        "history_of_present_illness": "약 복용 6주 경과, 수면 개선 및 기분 안정",
+        "past_psychiatric_history": "정신건강의학과 첫 방문 경험 있음",
+        "family_history": "가족 중 우울감 경험 있으나 치료받은 사람 없음",
+        "chief_complaint": "약 복용 6주 후 증상 호전 확인",
+        "personal_social_history": "아내와 외출 증가, 음주 주 1회로 감소",
+        "substance_use_history": "음주 주 1회, 에시탈로프람 외 약물 복용 없음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5874.346141237766,
+      "timestamp": "2026-07-11T21:07:48.095542",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "다른 신체질환은 없고, 특별히 새로 시작하거나 끊은 약도 없어요.  \n에시탈... 에스시탈로프람만 아침에 먹고 있어요. 가끔 깜빡하고 안 먹은 날은 있지만, 대체로 꾸준히 챙기고 있어요.",
+        "normalized": "다른 신체질환은 없고, 특별히 새로 시작하거나 끊은 약도 없어요.  \n에시탈... 에스시탈로프람만 아침에 먹고 있어요. 가끔 깜빡하고 안 먹은 날은 있지만, 대체로 꾸준히 챙기고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3144.3256246857345,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "다른 신체질환은 없고, 특별히 새로 시작하거나 끊은 약도 없어요. 에시탈... 에스시탈로프람만 아침에 먹고 있어요. 가끔 깜빡하고 안 먹은 날은 있지만, 대체로 꾸준히 챙기고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    }
+  ],
+  "errors": [
+    "Agent repetition at turn 8 (count=1)",
+    "Agent repetition at turn 9 (count=2)"
+  ],
+  "started_at": "2026-07-11T21:06:01.555268",
+  "ended_at": "2026-07-11T21:07:51.202203",
+  "grounded_coverage": 0.875,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 1,
+      "forced": false
+    },
+    {
+      "type": "si_screen_result",
+      "turn": 2,
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없었어요. 오히려 요즘 아내와 외출도 자주 하고, 기분도 많이 안정되어서 다행이라고 생각해요.\""
+    }
+  ],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.402,
+  "patient_lng": 127.1087,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.12010103091597557,
+    "reason_summary": "Session sentiment: ['neutral', 'relief'], strength=moderate",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "neutral",
+      "relief"
+    ],
+    "emotion_distribution": {
+      "neutral": 0.4,
+      "relief": 0.27,
+      "hope": 0.27,
+      "sadness": 0.07
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": 0.6
+      },
+      {
+        "turn": 1,
+        "polarity": 0.65
+      },
+      {
+        "turn": 2,
+        "polarity": 0.85
+      },
+      {
+        "turn": 3,
+        "polarity": 0.0
+      },
+      {
+        "turn": 4,
+        "polarity": 0.85
+      },
+      {
+        "turn": 5,
+        "polarity": 0.0
+      },
+      {
+        "turn": 6,
+        "polarity": -0.4
+      },
+      {
+        "turn": 7,
+        "polarity": 0.0
+      },
+      {
+        "turn": 8,
+        "polarity": 0.0
+      },
+      {
+        "turn": 9,
+        "polarity": 0.0
+      }
+    ],
+    "signal_strength": "moderate",
+    "emotional_shift_detected": true,
+    "shift_description": "대화 전반부 polarity 0.6 → 후반부 -0.1 (악화)",
+    "repeated_patterns": [
+      "neutral 표현 6회 반복",
+      "relief 표현 4회 반복",
+      "hope 표현 4회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "relief",
+          "hope"
+        ],
+        "polarity": 0.6
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "relief",
+          "hope"
+        ],
+        "polarity": 0.65
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "relief",
+          "hope"
+        ],
+        "polarity": 0.85
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "relief",
+          "hope"
+        ],
+        "polarity": 0.85
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-11",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v3",
+  "prior_handoff": null,
+  "carried_slot_provenance": {}
+}

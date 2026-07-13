@@ -19,7 +19,16 @@ from src.schemas.handoff import ScaleScore
 DomainName = Literal[
     "anxiety", "depression", "alcohol", "substance", "trauma", "sleep", "psychosis", "other"
 ]
-EvidenceSourceType = Literal["rag_chunk", "utterance"]
+# PLAN-2026-W28-Q W1 (plan §3 row 1): "ocr_document" added for product
+# auditability — document-origin evidence (prescription/diagnosis PDFs) must
+# be citable/auditable in F2 output. Naming matches
+# InputNormalizerInput.input_type's existing "ocr_document" literal value
+# (src/schemas/input_normalizer.py). This is a type-level + defensive-code
+# extension only — no OCR text is wired into DomainInferenceInput or the
+# certified domain_inference prompt this mission (AVC-17: no prompt-file
+# edit); every exhaustiveness site that pattern-matches EvidenceSourceType
+# now recognizes the value instead of misclassifying it as unknown.
+EvidenceSourceType = Literal["rag_chunk", "utterance", "ocr_document"]
 RetrievalMode = Literal["rag", "llm_only"]
 
 

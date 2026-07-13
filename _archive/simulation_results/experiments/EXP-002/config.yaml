@@ -1,0 +1,72 @@
+# EXP-002 — prompt architecture v3 live A/B vs DR-003 baseline
+# Config captured before any run started (experiment-reproducibility skill).
+
+git_head: 1d94f17b2e618015a2d32d3b0b90f0936e11cd66
+git_branch: Master
+git_status_note: >
+  working tree has uncommitted changes at run time (the v3 prompt files themselves
+  are untracked/uncommitted — safety_classifier v2, dialogue v2, clinical_slot v3,
+  handoff_generator v2, sentiment_analyzer v2, plus SM-07a/b scenario JSON and
+  tests/repro/). This is the same working tree qa gated (510 passed) per
+  discussion.md PLAN-2026-W28 status update 2026-07-07 (2). No code edits made
+  during this experiment.
+
+python: apps/ai-server/.venv (Python 3.12.13)
+working_dir: apps/ai-server
+prompts_base_dir_env: docs/ai/prompts   # PROMPTS_BASE_DIR, set automatically by f1.py/safety_matrix.py main()
+
+prompt_version_pins:
+  safety_classifier: v2
+  dialogue: v2
+  clinical_slot: v3
+  handoff_generator: v2
+  sentiment_analyzer: v2
+
+model:
+  primary_vendor: upstage
+  chat_model: solar-pro3
+  base_url: https://api.upstage.ai/v1
+  secondary_vendor: lg_k_exaone
+  secondary_model: LGAI-EXAONE/EXAONE-4.0.1-32B
+  temperatures_unchanged_from_baseline: true   # confirmed via git diff on apps/ai-server/src/agents/*.py — no temperature/max_tokens lines touched
+
+qa_gate:
+  suite: apps/ai-server/tests/
+  result: "510 passed, 0 failed"
+  command: ".venv/bin/python -m pytest tests/ -q"
+  run_by_tracker_before_launch: true
+
+pre_run_checklist:
+  hypothesis_or_plan: "PLAN-2026-W28 (discussion.md), not a HYP-NNN — mission-scoped validation task"
+  critic_review: "REV-002 status = resolved, non-blocking (discussion.md 2026-07-07)"
+  qa_gate: "BUG-007 resolved; BUG-008 open (major, non-blocking per ADR-008); suite 510 green"
+  dataset: >
+    DATASET-002 in discussion.md documents VP-006~VP-009 (a different persona set,
+    from PLAN-2026-W25). No DATASET-NNN entry in discussion.md/version.md formally
+    covers VP-001~VP-004 (the personas DR-003 and this A/B both use) — this is a
+    pre-existing gap, not introduced here. Brief explicitly instructed linking to
+    DATASET-002; followed as instructed, flagged as an open item in the EXP-002 entry.
+  adr: "ADR-008: n=2 per VP for Stage D"
+
+runs:
+  safety_matrix:
+    command: ".venv/bin/python -m src.safety_matrix --scenario <SM-ID>"
+    scenarios: [SM-01, SM-02, SM-03, SM-04a, SM-04b, SM-05, SM-06, SM-07a, SM-07b]
+    n_per_scenario: 1   # deterministic scripted patient, matches DR-003 methodology
+  vp_sessions:
+    command: ".venv/bin/python -m src.f1 --persona <VP-ID> --max-turns 12"
+    personas: [VP-001, VP-002, VP-003, VP-004]
+    n_per_vp: 2
+    max_turns: 12   # matches DR-003 baseline exactly (confirmed from DR-003 conversation.json total_turns/hit-max-turns pattern)
+    mode: first-visit (no --followup-from, matches DR-003)
+
+evaluation:
+  grounding_audit_command: ".venv/bin/python -m src.eval.grounding_audit <conversation.json>"
+  applied_to: every VP session conversation.json (8 total)
+
+artifact_note: >
+  f1.py and safety_matrix.py hardcode their output directory to
+  docs/ai/simulation_results/ (PROJECT_ROOT/docs/ai/simulation_results/...); there is
+  no --output-dir CLI flag. Per brief, all resulting artifacts are copied (not moved,
+  to avoid disturbing the tool's own default location) into
+  experiments/EXP-002/runs/<tag>/ after each run completes.

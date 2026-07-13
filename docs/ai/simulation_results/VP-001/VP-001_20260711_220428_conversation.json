@@ -1,0 +1,352 @@
+{
+  "session_id": "f1_VP-001",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 3,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "잠을 잘 못 자는 것이 제일 걱정됨. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨서 아침에 일어나도 개운하지 않음"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "최근 들어 수면 시작 시 생각이 계속 돌아다니며 뒤척이는 증상이 지속되고, 새벽에도 자주 깨는 수면 유지 장애가 발생하여 아침에 개운하지 않은 상태가 지속되고 있음."
+    }
+  ],
+  "slot_coverage": 0.4,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요. 요즘 잠을 잘 못 자는 게 제일 걱정돼요. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자는 게 제일 걱정돼요",
+        "누우면 생각이 계속 돌아서 한참 뒤척이고",
+        "새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요"
+      ],
+      "agent_response": "안녕하세요, 저는 정신건강 사전문진을 돕는 AI 상담 도우미입니다. 실제 의사와의 대화가 아니며, 편하게 이야기해 주셔도 괜찮아요. 오늘 가장 도움받고 싶은 문제나 증상이 무엇인지 알려주시겠어요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨서 아침에 일어나도 개운하지 않음.",
+        "history_of_present_illness": "잠을 잘 못 자는 증상이 지속되어 누우면 생각이 계속 돌아서 뒤척이고, 새벽에 자주 깨며 아침에 개운하지 않음."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨서 아침에 일어나도 개운하지 않음.",
+        "history_of_present_illness": "잠을 잘 못 자는 증상이 지속되어 누우면 생각이 계속 돌아서 뒤척이고, 새벽에 자주 깨며 아침에 개운하지 않음."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 11917.718275915831,
+      "timestamp": "2026-07-11T22:03:52.906096",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "안녕하세요. 요즘 잠을 잘 못 자는 게 제일 걱정돼요. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요.",
+        "normalized": "안녕하세요. 요즘 잠을 잘 못 자는 게 제일 걱정돼요. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3306.690157856792,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요. 요즘 잠을 잘 못 자는 게 제일 걱정돼요. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자는 게 제일 걱정돼요",
+        "누우면 생각이 계속 돌아서 한참 뒤척이고",
+        "새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 정신건강의학과 진료를 받아보신 적이 있으신가요? 아니면 심리상담 경험이 있으신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨서 아침에 일어나도 개운하지 않음",
+        "history_of_present_illness": "잠을 잘 못 자는 증상이 지속됨. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨며, 아침에 일어나도 개운하지 않음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨서 아침에 일어나도 개운하지 않음",
+        "history_of_present_illness": "잠을 잘 못 자는 증상이 지속됨. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨며, 아침에 일어나도 개운하지 않음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 6544.195767026395,
+      "timestamp": "2026-07-11T22:03:59.450319",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "안녕하세요. 요즘 잠을 잘 못 자는 게 제일 걱정돼요. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요.",
+        "normalized": "안녕하세요. 요즘 잠을 잘 못 자는 게 제일 걱정돼요. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3306.690157856792,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "\"누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요.\"",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 2,
+      "patient_message": "음... 정신과 가 본거나 상담 받은 적은 없어요. 그냥 지금 상태가 병원에 갈 정도 싶기도 하고.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자는 게 제일 걱정돼요",
+        "누우면 생각이 계속 돌아서 한참 뒤척이고",
+        "새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요"
+      ],
+      "agent_response": "병원 방문이 필요하다고 느끼시는군요. 혹시 기존에 진단받은 신체 질환이 있으신지, 그리고 현재 복용 중인 약이 있다면 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨서 아침에 일어나도 개운하지 않음.",
+        "history_of_present_illness": "최근 들어 수면 시작 시 생각이 계속 돌아다니며 뒤척이는 증상이 지속되고, 새벽에도 자주 깨는 수면 유지 장애가 발생하여 아침에 개운하지 않은 상태가 지속되고 있음."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨서 아침에 일어나도 개운하지 않음.",
+        "history_of_present_illness": "최근 들어 수면 시작 시 생각이 계속 돌아다니며 뒤척이는 증상이 지속되고, 새벽에도 자주 깨는 수면 유지 장애가 발생하여 아침에 개운하지 않은 상태가 지속되고 있음."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4561.3920032046735,
+      "timestamp": "2026-07-11T22:04:12.907584",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "음... 정신과 가 본거나 상담 받은 적은 없어요. 그냥 지금 상태가 병원에 갈 정도 싶기도 하고.",
+        "normalized": "음... 정신과 가 본거나 상담 받은 적은 없어요. 그냥 지금 상태가 병원에 갈 정도 싶기도 하고.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 5165.872226003557,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "음... 정신과 가 본거나 상담 받은 적은 없어요. 그냥 지금 상태가 병원에 갈 정도 싶기도 하고.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 3,
+      "patient_message": "아니요, 진단받은 병도 없고 복용 중인 약도 없어요. 건강 검진은 일 년에 한 번씩 받는데, 특별한 문제는 없었어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자는 게 제일 걱정돼요",
+        "누우면 생각이 계속 돌아서 한참 뒤척이고",
+        "새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨서 아침에 일어나도 개운하지 않음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨서 아침에 일어나도 개운하지 않음",
+        "history_of_present_illness": "최근 들어 수면 시작 시 생각이 계속 돌아다니며 뒤척이는 증상이 지속되고, 새벽에도 자주 깨는 수면 유지 장애가 발생하여 아침에 개운하지 않은 상태가 지속되고 있음."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5846.281718928367,
+      "timestamp": "2026-07-11T22:04:24.398887",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요, 진단받은 병도 없고 복용 중인 약도 없어요. 건강 검진은 일 년에 한 번씩 받는데, 특별한 문제는 없었어요.",
+        "normalized": "아니요, 진단받은 병도 없고 복용 중인 약도 없어요. 건강 검진은 일 년에 한 번씩 받는데, 특별한 문제는 없었어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1440.9413421526551,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 진단받은 병도 없고 복용 중인 약도 없어요. 건강 검진은 일 년에 한 번씩 받는데, 특별한 문제는 없었어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-11T22:03:40.988361",
+  "ended_at": "2026-07-11T22:04:28.946686",
+  "grounded_coverage": 0.25,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5807,
+  "patient_lng": 126.8898,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.10911189019680023,
+    "reason_summary": "Session sentiment: ['anxiety', 'sadness'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "anxiety",
+      "sadness"
+    ],
+    "emotion_distribution": {
+      "anxiety": 0.43,
+      "sadness": 0.43,
+      "neutral": 0.14
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.7
+      },
+      {
+        "turn": 1,
+        "polarity": -0.7
+      },
+      {
+        "turn": 2,
+        "polarity": -0.65
+      },
+      {
+        "turn": 3,
+        "polarity": 0.0
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": true,
+    "shift_description": "대화 전반부 polarity -0.7 → 후반부 -0.3 (호전)",
+    "repeated_patterns": [
+      "anxiety 표현 3회 반복",
+      "sadness 표현 3회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-11",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v3",
+  "prior_handoff": null,
+  "carried_slot_provenance": {}
+}

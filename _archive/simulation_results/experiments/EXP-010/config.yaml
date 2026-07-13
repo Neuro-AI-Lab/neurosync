@@ -1,0 +1,99 @@
+# EXP-010 — k-sweep diagnostic. k in {2,3,5} over VP-001~004, n=2 per VP per k (24 runs total).
+# PLAN-2026-W28-K Task 6, Batch 2. ONE EXP-ID, 3 sub-runs (k2/k3/k5), single-variable (only --k
+# varies; prompt v2 content, population mode, all other config held constant — REV-016(d)).
+
+git_head: f6cae4ea5d51e25a229699226ff92924e6bd68a4
+git_branch: feat/f2-continuation-w28h
+git_status_note: >
+  Same working-tree state as EXP-009 (see that config.yaml's note) — the Track B live-population diff
+  is present but domain_inference.py/f2_grounding.py/v2.system.md remain zero-diff at this HEAD.
+  Population mode is on for every k-sweep run (RAG mode always populates per src.f2 code path) — this
+  is held constant across k2/k3/k5, not varied, per REV-016(d)'s confound guard.
+
+suite_reverified: >
+  cd apps/ai-server && .venv/bin/python -m pytest tests/ -q -> 807 passed, 0 failed (same
+  pre-launch check as EXP-009, same session).
+
+python: apps/ai-server/.venv (Python 3.12.13)
+working_dir: apps/ai-server
+prompts_base_dir_used: /home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/prompts
+
+prompt_version_pins:
+  domain_inference: v2   # unchanged across all 3 k values — single-variable discipline (REV-016(d))
+
+model:
+  primary_vendor: upstage
+  chat_model: solar-pro3
+  base_url: https://api.upstage.ai/v1
+  agent: DomainInferenceAgent
+  max_tokens: 4096   # held constant across k2/k3/k5
+
+k_sweep_design:
+  variable: "--k only (Stage-1 retrieval top-k per table, f2.py:693, default 3)"
+  values: [2, 3, 5]
+  held_constant: "prompt v2 content, population mode (always-on in RAG mode), max_tokens, model,
+    persona set, input files, n per VP — per REV-016(d) confound guard, no joint variation with
+    population/prompt changes."
+  n_choice: "n=2 per VP per k (preferred per brief) — NOT dropped to n=1. Rationale: prior 8-run RAG
+    batches (EXP-005 through EXP-009) completed in well under 5 minutes; a 24-run sweep (3 k-values x
+    4 VPs x n=2) is not expected to be runtime-prohibitive on the same infrastructure. Confirmed after
+    the fact in result.md's wall-clock figures."
+  cert_neutrality: "REV-016(d) confirmed: --k already wired (f2.py:693), varying it changes only
+    _topk's LIMIT :k parameter (retrieval.py) — no prompt/schema/DomainInferenceInput-Output change.
+    Not automatically 'certified by inheritance' — each k value's runs are still 'a future RAG batch'
+    subject to ADR-018's standing per-batch audits (below)."
+
+pre_run_checklist:
+  plan: "PLAN-2026-W28-K Task 6 (discussion.md) — this EXP is Batch 2 (k-sweep diagnostic), ONE EXP-ID."
+  critic_review: "REV-016(d) (discussion.md) — confirmed prompt-neutral/certification-neutral, with
+    the confound guard restated above. Non-blocking."
+  qa_gate: "GATE: PASS (error.md VAL-011, 2026-07-09) — suite 807, same as EXP-009."
+  dataset: "DATASET-004 (golden labels, top-1/top-3 scoring) + DATASET-005 (RAG corpus, refreshed
+    2026-07-09, k-variation coverage explicitly confirmed in the Track B leakage re-check: 'Varying k
+    only changes _topk's LIMIT :k parameter... all k=2/3/5 draw from the same audited, stable corpus;
+    no new coverage gap opens as k varies.')."
+  db_preflight: "PASS — see preflight.log (shared with EXP-009, same session, 0 delta)."
+  gate_hook: "Same as EXP-009 — no GATE_OVERRIDE used, none needed."
+
+db_preflight:
+  method: "src.dependencies.get_settings()/get_sessionmaker(), SELECT 1 + row counts, 10s timeout, 0 retries"
+  log: experiments/EXP-010/preflight.log
+  verdict: PASS
+
+sub_runs:
+  k2: {k: 2, tag: "experiments/EXP-010/runs/k2"}
+  k3: {k: 3, tag: "experiments/EXP-010/runs/k3"}
+  k5: {k: 5, tag: "experiments/EXP-010/runs/k5"}
+
+inputs_all_k_values_identical:
+  VP-001:
+    run1: docs/ai/simulation_results/VP-001/VP-001_20260707_152922_conversation.json  # sha256 c6af3fa9e5d6f2aa5e8db1108c59c283f38c625b8ef7e363fcb51f3242582816
+    run2: docs/ai/simulation_results/VP-001/VP-001_20260707_153451_conversation.json  # sha256 5f5e0b5d6fa6c22e6145a09fa195867aadc8b758ce1a862b41ec9569d0a95a47
+  VP-002:
+    run1: docs/ai/simulation_results/VP-002/VP-002_20260707_154130_conversation.json  # sha256 6f0e190e859206c9d26e1972510bb543d900277e2b9e5d3240fe27b1b0d8f6c3
+    run2: docs/ai/simulation_results/VP-002/VP-002_20260707_154407_conversation.json  # sha256 f292e5622a81688780c6b370d5ae641b276a319d3749d09e5291918b876baf09
+  VP-003:
+    run1: docs/ai/simulation_results/VP-003/VP-003_20260707_155149_conversation.json  # sha256 fbabd8202367322d338ea99eb154cf818f43de1094278b3e85340b5da02ccb96
+    run2: docs/ai/simulation_results/VP-003/VP-003_20260707_155446_conversation.json  # sha256 126f5c012cf69e798ddfbe5fd10d2142432e44785f54a9607bf117203c4dabe9
+  VP-004:
+    run1: docs/ai/simulation_results/VP-004/VP-004_20260707_155542_conversation.json  # sha256 8ad65b5b25dfae9dde75a342ed3981126e68966b9e87d90ed99e9ba681e54901
+    run2: docs/ai/simulation_results/VP-004/VP-004_20260707_155625_conversation.json  # sha256 7f34c9962e5aea3963dc5118b470d314e1c77070a5266a075d77bbbbe1b5fc71
+
+command_template: ".venv/bin/python -m src.f2 --conversation <input, absolute path> --k <2|3|5> --out <run dir>"
+
+audits_required_every_k_batch:
+  - "ADR-018(a): secondary manual broader-taxonomy audit over accepted post-cascade domain_candidates
+    evidence AND ai_predicted_disease candidate quotes, per k value."
+  - "retrieval_meta.queries audit incl. chief_complaint/HPI, VP-003/VP-004, per k value."
+  - "mode-honesty per run."
+  - "finish_reason/usage/raw_response/validation_errors verbatim per run."
+  - "DB preflight DSN masked (shared, above)."
+
+recommendation_rule: "recommend a k ONLY with evidence (top-1/top-3, evidence acceptance/rejection,
+  latency); if no k dominates on all axes, say so plainly and keep the current default k=3. This is a
+  parameter diagnostic, not a behavior/population/prompt change — not bundled with EXP-009."
+
+not_in_scope:
+  - "Certification/pass verdict."
+  - "Code/prompt/test edits."
+  - "Population-behavior validation (EXP-009, separate batch)."

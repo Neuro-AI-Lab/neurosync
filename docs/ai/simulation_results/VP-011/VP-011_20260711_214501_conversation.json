@@ -1,0 +1,844 @@
+{
+  "session_id": "f1_VP-011",
+  "persona_id": "VP-011",
+  "persona_name": "한소영",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.\""
+    },
+    {
+      "key": "substance_use_history",
+      "value": "카페인 평소대로 섭취, 술 거의 안 마심, 수면제/진정제 복용 경험 없음"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "매일 지속되는 두통과 소화불량이 2주 이상 지속되며, 진통제 복용에도 호전되지 않고 피로와 집중력 저하가 동반됨. 주말 활동(등산) 불가능 상태"
+    },
+    {
+      "key": "chief_complaint",
+      "value": "매일 지속되는 두통과 소화불량으로 인한 피로 및 집중력 저하"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "요즘 거의 매일 두통이 있고 소화도 안 돼서 속이 쓰려요. 아무리 진통제 먹어도 잘 안 낫고, 너무 피곤해서 집중도 안 되고 입맛도 없어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 저는 정신건강 사전문진을 돕는 AI 상담 도우미입니다. 오늘은 어떤 문제나 증상이 가장 힘드신가요? 편하게 말씀해 주세요.",
+      "slot_updates": {},
+      "cumulative_slots": {},
+      "slot_coverage": 0.0,
+      "latency_ms": 9546.567691024393,
+      "timestamp": "2026-07-11T21:43:30.827784",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.0,
+      "normalizer_meta": {
+        "original": "요즘 거의 매일 두통이 있고 소화도 안 돼서 속이 쓰려요. 아무리 진통제 먹어도 잘 안 낫고, 너무 피곤해서 집중도 안 되고 입맛도 없어요.",
+        "normalized": "요즘 거의 매일 두통이 있고 소화도 안 돼서 속이 쓰려요. 아무리 진통제 먹어도 잘 안 낫고, 너무 피곤해서 집중도 안 되고 입맛도 없어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3108.0162413418293,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "요즘 거의 매일 두통이 있고 소화도 안 돼서 속이 쓰려요. 아무리 진통제 먹어도 잘 안 낫고, 너무 피곤해서 집중도 안 되고 입맛도 없어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false
+    },
+    {
+      "turn": 1,
+      "patient_message": "요즘 거의 매일 두통이 있고 소화도 안 돼서 속이 쓰려요. 아무리 진통제 먹어도 잘 안 낫고, 너무 피곤해서 집중도 안 되고 입맛도 없어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 최근 스스로를 해치고 싶거나 죽고 싶다는 생각이 드신 적이 있으신가요?",
+      "slot_updates": {},
+      "cumulative_slots": {},
+      "slot_coverage": 0.0,
+      "latency_ms": 4582.055947743356,
+      "timestamp": "2026-07-11T21:43:35.409873",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.0,
+      "normalizer_meta": {
+        "original": "요즘 거의 매일 두통이 있고 소화도 안 돼서 속이 쓰려요. 아무리 진통제 먹어도 잘 안 낫고, 너무 피곤해서 집중도 안 되고 입맛도 없어요.",
+        "normalized": "요즘 거의 매일 두통이 있고 소화도 안 돼서 속이 쓰려요. 아무리 진통제 먹어도 잘 안 낫고, 너무 피곤해서 집중도 안 되고 입맛도 없어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3108.0162413418293,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "요즘 거의 매일 두통이 있고 소화도 안 돼서 속이 쓰려요. 아무리 진통제 먹어도 잘 안 낫고, 너무 피곤해서 집중도 안 되고 입맛도 없어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 2,
+      "patient_message": "아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 현재 정신건강의학과 진료나 심리상담을 받고 계신지, 혹은 과거에 진단받은 병명이 있으신지 알려주시겠어요?",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.\""
+      },
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.\""
+      },
+      "slot_coverage": 0.2,
+      "latency_ms": 3482.5303400866687,
+      "timestamp": "2026-07-11T21:43:43.738429",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.125,
+      "normalizer_meta": {
+        "original": "아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.",
+        "normalized": "아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1316.2478925660253,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 3,
+      "patient_message": "아니요, 정신과나 심리상담은 한 번도 받아본 적 없어요. 그냥 몸이 이상해서 그런 것 같아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 주변에 계신가요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.\""
+      },
+      "slot_coverage": 0.2,
+      "latency_ms": 4100.467415992171,
+      "timestamp": "2026-07-11T21:43:52.484126",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.125,
+      "normalizer_meta": {
+        "original": "아니요, 정신과나 심리상담은 한 번도 받아본 적 없어요. 그냥 몸이 이상해서 그런 것 같아요.",
+        "normalized": "아니요, 정신과나 심리상담은 한 번도 받아본 적 없어요. 그냥 몸이 이상해서 그런 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1252.3040939122438,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "아니요, 정신과나 심리상담은 한 번도 받아본 적 없어요. 그냥 몸이 이상해서 그런 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 4,
+      "patient_message": "남편은 있지만 대화는 주로 몸이 안 좋으니까 어떻게 해달라는 식으로만 해요. 딱히 터놓고 말할 상대는 없어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 가족분들 중에 비슷한 어려움을 겪으셨던 분이 계신지 궁금합니다.",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.\""
+      },
+      "slot_coverage": 0.2,
+      "latency_ms": 3375.6974269635975,
+      "timestamp": "2026-07-11T21:44:00.046115",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.125,
+      "normalizer_meta": {
+        "original": "남편은 있지만 대화는 주로 몸이 안 좋으니까 어떻게 해달라는 식으로만 해요. 딱히 터놓고 말할 상대는 없어요.",
+        "normalized": "남편은 있지만 대화는 주로 몸이 안 좋으니까 어떻게 해달라는 식으로만 해요. 딱히 터놓고 말할 상대는 없어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1091.5554850362241,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.8
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "남편은 있지만 대화는 주로 몸이 안 좋으니까 어떻게 해달라는 식으로만 해요. 딱히 터놓고 말할 상대는 없어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 5,
+      "patient_message": "아니요, 가족 중에 그런 분은 없었어요. 그냥 제가 요즘 몸이 이상.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 최근 술이나 수면제, 진정제, 카페인 등 증상을 악화시킬 수 있는 물질을 사용하신 적이 있으신가요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.\""
+      },
+      "slot_coverage": 0.2,
+      "latency_ms": 3848.9718320779502,
+      "timestamp": "2026-07-11T21:44:09.797428",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.125,
+      "normalizer_meta": {
+        "original": "아니요, 가족 중에 그런 분은 없었어요. 그냥 제가 요즘 몸이 이상.",
+        "normalized": "아니요, 가족 중에 그런 분은 없었어요. 그냥 제가 요즘 몸이 이상.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2298.87290019542,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 가족 중에 그런 분은 없었어요. 그냥 제가 요즘 몸이 이상.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 6,
+      "patient_message": "카페인은 평소처럼 마시고 있어요. 술은 거의 안 마시고, 수면제나 진정제는 먹어본 적 없어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 현재 복용 중인 다른 약물이나 건강보조식품이 있으신가요? 있다면 어떤 것들인지 말씀해 주세요.",
+      "slot_updates": {
+        "substance_use_history": "카페인 평소대로 섭취, 술 거의 섭취하지 않음, 수면제/진정제 복용 경험 없음"
+      },
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.\"",
+        "substance_use_history": "카페인 평소대로 섭취, 술 거의 섭취하지 않음, 수면제/진정제 복용 경험 없음"
+      },
+      "slot_coverage": 0.2,
+      "latency_ms": 5220.790482591838,
+      "timestamp": "2026-07-11T21:44:19.322607",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "카페인은 평소처럼 마시고 있어요. 술은 거의 안 마시고, 수면제나 진정제는 먹어본 적 없어요.",
+        "normalized": "카페인은 평소처럼 마시고 있어요. 술은 거의 안 마시고, 수면제나 진정제는 먹어본 적 없어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1173.123269341886,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "카페인은 평소처럼 마시고 있어요. 술은 거의 안 마시고, 수면제나 진정제는 먹어본 적 없어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 7,
+      "patient_message": "지금 복용 중인 건 없고, 건강보조제도 딱히 안 먹어요. 그냥 두통약 가끔 먹긴 하는데 효과도 잘 안 나요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "몸이 안 좋으니까",
+        "두통약"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 과거에 다른 신체 질환이나 진단을 받으신 적이 있으신가요?",
+      "slot_updates": {
+        "history_of_present_illness": "매일 두통이 있고 소화가 안 되어 속이 쓰리며, 진통제 효과가 없고 피로로 인해 집중이 안 되고 식욕이 없음",
+        "substance_use_history": "카페인 평소대로 섭취, 술 거의 안 마심, 수면제/진정제 복용 경험 없음"
+      },
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.\"",
+        "substance_use_history": "카페인 평소대로 섭취, 술 거의 안 마심, 수면제/진정제 복용 경험 없음",
+        "history_of_present_illness": "매일 두통이 있고 소화가 안 되어 속이 쓰리며, 진통제 효과가 없고 피로로 인해 집중이 안 되고 식욕이 없음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4368.978132028133,
+      "timestamp": "2026-07-11T21:44:27.746334",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "지금 복용 중인 건 없고, 건강보조제도 딱히 안 먹어요. 그냥 두통약 가끔 먹긴 하는데 효과도 잘 안 나요.",
+        "normalized": "지금 복용 중인 건 없고, 건강보조제도 딱히 안 먹어요. 그냥 두통약 가끔 먹긴 하는데 효과도 잘 안 나요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1533.087383955717,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "지금 복용 중인 건 없고, 건강보조제도 딱히 안 먹어요. 그냥 두통약 가끔 먹긴 하는데 효과도 잘 안 나요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요, 가족 중에 그런 분은 없었어요. 그냥 제가 요즘 몸이 이상.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 현재 복용 중인 다른 약물이나 건강보조식품이 있으신가요? 있다면 어떤 것들인지 말씀해 주세요.",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.\"",
+        "substance_use_history": "카페인 평소대로 섭취, 술 거의 안 마심, 수면제/진정제 복용 경험 없음",
+        "history_of_present_illness": "매일 두통이 있고 소화가 안 되어 속이 쓰리며, 진통제 효과가 없고 피로로 인해 집중이 안 되고 식욕이 없음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4505.454970989376,
+      "timestamp": "2026-07-11T21:44:36.741135",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "아니요, 가족 중에 그런 분은 없었어요. 그냥 제가 요즘 몸이 이상.",
+        "normalized": "아니요, 가족 중에 그런 분은 없었어요. 그냥 제가 요즘 몸이 이상.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1607.3604859411716,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "그냥 제가 요즘 몸이 이상",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 9,
+      "patient_message": "지금 복용 중인 건 없고, 건강보조제도 딱히 안 먹어요. 그냥 두통약 가끔 먹긴 하는데 효과도 잘 안 나요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 현재 겪고 계신 두통과 소화불량의 구체적인 증상과 지속 시간, 그리고 일상생활에 미치는 영향에 대해 조금 더 자세히 말씀해 주시겠어요?",
+      "slot_updates": {
+        "history_of_present_illness": "매일 지속되는 두통과 소화불량으로 속이 쓰리며, 진통제 효과가 없고 피로로 인해 집중이 어렵고 식욕이 없음"
+      },
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.\"",
+        "substance_use_history": "카페인 평소대로 섭취, 술 거의 안 마심, 수면제/진정제 복용 경험 없음",
+        "history_of_present_illness": "매일 지속되는 두통과 소화불량으로 속이 쓰리며, 진통제 효과가 없고 피로로 인해 집중이 어렵고 식욕이 없음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4641.063986346126,
+      "timestamp": "2026-07-11T21:44:46.940357",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "지금 복용 중인 건 없고, 건강보조제도 딱히 안 먹어요. 그냥 두통약 가끔 먹긴 하는데 효과도 잘 안 나요.",
+        "normalized": "지금 복용 중인 건 없고, 건강보조제도 딱히 안 먹어요. 그냥 두통약 가끔 먹긴 하는데 효과도 잘 안 나요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2413.678342010826,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "지금 복용 중인 건 없고, 건강보조제도 딱히 안 먹어요. 그냥 두통약 가끔 먹긴 하는데 효과도 잘 안 나요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 10,
+      "patient_message": "두통은 거의 매일 있고, 진통제 먹어도 잘 안 나아요. 소화불량도 계속돼서 속이 자주 쓰리고요. 너무 피곤해서 업무 중에도 집중이 안 되고, 주말에도 등산 같은 거 아예 못 가고 있어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 가족 중에 비슷한 증상을 겪으셨던 분이 계신지, 혹은 유전적인 질환 이력이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "매일 지속되는 두통과 소화불량으로 인한 피로 및 집중력 저하",
+        "history_of_present_illness": "매일 지속되는 두통과 소화불량이 2주 이상 지속되며, 진통제 복용에도 호전되지 않고 피로와 집중력 저하가 동반됨. 주말 활동(등산) 불가능 상태"
+      },
+      "cumulative_slots": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.\"",
+        "substance_use_history": "카페인 평소대로 섭취, 술 거의 안 마심, 수면제/진정제 복용 경험 없음",
+        "history_of_present_illness": "매일 지속되는 두통과 소화불량이 2주 이상 지속되며, 진통제 복용에도 호전되지 않고 피로와 집중력 저하가 동반됨. 주말 활동(등산) 불가능 상태",
+        "chief_complaint": "매일 지속되는 두통과 소화불량으로 인한 피로 및 집중력 저하"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3556.1084849759936,
+      "timestamp": "2026-07-11T21:44:55.454055",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "두통은 거의 매일 있고, 진통제 먹어도 잘 안 나아요. 소화불량도 계속돼서 속이 자주 쓰리고요. 너무 피곤해서 업무 중에도 집중이 안 되고, 주말에도 등산 같은 거 아예 못 가고 있어요.",
+        "normalized": "두통은 거의 매일 있고, 진통제 먹어도 잘 안 나아요. 소화불량도 계속돼서 속이 자주 쓰리고요. 너무 피곤해서 업무 중에도 집중이 안 되고, 주말에도 등산 같은 거 아예 못 가고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2212.6008248887956,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.8
+          },
+          {
+            "label": "despair",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "두통은 거의 매일 있고, 진통제 먹어도 잘 안 나아요. 소화불량도 계속돼서 속이 자주 쓰리고요. 너무 피곤해서 업무 중에도 집중이 안 되고, 주말에도 등산 같은 거 아예 못 가고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-11T21:43:21.281191",
+  "ended_at": "2026-07-11T21:45:01.515093",
+  "grounded_coverage": 0.5,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 1,
+      "forced": false
+    },
+    {
+      "type": "si_screen_result",
+      "turn": 2,
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아뇨, 그런 생각은 전혀 없어요. 그냥 몸이 이상해서 그런 것 같아요.\""
+    }
+  ],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.6018,
+  "patient_lng": 126.929,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.14180410653352737,
+    "reason_summary": "Session sentiment: ['sadness', 'despair'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "despair"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.45,
+      "despair": 0.18,
+      "neutral": 0.18,
+      "anxiety": 0.18
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.75
+      },
+      {
+        "turn": 1,
+        "polarity": -0.6
+      },
+      {
+        "turn": 2,
+        "polarity": -0.4
+      },
+      {
+        "turn": 3,
+        "polarity": -0.65
+      },
+      {
+        "turn": 4,
+        "polarity": -0.75
+      },
+      {
+        "turn": 5,
+        "polarity": -0.6
+      },
+      {
+        "turn": 6,
+        "polarity": 0.0
+      },
+      {
+        "turn": 7,
+        "polarity": -0.6
+      },
+      {
+        "turn": 8,
+        "polarity": -0.5
+      },
+      {
+        "turn": 9,
+        "polarity": -0.4
+      },
+      {
+        "turn": 10,
+        "polarity": -0.75
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 10회 반복",
+      "despair 표현 4회 반복",
+      "neutral 표현 4회 반복",
+      "anxiety 표현 4회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "sadness",
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.75
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-11",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v3",
+  "prior_handoff": null,
+  "carried_slot_provenance": {}
+}

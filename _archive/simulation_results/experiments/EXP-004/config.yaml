@@ -1,0 +1,91 @@
+# EXP-004 — F2 DomainInferenceAgent live batch (llm_only arm; RAG arm gated on DB preflight)
+# Config captured before any run started (experiment-reproducibility skill).
+
+git_head: 21ff5bc23f6b0287a0b84e79357967c6a7898a25
+git_branch: feat/f2-domain-inference
+git_status_note: >
+  Working tree has uncommitted/untracked F2 implementation files at run time
+  (src/agents/domain_inference.py, src/f2.py, src/eval/f2_grounding.py,
+  src/schemas/domain_inference.py, docs/ai/prompts/domain_inference/, tests/*)
+  plus tracked edits to src/rag/*, src/main.py, src/rag_chat.py, agent_model_registry.yaml
+  — this is the exact working tree qa gated (suite 623 green) per discussion.md
+  PLAN-2026-W28-C status update 2026-07-08 (2). No code edits made during this experiment.
+
+python: apps/ai-server/.venv (Python 3.12.13)
+working_dir: apps/ai-server
+prompts_base_dir_env: docs/ai/prompts   # PROMPTS_BASE_DIR, set automatically by f2.py main()
+
+prompt_version_pins:
+  domain_inference: v1   # 2382 chars / 74 lines, docs/ai/prompts/domain_inference/v1.system.md
+
+model:
+  primary_vendor: upstage
+  chat_model: solar-pro3
+  base_url: https://api.upstage.ai/v1
+  secondary_vendor: lg_k_exaone (K-EXAONE, strategy=benchmarked fallback)
+  agent: DomainInferenceAgent
+
+pre_run_checklist:
+  plan: "PLAN-2026-W28-C (discussion.md) — mission-scoped, not a HYP-NNN"
+  critic_review: "REV-007 — Part A APPROVED with amendments (DATASET-004); Part B NON-BLOCKING for the llm_only live batch (VAL-006 open, non-blocking, binds DR-006 wording — not this raw-evidence record)"
+  qa_gate: "GATE: PASS (discussion.md 2026-07-08 (2)) — suite 532->621/623 green; BUG-012 filed (major, pre-existing load_simulations.py plaintext bug, does not affect F2 Stage 1 scope per REV-007 finding #4)"
+  dataset: "DATASET-004 (F2 golden domain labels, multi-label, pre-registered) — APPROVED with amendments (REV-007 Part A); amendments applied in scoring below"
+  adr: "ADR-013 — VAL-005 disposition; RAG arm BLOCKED-awaiting-DB unless DATABASE_URL is present this session"
+
+db_preflight:
+  method: "src.dependencies.get_settings()/get_sessionmaker() — project's own settings path, no CLI overrides"
+  timeout_s: 10
+  retries: 0
+  log: experiments/EXP-004/preflight.log
+
+runs:
+  llm_only_arm:
+    command: ".venv/bin/python -m src.f2 --conversation <F1 conversation.json> --no-rag"
+    personas: [VP-001, VP-002, VP-003, VP-004]
+    n_per_vp: 2
+    input_selection: >
+      EXP-002-era 20260707 F1 conversation artifacts under
+      docs/ai/simulation_results/<VP>/ — each VP has exactly 2 such files
+      (run1/run2 from EXP-002), used one per F2 run (no VP required the
+      run-twice fallback).
+    inputs:
+      VP-001:
+        - docs/ai/simulation_results/VP-001/VP-001_20260707_152922_conversation.json
+        - docs/ai/simulation_results/VP-001/VP-001_20260707_153451_conversation.json
+      VP-002:
+        - docs/ai/simulation_results/VP-002/VP-002_20260707_154130_conversation.json
+        - docs/ai/simulation_results/VP-002/VP-002_20260707_154407_conversation.json
+      VP-003:
+        - docs/ai/simulation_results/VP-003/VP-003_20260707_155149_conversation.json
+        - docs/ai/simulation_results/VP-003/VP-003_20260707_155446_conversation.json
+      VP-004:
+        - docs/ai/simulation_results/VP-004/VP-004_20260707_155542_conversation.json
+        - docs/ai/simulation_results/VP-004/VP-004_20260707_155625_conversation.json
+  rag_arm:
+    status: "BLOCKED-awaiting-DB (see preflight.log) — not run this batch, per ADR-013(4)"
+
+scoring:
+  dataset: DATASET-004 as amended by REV-007 Part A
+  golden_sets:
+    VP-001: [anxiety, sleep]
+    VP-002: [depression]
+    VP-003: [depression]   # alcohol excluded from scoring set; REV-007 amendment 1 governs wording if {alcohol} alone is returned
+    VP-004: [depression, anxiety]
+  rule: >
+    top-1 hit = domain_candidates[0].domain in golden set (binary).
+    top-3 hit = any returned domain_candidates[].domain in golden set (binary, existential; cap is already <=3 by contract).
+    no partial credit. domain_candidates=[] scores 0 for both (REV-007 amendment 2).
+    raw counts only, no percentage/rate wording (DATASET-004 reporting-format clause).
+  department: "descriptive only this batch, not scored (DATASET-004)"
+
+evaluation:
+  grounding: "f2.py's own runtime evidence-whitelist audit (src.eval.f2_grounding) runs per-run automatically; tracker additionally spot-checks >=2 saved artifacts' evidence entries against source conversation JSON by hand"
+  risk_probe: "VAL-006 standing check — count evidence quotes in VP-003/VP-004 outputs containing risk expressions (자살/자해/죽고/살고 싶지 class) cited as domain evidence, per run, with source ids"
+  latency: "per-run latency_ms from artifact repro metadata; p50/p95 reported descriptively vs inherited SLA note (3s llm_only) — no pass/fail wording"
+
+artifact_note: >
+  f2.py hardcodes its output directory to docs/ai/simulation_results/<VP>/
+  (OUTPUT_DIR from f1.py, PROJECT_ROOT/docs/ai/simulation_results/...); there is
+  no --output-dir override used here. Per brief, docs/ai/simulation_results/ stays
+  the canonical run output location; experiments/EXP-004/runs/<tag>/ mirrors
+  (copies) each run's artifact JSON + report.md + stdout log.

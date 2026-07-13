@@ -1,0 +1,836 @@
+{
+  "session_id": "f1_VP-010",
+  "persona_id": "VP-010",
+  "persona_name": "강태민",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "요즘 피로와 스트레스로 인한 수면 문제"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "피로와 스트레스로 인해 수면이 뒤척이며 새벽에 자주 깨는 증상이 지속됨"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "주 1-2회 맥주 한두 캔 정도 음주"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"음... 가끔 술은 먹긴 하는데 주 1-2회 맥주 한두 캔 정도요. 잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요...\""
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "그냥 요즘 좀 피곤하고 스트레스 받아서요. 다들 이 정도는 겪지 않나요?",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "피곤하고 스트레스"
+      ],
+      "agent_response": "안녕하세요, 저는 정신건강 사전 문진을 돕는 AI 상담 도우미입니다. 실제 의사와의 대화가 아니며 편하게 이야기하셔도 괜찮아요. 오늘 가장 도움받고 싶은 문제나 증상은 무엇인가요?",
+      "slot_updates": {
+        "chief_complaint": "요즘 피로하고 스트레스 받음",
+        "history_of_present_illness": "피곤함과 스트레스 호소"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피로하고 스트레스 받음",
+        "history_of_present_illness": "피곤함과 스트레스 호소"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 7417.250273283571,
+      "timestamp": "2026-07-11T21:43:28.688158",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "그냥 요즘 좀 피곤하고 스트레스 받아서요. 다들 이 정도는 겪지 않나요?",
+        "normalized": "그냥 요즘 좀 피곤하고 스트레스 받아서요. 다들 이 정도는 겪지 않나요?",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 896.3319258764386,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.3,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "그냥 요즘 좀 피곤하고 스트레스 받아서요. 다들 이 정도는 겪지 않나요?",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false
+    },
+    {
+      "turn": 1,
+      "patient_message": "그냥 요즘 좀 피곤하고 스트레스 받아서요. 다들 이 정도는 겪지 않나요?",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 이전에 정신건강의학과 진료를 받으신 적이 있거나, 심리상담을 받아보신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "요즘 피곤하고 스트레스 받음",
+        "history_of_present_illness": "피곤함과 스트레스가 지속되고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피곤하고 스트레스 받음",
+        "history_of_present_illness": "피곤함과 스트레스가 지속되고 있음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3756.8920962512493,
+      "timestamp": "2026-07-11T21:43:32.445076",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "그냥 요즘 좀 피곤하고 스트레스 받아서요. 다들 이 정도는 겪지 않나요?",
+        "normalized": "그냥 요즘 좀 피곤하고 스트레스 받아서요. 다들 이 정도는 겪지 않나요?",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 896.3319258764386,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "그냥 요즘 좀 피곤하고 스트레스 받아서요. 다들 이 정도는 겪지 않나요?",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 2,
+      "patient_message": "아니요, 그런 거 처음이에요. 그냥 한번 점검 차원에서 와봤어요. 별 문제 없을 것 같아서요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "이야기해 주셔서 감사합니다. 혹시 기존에 진단받은 신체질환이 있거나, 현재 복용 중인 약이 있으신가요? 아니면 최근에 새로 시작한 약이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 스트레스",
+        "history_of_present_illness": "피곤함과 스트레스로 인한 증상"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 스트레스",
+        "history_of_present_illness": "피곤함과 스트레스로 인한 증상"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3244.8159093037248,
+      "timestamp": "2026-07-11T21:43:39.973627",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요, 그런 거 처음이에요. 그냥 한번 점검 차원에서 와봤어요. 별 문제 없을 것 같아서요.",
+        "normalized": "아니요, 그런 거 처음이에요. 그냥 한번 점검 차원에서 와봤어요. 별 문제 없을 것 같아서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1628.0357977375388,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 거 처음이에요. 그냥 한번 점검 차원에서 와봤어요. 별 문제 없을 것 같아서요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 3,
+      "patient_message": "아니요, 그런 거 없어요. 약도 처음 먹는 거라 아예 몰라요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "피곤하고 스트레스"
+      ],
+      "agent_response": "그렇군요, 처음이시라니 더 편하게 말씀해 주셔도 괜찮아요. 혹시 가족 중에 정신건강 문제로 도움을 받으신 분이 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "요즘 피곤하고 스트레스 받아서요",
+        "history_of_present_illness": "피곤함과 스트레스로 인한 증상"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피곤하고 스트레스 받아서요",
+        "history_of_present_illness": "피곤함과 스트레스로 인한 증상"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3557.5400697998703,
+      "timestamp": "2026-07-11T21:43:47.597258",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요, 그런 거 없어요. 약도 처음 먹는 거라 아예 몰라요.",
+        "normalized": "아니요, 그런 거 없어요. 약도 처음 먹는 거라 아예 몰라요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1282.4524249881506,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 거 없어요. 약도 처음 먹는 거라 아예 몰라요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 4,
+      "patient_message": "아뇨, 그런 거 전혀 없어요.  \n가족도 별 말씀 안 하시고, 저도 그런 건 잘 몰라요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "피곤하고 스트레스"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 최근에 술이나 수면제, 진정제, 카페인 같은 것들을 평소보다 많이 드시거나, 증상이 더 심해질 때 특히 신경 쓰이는 부분이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "요즘 피로하고 스트레스 받음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피로하고 스트레스 받음",
+        "history_of_present_illness": "피곤함과 스트레스로 인한 증상"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3803.5793099552393,
+      "timestamp": "2026-07-11T21:43:55.774743",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아뇨, 그런 거 전혀 없어요.  \n가족도 별 말씀 안 하시고, 저도 그런 건 잘 몰라요.",
+        "normalized": "아뇨, 그런 거 전혀 없어요.  \n가족도 별 말씀 안 하시고, 저도 그런 건 잘 몰라요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1540.3721393086016,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아뇨, 그런 거 전혀 없어요. 가족도 별 말씀 안 하시고, 저도 그런 건 잘 몰라요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 5,
+      "patient_message": "음... 가끔 술은 먹긴 하는데 주 1-2회 맥주 한두 캔 정도요.  \n잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그렇군요, 처음이시라니 더 편하게 말씀해 주셔도 괜찮아요. 혹시 최근에 술이나 수면제, 진정제, 카페인 같은 것들을 평소보다 많이 드시거나, 증상이 더 심해질 때 특히 신경 쓰이는 부분이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "요즘 피로와 스트레스로 인한 점검 차원에서 방문",
+        "substance_use_history": "주 1-2회 맥주 1-2캔 섭취"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피로와 스트레스로 인한 점검 차원에서 방문",
+        "history_of_present_illness": "피곤함과 스트레스로 인한 증상",
+        "substance_use_history": "주 1-2회 맥주 1-2캔 섭취"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4372.485395986587,
+      "timestamp": "2026-07-11T21:44:05.936335",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "음... 가끔 술은 먹긴 하는데 주 1-2회 맥주 한두 캔 정도요.  \n잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요.",
+        "normalized": "음... 가끔 술은 먹긴 하는데 주 1-2회 맥주 한두 캔 정도요.  \n잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2747.405127156526,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.2,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "음... 가끔 술은 먹긴 하는데 주 1-2회 맥주 한두 캔 정도요. 잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 6,
+      "patient_message": "음... 가끔 술은 먹긴 하는데 주 1-2회 맥주 한두 캔 정도요.  \n잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그렇군요, 처음이시라니 더 편하게 말씀해 주셔도 괜찮아요. 혹시 이전에 정신건강의학과 진료를 받으신 적이 있거나, 심리상담을 받아보신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 스트레스",
+        "history_of_present_illness": "피곤함과 스트레스로 인해 수면이 불안정하며, 뒤척이다가 자고 새벽에 자주 깨는 증상이 있음",
+        "substance_use_history": "주 1-2회 맥주 한두 캔 정도 섭취"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 스트레스",
+        "history_of_present_illness": "피곤함과 스트레스로 인해 수면이 불안정하며, 뒤척이다가 자고 새벽에 자주 깨는 증상이 있음",
+        "substance_use_history": "주 1-2회 맥주 한두 캔 정도 섭취"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5081.652008928359,
+      "timestamp": "2026-07-11T21:44:17.913704",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "음... 가끔 술은 먹긴 하는데 주 1-2회 맥주 한두 캔 정도요.  \n잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요.",
+        "normalized": "음... 가끔 술은 먹긴 하는데 주 1-2회 맥주 한두 캔 정도요.  \n잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2705.2526990883052,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 그런 거 처음이에요. 그냥 한번 점검 차원에서 와봤어요. 별 문제 없을 것 같아서요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그렇군요, 처음이시라니 더 편하게 말씀해 주셔도 괜찮아요. 혹시 기존에 진단받은 신체질환이 있거나, 현재 복용 중인 약이 있으신가요? 아니면 최근에 새로 시작한 약이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 스트레스",
+        "history_of_present_illness": "피곤함과 스트레스 호소, 주 1-2회 맥주 한두 캔 음주, 수면 뒤척임 및 새벽 각성",
+        "substance_use_history": "주 1-2회 맥주 한두 캔"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 스트레스",
+        "history_of_present_illness": "피곤함과 스트레스 호소, 주 1-2회 맥주 한두 캔 음주, 수면 뒤척임 및 새벽 각성",
+        "substance_use_history": "주 1-2회 맥주 한두 캔"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4080.9985217638314,
+      "timestamp": "2026-07-11T21:44:26.218550",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "아니요, 그런 거 처음이에요. 그냥 한번 점검 차원에서 와봤어요. 별 문제 없을 것 같아서요.",
+        "normalized": "아니요, 그런 거 처음이에요. 그냥 한번 점검 차원에서 와봤어요. 별 문제 없을 것 같아서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1003.2940492965281,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 거 처음이에요. 그냥 한번 점검 차원에서 와봤어요. 별 문제 없을 것 같아서요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요, 그런 거 없어요. 약도 처음 먹는 거라 아예 몰라요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그렇군요, 처음이시라니 더 편하게 말씀해 주셔도 괜찮아요. 혹시 가족 중에 정신건강 문제로 도움을 받으신 분이 계신가요? 혹시 가족 중에 정신건강 문제로 도움을 받으신 분이 계신가요? 혹시 가족 중에 정신건강 문제로 도움을 받으신 분이 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 스트레스",
+        "substance_use_history": "주 1-2회 맥주 한두 캔 정도 음주"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 스트레스",
+        "history_of_present_illness": "피곤함과 스트레스 호소, 주 1-2회 맥주 한두 캔 음주, 수면 뒤척임 및 새벽 각성",
+        "substance_use_history": "주 1-2회 맥주 한두 캔 정도 음주"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5420.261544175446,
+      "timestamp": "2026-07-11T21:44:35.462586",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "아니요, 그런 거 없어요. 약도 처음 먹는 거라 아예 몰라요.",
+        "normalized": "아니요, 그런 거 없어요. 약도 처음 먹는 거라 아예 몰라요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 781.1296940781176,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 거 없어요. 약도 처음 먹는 거라 아예 몰라요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 9,
+      "patient_message": "아뇨, 그런 거 전혀 없어요.  \n가족도 별 말씀 안 하시고, 저도 그런 건 잘 몰라요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그렇군요, 처음이시라니 더 편하게 말씀해 주셔도 괜찮아요. 혹시 최근에 술이나 수면제, 진정제, 카페인 같은 것들을 평소보다 많이 드시거나, 증상이 더 심해질 때 특히 신경 쓰이는 부분이 있으신가요? 혹시 최근에 술이나 수면제, 진정제, 카페인 같은 것들을 평소보다 많이 드시거나, 증상이 더 심해질 때 특히 신경 쓰이는 부분이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "요즘 피곤하고 스트레스 받아서요",
+        "history_of_present_illness": "피곤함과 스트레스로 인해 수면이 뒤척이고 새벽에 자주 깨는 증상이 있으며, 정확한 수면 시간은 잘 모르겠다고 함",
+        "substance_use_history": "주 1-2회 맥주 한두 캔 정도 섭취"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피곤하고 스트레스 받아서요",
+        "history_of_present_illness": "피곤함과 스트레스로 인해 수면이 뒤척이고 새벽에 자주 깨는 증상이 있으며, 정확한 수면 시간은 잘 모르겠다고 함",
+        "substance_use_history": "주 1-2회 맥주 한두 캔 정도 섭취"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4827.992683276534,
+      "timestamp": "2026-07-11T21:44:45.672644",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "아뇨, 그런 거 전혀 없어요.  \n가족도 별 말씀 안 하시고, 저도 그런 건 잘 몰라요.",
+        "normalized": "아뇨, 그런 거 전혀 없어요.  \n가족도 별 말씀 안 하시고, 저도 그런 건 잘 몰라요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1224.8676847666502,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아뇨, 그런 거 전혀 없어요. 가족도 별 말씀 안 하시고, 저도 그런 건 잘 몰라요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 10,
+      "patient_message": "음... 가끔 술은 먹긴 하는데 주 1-2회 맥주 한두 캔 정도요.  \n잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그렇군요, 처음이시라니 더 편하게 말씀해 주셔도 괜찮아요. 혹시 이전에 정신건강의학과 진료를 받으신 적이 있거나, 심리상담을 받아보신 적이 있으신가요? 아니면 기존에 진단받은 신체질환이 있거나, 현재 복용 중인 약이 있으신가요? 아니면 최근에 새로 시작한 약이 있으신가요?",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"음... 가끔 술은 먹긴 하는데 주 1-2회 맥주 한두 캔 정도요. 잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요...\"",
+        "chief_complaint": "요즘 피로와 스트레스로 인한 수면 문제",
+        "history_of_present_illness": "피로와 스트레스로 인해 수면이 뒤척이며 새벽에 자주 깨는 증상이 지속됨",
+        "substance_use_history": "주 1-2회 맥주 한두 캔 정도 음주"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "요즘 피로와 스트레스로 인한 수면 문제",
+        "history_of_present_illness": "피로와 스트레스로 인해 수면이 뒤척이며 새벽에 자주 깨는 증상이 지속됨",
+        "substance_use_history": "주 1-2회 맥주 한두 캔 정도 음주",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"음... 가끔 술은 먹긴 하는데 주 1-2회 맥주 한두 캔 정도요. 잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4831.877233926207,
+      "timestamp": "2026-07-11T21:44:54.763120",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "음... 가끔 술은 먹긴 하는데 주 1-2회 맥주 한두 캔 정도요.  \n잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요.",
+        "normalized": "음... 가끔 술은 먹긴 하는데 주 1-2회 맥주 한두 캔 정도요.  \n잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1307.6243833638728,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-11T21:43:21.270886",
+  "ended_at": "2026-07-11T21:44:59.131164",
+  "grounded_coverage": 0.5,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 9,
+      "forced": false
+    },
+    {
+      "type": "si_screen_result",
+      "turn": 10,
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"음... 가끔 술은 먹긴 하는데 주 1-2회 맥주 한두 캔 정도요. 잠도 뒤척이다 자고, 새벽에 자주 깨서 정확히 몇 시간 자는지 잘 모르겠네요...\""
+    }
+  ],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5636,
+  "patient_lng": 127.0369,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.12794369831681252,
+    "reason_summary": "Session sentiment: ['neutral', 'sadness'], strength=moderate",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "neutral",
+      "sadness"
+    ],
+    "emotion_distribution": {
+      "neutral": 0.44,
+      "sadness": 0.31,
+      "anxiety": 0.25
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.3
+      },
+      {
+        "turn": 1,
+        "polarity": -0.5
+      },
+      {
+        "turn": 2,
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "polarity": 0.0
+      },
+      {
+        "turn": 4,
+        "polarity": 0.0
+      },
+      {
+        "turn": 5,
+        "polarity": -0.2
+      },
+      {
+        "turn": 6,
+        "polarity": -0.5
+      },
+      {
+        "turn": 7,
+        "polarity": 0.0
+      },
+      {
+        "turn": 8,
+        "polarity": 0.0
+      },
+      {
+        "turn": 9,
+        "polarity": 0.0
+      },
+      {
+        "turn": 10,
+        "polarity": -0.5
+      }
+    ],
+    "signal_strength": "moderate",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "neutral 표현 7회 반복",
+      "sadness 표현 5회 반복",
+      "anxiety 표현 4회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.3
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.2
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.5
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-11",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v3",
+  "prior_handoff": null,
+  "carried_slot_provenance": {}
+}

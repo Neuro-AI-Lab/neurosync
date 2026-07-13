@@ -1,0 +1,334 @@
+{
+  "session_id": "f1_VP-001",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 3,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "잠이 잘 안 오는 것"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 아침에 피곤해서 회사에서도 집중이 잘 안 됨"
+    }
+  ],
+  "slot_coverage": 0.4,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요! 요즘 잠이 잘 안 오는 게 제일 걱정이에요. 누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 나면 아침에 피곤해서 회사에서도 집중이 잘 안 되더라고요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠이 잘 안 오는 게 제일 걱정이에요",
+        "누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 나면 아침에 피곤해서 회사에서도 집중이 잘 안 되더라고요"
+      ],
+      "agent_response": "안녕하세요! 저는 정신건강 사전문진을 돕는 AI 상담 도우미입니다. 실제 의사와의 대화가 아니라 편하게 이야기하셔도 괜찮아요. 오늘 가장 도움받고 싶은 문제나 증상이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오고 새벽에 깨는 문제로 아침에 피곤하고 회사 집중이 어려움",
+        "history_of_present_illness": "누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 아침에 피곤하여 회사에서도 집중이 잘 안 됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오고 새벽에 깨는 문제로 아침에 피곤하고 회사 집중이 어려움",
+        "history_of_present_illness": "누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 아침에 피곤하여 회사에서도 집중이 잘 안 됨"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 10410.65593296662,
+      "timestamp": "2026-07-11T22:05:02.501937",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "안녕하세요! 요즘 잠이 잘 안 오는 게 제일 걱정이에요.  \n누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 나면 아침에 피곤해서 회사에서도 집중이 잘 안 되더라고요.",
+        "normalized": "안녕하세요! 요즘 잠이 잘 안 오는 게 제일 걱정이에요. 누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 나면 아침에 피곤해서 회사에서도 집중이 잘 안 되더라고요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2342.61875692755,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "요즘 잠이 잘 안 오는 게 제일 걱정이에요. 누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 나면 아침에 피곤해서 회사에서도 집중이 잘 안 되더라고요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요! 요즘 잠이 잘 안 오는 게 제일 걱정이에요. 누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 나면 아침에 피곤해서 회사에서도 집중이 잘 안 되더라고요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 현재 정신건강의학과 진료를 받고 계시거나 심리상담을 받고 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오고 새벽에 깨는 문제로 아침에 피곤하고 회사 집중이 어려움",
+        "history_of_present_illness": "잠이 잘 안 오고 누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 아침에 피곤하여 회사에서도 집중이 잘 안 되는 상태"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오고 새벽에 깨는 문제로 아침에 피곤하고 회사 집중이 어려움",
+        "history_of_present_illness": "잠이 잘 안 오고 누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 아침에 피곤하여 회사에서도 집중이 잘 안 되는 상태"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5087.047416716814,
+      "timestamp": "2026-07-11T22:05:07.589013",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "안녕하세요! 요즘 잠이 잘 안 오는 게 제일 걱정이에요.  \n누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 나면 아침에 피곤해서 회사에서도 집중이 잘 안 되더라고요.",
+        "normalized": "안녕하세요! 요즘 잠이 잘 안 오는 게 제일 걱정이에요. 누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 나면 아침에 피곤해서 회사에서도 집중이 잘 안 되더라고요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2342.61875692755,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "요즘 잠이 잘 안 오는 게 제일 걱정이에요. 누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 나면 아침에 피곤해서 회사에서도 집중이 잘 안 되더라고요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 2,
+      "patient_message": "아직 병원에 가본 적은 없어요. 정신과를 갈 정도는 아닌 것 같아서 일단 여기서 상담해 보려고요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠이 잘 안 오는 게 제일 걱정이에요",
+        "누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 나면 아침에 피곤해서 회사에서도 집중이 잘 안 되더라고요"
+      ],
+      "agent_response": "이야기해 주셔서 감사합니다. 현재 복용 중이신 약이 있으신가요? 처방받은 약 외에 새로 드시는 약이나 최근에 복용량을 바꾸신 약이 있다면 알려주세요.",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오고 새벽에 여러 번 깨며 아침에 피곤하고 회사 집중이 잘 안 됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오고 새벽에 여러 번 깨며 아침에 피곤하고 회사 집중이 잘 안 됨",
+        "history_of_present_illness": "잠이 잘 안 오고 누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 아침에 피곤하여 회사에서도 집중이 잘 안 되는 상태"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4344.9403289705515,
+      "timestamp": "2026-07-11T22:05:16.819720",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아직 병원에 가본 적은 없어요.  \n정신과를 갈 정도는 아닌 것 같아서 일단 여기서 상담해 보려고요.",
+        "normalized": "아직 병원에 가본 적은 없어요. 정신과를 갈 정도는 아닌 것 같아서 일단 여기서 상담해 보려고요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1336.3786935806274,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아직 병원에 가본 적은 없어요. 정신과를 갈 정도는 아닌 것 같아서 일단 여기서 상담해 보려고요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 3,
+      "patient_message": "복용 중인 약은 전혀 없어요. 최근에 감기약도 먹어본 적 없고, 평소에도 특별히 챙기는 약이 없거든요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "도움이 필요할 때 연락하거나 도움을 요청할 수 있는 사람이 있으신가요? 가족, 친구, 동료 등 힘들 때 의지할 수 있는 분을 말씀해 주시면 좋겠습니다.",
+      "slot_updates": {
+        "chief_complaint": "잠이 잘 안 오는 것",
+        "history_of_present_illness": "누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 아침에 피곤해서 회사에서도 집중이 잘 안 됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 잘 안 오는 것",
+        "history_of_present_illness": "누워서 한참 뒤척이다가 새벽에도 몇 번 깨고 아침에 피곤해서 회사에서도 집중이 잘 안 됨"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4430.272168945521,
+      "timestamp": "2026-07-11T22:05:25.272908",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "복용 중인 약은 전혀 없어요.  \n최근에 감기약도 먹어본 적 없고, 평소에도 특별히 챙기는 약이 없거든요.",
+        "normalized": "복용 중인 약은 전혀 없어요. 최근에 감기약도 먹어본 적 없고, 평소에도 특별히 챙기는 약이 없거든요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1218.6203878372908,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "복용 중인 약은 전혀 없어요. 최근에 감기약도 먹어본 적 없고, 평소에도 특별히 챙기는 약이 없거든요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-11T22:04:52.091263",
+  "ended_at": "2026-07-11T22:05:29.925458",
+  "grounded_coverage": 0.25,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5807,
+  "patient_lng": 126.8898,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.09237183257937431,
+    "reason_summary": "Session sentiment: ['anxiety', 'sadness'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "anxiety",
+      "sadness"
+    ],
+    "emotion_distribution": {
+      "anxiety": 0.33,
+      "sadness": 0.33,
+      "neutral": 0.33
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.7
+      },
+      {
+        "turn": 1,
+        "polarity": -0.6
+      },
+      {
+        "turn": 2,
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "polarity": 0.0
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": true,
+    "shift_description": "대화 전반부 polarity -0.6 → 후반부 0.0 (호전)",
+    "repeated_patterns": [],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-11",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v3",
+  "prior_handoff": null,
+  "carried_slot_provenance": {}
+}

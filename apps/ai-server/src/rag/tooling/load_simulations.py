@@ -45,11 +45,24 @@ NS = uuid.uuid5(uuid.NAMESPACE_DNS, "neurosync.sim")
 SIM_PASSWORD = "Demo!Sim-2026"  # 데모용, 실제 비밀 아님. 로그인 계정 식별자.
 
 # 페르소나별 class(rag 3분류) + 자살플래그. 근거는 각 persona.md 위험평가/척도.
+# VP-010/011/012 (PLAN-2026-W28-Q W6, plan §9): 셋 다 크라이시스 전면
+# 배제 설계(§8 disclosed limitation) — SI/자해 명확히 negative, suicidal=False.
 PERSONA_META = {
     "VP-001": {"class": "ANXIETY", "suicidal": False},     # PHQ7/GAD8, 자살사고 없음
     "VP-002": {"class": "DEPRESSION", "suicidal": False},   # 재진 경증, 호전 중
     "VP-003": {"class": "DEPRESSION", "suicidal": True},    # 중증, 수동적 자살사고 매일
     "VP-004": {"class": "DEPRESSION", "suicidal": True},    # 중증 악화, 수동적 자살사고
+    # 축소보고형, 초진. Ground truth 코모비드 우울(PHQ-9~13)+불안(GAD-7~11) —
+    # 두 축이 비등하며, 우울이 CC/슬롯 문서(§2/§4)에서 먼저 명명되므로
+    # DEPRESSION을 대표 class로 선택(단일 판단, CVR-004 Finding 1이 이미
+    # 이 코모비드 특성 자체를 지적 — data의 golden-label 표기와는 별개 결정).
+    "VP-010": {"class": "DEPRESSION", "suicidal": False},
+    # 신체화-가면우울, 초진. 기저 진단(§2 anchor) = 중등도 주요우울장애 —
+    # DEPRESSION 명확.
+    "VP-011": {"class": "DEPRESSION", "suicidal": False},
+    # 만성 알코올사용장애, 초진. 알코올이 stated presenting concern(§2) —
+    # ADDICTION(우울 동반이나 임상적 초점은 알코올, §2 comorbidity note).
+    "VP-012": {"class": "ADDICTION", "suicidal": False},
 }
 
 CURRENT_YEAR = 2026

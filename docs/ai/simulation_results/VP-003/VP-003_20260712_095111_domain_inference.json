@@ -1,0 +1,271 @@
+{
+  "session_id": "f1_VP-003_followup",
+  "persona_id": "VP-003",
+  "repro": {
+    "git_head": "dd4eba25a07b0ff6ee2c9c6cb6523e86b26a9dcd",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_095056_conversation.json",
+    "input_sha256": "e3694b69b708ef6756df7b8848ad12ebdcba1b89ca4ea1b94438ae5d56b68ec1",
+    "mode": "rag",
+    "latency_ms": 15126.3,
+    "generated_at": "2026-07-12T09:51:11.890874",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 2658,
+      "completion_tokens": 902,
+      "total_tokens": 3560
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "depression",
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_2",
+          "quote": "하루 종일요. 아침에 눈 뜨는 순간부터... 잠들기 직전까지. 계속 그래요. 그냥... 사라지는 게 제일 편해요. 지금보다 더 안 좋을 수는 없잖아요."
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9"
+      ]
+    },
+    {
+      "domain": "alcohol",
+      "confidence": 0.5,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:740",
+          "quote": "내담자는 매일 저녁 술을 마시며, 하루에 소주 5병 이상을 섭취하는 경우가 많다. 술을 마시지 않으면 현기증과 짜증을 느끼며, 술을 통해 스트레스를 해소하고 감정을 잊고자 한다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:733",
+          "quote": "내담자는 술에 대한 통제 상실과 충동적인 갈망을 경험하고 있다. 술을 마시는 패턴은 주 3~4회로, 피곤할 때는 맥주 4캔이나 소주 1~2병을 마시며, 늦게 출근하거나 쉬는 날에는 술 생각이 더 많이 난다고 한다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:626",
+          "quote": "환자는 고등학생 때부터 술을 마셨으며, 20여 년 전부터는 매일 소주 1~2병씩을 마셔왔다고 한다. 환자는 3일 전 길에서 넘어져 발목을 접지른 뒤로 거동이 불편해 술을 마시지 못했다고 한다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:1466",
+          "quote": "환자는 고등학생 때부터 음주를 시작했으며, 지난 30년간 매일 소주 1병씩은 마셨다고 한다. 3개월 전 아내와 이혼한 뒤로 식사도 거르고 밤새 술을 마시다가 최근에는 직장도 잃게 되었다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:1398",
+          "quote": "보호자에 따르면 환자는 50년 전부터 매일 소주 1병 이상을 마셔왔으며, 금주를 시도할 때마다 손 떨림과 불안 초조로 실패했다고 한다."
+        }
+      ],
+      "recommended_surveys": [
+        "AUDIT",
+        "CAGE"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "사라지고 싶은 마음이 지속되고, 매일 소주 5병 이상 섭취하며, 금주 시 현기증·짜증·불안감 등 금단 증상이 나타나는 알코올 의존 및 우울증 증상",
+      "domain_ref": "depression"
+    },
+    {
+      "department": "정신건강의학과",
+      "reason": "매일 소주 5병 이상 섭취, 금주 시 불안·초조·손 떨림 등 금단 증상, AUDIT 점수 20점 이상으로 알코올 의존 진단",
+      "domain_ref": "alcohol"
+    }
+  ],
+  "summary": "환자는 '사라지고 싶은 마음이 더 커요'라는 표현을 통해 지속적인 자살 사고를 보이며, 매일 소주 5병 이상 섭취하고 금주 시 현기증·짜증·불안감 등 금단 증상을 호소한다. 알코올 의존과 우울 증상이 공존하고 있으며, 과거 세션에서도 동일한 자살 사고가 보고된 바 있다.",
+  "retrieval_meta": {
+    "mode": "rag",
+    "chunks_returned": 6,
+    "chunk_ids": [
+      "case_card:740",
+      "case_card:70",
+      "case_card:733",
+      "qa:626",
+      "qa:1466",
+      "qa:1398"
+    ],
+    "queries": [
+      "하루 종일요.  \n아침에 눈 뜨는 순간부터...  \n잠들기 직전까지.  \n계속 그래요.  \n그냥... 사라지는 게 제일 편해요.  \n지금보다 더 안 좋을 수는 없잖아요.  \n그래서 더...  \n잠들기 전에 소주 한 병 마시고 자려고 해요.  \n안 그러면... 못 버텨요.  \n진짜로요."
+    ]
+  },
+  "chunk_texts": {
+    "case_card:740": "내담자는 매일 저녁 술을 마시며, 하루에 소주 5병 이상을 섭취하는 경우가 많다. 술을 마시지 않으면 현기증과 짜증을 느끼며, 술을 통해 스트레스를 해소하고 감정을 잊고자 한다. 이러한 음주 패턴은 고등학교 시절부터 시작되었으며, 가족 간의 갈등과 공연 전 긴장감 해소를 위해 술을 의존하게 되었다.  내담자는 술을 줄이려는 시도를 여러 번 했지만, 주변 사람들의 부정적인 기대와 자신의 불안정한 감정 조절로 인해 어려움을 겪고 있다. 또한, 매운 음식에 대한 강한 선호도와 함께 술을 줄이려는 노력을 방해하는 요소로 작용하고 있다.",
+    "case_card:70": "내담자는 \"초조하거나 불안하거나 조마조마하게 느낀다\"며 불안감을 호소하고, \"잠도 못 잤고 아침에 또 문자 온 거 또 받아보고 나니까 밥이 안 들어가는 거예요\"라고 말하며 수면 문제를 언급한다. 또한, \"안 그래도 지금 머릿속에 그 생각밖에 없어요. 앞에 있는 게 들어오지 않아요\"라고 하여 집중력 저하를 나타낸다.  내담자는 \"부모님이랑 싸웠기 때문에\"라고 하여 가족과의 갈등을 언급하고, \"어머니가 제가 좀 집에 저희 어머니도 좀 그 편이거든요. 약간 과잉보호는 아닌데 과잉보호 맞아요\"라고 하여 과잉보호로 인한 스트레스를 나타낸다. 또한, \"어머니가 또 회사 생활을 제대로 하신 것도 아니고\"라고 하여 가족력과 관련된 스트레스 요인을 언급한다.",
+    "case_card:733": "내담자는 술에 대한 통제 상실과 충동적인 갈망을 경험하고 있다. 술을 마시는 패턴은 주 3~4회로, 피곤할 때는 맥주 4캔이나 소주 1~2병을 마시며, 늦게 출근하거나 쉬는 날에는 술 생각이 더 많이 난다고 한다. 술을 마시는 이유로는 스트레스 해소와 보상 심리가 작용하고 있으며, 술을 마시지 않으면 불안감이 커지는 경향이 있다. 내담자는 술을 통해 일상에서 벗어나고자 하는 욕구가 강하며, 술을 마시는 것이 일상생활에 부정적인 영향을 미치고 있음을 인식하고 있다. 또한, 술을 마신 후 자책감과 후회를 느끼고 있다.  내담자는 과거 정신질환과 스트레스 사건을 경험한 바 있으며, 이러한 경험이 술에 대한 의존성을 높이는 위험요인으로 작용하고 있다. 내담자는 육아와 가사로 인한 스트레스와 남편과의 관계에서 오는 불안감을 술로 해소하려는 경향이 있다. 또한, 완벽주의 성향으로 인해 자신과 타인에게 높은 기준을 적용하며, 이러한 기준에 미치지 못할 때 자책과 분노를 경험한다. 내담자는 자신의 감정을 조절하는 데 어려움을 겪고 있으며, 이러한 정서적 변화가 술에 대한 의존성을 강화시키고 있다.",
+    "qa:626": "Q: 50세 여자가 밤새 잠을 자지 못하고 몸에 벌레가 기어다닌다고 소리치는 모습을 보여 가족에 의해 응급실에 왔다. 환자는 고등학생 때부터 술을 마셨으며, 20여 년 전부터는 매일 소주 1~2병씩을 마셔왔다고 한다. 환자는 3일 전 길에서 넘어져 발목을 접지른 뒤로 거동이 불편해 술을 마시지 못했다고 한다. 환자는 1일 전부터 몹시 불안해하며 식은땀이 나는 모습을 보였고, 가족도 알아보지 못했다고 한다. 뇌 전산화단층촬영에서 이상은 없었다. 이 환자의 진단으로 가장 적절한 것은?  \n1) 알코올금단섬망  \n2) 알코올유발불안장애  \n3) 알코올유발수면장애  \n4) 알코올중독  \n5) 알코올유발정신병장애\nA: 1) 알코올금단섬망",
+    "qa:1466": "Q: 47세 남자가 금주치료를 받고 싶다며 병원에 왔다. 환자는 고등학생 때부터 음주를 시작했으며, 지난 30년간 매일 소주 1병씩은 마셨다고 한다. 3개월 전 아내와 이혼한 뒤로 식사도 거르고 밤새 술을 마시다가 최근에는 직장도 잃게 되었다고 한다. 병원에 오기 3시간 전 마지막으로 소주를 1병 마셨으며, 지금부터는 당장 술을 끊겠다고 한다. 이 환자에게 우선적으로 필요한 조치는 무엇인가?  \n1) 해독치료  \n2) 재활치료  \n3) 인지행동치료  \n4) 분석적 정신치료  \n5) 단주모임 참여\nA: 1) 해독치료",
+    "qa:1398": "Q: 68세 남자가 아내를 알아보지 못하고 횡설수설하여 병원에 왔다. 보호자에 따르면 환자는 50년 전부터 매일 소주 1병 이상을 마셔왔으며, 금주를 시도할 때마다 손 떨림과 불안 초조로 실패했다고 한다. 1주 전 간수치 이상을 듣고 금주를 결심했으며, 4일 전부터 걸음이 휘청거리고 자주 넘어지며, 속이 울렁거려 식사를 제대로 하지 못했다고 한다. 신경학적 검사에서 눈떨림이 관찰되었다. 이 환자의 가장 가능성 높은 진단은 무엇인가?  \n1) 알코올 금단 불안  \n2) 알코올 금단 경련  \n3) 알코올 유발 정신병적 장애  \n4) 베르니케 뇌병증  \n5) 루이소체 치매\nA: 4) 베르니케 뇌병증"
+  },
+  "utterances": {
+    "turn_0": "... 그냥요. 왜 또 말해야 하죠? 사기보다 그냥... 사라지고 싶은 마음이 더 커요. 그 마음이 더 강해요.",
+    "turn_1": "... 그냥요. 왜 또 말해야 하죠? 사기보다 그냥... 사라지고 싶은 마음이 더 커요. 그 마음이 더 강해요.",
+    "turn_2": "하루 종일요.  \n아침에 눈 뜨는 순간부터...  \n잠들기 직전까지.  \n계속 그래요.  \n그냥... 사라지는 게 제일 편해요.  \n지금보다 더 안 좋을 수는 없잖아요.  \n그래서 더...  \n잠들기 전에 소주 한 병 마시고 자려고 해요.  \n안 그러면... 못 버텨요.  \n진짜로요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 6,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 2
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "사라지고 싶은 마음이 더 커요. 그 마음이 더 강해요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "사라지고 싶은 마음이 더 커요. 그 마음이 더 강해요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "하루 종일요. 아침에 눈 뜨는 순간부터... 잠들기 직전까지. 계속 그래요. 그냥... 사라지는 게 제일 편해요. 지금보다 더 안 좋을 수는 없잖아요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:740",
+        "quote": "내담자는 매일 저녁 술을 마시며, 하루에 소주 5병 이상을 섭취하는 경우가 많다. 술을 마시지 않으면 현기증과 짜증을 느끼며, 술을 통해 스트레스를 해소하고 감정을 잊고자 한다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:733",
+        "quote": "내담자는 술에 대한 통제 상실과 충동적인 갈망을 경험하고 있다. 술을 마시는 패턴은 주 3~4회로, 피곤할 때는 맥주 4캔이나 소주 1~2병을 마시며, 늦게 출근하거나 쉬는 날에는 술 생각이 더 많이 난다고 한다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "rag_chunk",
+        "source_id": "qa:626",
+        "quote": "환자는 고등학생 때부터 술을 마셨으며, 20여 년 전부터는 매일 소주 1~2병씩을 마셔왔다고 한다. 환자는 3일 전 길에서 넘어져 발목을 접지른 뒤로 거동이 불편해 술을 마시지 못했다고 한다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "rag_chunk",
+        "source_id": "qa:1466",
+        "quote": "환자는 고등학생 때부터 음주를 시작했으며, 지난 30년간 매일 소주 1병씩은 마셨다고 한다. 3개월 전 아내와 이혼한 뒤로 식사도 거르고 밤새 술을 마시다가 최근에는 직장도 잃게 되었다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "rag_chunk",
+        "source_id": "qa:1398",
+        "quote": "보호자에 따르면 환자는 50년 전부터 매일 소주 1병 이상을 마셔왔으며, 금주를 시도할 때마다 손 떨림과 불안 초조로 실패했다고 한다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 2,
+    "candidates_after": 2,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 2,
+    "evidence_stripped_risk_lexicon": 2
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "자살 사고를 구체적으로 어떻게 경험하고 계신가요? (예: 구체적인 계획, 방법, 시기 등)",
+    "술을 줄이려는 시도를 해본 적이 있나요? 그 결과는 어떠했나요?",
+    "현재 금단 증상(현기증, 짜증, 불안 등)이 얼마나 자주, 얼마나 심하게 나타나나요?",
+    "가족이나 친구와의 관계에서 어떤 어려움이 있나요?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 15126.327840145677,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 2658,
+    "completion_tokens": 902,
+    "total_tokens": 3560
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [
+      {
+        "disease": "계절성 정동장애",
+        "similarity_score": 0.438,
+        "source_id": "qa:626",
+        "quote": "...?  \n1) 알코올금단섬망  \n2) 알코올유발불안장애  \n3) 알코올유발수면장애  \n4) 알코올중독  \n5) 알코올유발정신병장애\nA: 1) 알코올금단섬..."
+      },
+      {
+        "disease": "월경전 불쾌장애",
+        "similarity_score": 0.438,
+        "source_id": "qa:626",
+        "quote": "...?  \n1) 알코올금단섬망  \n2) 알코올유발불안장애  \n3) 알코올유발수면장애  \n4) 알코올중독  \n5) 알코올유발정신병장애\nA: 1) 알코올금단섬..."
+      },
+      {
+        "disease": "범불안장애",
+        "similarity_score": 0.427,
+        "source_id": "case_card:70",
+        "quote": "내담자는 \"초조하거나 불안하거나 조마조마하게 느낀다\"며 불안감을 호소하고, \"잠도 못..."
+      },
+      {
+        "disease": "알코올 금단",
+        "similarity_score": 0.413,
+        "source_id": "case_card:733",
+        "quote": "...로는 스트레스 해소와 보상 심리가 작용하고 있으며, 술을 마시지 않으면 불안감이 커지는 경향이 있다. 내담자는 술을 통해 일상에서 벗어나고자 하는..."
+      }
+    ],
+    "mode": "rag_live",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "4 disease candidate(s) derived from 6 retrieved chunk(s) via symptom-keyword match (path1, ADR-020). similarity_score is a RAG cosine-similarity signal between the retrieved chunk and the Stage-1 query — NOT a patient-to-disease similarity, and NOT a calibrated probability (two-hop proxy, RES-001 §2 step 9 / ADR-020 condition 3).",
+    "recommended_questionnaire": "PHQ-9",
+    "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 2,
+    "rag_chunk_qa": 3,
+    "rag_chunk_other": 0,
+    "utterance": 1,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "A",
+    "retrieve": true,
+    "queries": [
+      "하루 종일요.  \n아침에 눈 뜨는 순간부터...  \n잠들기 직전까지.  \n계속 그래요.  \n그냥... 사라지는 게 제일 편해요.  \n지금보다 더 안 좋을 수는 없잖아요.  \n그래서 더...  \n잠들기 전에 소주 한 병 마시고 자려고 해요.  \n안 그러면... 못 버텨요.  \n진짜로요."
+    ],
+    "dropped_queries": [
+      "사라지고 싶은 마음이 더 커요",
+      "사라지고 싶은 마음이 더 커요",
+      "... 그냥요. 왜 또 말해야 하죠? 사기보다 그냥... 사라지고 싶은 마음이 더 커요. 그 마음이 더 강해요."
+    ],
+    "trigger_reason": "insufficient_fallback_used_retrieve",
+    "fallback_used": true,
+    "judge_output": null
+  }
+}
