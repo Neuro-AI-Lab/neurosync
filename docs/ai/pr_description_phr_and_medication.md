@@ -12,7 +12,8 @@
 
 **축 1 · PHR (마이헬스웨이 계열 JSON)**
 - 세션 시작 시 로드되어 DialogueAgent의 system prompt 앞부분에 결합
-- 정신과 약물 계열(SSRI/SNRI/BENZO/ZDRUG 등) 자동 판정
+- 정신과 약물 판정 — **HIRA 의약품성분약효정보조회서비스**(약효분류번호)로 조회.
+  임의 하드코딩 카탈로그가 아니라 건강보험심사평가원 공식 분류가 근거 (§3.3)
 
 **축 2 · 처방전 이미지 (Upstage OCR + prescription-특화 파서)**
 - 페르소나별 실제 처방전 사진에서 **처방일 + 약물 정보** 추출
@@ -24,7 +25,7 @@
 
 ## 2. 변경 규모 (`git diff --shortstat origin/Master...HEAD` 실측)
 
-**35 files changed, +7805 / −22 lines** (24 text + 11 binary images)
+**52 files changed, +11475 / −22 lines** (text + binary images + F1 검증 세션 산출물 포함)
 
 ### 코드
 | 파일 | 변경 |
@@ -35,9 +36,13 @@
 | `src/agents/patient_history.py` (신규) | +503 |
 | `src/agents/dialogue.py` | +7 / −1 |
 | `src/agents/ocr.py` | +107 / −21 (처방전 분기 추가) |
-| `src/data/psychotropic_ingredients.py` (신규) | +110 |
+| `src/adapters/hira_drug_efficacy.py` (신규) | HIRA 약효분류 어댑터 |
+| `src/data/psychotropic_classification.py` (신규) | 약효분류번호 기반 판정 (구 `psychotropic_ingredients.py` 삭제) |
+| `src/data/hira_efficacy_cache.{py,json}` (신규) | API 응답 스냅샷 캐시 + 로더 |
+| `src/data/build_efficacy_cache.py` (신규) | 캐시 재현 스크립트 |
 | `src/data/__init__.py` (신규) | +0 |
-| `src/f1.py` | +201 |
+| `src/dependencies.py` | 약효 어댑터 factory |
+| `src/f1.py` | +201 · 약효 어댑터 주입 |
 
 ### 테스트
 | 파일 | 변경 |
@@ -79,10 +84,19 @@ Layer 2 · agents/patient_history.py — parse → typed model + 요약
 Layer 1 · adapters/myhealthway_reader.py — load_bundle + iter_resources + redact_for_log
 ```
 
-### 3.3 정신과 약물 판정 (`data/psychotropic_ingredients.py`)
-- 41개 성분명 하드코딩 (SSRI 6 · SNRI 4 · TCA 4 · BENZO 6 · ZDRUG 4 · ANTIPSYCHOTIC 6 · MOOD_STABILIZER 5 · OTHER_NEURO 6)
-- lowercase + 공백/하이픈 제거 정규화 후 dict lookup, partial-match fallback
-- `is_psychotropic()`은 `classify() != "NON_PSYCHIATRIC"`
+### 3.3 정신과 약물 판정 — HIRA 약효분류 API (하드코딩 대체)
+초기 초안은 성분명 화이트리스트를 하드코딩했으나 **임상 레퍼런스가 없어** 근거·검증이
+불가능했다. 판정 기준을 **건강보험심사평가원 「의약품성분약효정보조회서비스」**
+(`getMajorCmpnNmCdList`)의 약효분류번호로 전면 대체했다.
+
+- PHR 성분코드(`hira_ingredient_code`, system `hira.or.kr`)가 곧 API의 `gnlNmCd` →
+  **별도 매핑 없이** 조회. 우리 `HIRA_SERVICE_KEY`로 `resultCode:00` 실측 확인.
+- 정신과 판정 = 약효분류번호 `{117 정신신경용제, 112 최면진정제}`
+  - ⚠️ 국내 KFDA 분류에서 항불안제(alprazolam 등)도 112가 아니라 **117**.
+  - 세분류(SSRI/SNRI/benzo)는 약효분류만으론 불가 — 전부 117로 묶임 (한계 §7).
+- 런타임: 로컬 캐시(API 스냅샷, 오프라인 동작) → miss 시 API → 실패 시 `UNKNOWN`(단정 안 함)
+- 캐시는 임의 값이 아니라 재현 가능: `python -m src.data.build_efficacy_cache`
+- 근거·데이터소스 전체: **`docs/ai/psychotropic_classification.md`**
 
 ### 3.4 F1 통합
 - `run_session(phr_paths=...)` 인자 추가 · 세션 시작 시 로드
@@ -154,6 +168,12 @@ else:
 
 이전 초안은 카탈로그 커버리지를 위해 페르소나 원본과 다른 데이터를 넣었으나, **`docs/ai/personas/VP-*.md` 원본 임상 시나리오에 100% 일치**하도록 재작성.
 
+> **⚠️ 성분코드 교정 (약효분류 API 검증 중 발견)**: 초안 샘플의 HIRA 성분코드
+> 14건이 **조작된 값**이었음을 실 API 조회로 확인하고 실제 코드로 전량 교정했다.
+> 예: escitalopram로 표기된 `245801ATB`는 실제로는 **ubidecarenone(강심제)** →
+> `474802ATB`(10mg)/`474803ATB`(20mg). 용량별 구분 적용. 조작된 코드로는 약효분류
+> 조회가 오분류됐을 것 — 하드코딩 카탈로그를 API로 대체하며 함께 해소.
+
 | VP | 원본 시나리오 | 재작성된 PHR |
 |---|---|---|
 | VP-001 (초진 경증) | 정신과 진료 이력 없음 · 최근 3주 불안·수면 | 감기·소화·국소 3건 · 정신과 흔적 0 |
@@ -163,9 +183,9 @@ else:
 
 **PHR 리소스 총계** (원본 100% 재작성 후)
 - VP-001: 조제 3 + 방문 4 · psychotropic 0
-- VP-002: 조제 2 + 방문 4 · psychotropic 2 (SSRI)
+- VP-002: 조제 2 + 방문 4 · psychotropic 2 (정신신경용제)
 - VP-003: 조제 3 + 방문 6 · psychotropic 0
-- VP-004: 조제 6 + 방문 9 · psychotropic 6 (SSRI + BENZO)
+- VP-004: 조제 6 + 방문 9 · psychotropic 6 (전부 117 정신신경용제 — SSRI·항불안제 모두 117)
 
 ---
 
@@ -250,10 +270,11 @@ VP-004/VP-004_medicine_3.jpg   VP-004/VP-004_medicine_4.jpg
 
 ---
 
-## 7. 테스트 (신규 30건 · 전체 842 통과)
+## 7. 테스트 (전체 845 수집 · PHR+F1 관련 92 통과, import 오류 0)
 
-### 6.1 PHR 파서 유닛 (`tests/test_phr_reader.py` · 20건)
-- `TestPsychotropicCatalog` (5): 성분 카탈로그 매칭 · 대소문자 · 부분일치
+### 6.1 PHR 파서 유닛 (`tests/test_phr_reader.py`)
+- `TestEfficacyClassification` (4): 약효분류번호 → 판정 (117/112/비정신과/UNKNOWN)
+- `TestEfficacyCache` (4): 캐시(API 스냅샷)가 샘플 코드를 정확히 매핑 (474802ATB→117 등)
 - `TestSafeDate` (5): ISO / ISO datetime / YYYYMMDD / None / invalid
 - `test_persona_summary[VP-001~004]` (4): 페르소나별 assertion (원본 100% 일치 값)
 - `test_summary_prompt_note_negative/positive` (2)
@@ -369,13 +390,13 @@ Report(`.md`) 자동 삽입 섹션 실물:
 - 총 방문: 9건 (정신과명 포함 4건)
 - 정신과 이력: 예
 
-### 정신과 계열 약물 이력
-- 2026-04-15 · 졸로푸트정50mg (서트랄린) [SSRI] · 14일치 · 1회/일
-- 2026-05-01 · 렉사프로정10mg (에스시탈로프람) [SSRI] · 21일치 · 1회/일
-- 2026-05-20 · 렉사프로정20mg (에스시탈로프람) [SSRI] · 28일치 · 1회/일
-- 2026-05-20 · 자낙스정0.25mg (알프라졸람) [BENZO] · 14일치 · 0회/일
-- 2026-06-17 · 렉사프로정20mg (에스시탈로프람) [SSRI] · 28일치 · 1회/일
-- 2026-06-17 · 자낙스정0.25mg (알프라졸람) [BENZO] · 14일치 · 0회/일
+### 정신과 계열 약물 이력 (약효분류명 = HIRA divNm)
+- 2026-04-15 · 졸로푸트정50mg (서트랄린) [정신신경용제] · 14일치 · 1회/일
+- 2026-05-01 · 렉사프로정10mg (에스시탈로프람) [정신신경용제] · 21일치 · 1회/일
+- 2026-05-20 · 렉사프로정20mg (에스시탈로프람) [정신신경용제] · 28일치 · 1회/일
+- 2026-05-20 · 자낙스정0.25mg (알프라졸람) [정신신경용제] · 14일치 · 0회/일
+- 2026-06-17 · 렉사프로정20mg (에스시탈로프람) [정신신경용제] · 28일치 · 1회/일
+- 2026-06-17 · 자낙스정0.25mg (알프라졸람) [정신신경용제] · 14일치 · 0회/일
 
 ## STT Transcripts (음성 입력)
 Audio 1~3
@@ -386,7 +407,7 @@ Audio 1~3
 | 소스 | 담긴 정보 |
 |---|---|
 | **1. Persona MD** (`VP-004_revisit_severe.md`) | Sertraline(2026-04-15) → Esc10(05-01) → Esc20+Alprazolam PRN(05-20) · 응급실 · 공황 발작 |
-| **2. PHR JSON** samples | 6 psychotropic · SSRI + BENZO · 2026-04-15 ~ 06-17 |
+| **2. PHR JSON** samples | 6 psychotropic · 전부 117 정신신경용제 · 2026-04-15 ~ 06-17 |
 | **3. 처방전 이미지 OCR** (medicine_4) | 렉사프로20mg + 자낙스0.25mg · 2026-05-20 |
 | **4. STT 음성** | "약을 먹는데도 전혀 나아지지 않아요..." |
 
@@ -421,18 +442,22 @@ Audio 1~3
 ### 8.1 데이터 소스 제약 (fix 불가)
 1. **PHR 진단명(ICD-10) 부재** — 국내 EOB `diagnosis`를 마스킹. 방문 사실과 요양기관·비용만 활용.
 2. **`supportingInfo`의 임상 해석 불가** — hospitalized/related/other 코드값만 있음.
-3. **정신과 판정이 성분명에만 의존** — 카탈로그 미등록 성분은 놓칠 수 있음.
-4. **BENZO 응급 단회 처방을 `has_psychiatric_history=True`로 판정** — 지속성 지표 후속 도입 검토.
+3. **약효분류 세분류 불가** — 117 정신신경용제가 SSRI/SNRI/TCA/항불안제/항정신병약을
+   모두 포괄. SSRI vs benzo 세분류가 필요하면 ATC 코드(N05/N06) 소스 추가 필요
+   (HIRA ATC 매핑 15118958 또는 식약처 묶음의약품 15063908).
+4. **항전간제(113) 기본 제외** — 라모트리진·발프로에이트 등은 기분안정제로도 쓰이나
+   순수 뇌전증과 구분 불가하여 오탐 방지 차원 제외 (필요 시 재검토).
+5. **약효분류 미조회(UNKNOWN) 시 정신과로 단정하지 않음** — 캐시 miss & API 실패 시 보수적 처리.
 
 ### 8.2 후속 확장 여지
-5. F1 slot의 `past_psychiatric_history`/`medical_history` 자동 pre-populate는 미구현 (system prompt 주입만).
-6. `psychiatric_visit_count`는 `"정신" in facility_name` substring heuristic (Kakao 카테고리 매핑 도입 여지).
-7. 처방전 dose/freq/days 추출률 73% — 표 구조 이질 3건 미추출 (약물명·처방일은 정확).
-8. OCR 셀 스크램블로 환자명 미추출 2건 (오탐 대신 안전한 `None` 반환).
-9. Ingredient 첫 성분만 처리 (복합제 rare-case).
+6. F1 slot의 `past_psychiatric_history`/`medical_history` 자동 pre-populate는 미구현 (system prompt 주입만).
+7. `psychiatric_visit_count`는 `"정신" in facility_name` substring heuristic (Kakao 카테고리 매핑 도입 여지).
+8. 처방전 dose/freq/days 추출률 73% — 표 구조 이질 3건 미추출 (약물명·처방일은 정확).
+9. OCR 셀 스크램블로 환자명 미추출 2건 (오탐 대신 안전한 `None` 반환).
+10. Ingredient 첫 성분만 처리 (복합제 rare-case).
 
 ### 8.3 개발 환경 노이즈
-10. `datetime.utcnow()` deprecation warning (Python 3.13에서 제거 예정 · 동작 문제 없음).
+11. `datetime.utcnow()` deprecation warning (Python 3.13에서 제거 예정 · 동작 문제 없음).
 
 ---
 
@@ -501,6 +526,6 @@ asyncio.run(m())
 
 ## 14. Notes
 
-- 본 PR body는 실측 근거만 기재 (실제 카탈로그 크기, 파일 라인수, pytest 카운트, OCR 이미지 파싱 결과 모두 실행 결과 인용).
+- 본 PR body는 실측 근거만 기재 (HIRA API 실호출 결과, 파일 라인수, pytest 카운트, OCR 이미지 파싱 결과 모두 실행 결과 인용).
 - 이전 별도 PR body 문서(`docs/ai/pr_description_phr_integration.md`)는 PHR-only 범위에 대한 것으로, 이번 통합 PR에서는 본 문서(`pr_description_phr_and_medication.md`)를 사용.
 - Handoff 라우트 연결·F1 slot pre-populate는 후속 별도 PR (`docs/ai/phr_integration_plan.md` §5.1 옵션 B/C).
