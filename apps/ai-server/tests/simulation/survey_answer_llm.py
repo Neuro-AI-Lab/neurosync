@@ -18,7 +18,16 @@ Two modes:
   (`PLAN-2026-W29-A`), `_build_prompt` presents the item's own
   `response_anchors` (when populated) and — when `scale_name` is supplied —
   the scale's entry-level `instruction_ko` (timeframe/instruction wording),
-  replacing v0's bare `[min,max]` integer ask.
+  replacing v0's bare `[min,max]` integer ask. `instruction_ko_override`
+  (`EXP-021`/`REV-040` (2)/(6)) lets a caller decouple instruction-line
+  presence from `scale_name`'s live-registry lookup entirely — anchors and
+  instruction are independent inputs to `build_item_prompt`, never coupled
+  by branch structure. Callers that also pass `scale_name` (e.g. for
+  bookkeeping) MUST pass `instruction_ko_override` explicitly whenever they
+  need `F_instr=off` with anchors populated — relying on the `_UNSET`
+  default in that combination silently resolves the live registry's
+  instruction text instead (REV-040 Issue 1; see
+  `test_cell3_shaped_instruction_override_prevents_leak` below).
 - `expected_answer_fn` (§7.2, fallback): deterministic, zero LLM — reads the
   persona markdown's own "### {SCALE} 예상 항목별 점수" table. Raises
   loudly (never guesses) if a persona has no such table for the requested
@@ -49,6 +58,69 @@ def _parse_first_integer(text: str) -> int | None:
     return int(match.group(0))
 
 
+class _Unset:
+    """Sentinel type distinguishing 'argument not passed' from an explicit
+    `None` (EXP-021/REV-040 (2)). A plain `None` default could not express
+    "always use the scale_name-derived instruction" vs "explicitly no
+    instruction, regardless of scale_name" — this sentinel can.
+    """
+
+    def __repr__(self) -> str:  # pragma: no cover - debugging aid only
+        return "<UNSET>"
+
+
+_UNSET = _Unset()
+
+
+def build_item_prompt(
+    *,
+    text_ko: str,
+    response_min: int,
+    response_max: int,
+    response_anchors: dict[int, str] | None,
+    instruction_ko: str | None,
+) -> str:
+    """Pure, side-effect-free prompt construction (EXP-021/REV-040 (2)).
+
+    Decouples instruction-line presence from anchor-menu presence: the
+    original `_build_prompt` only ever emitted `instruction_ko` inside the
+    anchor-populated branch, making "instruction ON, anchors OFF" and
+    "instruction OFF, anchors ON" unproducible. Here `instruction_ko` and
+    `response_anchors` are independent inputs, checked in this fixed order
+    (instruction line first, when present; anchor-menu-or-bare-ask second) —
+    every combination of the two is producible, and neither branch's
+    presence implies anything about the other.
+
+    Byte-identical to the pre-EXP-021 `_build_prompt` output for both
+    historical corners: `response_anchors=None, instruction_ko=None`
+    reproduces the v0 bare-integer ask exactly (§EXP-021 Cell 1); anchors
+    populated + instruction present reproduces the v1 anchor-menu ask
+    exactly (§EXP-021 Cell 8) — see the golden tests in
+    `test_survey_answer_llm.py`.
+    """
+    lines: list[str] = []
+    if instruction_ko:
+        lines.append(instruction_ko)
+
+    if not response_anchors:
+        lines.append(
+            "다음 항목에 대해 지난 2주간 당신의 상태를 가장 잘 나타내는 숫자를 "
+            f"{response_min}-{response_max} 사이에서 하나만 답하세요: {text_ko}"
+        )
+        return "\n".join(lines)
+
+    anchor_text = " / ".join(
+        f"{value}: {label}" for value, label in sorted(response_anchors.items())
+    )
+    lines.append(f"문항: {text_ko}")
+    lines.append(f"응답 척도: {anchor_text}")
+    lines.append(
+        "위 응답 척도 중 당신의 상태를 가장 잘 나타내는 숫자 하나만 답하세요 "
+        f"({response_min}-{response_max})."
+    )
+    return "\n".join(lines)
+
+
 class SurveyAnswerLLM:
     """In-persona per-item score selection over K-EXAONE (plan §7.1).
 
@@ -70,6 +142,7 @@ class SurveyAnswerLLM:
         base_url: str = "https://api.friendli.ai/dedicated/v1",
         model: str | None = None,
         scale_name: str | None = None,
+        instruction_ko_override: str | None | _Unset = _UNSET,
     ) -> None:
         _api_key = api_key or os.environ.get("LG_K_EXAONE_API_KEY", "")
         _model = model or os.environ.get("LG_K_EXAONE_ENDPOINT_ID", "")
@@ -82,16 +155,31 @@ class SurveyAnswerLLM:
         self._model = _model
         self.clamped_items: list[int] = []
         self.scale_name = scale_name
-        self._instruction_ko = self._resolve_instruction(scale_name)
+        self._instruction_ko = self._resolve_instruction(scale_name, instruction_ko_override)
 
     @staticmethod
-    def _resolve_instruction(scale_name: str | None) -> str | None:
-        """Entry-level `instruction_ko` lookup (item bank v1) — `None` when
-        `scale_name` wasn't supplied (backward-compatible construction) or
-        the scale has no instruction wording on record. Never raises: an
-        unrecognized scale degrades to no instruction line, same as v0's
-        behavior, rather than crashing prompt construction.
+    def _resolve_instruction(
+        scale_name: str | None,
+        instruction_ko_override: str | None | _Unset = _UNSET,
+    ) -> str | None:
+        """Entry-level `instruction_ko` resolution (item bank v1;
+        EXP-021/REV-040 (2) for the override).
+
+        `instruction_ko_override`, when explicitly passed (including
+        explicit `None`), ALWAYS takes precedence over `scale_name`'s
+        live-registry lookup — this is what lets a caller hold
+        `F_instr=off` even while also passing `scale_name` for bookkeeping
+        (REV-040 Issue 1/Resolution 1). Only when the override is left at
+        its `_UNSET` default does this fall back to the original
+        `scale_name`-based resolution, byte-identical to the pre-EXP-021
+        behavior: `None` when `scale_name` wasn't supplied (backward-
+        compatible construction), or the scale has no instruction wording
+        on record. Never raises: an unrecognized scale degrades to no
+        instruction line, same as v0's behavior, rather than crashing
+        prompt construction.
         """
+        if not isinstance(instruction_ko_override, _Unset):
+            return instruction_ko_override
         if scale_name is None:
             return None
         from src.scoring.item_bank import get_item_bank  # noqa: PLC0415 — avoid import cycles
@@ -145,27 +233,17 @@ class SurveyAnswerLLM:
         """Anchor-aware ask (item bank v1). Falls back to v0's bare
         `[min,max]` integer ask when `item.response_anchors` is empty (e.g.
         a future not-yet-anchored entry) — this method never fabricates
-        anchor wording that isn't on `item` itself.
+        anchor wording that isn't on `item` itself. Delegates to the pure
+        `build_item_prompt` (EXP-021/REV-040 (2)) — see that function's
+        docstring for the instruction/anchor decoupling this enables.
         """
-        if not item.response_anchors:
-            return (
-                "다음 항목에 대해 지난 2주간 당신의 상태를 가장 잘 나타내는 숫자를 "
-                f"{item.response_min}-{item.response_max} 사이에서 하나만 답하세요: {item.text_ko}"
-            )
-
-        anchor_text = " / ".join(
-            f"{value}: {label}" for value, label in sorted(item.response_anchors.items())
+        return build_item_prompt(
+            text_ko=item.text_ko,
+            response_min=item.response_min,
+            response_max=item.response_max,
+            response_anchors=item.response_anchors,
+            instruction_ko=self._instruction_ko,
         )
-        lines = []
-        if self._instruction_ko:
-            lines.append(self._instruction_ko)
-        lines.append(f"문항: {item.text_ko}")
-        lines.append(f"응답 척도: {anchor_text}")
-        lines.append(
-            "위 응답 척도 중 당신의 상태를 가장 잘 나타내는 숫자 하나만 답하세요 "
-            f"({item.response_min}-{item.response_max})."
-        )
-        return "\n".join(lines)
 
     async def _ask(self, user_content: str) -> str:
         messages = [
