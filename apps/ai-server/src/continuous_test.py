@@ -1,11 +1,21 @@
-"""continuous_test.py — F1 -> F2 -> ... -> F6 end-to-end validation harness.
+"""continuous_test.py — F1 -> F2 -> F3 -> ... -> F6 end-to-end validation harness.
 
-PLAN-2026-W28-H Track C. Chains the pipeline stages that exist today: runs an
-F1 session for a persona (`f1.py`, `F1Pipeline`) and feeds the resulting F1
-`conversation.json` into F2 (`f2.py`). F3-F6 do not exist yet in this repo —
-they are explicit, LOGGED skip stubs in `STAGE_REGISTRY` (never silently
-omitted): add a `Stage(...)` entry with `implemented=True` and a `run`
-coroutine the moment `fN.py` ships, and the chain picks it up automatically.
+PLAN-2026-W28-H Track C (F1/F2), PLAN-2026-W28-V (F3, `src.f3`, `ADR-031`/
+`ADR-032`). Chains the pipeline stages that exist today: runs an F1 session
+for a persona (`f1.py`, `F1Pipeline`), feeds the resulting F1
+`conversation.json` into F2 (`f2.py`), then feeds F2's `domain_inference.json`
+into F3 (`f3.py` — administers exactly the ONE questionnaire F2 recommended,
+`ai_predicted_disease.recommended_questionnaire`). F4-F6 do not exist yet in
+this repo — they are explicit, LOGGED skip stubs in `STAGE_REGISTRY` (never
+silently omitted): add a `Stage(...)` entry with `implemented=True` and a
+`run` coroutine the moment `fN.py` ships, and the chain picks it up
+automatically.
+
+F3's answer_fn (in-persona LLM score selection, or a deterministic
+persona-table read) is constructed by THIS harness from
+`tests/simulation/survey_answer_llm.py` and injected into `src.f3` — `src/
+f3.py` itself makes zero LLM calls and imports nothing from `tests/`
+(`--answer-mode {llm,expected}`, default `llm`).
 
 This is a VALIDATION HARNESS, like `f1.py`'s simulation CLI and `f2.py` —
 it is NOT wired into `orchestrator.py` or the 11-state machine.
@@ -32,12 +42,16 @@ so re-running this harness never clobbers a prior run's artifacts.
 
 Multi-session chaining (PLAN-2026-W28-Q W2, `--sessions N`): chains N F1
 sessions via the existing PUBLIC `followup_from` seam (session N+1 follows
-up from session N's own saved `conversation.json`), running F2 after each
-and appending one entry to a per-VP session ledger
-(`<OUTPUT_DIR>/<persona>/<persona>_session_ledger.json`) — session ordinal,
-simulated date, final/missing slots, repro metadata. The ledger is a
-HARNESS ARTIFACT ONLY (`run_multi_session_chain`'s own docstring, REV-022
-standing rule) — production code (`f1.py`/`f2.py`) never reads it.
+up from session N's own saved `conversation.json`), running F2 then F3 after
+each and appending one entry (with an `"f3"` sub-object, plan §5) to a per-VP
+session ledger (`<OUTPUT_DIR>/<persona>/<persona>_session_ledger.json`) —
+session ordinal, simulated date, final/missing slots, repro metadata. Session
+N+1's F2 call prefers session N's OWN F3 `scale_scores.json` projection over
+the static `--scale-scores` CLI arg (plan §6 item 4). The ledger is a HARNESS
+ARTIFACT ONLY (`run_multi_session_chain`'s own docstring, REV-022 standing
+rule) — production code (`f1.py`/`f2.py`/`f3.py`) never reads it. The
+single-session (`--sessions 1`, default) path also writes one ledger entry
+(plan §6 item 5 — previously a gap: `run_chain` wrote no ledger entry at all).
 
 Usage:
     cd apps/ai-server
@@ -50,6 +64,8 @@ Usage:
     # Chain 3 sessions (multi-session continuity + question induction),
     # 14 simulated days apart by default:
     .venv/bin/python -m src.continuous_test --persona VP-001 --sessions 3
+    # F3 with the deterministic expected-mode answer_fn (zero LLM):
+    .venv/bin/python -m src.continuous_test --persona VP-012 --answer-mode expected
 """
 
 from __future__ import annotations
@@ -176,8 +192,9 @@ class StageResult:
 class ChainContext:
     """Carries state between stages (e.g. F1's conversation.json path -> F2).
 
-    Trivially extensible: a future F3 stage reads/writes new fields here
-    (e.g. `scale_scores_path` is already wired for F2's optional F3 input).
+    Trivially extensible: `scale_scores_path` was wired for F2's optional F3
+    input before F3 existed; `f3_survey_path`/`f3_scale_scores_path` are set
+    by the (now real) F3 stage below.
     """
 
     persona_id: str
@@ -188,6 +205,9 @@ class ChainContext:
     # set by F1 (or --start-from-conversation), consumed by F2
     conversation_path: Path | None = None
     domain_inference_path: Path | None = None  # set by F2
+    answer_mode: str = "llm"  # "llm" | "expected" — consumed by F3
+    f3_survey_path: Path | None = None  # set by F3
+    f3_scale_scores_path: Path | None = None  # set by F3 (only when outcome=="administered")
 
 
 StageFn = Callable[[ChainContext], Awaitable[StageResult]]
@@ -361,6 +381,130 @@ async def run_f2_stage(ctx: ChainContext) -> StageResult:
     )
 
 
+# ── F3 stage (PLAN-2026-W28-V) ───────────────────────────────────────────
+#
+# src.f3 is the production administration engine (zero LLM calls, zero
+# tests/ imports). This harness is the ONLY place that constructs an
+# answer_fn from tests/simulation/ (SurveyAnswerLLM / expected_answer_fn)
+# and wires it into src.f3 — the same import direction continuous_test.py
+# already uses for src.f1/src.f2 (harness -> production), never reversed.
+
+
+def _build_survey_answer_fn(persona_id: str, scale_name: str, answer_mode: str):
+    """Construct the answer_fn for `scale_name`, per `answer_mode`. Only
+    called when the outcome is actually `"administered"` — `expected_answer_fn`
+    eagerly parses the persona's own score table at construction time, so
+    building it for a non-administered outcome (e.g. an unpopulated scale
+    with no such table) would raise for no reason.
+    """
+    if answer_mode == "expected":
+        from tests.simulation.survey_answer_llm import expected_answer_fn
+
+        return expected_answer_fn(persona_id, scale_name)
+
+    from tests.simulation.patient_llm import load_persona
+    from tests.simulation.survey_answer_llm import SurveyAnswerLLM
+
+    persona = load_persona(persona_id)
+    return SurveyAnswerLLM(persona)
+
+
+async def run_f3_stage(ctx: ChainContext) -> StageResult:
+    """Read `ctx.domain_inference_path` (F2's output), resolve the
+    administered/no_questionnaire_indicated/item_bank_unpopulated outcome
+    (`src.f3.resolve_outcome`, never force-picks a scale), administer via
+    `src.f3.run_f3_administration` with an answer_fn built per
+    `ctx.answer_mode`, and record `ctx.f3_survey_path`/
+    `ctx.f3_scale_scores_path` for downstream consumers (the ledger, and —
+    from session 2 onward in `run_multi_session_chain` — the NEXT session's
+    F2 call).
+    """
+    if ctx.domain_inference_path is None:
+        return StageResult(
+            "F3", "skip",
+            "no domain_inference.json available (upstream F2 stage did not succeed or did "
+            "not produce an artifact)",
+        )
+
+    t0 = time.perf_counter()
+    try:
+        from src import f3
+
+        recommendation = f3.load_recommendation(ctx.domain_inference_path)
+        outcome, _entry = f3.resolve_outcome(recommendation.recommended_questionnaire)
+
+        if outcome == f3.ADMINISTERED_OUTCOME:
+            answer_fn = _build_survey_answer_fn(
+                ctx.persona_id, recommendation.recommended_questionnaire, ctx.answer_mode
+            )
+        else:
+            async def answer_fn(item):  # pragma: no cover — never invoked, see below
+                raise AssertionError(
+                    "answer_fn must not be called for a non-administered F3 outcome"
+                )
+
+        result = await f3.run_f3_administration(
+            domain_inference_path=ctx.domain_inference_path,
+            answer_fn=answer_fn,
+            answer_mode=ctx.answer_mode,
+            output_dir=ctx.out_dir,
+            vp_id=ctx.persona_id,
+        )
+    except Exception as exc:  # noqa: BLE001 — harness must report, not crash, on stage failure
+        logger.exception("continuous_test.f3.failed")
+        return StageResult("F3", "fail", f"F3 run raised: {exc}", duration_ms=_ms(t0))
+
+    output = result["output"]
+    paths = result["paths"]
+    ctx.f3_survey_path = paths.get("json")
+    ctx.f3_scale_scores_path = paths.get("scale_scores")
+
+    detail = f"F3 outcome={output.outcome} answer_mode={ctx.answer_mode}"
+    if output.outcome == f3.ADMINISTERED_OUTCOME and output.score_result is not None:
+        detail += (
+            f" scale={output.scale_name} total_score={output.score_result.total_score} "
+            f"severity={output.score_result.severity} safety_referral={output.safety_referral}"
+        )
+    return StageResult("F3", "pass", detail, artifacts=paths, duration_ms=_ms(t0))
+
+
+def _build_f3_ledger_subobject(ctx: ChainContext) -> dict[str, Any] | None:
+    """Build the `"f3"` ledger sub-object (plan §5) by reprojecting fields
+    already computed and saved by `src.f3` — never re-derives scoring.
+    Returns `None` (a present key with a null value, not an absent key —
+    `_build_*_ledger_entry` callers always set `entry["f3"] = ...`) when the
+    F3 stage never produced a survey.json this session (e.g. upstream F2
+    failure — see `run_f3_stage`'s own "skip" path).
+    """
+    if ctx.f3_survey_path is None or not ctx.f3_survey_path.exists():
+        return None
+    try:
+        data = json.loads(ctx.f3_survey_path.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001 — ledger bookkeeping must not crash the harness
+        logger.warning("continuous_test.ledger.f3_survey_unreadable — %s", ctx.f3_survey_path)
+        return None
+
+    score_result = data.get("score_result") or {}
+    return {
+        "outcome": data.get("outcome"),
+        "scale_name": data.get("scale_name"),
+        "item_bank_version": data.get("item_bank_version"),
+        "item_bank_provenance": data.get("item_bank_provenance"),
+        "responses": data.get("responses"),
+        "total_score": score_result.get("total_score"),
+        "max_score": score_result.get("max_score"),
+        "severity": score_result.get("severity"),
+        "subscale_scores": score_result.get("subscale_scores"),
+        "safety_referral": data.get("safety_referral", False),
+        "answer_mode": data.get("answer_mode"),
+        "recommendation_provenance": data.get("recommendation_provenance"),
+        "survey_artifact_path": str(ctx.f3_survey_path),
+        "scale_scores_path": (
+            str(ctx.f3_scale_scores_path) if ctx.f3_scale_scores_path else None
+        ),
+    }
+
+
 # ── Multi-session chain (PLAN-2026-W28-Q W2) ────────────────────────────
 
 
@@ -374,15 +518,24 @@ async def run_multi_session_chain(
     scale_scores_path: str | None,
     session_interval_days: int = DEFAULT_SESSION_INTERVAL_DAYS,
     base_date: date | None = None,
+    answer_mode: str = "llm",
 ) -> list[StageResult]:
     """Chain N F1 sessions via the existing PUBLIC `followup_from` seam
     (`f1._run_simulation(..., followup_from=<prior session's own
     conversation.json path>)`) — session N+1 follows up from session N's
     OWN saved artifact, not a "latest for persona" glob lookup (avoids a
-    race with unrelated concurrent runs for the same persona). Runs F2
-    after each F1 session and appends one entry to the per-VP session
+    race with unrelated concurrent runs for the same persona). Runs F2, then
+    F3, after each F1 session and appends one entry to the per-VP session
     ledger (harness artifact only — `_ledger_path`/`_append_ledger_entry`
     above; production code never reads it, REV-022 standing rule).
+
+    Session chaining (plan §6 item 4, closes the previously-flagged-not-fixed
+    gap): session N+1's F2 call prefers session N's OWN F3
+    `scale_scores.json` (when session N's outcome was `"administered"`) over
+    the static `scale_scores_path` CLI arg — session 1 always uses the
+    static arg (there is no prior session yet); a session whose F3 outcome
+    was NOT `"administered"` (no scores produced) falls back to the static
+    arg for the next session too, never silently drops the F2 input.
 
     A hard F1 failure halts the chain at that session (mirrors
     `run_chain`'s own halt-on-fail discipline) — sessions already completed
@@ -393,6 +546,7 @@ async def run_multi_session_chain(
 
     all_results: list[StageResult] = []
     prev_conversation_path: Path | None = None
+    prev_f3_scale_scores_path: Path | None = None
     resolved_base_date = base_date or datetime.now().date()
     ledger_path = _ledger_path(persona_id, out_dir)
 
@@ -438,13 +592,30 @@ async def run_multi_session_chain(
             artifacts={"conversation": conv_path}, duration_ms=_ms(t0),
         ))
 
+        # Plan §6 item 4: session N+1 prefers session N's OWN F3 scale_scores
+        # projection over the static CLI arg (session 1 has no prior session,
+        # so it always uses the static arg).
+        effective_scale_scores_path = (
+            str(prev_f3_scale_scores_path) if prev_f3_scale_scores_path is not None
+            else scale_scores_path
+        )
         f2_ctx = ChainContext(
             persona_id=persona_id, max_turns=max_turns, k=k, out_dir=out_dir,
-            scale_scores_path=scale_scores_path, conversation_path=conv_path,
+            scale_scores_path=effective_scale_scores_path, conversation_path=conv_path,
+            answer_mode=answer_mode,
         )
         f2_result = await run_f2_stage(f2_ctx)
         f2_result.name = f"F2[session={session_index}]"
         all_results.append(f2_result)
+
+        f3_result = await run_f3_stage(f2_ctx)
+        f3_result.name = f"F3[session={session_index}]"
+        all_results.append(f3_result)
+        # Chained forward to session_index+1's F2 call above (None when this
+        # session's F3 outcome wasn't "administered" — the next session then
+        # falls back to the static scale_scores_path arg, never silently
+        # drops the F2 input).
+        prev_f3_scale_scores_path = f2_ctx.f3_scale_scores_path
 
         final_slots = (
             {s["key"]: s["value"] for s in f1_result.final_slots} if f1_result else {}
@@ -464,6 +635,7 @@ async def run_multi_session_chain(
             "domain_inference_path": (
                 str(f2_ctx.domain_inference_path) if f2_ctx.domain_inference_path else None
             ),
+            "f3": _build_f3_ledger_subobject(f2_ctx),
             "written_at": datetime.now().isoformat(),
         }
         _append_ledger_entry(ledger_path, ledger_entry)
@@ -490,7 +662,7 @@ def print_multi_session_report(persona_id: str, results: list[StageResult]) -> N
 STAGE_REGISTRY: list[Stage] = [
     Stage("F1", True, run_f1_stage),
     Stage("F2", True, run_f2_stage),
-    Stage("F3", False, None, note="F3 not yet implemented — no src/f3.py in this repo."),
+    Stage("F3", True, run_f3_stage),
     Stage("F4", False, None, note="F4 not yet implemented — no src/f4.py in this repo."),
     Stage("F5", False, None, note="F5 not yet implemented — no src/f5.py in this repo."),
     Stage("F6", False, None, note="F6 not yet implemented — no src/f6.py in this repo."),
@@ -546,7 +718,7 @@ def print_report(ctx: ChainContext, results: list[StageResult]) -> None:
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="continuous_test — F1 -> F2 -> ... -> F6 chain validation harness (Track C)"
+        description="continuous_test — F1 -> F2 -> F3 -> ... -> F6 chain validation harness"
     )
     parser.add_argument("--persona", default="VP-001", help="VP-001 등 (F1 페르소나)")
     parser.add_argument("--max-turns", type=int, default=10, help="F1 최대 턴 수")
@@ -575,11 +747,64 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "--session-interval-days", type=int, default=DEFAULT_SESSION_INTERVAL_DAYS,
         help="세션 간 시뮬레이션 날짜 간격(일). --sessions > 1일 때만 사용.",
     )
+    parser.add_argument(
+        "--answer-mode", choices=["llm", "expected"], default="llm",
+        help=(
+            "F3 설문 응답 선택 모드 (PLAN-2026-W28-V §7). llm(기본값): K-EXAONE 기반 "
+            "in-persona 문항별 점수 선택. expected: persona 문서의 예상 점수표 기반, "
+            "LLM 미호출 결정론적 응답."
+        ),
+    )
     return parser
+
+
+def _build_single_session_ledger_entry(
+    ctx: ChainContext, results: list[StageResult]
+) -> dict[str, Any]:
+    """Build one ledger entry for the single-session (`--sessions 1`
+    default) path, mirroring `run_multi_session_chain`'s entry shape
+    (`session_index=1`, `is_revisit=False`) — closes the plan §6 item 5
+    single-session ledger gap (`run_chain` previously wrote no ledger entry
+    at all).
+    """
+    from src.grounding import QUESTIONABLE_SLOT_KEYS
+
+    final_slots: dict[str, str] = {}
+    model = ""
+    prompt_version = ""
+    if ctx.conversation_path is not None and ctx.conversation_path.exists():
+        try:
+            data = json.loads(ctx.conversation_path.read_text(encoding="utf-8"))
+            final_slots = {
+                s["key"]: s["value"] for s in data.get("final_slots", []) if s.get("value")
+            }
+            model = data.get("model", "")
+            prompt_version = data.get("prompt_version", "")
+        except Exception:  # noqa: BLE001 — ledger bookkeeping must not crash the harness
+            logger.warning(
+                "continuous_test.ledger.conversation_unreadable — %s", ctx.conversation_path
+            )
+    missing_slots = [k for k in QUESTIONABLE_SLOT_KEYS if not final_slots.get(k)]
+
+    return {
+        "session_index": 1,
+        "simulated_date": datetime.now().date().isoformat(),
+        "is_revisit": False,
+        "final_slots": final_slots,
+        "missing_slots": missing_slots,
+        "repro": {"model": model, "prompt_version": prompt_version},
+        "conversation_path": str(ctx.conversation_path) if ctx.conversation_path else None,
+        "domain_inference_path": (
+            str(ctx.domain_inference_path) if ctx.domain_inference_path else None
+        ),
+        "f3": _build_f3_ledger_subobject(ctx),
+        "written_at": datetime.now().isoformat(),
+    }
 
 
 async def _main(args: argparse.Namespace) -> int:
     out_dir = Path(args.out) if args.out else None
+    answer_mode = getattr(args, "answer_mode", "llm") or "llm"
 
     if args.sessions and args.sessions > 1:
         if args.start_from_conversation:
@@ -593,6 +818,7 @@ async def _main(args: argparse.Namespace) -> int:
             out_dir=out_dir,
             scale_scores_path=args.scale_scores,
             session_interval_days=args.session_interval_days,
+            answer_mode=answer_mode,
         )
         print_multi_session_report(args.persona, results)
         return 0 if all(r.status != "fail" for r in results) else 1
@@ -603,6 +829,7 @@ async def _main(args: argparse.Namespace) -> int:
         k=args.k,
         out_dir=out_dir,
         scale_scores_path=args.scale_scores,
+        answer_mode=answer_mode,
     )
     if args.start_from_conversation:
         path = Path(args.start_from_conversation)
@@ -613,6 +840,16 @@ async def _main(args: argparse.Namespace) -> int:
 
     results = await run_chain(ctx)
     print_report(ctx, results)
+
+    # Plan §6 item 5: single-session ledger gap fix. Only written when F1
+    # itself did not hard-fail (mirrors run_multi_session_chain's own
+    # discipline of never writing a ledger entry for a session whose F1
+    # failed) — a "skip" F1 status (--start-from-conversation) still writes.
+    f1_result = next((r for r in results if r.name == "F1"), None)
+    if f1_result is not None and f1_result.status != "fail":
+        ledger_path = _ledger_path(args.persona, out_dir)
+        _append_ledger_entry(ledger_path, _build_single_session_ledger_entry(ctx, results))
+
     return 0 if all(r.status != "fail" for r in results) else 1
 
 

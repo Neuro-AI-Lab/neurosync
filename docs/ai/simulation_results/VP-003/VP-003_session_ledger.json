@@ -142,5 +142,50 @@
     "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_142223_conversation.json",
     "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_142242_domain_inference.json",
     "written_at": "2026-07-12T14:22:42.078091"
+  },
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-12",
+    "is_revisit": false,
+    "final_slots": {
+      "chief_complaint": "살고 싶지 않고 사라지고 싶은 생각이 매일 들며, 죄책감과 의미 없음으로 인해 힘들다고 표현함",
+      "history_of_present_illness": "매일 사라지고 싶은 생각이 들며, 죄책감('내가 잘못해서 이런 거야')과 삶의 의미 상실로 인해 힘들어함. 술은 마시지 않았으나 멍한 상태로 있었음",
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"... 도움이 될까요? 뭘 해도 안 될 것 같은데. 형한테도 말 못 해요. 짐 되는 거 같아서. ... 어제는 술 안 마셨는데… 그냥 멍하니 있...\"; 구체적 계획/의도 부인 — 환자 발화: \"... 그냥… 아무도 안 보는 곳으로 사라지고 싶어요. 살아서 뭐 하나 싶어요. ... 형한테도 말 못 해요. 내가 짐 되는 거 같아서.\""
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "family_history",
+      "substance_use_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_204049_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_204052_domain_inference.json",
+    "f3": {
+      "outcome": "no_questionnaire_indicated",
+      "scale_name": null,
+      "item_bank_version": null,
+      "item_bank_provenance": null,
+      "responses": [],
+      "total_score": null,
+      "max_score": null,
+      "severity": null,
+      "subscale_scores": null,
+      "safety_referral": false,
+      "answer_mode": "llm",
+      "recommendation_provenance": {
+        "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_204052_domain_inference.json",
+        "top_candidate_disease": null,
+        "top_candidate_similarity_score": null,
+        "recommendation_caveat": null
+      },
+      "survey_artifact_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_204052_survey.json",
+      "scale_scores_path": null
+    },
+    "written_at": "2026-07-12T20:40:52.709741"
   }
 ]

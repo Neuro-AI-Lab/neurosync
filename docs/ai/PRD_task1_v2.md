@@ -33,6 +33,7 @@
 | v2.6 | 2026-07-09 | `PLAN-2026-W28-H` completed (Tracks A–D): **Track A — RAG HTTP API permanently out of scope, now and at deployment** (`ADR-017`, `REV-013` §2) — `rag_router` unmounted (RETIRE, not DORMANT), `rag_chat.py` refactored in-process, `NS_RAG_API_KEY` unused; §3.8's S1 status updated, `VAL-005` **structurally resolved** (not merely mitigated). **Track B — new "AI 예상질환" (AI-predicted-disease) entity added** (new §3.9): F2 RAG top-5 disease candidates + `similarity_score` (never `probability`/`confidence`), `is_diagnostic: Literal[False]`, structurally isolated from the 12 canonical clinical slots (§2.3) — isolation evidenced by qa's 9-test adversarial suite (`REV-013` §3 condition 1 met); container built now, live auto-population gated on RAG-arm certification (unchanged `EXPERIMENTAL/UNCERTIFIED`, `ADR-016`). `BUG-019` (RAG-arm certification precondition) diagnosed live (`EXP-007`) and root-cause fixed/code-verified (qa `GATE:PASS`) but stays **open** pending a live clean VP-003/VP-001 RAG n=2 re-verification — no RAG-arm "인증"/"통과"/"검증됨" wording is used. `llm_only` arm's certification (`ADR-015` (1)) unaffected. Source: `discussion.md` PLAN-2026-W28-H, ADR-016, ADR-017, REV-012 §6, REV-013; `result.md` EXP-007; `error.md` BUG-019, VAL-005; `development_report.md` DR-010 |
 | v2.7 | 2026-07-09 | Documentation-drift correction (writer, editorial only — no functional/status change): §9.4 pipeline table gained a `continuous_test.py` row (Track C harness, `PLAN-2026-W28-H`, module `apps/ai-server/src/continuous_test.py`) — previously mentioned only in checklist `T1-F0-DEV-011`, absent from the PRD. §3.9 now cites the AI-predicted-disease container's module path (`apps/ai-server/src/schemas/ai_predicted_disease.py`, checklist `T1-F2-DEV-011`). Companion checklist fix (not this document): `T1-F2-VER-012` row corrected from stale `[ ]` to `[~]` to match its own line-267 status-update note (3/4 sub-items complete: `T1-F2-DEV-012`/`VER-013`/`DEV-013`; sole remaining scope is the clean VP-003/VP-001 RAG n=2 re-verification, `ADR-016`). |
 | v2.9 | 2026-07-10 | **PR #38 (F1 STT+OCR, Seohyunjho) integration merged** (`feat/f1-stt-ocr-integration`@`5bdd379`, true merge onto Master `411d6a1`, PLAN-2026-W28-N): STT (`POST /ai/stt/transcribe`) and OCR (`POST /ai/ocr/parse`) land as **additive input-modality plumbing** feeding TEXT into the existing, unchanged Safety→Slot→Dialogue turn pipeline (§2.10, new) — the certified pipeline itself carries zero verdict regressions (`result.md` EXP-013, 9/9 EXP-002-comparable safety-matrix scenarios match). §1.1 Agent↔code table and §2.9 F1 API status table updated: InputNormalizer/STT-adapter/OCR-adapter rows move from 대기/미구현 to implemented-as-built, each with its own caveat (InputNormalizer's correction feature is a confirmed 100%-conditional no-op, `BUG-020`; both new routes are unauthenticated, `VAL-012`; the STT live vendor path is declared untested, vendor key unprovisioned). §2.8 gap G6 updated accordingly. No "인증"/"통과"/"certified"/"shippable"/"passed" wording is used for the InputNormalizer correction feature or for the merge's overall safety posture (REV-021 binding). Source: `discussion.md` PLAN-2026-W28-N, REV-021; `result.md` EXP-013; `error.md` BUG-020/BUG-021/VAL-012; `development_report.md` DR-014. |
+| v2.10 | 2026-07-12 | **F3 재정의 (§4.1 신설, `PLAN-2026-W28-V`/`ADR-031`, 설계 v1, pre-implementation):** 사용자 지시로 F3의 정의가 갈라진다 — §4 원문이 서술하는 스테이트풀 설문 플래너(`OrchestratorAgent.plan_surveys`/`score_and_check_safety`, 라이브 11-state 채팅 플로우)는 **본 미션에서 변경 없이 유지**되며, "F3 v2.1"로 명명한 **별도·병행하는** 신규 경로가 §4.1에 추가된다: F2의 `ai_predicted_disease.recommended_questionnaire`(및 `recommendation_caveat`)가 지목한 설문 1개만 실행 → item bank 기반 문항 제시 → VP-simulator LLM이 in-persona로 점수 선택(F1 `patient_input_fn` 패턴) → `survey_scorer.py` 재사용 결정론적 채점 → VP별/세션별 원장에 기록해 향후 F5가 소비. Item bank v0: PHQ-9/AUDIT-C만 persona 파일 출처 구성개념 라벨로 populated, GAD-7/PHQ-4/WHO-5는 저장소 전역에 문항 원문·응답 anchor가 부재하여 unpopulated(허구 생성 금지) — v1 item bank는 사용자 결정 대기. 비진단 프레이밍 유지(`similarity_score`/설문 결과 모두 확률·진단 아님, `is_diagnostic: Literal[False]`). 이번 갱신은 **설계·문서 반영만**이며 구현·검증은 이 시점에 미착수(구현은 `PLAN-2026-W28-V` step 5, 별도 디스패치) — "구현 완료"/"검증됨" 서술 없음. 근거: `discussion.md` PLAN-2026-W28-V, ADR-031; `docs/ai/f3_quick_dev_plan.md` |
 
 ### 0.3 v1 대비 핵심 변경 요약
 
@@ -439,6 +440,8 @@ developer의 읽기전용 스캔(PLAN-2026-W28-C C-1)에서 3건의 보안 격�
 
 ## 4. 기능 1-3 (F3): 구조화된 사전문진 설문
 
+> **재정의 고지 (2026-07-12, `PLAN-2026-W28-V`, `ADR-031`) — 아래 원문(v2.0 작성 당시 서술)에 대한 주석, 삭제 아님:** 아래 서술은 실제로는 `OrchestratorAgent.plan_surveys`/`score_and_check_safety`(`src/agents/orchestrator.py:592,638`)로 구현되어 `src/routes/chat.py`의 라이브 11-state 채팅 플로우에 배선되고 `tests/test_survey_safety_integration.py`로 회귀 커버되는 **설문 플래너**를 가리킨다. **이 코드 경로는 본 미션에서 변경되지 않는다** — 아래 서술은 유효한 as-built 기록으로 유지된다. 사용자가 `ADR-031`로 지시한 새 "F3"는 이 플래너를 대체하지 않는다: F2가 이미 추천한 설문 1개만을 실행하는 **별도·병행하는** 제2의 경로이며, 라이브 채팅과는 다른 호출부(오프라인/F2 기반 검증 하네스)를 서비스한다. **superseded되는 것은 오직 "F3라는 라벨이 곧 이 설문 플래너를 뜻한다"는 전제뿐이다** — 신규 경로는 §4.1("F3 v2.1")에 별도 정의한다.
+
 **상태: 구현 완료. Scoring unit test 통과. E2E(F1 대화 → 설문 선택 → 채점 → Safety 연동) 검증은 합성 입력 기반 — 실데이터 E2E는 Phase 2.**
 
 - ClinicalSlot agent: F1과 공유 (12 Standard Slots, §2.3). `POST /ai/slots/extract` 운영.
@@ -447,6 +450,23 @@ developer의 읽기전용 스캔(PLAN-2026-W28-C C-1)에서 3건의 보안 격�
 - 위험 문항 연동: PHQ-9 문항 9 >= 1 → Safety re-evaluation 트리거 (T1-F3-VER-004 통과).
 
 **v2 유의점:** F1 자율 대화는 척도 점수를 생성하지 않는다. 종단 검증(F4)에 필요한 scale_scores는 **F3 설문 실행을 통해서만 생성**되므로, 종단 프로토콜에 VP별 설문 응답 시뮬레이션(persona의 PHQ-9/GAD-7 기준값 사용)을 포함해야 한다 (§9.3).
+
+### 4.1 재정의: F3 v2.1 — F2 기반 설문 실행 (F2-driven questionnaire administration, `PLAN-2026-W28-V`/`ADR-031`)
+
+**상태: 설계 v1 완료 (pre-implementation) — 구현 전. 어떤 검증·구현 완료 서술도 포함하지 않는다.** 설계 원문: `docs/ai/f3_quick_dev_plan.md`(근거 기록은 `discussion.md` `PLAN-2026-W28-V`/`ADR-031`).
+
+**정의:** F3 v2.1은 F2가 추론한 상위 질환 후보의 `ai_predicted_disease.recommended_questionnaire`(및 `recommendation_caveat`)가 지목한 설문 **1개만**을 실행하는, §4 원문의 설문 플래너와는 **별도·병행하는** 경로다. subscale 기반 추가 설문·음주 표현 트리거·CTRS 기반 중단 등 플래너 로직은 포함하지 않는다(그 로직은 §4 원문이 서술하는 플래너의 소관으로 남는다).
+
+- **트리거 (F2→F3):** F2 산출물(`<vp_id>_<ts>_domain_inference.json`)의 `ai_predicted_disease.recommended_questionnaire`가 `None`이면 "설문 미지시"로 0문항 실행(척도를 임의로 선택하지 않음); 해당 척도의 item bank가 `populated=False`(v0 기준 GAD-7/PHQ-4/WHO-5)면 "item bank 미구축"으로 0문항 실행(loud 로그+아티팩트 기록, 침묵 스킵 아님); 그 외에는 item bank 순서대로 전 문항 실행. **교차참조(`ADR-032`(3)):** 이 트리거가 참조하는 `ai_predicted_disease.candidates[0]`은 `error.md`의 `VAL-014`(RAG 후보 face-validity — VP 간 변별력 저조)가 미결로 플래그한 동일 필드이며, F3의 선택 적합성 판정은 F2 산출물을 있는 그대로(AS-GIVEN) 중계했는지만 확인할 뿐 `VAL-014` 자체를 재판정하지 않는다.
+- **실행:** `src/f3.py::administer_survey(scale_name, answer_fn, item_bank, ...)` — 프로덕션 코드 자체는 LLM 호출 0회인 결정론적 엔진이며, VP-simulator LLM(K-EXAONE, harness 측)이 in-persona로 점수를 선택하는 `answer_fn` 주입 지점만 가변(`f1.py`의 `patient_input_fn` 패턴과 동형).
+- **채점:** `src/scoring/survey_scorer.py`를 재사용·무변경 — 총점/중증도 밴드는 코드에서 결정론적으로 산출되며 LLM이 산출하지 않는다.
+- **기록 (F5 소비 대상):** VP별·세션별 원장(`<persona_id>_session_ledger.json`)에 `"f3"` 하위 객체로 기록되도록 설계됨 — 아티팩트/원장 스키마 상세는 `docs/ai/f3_quick_dev_plan.md` §4/§5.
+- **Item bank v0 (허구 생성 금지 원칙 준수):** PHQ-9/AUDIT-C만 persona 파일 출처의 구성개념(construct) 라벨로 v0 populated(`provenance="construct-labels-v0, persona-file-sourced, non-validated"`); GAD-7/PHQ-4/WHO-5는 저장소 전역에 문항 원문·응답 anchor가 부재하여 v0에서 unpopulated로 남는다(`docs/ai/f3_quick_dev_plan.md` §2). v1 item bank(검증된 문항 원문)는 사용자 결정 대기(같은 문서 §2.3).
+- **비진단 프레이밍 (유지):** 설문 결과는 의사결정 지원 자료이며, F2의 `similarity_score`와 마찬가지로 어떤 산출물도 확률/진단으로 서술하지 않는다(`is_diagnostic: Literal[False]` 스키마 강제).
+- **안전 배선 비변경:** PHQ-9 문항 9 양성은 원장의 `safety_referral` 필드로 **기록만** 되며, `OrchestratorAgent.score_and_check_safety`나 어떤 safety 라우트도 호출하지 않는다 — §4 원문의 위험 문항 연동(트리거)과는 다른, 별도의 기록 전용 필드다.
+- **범위 제외 (이번 설계 반영 시점):** safety 재평가 배선, GAD-7/PHQ-4/WHO-5 문항 원문(v1 item bank), `src/`/`tests/` 코드 변경 — 별도 구현 디스패치(`PLAN-2026-W28-V` step 5) 소관이며 본 문서 갱신 시점에는 미착수.
+
+근거: `discussion.md` PLAN-2026-W28-V, ADR-031; `docs/ai/f3_quick_dev_plan.md`.
 
 ---
 
