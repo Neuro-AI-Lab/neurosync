@@ -1043,6 +1043,21 @@ qa **GATE:PASS ×3** (`2351e07` factorial harness — suite 1483 passed/2 skippe
 
 ## Ready to publish (git)
 
+### Published (2026-07-13, PLAN-2026-W29-C)
+
+The W29 program (`feat/f1f2-program-w29`, 48 commits ahead of Master, zero merges, strictly linear) was decomposed into a stacked 4-PR set by concern and pushed per user authorization (ADR-035).
+
+| PR | URL | Branch | Base | Head | Commits | Test suite | Concern |
+|:--|:--|:--|:--|:--|:--|:--|:--|
+| 1 | https://github.com/Neuro-AI-Lab/neurosync/pull/58 | `feat/f1f2-validation-program` | `Master` | `439a0f6` | 35 | 1236 passed, 2 skipped | F1-F2 validation program (W0-W8) + BUG-030/035/036/037 fix cycles |
+| 2 | https://github.com/Neuro-AI-Lab/neurosync/pull/59 | `feat/f3-core-questionnaire` | `feat/f1f2-validation-program` | `1730bb4` | 4 | 1342 passed, 2 skipped | F3 core: F2-driven questionnaire administration (item bank v0, EXP-019) |
+| 3 | https://github.com/Neuro-AI-Lab/neurosync/pull/60 | `feat/f3-item-bank-v1` | `feat/f3-core-questionnaire` | `00c0183` | 2 | 1415 passed, 2 skipped | Item bank v1 official reproduction (sourced-verbatim, EXP-020) |
+| 4 | https://github.com/Neuro-AI-Lab/neurosync/pull/61 | `feat/f3-trustworthy-tracks` | `feat/f3-item-bank-v1` | `fcae4d4` | 8 | 1529 passed, 2 skipped | Korean AUDIT-C localization (v2) + EXP-021 factorial + WHO-5 exclusion |
+
+- **Merge order is fixed 1 -> 2 -> 3 -> 4**, each PR's base is the previous branch in the stack; nothing merges without the user's explicit word (ADR-035).
+- `feat/f1f2-program-w29` remains the frozen local reference branch at `634ad6a` — never rewritten, kept as the pre-decomposition ground truth (ADR-035).
+- `feat/f2-continuation-w28h` and `chore/simresults-archive-w28o*` are now superseded by this stack; deletion is a user decision, not yet executed.
+
 > Running list, user-directed (plan doc §11; `discussion.md` `PLAN-2026-W28-Q` git-mode directive) — local checkpoint commits only; nothing here is pushed or PR'd without the user's explicit word.
 
 - **Branch:** `feat/f1f2-program-w29` (off Master `c85b3e1`).
