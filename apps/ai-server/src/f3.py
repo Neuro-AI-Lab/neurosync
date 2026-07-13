@@ -20,16 +20,29 @@ by the `continuous_test.py` validation harness (or a future patient-UI
 route, or a CLI replay of pre-collected answers) — not a route, not wired
 into `orchestrator.py`.
 
-Item bank: `src.scoring.item_bank` (v0 — PHQ-9/AUDIT-C populated,
-GAD-7/PHQ-4/WHO-5 unpopulated). An unpopulated scale is NEVER improvised —
+Item bank: `src.scoring.item_bank` (v1 as of `PLAN-2026-W29-A` — PHQ-9/
+GAD-7/PHQ-4/AUDIT-C populated with sourced official item text + response
+anchors, WHO-5 unpopulated). An unpopulated scale is NEVER improvised —
 `outcome="item_bank_unpopulated"`, 0 items administered, loud WARNING log.
 
 Scoring: `src.scoring.survey_scorer.score_survey` — REUSED unmodified, no
 rescoring/reinterpretation.
 
 `safety_referral` (= `score_result.critical_item_positive`) is a RECORD
-only. Nothing here calls `OrchestratorAgent.score_and_check_safety` or any
-safety route (plan §5, out of scope §9).
+field on this module's own artifact. Nothing in THIS module calls
+`OrchestratorAgent.score_and_check_safety` or any safety route (plan §5,
+out of scope §9) — that deterministic item-9 safety-pathway routing lives
+at the F3 artifact/ledger CONSUMER seam instead
+(`src.continuous_test._route_phq9_safety_pathway`, `PLAN-2026-W29-A` step 3),
+never inside this LLM-0 production module.
+
+`forced_scale` (`run_f3_administration`, `PLAN-2026-W29-A` step 6 /
+`ADR-033` decision 6): an optional, default-`None` keyword override of
+which scale gets administered, fed only by the harness's
+`--force-questionnaire` flag. `None` (the default for every existing
+caller) preserves this module's exact prior behavior — F2's own
+`recommended_questionnaire` still decides everything. `administration_mode`
+on the saved artifact records which mode produced it.
 """
 
 from __future__ import annotations
@@ -40,7 +53,7 @@ from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from src.f1 import OUTPUT_DIR
 from src.schemas.survey_result import (
@@ -48,7 +61,13 @@ from src.schemas.survey_result import (
     ScoreResultModel,
     SurveyResultOutput,
 )
-from src.scoring.item_bank import ITEM_BANK, ItemBankEntry, ScaleItem
+from src.scoring.item_bank import (
+    AUDIT_C_THRESHOLD_CAVEAT,
+    GAD7_BAND_CAVEAT,
+    ITEM_BANK,
+    ItemBankEntry,
+    ScaleItem,
+)
 from src.scoring.survey_scorer import ScaleName, ScoreResult, score_survey
 
 logger = logging.getLogger(__name__)
@@ -61,6 +80,18 @@ AnswerFn = Callable[[ScaleItem], Awaitable[int]]
 ADMINISTERED_OUTCOME = "administered"
 NO_QUESTIONNAIRE_OUTCOME = "no_questionnaire_indicated"
 UNPOPULATED_OUTCOME = "item_bank_unpopulated"
+
+# `SurveyResultOutput.threshold_caveat` source table (CVR-016 condition 3 /
+# CVR-017 binding condition 1 / REV-039 correction D): per-scale,
+# machine-readable band/threshold caveat, attached whenever that scale is
+# actually administered. AUDIT-C and GAD-7 today; a scale absent from this
+# table simply carries no caveat (`None`) — same as before this table
+# existed. Reprojected verbatim, never recomputed, by
+# `continuous_test._build_f3_ledger_subobject`.
+_SEVERITY_CAVEATS: dict[ScaleName, str] = {
+    "AUDIT-C": AUDIT_C_THRESHOLD_CAVEAT,
+    "GAD-7": GAD7_BAND_CAVEAT,
+}
 
 
 # ── F2 -> F3 trigger flow (plan §3) ─────────────────────────────────────
@@ -221,6 +252,7 @@ async def run_f3_administration(
     output_dir: Path | None = None,
     vp_id: str | None = None,
     session_id: str | None = None,
+    forced_scale: ScaleName | None = None,
 ) -> dict[str, Any]:
     """End-to-end F3 flow for one session: load the F2 artifact, resolve the
     outcome, administer (only for `outcome="administered"`), score, build +
@@ -230,11 +262,24 @@ async def run_f3_administration(
     to answer) — callers may safely pass a stub that raises if invoked, to
     prove this invariant (see `tests/test_f3.py`).
 
+    `forced_scale` (`PLAN-2026-W29-A` step 6 / `ADR-033` decision 6):
+    optional, keyword-only override of which scale is resolved and
+    administered in place of F2's own `recommended_questionnaire` — set
+    only by the harness's `--force-questionnaire` flag. `None` (the default for this
+    caller before this mission, and every caller that never passes it)
+    preserves the exact prior behavior.
+
     Returns ``{"outcome": str, "output": SurveyResultOutput, "paths": {...}}``.
     """
     artifact = _load_domain_inference_artifact(domain_inference_path)
     recommendation = resolve_recommendation_from_artifact(artifact)
-    outcome, entry = resolve_outcome(recommendation.recommended_questionnaire)
+    administration_mode: Literal["natural", "forced"] = (
+        "forced" if forced_scale is not None else "natural"
+    )
+    effective_scale: ScaleName | None = (
+        forced_scale if forced_scale is not None else recommendation.recommended_questionnaire
+    )
+    outcome, entry = resolve_outcome(effective_scale)
 
     responses: list[int] = []
     score_result: ScoreResult | None = None
@@ -243,7 +288,7 @@ async def run_f3_administration(
 
     if outcome == ADMINISTERED_OUTCOME:
         responses, score_result = await administer_survey(
-            recommendation.recommended_questionnaire,  # type: ignore[arg-type]
+            effective_scale,  # type: ignore[arg-type]
             answer_fn,
             patient_sex=patient_sex,
         )
@@ -263,17 +308,29 @@ async def run_f3_administration(
         bool(score_result.critical_item_positive) if score_result is not None else False
     )
 
+    # CVR-016 condition 3 / CVR-017 binding condition 1 / REV-039 correction
+    # D: machine-readable, non-value-changing caveat attached whenever a
+    # scale in `_SEVERITY_CAVEATS` is actually administered (AUDIT-C:
+    # threshold not reconciled with Korean-population evidence; GAD-7: band-
+    # sourcing citation retracted this mission). `None` for every other
+    # scale, same as before this table existed.
+    threshold_caveat: str | None = None
+    if outcome == ADMINISTERED_OUTCOME and effective_scale is not None:
+        threshold_caveat = _SEVERITY_CAVEATS.get(effective_scale)
+
     output = SurveyResultOutput(
         vp_id=resolved_vp_id,
         session_id=resolved_session_id,
         timestamp=datetime.now().isoformat(),
         outcome=outcome,  # type: ignore[arg-type]
-        scale_name=recommendation.recommended_questionnaire,
+        scale_name=effective_scale,
         item_bank_version=item_bank_version,
         item_bank_provenance=item_bank_provenance,
         responses=responses,
         score_result=score_result_model,
         safety_referral=safety_referral,
+        administration_mode=administration_mode,
+        threshold_caveat=threshold_caveat,
         recommendation_provenance=RecommendationProvenance(
             domain_inference_path=str(domain_inference_path),
             top_candidate_disease=recommendation.top_candidate_disease,
@@ -294,7 +351,7 @@ def _build_report(output: SurveyResultOutput) -> str:
         f"# F3 Survey Administration Report — {output.vp_id}",
         "",
         f"> session_id: {output.session_id} | timestamp: {output.timestamp}",
-        f"> outcome: **{output.outcome}**",
+        f"> outcome: **{output.outcome}** | administration_mode: **{output.administration_mode}**",
         "",
         "## Recommendation provenance (F2)",
         "",
@@ -325,6 +382,7 @@ def _build_report(output: SurveyResultOutput) -> str:
                 f"- safety_referral (critical_item_positive): {output.safety_referral}",
                 f"- subscale_scores: {sr.subscale_scores}",
                 f"- answer_mode: {output.answer_mode}",
+                f"- threshold_caveat: {output.threshold_caveat}",
                 "",
             ]
         )
@@ -339,6 +397,7 @@ def _build_report(output: SurveyResultOutput) -> str:
                 "",
             ]
         )
+
     else:
         lines.extend(
             [

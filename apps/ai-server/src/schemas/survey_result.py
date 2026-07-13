@@ -20,9 +20,33 @@ schema layer.
 
 `safety_referral` is `score_result.critical_item_positive` surfaced as its
 own top-level field (PHQ-9 Q9 >= 1 only; every other scale's field is
-always `false`) — a RECORD, never a trigger. Nothing in `src/f3.py` calls
-`OrchestratorAgent.score_and_check_safety` or any safety route (plan §5,
-out of scope §9).
+always `false`) — a RECORD field on this artifact. `src/f3.py` itself still
+makes zero calls to `OrchestratorAgent.score_and_check_safety` or any
+safety route (plan §5, out of scope §9); as of `PLAN-2026-W29-A` step 3,
+the F3 artifact/ledger CONSUMER side (`src.continuous_test`, the harness)
+routes a PHQ-9 item-9-positive administration to that existing safety
+machinery deterministically — see
+`src.continuous_test._route_phq9_safety_pathway`. This module's own
+boundary (schema layer) is unchanged: no import of orchestrator/safety code.
+
+`administration_mode` (`PLAN-2026-W29-A` step 6 / `ADR-033` decision 6):
+`"natural"` (F2's own recommendation drove which scale was administered,
+the default) or `"forced"` (a harness-only `--force-questionnaire`
+override at the F2->F3 stage boundary; production behavior is otherwise
+unchanged — see `src/f3.py::run_f3_administration`'s `forced_scale` kwarg).
+Every artifact self-describes which mode produced it.
+
+`threshold_caveat` (`CVR-016` condition 3 / `ADR-033` decision 2, extended to
+GAD-7 by `CVR-016`/`CVR-017` binding condition 1 and `REV-039` correction D):
+populated for an AUDIT-C or GAD-7 `administered` outcome (`None` for every
+other scale) — AUDIT-C: the byte-frozen male>=4/female>=3 threshold's non-
+reconciliation with Korean-population evidence; GAD-7: the byte-frozen 0-4/
+5-9/10-14/15-21 bands' Korean-language scoring-table citation was retracted
+during v1 sourcing (`item_bank_v1_sources.md` §2.4) and now rest on
+international-convention-only sourcing (Spitzer et al. 2006). Carried as a
+machine-readable field alongside `score_result.severity` so a consumer never
+sees "hazardous_drinking"/"severe"/etc. without it. The source table lives in
+`src.f3._SEVERITY_CAVEATS`, never recomputed here.
 """
 
 from __future__ import annotations
@@ -36,10 +60,15 @@ from src.scoring.survey_scorer import ScaleName
 # Non-diagnostic framing, same discipline as
 # `ai_predicted_disease.AI_PREDICTED_DISEASE_DISCLAIMER_KO` — a constant, not
 # text an LLM authors (src/f3.py makes zero LLM calls to begin with).
+# Version-neutral by design (item_bank v0 vs v1 both exist in this repo,
+# `EXP-019`'s v0 artifacts must stay accurately described too) — the actual
+# sourcing/validation status of the administered content is on
+# `item_bank_version`/`item_bank_provenance`, not hardcoded into this string.
 SURVEY_RESULT_DISCLAIMER_KO = (
     "이 결과는 AI가 채점한 자가보고 설문 응답이며 의학적 진단이 아닙니다. "
-    "설문 문항은 이 프로젝트 저장소에 실존하는 축약형 구성 라벨(construct label)로만 "
-    "구성되어 있으며(v0, 비검증), 공식 표준 문항/응답 앵커 문구가 아닙니다. "
+    "설문 문항의 출처, 버전, 검증 상태는 이 결과의 item_bank_version 및 "
+    "item_bank_provenance 필드에 기록되어 있으며, 항목에 따라 검증되지 않았거나 "
+    "한국 인구집단 자료와 조정되지 않은 내용이 포함될 수 있습니다. "
     "최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다."
 )
 
@@ -95,6 +124,28 @@ class SurveyResultOutput(BaseModel):
         description=(
             "score_result.critical_item_positive surfaced at the top level — a RECORD, "
             "never a trigger. Always false for outcome != 'administered'."
+        ),
+    )
+    administration_mode: Literal["natural", "forced"] = Field(
+        default="natural",
+        description=(
+            "'natural': F2's own recommended_questionnaire drove this administration. "
+            "'forced': a harness-only --force-questionnaire override at the F2->F3 "
+            "stage boundary (PLAN-2026-W29-A step 6, ADR-033 decision 6) — F3-administration "
+            "evidence only, never natural-chain (F2-linkage) evidence."
+        ),
+    )
+    threshold_caveat: str | None = Field(
+        default=None,
+        description=(
+            "Machine-readable band-output caveat, populated for an AUDIT-C or GAD-7 "
+            "'administered' outcome (CVR-016 condition 3 / ADR-033 decision 2; extended "
+            "to GAD-7 by CVR-016/CVR-017 binding condition 1 / REV-039 correction D) — "
+            "AUDIT-C: the byte-frozen male>=4/female>=3 threshold's non-reconciliation "
+            "with Korean-population evidence. GAD-7: the byte-frozen severity bands' "
+            "Korean-language scoring-table citation was retracted during v1 sourcing; "
+            "bands now rest on international-convention-only sourcing (Spitzer et al. "
+            "2006). `None` for every other scale."
         ),
     )
     recommendation_provenance: RecommendationProvenance

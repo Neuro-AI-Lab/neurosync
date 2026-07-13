@@ -112,15 +112,56 @@ class TestSurveyAnswerLLMAnswerFlow:
         assert value == 1
 
     @pytest.mark.asyncio
-    async def test_prompt_contains_item_text_and_range_no_anchor_phrases(self) -> None:
+    async def test_prompt_contains_item_text_and_anchors_v1(self) -> None:
+        """Item bank v1: the prompt presents the item's real
+        `response_anchors` — no more bare-integer-only ask."""
         llm = SurveyAnswerLLM(_PERSONA, api_key="k", model="m")
         item = _phq9_item()
         prompt = llm._build_prompt(item)
         assert item.text_ko in prompt
+        assert item.response_anchors, "sanity: PHQ-9 v1 items must carry anchors"
+        for value, label in item.response_anchors.items():
+            assert label in prompt
+            assert str(value) in prompt
         assert f"{item.response_min}-{item.response_max}" in prompt
-        # v0 has no anchor wording anywhere — the prompt must not fabricate any.
-        assert "전혀 아니다" not in prompt
-        assert "거의 매일" not in prompt
+
+    @pytest.mark.asyncio
+    async def test_prompt_includes_instruction_when_scale_name_supplied(self) -> None:
+        llm = SurveyAnswerLLM(_PERSONA, api_key="k", model="m", scale_name="PHQ-9")
+        item = _phq9_item()
+        prompt = llm._build_prompt(item)
+        entry = get_item_bank("PHQ-9")
+        assert entry.instruction_ko in prompt
+
+    @pytest.mark.asyncio
+    async def test_prompt_omits_instruction_when_scale_name_not_supplied(self) -> None:
+        """Backward-compatible construction (no `scale_name`) still produces
+        an anchor-aware prompt, just without the entry-level instruction
+        line — never crashes, never fabricates an instruction."""
+        llm = SurveyAnswerLLM(_PERSONA, api_key="k", model="m")
+        assert llm.scale_name is None
+        item = _phq9_item()
+        prompt = llm._build_prompt(item)
+        entry = get_item_bank("PHQ-9")
+        assert entry.instruction_ko not in prompt
+        assert item.text_ko in prompt  # anchors/item text still present
+
+    @pytest.mark.asyncio
+    async def test_no_anchors_falls_back_to_bare_integer_ask(self) -> None:
+        """An item with `response_anchors=None` (hand-built, not from the
+        real v1 bank) must fall back to v0's bare-integer ask, never crash
+        or fabricate anchor wording."""
+        llm = SurveyAnswerLLM(_PERSONA, api_key="k", model="m")
+        bare_item = ScaleItem(index=1, text_ko="x", response_min=0, response_max=3)
+        prompt = llm._build_prompt(bare_item)
+        assert bare_item.text_ko in prompt
+        assert "0-3" in prompt
+        assert "문항:" not in prompt
+        assert "응답 척도:" not in prompt
+
+    def test_unrecognized_scale_name_degrades_to_no_instruction(self) -> None:
+        llm = SurveyAnswerLLM(_PERSONA, api_key="k", model="m", scale_name="NOT-A-SCALE")
+        assert llm._instruction_ko is None
 
 
 class TestExpectedAnswerFn:

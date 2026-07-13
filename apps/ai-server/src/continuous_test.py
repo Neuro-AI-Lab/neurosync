@@ -66,6 +66,11 @@ Usage:
     .venv/bin/python -m src.continuous_test --persona VP-001 --sessions 3
     # F3 with the deterministic expected-mode answer_fn (zero LLM):
     .venv/bin/python -m src.continuous_test --persona VP-012 --answer-mode expected
+    # Forced-questionnaire mode (harness-only, PLAN-2026-W29-A step 6): F3
+    # administers GAD-7 regardless of what F2 actually recommended. The
+    # saved artifact + ledger "f3" sub-object both record
+    # administration_mode="forced" — never natural-chain/F2-linkage evidence.
+    .venv/bin/python -m src.continuous_test --persona VP-001 --force-questionnaire GAD-7
 """
 
 from __future__ import annotations
@@ -206,8 +211,10 @@ class ChainContext:
     conversation_path: Path | None = None
     domain_inference_path: Path | None = None  # set by F2
     answer_mode: str = "llm"  # "llm" | "expected" — consumed by F3
+    forced_scale: str | None = None  # harness-only F2->F3 override (PLAN-2026-W29-A step 6)
     f3_survey_path: Path | None = None  # set by F3
     f3_scale_scores_path: Path | None = None  # set by F3 (only when outcome=="administered")
+    f3_safety_pathway: dict[str, Any] | None = None  # set by F3 (PHQ-9 item-9 wiring, step 3)
 
 
 StageFn = Callable[[ChainContext], Awaitable[StageResult]]
@@ -406,18 +413,73 @@ def _build_survey_answer_fn(persona_id: str, scale_name: str, answer_mode: str):
     from tests.simulation.survey_answer_llm import SurveyAnswerLLM
 
     persona = load_persona(persona_id)
-    return SurveyAnswerLLM(persona)
+    # scale_name is threaded through so SurveyAnswerLLM's anchor-aware
+    # prompt (item bank v1) can also include the scale's entry-level
+    # instruction/timeframe wording, not just the per-item anchors.
+    return SurveyAnswerLLM(persona, scale_name=scale_name)
+
+
+def _route_phq9_safety_pathway(
+    persona_id: str, responses: list[int], patient_sex: str = "unknown"
+) -> dict[str, Any]:
+    """`PLAN-2026-W29-A` step 3 (mission directive): item-9 >= 1 on a PHQ-9
+    administration deterministically routes to the EXISTING safety
+    machinery, `OrchestratorAgent.score_and_check_safety`
+    (`src/agents/orchestrator.py:638` — a `@staticmethod`, deterministic,
+    zero LLM calls, exercised today only by
+    `tests/test_survey_safety_integration.py` and otherwise unwired to any
+    live route).
+
+    Wired HERE — the F3 artifact/ledger CONSUMER side (this harness) — and
+    NEVER inside `src/f3.py`: `src/f3.py`'s own module docstring states
+    nothing in that module calls `OrchestratorAgent.score_and_check_safety`
+    or any safety route, an architectural boundary this mission does not
+    change (`REV-038` §(2), "F3 artifact/ledger consumer side is acceptable
+    if that is the real seam"). Calling the real, already-existing
+    orchestrator method (rather than re-deriving `critical_item_positive`
+    locally) is what makes this "routed to the existing pathway" instead of
+    "a string in the score result" — `OrchestratorAgent.score_and_check_safety`
+    itself makes zero LLM/DB calls, so f3.py's LLM-0 invariant is preserved
+    by construction even though this call lives one layer up.
+
+    Returns a dict recording whether/how the pathway fired — machine-
+    checkable proof, not prose — for the ledger's `"f3"` sub-object.
+    """
+    from src.agents.orchestrator import OrchestratorAgent
+    from src.schemas.orchestrator import SessionState
+
+    state = SessionState(session_id=f"f3-safety-seam:{persona_id}")
+    result, safety_triggered = OrchestratorAgent.score_and_check_safety(
+        state, "PHQ-9", responses, patient_sex=patient_sex
+    )
+    return {
+        "safety_pathway_invoked": True,
+        "safety_triggered": safety_triggered,
+        "recommended_action": result.recommended_action,
+        "critical_item_positive": result.critical_item_positive,
+    }
 
 
 async def run_f3_stage(ctx: ChainContext) -> StageResult:
     """Read `ctx.domain_inference_path` (F2's output), resolve the
     administered/no_questionnaire_indicated/item_bank_unpopulated outcome
-    (`src.f3.resolve_outcome`, never force-picks a scale), administer via
-    `src.f3.run_f3_administration` with an answer_fn built per
-    `ctx.answer_mode`, and record `ctx.f3_survey_path`/
-    `ctx.f3_scale_scores_path` for downstream consumers (the ledger, and —
-    from session 2 onward in `run_multi_session_chain` — the NEXT session's
-    F2 call).
+    (`src.f3.resolve_outcome`), administer via `src.f3.run_f3_administration`
+    with an answer_fn built per `ctx.answer_mode`, and record
+    `ctx.f3_survey_path`/`ctx.f3_scale_scores_path` for downstream consumers
+    (the ledger, and — from session 2 onward in `run_multi_session_chain` —
+    the NEXT session's F2 call).
+
+    `ctx.forced_scale` (`PLAN-2026-W29-A` step 6, harness-only): when set,
+    overrides which scale is resolved/administered instead of F2's own
+    `recommended_questionnaire` — never force-picks silently, F2's actual
+    recommendation is never mutated, and `src.f3.resolve_outcome`/
+    `run_f3_administration` are never called with F2's recommendation in
+    this branch (the forced scale IS what gets resolved/administered).
+
+    Also performs the deterministic PHQ-9 item-9 safety-pathway routing
+    (`_route_phq9_safety_pathway`, `PLAN-2026-W29-A` step 3) whenever the
+    outcome is `administered` and `scale_name == "PHQ-9"` — regardless of
+    natural/forced mode.
     """
     if ctx.domain_inference_path is None:
         return StageResult(
@@ -431,11 +493,12 @@ async def run_f3_stage(ctx: ChainContext) -> StageResult:
         from src import f3
 
         recommendation = f3.load_recommendation(ctx.domain_inference_path)
-        outcome, _entry = f3.resolve_outcome(recommendation.recommended_questionnaire)
+        effective_scale = ctx.forced_scale or recommendation.recommended_questionnaire
+        outcome, _entry = f3.resolve_outcome(effective_scale)
 
         if outcome == f3.ADMINISTERED_OUTCOME:
             answer_fn = _build_survey_answer_fn(
-                ctx.persona_id, recommendation.recommended_questionnaire, ctx.answer_mode
+                ctx.persona_id, effective_scale, ctx.answer_mode
             )
         else:
             async def answer_fn(item):  # pragma: no cover — never invoked, see below
@@ -449,6 +512,7 @@ async def run_f3_stage(ctx: ChainContext) -> StageResult:
             answer_mode=ctx.answer_mode,
             output_dir=ctx.out_dir,
             vp_id=ctx.persona_id,
+            forced_scale=ctx.forced_scale,
         )
     except Exception as exc:  # noqa: BLE001 — harness must report, not crash, on stage failure
         logger.exception("continuous_test.f3.failed")
@@ -459,12 +523,21 @@ async def run_f3_stage(ctx: ChainContext) -> StageResult:
     ctx.f3_survey_path = paths.get("json")
     ctx.f3_scale_scores_path = paths.get("scale_scores")
 
-    detail = f"F3 outcome={output.outcome} answer_mode={ctx.answer_mode}"
+    ctx.f3_safety_pathway = None
+    if output.outcome == f3.ADMINISTERED_OUTCOME and output.scale_name == "PHQ-9":
+        ctx.f3_safety_pathway = _route_phq9_safety_pathway(ctx.persona_id, output.responses)
+
+    detail = (
+        f"F3 outcome={output.outcome} answer_mode={ctx.answer_mode} "
+        f"administration_mode={output.administration_mode}"
+    )
     if output.outcome == f3.ADMINISTERED_OUTCOME and output.score_result is not None:
         detail += (
             f" scale={output.scale_name} total_score={output.score_result.total_score} "
             f"severity={output.score_result.severity} safety_referral={output.safety_referral}"
         )
+        if ctx.f3_safety_pathway is not None:
+            detail += f" safety_pathway_triggered={ctx.f3_safety_pathway['safety_triggered']}"
     return StageResult("F3", "pass", detail, artifacts=paths, duration_ms=_ms(t0))
 
 
@@ -475,6 +548,19 @@ def _build_f3_ledger_subobject(ctx: ChainContext) -> dict[str, Any] | None:
     `_build_*_ledger_entry` callers always set `entry["f3"] = ...`) when the
     F3 stage never produced a survey.json this session (e.g. upstream F2
     failure — see `run_f3_stage`'s own "skip" path).
+
+    `administration_mode` (`PLAN-2026-W29-A` step 6) and `threshold_caveat`
+    (AUDIT-C and, as of `CVR-017` binding condition 1 / `REV-039` correction
+    D, GAD-7 — `src.f3._SEVERITY_CAVEATS`) are reprojected straight from the
+    saved artifact — every ledger record self-describes the same way the
+    artifact itself does.
+    `safety_pathway` is NOT on the saved artifact (it is computed one layer
+    up, at this harness's own consumer seam — `_route_phq9_safety_pathway`)
+    so it is read from `ctx.f3_safety_pathway` instead, set by `run_f3_stage`
+    before this function is ever called for a real chain run. Defaults to
+    `"natural"`/`None` respectively for a survey.json saved before this
+    mission (v0-era artifacts never had these fields), so re-ingesting an
+    old artifact never crashes ledger bookkeeping.
     """
     if ctx.f3_survey_path is None or not ctx.f3_survey_path.exists():
         return None
@@ -488,6 +574,7 @@ def _build_f3_ledger_subobject(ctx: ChainContext) -> dict[str, Any] | None:
     return {
         "outcome": data.get("outcome"),
         "scale_name": data.get("scale_name"),
+        "administration_mode": data.get("administration_mode", "natural"),
         "item_bank_version": data.get("item_bank_version"),
         "item_bank_provenance": data.get("item_bank_provenance"),
         "responses": data.get("responses"),
@@ -496,6 +583,8 @@ def _build_f3_ledger_subobject(ctx: ChainContext) -> dict[str, Any] | None:
         "severity": score_result.get("severity"),
         "subscale_scores": score_result.get("subscale_scores"),
         "safety_referral": data.get("safety_referral", False),
+        "threshold_caveat": data.get("threshold_caveat"),
+        "safety_pathway": ctx.f3_safety_pathway,
         "answer_mode": data.get("answer_mode"),
         "recommendation_provenance": data.get("recommendation_provenance"),
         "survey_artifact_path": str(ctx.f3_survey_path),
@@ -519,6 +608,7 @@ async def run_multi_session_chain(
     session_interval_days: int = DEFAULT_SESSION_INTERVAL_DAYS,
     base_date: date | None = None,
     answer_mode: str = "llm",
+    forced_scale: str | None = None,
 ) -> list[StageResult]:
     """Chain N F1 sessions via the existing PUBLIC `followup_from` seam
     (`f1._run_simulation(..., followup_from=<prior session's own
@@ -602,7 +692,7 @@ async def run_multi_session_chain(
         f2_ctx = ChainContext(
             persona_id=persona_id, max_turns=max_turns, k=k, out_dir=out_dir,
             scale_scores_path=effective_scale_scores_path, conversation_path=conv_path,
-            answer_mode=answer_mode,
+            answer_mode=answer_mode, forced_scale=forced_scale,
         )
         f2_result = await run_f2_stage(f2_ctx)
         f2_result.name = f"F2[session={session_index}]"
@@ -717,6 +807,9 @@ def print_report(ctx: ChainContext, results: list[StageResult]) -> None:
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
+    # Lazy import — module's own light-import-at-parse-time convention.
+    from src.scoring.survey_scorer import SUPPORTED_SCALES
+
     parser = argparse.ArgumentParser(
         description="continuous_test — F1 -> F2 -> F3 -> ... -> F6 chain validation harness"
     )
@@ -753,6 +846,19 @@ def build_arg_parser() -> argparse.ArgumentParser:
             "F3 설문 응답 선택 모드 (PLAN-2026-W28-V §7). llm(기본값): K-EXAONE 기반 "
             "in-persona 문항별 점수 선택. expected: persona 문서의 예상 점수표 기반, "
             "LLM 미호출 결정론적 응답."
+        ),
+    )
+    parser.add_argument(
+        "--force-questionnaire",
+        default=None,
+        choices=sorted(SUPPORTED_SCALES),
+        help=(
+            "하니스 전용: F2->F3 경계에서 F2의 recommended_questionnaire와 무관하게 "
+            "지정한 척도를 강제로 투여 (PLAN-2026-W29-A step 6, ADR-033 결정 6). "
+            "production src/f2.py, src/f3.py의 동작은 변경되지 않음 — F3 산출물의 "
+            "administration_mode 필드가 'forced'로 기록되고, ledger 'f3' 서브오브젝트도 "
+            "동일하게 자기기술적으로 표시됨. 자연 선택(natural) 근거가 아니므로 "
+            "F2-연계(F2-linkage) 근거로 인용하면 안 됨."
         ),
     )
     return parser
@@ -805,6 +911,7 @@ def _build_single_session_ledger_entry(
 async def _main(args: argparse.Namespace) -> int:
     out_dir = Path(args.out) if args.out else None
     answer_mode = getattr(args, "answer_mode", "llm") or "llm"
+    forced_scale = getattr(args, "force_questionnaire", None)
 
     if args.sessions and args.sessions > 1:
         if args.start_from_conversation:
@@ -819,6 +926,7 @@ async def _main(args: argparse.Namespace) -> int:
             scale_scores_path=args.scale_scores,
             session_interval_days=args.session_interval_days,
             answer_mode=answer_mode,
+            forced_scale=forced_scale,
         )
         print_multi_session_report(args.persona, results)
         return 0 if all(r.status != "fail" for r in results) else 1
@@ -830,6 +938,7 @@ async def _main(args: argparse.Namespace) -> int:
         out_dir=out_dir,
         scale_scores_path=args.scale_scores,
         answer_mode=answer_mode,
+        forced_scale=forced_scale,
     )
     if args.start_from_conversation:
         path = Path(args.start_from_conversation)
