@@ -1,25 +1,33 @@
+import { useState } from "react";
 import { StyleSheet, Text, TextInput, TextInputProps, View } from "react-native";
 
-import { colors, fontSize, radius, spacing } from "../lib/tokens";
+import { colors } from "../lib/tokens";
 
 export type InputProps = TextInputProps & {
   label?: string;
   error?: string | null;
 };
 
-export function Input({ label, error, style, ...rest }: InputProps) {
+export function Input({ label, error, style, onFocus, onBlur, ...rest }: InputProps) {
+  const [focused, setFocused] = useState(false);
+  const borderColor = error ? colors.danger : focused ? colors.ink : colors.lineStrong;
+
   return (
     <View style={styles.wrap}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
       <TextInput
-        placeholderTextColor={colors.textSecondary}
+        placeholderTextColor={colors.faint}
         accessibilityLabel={label}
         {...rest}
-        style={[
-          styles.input,
-          { borderColor: error ? colors.stateDanger : colors.border },
-          style,
-        ]}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
+        style={[styles.input, { borderColor }, style]}
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
@@ -27,23 +35,25 @@ export function Input({ label, error, style, ...rest }: InputProps) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: spacing.xs },
+  wrap: { gap: 6 },
   label: {
-    fontSize: fontSize.body,
+    fontSize: 12.5,
     fontWeight: "500",
-    color: colors.textPrimary,
+    color: colors.muted,
+    paddingLeft: 2,
   },
   input: {
-    minHeight: 48,
-    borderRadius: radius.md,
+    height: 50,
+    borderRadius: 13,
     borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    fontSize: fontSize.bodyLg,
-    color: colors.textPrimary,
+    paddingHorizontal: 15,
+    fontSize: 15,
+    color: colors.ink,
     backgroundColor: colors.surface,
   },
   error: {
-    fontSize: fontSize.caption,
-    color: colors.stateDanger,
+    fontSize: 12,
+    color: colors.danger,
+    paddingLeft: 2,
   },
 });
