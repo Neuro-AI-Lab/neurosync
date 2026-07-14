@@ -1,13 +1,13 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BottomTabBar } from "../../components/BottomTabBar";
-import { Button } from "../../components/Button";
 import { EmergencyEntryButton } from "../../components/EmergencyEntryButton";
+import { ArrowRight, Chat, ChevronRight, Doc } from "../../lib/icons";
 import { APIException, createSession } from "../../lib/api";
-import { colors, fontSize, radius, spacing } from "../../lib/tokens";
+import { colors } from "../../lib/tokens";
 import { useAuth } from "../../state/auth";
 import { useSession } from "../../state/session";
 
@@ -40,7 +40,6 @@ export default function HomeScreen() {
       startSession(sess.sessionId);
       router.push("/(patient)/intake/chat");
     } catch (e) {
-      // PRD §4.5.2 — never proxy server message to UI (potential PII).
       const code = e instanceof APIException ? e.body.code : "NETWORK";
       Alert.alert("세션 시작 실패", `잠시 후 다시 시도해 주세요 (코드: ${code})`);
     } finally {
@@ -52,41 +51,64 @@ export default function HomeScreen() {
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + spacing.lg }]}
+        contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 12 }]}
       >
-        <View style={styles.header}>
-          <Text style={styles.greeting}>{greeting()}{user ? `, ${displayName(user.email)}님` : ""}</Text>
-          <Text style={styles.subtitle}>오늘은 어떠신가요?</Text>
+        <View style={styles.greet}>
+          <Text style={styles.greetHi}>{greeting()}</Text>
+          <Text style={styles.greetName}>
+            {user ? `${displayName(user.email)}님` : "환자님"}
+          </Text>
         </View>
+
+        <Pressable
+          style={({ pressed }) => [styles.startCard, { opacity: pressed ? 0.9 : 1 }]}
+          onPress={onStart}
+          disabled={starting}
+          accessibilityRole="button"
+          accessibilityLabel="새 사전 문진 시작"
+        >
+          <View style={styles.startTop}>
+            <View style={styles.startIco}>
+              <Chat size={20} color={colors.ink} />
+            </View>
+            <Text style={styles.startTime}>약 15분</Text>
+          </View>
+          <Text style={styles.startTitle}>
+            {activeSessionId ? "사전 문진 새로 시작" : "새 사전 문진 시작"}
+          </Text>
+          <Text style={styles.startDesc}>대화하고, 표준 문진에 답하면 준비 끝이에요.</Text>
+          <View style={styles.startCta}>
+            {starting ? (
+              <ActivityIndicator size="small" color={colors.onInk} />
+            ) : (
+              <>
+                <Text style={styles.startCtaText}>시작하기</Text>
+                <ArrowRight size={15} color={colors.onInk} />
+              </>
+            )}
+          </View>
+        </Pressable>
 
         {activeSessionId ? (
           <Pressable
-            style={styles.resumeCard}
+            style={styles.lastRow}
             accessibilityRole="button"
             accessibilityLabel="진행 중인 문진 이어서 진행"
             onPress={() => router.push("/(patient)/intake/chat")}
           >
-            <View style={{ flex: 1 }}>
-              <Text style={styles.resumeTitle}>진행 중인 사전 문진</Text>
-              <Text style={styles.resumeSub}>이어서 진행할 수 있어요</Text>
+            <View style={styles.lastIco}>
+              <Doc size={17} color={colors.muted} />
             </View>
-            <Text style={styles.resumeChevron}>›</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.lastTitle}>진행 중인 사전 문진</Text>
+              <Text style={styles.lastSub}>이어서 진행할 수 있어요</Text>
+            </View>
+            <ChevronRight size={15} color={colors.faint} />
           </Pressable>
         ) : null}
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>새 사전 문진 시작</Text>
-          <Text style={styles.cardSubtitle}>약 15~20분 소요</Text>
-          <Button
-            label={activeSessionId ? "새로 시작" : "문진 시작"}
-            onPress={onStart}
-            loading={starting}
-          />
-        </View>
+        <View style={{ flex: 1 }} />
 
-        <View style={styles.spacer} />
-
-        <Text style={styles.sectionLabel}>지금 도움이 필요해요</Text>
         <EmergencyEntryButton onPress={() => router.push("/(patient)/emergency")} />
       </ScrollView>
 
@@ -97,41 +119,62 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   scroll: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
-    gap: spacing.md,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    gap: 14,
+    flexGrow: 1,
   },
-  header: { gap: spacing.xs },
-  resumeCard: {
+  greet: { paddingTop: 6 },
+  greetHi: { fontSize: 14, color: colors.muted },
+  greetName: { fontSize: 25, fontWeight: "700", color: colors.ink, letterSpacing: -0.7, marginTop: 2 },
+  startCard: {
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+    borderRadius: 20,
+    padding: 20,
+    backgroundColor: colors.surface,
+  },
+  startTop: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
+  startIco: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: colors.fill,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  startTime: { fontSize: 12, color: colors.muted },
+  startTitle: { fontSize: 19, fontWeight: "700", color: colors.ink, letterSpacing: -0.4, marginTop: 16 },
+  startDesc: { fontSize: 12.5, color: colors.muted, marginTop: 5 },
+  startCta: {
+    marginTop: 16,
+    height: 46,
+    borderRadius: 13,
+    backgroundColor: colors.ink,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.lg,
+    justifyContent: "center",
+    gap: 7,
+  },
+  startCtaText: { color: colors.onInk, fontWeight: "600", fontSize: 14.5 },
+  lastRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: spacing.sm,
+    borderColor: colors.line,
+    borderRadius: 15,
   },
-  resumeTitle: { fontSize: fontSize.bodyLg, fontWeight: "600", color: colors.textPrimary },
-  resumeSub: { fontSize: fontSize.body, color: colors.textSecondary, marginTop: 2 },
-  resumeChevron: { fontSize: fontSize.title, color: colors.stateInfo, fontWeight: "700" },
-  greeting: { fontSize: fontSize.title, fontWeight: "600", color: colors.textPrimary },
-  subtitle: { fontSize: fontSize.bodyLg, color: colors.textSecondary },
-  card: {
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    gap: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
+  lastIco: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: colors.fill,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  cardTitle: { fontSize: fontSize.bodyLg, fontWeight: "600", color: colors.textPrimary },
-  cardSubtitle: { fontSize: fontSize.body, color: colors.textSecondary, marginBottom: spacing.sm },
-  sectionLabel: {
-    fontSize: fontSize.body,
-    fontWeight: "500",
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  spacer: { height: spacing.lg },
+  lastTitle: { fontSize: 13.5, fontWeight: "600", color: colors.ink },
+  lastSub: { fontSize: 11.5, color: colors.muted, marginTop: 2 },
 });

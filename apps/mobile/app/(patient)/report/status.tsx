@@ -11,18 +11,13 @@
 
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "../../../components/Button";
+import { Check } from "../../../lib/icons";
 import { APIException, getReportStatus, ReportPhase } from "../../../lib/api";
-import { colors, fontSize, radius, spacing } from "../../../lib/tokens";
+import { colors } from "../../../lib/tokens";
 import { useAuth } from "../../../state/auth";
 import { useSession } from "../../../state/session";
 
@@ -118,42 +113,44 @@ export default function ReportStatusScreen() {
       style={{ flex: 1, backgroundColor: colors.surface }}
       contentContainerStyle={[
         styles.scroll,
-        { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl },
+        { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 32 },
       ]}
     >
       {uiState === "ready" ? (
         <View style={styles.center}>
-          <Text style={styles.bigIcon}>✓</Text>
-          <Text style={styles.title}>리포트가 준비되었어요</Text>
-          <Text style={styles.body}>
-            의료진에게 전달될 준비가 되었어요. 진료 때 의료진이 확인합니다.
-          </Text>
-          <View style={{ height: spacing.md }} />
+          <View style={styles.checkSquare}>
+            <Check size={26} color={colors.onInk} strokeWidth={2.4} />
+          </View>
+          <Text style={styles.title}>문진이 전달됐어요</Text>
+          <Text style={styles.body}>의료진이 진료 전에 내용을 확인해요.</Text>
+          <View style={{ height: 16, alignSelf: "stretch" }} />
           <Button label="홈으로" onPress={goHome} />
         </View>
       ) : uiState === "failed" ? (
         <View style={styles.center}>
-          <Text style={[styles.bigIcon, { color: colors.stateDanger }]}>!</Text>
+          <View style={[styles.checkSquare, styles.failSquare]}>
+            <Text style={styles.failMark}>!</Text>
+          </View>
           <Text style={styles.title}>리포트 생성에 실패했어요</Text>
           <Text style={styles.body}>
             잠시 후 다시 시도해 주세요. 입력하신 내용은 안전하게 보관됩니다.
           </Text>
-          <View style={{ height: spacing.md }} />
+          <View style={{ height: 16, alignSelf: "stretch" }} />
           <Button label="다시 시도" onPress={startPolling} />
-          <View style={{ height: spacing.sm }} />
-          <Button label="홈으로" variant="secondary" onPress={goHome} />
+          <View style={{ height: 8, alignSelf: "stretch" }} />
+          <Button label="홈으로" variant="ghost" onPress={goHome} />
         </View>
       ) : (
         <View style={styles.generating}>
-          <ActivityIndicator size="large" color={colors.stateInfo} />
+          <ActivityIndicator size="large" color={colors.ink} />
           <Text style={styles.title}>
             AI가 의료진 전달 리포트를{"\n"}만들고 있어요
           </Text>
 
           {uiState === "overdue" ? (
             <Text style={styles.body}>
-              예상보다 오래 걸리고 있어요. 잠시 후 알림을 보내드릴게요. 지금
-              홈으로 돌아가셔도 생성은 계속 진행돼요.
+              예상보다 오래 걸리고 있어요. 잠시 후 알림을 보내드릴게요. 지금 홈으로 돌아가셔도
+              생성은 계속 진행돼요.
             </Text>
           ) : (
             <Text style={styles.body}>약 {estimatedSeconds}초 정도 걸려요.</Text>
@@ -174,19 +171,15 @@ export default function ReportStatusScreen() {
             <Text style={styles.contentsTitle}>리포트에 포함되는 내용</Text>
             {REPORT_CONTENTS.map((c) => (
               <View key={c} style={styles.contentRow}>
-                <Text style={styles.contentCheck}>✓</Text>
+                <Check size={13} color={colors.ink} strokeWidth={2.4} />
                 <Text style={styles.contentText}>{c}</Text>
               </View>
             ))}
           </View>
 
-          <Text style={styles.fine}>
-            본 리포트는 의료진 참고용이며, 진단이 아닙니다.
-          </Text>
+          <Text style={styles.fine}>본 리포트는 의료진 참고용이며, 진단이 아닙니다.</Text>
 
-          {uiState === "overdue" ? (
-            <Button label="홈으로" variant="secondary" onPress={goHome} />
-          ) : null}
+          {uiState === "overdue" ? <Button label="홈으로" variant="ghost" onPress={goHome} /> : null}
         </View>
       )}
     </ScrollView>
@@ -194,50 +187,50 @@ export default function ReportStatusScreen() {
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: spacing.lg, gap: spacing.md },
-  center: { gap: spacing.sm, alignItems: "center", paddingTop: spacing.xxl },
-  generating: { gap: spacing.lg, alignItems: "center", paddingTop: spacing.xl },
-  bigIcon: { fontSize: 56, color: colors.stateSuccess, fontWeight: "700" },
+  scroll: { paddingHorizontal: 24, gap: 16 },
+  center: { gap: 10, alignItems: "center", paddingTop: 40 },
+  generating: { gap: 20, alignItems: "center", paddingTop: 24 },
+  checkSquare: {
+    width: 52,
+    height: 52,
+    borderRadius: 15,
+    backgroundColor: colors.ink,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
+  },
+  failSquare: { backgroundColor: colors.danger },
+  failMark: { color: "#FFFFFF", fontSize: 30, fontWeight: "800", lineHeight: 34 },
   title: {
-    fontSize: fontSize.title,
+    fontSize: 22,
     fontWeight: "700",
-    color: colors.textPrimary,
+    color: colors.ink,
     textAlign: "center",
     lineHeight: 28,
+    letterSpacing: -0.4,
   },
-  body: {
-    fontSize: fontSize.bodyLg,
-    color: colors.textSecondary,
-    lineHeight: 24,
-    textAlign: "center",
-  },
-  progressRow: { width: "100%", gap: spacing.xs, alignItems: "center" },
+  body: { fontSize: 14, color: colors.muted, lineHeight: 21, textAlign: "center" },
+  progressRow: { width: "100%", gap: 6, alignItems: "center" },
   track: {
     width: "100%",
-    height: 8,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceElevated,
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: colors.fill,
     overflow: "hidden",
   },
-  fill: { height: 8, borderRadius: radius.pill, backgroundColor: colors.stateInfo },
-  progressLabel: { fontSize: fontSize.caption, color: colors.textSecondary },
+  fill: { height: 6, borderRadius: 999, backgroundColor: colors.ink },
+  progressLabel: { fontSize: 12, color: colors.muted, fontVariant: ["tabular-nums"] },
   contentsCard: {
     width: "100%",
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.sm,
+    borderColor: colors.line,
+    padding: 18,
+    gap: 10,
   },
-  contentsTitle: {
-    fontSize: fontSize.body,
-    fontWeight: "600",
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
-  contentRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  contentCheck: { color: colors.stateSuccess, fontWeight: "700", fontSize: fontSize.bodyLg },
-  contentText: { fontSize: fontSize.body, color: colors.textPrimary },
-  fine: { fontSize: fontSize.caption, color: colors.textSecondary, textAlign: "center" },
+  contentsTitle: { fontSize: 13.5, fontWeight: "600", color: colors.ink, marginBottom: 4 },
+  contentRow: { flexDirection: "row", alignItems: "center", gap: 9 },
+  contentText: { fontSize: 13, color: colors.ink2 },
+  fine: { fontSize: 12, color: colors.muted, textAlign: "center" },
 });

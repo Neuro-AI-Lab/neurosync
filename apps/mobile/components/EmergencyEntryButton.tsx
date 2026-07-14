@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { colors, fontSize, radius, spacing } from "../lib/tokens";
+import { Phone } from "../lib/icons";
+import { colors } from "../lib/tokens";
 
 export type EmergencyEntryButtonProps = {
   onPress: () => void;
@@ -10,40 +11,41 @@ export type EmergencyEntryButtonProps = {
 /**
  * Always-visible escape hatch to /emergency. PRD §A — 위험 신호는 보수적으로 탐지.
  * Even if the AI hasn't classified anything risky, the patient can reach
- * help with one tap.
+ * help with one tap. Soft-red fill (danger affinity, not an alarming display).
  */
 export function EmergencyEntryButton({
   onPress,
-  label = "지금 도움이 필요해요",
+  label = "지금 도움이 필요해요 · 24시간",
 }: EmergencyEntryButtonProps) {
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.btn,
-        { opacity: pressed ? 0.8 : 1 },
-      ]}
+      style={({ pressed }) => [styles.btn, { opacity: pressed ? 0.8 : 1 }]}
     >
-      <Text style={styles.label}>⚠️  {label}</Text>
+      <View style={styles.row}>
+        <Phone size={16} color={colors.dangerInk} strokeWidth={1.9} />
+        <Text style={styles.label}>{label}</Text>
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   btn: {
-    borderRadius: radius.md,
-    backgroundColor: colors.dangerSoft, // light red — danger affinity without alarming display
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: colors.dangerSoft,
     borderWidth: 1,
-    borderColor: colors.stateDanger,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    borderColor: colors.dangerLine,
     alignItems: "center",
+    justifyContent: "center",
   },
+  row: { flexDirection: "row", alignItems: "center", gap: 8 },
   label: {
-    fontSize: fontSize.bodyLg,
+    fontSize: 13.5,
     fontWeight: "600",
-    color: colors.stateDanger,
+    color: colors.dangerInk,
   },
 });

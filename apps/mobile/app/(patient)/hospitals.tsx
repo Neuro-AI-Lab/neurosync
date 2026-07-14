@@ -8,20 +8,19 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BottomTabBar } from "../../components/BottomTabBar";
 import { Button } from "../../components/Button";
-import { colors, fontSize, radius, spacing } from "../../lib/tokens";
+import { Hospital } from "../../lib/icons";
+import { colors } from "../../lib/tokens";
 
 export default function HospitalsScreen() {
   const insets = useSafeAreaInsets();
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
-        <Text style={styles.title}>병원 찾기</Text>
-      </View>
+      <Text style={[styles.largeTitle, { paddingTop: insets.top + 8 }]}>병원 찾기</Text>
 
       <View style={styles.body}>
         <View style={styles.iconBox}>
-          <Text style={styles.icon}>🏥</Text>
+          <Hospital size={40} color={colors.muted} strokeWidth={1.5} />
         </View>
         <Text style={styles.lead}>가까운 정신건강의학과를{"\n"}찾을 수 있어요.</Text>
         <Text style={styles.note}>이 기능은 정식 버전에서 제공됩니다.</Text>
@@ -38,43 +37,44 @@ export default function HospitalsScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  largeTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: colors.ink,
+    letterSpacing: -0.9,
+    paddingHorizontal: 20,
+    paddingBottom: 6,
   },
-  title: { fontSize: fontSize.title, fontWeight: "700", color: colors.textPrimary },
   body: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: spacing.xl,
-    gap: spacing.md,
+    paddingHorizontal: 32,
+    gap: 12,
   },
   iconBox: {
-    width: 120,
-    height: 120,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surfaceElevated,
+    width: 96,
+    height: 96,
+    borderRadius: 20,
+    backgroundColor: colors.fill,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: spacing.sm,
+    marginBottom: 8,
   },
-  icon: { fontSize: 52 },
   lead: {
-    fontSize: fontSize.bodyLg,
-    color: colors.textPrimary,
+    fontSize: 17,
+    color: colors.ink,
     textAlign: "center",
     lineHeight: 24,
     fontWeight: "600",
+    letterSpacing: -0.3,
   },
-  note: { fontSize: fontSize.body, color: colors.textSecondary, textAlign: "center" },
+  note: { fontSize: 13, color: colors.muted, textAlign: "center" },
   emergencyBlock: {
-    marginTop: spacing.xl,
+    marginTop: 32,
     width: "100%",
-    gap: spacing.sm,
+    gap: 10,
     alignItems: "stretch",
   },
-  emergencyLabel: { fontSize: fontSize.body, color: colors.textSecondary, textAlign: "center" },
+  emergencyLabel: { fontSize: 13, color: colors.muted, textAlign: "center" },
 });

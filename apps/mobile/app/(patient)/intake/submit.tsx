@@ -1,11 +1,11 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "../../../components/Button";
+import { NavBar } from "../../../components/NavBar";
 import { APIException, submitSession } from "../../../lib/api";
-import { colors, fontSize, radius, spacing } from "../../../lib/tokens";
+import { colors } from "../../../lib/tokens";
 import { useAuth } from "../../../state/auth";
 import { useSession } from "../../../state/session";
 
@@ -17,7 +17,6 @@ const NOTICE =
 type Phase = "review" | "submitting";
 
 export default function SubmitScreen() {
-  const insets = useSafeAreaInsets();
   const accessToken = useAuth((s) => s.accessToken);
   const sessionId = useSession((s) => s.sessionId);
   const [phase, setPhase] = useState<Phase>("review");
@@ -44,48 +43,37 @@ export default function SubmitScreen() {
   };
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.surface }}
-      contentContainerStyle={[
-        styles.scroll,
-        { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xl },
-      ]}
-    >
-      <Text style={styles.title}>문진을 제출할까요?</Text>
-      <View style={styles.noticeCard}>
-        <Text style={styles.noticeText}>{NOTICE}</Text>
-      </View>
-      <Text style={styles.body}>
-        제출하면 입력하신 내용은 의료진에게 전달되며, 이후에는 수정할 수
-        없어요.
-      </Text>
-      <View style={{ height: spacing.md }} />
-      <Button
-        label="제출하기"
-        onPress={onSubmit}
-        loading={phase === "submitting"}
-        disabled={phase === "submitting"}
-      />
-      <View style={{ height: spacing.sm }} />
-      <Button
-        label="더 작성하기"
-        variant="secondary"
-        onPress={() => router.back()}
-      />
-    </ScrollView>
+    <View style={{ flex: 1, backgroundColor: colors.surface }}>
+      <NavBar title="제출 확인" backLabel="이전" onBack={() => router.back()} />
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <Text style={styles.title}>문진을 제출할까요?</Text>
+        <Text style={styles.body}>
+          제출하면 입력하신 내용은 의료진에게 전달되며, 이후에는 수정할 수 없어요.
+        </Text>
+        <View style={styles.noticeCard}>
+          <Text style={styles.noticeText}>{NOTICE}</Text>
+        </View>
+        <View style={{ height: 8 }} />
+        <Button
+          label="제출하기"
+          onPress={onSubmit}
+          loading={phase === "submitting"}
+          disabled={phase === "submitting"}
+        />
+        <Button label="더 작성하기" variant="ghost" onPress={() => router.back()} />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: spacing.lg, gap: spacing.md },
-  title: { fontSize: fontSize.title, fontWeight: "700", color: colors.textPrimary },
-  body: { fontSize: fontSize.bodyLg, color: colors.textSecondary, lineHeight: 24 },
+  scroll: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32, gap: 14 },
+  title: { fontSize: 24, fontWeight: "700", color: colors.ink, letterSpacing: -0.6 },
+  body: { fontSize: 14, color: colors.muted, lineHeight: 21 },
   noticeCard: {
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
+    backgroundColor: colors.fill,
+    borderRadius: 14,
+    padding: 16,
   },
-  noticeText: { fontSize: fontSize.body, color: colors.textPrimary, lineHeight: 22 },
+  noticeText: { fontSize: 13, color: colors.ink2, lineHeight: 20 },
 });

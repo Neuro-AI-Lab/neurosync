@@ -16,9 +16,11 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { MessageBubble } from "../../../components/MessageBubble";
+import { NavBar } from "../../../components/NavBar";
 import { PushToTalk } from "../../../components/PushToTalk";
+import { ArrowUp } from "../../../lib/icons";
 import { SafetyLevel, SessionChatClient, WSEvent, WSStatus } from "../../../lib/ws";
-import { colors, fontSize, radius, spacing } from "../../../lib/tokens";
+import { colors } from "../../../lib/tokens";
 import { useAuth } from "../../../state/auth";
 import { LocalMessage, useSession } from "../../../state/session";
 
@@ -132,8 +134,6 @@ export default function ChatScreen() {
     switch (status) {
       case "connecting":
         return "연결 중…";
-      case "open":
-        return "연결됨";
       case "closing":
       case "closed":
         return "연결이 끊겼어요. 자동으로 다시 연결해요";
@@ -146,46 +146,45 @@ export default function ChatScreen() {
     }
   }, [status]);
 
+  const canSend = !!draft.trim() && status === "open";
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.surface }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 24}
     >
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <Pressable onPress={() => router.back()} accessibilityRole="button">
-          <Text style={styles.back}>← 그만하기</Text>
-        </Pressable>
-        <View style={{ flex: 1 }} />
-        <Pressable
-          onPress={() => router.push("/(patient)/intake/phq9")}
-          accessibilityRole="button"
-          accessibilityLabel="표준 문진으로 이동"
-          hitSlop={8}
-        >
-          <Text style={[styles.next, questionnaireReady && styles.nextReady]}>
-            설문 →
-          </Text>
-        </Pressable>
-        <View
-          style={[
-            styles.statusDot,
-            { backgroundColor: status === "open" ? colors.stateSuccess : colors.stateWarning },
-          ]}
-        />
-      </View>
+      <NavBar
+        backLabel="그만하기"
+        onBack={() => router.back()}
+        title="사전 문진"
+        liveDot={status === "open"}
+        right={
+          <Pressable
+            onPress={() => router.push("/(patient)/intake/phq9")}
+            accessibilityRole="button"
+            accessibilityLabel="표준 문진으로 이동"
+            hitSlop={8}
+          >
+            <Text style={[styles.navAct, questionnaireReady && styles.navActReady]}>설문</Text>
+          </Pressable>
+        }
+      />
 
-      <View style={styles.progressRow}>
+      <View style={styles.cprog}>
+        <View style={styles.cprogRow}>
+          <Text style={styles.cprogLabel}>수집 진행률</Text>
+          <Text style={styles.cprogPct}>
+            {questionnaireReady ? `문진 준비됨 · ${progressPct}%` : `${progressPct}%`}
+          </Text>
+        </View>
         <View
-          style={styles.progressTrack}
+          style={styles.track}
           accessibilityRole="progressbar"
           accessibilityValue={{ min: 0, max: 100, now: progressPct }}
         >
-          <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
+          <View style={[styles.fill, { width: `${progressPct}%` }]} />
         </View>
-        <Text style={styles.progressLabel}>
-          {questionnaireReady ? `문진 준비됨 · ${progressPct}%` : `진행률 ${progressPct}%`}
-        </Text>
       </View>
 
       {statusLabel ? <Text style={styles.statusText}>{statusLabel}</Text> : null}
@@ -193,7 +192,7 @@ export default function ChatScreen() {
         <View style={styles.banner} accessibilityLiveRegion="polite">
           <Text style={styles.bannerText}>{mediumBanner}</Text>
           <Pressable onPress={() => router.push("/(patient)/emergency")}>
-            <Text style={styles.bannerLink}>도움 받기 →</Text>
+            <Text style={styles.bannerLink}>도움 받기</Text>
           </Pressable>
         </View>
       ) : null}
@@ -207,18 +206,19 @@ export default function ChatScreen() {
         )}
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
         style={styles.list}
+        contentContainerStyle={styles.listContent}
         ListEmptyComponent={
-          <Text style={styles.empty}>오늘은 어떤 점이 가장 힘드신가요?</Text>
+          <Text style={styles.empty}>오늘은 어떤 점이 가장 힘드신가요?{"\n"}편하게 말씀해 주세요.</Text>
         }
       />
 
-      <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
+      <View style={[styles.inbar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
         <TextInput
           value={draft}
           onChangeText={setDraft}
           placeholder="메시지를 입력해 주세요"
-          placeholderTextColor={colors.textSecondary}
-          style={styles.input}
+          placeholderTextColor={colors.faint}
+          style={styles.tf}
           multiline
           maxLength={4000}
         />
@@ -237,12 +237,12 @@ export default function ChatScreen() {
           accessibilityRole="button"
           accessibilityLabel="메시지 보내기"
           style={({ pressed }) => [
-            styles.sendBtn,
-            { opacity: draft.trim() && status === "open" ? (pressed ? 0.7 : 1) : 0.4 },
+            styles.send,
+            { opacity: canSend ? (pressed ? 0.7 : 1) : 0.35 },
           ]}
-          disabled={!draft.trim() || status !== "open"}
+          disabled={!canSend}
         >
-          <Text style={styles.sendBtnText}>↑</Text>
+          <ArrowUp size={17} color={colors.onInk} />
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -256,96 +256,69 @@ const sentenceColor = (level: SafetyLevel | undefined) => {
 void sentenceColor;
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
-    gap: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  back: { fontSize: fontSize.bodyLg, color: colors.textPrimary, fontWeight: "500" },
-  next: { fontSize: fontSize.bodyLg, color: colors.textSecondary, fontWeight: "600", marginRight: spacing.sm },
-  nextReady: { color: colors.stateInfo },
-  progressRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.xs,
-  },
-  progressTrack: {
-    flex: 1,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.surfaceElevated,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.stateInfo,
-  },
-  progressLabel: { fontSize: fontSize.caption, color: colors.textSecondary, minWidth: 96, textAlign: "right" },
-  statusDot: { width: 10, height: 10, borderRadius: 5 },
-  statusText: {
-    fontSize: fontSize.caption,
-    color: colors.textSecondary,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
+  navAct: { fontSize: 14, color: colors.muted, fontWeight: "600", paddingHorizontal: 6 },
+  navActReady: { color: colors.ink },
+  cprog: { paddingHorizontal: 16, paddingBottom: 8 },
+  cprogRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },
+  cprogLabel: { fontSize: 11, color: colors.muted },
+  cprogPct: { fontSize: 11.5, color: colors.ink, fontWeight: "500" },
+  track: { height: 4, borderRadius: 999, backgroundColor: colors.fill, overflow: "hidden" },
+  fill: { height: 4, borderRadius: 999, backgroundColor: colors.ink },
+  statusText: { fontSize: 12, color: colors.muted, paddingHorizontal: 16, paddingVertical: 4 },
   banner: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: colors.warnSoft,
-    borderColor: colors.stateWarning,
+    borderColor: "rgba(154,106,22,0.28)",
     borderWidth: 1,
-    marginHorizontal: spacing.md,
-    marginVertical: spacing.xs,
-    padding: spacing.sm,
-    borderRadius: radius.md,
-    gap: spacing.sm,
+    marginHorizontal: 16,
+    marginBottom: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 13,
+    borderRadius: 12,
+    gap: 9,
   },
-  bannerText: { color: colors.textPrimary, flex: 1, fontSize: fontSize.body },
-  bannerLink: { color: colors.stateWarning, fontWeight: "600", fontSize: fontSize.body },
+  bannerText: { color: colors.ink, flex: 1, fontSize: 12, lineHeight: 16 },
+  bannerLink: { color: colors.warn, fontWeight: "600", fontSize: 12 },
   list: { flex: 1 },
+  listContent: { paddingHorizontal: 16, paddingVertical: 8 },
   empty: {
     textAlign: "center",
-    color: colors.textSecondary,
-    fontSize: fontSize.bodyLg,
-    padding: spacing.xl,
+    color: colors.muted,
+    fontSize: 15,
+    lineHeight: 22,
+    paddingVertical: 40,
+    paddingHorizontal: 24,
   },
-  inputBar: {
+  inbar: {
     flexDirection: "row",
     alignItems: "flex-end",
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
-    gap: spacing.sm,
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    gap: 8,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: colors.line,
     backgroundColor: colors.surface,
   },
-  input: {
+  tf: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 40,
     maxHeight: 120,
-    borderRadius: radius.lg,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: fontSize.bodyLg,
-    color: colors.textPrimary,
+    borderColor: colors.lineStrong,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    fontSize: 14,
+    color: colors.ink,
   },
-  sendBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.stateInfo,
+  send: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.ink,
     alignItems: "center",
     justifyContent: "center",
   },
-  sendBtnText: { color: colors.surface, fontSize: fontSize.title, fontWeight: "700" },
 });

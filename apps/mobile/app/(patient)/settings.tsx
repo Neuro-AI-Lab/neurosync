@@ -2,29 +2,24 @@
  * S-13 `/settings` — demo scope: profile (read-only), consent toggles,
  * re-view onboarding, logout. Tab-bar screen.
  *
- * Consent edit (FR-026/034) and profile edit (FR-002) hit APIs that aren't in
- * the demo yet, so those are local-only / stubbed with an explicit notice.
+ * iOS grouped inset lists on a grouped ground; consent edit (FR-026/034) and
+ * profile edit (FR-002) hit APIs that aren't in the demo yet, so those are
+ * local-only / stubbed with an explicit notice. Logout is the one destructive
+ * (red) row.
  */
 
 import { router } from "expo-router";
 import { ReactNode, useState } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BottomTabBar } from "../../components/BottomTabBar";
+import { ChevronRight } from "../../lib/icons";
 import { APIException, setVoiceConsent } from "../../lib/api";
-import { colors, fontSize, radius, spacing } from "../../lib/tokens";
+import { colors } from "../../lib/tokens";
 import { useAuth } from "../../state/auth";
 
-const APP_VERSION = "v0.1.0 (Demo)";
+const APP_VERSION = "뉴로싱크 v0.1.0";
 
 function displayName(email: string | undefined): string {
   if (!email) return "환자";
@@ -32,27 +27,38 @@ function displayName(email: string | undefined): string {
   return idx > 0 ? email.slice(0, idx) : email;
 }
 
-function Row({
+function GList({ children }: { children: ReactNode }) {
+  return <View style={styles.glist}>{children}</View>;
+}
+
+function GRow({
   label,
+  sub,
   onPress,
   right,
   danger,
+  first,
 }: {
   label: string;
+  sub?: string;
   onPress?: () => void;
   right?: ReactNode;
   danger?: boolean;
+  first?: boolean;
 }) {
   return (
     <Pressable
-      style={styles.row}
+      style={[styles.grow, !first && styles.growDivider]}
       onPress={onPress}
       disabled={!onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
     >
-      <Text style={[styles.rowLabel, danger && { color: colors.stateDanger }]}>{label}</Text>
-      {right ?? (onPress ? <Text style={styles.chevron}>›</Text> : null)}
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.growLabel, danger && { color: colors.danger }]}>{label}</Text>
+        {sub ? <Text style={styles.growSub}>{sub}</Text> : null}
+      </View>
+      {right ?? (onPress ? <ChevronRight size={14} color={colors.faint} /> : null)}
     </Pressable>
   );
 }
@@ -83,8 +89,7 @@ export default function SettingsScreen() {
     }
   };
 
-  const stub = (what: string) =>
-    Alert.alert(what, "이 기능은 정식 버전에서 제공됩니다.");
+  const stub = (what: string) => Alert.alert(what, "이 기능은 정식 버전에서 제공됩니다.");
 
   const confirmLogout = () => {
     Alert.alert("로그아웃", "로그아웃하시겠어요?", [
@@ -93,69 +98,62 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const initial = displayName(user?.email).charAt(0);
+
   return (
-    <View style={{ flex: 1, backgroundColor: colors.surface }}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
-        <Text style={styles.title}>설정</Text>
-      </View>
+    <View style={{ flex: 1, backgroundColor: colors.group }}>
+      <Text style={[styles.largeTitle, { paddingTop: insets.top + 8 }]}>설정</Text>
 
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}
-      >
-        <View style={styles.profileCard}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{displayName(user?.email).charAt(0)}</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.profileName}>{displayName(user?.email)}님</Text>
-            <Text style={styles.profileEmail}>{user?.email ?? "—"}</Text>
-          </View>
-          <Pressable onPress={() => stub("프로필 수정")} accessibilityRole="button">
-            <Text style={styles.editLink}>수정</Text>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scroll}>
+        <GList>
+          <Pressable
+            style={styles.profile}
+            onPress={() => stub("프로필 수정")}
+            accessibilityRole="button"
+          >
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initial}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.profileName}>{displayName(user?.email)}님</Text>
+              <Text style={styles.profileEmail}>{user?.email ?? "—"}</Text>
+            </View>
+            <ChevronRight size={14} color={colors.faint} />
           </Pressable>
-        </View>
+        </GList>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>개인정보 및 동의</Text>
-          <Row
+        <Text style={styles.glabel}>개인정보 및 동의</Text>
+        <GList>
+          <GRow
+            first
             label="위험 통보 동의"
-            right={
-              <Switch
-                value={riskNotify}
-                onValueChange={setRiskNotify}
-                trackColor={{ true: colors.stateInfo }}
-              />
-            }
+            right={<Switch value={riskNotify} onValueChange={setRiskNotify} trackColor={{ true: colors.ink, false: colors.lineStrong }} />}
           />
-          <Row
-            label="음성 입력 사용 (음성은 민감정보)"
+          <GRow
+            label="음성 입력 사용 (민감정보)"
             right={
               <Switch
                 value={voiceInput}
                 onValueChange={onVoiceToggle}
                 disabled={voiceSaving}
-                trackColor={{ true: colors.stateInfo }}
+                trackColor={{ true: colors.ink, false: colors.lineStrong }}
               />
             }
           />
-          <Row label="약관 · 개인정보 처리방침" onPress={() => stub("약관 보기")} />
-        </View>
+          <GRow label="약관 · 개인정보 처리방침" onPress={() => stub("약관 보기")} />
+        </GList>
+        <Text style={styles.gfoot}>음성 동의를 끄면 마이크 입력이 꺼져요.</Text>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>앱</Text>
-          <Row label="온보딩 다시 보기" onPress={() => router.push("/(auth)/onboarding")} />
-          <Row
-            label="안전 도움말 (1393 · 119)"
-            onPress={() => router.push("/(patient)/emergency")}
-          />
-        </View>
+        <Text style={styles.glabel}>앱</Text>
+        <GList>
+          <GRow first label="온보딩 다시 보기" onPress={() => router.push("/(auth)/onboarding")} />
+          <GRow label="안전 도움말 (1393 · 119)" onPress={() => router.push("/(patient)/emergency")} />
+        </GList>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>계정</Text>
-          <Row label="로그아웃" onPress={confirmLogout} danger />
-          <Row label="회원 탈퇴 (정식 버전)" onPress={() => stub("회원 탈퇴")} />
-        </View>
+        <View style={{ height: 8 }} />
+        <GList>
+          <GRow first label="로그아웃" danger onPress={confirmLogout} />
+        </GList>
 
         <Text style={styles.version}>{APP_VERSION}</Text>
       </ScrollView>
@@ -166,60 +164,60 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  largeTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: colors.ink,
+    letterSpacing: -0.9,
+    paddingHorizontal: 20,
+    paddingBottom: 6,
   },
-  title: { fontSize: fontSize.title, fontWeight: "700", color: colors.textPrimary },
-  profileCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
+  scroll: { paddingHorizontal: 16, paddingTop: 6, paddingBottom: 20 },
+  glist: {
+    backgroundColor: colors.surface,
+    borderRadius: 13,
+    overflow: "hidden",
   },
+  profile: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12 },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.pill,
-    backgroundColor: colors.border,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.ink,
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarText: { fontSize: fontSize.title, fontWeight: "700", color: colors.textPrimary },
-  profileName: { fontSize: fontSize.bodyLg, fontWeight: "600", color: colors.textPrimary },
-  profileEmail: { fontSize: fontSize.body, color: colors.textSecondary, marginTop: 2 },
-  editLink: { fontSize: fontSize.body, color: colors.stateInfo, fontWeight: "600" },
-  section: { gap: 2 },
-  sectionLabel: {
-    fontSize: fontSize.caption,
-    fontWeight: "700",
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
-    paddingHorizontal: spacing.xs,
-  },
-  row: {
+  avatarText: { fontSize: 14, fontWeight: "600", color: colors.onInk },
+  profileName: { fontSize: 14.5, fontWeight: "600", color: colors.ink },
+  profileEmail: { fontSize: 11.5, color: colors.muted, marginTop: 1 },
+  grow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    minHeight: 52,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    gap: 12,
+    minHeight: 44,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
   },
-  rowLabel: { fontSize: fontSize.bodyLg, color: colors.textPrimary },
-  chevron: { fontSize: fontSize.title, color: colors.textSecondary },
+  growDivider: { borderTopWidth: 1, borderTopColor: colors.sep },
+  growLabel: { fontSize: 14.5, color: colors.ink },
+  growSub: { fontSize: 11.5, color: colors.muted, marginTop: 1 },
+  glabel: {
+    fontSize: 11.5,
+    color: colors.muted,
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+    paddingHorizontal: 15,
+    paddingTop: 18,
+    paddingBottom: 6,
+    fontWeight: "500",
+  },
+  gfoot: { fontSize: 11, color: colors.muted, paddingHorizontal: 15, paddingTop: 6, lineHeight: 15 },
   version: {
-    fontSize: fontSize.caption,
-    color: colors.textSecondary,
+    fontSize: 10,
+    color: colors.faint,
     textAlign: "center",
-    marginTop: spacing.md,
+    marginTop: 24,
+    letterSpacing: 0.5,
+    fontVariant: ["tabular-nums"],
   },
 });
