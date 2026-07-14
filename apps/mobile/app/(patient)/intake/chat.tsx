@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#FEF3C7",
+    backgroundColor: colors.warnSoft,
     borderColor: colors.stateWarning,
     borderWidth: 1,
     marginHorizontal: spacing.md,

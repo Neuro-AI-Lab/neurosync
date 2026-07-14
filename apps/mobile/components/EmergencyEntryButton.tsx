@@ -34,7 +34,7 @@ export function EmergencyEntryButton({
 const styles = StyleSheet.create({
   btn: {
     borderRadius: radius.md,
-    backgroundColor: "#FEE2E2", // light red — danger affinity without alarming display
+    backgroundColor: colors.dangerSoft, // light red — danger affinity without alarming display
     borderWidth: 1,
     borderColor: colors.stateDanger,
     paddingVertical: spacing.md,

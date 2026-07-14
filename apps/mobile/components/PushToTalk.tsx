@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  micActive: { backgroundColor: "#FEF2F2", borderColor: colors.stateDanger },
+  micActive: { backgroundColor: colors.dangerSoft, borderColor: colors.stateDanger },
   micIcon: { fontSize: fontSize.bodyLg },
   banner: {
     position: "absolute",
@@ -232,5 +232,5 @@ const styles = StyleSheet.create({
   },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.stateDanger },
   bannerText: { flex: 1, color: "#FFFFFF", fontSize: fontSize.body },
-  cancel: { color: "#FCA5A5", fontSize: fontSize.body, fontWeight: "600" },
+  cancel: { color: colors.dangerInk, fontSize: fontSize.body, fontWeight: "600" },
 });

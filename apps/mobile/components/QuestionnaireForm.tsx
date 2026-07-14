@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   },
   optionSelected: {
     borderColor: colors.stateInfo,
-    backgroundColor: "#EFF6FF",
+    backgroundColor: colors.accentSoft,
   },
   optionLabel: {
     fontSize: fontSize.caption,

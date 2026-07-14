@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.stateDanger,
-    backgroundColor: "#FEF2F2",
+    backgroundColor: colors.dangerSoft,
   },
   cardIcon: { fontSize: 28 },
   cardNumber: { fontSize: fontSize.display, fontWeight: "700", color: colors.stateDanger },
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: colors.surface,
   },
-  answerSelected: { borderColor: colors.stateInfo, backgroundColor: "#EFF6FF" },
+  answerSelected: { borderColor: colors.stateInfo, backgroundColor: colors.accentSoft },
   answerText: { fontSize: fontSize.body, color: colors.textPrimary, textAlign: "center" },
   answerTextSelected: { color: colors.stateInfo, fontWeight: "700" },
   ackHint: {

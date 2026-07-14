@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   error: {
     fontSize: fontSize.body,
     color: colors.stateDanger,
-    backgroundColor: "#FEF2F2",
+    backgroundColor: colors.dangerSoft,
     padding: spacing.sm,
     borderRadius: 8,
   },
