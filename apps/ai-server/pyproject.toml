@@ -20,6 +20,7 @@ dependencies = [
     "argon2-cffi>=23.1.0",         # password_hash (api와 동일 계열)
     # ── OCR 라우트 (multipart 업로드) ──────────────────────────────
     "python-multipart>=0.0.9",
+    "reportlab>=5.0.0",
 ]
 
 [dependency-groups]
@@ -29,6 +30,7 @@ dev = [
     "ruff>=0.7.0",
     "mypy>=1.13.0",
     "pytest-timeout>=2.4.0",
+    "pypdf>=6.14.2",
 ]
 
 [tool.uv.sources]

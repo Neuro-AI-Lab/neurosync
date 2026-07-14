@@ -1004,6 +1004,376 @@ async def run_f4_stage(ctx: ChainContext) -> StageResult:
     return await _run_f4_analysis(ctx.persona_id, ctx.out_dir)
 
 
+# ── F5 stage (`docs/ai/f5_quick_dev_plan.md`, PLAN-2026-W29-E, ADR-037) ──
+#
+# `src.f5.assemble_handoff_report` is a PURE, ZERO-file-I/O function (its
+# own module docstring, REV-044 Criterion 6) — reading the session ledger
+# and every F1/F2/F4 artifact it points at, and building the typed
+# `HandoffReportInput` (`SessionSnapshot`/`F3Administration`/
+# `DomainInferenceSnapshot`/`ChartFilenames`), is entirely THIS harness's
+# own job, the same production/harness split F4's own section above already
+# establishes. Ledger reads for F5 happen ONLY in this section — never
+# inside `src/f5.py` or `src/services/f5_report.py`.
+
+
+class F5InsufficientSessionsError(RuntimeError):
+    """Raised by `_run_f5_report` when `persona_id`'s ledger has <2 entries
+    — F5's own B-section consumes F4's `LongitudinalAnalysisOutput`
+    verbatim, and F4 itself needs >=2 sessions to produce one (mirrors
+    `_run_f4_analysis`'s own <2-entries skip discipline, one layer up)."""
+
+
+def _find_latest_f5_temporal_artifact(persona_id: str, out_dir: Path | None) -> Path | None:
+    """Newest `*_temporal.json` for `persona_id` under `out_dir/persona_id/`
+    — same glob-then-sort-then-take-last convention as
+    `_find_latest_f2_artifact` above. Never matches `_temporal_report.md` or
+    the 4 `_temporal_*.png` chart files (none of those filenames END with
+    the literal `_temporal.json` suffix this glob requires)."""
+    from src.f1 import OUTPUT_DIR
+
+    base = out_dir or OUTPUT_DIR
+    pattern = str(base / persona_id / f"{persona_id}_*_temporal.json")
+    files = sorted(_glob.glob(pattern))
+    return Path(files[-1]) if files else None
+
+
+def _resolve_f5_chart_filenames(temporal_path: Path) -> tuple[Any, dict[str, Path]]:
+    """B5 — filename-only references to whichever of the 4 F4 PNGs
+    actually exist ALONGSIDE the resolved `temporal_path` (same
+    `<vp_id>_<ts>_temporal_*` prefix `f4_report._generate_and_save_charts`
+    writes them with, in the SAME `save_f4_result` call that wrote
+    `temporal_path` itself — never a separate/looser glob that could pick
+    up a different F4 run's charts). Returns `(ChartFilenames, chart_paths)`:
+    `ChartFilenames` for the report's own B5 filename fields
+    (`f5.assemble_handoff_report`'s input), `chart_paths` (real on-disk
+    `Path`s) for `save_f5_result`'s PDF chart-embedding. A chart absent from
+    disk is left `None`/absent in both, NEVER fabricated (design doc §2.2
+    B5 row — e.g. EXP-023 VP-003 has no `disease_similarity` PNG)."""
+    from src.f5 import ChartFilenames
+
+    prefix = temporal_path.name[: -len("_temporal.json")]
+    chart_dir = temporal_path.parent
+    chart_specs = {
+        "scales_ctrs_sentiment": f"{prefix}_temporal_scales_ctrs_sentiment.png",
+        "ctrs_zoom": f"{prefix}_temporal_ctrs_zoom.png",
+        "disease_similarity": f"{prefix}_temporal_disease_similarity.png",
+        "domain_confidence": f"{prefix}_temporal_domain_confidence.png",
+    }
+    filenames_kwargs: dict[str, str] = {}
+    chart_paths: dict[str, Path] = {}
+    for key, filename in chart_specs.items():
+        candidate = chart_dir / filename
+        if candidate.exists():
+            filenames_kwargs[key] = filename
+            chart_paths[key] = candidate
+    return ChartFilenames(**filenames_kwargs), chart_paths
+
+
+def _build_f5_session_snapshot(conv: dict[str, Any], fallback_session_index: int) -> Any:
+    """The header (LATEST) session's own F1 record fields, read straight
+    from its `conversation.json` (Part A's "latest session" rule, design
+    doc §2.2 preamble) — `final_slots` there is F1's own list-of-
+    `{"key","value"}` save shape, converted to the plain `dict[str, str]`
+    `SessionSnapshot.final_slots` expects (mirrors
+    `_build_single_session_ledger_entry`'s own conversion of the same
+    field, in the CLI section below)."""
+    from src.f5 import SessionSnapshot
+
+    final_slots = {
+        s["key"]: s["value"]
+        for s in conv.get("final_slots", [])
+        if isinstance(s, dict) and s.get("value")
+    }
+    probe_events = conv.get("probe_events") or []
+    return SessionSnapshot(
+        session_id=conv.get("session_id", ""),
+        persona_id=conv.get("persona_id", ""),
+        persona_name=conv.get("persona_name", ""),
+        session_index=conv.get("session_index", fallback_session_index),
+        simulated_date=conv.get("simulated_date", ""),
+        model=conv.get("model", ""),
+        final_slots=final_slots,
+        session_ctrs=conv.get("session_ctrs"),
+        crisis_triggered=bool(conv.get("crisis_triggered", False)),
+        crisis_turn=conv.get("crisis_turn"),
+        risk_floor=conv.get("risk_floor"),
+        probe_event_count=len(probe_events),
+    )
+
+
+def _build_f5_domain_inference_snapshot(domain_inference_path: str | None) -> Any:
+    """The LATEST session's F2 artifact content — `ai_predicted_disease`
+    (A6, the SIBLING top-level key `f2.py` attaches, `schemas.
+    ai_predicted_disease` module docstring) + `department_candidates` (A7).
+    Degrades to an empty snapshot (never raises) when the path is absent/
+    unreadable — an F2 gap on the header session is an honest "no data"
+    A6/A7 render, not a hard F5 failure (mirrors `_build_session_record`'s
+    own `domain_inference_path` tolerance in the F4 section above)."""
+    from src.f5 import DepartmentCandidateInput, DomainInferenceSnapshot
+    from src.schemas.ai_predicted_disease import AIPredictedDiseaseOutput
+
+    empty = DomainInferenceSnapshot(ai_predicted_disease=None)
+    if not domain_inference_path:
+        return empty
+    di_path = Path(domain_inference_path)
+    if not di_path.exists():
+        logger.warning("continuous_test.f5.domain_inference_unreadable — %s", di_path)
+        return empty
+    try:
+        di = json.loads(di_path.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001 — an unparseable artifact degrades, never crashes F5
+        logger.warning("continuous_test.f5.domain_inference_unparseable — %s", di_path)
+        return empty
+
+    apd_raw = di.get("ai_predicted_disease")
+    apd = AIPredictedDiseaseOutput.model_validate(apd_raw) if apd_raw else None
+    depts = tuple(
+        DepartmentCandidateInput(
+            department=d.get("department", ""),
+            reason=d.get("reason", ""),
+            domain_ref=d.get("domain_ref"),
+        )
+        for d in di.get("department_candidates", [])
+    )
+    return DomainInferenceSnapshot(ai_predicted_disease=apd, department_candidates=depts)
+
+
+def _build_f5_f3_administration(entry: dict[str, Any]) -> Any | None:
+    """One `F3Administration` from a ledger entry's own `"f3"` sub-object
+    (`_build_f3_ledger_subobject`, F3 section above) — reprojects every
+    field the sub-object already carries EXCEPT `critical_item_positive`,
+    which that sub-object does not carry at its top level (only inside the
+    PHQ-9-only `safety_pathway` sub-key). Backfilled here by reading the
+    real `survey.json` the sub-object's own `survey_artifact_path` points
+    at (`score_result.critical_item_positive`, present for every
+    ADMINISTERED scale, not just PHQ-9) — same "resolve via the artifact's
+    own pointer, degrade honestly on read failure" discipline
+    `_build_session_record` already uses for `conversation_path`/
+    `domain_inference_path` in the F4 section above. Returns `None` (never
+    raises) when the entry carries no `"f3"` sub-object at all (upstream F2
+    failure that session, per `_build_f3_ledger_subobject`'s own docstring)
+    or an unrecognized `outcome` value (corrupt/pre-F3 ledger entry)."""
+    from src.f5 import F3Administration
+
+    f3 = entry.get("f3")
+    if not f3:
+        return None
+    outcome = f3.get("outcome")
+    if outcome not in ("administered", "no_questionnaire_indicated", "item_bank_unpopulated"):
+        return None
+
+    critical_item_positive: bool | None = None
+    survey_path_str = f3.get("survey_artifact_path")
+    if survey_path_str:
+        survey_path = Path(survey_path_str)
+        if survey_path.exists():
+            try:
+                survey = json.loads(survey_path.read_text(encoding="utf-8"))
+                score_result = survey.get("score_result") or {}
+                critical_item_positive = score_result.get("critical_item_positive")
+            except Exception:  # noqa: BLE001 — backfill-only read, never fatal
+                logger.warning("continuous_test.f5.survey_unreadable — %s", survey_path)
+        else:
+            logger.warning("continuous_test.f5.survey_missing — %s", survey_path)
+
+    return F3Administration(
+        session_index=entry.get("session_index", 0),
+        simulated_date=entry.get("simulated_date", ""),
+        outcome=outcome,
+        scale_name=f3.get("scale_name"),
+        item_bank_version=f3.get("item_bank_version"),
+        item_bank_provenance=f3.get("item_bank_provenance"),
+        responses=tuple(f3.get("responses") or ()),
+        total_score=f3.get("total_score"),
+        max_score=f3.get("max_score"),
+        severity=f3.get("severity"),
+        critical_item_positive=critical_item_positive,
+        safety_referral=bool(f3.get("safety_referral", False)),
+        administration_mode=f3.get("administration_mode", "natural"),
+        threshold_caveat=f3.get("threshold_caveat"),
+    )
+
+
+def _run_f5_report(
+    persona_id: str, out_dir: Path | None, *, write_dir: Path | None = None
+) -> dict[str, Path]:
+    """Read the VP's session ledger + every F1/F2/F4 artifact it points at,
+    build `src.f5.HandoffReportInput`, call
+    `src.f5.assemble_handoff_report` + `src.services.f5_report.
+    save_f5_result`. Shared by `run_f5_stage` (STAGE_REGISTRY, live
+    single-session path) and the standalone `--f5-from-artifacts` replay
+    CLI below — same assembly logic, never duplicated (mirrors
+    `_run_f4_analysis`'s own dual-caller role).
+
+    `out_dir` is where the ledger + F1-F4 artifacts are READ from
+    (`out_dir/persona_id/...`, same convention every stage above uses).
+    `write_dir` (defaults to `out_dir`) is where F5's OWN new output
+    artifacts are WRITTEN (`save_f5_result`'s own `output_dir` param) — the
+    live-chain path never sets this explicitly (read and write are the same
+    directory, matching every F1-F4 stage); the replay CLI sets it
+    independently so replay output can land somewhere other than the
+    artifacts directory it reads from.
+
+    Raises `F5InsufficientSessionsError` when the ledger has <2 entries
+    (soft — `run_f5_stage` maps this to a "skip" `StageResult`, same as
+    F4's own discipline). Raises `ValueError`/`FileNotFoundError`/
+    `RuntimeError` with a NAMED, directive message for every other honest
+    failure (missing `conversation_path`, missing F4 `*_temporal.json`) —
+    never a silent empty/partial report.
+    """
+    from src.f5 import HandoffReportInput, assemble_handoff_report
+    from src.schemas.longitudinal import LongitudinalAnalysisOutput
+    from src.services.f5_report import save_f5_result
+
+    ledger_path = _ledger_path(persona_id, out_dir)
+    entries = _load_ledger(ledger_path)
+    if len(entries) < 2:
+        raise F5InsufficientSessionsError(
+            f"F5 needs >=2 ledger entries for {persona_id} (got {len(entries)}) — F5's "
+            "B-section consumes F4's own longitudinal output verbatim, which itself "
+            f"requires >=2 sessions (ledger: {ledger_path})"
+        )
+    entries = sorted(entries, key=lambda e: e.get("session_index", 0))
+    latest_entry = entries[-1]
+    header_session_index = latest_entry.get("session_index", 0)
+
+    conv_path_str = latest_entry.get("conversation_path")
+    if not conv_path_str:
+        raise ValueError(
+            f"F5: latest ledger entry (session_index={header_session_index}) for "
+            f"{persona_id} has no conversation_path recorded — cannot build the header "
+            "session snapshot"
+        )
+    conv_path = Path(conv_path_str)
+    if not conv_path.exists():
+        raise FileNotFoundError(
+            f"F5: latest session's conversation.json not found on disk: {conv_path} "
+            f"(persona={persona_id}, session_index={header_session_index})"
+        )
+    conv = json.loads(conv_path.read_text(encoding="utf-8"))
+    session = _build_f5_session_snapshot(conv, header_session_index)
+
+    domain_inference = _build_f5_domain_inference_snapshot(
+        latest_entry.get("domain_inference_path")
+    )
+
+    all_f3 = tuple(
+        sorted(
+            (a for a in (_build_f5_f3_administration(e) for e in entries) if a is not None),
+            key=lambda a: a.session_index,
+        )
+    )
+    current_f3 = next((a for a in all_f3 if a.session_index == session.session_index), None)
+
+    temporal_path = _find_latest_f5_temporal_artifact(persona_id, out_dir)
+    if temporal_path is None:
+        from src.f1 import OUTPUT_DIR
+
+        base = out_dir or OUTPUT_DIR
+        raise RuntimeError(
+            f"F5: no F4 longitudinal output (*_temporal.json) found for {persona_id} "
+            f"under {base / persona_id} — run F4 first (e.g. a `--sessions N` chain "
+            "without --no-f4, or the F4 STAGE_REGISTRY stage) before F5 can assemble its "
+            "B-section, which consumes F4's own output verbatim"
+        )
+    try:
+        longitudinal_data = json.loads(temporal_path.read_text(encoding="utf-8"))
+        longitudinal = LongitudinalAnalysisOutput.model_validate(longitudinal_data)
+    except Exception as exc:
+        raise RuntimeError(
+            f"F5: found {temporal_path} but could not parse/validate it as "
+            f"LongitudinalAnalysisOutput: {exc}"
+        ) from exc
+
+    chart_filenames, chart_paths = _resolve_f5_chart_filenames(temporal_path)
+
+    inp = HandoffReportInput(
+        vp_id=persona_id,
+        session=session,
+        current_session_f3=current_f3,
+        all_f3_administrations=all_f3,
+        domain_inference=domain_inference,
+        longitudinal=longitudinal,
+        chart_filenames=chart_filenames,
+        narrative_enabled=False,
+    )
+    report = assemble_handoff_report(inp)
+    return save_f5_result(
+        report,
+        write_dir if write_dir is not None else out_dir,
+        vp_id=persona_id,
+        chart_paths=chart_paths,
+    )
+
+
+async def run_f5_stage(ctx: ChainContext) -> StageResult:
+    """STAGE_REGISTRY entry point (single-session `run_chain` path, right
+    after F4 — same "reads whatever ledger entries have accumulated"
+    post-loop role `run_f4_stage` already plays for F4). Delegates entirely
+    to `_run_f5_report`; maps `F5InsufficientSessionsError` to a "skip"
+    `StageResult` (same discipline as `_run_f4_analysis`'s own <2-entries
+    skip), any other exception to a named "fail"."""
+    t0 = time.perf_counter()
+    try:
+        paths = _run_f5_report(ctx.persona_id, ctx.out_dir)
+    except F5InsufficientSessionsError as exc:
+        return StageResult("F5", "skip", str(exc), duration_ms=_ms(t0))
+    except Exception as exc:  # noqa: BLE001 — harness must report, not crash, on stage failure
+        logger.exception("continuous_test.f5.failed")
+        return StageResult("F5", "fail", f"F5 report assembly raised: {exc}", duration_ms=_ms(t0))
+
+    detail = f"F5 hand-off report complete -> {paths['markdown'].name}"
+    return StageResult("F5", "pass", detail, artifacts=paths, duration_ms=_ms(t0))
+
+
+# ── F5 standalone replay CLI (`--f5-from-artifacts`) ─────────────────────
+#
+# Runs ONLY the F5 build against an EXISTING artifacts directory (ledger +
+# F1-F4 outputs already on disk) — no F1-F3 session, no HTTP, no LLM call
+# anywhere in this path. Drives the exact same production interfaces
+# `run_f5_stage` does (`_run_f5_report` -> `src.f5.assemble_handoff_report`
+# -> `src.services.f5_report.save_f5_result`) — external-verification
+# discipline; no F5 assembly logic is re-implemented here.
+
+
+def _run_f5_replay_cli(artifacts_dir: Path, out_dir: Path | None) -> int:
+    """`artifacts_dir` is the per-VP directory ITSELF (e.g.
+    `experiments/EXP-023/runs/vp001/artifacts/VP-001/`) — its own name is
+    taken as `persona_id` (matches every F1-F4 artifact filename's
+    `<persona_id>_...` prefix and the ledger's own
+    `<persona_id>_session_ledger.json` filename inside it); its PARENT
+    directory is the `out_dir` `_ledger_path`/F4-glob resolution already
+    expects (`out_dir/persona_id/...`) — reading F1-F4 artifacts always
+    uses this, regardless of `out_dir` below.
+
+    `out_dir` (`--out`, optional): where F5's OWN new output artifacts are
+    WRITTEN. Defaults to `artifacts_dir`'s own parent, so `save_f5_result`
+    -> `<that parent>/persona_id/` reconstructs `artifacts_dir` itself
+    ("default = write into the artifacts dir", per the CLI's own help
+    text). When explicitly supplied, output lands under
+    `<out_dir>/<persona_id>/` instead (same base-dir/persona-subfolder
+    convention every other `--out` use in this module already follows).
+    """
+    resolved = artifacts_dir.resolve()
+    if not resolved.is_dir():
+        print(f"--f5-from-artifacts path not found or not a directory: {resolved}")
+        return 1
+    persona_id = resolved.name
+    read_base = resolved.parent
+    write_base = out_dir.resolve() if out_dir else read_base
+
+    try:
+        paths = _run_f5_report(persona_id, read_base, write_dir=write_base)
+    except Exception as exc:  # noqa: BLE001 — CLI must report, not traceback-dump
+        print(f"F5 replay failed for persona={persona_id} (artifacts_dir={resolved}): {exc}")
+        return 1
+
+    print(f"F5 hand-off report complete for {persona_id}:")
+    for label, path in paths.items():
+        print(f"  {label}: {path}")
+    return 0
+
+
 # ── Unimplemented stages — explicit, logged skip stubs (never silent) ───
 
 STAGE_REGISTRY: list[Stage] = [
@@ -1011,7 +1381,7 @@ STAGE_REGISTRY: list[Stage] = [
     Stage("F2", True, run_f2_stage),
     Stage("F3", True, run_f3_stage),
     Stage("F4", True, run_f4_stage),
-    Stage("F5", False, None, note="F5 not yet implemented — no src/f5.py in this repo."),
+    Stage("F5", True, run_f5_stage),
     Stage("F6", False, None, note="F6 not yet implemented — no src/f6.py in this repo."),
 ]
 
@@ -1150,6 +1520,23 @@ def build_arg_parser() -> argparse.ArgumentParser:
             "post-loop 단계를 건너뛴다 (기본값: F4 실행)."
         ),
     )
+    parser.add_argument(
+        "--f5-from-artifacts",
+        default=None,
+        metavar="ARTIFACTS_DIR",
+        help=(
+            "F5 전용 재생(replay-only) 모드: F1 세션도, HTTP도, LLM 호출도 전혀 "
+            "실행하지 않고, 지정한 아티팩트 디렉터리(예: "
+            "experiments/EXP-023/runs/vp001/artifacts/VP-001/ — session ledger + "
+            "F1-F4 산출물이 이미 존재하는, 디렉터리 이름이 persona_id와 같은 "
+            "VP별 디렉터리)에 대해서만 src.f5.assemble_handoff_report + "
+            "src.services.f5_report.save_f5_result를 호출한다. persona_id는 "
+            "디렉터리 이름에서 유도된다. --out 미지정 시 산출물은 이 아티팩트 "
+            "디렉터리 자체에 저장되고(기본값), --out 지정 시 <out>/<persona_id>/ "
+            "에 저장된다 (읽기 대상 F1-F4 아티팩트 위치에는 영향 없음). 지정 시 "
+            "다른 모든 옵션(--persona/--sessions 등)은 무시된다."
+        ),
+    )
     return parser
 
 
@@ -1207,6 +1594,14 @@ def _build_single_session_ledger_entry(
 
 async def _main(args: argparse.Namespace) -> int:
     out_dir = Path(args.out) if args.out else None
+
+    # F5 standalone replay short-circuit (`--f5-from-artifacts`) — no F1-F3
+    # session, no HTTP, no LLM call anywhere in this branch; every other
+    # option below is irrelevant to this mode and never consulted.
+    f5_from_artifacts = getattr(args, "f5_from_artifacts", None)
+    if f5_from_artifacts:
+        return _run_f5_replay_cli(Path(f5_from_artifacts), out_dir)
+
     answer_mode = getattr(args, "answer_mode", "llm") or "llm"
     forced_scale = getattr(args, "force_questionnaire", None)
     patient_sex = getattr(args, "patient_sex", None)
