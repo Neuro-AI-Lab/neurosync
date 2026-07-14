@@ -165,6 +165,7 @@ def _ledger_entry(
     scale_name: str = "PHQ-9",
     total_score: int = 15,
     safety_referral: bool = False,
+    final_slots: dict[str, str] | None = None,
 ) -> dict:
     if f3 == "__default__":
         f3 = {
@@ -191,7 +192,7 @@ def _ledger_entry(
         "session_index": session_index,
         "simulated_date": simulated_date,
         "is_revisit": session_index > 1,
-        "final_slots": {"chief_complaint": "x"},
+        "final_slots": final_slots if final_slots is not None else {"chief_complaint": "x"},
         "missing_slots": [],
         "repro": {"model": "m", "prompt_version": "v"},
         "conversation_path": str(conv_path) if conv_path else None,
@@ -354,6 +355,43 @@ class TestRunF5Report:
         md = paths["markdown"].read_text(encoding="utf-8")
         assert "scales_ctrs_sentiment" in md
         assert "disease_similarity" in md
+
+    def test_all_sessions_slot_overview_built_from_ledger_final_slots(self, tmp_path: Path) -> None:
+        """Task 1 (all-session slot maximization), full pipeline: each
+        ledger entry's OWN `final_slots` field (never re-read from
+        `conversation.json` — `_run_f5_report` sources it straight off the
+        already-loaded ledger entries) feeds `SessionSlotSnapshot`, and the
+        rendered markdown shows the change-history across sessions."""
+        persona_id = "VP-SLOTHIST"
+        ledger_path = ct._ledger_path(persona_id, tmp_path)
+        conv1 = _write_conversation(tmp_path, persona_id, 1, simulated_date="2026-01-01")
+        di1 = _write_domain_inference(tmp_path, persona_id, 1)
+        survey1 = _write_survey(tmp_path, persona_id, 1, total_score=20)
+        ct._append_ledger_entry(
+            ledger_path,
+            _ledger_entry(
+                1, conv1, di1, simulated_date="2026-01-01", survey_path=survey1,
+                final_slots={"chief_complaint": "2주 전부터 불면"},
+            ),
+        )
+        conv2 = _write_conversation(tmp_path, persona_id, 2, simulated_date="2026-01-08")
+        di2 = _write_domain_inference(tmp_path, persona_id, 2)
+        survey2 = _write_survey(tmp_path, persona_id, 2, total_score=10)
+        ct._append_ledger_entry(
+            ledger_path,
+            _ledger_entry(
+                2, conv2, di2, simulated_date="2026-01-08", survey_path=survey2,
+                final_slots={"chief_complaint": "수면 개선 추세"},
+            ),
+        )
+        _write_temporal(tmp_path, persona_id)
+
+        paths = ct._run_f5_report(persona_id, tmp_path)
+        md = paths["markdown"].read_text(encoding="utf-8")
+        section = md.split("## A1-A2 확장.")[1].split("## A3.")[0]
+        assert "S1: '2주 전부터 불면'" in section
+        assert "S2: '수면 개선 추세'" in section
+        assert "2회차" in section  # provenance for the LATEST value
 
     def test_validation_errors_flow_end_to_end_into_a7_disclosure(self, tmp_path: Path) -> None:
         """ADR-038 Decision 2a / VAL-016, full pipeline: a domain_inference

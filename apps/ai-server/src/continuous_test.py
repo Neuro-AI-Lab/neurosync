@@ -1233,7 +1233,7 @@ def _run_f5_report(
     failure (missing `conversation_path`, missing F4 `*_temporal.json`) —
     never a silent empty/partial report.
     """
-    from src.f5 import HandoffReportInput, assemble_handoff_report
+    from src.f5 import HandoffReportInput, SessionSlotSnapshot, assemble_handoff_report
     from src.schemas.longitudinal import LongitudinalAnalysisOutput
     from src.services.f5_report import save_f5_result
 
@@ -1277,6 +1277,22 @@ def _run_f5_report(
     )
     current_f3 = next((a for a in all_f3 if a.session_index == session.session_index), None)
 
+    # Task 1 (all-session slot maximization): each ledger entry ALREADY
+    # carries its own session's `final_slots` (a flat `dict[str, str]`,
+    # populated at append time straight from that session's own F1 result
+    # — same source `_build_f5_session_snapshot` reads for the header
+    # session's own `conversation.json`, so no extra file read is needed
+    # here). `entries` is already sorted ascending by `session_index`
+    # above.
+    all_sessions = tuple(
+        SessionSlotSnapshot(
+            session_index=e.get("session_index", 0),
+            simulated_date=e.get("simulated_date", ""),
+            final_slots=e.get("final_slots") or {},
+        )
+        for e in entries
+    )
+
     temporal_path = _find_latest_f5_temporal_artifact(persona_id, out_dir)
     if temporal_path is None:
         from src.f1 import OUTPUT_DIR
@@ -1307,6 +1323,13 @@ def _run_f5_report(
         domain_inference=domain_inference,
         longitudinal=longitudinal,
         chart_filenames=chart_filenames,
+        all_sessions=all_sessions,
+        # Narrative (A8) stays OFF in this harness path — re-enabling it
+        # here is a future-mission decision (a fresh REV/CVR gate, per
+        # `docs/ai/f5_quick_dev_plan.md` §4.4's own stated policy), not
+        # this change's scope. `HandoffGeneratorAgent.generate_narrative`
+        # + `f5_report.build_narrative_input_text` exist and are tested
+        # standalone; no caller in this harness invokes them yet.
         narrative_enabled=False,
     )
     report = assemble_handoff_report(inp)

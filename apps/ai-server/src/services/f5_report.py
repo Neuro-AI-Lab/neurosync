@@ -29,7 +29,9 @@ from pathlib import Path
 from src.f1 import OUTPUT_DIR
 from src.schemas.handoff_report import (
     A8_FHIR_OMISSION_NOTE_KO,
+    NARRATIVE_ENABLED_LABEL_KO,
     NON_VALIDATED_ADMINISTRATION_CAVEAT_KO,
+    SLOT_NEVER_COLLECTED_KO,
     HandoffReportOutput,
 )
 
@@ -177,6 +179,30 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         a2.text if a2.present else "정보 없음 (history_of_present_illness 슬롯 미채움)",
         "",
     ]
+
+    # ── All-session slot overview (Task 1, extends A1/A2) ──
+    so = report.slot_overview
+    lines += [
+        "## A1-A2 확장. 전체 세션 슬롯 요약 (12개 표준 슬롯, 전 세션 최적값)",
+        "",
+        f"> {so.non_validated_caveat}",
+        "",
+        "| 슬롯 | 최신값 | 출처(세션/일자) | 변화 이력 | 비고 |",
+        "|---|---|---|---|---|",
+    ]
+    for row in so.rows:
+        if not row.collected:
+            value_cell = SLOT_NEVER_COLLECTED_KO
+            source_cell = "-"
+        else:
+            value_cell = row.latest_value or ""
+            source_cell = f"{row.source_session_index}회차 / {row.source_simulated_date}"
+        history_cell = " → ".join(row.change_history) if row.change_history else "-"
+        note_cell = row.section_pointer or "-"
+        lines.append(
+            f"| {row.label} | {value_cell} | {source_cell} | {history_cell} | {note_cell} |"
+        )
+    lines.append("")
 
     # ── A3 ──
     lines += [
@@ -351,7 +377,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     # ── A8 ──
     lines += ["## A8. 임상 종합 소견 (AI narrative synthesis, optional)", ""]
     if a8.narrative_enabled and a8.text:
-        lines += [a8.text, ""]
+        lines += [f"> {NARRATIVE_ENABLED_LABEL_KO}", "", a8.text, ""]
     else:
         lines += [a8.absent_marker, ""]
 
@@ -447,6 +473,57 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     lines.append("")
 
     return "\n".join(lines)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Narrative input (Task 2, `handoff_generator` v3) — the ONLY function
+# responsible for turning a `HandoffReportOutput` into that agent's user
+# message. A6 (AI-predicted-disease) is DELIBERATELY never included here —
+# the narrative-generation LLM call never receives disease-candidate text
+# at all, the strongest available defense against an A6->A8 leak (on top
+# of `src.f5`'s own code-level containment check on the RETURNED
+# narrative, `f5.py::_build_a8`). This module still performs zero LLM
+# calls itself — it only builds the TEXT a caller passes to
+# `HandoffGeneratorAgent.generate_narrative`.
+# ═══════════════════════════════════════════════════════════════════════
+
+
+def build_narrative_input_text(report: HandoffReportOutput) -> str:
+    """Compact plain-text summary of A0-A5/A7/B, EXCLUDING A6 and A8
+    themselves, matching `docs/ai/prompts/handoff_generator/v3.system.md`'s
+    documented input format."""
+    a0, a1, a2, a3 = (
+        report.a0_header,
+        report.a1_chief_complaint,
+        report.a2_hpi,
+        report.a3_risk_safety,
+    )
+    a4, a5, a7 = report.a4_mental_status, report.a5_questionnaires, report.a7_recommendations
+    lon = report.b_longitudinal.analysis
+
+    if a5.present:
+        questionnaire_line = f"{a5.scale_name} {a5.total_score}/{a5.max_score} ({a5.severity})"
+    else:
+        questionnaire_line = "없음"
+    if a7.department_candidates:
+        department_line = ", ".join(d.department for d in a7.department_candidates)
+    else:
+        department_line = "없음"
+
+    return "\n".join(
+        [
+            f"세션: {a0.session_index}회차, {a0.simulated_date}",
+            f"CTRS: {a0.session_ctrs} ({a0.risk_level})",
+            f"주호소: {a1.text if a1.present else '미수집'}",
+            f"현병력: {a2.text if a2.present else '미수집'}",
+            f"위험 평가 존재 여부: {a3.risk_assessment_present}",
+            f"정신상태 메모: {a4.raw_text if a4.present else '미수집'}",
+            f"시행된 설문: {questionnaire_line}",
+            f"권장 진료과: {department_line}",
+            f"종단 추세: overall_direction={lon.overall_direction}, "
+            f"course_shape={lon.course_shape}",
+        ]
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -640,6 +717,32 @@ def build_pdf_report(
     story.append(P("A2. 현병력 (HPI)", "h2"))
     story.append(P(a2.text if a2.present else "정보 없음", "body"))
 
+    # ── All-session slot overview (Task 1, extends A1/A2) ──
+    so = report.slot_overview
+    story.append(P("A1-A2 확장. 전체 세션 슬롯 요약 (12개 표준 슬롯, 전 세션 최적값)", "h2"))
+    story.append(P(so.non_validated_caveat, "warn"))
+    rows = [["슬롯", "최신값", "출처", "변화 이력", "비고"]]
+    for row in so.rows:
+        if not row.collected:
+            value_cell, source_cell = SLOT_NEVER_COLLECTED_KO, "-"
+        else:
+            value_cell = row.latest_value or ""
+            source_cell = f"{row.source_session_index}회차/{row.source_simulated_date}"
+        history_cell = " -> ".join(row.change_history) if row.change_history else "-"
+        rows.append([row.label, value_cell, source_cell, history_cell, row.section_pointer or "-"])
+    t = Table(rows, hAlign="LEFT")
+    t.setStyle(
+        TableStyle(
+            [
+                ("FONTNAME", (0, 0), (-1, -1), _BODY_FONT),
+                ("FONTSIZE", (0, 0), (-1, -1), 7),
+                ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EEEEEE")),
+            ]
+        )
+    )
+    story.append(t)
+
     # ── A3 (risk, promoted top-level) ──
     story.append(P("A3. 위험/안전 평가", "h2"))
     story.append(P(f"당해 세션 {a3.current_session_index}회차 ({a3.current_simulated_date})", "h3"))
@@ -799,7 +902,11 @@ def build_pdf_report(
 
     # ── A8 ──
     story.append(P("A8. 임상 종합 소견 (내러티브)", "h2"))
-    story.append(P(a8.text if (a8.narrative_enabled and a8.text) else a8.absent_marker, "body"))
+    if a8.narrative_enabled and a8.text:
+        story.append(P(NARRATIVE_ENABLED_LABEL_KO, "meta"))
+        story.append(P(a8.text, "body"))
+    else:
+        story.append(P(a8.absent_marker, "body"))
 
     story.append(PageBreak())
 
@@ -982,6 +1089,28 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
             "title": "A2. 현병력 (HPI)",
             "code": _loinc_concept("hpi", "history of present illness"),
             "text": _div(a2.text or "정보 없음"),
+        }
+    )
+
+    # ── All-session slot overview (Task 1, extends A1/A2) — text-only,
+    # no dedicated resource; a local CodeSystem (no LOINC applies to a
+    # cross-slot summary table). ──
+    so = report.slot_overview
+    slot_lines = []
+    for row in so.rows:
+        if not row.collected:
+            slot_lines.append(f"{row.label}: {SLOT_NEVER_COLLECTED_KO}")
+            continue
+        change = f" (변화: {' -> '.join(row.change_history)})" if row.change_history else ""
+        slot_lines.append(
+            f"{row.label}: {row.latest_value} [{row.source_session_index}회차/"
+            f"{row.source_simulated_date}]{change}"
+        )
+    sections.append(
+        {
+            "title": "A1-A2 확장. 전체 세션 슬롯 요약 (12개 표준 슬롯)",
+            "code": _local_concept("slot-overview", "all-session canonical slot overview"),
+            "text": _div(f"{so.non_validated_caveat} " + " | ".join(slot_lines)),
         }
     )
 
@@ -1364,11 +1493,25 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
         }
     )
 
+    # ── A8 (Task 2, opt-in only — omitted entirely when disabled/rejected,
+    # REV-047 Criterion 6a precedent unchanged for that case) ──
+    a8 = report.a8_narrative
+    if a8.narrative_enabled and a8.text:
+        sections.append(
+            {
+                "title": "A8. 임상 종합 소견 (AI narrative synthesis)",
+                "code": _loinc_concept("eval_plan", "evaluation and plan note"),
+                "text": _div(f"{NARRATIVE_ENABLED_LABEL_KO}. {a8.text}"),
+            }
+        )
+
     # ── Cross-cutting non-diagnostic disclosure (dedicated section) ──
     disclaimer_text = report.disclaimer
-    if not report.a8_narrative.narrative_enabled:
+    if not (a8.narrative_enabled and a8.text):
         # ADR-038 Decision 2d / CVR-024 Recommendation 6 -- one-line note,
-        # not a new A8-titled section (REV-047 Criterion 6a precedent).
+        # not a new A8-titled section (REV-047 Criterion 6a precedent) --
+        # still applies whenever A8 is OMITTED, whether disabled by
+        # default or refused by the Task 2 disease-leak guard alike.
         disclaimer_text = f"{disclaimer_text} {A8_FHIR_OMISSION_NOTE_KO}"
     sections.append(
         {

@@ -20,14 +20,19 @@ own output artifact (`_handoff.md`/`.pdf`/`_fhir.json`) is
 already establish, kept out of this module specifically so a whole-file
 grep for `open(` on this file returns 0 hits with zero ambiguity.
 
-Narrative section (A8): DESCOPED this mission (`ADR-037` Decision 1).
-`assemble_handoff_report` raises `ValueError` if `HandoffReportInput.
-narrative_enabled` is `True` — no code path in this module ever calls
+Narrative section (A8): OFF BY DEFAULT (`ADR-037` Decision 1,
+`narrative_enabled=False`). A future-mission addition (Task 2 /
+`handoff_generator` v3) makes it an OPT-IN path, never a call this module
+makes itself: `assemble_handoff_report` still raises `ValueError` if
+`HandoffReportInput.narrative_enabled=True` and `narrative_text` is
+empty/absent — no code path in this module ever calls
 `HandoffGeneratorAgent`/`EvidenceVerifierAgent`, and no code path in this
-module ever imports `src.agents.handoff_generator` or
-`src.schemas.handoff`. A8 always ships as an explicit disabled marker
-(`schemas.handoff_report.NarrativeSection.absent_marker`), never silently
-blank.
+module ever imports `src.agents.handoff_generator` or `src.schemas.
+handoff`. When `narrative_enabled=True` WITH a non-empty caller-supplied
+`narrative_text`, `_build_a8` renders it verbatim UNLESS it contains any
+A6 candidate's `disease` name (a pure string check, still zero LLM calls),
+in which case it refuses and ships a distinct rejection marker instead. A8
+always ships an explicit marker either way, never silently blank.
 
 Every number this module renders is CONSUMED from an already-computed F1-F4
 field, never a new clinical judgment: banding/severity/CTRS-risk-level/
@@ -50,6 +55,7 @@ from src.schemas.common import CTRS_TO_RISK, CTRSLevel
 from src.schemas.handoff_report import (
     A7_NO_CANDIDATES_MODEL_JUDGED_KO,
     A7_NO_CANDIDATES_VALIDATION_DROPPED_KO,
+    CANONICAL_SLOT_KEYS,
     CEILING_SCORE_CAVEAT_KO,
     CRISIS_F3_GAP_ACUITY_FRAMING_KO,
     GAD7_THRESHOLD_CAVEAT_ASYMMETRY_NOTE_KO,
@@ -58,7 +64,9 @@ from src.schemas.handoff_report import (
     MSE_OBSERVATION_DEPENDENT_NOTE_KO,
     MSE_TEXT_DERIVABLE_DOMAINS,
     MSE_TEXT_DERIVABLE_NOTE_KO,
+    NARRATIVE_REJECTED_DISEASE_LEAK_KO,
     NON_VALIDATED_ADMINISTRATION_CAVEAT_KO,
+    SLOT_SECTION_POINTERS_KO,
     AIPredictedDiseaseSection,
     ChartReferences,
     ChiefComplaintSection,
@@ -76,6 +84,8 @@ from src.schemas.handoff_report import (
     RankedDiseaseCandidate,
     RecommendationSection,
     RiskSafetySection,
+    SlotOverviewRow,
+    SlotOverviewSection,
     StalenessPointer,
 )
 from src.schemas.longitudinal import LongitudinalAnalysisOutput
@@ -102,6 +112,21 @@ class SessionSnapshot:
     crisis_turn: int | None
     risk_floor: int | None
     probe_event_count: int
+
+
+@dataclass(frozen=True)
+class SessionSlotSnapshot:
+    """One session's `final_slots` dict, across the WHOLE VP arc (Task 1,
+    all-session slot maximization) — the harness supplies one per ledger
+    entry, NOT only the header/latest session (contrast `SessionSnapshot`
+    above, which is latest-session-only by Part A's own design). Used
+    exclusively to build the all-session `SlotOverviewSection`; every other
+    section keeps reading `SessionSnapshot.final_slots` (the header
+    session) unchanged."""
+
+    session_index: int
+    simulated_date: str
+    final_slots: dict[str, str]
 
 
 @dataclass(frozen=True)
@@ -187,7 +212,21 @@ class HandoffReportInput:
     domain_inference: DomainInferenceSnapshot
     longitudinal: LongitudinalAnalysisOutput
     chart_filenames: ChartFilenames = field(default_factory=ChartFilenames)
+    # Task 1 — all-session slot maximization. Caller-sorted by non-
+    # decreasing `session_index` (same non-re-validated discipline as
+    # `all_f3_administrations` above). SHOULD include an entry for the
+    # header session too (`_build_slot_overview` below falls back to
+    # synthesizing one from `session.final_slots` alone when empty, so
+    # existing/older callers that never set this keep working unchanged).
+    all_sessions: tuple[SessionSlotSnapshot, ...] = ()
     narrative_enabled: bool = False
+    # Task 2 (`handoff_generator` v3) — an ALREADY-GENERATED narrative
+    # string the caller obtained externally (e.g.
+    # `HandoffGeneratorAgent.generate_narrative`, `src/services/f5_report.
+    # py::build_narrative_input_text`) — `src.f5` itself never calls that
+    # agent (module docstring's zero-LLM invariant, unchanged). Required
+    # (non-empty) whenever `narrative_enabled=True`; ignored otherwise.
+    narrative_text: str | None = None
 
 
 # ── Shared helpers ─────────────────────────────────────────────────────
@@ -214,6 +253,21 @@ def _truncate_one_line(text: str, max_len: int = 80) -> str:
     if len(first_line) > max_len:
         return first_line[:max_len].rstrip() + "…"
     return first_line
+
+
+def _flatten_for_cell(text: str, max_len: int = 160) -> str:
+    """Collapses internal newlines/repeated whitespace to single spaces
+    (never drops content after the first line, unlike `_truncate_one_line`
+    above) then truncates to `max_len` — a markdown/PDF TABLE CELL cannot
+    safely contain a literal newline, but the all-session slot table
+    (Task 1) still wants as much of a long free-text slot value visible as
+    fits, not just its first line."""
+    collapsed = " ".join(text.split())
+    if not collapsed:
+        return ""
+    if len(collapsed) > max_len:
+        return collapsed[:max_len].rstrip() + "…"
+    return collapsed
 
 
 def _parse_iso_date(value: str) -> _date | None:
@@ -300,6 +354,70 @@ def _build_a1(inp: HandoffReportInput) -> ChiefComplaintSection:
 def _build_a2(inp: HandoffReportInput) -> HistoryOfPresentIllnessSection:
     text = inp.session.final_slots.get("history_of_present_illness")
     return HistoryOfPresentIllnessSection(present=bool(text), text=text)
+
+
+# ── All-session slot overview (Task 1) ────────────────────────────────────
+
+
+def _slot_history_sessions(inp: HandoffReportInput) -> list[SessionSlotSnapshot]:
+    """`inp.all_sessions`, sorted ascending by `session_index` — falls back
+    to a single synthetic entry built from the header session alone when
+    the caller never populated `all_sessions` (older/toy callers), so
+    existing fixtures/tests keep behaving exactly as before this addition."""
+    if inp.all_sessions:
+        return sorted(inp.all_sessions, key=lambda s: s.session_index)
+    s = inp.session
+    return [SessionSlotSnapshot(s.session_index, s.simulated_date, s.final_slots)]
+
+
+def _slot_row(key: str, label: str, sessions: list[SessionSlotSnapshot]) -> SlotOverviewRow:
+    """One canonical slot's best-available value across `sessions`: the
+    LATEST non-empty value + its provenance, plus a compact change-history
+    line built from every DISTINCT non-empty value in chronological order
+    (consecutive duplicates collapsed — a slot re-stated identically across
+    3 sessions is not a "change"). `change_history` stays empty when the
+    slot was never filled, or was filled with the same value every time."""
+    filled = [
+        (s.session_index, s.simulated_date, v)
+        for s in sessions
+        if (v := s.final_slots.get(key))
+    ]
+    if not filled:
+        return SlotOverviewRow(
+            key=key,
+            label=label,
+            collected=False,
+            section_pointer=SLOT_SECTION_POINTERS_KO.get(key),
+        )
+
+    distinct: list[tuple[int, str, str]] = []
+    for idx, date, value in filled:
+        if not distinct or distinct[-1][2] != value:
+            distinct.append((idx, date, value))
+
+    latest_idx, latest_date, latest_value = distinct[-1]
+    change_history: list[str] = []
+    if len(distinct) > 1:
+        change_history = [
+            f"S{idx}: '{_flatten_for_cell(value, 60)}'" for idx, _date, value in distinct
+        ]
+
+    return SlotOverviewRow(
+        key=key,
+        label=label,
+        collected=True,
+        latest_value=_flatten_for_cell(latest_value),
+        source_session_index=latest_idx,
+        source_simulated_date=latest_date,
+        change_history=change_history,
+        section_pointer=SLOT_SECTION_POINTERS_KO.get(key),
+    )
+
+
+def _build_slot_overview(inp: HandoffReportInput) -> SlotOverviewSection:
+    sessions = _slot_history_sessions(inp)
+    rows = [_slot_row(key, label, sessions) for key, label in CANONICAL_SLOT_KEYS]
+    return SlotOverviewSection(rows=rows)
 
 
 # ── A3 ──────────────────────────────────────────────────────────────────
@@ -572,11 +690,35 @@ def _build_a7(inp: HandoffReportInput) -> RecommendationSection:
     )
 
 
-# ── A8 (structurally disabled this mission) ──────────────────────────────
+# ── A8 (optional narrative hook, Task 2 / `handoff_generator` v3) ────────
 
 
 def _build_a8(inp: HandoffReportInput) -> NarrativeSection:
-    return NarrativeSection(narrative_enabled=False, text=None)
+    """`ADR-037` Decision 1 default (`narrative_enabled=False`) is
+    UNCHANGED — A8 still ships the explicit disabled marker, never blank,
+    whenever the caller does not opt in. Task 2 adds the OPT-IN path: when
+    `narrative_enabled=True` (enforced non-empty `narrative_text`,
+    `assemble_handoff_report` below), this function applies ONE
+    defense-in-depth check before rendering it — a plain substring scan of
+    every A6 candidate's `disease` name against the given text (HPI hard
+    red line, design doc §6.1 point 1). A match REFUSES the narrative
+    entirely (never silently strips/redacts the matched substring, which
+    could leave a mangled sentence that still implies the missing
+    content) — this function still never calls any LLM/agent itself
+    (module docstring's zero-LLM invariant is unaffected: this is a pure
+    string containment check over caller-supplied data)."""
+    if not inp.narrative_enabled:
+        return NarrativeSection(narrative_enabled=False, text=None)
+
+    text = (inp.narrative_text or "").strip()
+    apd = inp.domain_inference.ai_predicted_disease
+    candidate_diseases = [c.disease for c in (apd.candidates if apd else []) if c.disease]
+    leaked = [d for d in candidate_diseases if d in text]
+    if leaked:
+        return NarrativeSection(
+            narrative_enabled=False, text=None, absent_marker=NARRATIVE_REJECTED_DISEASE_LEAK_KO
+        )
+    return NarrativeSection(narrative_enabled=True, text=text)
 
 
 # ── Part B (longitudinal, entirely from F4's own output) ──────────────────
@@ -606,15 +748,24 @@ def assemble_handoff_report(inp: HandoffReportInput) -> HandoffReportOutput:
     explicit input a harness has already built from F1-F4 artifacts
     (design doc §4, `ADR-037`).
 
-    Raises `ValueError` if `inp.narrative_enabled` is `True` — the
-    narrative path (A8) is descoped this mission (`ADR-037` Decision 1);
-    no code path in this module ever calls `HandoffGeneratorAgent`.
+    Raises `ValueError` if `inp.narrative_enabled` is `True` but
+    `inp.narrative_text` is empty/absent — the narrative path (A8) is
+    OFF BY DEFAULT (`ADR-037` Decision 1) and, when opted into (Task 2 /
+    `handoff_generator` v3), still requires the caller to supply an
+    ALREADY-GENERATED narrative string; no code path in this module ever
+    calls `HandoffGeneratorAgent` itself, so it cannot produce that text on
+    its own. Set `narrative_enabled=False` to omit A8 (default, always
+    ships the explicit disabled marker, never blank).
     """
-    if inp.narrative_enabled:
+    if inp.narrative_enabled and not (inp.narrative_text or "").strip():
         raise ValueError(
-            "HandoffReportInput.narrative_enabled=True is not supported this mission "
-            "(ADR-037 Decision 1) — the narrative path (A8) is descoped; src.f5 makes "
-            "zero LLM calls. Set narrative_enabled=False."
+            "HandoffReportInput.narrative_enabled=True requires a non-empty "
+            "narrative_text (ADR-037 Decision 1 default is narrative_enabled=False; "
+            "Task 2 / handoff_generator v3 permits an OPT-IN narrative section, but "
+            "only when the caller supplies an externally-generated narrative_text — "
+            "src.f5 makes zero LLM calls itself, e.g. via "
+            "HandoffGeneratorAgent.generate_narrative). Set narrative_enabled=False "
+            "to omit A8."
         )
 
     return HandoffReportOutput(
@@ -623,6 +774,7 @@ def assemble_handoff_report(inp: HandoffReportInput) -> HandoffReportOutput:
         a0_header=_build_header(inp),
         a1_chief_complaint=_build_a1(inp),
         a2_hpi=_build_a2(inp),
+        slot_overview=_build_slot_overview(inp),
         a3_risk_safety=_build_a3(inp),
         a4_mental_status=_build_a4(inp),
         a5_questionnaires=_build_a5(inp),

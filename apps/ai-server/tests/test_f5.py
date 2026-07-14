@@ -23,6 +23,7 @@ from src.f5 import (
     DomainInferenceSnapshot,
     F3Administration,
     HandoffReportInput,
+    SessionSlotSnapshot,
     SessionSnapshot,
     _rank_candidates,
     _relevant_gaps,
@@ -179,7 +180,9 @@ def _build_input(
     department_candidates: tuple[DepartmentCandidateInput, ...] = (),
     validation_errors_present: bool = False,
     longitudinal: LongitudinalAnalysisOutput | None = None,
+    all_sessions: tuple[SessionSlotSnapshot, ...] = (),
     narrative_enabled: bool = False,
+    narrative_text: str | None = None,
 ) -> HandoffReportInput:
     return HandoffReportInput(
         vp_id="VP-TEST",
@@ -195,7 +198,9 @@ def _build_input(
         ),
         longitudinal=longitudinal or _longitudinal(),
         chart_filenames=ChartFilenames(),
+        all_sessions=all_sessions,
         narrative_enabled=narrative_enabled,
+        narrative_text=narrative_text,
     )
 
 
@@ -204,7 +209,17 @@ def _build_input(
 
 class TestNarrativeDescoped:
     def test_narrative_enabled_true_raises(self) -> None:
+        """`narrative_enabled=True` WITHOUT `narrative_text` still raises —
+        the `ADR-037` Decision 1 default (narrative OFF) is unchanged; Task
+        2 only adds an OPT-IN path that requires the caller to supply an
+        externally-generated `narrative_text` (never produced by this
+        module itself)."""
         inp = _build_input(narrative_enabled=True)
+        with pytest.raises(ValueError, match="ADR-037"):
+            assemble_handoff_report(inp)
+
+    def test_narrative_enabled_true_empty_text_raises(self) -> None:
+        inp = _build_input(narrative_enabled=True, narrative_text="   ")
         with pytest.raises(ValueError, match="ADR-037"):
             assemble_handoff_report(inp)
 
@@ -213,6 +228,63 @@ class TestNarrativeDescoped:
         assert out.a8_narrative.narrative_enabled is False
         assert out.a8_narrative.text is None
         assert out.a8_narrative.absent_marker == "AI 종합 소견 미생성 (narrative disabled)"
+
+
+# ── A8 narrative opt-in (Task 2, handoff_generator v3) ─────────────────
+
+
+class TestNarrativeOptIn:
+    def test_enabled_with_text_renders_verbatim(self) -> None:
+        out = assemble_handoff_report(
+            _build_input(narrative_enabled=True, narrative_text="  환자는 수면 문제를 호소함.  ")
+        )
+        assert out.a8_narrative.narrative_enabled is True
+        assert out.a8_narrative.text == "환자는 수면 문제를 호소함."
+
+    def test_disease_leak_is_rejected_not_rendered(self) -> None:
+        """HPI hard red line (design doc §6.1 point 1) defense-in-depth:
+        `_build_a8` refuses a caller-supplied narrative that mentions any
+        A6 candidate's `disease` name — the DEFAULT `_apd()` fixture's
+        candidates include "계절성 정동장애"."""
+        from src.schemas.handoff_report import NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+        out = assemble_handoff_report(
+            _build_input(
+                narrative_enabled=True,
+                narrative_text="환자는 계절성 정동장애 소견이 의심됨.",
+            )
+        )
+        assert out.a8_narrative.narrative_enabled is False
+        assert out.a8_narrative.text is None
+        assert out.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+    def test_text_without_any_candidate_disease_name_is_not_rejected(self) -> None:
+        clean_text = "환자는 수면 문제와 무기력감을 자가보고함. 위험 관련 소견은 A3 참조."
+        out = assemble_handoff_report(
+            _build_input(narrative_enabled=True, narrative_text=clean_text)
+        )
+        assert out.a8_narrative.narrative_enabled is True
+
+    def test_no_candidates_never_rejects(self) -> None:
+        apd = AIPredictedDiseaseOutput(candidates=[], mode="experimental_unpopulated")
+        out = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd,
+                narrative_enabled=True,
+                narrative_text="아무 병명도 언급하지 않는 요약.",
+            )
+        )
+        assert out.a8_narrative.narrative_enabled is True
+
+    def test_zero_llm_invariant_still_holds(self) -> None:
+        """This module still never imports/calls the agent, even with the
+        opt-in narrative path exercised (mirrors
+        `TestNarrativeDescoped`'s own module-source checks)."""
+        source = inspect.getsource(f5_module)
+        assert "from src.agents.handoff_generator" not in source
+        assert "import src.agents.handoff_generator" not in source
+        assert "HandoffGeneratorAgent(" not in source
+        assert "generate_narrative(" not in source
 
     def test_module_never_imports_handoff_generator(self) -> None:
         """Import-statement-shaped check (not bare substring) — this
@@ -783,3 +855,142 @@ class TestCeilingCaveat:
         assert _ceiling_caveat(27, None) is None
         assert _ceiling_caveat(None, None) is None
         assert _ceiling_caveat(0, 0) is not None  # exact ceiling even at 0/0
+
+
+# ── All-session slot overview (Task 1, all-session slot maximization) ──
+
+
+class TestCanonicalSlotKeysSync:
+    def test_matches_clinical_slot_agent_verbatim(self) -> None:
+        """`schemas.handoff_report.CANONICAL_SLOT_KEYS` DUPLICATES (never
+        imports) `agents.clinical_slot.ALL_SLOT_KEYS` to keep `f5.py`/
+        `handoff_report.py` zero-LLM-agent-import — this test is the sync
+        guard that catches the two silently drifting apart."""
+        from src.agents.clinical_slot import ALL_SLOT_KEYS
+        from src.schemas.handoff_report import CANONICAL_SLOT_KEYS
+
+        assert [k for k, _ in CANONICAL_SLOT_KEYS] == ALL_SLOT_KEYS
+
+
+class TestSlotOverview:
+    def _sessions(self) -> tuple[SessionSlotSnapshot, ...]:
+        return (
+            SessionSlotSnapshot(
+                1,
+                "2026-01-01",
+                {"chief_complaint": "2주 전부터 불면", "family_history": "모친 우울증"},
+            ),
+            SessionSlotSnapshot(3, "2026-02-01", {"chief_complaint": "2주 전부터 불면"}),
+            SessionSlotSnapshot(6, "2026-03-01", {"chief_complaint": "수면 개선 추세"}),
+        )
+
+    def _rows_by_key(self, out) -> dict:
+        return {r.key: r for r in out.slot_overview.rows}
+
+    def test_all_12_canonical_slots_present(self) -> None:
+        out = assemble_handoff_report(_build_input())
+        assert len(out.slot_overview.rows) == 12
+        assert {r.key for r in out.slot_overview.rows} == {
+            "encounter_metadata",
+            "chief_complaint",
+            "history_of_present_illness",
+            "past_psychiatric_history",
+            "medical_history",
+            "personal_social_history",
+            "family_history",
+            "substance_use_history",
+            "mental_status_exam",
+            "risk_assessment",
+            "clinical_assessment",
+            "treatment_plan",
+        }
+
+    def test_never_collected_slot_marked_explicitly(self) -> None:
+        out = assemble_handoff_report(_build_input(all_sessions=self._sessions()))
+        row = self._rows_by_key(out)["treatment_plan"]
+        assert row.collected is False
+        assert row.latest_value is None
+        assert row.source_session_index is None
+        assert row.change_history == []
+
+    def test_latest_value_and_provenance_from_most_recent_filled_session(self) -> None:
+        out = assemble_handoff_report(_build_input(all_sessions=self._sessions()))
+        row = self._rows_by_key(out)["chief_complaint"]
+        assert row.collected is True
+        assert row.latest_value == "수면 개선 추세"
+        assert row.source_session_index == 6
+        assert row.source_simulated_date == "2026-03-01"
+
+    def test_change_history_shows_material_change_only(self) -> None:
+        """S1->S3 repeats the identical value (no change entry); S3->S6
+        differs, so the change history is exactly [S1, S6] (design doc's
+        own example format, brief-verbatim)."""
+        out = assemble_handoff_report(_build_input(all_sessions=self._sessions()))
+        row = self._rows_by_key(out)["chief_complaint"]
+        assert row.change_history == ["S1: '2주 전부터 불면'", "S6: '수면 개선 추세'"]
+
+    def test_no_change_history_when_value_never_changes(self) -> None:
+        sessions = (
+            SessionSlotSnapshot(1, "2026-01-01", {"family_history": "모친 우울증"}),
+            SessionSlotSnapshot(3, "2026-02-01", {"family_history": "모친 우울증"}),
+        )
+        out = assemble_handoff_report(_build_input(all_sessions=sessions))
+        row = self._rows_by_key(out)["family_history"]
+        assert row.collected is True
+        assert row.change_history == []
+
+    def test_single_session_filled_once_has_no_change_history(self) -> None:
+        out = assemble_handoff_report(_build_input(all_sessions=self._sessions()))
+        row = self._rows_by_key(out)["family_history"]
+        assert row.collected is True
+        assert row.latest_value == "모친 우울증"
+        assert row.source_session_index == 1
+        assert row.change_history == []
+
+    def test_section_pointer_present_for_slots_with_a_dedicated_section(self) -> None:
+        out = assemble_handoff_report(_build_input(all_sessions=self._sessions()))
+        rows = self._rows_by_key(out)
+        assert rows["chief_complaint"].section_pointer == "A1 참조 (전문 서술)"
+        assert rows["history_of_present_illness"].section_pointer == "A2 참조 (전문 서술)"
+        assert rows["mental_status_exam"].section_pointer == "A4 참조 (전문 서술)"
+        assert rows["risk_assessment"].section_pointer is not None and "A3" in (
+            rows["risk_assessment"].section_pointer
+        )
+        assert rows["encounter_metadata"].section_pointer is not None and "A0" in (
+            rows["encounter_metadata"].section_pointer
+        )
+
+    def test_no_section_pointer_for_never_elsewhere_rendered_slots(self) -> None:
+        out = assemble_handoff_report(_build_input(all_sessions=self._sessions()))
+        rows = self._rows_by_key(out)
+        for key in ("past_psychiatric_history", "medical_history", "personal_social_history"):
+            assert rows[key].section_pointer is None
+
+    def test_falls_back_to_header_session_when_all_sessions_unset(self) -> None:
+        """Backward compatibility for callers/fixtures that never set
+        `all_sessions` (the default `()`) — the overview degrades to the
+        header session's own `final_slots` alone, same content the
+        pre-Task-1 A1/A2 sections already carried."""
+        out = assemble_handoff_report(_build_input())  # all_sessions=() default
+        row = self._rows_by_key(out)["chief_complaint"]
+        assert row.collected is True
+        assert row.source_session_index == out.a0_header.session_index
+        assert row.change_history == []
+
+    def test_out_of_order_all_sessions_still_sorted_correctly(self) -> None:
+        """`all_sessions` is documented caller-sorted (same non-re-validated
+        discipline as `all_f3_administrations`) but this function still
+        sorts defensively — an out-of-order fixture must not silently pick
+        the wrong "latest" entry."""
+        sessions = (
+            SessionSlotSnapshot(6, "2026-03-01", {"chief_complaint": "수면 개선 추세"}),
+            SessionSlotSnapshot(1, "2026-01-01", {"chief_complaint": "2주 전부터 불면"}),
+        )
+        out = assemble_handoff_report(_build_input(all_sessions=sessions))
+        row = self._rows_by_key(out)["chief_complaint"]
+        assert row.latest_value == "수면 개선 추세"
+        assert row.source_session_index == 6
+
+    def test_non_validated_caveat_present(self) -> None:
+        out = assemble_handoff_report(_build_input(all_sessions=self._sessions()))
+        assert out.slot_overview.non_validated_caveat

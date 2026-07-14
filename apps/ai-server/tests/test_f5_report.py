@@ -17,12 +17,18 @@ from src.f5 import (
     DomainInferenceSnapshot,
     F3Administration,
     HandoffReportInput,
+    SessionSlotSnapshot,
     SessionSnapshot,
     assemble_handoff_report,
 )
 from src.schemas.ai_predicted_disease import AIPredictedDiseaseCandidate, AIPredictedDiseaseOutput
 from src.schemas.longitudinal import CTRSSeriesPoint, LongitudinalAnalysisOutput, ScaleSeriesPoint
-from src.services.f5_report import build_markdown_report, build_pdf_report, save_f5_result
+from src.services.f5_report import (
+    build_markdown_report,
+    build_narrative_input_text,
+    build_pdf_report,
+    save_f5_result,
+)
 
 # All 15 §2.2 section labels a completeness grep expects, never silently
 # dropped (design doc §7.2 check (a) / qa's T1-F5-VER-011).
@@ -52,6 +58,9 @@ def _full_report(
     validation_errors_present: bool = False,
     department_candidates: tuple[DepartmentCandidateInput, ...] | None = None,
     apd: AIPredictedDiseaseOutput | None = None,
+    all_sessions: tuple[SessionSlotSnapshot, ...] = (),
+    narrative_enabled: bool = False,
+    narrative_text: str | None = None,
 ):
     """`prior_total_score`/`prior_max_score`/`prior_severity` default to
     27/27/"severe" (VP-003's real ceiling-score worked example, ADR-038
@@ -166,6 +175,9 @@ def _full_report(
         chart_filenames=ChartFilenames(
             scales_ctrs_sentiment="VP-TEST_x_temporal_scales_ctrs_sentiment.png"
         ),
+        all_sessions=all_sessions,
+        narrative_enabled=narrative_enabled,
+        narrative_text=narrative_text,
     )
     return assemble_handoff_report(inp)
 
@@ -634,3 +646,93 @@ class TestCeilingCaveatExporters:
         text = "".join(p.extract_text() for p in reader.pages)
         # exactly 1 occurrence (B1's own pre-existing disclaimer sentence)
         assert text.count("ISS-F2V-028") == 1
+
+
+# ── All-session slot overview exporters (Task 1) ────────────────────────
+
+_SLOT_SESSIONS = (
+    SessionSlotSnapshot(9, "2026-11-12", {"chief_complaint": "3개월 전부터 지속된 수면 문제"}),
+    SessionSlotSnapshot(
+        11, "2027-01-12", {"chief_complaint": "잠을 잘 못 자는 것이 가장 신경 쓰임"}
+    ),
+)
+
+
+class TestSlotOverviewExporters:
+    def test_markdown_section_present_with_table_and_caveat(self) -> None:
+        report = _full_report(all_sessions=_SLOT_SESSIONS)
+        md = build_markdown_report(report)
+        section = md.split("## A1-A2 확장.")[1].split("## A3.")[0]
+        assert "임상의의 직접 평가나 검증된 척도 시행이 아닙니다" in section
+        assert "주호소" in section
+        assert "잠을 잘 못 자는 것이 가장 신경 쓰임" in section
+        assert "S9:" in section and "S11:" in section
+        assert "미수집" in section  # e.g. treatment_plan, never populated
+
+    def test_markdown_section_pointer_rendered(self) -> None:
+        report = _full_report(all_sessions=_SLOT_SESSIONS)
+        md = build_markdown_report(report)
+        section = md.split("## A1-A2 확장.")[1].split("## A3.")[0]
+        assert "A1 참조" in section
+
+    def test_pdf_slot_overview_table_present(self) -> None:
+        report = _full_report(all_sessions=_SLOT_SESSIONS)
+        pdf_bytes = build_pdf_report(report)
+        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+        text = "".join(p.extract_text() for p in reader.pages)
+        assert "전체 세션 슬롯 요약" in text
+        assert "미수집" in text
+
+
+# ── A8 opt-in narrative exporters (Task 2, handoff_generator v3) ────────
+
+
+class TestNarrativeOptInExporters:
+    def test_markdown_renders_enabled_label_and_text(self) -> None:
+        report = _full_report(
+            narrative_enabled=True, narrative_text="환자는 수면 문제를 자가보고함."
+        )
+        md = build_markdown_report(report)
+        a8_section = md.split("## A8.")[1].split("## B1.")[0]
+        assert "AI 생성 — 임상 진단 아님" in a8_section
+        assert "환자는 수면 문제를 자가보고함." in a8_section
+        assert "AI 종합 소견 미생성" not in a8_section
+
+    def test_markdown_disabled_still_shows_absent_marker(self) -> None:
+        md = build_markdown_report(_full_report())
+        a8_section = md.split("## A8.")[1].split("## B1.")[0]
+        assert "AI 종합 소견 미생성 (narrative disabled)" in a8_section
+
+    def test_pdf_renders_enabled_label_and_text(self) -> None:
+        report = _full_report(
+            narrative_enabled=True, narrative_text="환자는 수면 문제를 자가보고함."
+        )
+        pdf_bytes = build_pdf_report(report)
+        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+        text = "".join(p.extract_text() for p in reader.pages)
+        assert "환자는 수면 문제를 자가보고함." in text
+        assert "AI 생성" in text
+
+
+class TestBuildNarrativeInputText:
+    def test_excludes_a6_disease_names(self) -> None:
+        """The narrative-generation LLM call must never even RECEIVE
+        disease-candidate text (strongest defense against an A6->A8 leak,
+        on top of `f5.py::_build_a8`'s own output-side guard)."""
+        report = _full_report()  # default apd has "계절성 정동장애"/"월경전 불쾌장애"
+        text = build_narrative_input_text(report)
+        assert "계절성 정동장애" not in text
+        assert "월경전 불쾌장애" not in text
+
+    def test_includes_a1_a2_a3_a5_a7_b_summary_fields(self) -> None:
+        report = _full_report(all_sessions=_SLOT_SESSIONS)
+        text = build_narrative_input_text(report)
+        assert "세션:" in text
+        assert "CTRS:" in text
+        assert "주호소:" in text
+        assert "현병력:" in text
+        assert "위험 평가 존재 여부:" in text
+        assert "정신상태 메모:" in text
+        assert "시행된 설문:" in text
+        assert "권장 진료과:" in text
+        assert "종단 추세:" in text

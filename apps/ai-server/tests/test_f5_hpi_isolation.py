@@ -239,6 +239,104 @@ class TestModelLevelIsolation:
         assert field_names == {"narrative_enabled", "text", "absent_marker"}
 
 
+# ── (b2) Task 2 opt-in narrative — adversarial A6->A8 leak guard ───────
+#
+# Unlike the rest of this file (where A8 is structurally disabled and thus
+# has no leak channel to test), Task 2 (`handoff_generator` v3) adds an
+# OPT-IN path: a caller can supply an externally-generated `narrative_text`
+# for `f5.py::_build_a8` to render. This is the one new place a leak COULD
+# happen (a caller/LLM mistake echoing an A6 candidate's disease name into
+# the narrative) — `_build_a8`'s own code-level containment check is the
+# defense-in-depth this suite verifies, feeding the SAME distinctive marker
+# disease this file's model/markdown/PDF/FHIR suites already use.
+
+
+def _marker_report_with_narrative(narrative_text: str) -> HandoffReportOutput:
+    session = SessionSnapshot(
+        session_id="f1_VP-LEAK2",
+        persona_id="VP-LEAK2",
+        persona_name="유출테스트2",
+        session_index=1,
+        simulated_date="2026-01-01",
+        model="solar-pro3",
+        final_slots={"chief_complaint": "정상 텍스트"},
+        session_ctrs=4,
+        crisis_triggered=False,
+        crisis_turn=None,
+        risk_floor=None,
+        probe_event_count=0,
+    )
+    apd = AIPredictedDiseaseOutput(
+        candidates=[
+            AIPredictedDiseaseCandidate(
+                disease=_LEAK_MARKER_DISEASE, similarity_score=0.9, source_id="case_card:1"
+            )
+        ],
+        mode="rag_live",
+    )
+    longitudinal = LongitudinalAnalysisOutput(
+        vp_id="VP-LEAK2",
+        n_sessions=1,
+        ctrs_series=[CTRSSeriesPoint(session_index=1, simulated_date="2026-01-01", session_ctrs=4)],
+    )
+    inp = HandoffReportInput(
+        vp_id="VP-LEAK2",
+        session=session,
+        current_session_f3=None,
+        all_f3_administrations=(),
+        domain_inference=DomainInferenceSnapshot(ai_predicted_disease=apd),
+        longitudinal=longitudinal,
+        chart_filenames=ChartFilenames(),
+        narrative_enabled=True,
+        narrative_text=narrative_text,
+    )
+    return assemble_handoff_report(inp)
+
+
+class TestNarrativeOptInLeakGuard:
+    def test_narrative_containing_a6_disease_name_is_rejected(self) -> None:
+        from src.schemas.handoff_report import NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+        report = _marker_report_with_narrative(f"환자는 {_LEAK_MARKER_DISEASE} 소견이 의심됨.")
+        assert report.a8_narrative.narrative_enabled is False
+        assert report.a8_narrative.text is None
+        assert report.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+    def test_rejected_marker_never_appears_in_markdown_a8(self) -> None:
+        report = _marker_report_with_narrative(f"환자는 {_LEAK_MARKER_DISEASE} 소견이 의심됨.")
+        md = build_markdown_report(report)
+        a8_section = md.split("## A8.")[1].split("## B1.")[0]
+        assert _LEAK_MARKER_DISEASE not in a8_section
+
+    def test_rejected_marker_never_appears_in_pdf_a8(self) -> None:
+        report = _marker_report_with_narrative(f"환자는 {_LEAK_MARKER_DISEASE} 소견이 의심됨.")
+        pdf_bytes = build_pdf_report(report)
+        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+        full_text = "\n".join(p.extract_text() for p in reader.pages)
+        a6_start = full_text.index("A6.")
+        a7_start = full_text.index("A7.")
+        # The marker legitimately appears once, inside A6's own fenced box.
+        assert full_text.count(_LEAK_MARKER_DISEASE) == 1
+        assert _LEAK_MARKER_DISEASE in full_text[a6_start:a7_start]
+
+    def test_rejected_marker_never_appears_in_fhir_a8_or_disclaimer(self) -> None:
+        report = _marker_report_with_narrative(f"환자는 {_LEAK_MARKER_DISEASE} 소견이 의심됨.")
+        bundle = build_fhir_bundle(report)
+        comp = bundle["entry"][0]["resource"]
+        assert not any(s["title"].startswith("A8") for s in comp["section"])
+        for section in comp["section"]:
+            if section["title"].startswith("A6."):
+                continue
+            assert _LEAK_MARKER_DISEASE not in section.get("text", {}).get("div", "")
+
+    def test_clean_narrative_without_marker_still_renders_normally(self) -> None:
+        """Sanity: the guard only blocks an ACTUAL match — a narrative that
+        never mentions the candidate disease renders normally."""
+        report = _marker_report_with_narrative("환자는 수면 문제를 자가보고함.")
+        assert report.a8_narrative.narrative_enabled is True
+        assert report.a8_narrative.text == "환자는 수면 문제를 자가보고함."
+
+
 # ── (c) markdown-level isolation ────────────────────────────────────────
 
 

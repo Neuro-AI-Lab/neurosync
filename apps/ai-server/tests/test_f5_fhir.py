@@ -13,6 +13,7 @@ from src.f5 import (
     DomainInferenceSnapshot,
     F3Administration,
     HandoffReportInput,
+    SessionSlotSnapshot,
     SessionSnapshot,
     assemble_handoff_report,
 )
@@ -35,7 +36,12 @@ _VERIFIED_LOINC_CODES = {
 }
 
 
-def _report():
+def _report(
+    *,
+    all_sessions: tuple[SessionSlotSnapshot, ...] = (),
+    narrative_enabled: bool = False,
+    narrative_text: str | None = None,
+):
     session = SessionSnapshot(
         session_id="f1_VP-TEST",
         persona_id="VP-TEST",
@@ -146,6 +152,9 @@ def _report():
         ),
         longitudinal=longitudinal,
         chart_filenames=ChartFilenames(scales_ctrs_sentiment="VP-TEST_x_temporal.png"),
+        all_sessions=all_sessions,
+        narrative_enabled=narrative_enabled,
+        narrative_text=narrative_text,
     )
     return assemble_handoff_report(inp)
 
@@ -517,3 +526,92 @@ class TestCeilingCaveatFhir:
         )
         notes_text = " ".join(n["text"] for n in a5_obs["note"])
         assert "ISS-F2V-028" in notes_text
+
+
+# ── All-session slot overview, FHIR (Task 1) ─────────────────────────────
+
+_FHIR_SLOT_SESSIONS = (
+    SessionSlotSnapshot(9, "2026-11-12", {"chief_complaint": "이전 세션 주호소"}),
+    SessionSlotSnapshot(
+        11, "2027-01-12", {"chief_complaint": "잠을 잘 못 자는 것이 가장 신경 쓰임"}
+    ),
+)
+
+
+class TestSlotOverviewFhir:
+    def test_slot_overview_section_present_with_local_code(self) -> None:
+        bundle = build_fhir_bundle(_report(all_sessions=_FHIR_SLOT_SESSIONS))
+        comp = bundle["entry"][0]["resource"]
+        section = next(s for s in comp["section"] if s["title"].startswith("A1-A2 확장"))
+        assert section["code"]["coding"][0]["system"] == "urn:neurosync:f5-local-codes"
+        assert "잠을 잘 못 자는 것이 가장 신경 쓰임" in section["text"]["div"]
+        assert "미수집" in section["text"]["div"]
+
+    def test_bundle_still_validates_structurally_with_slot_overview(self) -> None:
+        bundle = build_fhir_bundle(_report(all_sessions=_FHIR_SLOT_SESSIONS))
+        assert validate_fhir_bundle(bundle) == []
+
+    def test_slot_overview_never_uses_loinc(self) -> None:
+        bundle = build_fhir_bundle(_report(all_sessions=_FHIR_SLOT_SESSIONS))
+
+        def collect_loinc(obj, codes):
+            if isinstance(obj, dict):
+                if obj.get("system") == "http://loinc.org" and "code" in obj:
+                    codes.add(obj["code"])
+                for v in obj.values():
+                    collect_loinc(v, codes)
+            elif isinstance(obj, list):
+                for v in obj:
+                    collect_loinc(v, codes)
+
+        comp = bundle["entry"][0]["resource"]
+        section = next(s for s in comp["section"] if s["title"].startswith("A1-A2 확장"))
+        codes: set[str] = set()
+        collect_loinc(section, codes)
+        assert codes == set()
+
+
+# ── A8 opt-in narrative, FHIR (Task 2, handoff_generator v3) ────────────
+
+
+class TestNarrativeOptInFhir:
+    def test_enabled_with_text_adds_a8_section_and_drops_omission_note(self) -> None:
+        from src.schemas.handoff_report import A8_FHIR_OMISSION_NOTE_KO
+
+        report = _report(narrative_enabled=True, narrative_text="환자는 수면 문제를 자가보고함.")
+        bundle = build_fhir_bundle(report)
+        comp = bundle["entry"][0]["resource"]
+        a8_section = next(s for s in comp["section"] if s["title"].startswith("A8"))
+        assert "환자는 수면 문제를 자가보고함." in a8_section["text"]["div"]
+        assert a8_section["code"]["coding"][0]["code"] == "51847-2"
+
+        disclaimer_section = next(
+            s for s in comp["section"] if s["code"].get("text") == "disclaimer"
+        )
+        assert A8_FHIR_OMISSION_NOTE_KO not in disclaimer_section["text"]["div"]
+
+    def test_rejected_narrative_keeps_omission_note_and_no_a8_section(self) -> None:
+        """A caller-supplied narrative that leaks an A6 disease name is
+        REFUSED by `f5.py::_build_a8` — the FHIR bundle must treat that
+        exactly like the disabled-by-default case (no A8 section, omission
+        note present), never render the refused text."""
+        from src.schemas.handoff_report import A8_FHIR_OMISSION_NOTE_KO
+
+        report = _report(
+            narrative_enabled=True,
+            narrative_text="환자는 계절성 정동장애 소견이 의심됨.",
+        )
+        assert report.a8_narrative.narrative_enabled is False  # sanity: rejected
+        bundle = build_fhir_bundle(report)
+        comp = bundle["entry"][0]["resource"]
+        assert not any(s["title"].startswith("A8") for s in comp["section"])
+        disclaimer_section = next(
+            s for s in comp["section"] if s["code"].get("text") == "disclaimer"
+        )
+        assert A8_FHIR_OMISSION_NOTE_KO in disclaimer_section["text"]["div"]
+        assert "계절성 정동장애" not in disclaimer_section["text"]["div"]
+
+    def test_bundle_still_validates_structurally_with_a8_enabled(self) -> None:
+        report = _report(narrative_enabled=True, narrative_text="환자는 수면 문제를 자가보고함.")
+        bundle = build_fhir_bundle(report)
+        assert validate_fhir_bundle(bundle) == []

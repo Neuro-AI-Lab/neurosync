@@ -77,6 +77,10 @@ HEADER_NON_DIAGNOSTIC_KO = (
 NON_VALIDATED_ADMINISTRATION_CAVEAT_KO = (
     "AI가 진행한 대화형 문진 결과이며, 검증된 임상 설문 시행이 아닙니다."
 )
+SLOT_OVERVIEW_CAVEAT_KO = (
+    "이 표의 값은 AI가 진행한 대화형 문진(F1)에서 환자가 자가보고한 내용이며, "
+    "임상의의 직접 평가나 검증된 척도 시행이 아닙니다."
+)
 GAD7_THRESHOLD_CAVEAT_ASYMMETRY_NOTE_KO = (
     "GAD-7의 threshold_caveat 필드는 현재 이 시스템의 모든 산출물에서 구조적으로 "
     "null입니다 — AUDIT-C와의 비대칭이며 값이 누락된 것이 아니라 설계상 특성입니다 "
@@ -128,6 +132,27 @@ OVERALL_DIRECTION_SENSITIVITY_NOTE_KO = (
 # ── A8 narrative absent marker (ADR-037 Decision 1) ────────────────────────
 
 NARRATIVE_ABSENT_MARKER_KO = "AI 종합 소견 미생성 (narrative disabled)"
+
+# ── A8 narrative — Task 2 (`handoff_generator` v3, PLAN-2026-W29-<F5-handoff>)
+# additions. The narrative path stays OPTIONAL (`HandoffReportInput.
+# narrative_enabled`, still `False` by default) — these constants are only
+# ever used when a caller supplies an externally-generated `narrative_text`
+# (`src.f5` itself still makes zero LLM calls; see `f5.py::_build_a8`). ────
+
+NARRATIVE_ENABLED_LABEL_KO = "AI 생성 — 임상 진단 아님 (자가보고 기반, 비공식)"
+
+# Defense-in-depth rejection marker (HPI hard red line, design doc §6.1
+# point 1): `f5.py::_build_a8` scans a caller-supplied `narrative_text` for
+# any A6 candidate `disease` string and — if found — REFUSES to render the
+# narrative rather than merely omitting/redacting the match, replacing
+# `a8_narrative.absent_marker` with this constant instead of the generic
+# `NARRATIVE_ABSENT_MARKER_KO` above so a reader can tell "never generated"
+# apart from "generated but blocked" (grep-distinguishable in qa's own
+# regression checks).
+NARRATIVE_REJECTED_DISEASE_LEAK_KO = (
+    "AI 종합 소견 생성 거부 — 제공된 내러티브 텍스트에 AI 예상질환(A6) 후보 병명이 "
+    "포함되어 있어 HPI 격리 원칙(A6/A8 구조적 분리, design doc §6.1)에 따라 거부되었습니다."
+)
 
 # ── A8 FHIR-bundle omission note (ADR-038 Decision 2d, CVR-024 Finding 6 /
 # Recommendation 6) ─────────────────────────────────────────────────────
@@ -243,6 +268,86 @@ class HistoryOfPresentIllnessSection(BaseModel):
 
     present: bool
     text: str | None = None
+
+
+# ── All-session slot overview (Task 1, extends A1/A2's "latest session
+# only" default with a per-slot BEST-AVAILABLE picture across the WHOLE
+# ledger) ───────────────────────────────────────────────────────────────
+#
+# `CANONICAL_SLOT_KEYS` DUPLICATES (never imports) `agents.clinical_slot.
+# ALL_SLOT_KEYS` verbatim, in the same order — this module and `f5.py` stay
+# zero-LLM-agent-import by construction (module docstring's own isolation
+# discipline), so the 12-key list is re-declared here rather than imported
+# from an `agents/` module. `tests/test_f5.py` asserts byte-for-byte key
+# equality against the live `ALL_SLOT_KEYS` so the two never silently
+# drift apart.
+
+SLOT_NEVER_COLLECTED_KO = "미수집"
+
+CANONICAL_SLOT_KEYS: tuple[tuple[str, str], ...] = (
+    ("encounter_metadata", "진료 기본정보"),
+    ("chief_complaint", "주호소"),
+    ("history_of_present_illness", "현병력"),
+    ("past_psychiatric_history", "정신과 과거력"),
+    ("medical_history", "신체질환/신경학적 병력"),
+    ("personal_social_history", "개인사/사회력"),
+    ("family_history", "가족력"),
+    ("substance_use_history", "음주·흡연·물질사용"),
+    ("mental_status_exam", "정신상태검사"),
+    ("risk_assessment", "위험평가"),
+    ("clinical_assessment", "평가/진단적 인상"),
+    ("treatment_plan", "치료계획/치료내용"),
+)
+
+# For slots already covered in detail by an existing Part A section, point
+# there instead of duplicating a lossy truncated copy as the reader's only
+# source — improves readability without hiding the slot from the one
+# consolidated table (design goal: maximum information, high visibility).
+# `encounter_metadata`/`clinical_assessment`/`treatment_plan` are F1
+# `SYSTEM_SLOT_KEYS` (`grounding.py`) — never populated by the conversation
+# extractor; `encounter_metadata` alone has an existing deterministic home
+# (A0), the other two have none anywhere in this system.
+SLOT_SECTION_POINTERS_KO: dict[str, str] = {
+    "encounter_metadata": (
+        "A0 참조 (시스템이 conversation.json 메타데이터에서 조합 — 대화 슬롯 아님)"
+    ),
+    "chief_complaint": "A1 참조 (전문 서술)",
+    "history_of_present_illness": "A2 참조 (전문 서술)",
+    "mental_status_exam": "A4 참조 (전문 서술)",
+    "risk_assessment": "A3 참조 (전문 서술 + 종단 위험 신호)",
+}
+
+
+class SlotOverviewRow(BaseModel):
+    """One canonical slot's best-available picture across ALL sessions in
+    the ledger (Task 1) — never only the latest session."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    key: str
+    label: str
+    collected: bool
+    latest_value: str | None = None
+    source_session_index: int | None = None
+    source_simulated_date: str | None = None
+    change_history: list[str] = Field(default_factory=list)
+    section_pointer: str | None = None
+
+
+class SlotOverviewSection(BaseModel):
+    """All-session slot overview — extends A1/A2's default "latest session
+    only" static-state rule (Task 1, this mission) with a per-slot
+    BEST-AVAILABLE value + provenance + compact change-history across the
+    whole VP arc. Deliberately a SEPARATE section from A1/A2 (which keep
+    rendering the header/latest session's own value unchanged, per Part
+    A's documented "latest session" architecture, design doc §2.2 preamble)
+    rather than a redefinition of either — mirrors the precedent A3's own
+    "종단 위험 신호" subsection already set (`ADR-037` Decision 2)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    rows: list[SlotOverviewRow] = Field(default_factory=list)
+    non_validated_caveat: str = Field(default=SLOT_OVERVIEW_CAVEAT_KO)
 
 
 # ── A3 ──────────────────────────────────────────────────────────────────
@@ -541,6 +646,7 @@ class HandoffReportOutput(BaseModel):
     a0_header: HeaderSection
     a1_chief_complaint: ChiefComplaintSection
     a2_hpi: HistoryOfPresentIllnessSection
+    slot_overview: SlotOverviewSection
     a3_risk_safety: RiskSafetySection
     a4_mental_status: MentalStatusSection
     a5_questionnaires: QuestionnaireSection
