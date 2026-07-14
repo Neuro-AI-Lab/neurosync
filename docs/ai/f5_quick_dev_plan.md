@@ -1,8 +1,23 @@
 # F5 quick development plan — handoff report assembly (static + longitudinal)
 
-> **Status:** design v1 — pre-implementation. No code changes in this mission; this document gates
-> critic (REV) and clinical-validator (CVR) review before any `src/f5.py` work starts, mirroring
-> `docs/ai/f4_quick_dev_plan.md`'s structural pattern.
+> **Status:** **MISSION COMPLETE (2026-07-14, `PLAN-2026-W29-E`).** Design v1 below, gated by
+> `REV-046` (non-blocking-with-conditions) + `CVR-023` (adequate-with-conditions) → `ADR-037`
+> (implementation licensed, narrative path DESCOPED) → implemented at commits `9514798`/`0771534`/
+> `8717382`/`50dd255` → 약식 functional validation `EXP-024` r1→r2→r3 (r3 final) → post-evidence gated by `REV-047`
+> (evidence-sound-with-corrections, r3 addendum CLOSED) and `CVR-024` (adequate-with-conditions, r3
+> addendum: "materially strengthened, no residual blocking-severity item"). **`ADR-038` amendments
+> beyond `ADR-037` (commit `50dd255`, not rewritten into §5.2/§9 below — noted here and where they
+> touch this document's own specified behavior):** (1) font-embedding fix — §5.2's `reportlab`
+> built-in non-embedded CID Korean fonts (`HYSMyeongJo-Medium`/`HYGothic-Medium`) are superseded by
+> 2 SHA256-pinned, embedded, subsetted Noto Sans/Serif CJK KR TrueType fonts, after `BUG-044`'s
+> multi-renderer adjudication found the non-embedded fonts produce near-total Hangul dropout on 2 of
+> 3 tested renderer configurations; (2) 4 disclosure amendments — A7 `VAL-016` validation-drop
+> wording, A6 `reason_summary` surfacing when candidates are empty and `mode != "rag_live"`,
+> exact-ceiling `ISS-F2V-028` caveat co-location in A3/A5, FHIR A8-omission note. This document's
+> design content is retained below as the as-designed record (`ADR-037` amendment marks already
+> inline); `ADR-038`'s further amendments are not rewritten into the body, per this project's
+> append-only design-doc discipline — see `docs/ai/development_report.md` `DR-022` and `discussion.md`
+> `ADR-038`/`REV-047`/`CVR-024` for the full as-built record.
 > **Source of record:** orchestrator dispatch (this mission), building on
 > `docs/ai/f5_charting_research.md` (brainstorm, 2026-07-14) and `docs/ai/f4_quick_dev_plan.md`
 > (developer, `PLAN-2026-W29-D`). Design decisions D1–D7 below were handed to this document as
@@ -559,7 +574,7 @@ brainstorm session, not this plan's job to close.
 | 2 | Exporters | new `src/services/f5_report.py` (markdown, mirrors `f4_report.py`), PDF renderer (reportlab + Korean CID fonts, embeds existing F4 PNGs), FHIR bundle builder + §5.3 structural validation script; `reportlab` added to `pyproject.toml` via `uv` | All three exporters run against Wave-1's toy fixture and produce non-empty files that pass their own structural sanity checks |
 | 3 | Narrative path — **DESCOPED this mission (`ADR-037` Decision 1)** | *(not built this mission — design reference only)* `src/services/f5_narrative_adapter.py` (12→17 mapping, §4.3), shared regen-loop helper (§4.4), feature-flag wiring | **Deferred to a future narrative wave.** No code in this mission's Wave 3 slot; the feature flag ships hardcoded `False` and A8 always renders the explicit absent-marker (§4.4). The future wave additionally requires a versioned prompt redesign (v3, resolving the v2 prompt's mandatory-12-section collision with hard red line #1) plus a fresh REV/CVR before implementation — `REV-046`/`CVR-023`'s narrative-scoped conditions bind that future wave. |
 | 4 | Harness | `run_f5_stage` post-loop entry in `continuous_test.py` (`STAGE_REGISTRY`'s `Stage("F5", ...)` flips to `implemented=True`) + a standalone from-ledger CLI entry that replays EXISTING `EXP-023` artifacts, `--out`-aware | A `--out` run against `EXP-023`'s existing VP-001/VP-003 artifacts produces `<VP>_<ts>_handoff.{md,pdf,fhir.json}` for both VPs, driving only production interfaces (external-verification principle) |
-| 5 | Tests | new `tests/test_f5.py` (section-assembly unit tests, toy data), new `tests/test_f5_hpi_isolation.py` (adversarial isolation suite mirroring `test_hpi_isolation.py`/`test_f3_hpi_isolation.py`), FHIR structural-validator tests, PDF sanity tests, 12→17 adapter field-by-field tests | qa **GATE:PASS**; mutation-checks on the 12→17 mapping logic and the A3 co-display assembly (non-vacuous mutation-verification discipline, `REV-013 §3`/`BUG-041`/`BUG-042` precedent) |
+| 5 | Tests | new `tests/test_f5.py` (section-assembly unit tests, toy data), new `tests/test_f5_hpi_isolation.py` (adversarial isolation suite mirroring `test_hpi_isolation.py`/`test_f3_hpi_isolation.py`), FHIR structural-validator tests, PDF sanity tests, 12→17 adapter field-by-field tests **(narrative-scoped, DESCOPED this mission per `ADR-037` Decision 1 — no `f5_narrative_adapter.py` code exists to test; this plan's own Wave-5 scope text is not corrected in place, flagged here 2026-07-14 as the known residual inconsistency between this row's original text and the mission's actual as-built scope)** | qa **GATE:PASS** (actual, as-built: F5 test suite 148 tests, part of the full-suite 1817 passed/2 skipped at commit `50dd255`); mutation-checks on the A3 co-display assembly (`BUG-043`, non-vacuous mutation-verification discipline, `REV-013 §3`/`BUG-041`/`BUG-042` precedent) — **the 12→17 mapping-logic mutation-check named in this cell was likewise never exercised**, same narrative-descope reason as the Files column's own annotation |
 | 6 | `EXP-024` (§7) | none (experiment-tracker territory) | Both cells complete (md+PDF+FHIR, **deterministic sections only — narrative DESCOPED per `ADR-037` Decision 1**), qa recompute + FHIR structural check + PDF sanity check run, critic REV filed, clinical-validator CVR filed — three side-by-side verdicts per D7 |
 | 7 | Docs fold | `docs/ai/PRD_task1_v2.md` §6, `docs/ai/f5_checklist.md` item status flips, `checklist_task1.md` §F5 pointer already updated by this mission | Orchestrator/filemanager territory at mission end — out of this plan's own scope, noted for completeness |
 
@@ -588,8 +603,16 @@ the already-adjudicated `REV-045`/`CVR-022` entries read in full.
 **Amendment record:** Amended per `ADR-037` (2026-07-14) after `REV-046`/`CVR-023` — narrative path
 (A8) descoped, A3 gains the multi-session risk role, A6 tie-handling, A0 disclaimer additions, A7
 medication note, and the REV-022→REV-044 Criterion 6 citation fix. See §0's amendment record and the
-amendment marks throughout §2.2/§4.3/§4.4/§7/§9.
+amendment marks throughout §2.2/§4.3/§4.4/§7/§9. **Further amended in effect (not rewritten into the
+body) per `ADR-038`** (2026-07-14, post-`EXP-024` r1/r2, `BUG-044` multi-renderer adjudication) —
+§5.2's `reportlab` non-embedded CID font choice was superseded by 2 embedded, SHA256-pinned,
+subsetted Noto Sans/Serif CJK KR TrueType fonts, plus 4 disclosure amendments (A7 `VAL-016` wording,
+A6 `reason_summary` surfacing, exact-ceiling `ISS-F2V-028` caveat co-location, FHIR A8-omission
+note); see the top-of-document status block and `docs/ai/development_report.md` `DR-022` for the
+full as-built record this plan's original text does not itself carry.
 
 **Linked:** `docs/ai/f5_charting_research.md`, `docs/ai/f4_quick_dev_plan.md`, `docs/ai/f5_checklist.md`
 (companion deliverable, this mission), `REV-039`, `CVR-021`, `REV-045`, `CVR-022`, `REV-046`,
-`CVR-023`, `ADR-037` (discussion.md).
+`CVR-023`, `ADR-037`, `REV-047` (+ r3 addendum), `CVR-024` (+ r3 addendum), `ADR-038`, `BUG-043`
+(resolved), `BUG-044` (resolved), `VAL-016` (open), `EXP-024` (r1/r2/r3) (discussion.md/result.md/
+error.md), `docs/ai/development_report.md` `DR-022`.

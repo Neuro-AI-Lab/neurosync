@@ -1632,3 +1632,219 @@ filter, a Mode-B sentiment-fallback regression test, the reserved stable-arc bat
 `docs/ai/f4_checklist.md`.
 
 ---
+
+## DR-022 | 2026-07-14 | F5 clinical hand-off report — deterministic 15-section hand-off engine (`PLAN-2026-W29-E`) — research, plan/checklist, dual pre-implementation gates, implementation, `BUG-043`/`BUG-044` fix waves, `EXP-024` r1/r2/r3, qa recompute, `REV-047`/`CVR-024` post-evidence review
+
+> **Scope and sourcing:** every number below is already recorded in `discussion.md` (`PLAN-2026-W29-E`,
+> `REV-046`, `CVR-023`, `ADR-037`, `REV-047` incl. r3 addendum, `CVR-024` incl. r3 addendum,
+> `ADR-038`), `result.md` (`EXP-024`, r1/r2/r3), and `error.md` (`BUG-043`, resolved; `BUG-044`,
+> resolved; `VAL-016`, open). No new measurement or reinterpretation is performed here. Wording is
+> bound by `REV-047`'s 8-row wording table (+ r3 addendum row 7 supersession) and `CVR-024`'s binding
+> conditions (2-3, narrowed by its own r3 addendum) — reproduced in condensed form in §7 below.
+
+### 1. Mission
+
+`PLAN-2026-W29-E`, a single continuous mission (user directive verbatim intent: an F5 임상
+hand-off report synthesizing F1-F4 into a systematic, high-readability psychiatric intake/hand-off
+document, static + longitudinal, exportable as md/PDF/FHIR R4) spanning research, plan/checklist,
+dual pre-implementation review, implementation, qa gate, 약식 (abbreviated) validation (`EXP-024`),
+and docs fold — the user's 착수 order superseded the project's standing ~8-dispatch checkpoint rule,
+authorizing continuous execution without an approval pause.
+
+### 2. Design and dual pre-implementation gates
+
+Brainstorm authored `docs/ai/f5_charting_research.md` (psychiatric charting conventions + FHIR R4
+resource/LOINC mapping, VERIFIED/UNVERIFIED tags). Writer authored `docs/ai/f5_quick_dev_plan.md` +
+`docs/ai/f5_checklist.md` (A0-A8/B1-B5 section design, production/harness split, 12→17 legacy
+`SlotData` mapping for the then-proposed narrative path, md/PDF/FHIR export spec, `EXP-024` design).
+
+**`REV-046` (critic, pre-implementation):** non-blocking-with-conditions — 5 major (4
+blocking-scoped to the Wave-3 narrative adapter / any `EXP-024` narrative-flag=True cell), 1 minor.
+Central finding: `HandoffGeneratorAgent` v2's unmodified system prompt mandates a full independent
+12-section report (own candidate-domain table with confidence labels, own CTRS risk narration), not
+the "short synthesis" the plan assumed — colliding with hard red line #1 (AI-predicted-disease
+isolation) via organic LLM regeneration, a channel none of the existing HPI-isolation leak-tests were
+designed to catch. Filed pre-registered `EXP-024` acceptance Criteria 0/1/2a/2b/3-7 and a 7-row
+MAY/MUST-NOT wording table, binding on the eventual report.
+
+**`CVR-023` (clinical-validator, pre-implementation):** adequate-with-conditions — 1 finding rated
+blocking (same root v2-prompt/A8 collision, reached independently via a clinical-interpretation lens:
+two independently-produced, unreconciled risk/candidate readouts coexisting in one hand-off document),
+2 further major (A3's originally-specified Part-A/single-latest-session scoping cannot structurally
+deliver `CVR-022` binding condition 2 for either `EXP-024` VP, since neither VP's item-9-positive
+session is its own latest; VP-003's S11 active-crisis/S9-stale cross-reference gap), 3 minor (A6
+tie-handling, no medication slot, no self-report/non-official-record marking). 3 binding conditions.
+Both gates independently converged on gating the same Wave and the same `EXP-024` cells, reached via
+different analytical routes (architecture/test-coverage vs. clinical-interpretation).
+
+**`ADR-037` (orchestrator):** narrative path (A8) **DESCOPED this mission** (option (c) from both
+gates) — feature flag ships hardcoded `False`, zero `HandoffGeneratorAgent` calls, `EXP-024` runs
+deterministic-only. A3 amendment adopted (multi-session "종단 위험 신호" subsection, delivering
+`CVR-022` condition 2 inside Part A). A6 tie-handling, A0 self-report/non-official-record disclaimer,
+A7 medication disclose-only note all adopted. `REV-022`→`REV-044` Criterion 6 citation corrected. PDF
+library ratified: `reportlab` (pure-Python, built-in Adobe CID Korean fonts at the time of ratification,
+PNG embedding for the 4 F4 charts). FHIR shape ratified: R4 document Bundle, file-export-only,
+structural self-checks only (never a `$validate` conformance claim).
+
+### 3. Implementation
+
+Landed at commit `9514798` (branch `feat/f5-handoff-report`): `src/f5.py` (pure engine, zero-LLM,
+zero file-I/O, A0-A8/B1-B5 assembly, never opens harness artifacts directly) + `src/schemas/
+handoff_report.py` (`extra="forbid"`, `is_diagnostic: Literal[False]`, standalone lineage) +
+`src/services/f5_report.py` (md/PDF/FHIR exporters) + `continuous_test.py --f5-from-artifacts`
+replay CLI (STAGE_REGISTRY's F5 stub flips to `implemented=True`); 95 F5 tests. qa **GATE:PASS**.
+
+**`BUG-043`** (qa, same session) — A3's `flagged = critical_item_positive OR safety_referral`
+OR-clause was a mutation-survivor on the full F5 suite (no fixture exercised the two triggers
+independently). Code independently verified CORRECT (no live incorrect behavior); regression test
+landed at commit `0771534` (test-only, `_f3(..., critical_item_positive=False, safety_referral=True)`
+fixture) — resolved.
+
+### 4. `EXP-024` — 약식 functional validation (2 VPs, replay-from-`EXP-023`, deterministic-only, zero LLM calls)
+
+**r1** (commit `0771534`): both VPs generate md+PDF+FHIR, exit 0. Of 7 pre-registered checks, 6 PASS,
+1 FAIL (check 5c — A3's longitudinal risk-signal table lacked a section-local non-validated-
+administration caveat, the document's own top-of-file disclaimer scoped itself to A5/B1 only), 1
+deviation (check 7 — B5's chart-absent fallback fired only when ALL 4 charts were absent, not
+per-missing-chart, a real inconsistency with every other section's explicit-absent-marker discipline).
+
+**r2** (commit `8717382`, "A3 non-validated caveat coverage + B5 per-chart absent markers"): 7/7 PASS.
+r1-vs-r2 diff independently re-verified exact by both experiment-tracker and critic: the only
+differences are `generated_at`, the disclaimer's A5/B1→A3/A5/B1 rescoping, the inserted caveat lines,
+and VP-003's one chart-absent-marker line — zero table cells, scores, LOINC codes, `similarity_score`
+values, CTRS numbers, or trend verdicts differ anywhere.
+
+**`VAL-016`** (critic, filed against r1/r2) — F5's A7 renders "정보 없음 (권장 진료과 없음)" for
+VP-001, indistinguishable from "the model found nothing." The underlying F2 LLM call actually produced
+3 well-reasoned department candidates, silently discarded by the already-open `BUG-031` (atomic
+Pydantic validation collapsing the whole `DomainInferenceLLMResponse`, including unrelated valid
+fields, on any nested validation error). F5's own rendering is faithful to its (already-corrupted)
+input — not a fabrication, but a genuine artifact-honesty gap, new consequence surface of an old bug.
+Filed major, open, not blocking. A disclosure-only A7 amendment was licensed (not the `BUG-031`
+root-cause fix).
+
+**`BUG-044`** (qa, filed against r1/r2 PDFs) — 2 specific Unicode characters (`·` MIDDLE DOT, `⚠`
+WARNING SIGN) rendered as tofu boxes, root-caused to reportlab's non-embedded predefined CID Korean
+fonts (`ADR-037` Decision 7's own choice), whose glyph repertoire (as substituted by the rendering
+viewer) does not cover these 2 codepoints. Content integrity unaffected (`pypdf` text extraction
+recovers both characters byte-correct).
+
+### 5. `REV-047` — post-evidence adjudication (r1/r2)
+
+**Evidence-sound-with-corrections.** All 9 of `REV-046`'s pre-registered criteria (0, 1, 2a, 2b,
+3-7) **PASS** — 2 with a disclosed caveat: Criterion 4 (PDF Korean legibility) PASS-with-a-finding
+(the `·`/`⚠` tofu-box gap, `BUG-044`); Criterion 6 (red lines in all 3 formats) PASS-with-a-
+self-flagged-pre-registration-gap (the FHIR bundle omits an A8-titled `Composition.section` entirely
+rather than rendering a checkable disabled placeholder — ruled a MORE conservative resolution than
+the pre-registration anticipated). 0 FAILs. Narrative descope integrity confirmed via code, not
+report claims (`f5.py:551-559` raises `ValueError` if `narrative_enabled=True`; `continuous_test.py`
+hardcodes `False` on the replay path). Fix-cycle scope confirmed to stay within `ADR-037`'s
+already-licensed Wave-2-exporter authority — no new ADR needed for the `8717382` fix.
+
+### 6. `CVR-024` — post-evidence clinical review (r2)
+
+**Adequate-with-conditions.** All 6 standing binding conditions (3 `CVR-023` + 3 `CVR-022`) CLOSED
+as-implemented, verified directly against the actual generated content, both VPs — a genuinely strong
+condition-closure record. 1 finding rated **blocking, scoped to the PDF-distribution channel, pending
+multi-renderer confirmation**: direct visual/rasterized inspection of ALL pages of both PDFs found
+near-total Hangul dropout, substantially broader than `REV-047`'s narrower 2-glyph finding — a
+disclosed divergence, routed to qa/critic for reproduction rather than silently adopted. 3 further
+major (A6 emptiness for VP-003 traced to risk-lexicon RAG-query filtering, undisclosed
+`reason_summary`; `VAL-016` independently reconfirmed plus a second, mechanistically distinct
+"silent-absence" instance; VP-003's PHQ-9 27/27 ceiling score lacked a co-located `ISS-F2V-028`
+over-endorsement caveat). 2 minor.
+
+### 7. `BUG-044` multi-renderer adjudication and `ADR-038` fix wave
+
+qa tested 3 renderer/font configurations on both VPs' r2 PDFs: (A) poppler default fontconfig, this
+host (Noto CJK KR installed) — renders correctly except `·`/`⚠`; (B) poppler with CJK fonts excluded
+from fontconfig (simulates a recipient with no Korean font package) — near-total Hangul dropout; (C)
+Ghostscript 9.55 — near-total dropout via a mechanistically distinct failure. **2 of 3 tested configs
+reproduce `CVR-024`'s divergent observation** — not a fabrication or reviewer-tooling artifact, a
+genuine, environment-dependent property of the non-embedded CID font choice `ADR-037` Decision 7
+ratified. Severity escalated: critical scoped to distribution outside a verified Korean-CJK-capable
+renderer, major/non-blocking within this project's own consumption to date.
+
+**`ADR-038`:** font-embedding fix licensed — replace the non-embedded predefined CID fonts with 2
+SHA256-pinned, subsetted Noto Sans/Serif CJK KR TrueType fonts (glyph outlines shipped inside the
+PDF, fail-loud `RuntimeError` on missing/mismatched asset). Disclosure-amendment bundle adopted
+alongside: (a) A7 validation-drop wording (`VAL-016`, `REV-047`-licensed); (b) A6 `reason_summary`
+surfacing when candidates are empty and `mode != "rag_live"` (`CVR-024` recs 2-3); (c) exact-ceiling
+`ISS-F2V-028` caveat co-location in A3/A5 (`CVR-024` rec 4, narrowed — near-ceiling explicitly
+deferred); (d) FHIR A8-omission note. `VAL-016`/`BUG-031` root cause and `CVR-024` rec 5
+(face-validity flag) explicitly deferred, no fix licensed. r3 declared the final PDF-channel
+adjudication basis.
+
+### 8. Fix landed and `EXP-024` r3 (final)
+
+Commit `50dd255`: `_register_korean_fonts()` replaced with the 2 embedded fonts (built via
+`scripts/build_korean_fonts.py`, CFF→TrueType conversion + `fontTools.pens.cu2quPen`), committed at
+`assets/fonts/{NotoSansKR,NotoSerifKR}-Subset.ttf`; 4 disclosure amendments. qa **GATE:PASS** — full
+suite **1817 passed / 2 skipped** (F5-specific tests: 148); multi-renderer re-adjudication: all 3
+tested configs, including the exact no-CJK-fontconfig config that previously reproduced dropout, now
+render correctly (byte-identical raster to the default-fontconfig raster); mutation check on the
+fail-loud font-asset guard (correctly raises when mutated to a silent skip).
+
+**`EXP-024` r3** (final): both VPs regenerated fresh, exit 0. All 9 checks (the original 7 + new
+check 8 font-embedding + check 9 disclosure-presence) **PASS**. Own `pdffonts` call: 3 embedded CJK
+fonts, all `emb=yes`. Own visual/raster inspection (pages 1-2, both VPs): full Hangul legibility incl.
+both previously-tofu-boxed glyphs. r2-vs-r3 diff independently re-verified: only font-registration and
+the 4 disclosure-text-assembly paths changed — zero score/candidate/trend computation changed.
+
+### 9. `REV-047` and `CVR-024` r3 closure addenda
+
+**`REV-047` addendum:** wording-table row 7 superseded (r3-scoped: the PDF now embeds SHA256-pinned
+fonts, legible across 3 tested renderer configs + a 4th independent visual pathway this addendum
+performed itself; MUST NOT apply retroactively to r1/r2 artifacts, which remain historically
+tofu-affected; MUST NOT claim `mutool`-verified). Fix-licensing table updated: PDF glyph-coverage code
+fix **COMPLETED** via the full BUG→developer→qa cycle; `BUG-031`/narrative-wave rows confirmed still
+NOT licensed. Criterion 4 upgraded to a **clean PASS** for r3 specifically (the original
+PASS-with-a-finding ruling remains the correct historical record for r1/r2). `REV-047` status: CLOSED.
+
+**`CVR-024` addendum:** condition 1 (PDF rendering) **CLOSED** for r3 artifacts — qa's multi-renderer
+`GATE:PASS`, `REV-047` addendum's 4th visual pathway, and this addendum's own independent visual
+read (both VPs, pages 1-2) triple-confirm full legibility; explicitly not retroactive to r1/r2, which
+remain historically affected. Conditions 2-3 SATISFIED for the demonstrated r3 instances / NARROWED
+to residual scope (condition 2: r1/r2 citations + any future undemonstrated silent-absence mechanism;
+condition 3: near-ceiling, not exact-ceiling, scores). 1 NEW minor finding (item 46): A6's
+`reason_summary` renders as untranslated English pipeline jargon in VP-003's own highest-acuity
+report — a genuine, real clinical-communication thinness, no new harm relative to the pre-fix state.
+Overall: "**materially strengthened, no residual blocking-severity item**" for r3 artifacts
+specifically — the historical `CVR-024` verdict against r2 is unchanged and stands as the correct
+record for those artifacts.
+
+### 10. qa step-9 recompute
+
+Independently recomputed/greps every number the r3 reports render against its cited source-artifact
+field: **~350+ numeric facts checked, 0 mismatches, 0 orphaned citations.**
+
+### 11. Coverage boundary and standing disclosures (stated plainly)
+
+**This mission demonstrates deterministic-engine pipeline fidelity and export-format structural
+validity — not clinical usefulness beyond clinical-validator's own review, not FHIR
+implementation-guide conformance (structural self-checks only, never a `$validate` claim), not a
+validated clinical administration of any questionnaire number, and not narrative-path (A8) safety.**
+The narrative channel remains fully gated, entirely untested by this battery, and requires a v3
+prompt redesign (resolving the v2 prompt's mandatory-12-section collision with hard red line #1) plus
+a fresh REV/CVR before any future wave — `REV-046`'s Issues 1/3/5 and `CVR-023`'s condition 1 bind
+that wave unchanged. `VAL-016` (A7/A6 silent-absence-vs-schema-drop ambiguity, `BUG-031` lineage)
+remains open — this mission licensed disclosure-only mitigation, not the root-cause fix. r1/r2 PDF
+artifacts remain historically affected by the pre-fix font defect and must not be cited as legible
+without qualification; only r3 is the final, clean PDF-channel adjudication basis. `similarity_score`
+is never a probability; every questionnaire number carries the non-validated-administration caveat;
+"검증 완료"/"validated"/"FHIR-conformant" wording is not licensed anywhere in this mission's record.
+
+### 12. Linked items and cross-cutting notes
+
+`BUG-043` and `BUG-044` are both resolved (test-only regression fix and font-embedding fix
+respectively, both independently qa-re-verified — the latter via a 3-configuration multi-renderer
+raster proof). `VAL-016` stays open (major, non-blocking, `BUG-031` root-cause fix not licensed this
+mission). Full checklist, including 6 licensed-but-open follow-up items (narrative wave `T1-F5-
+DEV-017`; `VAL-016`/`BUG-031` upstream fix; A6 face-validity flag; A6 `reason_summary` Korean
+localization; near-ceiling `ISS-F2V-028` caveat coverage; `mutool` raster testing; optional
+font-asset size optimization): `docs/ai/f5_checklist.md`.
+
+**Linked:** `PLAN-2026-W29-E`, `REV-046`, `CVR-023`, `ADR-037`, `EXP-024`, `REV-047`, `CVR-024`,
+`ADR-038`, `BUG-043`, `BUG-044`, `VAL-016`, `docs/ai/f5_quick_dev_plan.md`, `docs/ai/f5_checklist.md`.
+
+---
