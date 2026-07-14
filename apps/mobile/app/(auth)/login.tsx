@@ -36,7 +36,7 @@ export default function LoginScreen() {
     setError(null);
     try {
       await login(email.trim(), password);
-      router.replace("/(patient)/home");
+      router.replace("/(patient)/(tabs)/home");
     } catch (e) {
       if (e instanceof APIException) {
         const code = e.body.code;

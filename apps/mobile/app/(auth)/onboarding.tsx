@@ -72,7 +72,7 @@ export default function OnboardingScreen() {
   const finish = async () => {
     await completeOnboarding();
     if (authStatus === "authenticated") {
-      router.replace("/(patient)/home");
+      router.replace("/(patient)/(tabs)/home");
     } else {
       router.replace("/(auth)/login");
     }

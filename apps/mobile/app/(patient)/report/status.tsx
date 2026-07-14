@@ -103,7 +103,10 @@ export default function ReportStatusScreen() {
 
   const goHome = () => {
     resetSession();
-    router.replace("/(patient)/home");
+    // Clear the whole intake chain (chat → phq9 → gad7 → documents → report)
+    // back to the tabs root so Back doesn't walk back into the questionnaire.
+    if (router.canDismiss()) router.dismissAll();
+    else router.replace("/(patient)/(tabs)/home");
   };
 
   const progress = Math.min(0.97, elapsedSec / estimatedSeconds);

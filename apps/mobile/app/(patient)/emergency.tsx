@@ -93,7 +93,7 @@ export default function EmergencyScreen() {
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.replace("/(patient)/home");
+      router.replace("/(patient)/(tabs)/home");
     }
   };
 

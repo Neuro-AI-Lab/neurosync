@@ -84,7 +84,7 @@ export default function RegisterScreen() {
         emergencyContact: emergency.trim(),
         consents: { tos, privacy, sensitive, riskNotification, voice: voiceConsent },
       });
-      router.replace("/(patient)/home");
+      router.replace("/(patient)/(tabs)/home");
     } catch (e) {
       if (e instanceof APIException) {
         const c = e.body.code;
@@ -180,7 +180,11 @@ export default function RegisterScreen() {
         <View style={{ height: 4 }} />
         <Button label="동의하고 계속" onPress={onSubmit} loading={submitting} disabled={!canSubmit} />
 
-        <Pressable style={styles.footer} onPress={() => router.push("/(auth)/login")} accessibilityRole="button">
+        <Pressable
+          style={styles.footer}
+          onPress={() => (router.canGoBack() ? router.back() : router.replace("/(auth)/login"))}
+          accessibilityRole="button"
+        >
           <Text style={styles.footerText}>이미 회원이신가요? </Text>
           <Text style={styles.footerLink}>로그인</Text>
         </Pressable>

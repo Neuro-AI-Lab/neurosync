@@ -3,13 +3,12 @@ import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BottomTabBar } from "../../components/BottomTabBar";
-import { EmergencyEntryButton } from "../../components/EmergencyEntryButton";
-import { ArrowRight, Chat, ChevronRight, Doc } from "../../lib/icons";
-import { APIException, createSession } from "../../lib/api";
-import { colors } from "../../lib/tokens";
-import { useAuth } from "../../state/auth";
-import { useSession } from "../../state/session";
+import { EmergencyEntryButton } from "../../../components/EmergencyEntryButton";
+import { ArrowRight, Chat, ChevronRight, Doc } from "../../../lib/icons";
+import { APIException, createSession } from "../../../lib/api";
+import { colors } from "../../../lib/tokens";
+import { useAuth } from "../../../state/auth";
+import { useSession } from "../../../state/session";
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -111,8 +110,6 @@ export default function HomeScreen() {
 
         <EmergencyEntryButton onPress={() => router.push("/(patient)/emergency")} />
       </ScrollView>
-
-      <BottomTabBar active="home" />
     </View>
   );
 }

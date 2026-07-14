@@ -6,10 +6,9 @@
 import { Linking, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BottomTabBar } from "../../components/BottomTabBar";
-import { Button } from "../../components/Button";
-import { Hospital } from "../../lib/icons";
-import { colors } from "../../lib/tokens";
+import { Button } from "../../../components/Button";
+import { Hospital } from "../../../lib/icons";
+import { colors } from "../../../lib/tokens";
 
 export default function HospitalsScreen() {
   const insets = useSafeAreaInsets();
@@ -30,8 +29,6 @@ export default function HospitalsScreen() {
           <Button label="119 전화 걸기" variant="danger" onPress={() => Linking.openURL("tel:119")} />
         </View>
       </View>
-
-      <BottomTabBar active="hospitals" />
     </View>
   );
 }

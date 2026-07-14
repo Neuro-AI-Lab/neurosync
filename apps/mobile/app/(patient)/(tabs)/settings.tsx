@@ -13,11 +13,10 @@ import { ReactNode, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BottomTabBar } from "../../components/BottomTabBar";
-import { ChevronRight } from "../../lib/icons";
-import { APIException, setVoiceConsent } from "../../lib/api";
-import { colors } from "../../lib/tokens";
-import { useAuth } from "../../state/auth";
+import { ChevronRight } from "../../../lib/icons";
+import { APIException, setVoiceConsent } from "../../../lib/api";
+import { colors } from "../../../lib/tokens";
+import { useAuth } from "../../../state/auth";
 
 const APP_VERSION = "뉴로싱크 v0.1.0";
 
@@ -157,8 +156,6 @@ export default function SettingsScreen() {
 
         <Text style={styles.version}>{APP_VERSION}</Text>
       </ScrollView>
-
-      <BottomTabBar active="settings" />
     </View>
   );
 }
