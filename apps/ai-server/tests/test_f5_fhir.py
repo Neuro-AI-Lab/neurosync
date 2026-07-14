@@ -318,6 +318,23 @@ class TestDisclaimerAndNonDiagnostic:
         assert "NOT A DIAGNOSIS" in notes_text
         assert "PROBABILITY" in notes_text.upper()
 
+    def test_a3_risk_assessment_note_carries_non_validated_caveat(self) -> None:
+        """EXP-024 check 5c FAIL regression, FHIR format: the staleness
+        pointer embeds a scored PHQ-9 number (session 9, 27/27) inside
+        `RiskAssessment.note` — that note must also carry the
+        non-validated-administration caveat, mirroring A5's QuestionnaireResponse/
+        Observation notes."""
+        report = _report()
+        assert report.a3_risk_safety.staleness_pointer.total_score is not None  # sanity
+        bundle = build_fhir_bundle(report)
+        risk_assessment = next(
+            e["resource"]
+            for e in bundle["entry"]
+            if e["resource"]["resourceType"] == "RiskAssessment"
+        )
+        notes_text = " ".join(n["text"] for n in risk_assessment["note"])
+        assert "검증된 임상 설문 시행이 아닙니다" in notes_text
+
     def test_b5_no_images_in_bundle(self) -> None:
         """Design doc §5.3 B5 row: v0 bundle contains NO images (D3)."""
         bundle = build_fhir_bundle(_report())

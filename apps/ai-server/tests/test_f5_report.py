@@ -223,6 +223,30 @@ class TestMarkdownCompleteness:
         a5_section = md.split("## A5.")[1].split("## A6.")[0]
         assert "검증된 임상 설문 시행이 아닙니다" in a5_section
 
+    def test_non_validated_caveat_adjacent_to_a3_numbers(self) -> None:
+        """EXP-024 check 5c FAIL regression: A3's 종단위험신호 table (S9
+        PHQ-9 27/27) AND the staleness-pointer prose (also citing PHQ-9
+        27/27) must each carry the caveat, section-local, not only A5/B1.
+        `_full_report()`'s prior_f3 (S9, flagged) + current session (S11,
+        no F3) exercises both code paths at once."""
+        md = build_markdown_report(_full_report())
+        a3_section = md.split("## A3.")[1].split("## A4.")[0]
+        signals_block, staleness_block = a3_section.split("최신성 안내 (staleness pointer)")
+        assert "검증된 임상 설문 시행이 아닙니다" in signals_block, (
+            "A3 종단위험신호 subsection missing the non-validated-administration caveat"
+        )
+        assert "검증된 임상 설문 시행이 아닙니다" in staleness_block, (
+            "A3 staleness-pointer prose missing the non-validated-administration caveat"
+        )
+
+    def test_document_disclaimer_scopes_to_a3_as_well_as_a5_b1(self) -> None:
+        """The document-level disclaimer must no longer self-declare its
+        questionnaire-score scope as A5/B1-only (EXP-024 check 5c root
+        cause) now that A3 also renders scored numbers."""
+        md = build_markdown_report(_full_report())
+        assert "설문(A3/A5/B1)" in md
+        assert "설문(A5/B1)" not in md
+
     def test_no_probability_wording_near_similarity_score(self) -> None:
         """REV-013 §4: `similarity_score` is never AFFIRMATIVELY labeled a
         probability. "확률" may only appear inside the explicit NEGATION
@@ -234,6 +258,30 @@ class TestMarkdownCompleteness:
         for line in a6_section.splitlines():
             if "확률" in line:
                 assert "아닙니다" in line or "아니" in line, f"unhedged 확률 mention: {line!r}"
+
+
+class TestChartAbsentMarkers:
+    """EXP-024 check 7 finding regression: a missing F4 chart (filename is
+    `None`) must render an explicit per-chart absent line, never be
+    silently dropped — same explicit-absent-marker discipline as every
+    other section (A1/A2/A4/A5/A6/A7). `_full_report()` only sets the
+    `scales_ctrs_sentiment` filename, so the other 3 exercise the fix."""
+
+    def test_missing_charts_render_explicit_absent_markers(self) -> None:
+        md = build_markdown_report(_full_report())
+        b5_section = md.split("## B5.")[1]
+        assert "![scales_ctrs_sentiment]" in b5_section  # the one present chart still renders
+        assert "질환 유사도 차트: 생성되지 않음" in b5_section
+        assert "CTRS 확대 차트: 생성되지 않음" in b5_section
+        assert "진료과 후보 신뢰도 차트: 생성되지 않음" in b5_section
+        # partial presence must NOT trigger the old blanket all-absent marker
+        assert "정보 없음 (차트 없음)" not in b5_section
+
+    def test_all_charts_absent_still_shows_blanket_marker_plus_per_chart_lines(self) -> None:
+        md = build_markdown_report(_minimal_report())
+        b5_section = md.split("## B5.")[1]
+        assert "정보 없음 (차트 없음)" in b5_section
+        assert "질환 유사도 차트: 생성되지 않음" in b5_section
 
 
 # ── PDF (design doc §7.2 check (d)) ─────────────────────────────────────
@@ -264,6 +312,20 @@ class TestPdfRenderSanity:
         reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
         text = "".join(p.extract_text() for p in reader.pages)
         assert "공식 의무기록" in text
+
+    def test_pdf_a3_caveat_present(self) -> None:
+        """EXP-024 check 5c FAIL regression, PDF format."""
+        pdf_bytes = build_pdf_report(_full_report())
+        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+        text = "".join(p.extract_text() for p in reader.pages)
+        assert "검증된 임상 설문 시행이 아닙니다" in text
+
+    def test_pdf_missing_chart_renders_explicit_absent_marker(self) -> None:
+        """EXP-024 check 7 finding regression, PDF format."""
+        pdf_bytes = build_pdf_report(_full_report())
+        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+        text = "".join(p.extract_text() for p in reader.pages)
+        assert "질환 유사도 차트: 생성되지 않음" in text
 
     def test_pdf_minimal_report_still_renders(self) -> None:
         pdf_bytes = build_pdf_report(_minimal_report())

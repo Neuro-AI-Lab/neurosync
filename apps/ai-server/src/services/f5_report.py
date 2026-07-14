@@ -90,6 +90,19 @@ def _none_marker(value: object, marker: str) -> str:
     return marker if value in (None, "", []) else str(value)
 
 
+# B5 — human-readable Korean labels for the 4 `ChartReferences` keys, used
+# ONLY to name a chart in an explicit per-chart absent-marker line when its
+# filename is `None` (never invents a reason for the absence, states the
+# fact only — same discipline as every other "정보 없음"/"평가 불가" marker
+# in this document, qa's completeness-grep target).
+_CHART_TITLES_KO = {
+    "scales_ctrs_sentiment": "척도·CTRS·감성 추이 차트",
+    "ctrs_zoom": "CTRS 확대 차트",
+    "disease_similarity": "질환 유사도 차트",
+    "domain_confidence": "진료과 후보 신뢰도 차트",
+}
+
+
 def build_markdown_report(report: HandoffReportOutput) -> str:
     """One `##`/`###` per §2.2 A0-A8/B1-B5 row — every section header is
     ALWAYS present, with an explicit "정보 없음"/"평가 불가" marker when no
@@ -183,6 +196,8 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         "",
         "### 종단 위험 신호 (모든 세션의 item-9 양성 / safety_referral 시행)",
         "",
+        f"> {NON_VALIDATED_ADMINISTRATION_CAVEAT_KO}",
+        "",
         f"> 추세-수준 일치도(trend_concordance_flag, F4 산출, 종단 전체): "
         f"**{a3.trend_concordance_flag}** — 이는 아래 세션별(same-session) 항목9-CTRS "
         "불일치와는 다른 질문에 답합니다 (B4 참조, 혼동 금지).",
@@ -209,9 +224,10 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         "",
         "### 최신 시행 척도 최신성 안내 (staleness pointer)",
         "",
-        a3.staleness_pointer.note,
-        "",
     ]
+    if a3.staleness_pointer.total_score is not None:
+        lines += [f"> {NON_VALIDATED_ADMINISTRATION_CAVEAT_KO}", ""]
+    lines += [a3.staleness_pointer.note, ""]
 
     # ── A4 ──
     lines += [
@@ -405,6 +421,8 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         if filename:
             any_chart = True
             lines.append(f"![{key}]({filename})")
+        else:
+            lines.append(f"{_CHART_TITLES_KO[key]}: 생성되지 않음")
     if not any_chart:
         lines.append("정보 없음 (차트 없음)")
     lines.append("")
@@ -554,6 +572,7 @@ def build_pdf_report(
         )
     )
     story.append(P("종단 위험 신호 (모든 세션)", "h3"))
+    story.append(P(NON_VALIDATED_ADMINISTRATION_CAVEAT_KO, "warn"))
     story.append(P(f"추세-수준 concordance_flag: {a3.trend_concordance_flag}", "body"))
     if a3.longitudinal_risk_signals:
         rows = [["session", "date", "scale", "score", "severity", "동일세션CTRS", "판정"]]
@@ -583,6 +602,8 @@ def build_pdf_report(
         story.append(t)
     else:
         story.append(P("해당 없음 — item-9 양성/safety_referral 시행 이력 없음", "body"))
+    if a3.staleness_pointer.total_score is not None:
+        story.append(P(NON_VALIDATED_ADMINISTRATION_CAVEAT_KO, "warn"))
     story.append(P(f"최신성 안내: {a3.staleness_pointer.note}", "warn"))
 
     # ── A4 ──
@@ -718,8 +739,11 @@ def build_pdf_report(
     }
     any_chart = False
     for key, filename in chart_map.items():
+        if not filename:
+            story.append(P(f"{_CHART_TITLES_KO[key]}: 생성되지 않음", "body"))
+            continue
         path = chart_paths.get(key)
-        if filename and path is not None and Path(path).exists():
+        if path is not None and Path(path).exists():
             any_chart = True
             story.append(P(filename, "meta"))
             story.append(Image(str(path), width=16 * cm, height=9 * cm, kind="proportional"))
@@ -904,6 +928,11 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
                     "text": (
                         f"trend concordance_flag(F4)={a3.trend_concordance_flag}; "
                         f"staleness_pointer={a3.staleness_pointer.note}"
+                        + (
+                            f" — {NON_VALIDATED_ADMINISTRATION_CAVEAT_KO}"
+                            if a3.staleness_pointer.total_score is not None
+                            else ""
+                        )
                     )
                 }
             ],
