@@ -31,6 +31,7 @@ from src.f5 import (
 )
 from src.schemas.ai_predicted_disease import AIPredictedDiseaseCandidate, AIPredictedDiseaseOutput
 from src.schemas.longitudinal import CTRSSeriesPoint, LongitudinalAnalysisOutput, ScaleSeriesPoint
+from src.services.f5_report import build_markdown_report
 
 # ── Fixtures modeled on real VP-001/VP-003 EXP-023 shapes ──────────────
 
@@ -366,6 +367,30 @@ class TestA3LongitudinalRiskSignal:
         f3 = _f3(1, "2026-08-01", critical_item_positive=False, safety_referral=False)
         out = assemble_handoff_report(_build_input(all_f3_administrations=(f3,)))
         assert out.a3_risk_safety.longitudinal_risk_signals == []
+
+    def test_bug_043_safety_referral_only_administration_included_in_a3(self) -> None:
+        """BUG-043 regression: `safety_referral=True` alone (item-9 negative,
+        `critical_item_positive=False`) must independently be sufficient to
+        surface an administration in A3's longitudinal risk signals — the
+        `flagged` gate is an OR of the two fields, not a dependency on
+        `critical_item_positive`. Prior to this test, no fixture anywhere in
+        the F5 suite exercised `safety_referral=True` without also setting
+        `critical_item_positive=True`, so a mutation collapsing the OR into
+        `bool(admin.critical_item_positive)` alone survived the full suite."""
+        f3_referral_only = _f3(
+            1, "2026-08-01", critical_item_positive=False, safety_referral=True
+        )
+        out = assemble_handoff_report(
+            _build_input(all_f3_administrations=(f3_referral_only,))
+        )
+        signals = out.a3_risk_safety.longitudinal_risk_signals
+        assert len(signals) == 1
+        assert signals[0].session_index == 1
+        assert signals[0].safety_referral is True
+        assert signals[0].critical_item_positive is False
+
+        md = build_markdown_report(out)
+        assert "2026-08-01" in md
 
     def test_staleness_pointer_vp003_worked_example(self) -> None:
         """VP-003 worked example (ADR-037 Decision 2): S11 current
