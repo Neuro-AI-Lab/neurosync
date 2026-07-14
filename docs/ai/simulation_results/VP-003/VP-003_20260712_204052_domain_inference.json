@@ -1,0 +1,154 @@
+{
+  "session_id": "f1_VP-003",
+  "persona_id": "VP-003",
+  "repro": {
+    "git_head": "1e4223ad3579e8d5e2d393c5618b82b10fd7d79f",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_204049_conversation.json",
+    "input_sha256": "2408e7f8524b0081e33ad646c2ab9e7da55d6be14fc27d9a68349a1bc660b689",
+    "mode": "llm_only",
+    "latency_ms": 3411.4,
+    "generated_at": "2026-07-12T20:40:52.695807",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 1828,
+      "completion_tokens": 389,
+      "total_tokens": 2217
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "depression",
+      "confidence": 0.35,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_4",
+          "quote": "도움이 될까요? 뭘 해도 안 될 것 같은데. 형한테도 말 못 해요. 짐 되는 거 같아서. ... 어제는 술 안 마셨는데… 그냥 멍하니 있었어요. 그게 더 무서웠어요."
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "지속적인 자살 사고, 죄책감, 삶의 의미 상실, 무기력감 등의 증상이 우울장애(depression) 영역에서 관찰되며, 초진 환자로서 정신건강의학과 진료가 필요함",
+      "domain_ref": "depression"
+    }
+  ],
+  "summary": "환자는 매일 지속되는 자살 사고, 죄책감, 삶의 의미 상실, 무기력감, 멍한 상태 등을 호소하고 있으며, 이는 우울장애(depression)의 임상적 특징과 일치함. 위험 표현은 인용하지 않았으며, 모든 근거는 실제 발화에서 추출됨.",
+  "retrieval_meta": {
+    "mode": "llm_only",
+    "chunks_returned": 0,
+    "chunk_ids": [],
+    "queries": null
+  },
+  "chunk_texts": {},
+  "utterances": {
+    "turn_0": "... 그냥 너무 힘들어요. 살고 싶지 않아요.",
+    "turn_1": "... 그냥 너무 힘들어요. 살고 싶지 않아요.",
+    "turn_2": "매일이에요. 사라지고 싶은 생각이 자꾸 들어요. 어떻게 사라질지는 몰라도… 그냥 없어지면 좋겠다 싶죠.",
+    "turn_3": "...\n죄책감이 들어요.\n\"내가 잘못해서 이런 거야\" 싶어서 더 힘들어요.\n...\n이렇게 계속 사는 게 의미 없어 보여요.",
+    "turn_4": "... 도움이 될까요? 뭘 해도 안 될 것 같은데. 형한테도 말 못 해요. 짐 되는 거 같아서. ... 어제는 술 안 마셨는데… 그냥 멍하니 있었어요. 그게 더 무서웠어요.",
+    "turn_5": "나도 모르겠어요. 그냥 답답하고… 무거워요. 숨 쉬는 것도 힘들 것 같아요. ... 형이 있는데… 연락 안 해요. 내가 짐 되는 거 같아서. ... 도움이 될까요? 뭘 해도 안 될 것 같은데.",
+    "turn_6": "... 그냥… 아무도 안 보는 곳으로 사라지고 싶어요. 살아서 뭐 하나 싶어요. ... 형한테도 말 못 해요. 내가 짐 되는 거 같아서.",
+    "turn_7": "... 형이 있는데… 연락 안 해요. 내가 짐 되는 거 같아서. ... 도움이 될까요? 뭘 해도 안 될 것 같은데.",
+    "turn_8": "... 형이 있는데… 연락 안 해요. 내가 짐 되는 거 같아서. ... 도움이 될까요? 뭘 해도 안 될 것 같은데.",
+    "turn_9": "...\n죄책감이 들어요.\n\"내가 잘못해서 이런 거야\" 싶어서 더 힘들어요.\n...\n이렇게 계속 사는 게 의미 없어 보여요.",
+    "turn_10": "... 형이 있는데… 연락 안 해요. 내가 짐 되는 거 같아서. ... 도움이 될까요? 뭘 해도 안 될 것 같은데."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 1,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 2
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "그냥 너무 힘들어요. 살고 싶지 않아요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살고 싶지 않, 살고싶지않) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "매일이에요. 사라지고 싶은 생각이 자꾸 들어요. 어떻게 사라질지는 몰라도… 그냥 없어지면 좋겠다 싶죠.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_4",
+        "quote": "도움이 될까요? 뭘 해도 안 될 것 같은데. 형한테도 말 못 해요. 짐 되는 거 같아서. ... 어제는 술 안 마셨는데… 그냥 멍하니 있었어요. 그게 더 무서웠어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 1,
+    "candidates_after": 1,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 2,
+    "evidence_stripped_risk_lexicon": 2
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "자살 사고의 구체성(계획, 의도, 수단 등)에 대해 더 자세히 확인할 필요가 있나요?",
+    "과거 우울증 진단 이력이나 치료 경험이 있는지 확인하시겠어요?",
+    "가족력 중 정신건강 질환 이력이 있는지 확인하시겠어요?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 3411.4470267668366,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 1828,
+    "completion_tokens": 389,
+    "total_tokens": 2217
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [],
+    "mode": "experimental_unpopulated",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "Stage 1 ran in llm_only mode (no RAG chunks retrieved this run) — the AI-disease container has no chunk-derived evidence to populate from",
+    "recommended_questionnaire": null,
+    "recommendation_caveat": null
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 0,
+    "rag_chunk_qa": 0,
+    "rag_chunk_other": 0,
+    "utterance": 1,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "A",
+    "retrieve": false,
+    "queries": [],
+    "dropped_queries": [
+      "살고 싶지 않고 사라지고 싶은 생각이 매일 들며, 죄책감과 의미 없음으로 인해 힘들다고 표현함",
+      "매일 사라지고 싶은 생각이 들며, 죄책감('내가 잘못해서 이런 거야')과 삶의 의미 상실로 인해 힘들어함. 술은 마시지 않았으나 멍한 상태로 있었음"
+    ],
+    "trigger_reason": "sufficient_no_fallback_no_usable_queries",
+    "fallback_used": false,
+    "judge_output": null
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "vp_id": "VP-001",
+  "session_id": "f1_VP-001",
+  "timestamp": "2026-07-12T20:40:54.632959",
+  "outcome": "administered",
+  "scale_name": "PHQ-9",
+  "item_bank_version": "v0",
+  "item_bank_provenance": "construct-labels-v0, persona-file-sourced, non-validated",
+  "responses": [
+    1,
+    1,
+    3,
+    2,
+    1,
+    1,
+    2,
+    2,
+    0
+  ],
+  "score_result": {
+    "scale_name": "PHQ-9",
+    "total_score": 13,
+    "max_score": 27,
+    "severity": "moderate",
+    "critical_item_positive": false,
+    "critical_items": [],
+    "subscale_scores": {},
+    "interpretation": "PHQ-9 13점: moderate",
+    "recommended_action": "treatment_plan"
+  },
+  "safety_referral": false,
+  "recommendation_provenance": {
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260712_204048_domain_inference.json",
+    "top_candidate_disease": "우울 삽화(우울증)",
+    "top_candidate_similarity_score": 0.492,
+    "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+  },
+  "answer_mode": "llm",
+  "is_diagnostic": false,
+  "disclaimer": "이 결과는 AI가 채점한 자가보고 설문 응답이며 의학적 진단이 아닙니다. 설문 문항은 이 프로젝트 저장소에 실존하는 축약형 구성 라벨(construct label)로만 구성되어 있으며(v0, 비검증), 공식 표준 문항/응답 앵커 문구가 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다."
+}

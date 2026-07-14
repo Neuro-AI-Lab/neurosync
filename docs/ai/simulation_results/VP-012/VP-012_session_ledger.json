@@ -1,0 +1,161 @@
+[
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-12",
+    "is_revisit": false,
+    "final_slots": {
+      "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 있으며, 술을 줄이려고 시도하지만 중단이 어렵고 스트레스 받을 때마다 술 생각이 먼저 듦. 손이 떨릴 때 한 잔 마시면 일시적으로 나아지지만 결국 더 많이 마시게 됨. 간 수치 상승으로 인해 아침에 컨디션이 안 좋아지고 식당 운영이 힘들어짐. 배우자와 자주 다퉈 미안한 마음이 큼",
+      "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마...\"",
+      "substance_use_history": "매일 소주 한 병 이상 음주",
+      "chief_complaint": "술을 줄이려는 생각이 많이 들지만 스스로 인정하는 것이 어려움",
+      "personal_social_history": "식당 운영 중",
+      "medical_history": "건강검진에서 간 수치 상승"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "family_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260712_204049_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260712_204101_domain_inference.json",
+    "f3": {
+      "outcome": "administered",
+      "scale_name": "PHQ-9",
+      "item_bank_version": "v0",
+      "item_bank_provenance": "construct-labels-v0, persona-file-sourced, non-validated",
+      "responses": [
+        1,
+        2,
+        2,
+        2,
+        0,
+        2,
+        2,
+        2,
+        0
+      ],
+      "total_score": 13,
+      "max_score": 27,
+      "severity": "moderate",
+      "subscale_scores": {},
+      "safety_referral": false,
+      "answer_mode": "llm",
+      "recommendation_provenance": {
+        "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260712_204101_domain_inference.json",
+        "top_candidate_disease": "계절성 정동장애",
+        "top_candidate_similarity_score": 0.533,
+        "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+      },
+      "survey_artifact_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260712_204106_survey.json",
+      "scale_scores_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260712_204106_scale_scores.json"
+    },
+    "written_at": "2026-07-12T20:41:06.032961"
+  },
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-13",
+    "is_revisit": false,
+    "final_slots": {
+      "history_of_present_illness": "건강검진에서 간 수치 상승 확인 후 술 줄이기 시도했으나 매일 소주 한 병 이상 마시며 조절 어려움. 손 떨림, 스트레스 시 술 생각이 먼저 들고 한 잔 마시면 일시적 완화되나 오히려 조절 더 어려워짐. 배우자와의 다툼으로 인한 미안함 지속",
+      "personal_social_history": "매일 소주 한 병 이상 음주, 배우자와의 다툼으로 인한 미안함",
+      "substance_use_history": "매일 소주 한 병 이상 음주, 술 줄이기 시도했으나 조절 어려움, 손 떨림 및 스트레스 시 술 생각 증가",
+      "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"네, 걱정이 크네요. 술을 줄이려고 해도 자꾸 손이 떨리고, 한 잔 마시면 좀 나아지긴 해요. 스트레스를 받으면 술 생각이 자꾸 나서 멈추기가 ...\"",
+      "chief_complaint": "술 줄이기가 어렵고 손 떨림, 스트레스 시 술 생각이 먼저 들며, 배우자와의 다툼으로 인한 미안함"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "family_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_114513_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_114534_domain_inference.json",
+    "f3": {
+      "outcome": "administered",
+      "scale_name": "AUDIT-C",
+      "administration_mode": "forced",
+      "item_bank_version": "v1",
+      "item_bank_provenance": "v1, verbatim SBIRT Oregon Korean AUDIT PDF (items 1-3 = AUDIT-C), retrieved 2026-07-13 (item_bank_v1_sources.md §5.2/§5.3, appendix §A5). CVR-016 Finding 8 / condition 2: translation-identity of this item wording to the Korean-population cutoff-validation studies (Seong 2009, Woo 2017) is UNCONFIRMED — those studies did not reproduce their own item-text appendix; the '1잔의 기준' block is Western-unit-only (no 소주 reference point)",
+      "responses": [
+        4,
+        1,
+        4
+      ],
+      "total_score": 9,
+      "max_score": 12,
+      "severity": "hazardous_drinking",
+      "subscale_scores": {},
+      "safety_referral": false,
+      "threshold_caveat": "AUDIT-C severity threshold (male/unknown >= 4, female >= 3) is the international standard (Bush et al. 1998) and has NOT been reconciled with Korean-population evidence: Seong et al. 2009 (N=302 Korean men, full-PDF-read) found an optimal cutoff of >= 8; Woo et al. 2017 (N=509, summary-basis) found men >= 7 / women >= 6. Threshold is unchanged this mission (ADR-033 decision 2) -- reported as an open disposition question for the user, not a value change. See item_bank_v1_sources.md section 5.4.",
+      "safety_pathway": null,
+      "answer_mode": "llm",
+      "recommendation_provenance": {
+        "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_114534_domain_inference.json",
+        "top_candidate_disease": "계절성 정동장애",
+        "top_candidate_similarity_score": 0.532,
+        "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+      },
+      "survey_artifact_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_114535_survey.json",
+      "scale_scores_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_114535_scale_scores.json"
+    },
+    "written_at": "2026-07-13T11:45:35.720855"
+  },
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-13",
+    "is_revisit": false,
+    "final_slots": {
+      "history_of_present_illness": "건강검진에서 간 수치 상승 결과를 받은 후 술을 줄여야겠다는 생각을 했으나, 매일 소주 한 병 이상 마시는 습관이 지속됨. 손 떨림 완화를 위해 술을 마시며, 술 없이는 못 마시지 않을까 하는 생각이 듦. 집사람과의 다툼으로 인해 미안한 마음이 있음",
+      "chief_complaint": "술을 줄여야 한다는 건 알지만 스트레스 받을 때마다 술 생각이 나고, 한 번 시작하면 멈추기 어려우며, 손 떨림 완화를 위해 매일 소주 한 병 이상 마시고 있음"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "family_history",
+      "substance_use_history",
+      "risk_assessment"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_145036_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_145043_domain_inference.json",
+    "f3": {
+      "outcome": "administered",
+      "scale_name": "AUDIT-C",
+      "administration_mode": "forced",
+      "item_bank_version": "v2",
+      "item_bank_provenance": "v2, verbatim [별지 제15호의3서식] 음주 생활습관 평가 도구 (Korea's official 보건복지부고시 '건강검진 실시기준' health-screening alcohol-lifestyle assessment form), items 1-3 (the AUDIT-C-equivalent subset). Cross-verified via two independent mirrors, both retrieved 2026-07-13: elandclinic.com '음주생활습관평가도구(검진자용).pdf' (mirror 1) and epower.hanilmed.net '2021_생활습관포함서식.pdf' (mirror 2) -- docs/ai/audit_c_korean_research.md §3.1/§3.2. Item 1 ships mirror 1's complete five-anchor set (incl. '전혀 안 마신다(0점)'); mirror 2 shows only four anchors for item 1, apparently missing the 0-anchor -- CVR-018 Q2(a) rules for mirror 1's complete set (universal AUDIT item-1 zero/never-anchor shape; plausible OCR/page-render dropout in mirror 2, not a confirmed genuine form variant). Items 2-3 are byte-identical across both mirrors, no discrepancy to disclose. Item 2 is bifurcated into a native 소주-bottle track (response_anchors) and a glasses-based '기타 술' track with its own explicit beer/makgeolli/draft-beer unit-conversion table (secondary_response_anchors / secondary_track_conversion_note_ko) -- adopted specifically because it structurally eliminates the Western/soju unit-conversion confound CVR-017 Finding 4 live-confirmed under v1's Western-unit-only item 2 (CVR-018 Q2(c)). CVR-018 Finding 6 translation-identity caveat, unresolved either way: byte-identity of this item wording to the Korean-population cutoff-validation studies underlying the adopted threshold (Lee JH et al. 2018 KNHANES, Kwon et al. 2013) is UNCONFIRMED -- none of those studies reproduce their own item-text appendix (docs/ai/audit_c_korean_research.md §3.4). Supersedes v1's SBIRT Oregon Korean AUDIT text (ADR-034 decision 2) -- the v1 text remains documented as an alternate in item_bank_v1_sources.md §5, not shipped in this item bank as of v2.",
+      "responses": [
+        4,
+        4,
+        4
+      ],
+      "total_score": 12,
+      "max_score": 12,
+      "severity": "hazardous_drinking",
+      "subscale_scores": {},
+      "safety_referral": false,
+      "threshold_caveat": "AUDIT-C severity threshold is Korean-primary: male/unknown >= 6, female >= 5 (Lee JH et al. 2018, KNHANES waves 4-6, N=46,450 nationally representative Korean adults, sex-split cutoff; male value independently corroborated by Kwon et al. 2013's DSM-IV-TR-anchored at-risk-drinking male cutoff, also 6). Adopted per CVR-018 Q1 / ADR-034 decision 1 -- chosen as the more sensitive (lower, more inclusive) end of the Korean evidence range to bound under-triage risk on a substance-use screen. Two higher Korean cutoffs were considered and NOT adopted: Seong et al. 2009 (N=302 Korean men, cutoff >=8) has no female arm and cannot alone found a dual-sex threshold; Lee BW et al. 2000 (N=86, cutoff >=8) is an explicit case-control design with unreported sex composition, a weaker population match than a nationally representative sample. The international cutoff (Bush et al. 1998, male/unknown >= 4, female >= 3) is retained on the F3 artifact as non-action-driving structured reference metadata only -- it never independently triggers severity or clinician_review. Residual caveat: no study in the evidentiary base (Korean or international) reproduces its own item-text appendix, so byte-identity between these adopted cutoff numbers and whichever AUDIT-C item text is administered (v1 SBIRT Oregon or v2 soju-track) is unconfirmed either way. The adopted cutoff study (KNHANES) and most of the underlying Korean literature validate AUDIT-C against a whole-AUDIT total score derived from the same 10-item instrument (AUDIT-C is items 1-3 of it) -- a same-instrument criterion-circularity limitation, disclosed here rather than smoothed over. See docs/ai/audit_c_korean_research.md section 1 (study #9 Lee JH 2018, study #4 Kwon 2013) and CVR-018 Q1/Q4.",
+      "safety_pathway": null,
+      "answer_mode": "llm",
+      "recommendation_provenance": {
+        "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_145043_domain_inference.json",
+        "top_candidate_disease": "알코올 금단",
+        "top_candidate_similarity_score": 0.506,
+        "recommendation_caveat": "AUDIT-C screens alcohol consumption/frequency (hazardous-use pattern) only, not dependence severity or withdrawal acuity — for a dependence-level presentation, a result here is a first-line/gateway signal, not a severity determination; clinician follow-up is required regardless of score."
+      },
+      "survey_artifact_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_145043_survey.json",
+      "scale_scores_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-012/VP-012_20260713_145043_scale_scores.json"
+    },
+    "written_at": "2026-07-13T14:50:43.679314"
+  }
+]

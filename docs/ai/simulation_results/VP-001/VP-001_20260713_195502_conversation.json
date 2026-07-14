@@ -1,0 +1,1035 @@
+{
+  "session_id": "f1_VP-001_followup",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "가슴 답답함, 어깨·목 뻐근함, 수면 문제"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "프로젝트 마감 시 긴장 및 수면 장애, 목·어깨 뻐근함 발생. 현재는 여행 후 기분 개선되었으나 잠들기 전 머릿속 복잡함으로 1시간 정도 뒤척임. 가슴 답답함과 목 뻐근함은 주 2-3회, 큰 일 있을 때 발생. 스트레스가 완전히 사라지지 않고 회복이 느린 느낌"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음"
+    },
+    {
+      "key": "personal_social_history",
+      "value": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요. 요즘은 전반적으로 안정된 편이에요. 지난 주말에 짧은 여행도 다녀왔고요.  \n다만, 요즘도 가끔 밤에 잠을 설치는 건 비슷한 것 같아요. 누우면 머릿속이 복잡해서 한 시간은 뒤척이게 돼요.  \n가슴이 답답하거나 어깨가 뻐근한 건 여전히 가끔 있어요.   gums? 아니, 목이 뻐근하다는 표현이 더 맞는 것 같아요.  \n스트레스가 완전히 사라진 건 아니지만, 지난번보다는 좀 덜한 느낌이 들어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 지난번에 이어서 상담을 이어가겠습니다. 오늘은 어떤 부분이 가장 신경 쓰이시나요?",
+      "slot_updates": {
+        "chief_complaint": "밤에 잠을 설치는 것, 가슴이 답답하거나 어깨/목이 뻐근한 증상",
+        "history_of_present_illness": "밤에 누우면 머릿속이 복잡해 한 시간 정도 뒤척임, 가슴이 답답하거나 어깨/목이 뻐근한 증상이 가끔 지속됨, 스트레스가 완전히 사라지지 않았으나 지난번보다 덜한 느낌"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "밤에 잠을 설치는 것, 가슴이 답답하거나 어깨/목이 뻐근한 증상",
+        "history_of_present_illness": "밤에 누우면 머릿속이 복잡해 한 시간 정도 뒤척임, 가슴이 답답하거나 어깨/목이 뻐근한 증상이 가끔 지속됨, 스트레스가 완전히 사라지지 않았으나 지난번보다 덜한 느낌",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 8490.823079831898,
+      "timestamp": "2026-07-13T19:53:18.645424",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "안녕하세요. 요즘은 전반적으로 안정된 편이에요. 지난 주말에 짧은 여행도 다녀왔고요.  \n다만, 요즘도 가끔 밤에 잠을 설치는 건 비슷한 것 같아요. 누우면 머릿속이 복잡해서 한 시간은 뒤척이게 돼요.  \n가슴이 답답하거나 어깨가 뻐근한 건 여전히 가끔 있어요.   gums? 아니, 목이 뻐근하다는 표현이 더 맞는 것 같아요.  \n스트레스가 완전히 사라진 건 아니지만, 지난번보다는 좀 덜한 느낌이 들어요.",
+        "normalized": "안녕하세요. 요즘은 전반적으로 안정된 편이에요. 지난 주말에 짧은 여행도 다녀왔고요.  \n다만, 요즘도 가끔 밤에 잠을 설치는 건 비슷한 것 같아요. 누우면 머릿속이 복잡해서 한 시간은 뒤척이게 돼요.  \n가슴이 답답하거나 어깨가 뻐근한 건 여전히 가끔 있어요.   gums? 아니, 목이 뻐근하다는 표현이 더 맞는 것 같아요.  \n스트레스가 완전히 사라진 건 아니지만, 지난번보다는 좀 덜한 느낌이 들어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2319.4430209696293,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.1,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "누우면 머릿속이 복잡해서 한 시간은 뒤척이게 돼요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요. 요즘은 전반적으로 안정된 편이에요. 지난 주말에 짧은 여행도 다녀왔고요.  \n다만, 요즘도 가끔 밤에 잠을 설치는 건 비슷한 것 같아요. 누우면 머릿속이 복잡해서 한 시간은 뒤척이게 돼요.  \n가슴이 답답하거나 어깨가 뻐근한 건 여전히 가끔 있어요.   gums? 아니, 목이 뻐근하다는 표현이 더 맞는 것 같아요.  \n스트레스가 완전히 사라진 건 아니지만, 지난번보다는 좀 덜한 느낌이 들어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "여행 다녀오신 건 잘 지내셨다는 뜻 같아 마음이 놓이네요. 그런데 잠들기 전 머릿속이 복잡해 한 시간씩 뒤척이시는 건 여전히 힘드시겠어요. 가슴 답답함과 목 뻐근함은 가끔씩 찾아오시는 건가요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함, 어깨·목 뻐근함, 수면 문제",
+        "history_of_present_illness": "밤에 잠을 설치는 증상 지속, 누우면 머릿속이 복잡하여 한 시간 뒤척임, 가슴 답답함 및 어깨·목 뻐근함이 가끔 발생, 스트레스가 완전히 사라지지 않았으나 지난번보다 덜한 느낌"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함, 어깨·목 뻐근함, 수면 문제",
+        "history_of_present_illness": "밤에 잠을 설치는 증상 지속, 누우면 머릿속이 복잡하여 한 시간 뒤척임, 가슴 답답함 및 어깨·목 뻐근함이 가끔 발생, 스트레스가 완전히 사라지지 않았으나 지난번보다 덜한 느낌",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3885.553400963545,
+      "timestamp": "2026-07-13T19:53:22.531000",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "안녕하세요. 요즘은 전반적으로 안정된 편이에요. 지난 주말에 짧은 여행도 다녀왔고요.  \n다만, 요즘도 가끔 밤에 잠을 설치는 건 비슷한 것 같아요. 누우면 머릿속이 복잡해서 한 시간은 뒤척이게 돼요.  \n가슴이 답답하거나 어깨가 뻐근한 건 여전히 가끔 있어요.   gums? 아니, 목이 뻐근하다는 표현이 더 맞는 것 같아요.  \n스트레스가 완전히 사라진 건 아니지만, 지난번보다는 좀 덜한 느낌이 들어요.",
+        "normalized": "안녕하세요. 요즘은 전반적으로 안정된 편이에요. 지난 주말에 짧은 여행도 다녀왔고요.  \n다만, 요즘도 가끔 밤에 잠을 설치는 건 비슷한 것 같아요. 누우면 머릿속이 복잡해서 한 시간은 뒤척이게 돼요.  \n가슴이 답답하거나 어깨가 뻐근한 건 여전히 가끔 있어요.   gums? 아니, 목이 뻐근하다는 표현이 더 맞는 것 같아요.  \n스트레스가 완전히 사라진 건 아니지만, 지난번보다는 좀 덜한 느낌이 들어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2319.4430209696293,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.2,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "누우면 머릿속이 복잡해서 한 시간은 뒤척이게 돼요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "네, 여행 덕분에 기분은 나아졌는데, 밤에 잠들기 전까지는 여전히 머릿속이 복잡해요. 한 시간 정도는 뒤척이는 날이 종종 있어요.  \n가슴 답답함이나 목 뻐근함은 일주일에 두세 번 정도, 특별히 무언가 큰 일이 있을 때만 그런 것 같아요.  ía en? 음... 스트레스가 완전히 사라진 건 아니지만, 예전보다는 덜하긴 해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "여행 다녀오신 건 잘 지내셨다는 뜻 같아 마음이 놓이네요. 그런데 잠들기 전 머릿속이 복잡해 한 시간씩 뒤척이시는 건 여전히 힘드시겠어요. 가슴 답답함과 목 뻐근함은 일주일에 두세 번 정도, 특별히 무언가 큰 일이 있을 때만 그런 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함, 목 뻐근함, 수면 문제",
+        "history_of_present_illness": "여행으로 기분은 나아졌으나 잠들기 전 머릿속이 복잡해 한 시간 정도 뒤척이는 날이 종종 있음. 가슴 답답함과 목 뻐근함은 일주일에 두세 번 정도, 특별히 큰 일이 있을 때만 발생함. 스트레스가 완전히 사라지지는 않았으나 예전보다는 덜함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함, 목 뻐근함, 수면 문제",
+        "history_of_present_illness": "여행으로 기분은 나아졌으나 잠들기 전 머릿속이 복잡해 한 시간 정도 뒤척이는 날이 종종 있음. 가슴 답답함과 목 뻐근함은 일주일에 두세 번 정도, 특별히 큰 일이 있을 때만 발생함. 스트레스가 완전히 사라지지는 않았으나 예전보다는 덜함",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3325.859446078539,
+      "timestamp": "2026-07-13T19:53:31.568397",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "네, 여행 덕분에 기분은 나아졌는데, 밤에 잠들기 전까지는 여전히 머릿속이 복잡해요. 한 시간 정도는 뒤척이는 날이 종종 있어요.  \n가슴 답답함이나 목 뻐근함은 일주일에 두세 번 정도, 특별히 무언가 큰 일이 있을 때만 그런 것 같아요.  ía en? 음... 스트레스가 완전히 사라진 건 아니지만, 예전보다는 덜하긴 해요.",
+        "normalized": "네, 여행 덕분에 기분은 나아졌는데, 밤에 잠들기 전까지는 여전히 머릿속이 복잡해요. 한 시간 정도는 뒤척이는 날이 종종 있어요.  \n가슴 답답함이나 목 뻐근함은 일주일에 두세 번 정도, 특별히 무언가 큰 일이 있을 때만 그런 것 같아요.  ía en? 음... 스트레스가 완전히 사라진 건 아니지만, 예전보다는 덜하긴 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2399.7601978480816,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.1,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          },
+          {
+            "label": "relief",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "여행 덕분에 기분은 나아졌는데, 밤에 잠들기 전까지는 여전히 머릿속이 복잡해요. 한 시간 정도는 뒤척이는 날이 종종 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "네, 여행 덕분에 기분은 나아졌는데, 밤에 잠들기 전까지는 여전히 머릿속이 복잡해요. 한 시간 정도는 뒤척이는 날이 종종 있어요.  \n가슴 답답함이나 목 뻐근함은 일주일에 두세 번 정도, 특별히 무언가 큰 일이 있을 때만 그런 것 같아요.  \n음... 스트레스가 완전히 사라진 건 아니지만, 예전보다는 덜하긴 해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "여행 다녀오신 건 잘 지내셨다는 뜻 같아 마음이 놓이네요. 그런데 잠들기 전 머릿속이 복잡해 한 시간씩 뒤척이시는 건 여전히 힘드시겠어요. 가슴 답답함과 목 뻐근함은 일주일에 두세 번 정도, 특별히 무언가 큰 일이 있을 때만 그런 것 같아요. 스트레스가 예전보다는 덜하긴 하지만, 완전히 사라진 건 아니라고 하셨는데, 혹시 과거에도 비슷한 증상을 경험하신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함, 목 뻐근함, 수면 문제",
+        "history_of_present_illness": "여행으로 기분은 나아졌으나 잠들기 전 머릿속이 복잡해 한 시간 정도 뒤척이는 날이 종종 있으며, 가슴 답답함과 목 뻐근함은 일주일에 두세 번 정도, 특별히 큰 일이 있을 때만 발생하고 스트레스가 완전히 사라지지는 않았으나 예전보다 덜함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함, 목 뻐근함, 수면 문제",
+        "history_of_present_illness": "여행으로 기분은 나아졌으나 잠들기 전 머릿속이 복잡해 한 시간 정도 뒤척이는 날이 종종 있으며, 가슴 답답함과 목 뻐근함은 일주일에 두세 번 정도, 특별히 큰 일이 있을 때만 발생하고 스트레스가 완전히 사라지지는 않았으나 예전보다 덜함",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4639.772156719118,
+      "timestamp": "2026-07-13T19:53:41.484685",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "네, 여행 덕분에 기분은 나아졌는데, 밤에 잠들기 전까지는 여전히 머릿속이 복잡해요. 한 시간 정도는 뒤척이는 날이 종종 있어요.  \n가슴 답답함이나 목 뻐근함은 일주일에 두세 번 정도, 특별히 무언가 큰 일이 있을 때만 그런 것 같아요.  \n음... 스트레스가 완전히 사라진 건 아니지만, 예전보다는 덜하긴 해요.",
+        "normalized": "네, 여행 덕분에 기분은 나아졌는데, 밤에 잠들기 전까지는 여전히 머릿속이 복잡해요. 한 시간 정도는 뒤척이는 날이 종종 있어요.  \n가슴 답답함이나 목 뻐근함은 일주일에 두세 번 정도, 특별히 무언가 큰 일이 있을 때만 그런 것 같아요.  \n음... 스트레스가 완전히 사라진 건 아니지만, 예전보다는 덜하긴 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1718.8799660652876,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.2,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          },
+          {
+            "label": "hope",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "여행 덕분에 기분은 나아졌는데, 밤에 잠들기 전까지는 여전히 머릿속이 복잡해요. 한 시간 정도는 뒤척이는 날이 종종 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1083.3659931086004,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "네, 사실 이전에도 비슷한 증상이 있었어요. 프로젝트 마감이 다가올 때면 밤에 잠을 설치고, 목이나 어깨가 뻐근해지곤 했죠. 그런데 이번에는 긴장이 좀 더 오래 지속되는 것 같아서, 예전보다는 회복이 느린 느낌이에요. 그래도 여행도 다녀오고 동료들하고도 이야기를 나누다 보니, 마음은 조금씩 가벼워지는 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "여행 다녀오신 건 잘 지내셨다는 뜻 같아 마음이 놓이네요. 과거에도 비슷한 증상이 있으셨다고 하셨는데, 언제부터 그런 증상이 시작되셨는지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함, 목 뻐근함, 수면 문제",
+        "history_of_present_illness": "프로젝트 마감 시 긴장 지속으로 인한 수면 장애 및 신체 증상, 여행 후 기분 개선 있으나 수면 전 머릿속 복잡함과 신체 증상 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함, 목 뻐근함, 수면 문제",
+        "history_of_present_illness": "프로젝트 마감 시 긴장 지속으로 인한 수면 장애 및 신체 증상, 여행 후 기분 개선 있으나 수면 전 머릿속 복잡함과 신체 증상 지속",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5121.0200153291225,
+      "timestamp": "2026-07-13T19:53:52.225168",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "네, 사실 이전에도 비슷한 증상이 있었어요. 프로젝트 마감이 다가올 때면 밤에 잠을 설치고, 목이나 어깨가 뻐근해지곤 했죠.  \n그런데 이번에는 긴장이 좀 더 오래 지속되는 것 같아서, 예전보다는 회복이 느린 느낌이에요.  \n그래도 여행도 다녀오고 동료들하고도 이야기를 나누다 보니, 마음은 조금씩 가벼워지는 것 같아요.",
+        "normalized": "네, 사실 이전에도 비슷한 증상이 있었어요. 프로젝트 마감이 다가올 때면 밤에 잠을 설치고, 목이나 어깨가 뻐근해지곤 했죠. 그런데 이번에는 긴장이 좀 더 오래 지속되는 것 같아서, 예전보다는 회복이 느린 느낌이에요. 그래도 여행도 다녀오고 동료들하고도 이야기를 나누다 보니, 마음은 조금씩 가벼워지는 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1767.0732880942523,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.1,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          },
+          {
+            "label": "hope",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "프로젝트 마감이 다가올 때면 밤에 잠을 설치고, 목이나 어깨가 뻐근해지곤 했죠. 그런데 이번에는 긴장이 좀 더 오래 지속되는 것 같아서, 예전보다는 회복이 느린 느낌이에요. 그래도 여행도 다녀오고 동료들하고도 이야기를 나누다 보니, 마음은 조금씩 가벼워지는 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 923.2979412190616,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "사실 이전에도 비슷한 증상이 있었어요. 프로젝트 마감이 다가올 때면 밤에 잠을 설치고, 목이나 어깨가 뻐근해졌죠. 그런데 이번에는 긴장이 좀 더 오래 지속되는 것 같아서, 예전보다는 회복이 느린 느낌이에요. serum? 음... 스트레스가 완전히 사라진 건 아니지만, 그래도 여행도 다녀오고 동료들하고 이야기하다 보니 마음은 조금씩 가벼워지는 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "여행 다녀오신 건 잘 지내셨다는 뜻 같아 마음이 놓이네요. 과거에도 비슷한 증상이 있으셨다고 하셨는데, 혹시 정신건강의학과 진료를 받으신 적이 있으신가요? 아니면 심리상담이나 진단을 받은 적이 있는지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함, 어깨·목 뻐근함, 수면 문제",
+        "history_of_present_illness": "프로젝트 마감 시 수면 장애 및 목·어깨 뻐근함 발생, 이번에는 긴장 지속 기간이 더 길고 회복이 느린 느낌, 여행 후 기분 개선 및 동료와의 대화로 마음 가벼워짐"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함, 어깨·목 뻐근함, 수면 문제",
+        "history_of_present_illness": "프로젝트 마감 시 수면 장애 및 목·어깨 뻐근함 발생, 이번에는 긴장 지속 기간이 더 길고 회복이 느린 느낌, 여행 후 기분 개선 및 동료와의 대화로 마음 가벼워짐",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5279.940932057798,
+      "timestamp": "2026-07-13T19:54:02.806657",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "사실 이전에도 비슷한 증상이 있었어요. 프로젝트 마감이 다가올 때면 밤에 잠을 설치고, 목이나 어깨가 뻐근해졌죠.  \n그런데 이번에는 긴장이 좀 더 오래 지속되는 것 같아서, 예전보다는 회복이 느린 느낌이에요.   serum? 음... 스트레스가 완전히 사라진 건 아니지만, 그래도 여행도 다녀오고 동료들하고 이야기하다 보니 마음은 조금씩 가벼워지는 것 같아요.",
+        "normalized": "사실 이전에도 비슷한 증상이 있었어요. 프로젝트 마감이 다가올 때면 밤에 잠을 설치고, 목이나 어깨가 뻐근해졌죠. 그런데 이번에는 긴장이 좀 더 오래 지속되는 것 같아서, 예전보다는 회복이 느린 느낌이에요. serum? 음... 스트레스가 완전히 사라진 건 아니지만, 그래도 여행도 다녀오고 동료들하고 이야기하다 보니 마음은 조금씩 가벼워지는 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1522.2082021646202,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.3,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          },
+          {
+            "label": "relief",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "긴장이 좀 더 오래 지속되는 것 같아서, 예전보다는 회복이 느린 느낌이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1076.2050310149789,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "아니요, 정신과나 심리상담 같은 데는 가 본 적이 없어요. 지금까지는 혼자 감당해 오는 편이었거든요. 이번에도 병원을 갈 정도인지 잘 몰라서, 일단 이런 앱으로 먼저 이야기해 보는 거예요. 의사 선생님한테 직접 가는 건 아직은 좀 망설여지네요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가슴 답답함",
+        "목 뻐근함",
+        "잠들기 전 머릿속이 복잡해요",
+        "한 시간 정도는 뒤척이는 날이 종종 있어요"
+      ],
+      "agent_response": "병원 방문이 망설여지시는 건 충분히 이해됩니다. 혼자 감당해 오시는 게 쉽지 않으셨을 텐데, 지금 이렇게 이야기를 나눠보는 것만으로도 큰 용기라고 생각해요. 혹시 과거에 다른 신체 질환이나 만성질환을 진단받은 적이 있으신가요? 아니면 현재 복용 중인 약이 있다면 알려주세요.",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함, 목 뻐근함, 수면 문제",
+        "history_of_present_illness": "프로젝트 마감 시 수면 장애 및 목·어깨 뻐근함 발생, 이번에는 긴장 지속 기간이 더 길고 회복이 느린 느낌, 여행 후 기분 개선 및 동료와의 대화로 마음 가벼워짐"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함, 목 뻐근함, 수면 문제",
+        "history_of_present_illness": "프로젝트 마감 시 수면 장애 및 목·어깨 뻐근함 발생, 이번에는 긴장 지속 기간이 더 길고 회복이 느린 느낌, 여행 후 기분 개선 및 동료와의 대화로 마음 가벼워짐",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4614.313553087413,
+      "timestamp": "2026-07-13T19:54:13.651562",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아니요, 정신과나 심리상담 같은 데는 가 본 적이 없어요. 지금까지는 혼자 감당해 오는 편이었거든요.  \n이번에도 병원을 갈 정도인지 잘 몰라서, 일단 이런 앱으로 먼저 이야기해 보는 거예요.  \n의사 선생님한테 직접 가는 건 아직은 좀 망설여지네요.",
+        "normalized": "아니요, 정신과나 심리상담 같은 데는 가 본 적이 없어요. 지금까지는 혼자 감당해 오는 편이었거든요. 이번에도 병원을 갈 정도인지 잘 몰라서, 일단 이런 앱으로 먼저 이야기해 보는 거예요. 의사 선생님한테 직접 가는 건 아직은 좀 망설여지네요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1292.5194231793284,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "의사 선생님한테 직접 가는 건 아직은 좀 망설여지네요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 특별히 진단받은 건 없어요. 감기 말고는 병원을 자주 간 적도 별로 없어요. 지금 먹고 있는 약도 없고, 건강 검진도 1년 전에 받은 게 마지막이에요. 그냥 요즘처럼 피곤하고 잠을 못 자는 정도로만 생각했어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "도움이 필요하실 때 이렇게 이야기를 나눠볼 수 있다는 것만으로도 큰 용기라고 생각해요.",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함, 목 뻐근함, 수면 문제",
+        "history_of_present_illness": "프로젝트 마감 스트레스로 인해 밤에 잠들기 전 머릿속이 복잡해 한 시간 정도 뒤척이는 증상이 지속됨. 가슴 답답함과 목 뻐근함은 일주일에 2-3회 정도, 큰 일이 있을 때 주로 발생함. 과거에도 유사한 증상이 있었으나 이번에는 긴장 지속 기간이 더 길고 회복이 느린 느낌임. 여행과 동료와의 대화로 인해 기분이 다소 개선되었으나 수면 문제는 여전히 존재함."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함, 목 뻐근함, 수면 문제",
+        "history_of_present_illness": "프로젝트 마감 스트레스로 인해 밤에 잠들기 전 머릿속이 복잡해 한 시간 정도 뒤척이는 증상이 지속됨. 가슴 답답함과 목 뻐근함은 일주일에 2-3회 정도, 큰 일이 있을 때 주로 발생함. 과거에도 유사한 증상이 있었으나 이번에는 긴장 지속 기간이 더 길고 회복이 느린 느낌임. 여행과 동료와의 대화로 인해 기분이 다소 개선되었으나 수면 문제는 여전히 존재함.",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5972.0558458939195,
+      "timestamp": "2026-07-13T19:54:24.555738",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아니요, 특별히 진단받은 건 없어요. 감기 말고는 병원을 자주 간 적도 별로 없어요.  \n지금 먹고 있는 약도 없고, 건강 검진도 1년 전에 받은 게 마지막이에요.  \n그냥 요즘처럼 피곤하고 잠을 못 자는 정도로만 생각했어요.",
+        "normalized": "아니요, 특별히 진단받은 건 없어요. 감기 말고는 병원을 자주 간 적도 별로 없어요. 지금 먹고 있는 약도 없고, 건강 검진도 1년 전에 받은 게 마지막이에요. 그냥 요즘처럼 피곤하고 잠을 못 자는 정도로만 생각했어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1513.906731735915,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "아니요, 특별히 진단받은 건 없어요. 감기 말고는 병원을 자주 간 적도 별로 없어요. 지금 먹고 있는 약도 없고, 건강 검진도 1년 전에 받은 게 마지막이에요. 그냥 요즘처럼 피곤하고 잠을 못 자는 정도로만 생각했어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "near_dup_back_to_back"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 829.1311780922115,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "병원 방문이 망설여지시는 건 충분히 이해됩니다",
+          "count": 1
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 8,
+      "patient_message": "감사합니다. 사실 정신과나 심리상담 같은 데는 가 본 적이 없어요. 지금까지는 혼자 감당해 오는 편이었거든요. 이번에도 병원을 갈 정도인지 잘 모르겠어서, 일단 이런 앱으로 먼저 이야기해 보는 거예요. 의사 선생님한테 직접 가는 건 아직은 좀 망설여지네요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "병원 방문이 망설여지시는 건 충분히 이해됩니다. 혼자 감당해 오시는 게 쉽지 않으셨을 텐데, 지금 이렇게 이야기를 나눠보는 것만으로도 큰 용기라고 생각해요. 혹시 가족분들 중에 비슷한 어려움을 겪으셨던 분이 계신지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함, 목 뻐근함, 수면 문제",
+        "history_of_present_illness": "프로젝트 마감 시 긴장, 수면 전 머릿속 복잡, 가슴 답답함 및 목 뻐근함 동반, 식욕 감소, 여행 후 기분 개선 및 증상 완화"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함, 목 뻐근함, 수면 문제",
+        "history_of_present_illness": "프로젝트 마감 시 긴장, 수면 전 머릿속 복잡, 가슴 답답함 및 목 뻐근함 동반, 식욕 감소, 여행 후 기분 개선 및 증상 완화",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4522.625983692706,
+      "timestamp": "2026-07-13T19:54:34.119567",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "감사합니다. 사실 정신과나 심리상담 같은 데는 가 본 적이 없어요. 지금까지는 혼자 감당해 오는 편이었거든요.  \n이번에도 병원을 갈 정도인지 잘 모르겠어서, 일단 이런 앱으로 먼저 이야기해 보는 거예요.  \n의사 선생님한테 직접 가는 건 아직은 좀 망설여지네요.",
+        "normalized": "감사합니다. 사실 정신과나 심리상담 같은 데는 가 본 적이 없어요. 지금까지는 혼자 감당해 오는 편이었거든요. 이번에도 병원을 갈 정도인지 잘 모르겠어서, 일단 이런 앱으로 먼저 이야기해 보는 거예요. 의사 선생님한테 직접 가는 건 아직은 좀 망설여지네요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1515.6631842255592,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          },
+          {
+            "label": "despair",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "병원 방문이 망설여지시는 건 충분히 이해됩니다. 혼자 감당해 오시는 게 쉽지 않으셨을 텐데, 지금 이렇게 이야기를 나눠보는 것만으로도 큰 용기라고 생각해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "가족 중에 정신과 치료나 심리상담을 받은 분은 없어요. 어머니도 그런 건 잘 언급하지 않으시고, 그냥 “힘들 땐 쉬고, 이야기 나누고” 정도로 말씀하시죠.  \n저도 그건 알지만, 막상 병원을 가는 건 또 다른 문제인 것 같아요.  \n그래도 어머니랑 통화할 땐 마음이 좀 가라앉긴 해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "어머니랑 통화할 땐 마음이 좀 가라앉긴 하시겠네요. 혹시 가족분들 중에 비슷한 어려움을 겪으셨던 분이 계신지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함, 목 뻐근함, 수면 문제",
+        "history_of_present_illness": "프로젝트 마감 시 긴장 및 수면 장애, 목·어깨 뻐근함 발생. 이번 프로젝트에서는 긴장 지속 기간이 길어져 회복이 느린 느낌. 여행 후 기분 개선 및 동료와의 대화로 마음 가벼워짐"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함, 목 뻐근함, 수면 문제",
+        "history_of_present_illness": "프로젝트 마감 시 긴장 및 수면 장애, 목·어깨 뻐근함 발생. 이번 프로젝트에서는 긴장 지속 기간이 길어져 회복이 느린 느낌. 여행 후 기분 개선 및 동료와의 대화로 마음 가벼워짐",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4385.349643882364,
+      "timestamp": "2026-07-13T19:54:46.815369",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "가족 중에 정신과 치료나 심리상담을 받은 분은 없어요. 어머니도 그런 건 잘 언급하지 않으시고, 그냥 “힘들 땐 쉬고, 이야기 나누고” 정도로 말씀하시죠.  \n저도 그건 알지만, 막상 병원을 가는 건 또 다른 문제인 것 같아요.  \n그래도 어머니랑 통화할 땐 마음이 좀 가라앉긴 해요.",
+        "normalized": "가족 중에 정신과 치료나 심리상담을 받은 분은 없어요. 어머니도 그런 건 잘 언급하지 않으시고, 그냥 “힘들 땐 쉬고, 이야기 나누고” 정도로 말씀하시죠.  \n저도 그건 알지만, 막상 병원을 가는 건 또 다른 문제인 것 같아요.  \n그래도 어머니랑 통화할 땐 마음이 좀 가라앉긴 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2843.3952159248292,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "가족 중에 정신과 치료나 심리상담을 받은 분은 없어요. 어머니도 그런 건 잘 언급하지 않으시고, 그냥 “힘들 땐 쉬고, 이야기 나누고” 정도로 말씀하시죠. 저도 그건 알지만, 막상 병원을 가는 건 또 다른 문제인 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 10,
+      "patient_message": "가족 중에 정신과 치료나 심리상담을 받은 분는 없어요. 어머니도 그런 건 잘 언급하지 않으시고, 그냥 “힘들 땐 쉬고, 이야기 나누고” 정도로 말씀하시죠.  \n저도 그건 알지만, 막상 병원을 가는 건 또 다른 문제인 것 같아요.  \n그래도 어머니랑 통화할 땐 마음이 좀 가라앉긴 해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "어머니랑 통화할 땐 마음이 좀 가라앉긴 하시겠네요. 혹시 과거에도 비슷한 증상을 겪으시면서 다른 신체 질환이나 정신건강 문제로 진단받은 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함, 어깨·목 뻐근함, 수면 문제",
+        "history_of_present_illness": "프로젝트 마감 시 긴장 및 수면 장애, 목·어깨 뻐근함 발생. 현재는 여행 후 기분 개선되었으나 잠들기 전 머릿속 복잡함으로 1시간 정도 뒤척임. 가슴 답답함과 목 뻐근함은 주 2-3회, 큰 일 있을 때 발생. 스트레스가 완전히 사라지지 않고 회복이 느린 느낌"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함, 어깨·목 뻐근함, 수면 문제",
+        "history_of_present_illness": "프로젝트 마감 시 긴장 및 수면 장애, 목·어깨 뻐근함 발생. 현재는 여행 후 기분 개선되었으나 잠들기 전 머릿속 복잡함으로 1시간 정도 뒤척임. 가슴 답답함과 목 뻐근함은 주 2-3회, 큰 일 있을 때 발생. 스트레스가 완전히 사라지지 않고 회복이 느린 느낌",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4956.216415856034,
+      "timestamp": "2026-07-13T19:54:57.902190",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "가족 중에 정신과 치료나 심리상담을 받은 분는 없어요. 어머니도 그런 건 잘 언급하지 않으시고, 그냥 “힘들 땐 쉬고, 이야기 나누고” 정도로 말씀하시죠.  \n저도 그건 알지만, 막상 병원을 가는 건 또 다른 문제인 것 같아요.  \n그래도 어머니랑 통화할 땐 마음이 좀 가라앉긴 해요.",
+        "normalized": "가족 중에 정신과 치료나 심리상담을 받은 분는 없어요. 어머니도 그런 건 잘 언급하지 않으시고, 그냥 “힘들 땐 쉬고, 이야기 나누고” 정도로 말씀하시죠.  \n저도 그건 알지만, 막상 병원을 가는 건 또 다른 문제인 것 같아요.  \n그래도 어머니랑 통화할 땐 마음이 좀 가라앉긴 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2519.6163640357554,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "가족 중에 정신과 치료나 심리상담을 받은 분은 없어요. 어머니도 그런 건 잘 언급하지 않으시고, 그냥 “힘들 땐 쉬고, 이야기 나누고” 정도로 말씀하시죠. 저도 그건 알지만, 막상 병원을 가는 건 또 다른 문제인 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1038.196133915335,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-13T19:53:10.154551",
+  "ended_at": "2026-07-13T19:55:02.696895",
+  "grounded_coverage": 0.625,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5807,
+  "patient_lng": 126.8898,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.13603223487734795,
+    "reason_summary": "Session sentiment: ['anxiety', 'sadness'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "anxiety",
+      "sadness"
+    ],
+    "emotion_distribution": {
+      "anxiety": 0.41,
+      "sadness": 0.41,
+      "relief": 0.07,
+      "hope": 0.07,
+      "despair": 0.04
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": 0.1
+      },
+      {
+        "turn": 1,
+        "polarity": 0.2
+      },
+      {
+        "turn": 2,
+        "polarity": 0.1
+      },
+      {
+        "turn": 3,
+        "polarity": 0.2
+      },
+      {
+        "turn": 4,
+        "polarity": 0.1
+      },
+      {
+        "turn": 5,
+        "polarity": -0.3
+      },
+      {
+        "turn": 6,
+        "polarity": -0.7
+      },
+      {
+        "turn": 7,
+        "polarity": -0.5
+      },
+      {
+        "turn": 8,
+        "polarity": -0.6
+      },
+      {
+        "turn": 9,
+        "polarity": -0.65
+      },
+      {
+        "turn": 10,
+        "polarity": -0.65
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": true,
+    "shift_description": "대화 전반부 polarity 0.1 → 후반부 -0.6 (악화)",
+    "repeated_patterns": [
+      "anxiety 표현 11회 반복",
+      "sadness 표현 11회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": 0.1
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": 0.2
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "anxiety",
+          "sadness",
+          "relief"
+        ],
+        "polarity": 0.1
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "anxiety",
+          "sadness",
+          "hope"
+        ],
+        "polarity": 0.2
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "anxiety",
+          "sadness",
+          "hope"
+        ],
+        "polarity": 0.1
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "anxiety",
+          "sadness",
+          "relief"
+        ],
+        "polarity": -0.3
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "anxiety",
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.65
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 8,
+  "simulated_date": "2026-10-12",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- chief_complaint: 가슴 답답함, 어깨·목 뻐근함, 수면 문제\n- history_of_present_illness: 새 프로젝트 시작 후 데드라인이 빡빡해지면서 긴장이 풀리지 않고, 잠들기 전 머릿속이 복잡하며 아침에 눈 뜨면 '또 시작이네' 하는 생각이 듦. 가슴 답답함과 어깨·목 뻐근함이 동반되며 식욕이 줄어듦. 지난번 프로젝트 종료 후에는 긴장이 풀렸으나 이번에는 끝날 때까지 긴장이 지속될 것 같아 걱정됨\n- substance_use_history: 주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음\n- personal_social_history: 회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함\n\n[이전 세션 요약 — 미수집 정보]\npast_psychiatric_history, medical_history, family_history",
+  "carried_slot_provenance": {
+    "substance_use_history": "carried_from_session_7",
+    "personal_social_history": "carried_from_session_7",
+    "risk_assessment": "carried_from_session_7"
+  },
+  "scenario_pack_id": "VP-001_improvement_plateau_s08",
+  "arc_mode": "improvement_plateau"
+}

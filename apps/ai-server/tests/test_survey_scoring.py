@@ -138,17 +138,22 @@ class TestWHO5:
 
 
 class TestAUDITC:
+    """Korean-primary threshold (CVR-018 Q1 adopted / ADR-034 decision 1):
+    male/unknown >= 6, female >= 5 — replaces the international 4/3
+    threshold, which is now retained elsewhere (src.f3) as non-action-
+    driving metadata only."""
+
     def test_male_threshold(self):
-        result = score_survey("AUDIT-C", [1, 1, 1], patient_sex="male")
-        assert result.severity == "low_risk"  # total=3 < threshold=4
-        result2 = score_survey("AUDIT-C", [2, 1, 1], patient_sex="male")
-        assert result2.severity == "hazardous_drinking"  # total=4 >= 4
+        result = score_survey("AUDIT-C", [2, 2, 1], patient_sex="male")
+        assert result.severity == "low_risk"  # total=5 < threshold=6
+        result2 = score_survey("AUDIT-C", [2, 2, 2], patient_sex="male")
+        assert result2.severity == "hazardous_drinking"  # total=6 >= 6
 
     def test_female_threshold(self):
-        result = score_survey("AUDIT-C", [1, 1, 0], patient_sex="female")
-        assert result.severity == "low_risk"  # total=2 < threshold=3
-        result2 = score_survey("AUDIT-C", [1, 1, 1], patient_sex="female")
-        assert result2.severity == "hazardous_drinking"  # total=3 >= 3
+        result = score_survey("AUDIT-C", [2, 1, 1], patient_sex="female")
+        assert result.severity == "low_risk"  # total=4 < threshold=5
+        result2 = score_survey("AUDIT-C", [2, 2, 1], patient_sex="female")
+        assert result2.severity == "hazardous_drinking"  # total=5 >= 5
 
 
 # ── Invalid scale ────────────────────────────────────────────────────

@@ -645,6 +645,8 @@ def _build_artifact(
     ai_predicted_disease: dict[str, Any] | None = None,
     evidence_provenance_summary: dict[str, int] | None = None,
     rag_trigger: dict[str, Any] | None = None,
+    scenario_pack_id: str | None = None,
+    arc_mode: str | None = None,
 ) -> dict[str, Any]:
     """Build the F2 artifact dict.
 
@@ -676,6 +678,14 @@ def _build_artifact(
     convention as ``ai_predicted_disease``/``evidence_provenance_summary``
     above. ``None`` only for pre-W4 artifacts/tests; ``_run()`` always
     supplies a real value.
+
+    ``scenario_pack_id``/``arc_mode`` (`docs/ai/f4_quick_dev_plan.md` §2.7,
+    `REV-044` Issue 4 / `ADR-036` item 3): reprojected straight from the
+    upstream F1 ``conversation.json``'s own top-level fields (``_run()``
+    reads ``data.get("scenario_pack_id")``/``data.get("arc_mode")``, never
+    re-derived/guessed here) — a scripted session self-identifies in THIS
+    artifact class too, not only via harness-only ledger cross-reference.
+    ``None``/absent for every natural (non-scripted) F1 input.
     """
     return {
         "session_id": session_id,
@@ -727,6 +737,10 @@ def _build_artifact(
         # for pre-W4 artifacts/tests. `rag_trigger.retrieve` vs `repro.mode`
         # vs `ai_predicted_disease.mode` is the MET-6 mode-consistency triple.
         "rag_trigger": rag_trigger,
+        # F4 quick-dev provenance (§2.7, ADR-036 item 3) — SIBLING top-level
+        # keys, additive, `None` for every pre-F4/natural artifact.
+        "scenario_pack_id": scenario_pack_id,
+        "arc_mode": arc_mode,
     }
 
 
@@ -1080,6 +1094,10 @@ async def _run(args: argparse.Namespace) -> None:
         ai_predicted_disease=ai_predicted_disease.model_dump(),
         evidence_provenance_summary=evidence_provenance_summary,
         rag_trigger=trigger.as_dict(),
+        # F4 quick-dev provenance (§2.7, ADR-036 item 3) — reprojected from
+        # the F1 conversation.json `data` dict, never re-derived.
+        scenario_pack_id=data.get("scenario_pack_id"),
+        arc_mode=data.get("arc_mode"),
     )
 
     out_dir = Path(args.out) if args.out else None

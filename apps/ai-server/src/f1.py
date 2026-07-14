@@ -282,6 +282,16 @@ class F1Result:
     # never re-grounded THIS session). slot_key -> "carried_from_session_N".
     # A slot re-grounded this session (even to identical text) is NOT here.
     carried_slot_provenance: dict[str, str] = field(default_factory=dict)
+    # F4 quick-dev provenance threading (`docs/ai/f4_quick_dev_plan.md` §2.6
+    # option C / §2.7, `PLAN-2026-W29-D`, `ADR-036` item 3): additive,
+    # `None`-default fields — a scripted-validation session self-identifies
+    # via these two fields; `None`/absent for every natural (non-scripted)
+    # session, so re-ingesting any pre-F4 artifact never breaks. Set ONLY by
+    # `_run_simulation`'s `scenario_pack_id`/`arc_mode` kwargs
+    # (`_apply_scenario_provenance`, below) — never by
+    # `F1Pipeline.run_session` itself.
+    scenario_pack_id: str | None = None
+    arc_mode: str | None = None
 
 
 _CONTENT_TYPE_BY_SUFFIX: dict[str, str] = {
@@ -479,6 +489,37 @@ def _compose_carry_content(final_slots: dict[str, str], missing_slots: list[str]
     lines.append("[이전 세션 요약 — 미수집 정보]")
     lines.append(", ".join(missing_slots) if missing_slots else "(없음)")
     return "\n".join(lines)
+
+
+def _apply_scenario_guideline(persona: Any, scenario_guideline: str | None) -> None:
+    """F4 quick-dev isolation seam (design doc §2.6 option C): append the
+    harness-rendered scenario-guideline text to `persona.system_prompt`,
+    own header (the caller/harness template already includes it, §2.5),
+    never touching `prior_handoff`'s own already-appended text above it.
+    `persona` is a `tests.simulation.patient_llm.PatientPersona` — typed as
+    `Any` here so this module never imports that harness/tests-only type at
+    module scope (only inside `_run_simulation`'s own lazy `from tests...`
+    import, matching this file's existing convention). A `None`/falsy
+    `scenario_guideline` (every non-scripted caller) is a no-op — byte-
+    identical `persona.system_prompt` to today.
+    """
+    if not scenario_guideline:
+        return
+    persona.system_prompt += f"\n\n{scenario_guideline}\n"
+
+
+def _apply_scenario_provenance(
+    result: F1Result, scenario_pack_id: str | None, arc_mode: str | None
+) -> None:
+    """Threads `scenario_pack_id`/`arc_mode` onto the returned `F1Result`
+    post-call (design doc §2.6 option C) — `F1Result` is a plain mutable
+    `@dataclass`, so this is a simple post-call assignment, no
+    `F1Pipeline.run_session` signature change. `None` values (every
+    non-scripted caller) are genuine no-ops (the field's own default)."""
+    if scenario_pack_id is not None:
+        result.scenario_pack_id = scenario_pack_id
+    if arc_mode is not None:
+        result.arc_mode = arc_mode
 
 
 # ── F1 Pipeline ──────────────────────────────────────────────────────
@@ -2193,6 +2234,10 @@ def _result_from_dict(data: dict) -> F1Result:
         prompt_version=data.get("prompt_version", ""),
         prior_handoff=data.get("prior_handoff"),
         carried_slot_provenance=data.get("carried_slot_provenance", {}),
+        # F4 quick-dev provenance (§2.7) — `.get(...)` default so pre-F4
+        # artifacts (no such keys) load without KeyError.
+        scenario_pack_id=data.get("scenario_pack_id"),
+        arc_mode=data.get("arc_mode"),
     )
 
 
@@ -2223,6 +2268,9 @@ async def _run_simulation(
     audio_inputs: list[Path] | None = None,
     session_index: int | None = None,
     simulated_date: str | None = None,
+    scenario_guideline: str | None = None,
+    scenario_pack_id: str | None = None,
+    arc_mode: str | None = None,
 ) -> F1Result:
     """시뮬레이션 모드: PatientLLM과 F1Pipeline 대화.
 
@@ -2234,6 +2282,16 @@ async def _run_simulation(
         session_index: 이 세션의 순번(1부터). None이면 followup_from 유무로
             자동 산정 (첫 세션=1, 재상담=이전 session_index+1).
         simulated_date: 이 세션의 시뮬레이션 날짜(ISO). None이면 오늘 날짜.
+        scenario_guideline: F4 quick-dev 시나리오 가이드라인 텍스트 (harness가
+            렌더링한 완성된 문자열, 자체 헤더 포함 — `docs/ai/f4_quick_dev_
+            plan.md` §2.5). `persona.system_prompt`에 `prior_handoff` 블록
+            바로 뒤에 그대로 append된다. None(기본값)이면 이 세션은 완전히
+            자연(natural) 세션과 동일하게 동작 — 이 인자를 넘기지 않는 모든
+            기존 호출자(라이브 4VP 배터리 포함)는 동작 변화가 전혀 없다.
+        scenario_pack_id, arc_mode: F4 provenance 태그 (§2.7, `ADR-036` item
+            3) — `pipeline.run_session(...)` 완료 후 `result`에 그대로
+            threading됨. 둘 다 None(기본값)이면 `F1Result`의 필드 기본값
+            (None)이 그대로 유지된다.
 
     Returns:
         The completed F1Result (also saved to disk via `save_f1_result`) —
@@ -2299,6 +2357,13 @@ async def _run_simulation(
 {prior_handoff}
 """
 
+    # F4 quick-dev isolation seam (design doc §2.6 option C): applied AFTER
+    # the prior_handoff block above (own header, never touches that block's
+    # own text) and BEFORE `PatientLLM(persona=persona)` is constructed
+    # below — so a scripted session's guideline reaches the SAME
+    # `persona.system_prompt` the patient LLM actually reads, one text.
+    _apply_scenario_guideline(persona, scenario_guideline)
+
     # 주의: persona.visit_type == "revisit"이더라도, --followup-from이 없으면
     # 첫 상담으로 취급한다. 재상담은 명시적 --followup-from 플래그로만 활성화.
 
@@ -2353,6 +2418,12 @@ async def _run_simulation(
         ocr_document_hints=ocr_hints,
         audio_inputs=audio_inputs,
     )
+
+    # F4 quick-dev provenance threading (design doc §2.6 option C / §2.7) —
+    # after `pipeline.run_session(...)` closes above, before `save_f1_
+    # result` below, so the tag reaches the saved conversation.json for
+    # free (any new F1Result dataclass field is captured by `asdict`).
+    _apply_scenario_provenance(result, scenario_pack_id, arc_mode)
 
     paths = save_f1_result(result)
 

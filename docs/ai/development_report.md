@@ -1178,3 +1178,457 @@ Agent specs `docs/ai/agents/05_input_normalizer.md` (dead-code banner → live-a
 6. **Carried, out of this mission's scope** (unchanged): `BUG-008/009/011/012/018`, `VAL-001/004/007/009`, `ADR-013`(3) git-history residual, Track B's `extra="forbid"` defense-in-depth follow-up, path2 DB-handoff migration — see prior DR entries.
 
 ---
+
+## DR-015 | 2026-07-12 | BUG-030 fix — targeted post-fix re-validation (`EXP-017`, `PLAN-2026-W28-S`)
+
+> **Scope and sourcing:** this is the first of three "parked" DR-equivalent notes folded into standalone entries this pass (`DR-015`/`016`/`017`). `development_report.md` was off this worktree's `docs/ai/` for the duration of the blind-validation-era missions below (restored at `PLAN-2026-W28-V` step 0, commit `1e4223a`) — each mission's wave-level implementation/gate-outcome record was parked instead in `docs/ai/workflow_results_f1f2.md`, per that doc's own disclosed convention. `PLAN-2026-W28-V` step 10's own mission-brief text anticipated "this mission + 2 parked" DR entries; walking the actual `workflow_results_f1f2.md` content found **three** parked DR-equivalent notes (`bug030-fix-revalidation` ~line 625, `bug030-iter2-revalidation` ~line 722, `bug036-exhaustion-bug037-fixcycle` ~line 862), not two — recorded here as a discrepancy, not silently resolved. Every number below is already recorded in `docs/ai/workflow_results_f1f2.md`'s `bug030-fix-revalidation` entry and `result.md` `EXP-017`; no new measurement or reinterpretation is performed here.
+
+### 1. Mission and directive
+
+User directive (verbatim, `discussion.md` `PLAN-2026-W28-S`): "공감구 반복 문제 해결하자. system prompt에 예시 기반으로 너무 overcontrol해서 발생한 문제 아닌가? 자연스러운 공감으로 변경해보자." — fix direction fixed as natural empathy GENERATION, not example-menu selection; this user word lifted `ADR-027`'s prior deferral of `BUG-030` for this bug only. `ADR-028` ratified the design: delete the hardcoded `alternatives` re-recommendation menu in `dialogue.py`'s `_build_slot_context`; the used-phrase list becomes a compact negative constraint only; the dialogue prompt is superseded v3→v4 (new file, principle-level natural-empathy instruction, zero literal example phrases); the repetition guard stays unwidened (`BUG-028` territory, atomicity discipline).
+
+### 2. Delivered and gated
+
+Implementation landed at commit `dd4eba2`: dialogue prompt v4 (`docs/ai/prompts/dialogue/v4.system.md`, SHA256 pin `f93e995f...7144`); safety v2 pin unchanged (`3e9ca6b4...b3390c`, re-verified pre/post-run). qa gated the fix commit **GATE:PASS** — suite 1137 passed + 2 known skips, mutation-checked against the fix's own `test_previously_used_phrase_never_recommended_again`.
+
+### 3. `EXP-017` headline numbers (source: `result.md` `EXP-017`, `workflow_results_f1f2.md` `bug030-fix-revalidation`)
+
+SM-01..08b regression bundle: 10/11 PASS assertion-identical to the `EXP-014` r2 baseline (SM-08b known-fail `BUG-026`, unrelated, unchanged). Naturalness probe (max phrase-family count/session): VP-001 9→7/10, VP-010 9/11→6/10 (both back-to-back present), VP-003 flat 9/10 (its dominant post-fix phrase is a NED=0.20 near-duplicate of a deleted v3 phrase) — repetition magnitude dropped on 2/3 personas but the rubric's §2 no-repetition bar (≤2/session, zero back-to-back) FAILED in all 3 sessions. §5b trailing-question re-ask present in all 5 sessions (3-4 hits/session), a `BUG-033`-adjacent pattern outside this fix's scope. Read-only diagnosis (developer, `diagnose_used_empathy.py`): in 18/18 measured violations the banned phrase was correctly shown in the model's own X-list that turn and regenerated anyway — pure LLM non-adherence, not a residual code defect; the `[:30]` truncation never causally fired.
+
+### 4. Triple gate — reported side by side, never merged
+
+**qa: GATE:PASS** (implementation gate, above). **`CVR-010` (clinical-validator): INADEQUATE — 2 blocking, 4 major, 1 major-UNVERIFIED, 2 minor.** Blocking: (F1) empathy-presence COLLAPSE in the crisis-adjacent SC-5 re-probe (4 consecutive qualifying distress turns, turns 5–8, zero empathic acknowledgment, 2 byte-identical bare-question responses); (F2) systematic SI item-V re-probe — the concrete-plan question asked verbatim at turns 2 AND 5 after a clean denial, replicated identically in 2 independent runs. Bottom line: "BUG-030 clinical status: NOT RESOLVED." **`REV-031` (critic): evidence-sound-with-corrections.** Independent re-derivation confirmed the tracker's counts exactly, found no fabrication; 2 major issues (pre-fix baseline method asymmetry; the VP-003 near-duplicate disclosure requirement). Binding MAY/MUST-NOT table: MAY say user hypothesis confirmed, code/prompt channels eliminated, repetition not resolved to the bar; MUST NOT say "repetition fixed/reduced" unqualified, "novel phrases" without the VP-003 disclosure, or "BUG-030 closed/resolved."
+
+### 5. Stop-rule and deferred work
+
+Per the mission's own stop-rule (`CVR-010` F1 = clinical-blocking), **no iteration-2 was dispatched autonomously** — queued pending user word (delivered next mission, `DR-016`). `BUG-030` stayed open; `BUG-035` filed new (presence collapse, from `CVR-010` F1).
+
+**Linked:** `PLAN-2026-W28-S`, `ADR-027`, `ADR-028`, `EXP-017`, `CVR-008`/`009`/`010`, `REV-031`, `BUG-030`, `BUG-035`, `docs/ai/workflow_results_f1f2.md` `bug030-fix-revalidation`.
+
+---
+
+## DR-016 | 2026-07-12 | BUG-030 iteration-2 + BUG-035 companion — post-implementation re-validation (`EXP-018`, `PLAN-2026-W28-T`)
+
+> **Scope and sourcing:** second of three parked DR-equivalent notes folded this pass (see `DR-015` preamble for the full discrepancy note). Every number below is already recorded in `docs/ai/workflow_results_f1f2.md`'s `bug030-iter2-revalidation` entry and `result.md` `EXP-018`; no new measurement or reinterpretation is performed here.
+
+### 1. Mission and directive
+
+User directive (verbatim, `discussion.md` `PLAN-2026-W28-T`): "문서 관리와 함께 버그 픽스 진행하라," ratifying the `STATE-2026-07-12` queued iteration-2 recommendation. `ADR-029` ratified the design (`docs/ai/fix_design_bug030_iter2.md`, reviewed by `REV-032`/`CVR-011`): a single bounded check-and-retry loop inside `DialogueAgent.run()` (max 2 regenerations, up to 3 LLM calls/turn) adding near-duplicate empathy-clause detection (token Jaccard≥0.5 OR NED≤0.3, punctuation-inclusive) and an empathy-presence check on crisis-adjacent turns (the `BUG-035` companion); `[:30]` truncation removed; marker set corrected (bare `겠` removed, `-군요` added); the de-escalation-concluding turn structurally guaranteed crisis-adjacent; on exhaustion, falls through and ships the last attempt (not yet a safe degrade — that arrives in `DR-017`).
+
+### 2. Delivered and gated
+
+Landed at commit `d68c8a2` (code) / `266eea1` (design/review docs, 0 code diff). qa gated **GATE:PASS** — suite 1161 passed + 2 known skips, mutation-checked on both the near-dup detector and the presence check.
+
+### 3. `EXP-018` headline numbers (source: `result.md` `EXP-018`, `workflow_results_f1f2.md` `bug030-iter2-revalidation`)
+
+Cell 1 (SM, 11/11): SM-06 flipped PASS→FAIL vs. r2/`EXP-017`; bisected same day — stochastic-flake-likely, not confirmed guard-caused, not cleared (2/3 treatment draws PASS, pre-guard control also PASS with an equal-or-worse stall). Cell 2 (naturalness, criterion A): VP-001/VP-010 PASS but **instrument-limited, not clean** (population 2/10, 4/10 of a 12-marker instrument that misses several affective/reflective clauses by content); VP-003 FAIL (auto-FAIL override, family=5/10, 4 back-to-back). Cell 3 (SC-5 chain, criteria A+B): both sessions FAIL criterion A — session 1 auto-FAILs 9/10 with **zero guard detection** on 5 of 9 occurrences, a live guard-dedup defect (`BUG-036`, the guard's exact-string clause dedup goes permanently blind to a family once one intervening distinct clause registers); both sessions PASS criterion B (presence, 0.909, zero two-consecutive misses) — a genuine improvement over `EXP-017`'s collapse. Cell 4 telemetry (137 turns): retry 35/137 (detected-only lower bound), fall-through 8/137, criterion-D 0/137 invariant violations, criterion-E bare-겠 structurally eliminated (0/137) but 2/12 sampled `-군요` instances found contestable on independent re-sampling. Distinct anomaly (not `BUG-030`/`BUG-035`): VP-001 turn 9 shipped raw internal `risk_assessment` clinical-note text as the patient-facing reply — filed standalone as `BUG-037`.
+
+### 4. Triple gate — reported side by side, never merged
+
+**qa: GATE:PASS**, plus independent live-import reproduction confirming `BUG-036` and a corpus-wide grep confirming `BUG-037`. **`CVR-012` (clinical-validator): two separate verdicts.** BUG-035 (presence) **adequate-with-findings** — "presence held in this sample, not guaranteed." BUG-030 (repetition) **inadequate — blocking** — 2 blocking findings: (F1=`BUG-037`) the clinical-note-leak turn, "an interface-integrity/trust breach"; (F3, SC5-142022) "clinically indistinguishable from not being heard... in exactly the population most sensitive to that experience," worse than the pre-fix baseline. **`REV-033` (critic): blocking.** Per-criterion: A FAIL (the central deliverable), B PASS (recount-confirmed), C PASS-with-conditions (SM-06 inconclusive), D PASS, E PASS-with-conditions. Disposition, quoted: "Criterion A... FAILS. The mission's own pre-registered stop-rule... is TRIGGERED. No autonomous iteration-3 dispatch."
+
+### 5. Stop-rule and filings
+
+Stop-rule fired on criterion A's FAIL. **No iteration-3 dispatched autonomously.** Filed this mission: `BUG-036` (guard-dedup defect), `BUG-037` (clinical-note leak); status updates on `BUG-030`/`BUG-035`. Next-diagnosis ranking (from `REV-033`/`CVR-012`) fed directly into `DR-017`'s combined fix cycle.
+
+**Linked:** `PLAN-2026-W28-T`, `ADR-029`, `EXP-018`, `REV-032`/`033`, `CVR-011`/`012`, `BUG-030`, `BUG-035`, `BUG-036`, `BUG-037`, `docs/ai/workflow_results_f1f2.md` `bug030-iter2-revalidation`.
+
+---
+
+## DR-017 | 2026-07-12 | Combined 3-fix cycle — `BUG-036` dedup, `ADR-030` exhaustion safe-degrade, `BUG-037` output isolation (`PLAN-2026-W28-U`) — code-complete, offline-gated, NOT live-verified
+
+> **Scope and sourcing:** third of three parked DR-equivalent notes folded this pass (see `DR-015` preamble). Every number below is already recorded in `docs/ai/workflow_results_f1f2.md`'s `bug036-exhaustion-bug037-fixcycle` entry (and its own "Uncommitted" note in that doc's "Ready to publish" section, ~line 862, the third parked-note source); no new measurement or reinterpretation is performed here.
+
+### 1. Mission and directive
+
+User directive (verbatim, "빠르게 진행할 수 있는 순서로 진행해"): execute the three ranked next-diagnosis items from `DR-016`'s stop-rule as one combined cycle sharing one re-validation battery — Fix 1 (`BUG-036` dedup), Fix 2 (retry-budget-exhaustion safe degrade), Fix 3 (`BUG-037` output isolation). Mid-mission, the user scoped down live re-validation: "버그 픽스만 하고 통합 재검증은 나중에 할거다" / "나중에 F1-F5 총 검증할거기 때문에 총검증은 보류하자" — the mission's own live battery (SM + naturalness probes + an SC-5-style cell, ~18–22 calls) was cut and absorbed as cells into the future F1–F5 total validation, judged against the pre-registered bars unchanged.
+
+### 2. Delivered and gated
+
+**Fix 1** (`BUG-036`): `_extract_used_empathy_clauses` now preserves every true clause occurrence (no exact-string dedup) — restores both the session-cap and back-to-back sub-checks; offline artifact-replay confirms the A-B-A shape now fires correctly, A-A-A unregressed. **Fix 2** (`ADR-030` Option C): on retry-budget exhaustion, a deterministic 4-phrase pool substitutes/prepends the leading empathy clause only — question/clinical content ships byte-identical (index-precision splice + byte-identical-remainder proof); a post-implementation finding (CF1, `CVR-014`) found the original replace branch could silently delete probe content on a comma-joined no-leading-clause shape — fixed same cycle via an `_is_empathy_clause` gate. **Fix 3** (`BUG-037`): a new top-priority `_output_isolation_violation` check detects same-turn/prior-turn slot-value echo and verbatim patient-echo (the `CVR-012` F2 channel, folded into the same mechanism) — the one path that never falls through on exhaustion, shipping a fixed neutral fallback instead. Commits `5baefb9` (code+tests, Fix 1+3 atomic, then Fix 2), `e833937` (design/review docs). qa gated **GATE:PASS ×2** — combined implementation gate (mutation-checked all three detectors/paths, both-shape A-B-A/A-A-A artifact replay) and the CF1 micro-gate (suite 1236+2, +5 tests).
+
+### 3. Triple gate — reported side by side, never merged
+
+**qa: GATE:PASS ×2** (above). **`CVR-013`+`CVR-014` (clinical-validator): adequate-with-findings, both entries.** `CVR-013` picked Option C over A/B (B rejected — a bare question structurally fails the crisis-adjacent presence floor; A alone flagged a new finding — its fixed opener carries no empathy marker) and named 3 binding conditions plus the F1 scope finding (presence_missing/exact_repeat exhaustion also ships a detected violation). `CVR-014` confirmed conditions 1–2 satisfied, found condition 3 not-as-claimed (CF1, dispositioned same cycle), and closed: "Fix 1 / Fix 2 / Fix 3 each: code-complete, offline-gated, NOT live-verified." **`REV-034`+`REV-035` (critic): non-blocking-with-conditions, both entries.** `REV-034` required Option C's pool phrases to avoid the production guard's own empathy markers or be flag-excluded, and independently confirmed a live contamination channel in Fix 3's own fallback constant. `REV-035` confirmed all three `REV-034` conditions SATISFIED as implemented, and found a NEW mirror-image contamination channel in the criterion-B scorer — growing the pre-battery-prerequisite list from 3 to 4.
+
+### 4. Deferred live re-validation
+
+Nothing in this cycle has run against real generation. Deferred cells (unchanged pre-registered bars): SM-01..08b (11), naturalness probes VP-001/003/010 (3), an SC-5-style crisis-adjacent cell (~4), a full telemetry review — absorbed into the future F1–F5 total validation. **4 pre-battery prerequisites** must land first: criterion-A scorer flag-exclusion; criterion-B scorer flag-exclusion + `b1_telemetry` fix; criterion-D invariant extension; criterion-A stem-level clustering backport (`REV-033`, outstanding). `BUG-036`/`BUG-037` status: **fixed-pending-live-verification** — neither resolved nor closed; `BUG-030`'s own repetition bar stays open, unmeasured against the new code.
+
+**Linked:** `PLAN-2026-W28-U`, `ADR-030`, `CVR-013`/`014`, `REV-034`/`035`, `BUG-030`, `BUG-035`, `BUG-036`, `BUG-037`, `docs/ai/workflow_results_f1f2.md` `bug036-exhaustion-bug037-fixcycle`.
+
+---
+
+## DR-018 | 2026-07-12 | F3 quick development — F2-driven questionnaire administration (`PLAN-2026-W28-V`) — implementation, `EXP-019` live functional validation, `CVR-015`/`REV-037` evidence review
+
+> **Scope and sourcing:** every number below is already recorded in `discussion.md` (`PLAN-2026-W28-V`, `ADR-031`, `ADR-032`, `REV-036`, `REV-037`, `CVR-015`), `result.md` (`EXP-019`, incl. its 2026-07-12 disclosure addendum), and `docs/ai/workflow_results_f1f2.md` (`f3-quick-dev`). No new measurement or reinterpretation is performed here. Wording is bound by `REV-037`(c)'s MAY/MUST-NOT table and `ADR-032`(2): F3-v0 outcomes are pipeline-functional evidence on non-validated construct-label content, never clinical-instrument results, never 인증/통과/certified wording; `similarity_score` is never framed as a probability.
+
+### 1. Mission
+
+`PLAN-2026-W28-V`, dispatched on the user's redefinition of F3 (verbatim directive held by orchestrator, recorded `ADR-031`): F3 administers exactly the one questionnaire named by F2's `ai_predicted_disease.recommended_questionnaire` (W5's static disease→scale mapping) — a second, separate path from the pre-existing `OrchestratorAgent.plan_surveys`/`score_and_check_safety` planner. The VP persona-simulator LLM answers each item by selecting score values in-persona (the F1 `patient_input_fn` administration pattern); scoring/totals/severity bands are computed deterministically in code, never by the LLM; results are recorded per VP per session in the existing file ledger for future F5 handoff-report consumption. `ADR-031` also lifted the blind gate specifically for this development phase (the archive folder and the future F1–F5 total-validation gate stay untouched) and terminated the `ADR-026` finding-filing bridge — qa/critic/clinical-validator resumed direct root-doc ownership for this mission.
+
+### 2. Restoration and plan
+
+Restoration commit `1e4223a` (`PLAN-2026-W28-V` step 0, filemanager): `PRD_task1_v2.md`, `checklist_task1.md`, and `development_report.md` re-tracked at `docs/ai/` (this file's own three-mission gap, `DR-015`..`017` above, is a direct consequence of its prior absence). Developer's design doc `docs/ai/f3_quick_dev_plan.md` (step 2): architecture, schemas, F2→F3 trigger flow, item bank v0 (PHQ-9/AUDIT-C construct labels only, `provenance="construct-labels-v0, persona-file-sourced, non-validated"`; GAD-7/PHQ-4/WHO-5 unpopulated pending a user decision on v1, §2.3, still open), F5-consumption ledger record design, simulator score-selection design, validation design (§8, concrete falsifiable pass criteria). Writer's step-3 fold: `PRD_task1_v2.md` §0.2 version row to v2.10 + §4.1 surgical redefinition; `checklist_task1.md` F3 Phase-2 items `T1-F3-DEV-008`..`013`/`VER-007`..`013` (13 new IDs, non-colliding).
+
+### 3. Pre-implementation review — `REV-036`, dispositioned `ADR-032`
+
+Critic's pre-implementation review (`REV-036`, non-blocking-with-conditions — 4 major, 3 minor, 8 positive findings) cross-checked every load-bearing plan claim against actual repo state (`questionnaire_mapping.py`, `survey_scorer.py`, `continuous_test.py`'s full stage registry, `patient_llm.py`'s persona-extraction code, and the VP-001/003/012 persona files themselves) rather than trusting the plan's own prose. Positive findings included the no-fabrication boundary verified airtight for v0 and the harness/production split (simulator score-selection lives in `tests/simulation/`, never `src/`) verified against code. Major issues: (1) an un-ratified scope-narrowing of the plan's own blocking clause (whether construct-label-only v0 counts as "affected" and must pause); (2) no pre-registered wording discipline yet existed for F3-v0's disclosed non-validated-item limitation; (3) `VAL-014` (RAG candidate face-validity) was never cross-referenced despite F3's trigger being keyed on the same flagged field; (4) HPI-isolation enforcement was only a post-hoc grep spot-check, not an adversarial unit-test class parallel to `tests/test_hpi_isolation.py`'s precedent. `ADR-032` dispositioned all four: (1) v0 scope ratified — PHQ-9/AUDIT-C cells proceed, GAD-7/PHQ-4/WHO-5 cells pause as `SKIPPED-awaiting-user-material`; (2) a binding MAY/MUST-NOT wording table ordered for the post-`EXP-019` review, delivered as `REV-037`(c) below; (3) `VAL-014` cross-reference ordered for the plan doc + PRD, landed this doc-fold pass (`f3_quick_dev_plan.md` §3, `PRD_task1_v2.md` §4.1); (4) an F3 HPI-isolation adversarial unit-test suite required before the qa gate.
+
+### 4. Implementation and qa gate
+
+Developer's step-5 implementation (untracked at `EXP-019` launch, now landed): `src/f3.py` (deterministic administration engine, zero LLM calls, mirrors `f1.py`'s `patient_input_fn` seam), `src/schemas/survey_result.py` (`extra="forbid"`, `is_diagnostic: Literal[False]` fixed at the type level), `src/scoring/item_bank.py` (PHQ-9/AUDIT-C v0 registry), `continuous_test.py`'s F3 stage (`STAGE_REGISTRY`'s prior stub replaced), the single-session ledger gap fix, and `tests/test_f3_hpi_isolation.py` (`REV-036` condition 4 — 9 tests across the same 3-channel pattern as the AI-predicted-disease precedent, plus a 4th class for the harness `"f3"` ledger sub-object). qa gated **GATE:PASS**: suite 1342 passed + 2 skipped (baseline 1236+2, +106 new tests across 5 files); mutation-checks on item-bank range bounds, `_clamp_response`, the `scale_scores.json` projection, and the `AgentInput.extra` HPI-isolation channel all failed-as-expected under injected defects; item-bank `text_ko` content diffed byte-for-byte against the VP-001/003/012 persona files, exact match, no invented text; pins (safety v2, dialogue v4) recomputed exact-match; no-harness-deps confirmed (`src/f3.py`: 0 `tests/` imports, 0 `session_ledger` references, 0 vendor call sites). Full record: `docs/ai/workflow_checklist_f1f2.md` F3 "qa gate record" row.
+
+### 5. `EXP-019` — live functional validation
+
+Experiment-tracker's `EXP-019` (`result.md`) ran 3 of 4 pre-registered cells live (4 session-level cells: VP-001 ×2 sessions + VP-003 ×1 + VP-012 ×1), all `exit_code=0`; GAD-7 explicitly `SKIPPED-awaiting-user-material` (item bank v0 unpopulated by design, no incidental organic surfacing observed). PHQ-9 v0 administered 3×, 27/27 responses in-range, totals/severity independently hand-recomputed and matched exactly (13/moderate, 15/moderately_severe, 13/moderate); HPI-isolation grep 0/4 hits, both directions; ledger `"f3"` complete 4/4 (incl. VP-012's first-ever ledger entry, live proof of the single-session ledger gap fix); F2 Pydantic 4/4 PASS; 0 crisis, 0 truncation, 0 errors across all 4 F1 sessions. VP-012's `ai_predicted_disease.candidates[0]` ("계절성 정동장애" 0.533) narrowly beat "알코올 금단" (0.526, margin 0.007) → PHQ-9 administered, **not** AUDIT-C — a live instance of `VAL-014` materializing exactly as `REV-036` Issue #3 predicted, scored here as F3 selection fidelity (AS-GIVEN, `ADR-032`(3)) only, no verdict on F2's candidate quality. VP-003 fell to `mode=llm_only` (`VAL-015` lineage, both Stage-1 queries risk-lexicon-dropped) → `recommended_questionnaire=None` → `no_questionnaire_indicated`, 0 items — the pre-registered valid outcome for that branch, but (per the append-only disclosure addendum on `result.md` `EXP-019`, landed this doc-fold pass per `REV-037`) also a divergence from that cell's own design intent (VP-003 was chosen specifically for its expected-positive PHQ-9 Q9).
+
+### 6. Evidence review — `CVR-015` and `REV-037`, never merged
+
+**`CVR-015` (clinical-validator): adequate-with-findings** — 0 blocking for the dev-scope validation itself (offline harness, never wired to a route, F1's live SafetyClassifier remains the real-time safety net); 5 major, 1 minor. Findings: PHQ-9 item 8 elicitation artifact (+2 in 3/3 administered instances, a construct-validity gap in v0's bare-label format); VP-001's severity-band-crossing over-triage pattern; VP-012's single-top-candidate/no-near-tie linkage policy overriding a more confident same-artifact `domain_candidates` signal; VP-003's `safety_referral` path never running for the one persona designed to need it; and no reconciliation mechanism between a session's survey-score and dialogue-sentiment trajectories. **`REV-037` (critic): evidence-sound-with-corrections** — independently re-derived every load-bearing number from raw artifacts (all matched exactly: totals, bands, range validity, retry/clamp counts, the `VAL-014` instance, the session-chaining code-path trace, the HPI-isolation grep re-run with the entry's own exact-label instrument); confirmed `REV-036` condition 4 genuinely landed (read the test file in full, not assumed). One major issue: a disclosure-completeness gap (the `safety_referral`/VP-003 design-intent divergence under-disclosed relative to VP-012's own analogous, well-disclosed miss) — corrected via the append-only addendum, not a data-validity defect. `REV-037`(c) delivers the `ADR-032`(2)-ordered binding MAY/MUST-NOT wording table (8 rows; full text `discussion.md` `REV-037`, condensed in `workflow_results_f1f2.md` `f3-quick-dev`).
+
+### 7. Coverage boundary (stated plainly)
+
+**AUDIT-C was never exercised live this battery** (VP-012 resolved to PHQ-9 instead). **The `safety_referral`/critical-item-positive path was never exercised** (VP-003 never reached the `administered` branch). **GAD-7/PHQ-4/WHO-5 remain item-bank-unpopulated**, structurally impossible to administer, test-proven, never live-exercised.
+
+### 8. Open user question
+
+Carried unresolved from `f3_quick_dev_plan.md` §2.3, restated by `CVR-015` recommendation 3: whether a v1 item bank (validated instrument stems + response anchors for PHQ-9/GAD-7/PHQ-4/WHO-5/AUDIT-C) should be team-authored (routed through clinical-validator content review) or user-supplied as licensed text with recorded licensing terms — this project cannot independently verify the licensing status of any existing Korean PHQ-9/AUDIT-C translation. `ISS-F2V-026`/`ISS-F2V-027` (`docs/ai/workflow_discussion_f1f2.md`, this doc-fold pass) track the two `CVR-015` weak points that outlive this mission — the linkage-policy gap and the item-8 elicitation artifact — pending that decision and a future higher-n battery.
+
+**Linked:** `PLAN-2026-W28-V`, `ADR-031`, `ADR-032`, `REV-036`, `REV-037`, `CVR-015`, `VAL-014`, `VAL-015`, `EXP-019`, `docs/ai/f3_quick_dev_plan.md`, `docs/ai/workflow_results_f1f2.md` `f3-quick-dev`, `ISS-F2V-026`, `ISS-F2V-027`.
+
+---
+
+## DR-019 | 2026-07-13 | Item bank v1 — research-based reproduction of official Korean screening instruments (`PLAN-2026-W29-A`) — sourcing, `CVR-016` gate, `ADR-033` disposition, implementation, qa gate + `BUG-038` incident/recovery, `EXP-020`, `CVR-017` ∥ `REV-039` evidence review
+
+> **Scope and sourcing:** every number below is already recorded in `discussion.md` (`PLAN-2026-W29-A`, `CVR-016`, `ADR-033`, `REV-038`, `CVR-017`, `REV-039`), `result.md` (`EXP-020`, incl. its 2026-07-13 correction addendum), and `error.md` (`BUG-038`). No new measurement or reinterpretation is performed here. Wording is bound by `REV-039`'s final v1 MAY/MUST-NOT table (supersedes `ADR-032`(2) for F3-v1 reporting): item texts are sourced-verbatim and appendix-audited — the instruments are validated, this project's administration of them is not; no "item-8 resolved," no "GAD-7 now F2-selectable," AUDIT-C output always carries its `threshold_caveat`, the item-9 safety pathway is "invoked, not triggered; live-unverified."
+
+### 1. Mission
+
+`PLAN-2026-W29-A`, dispatched to answer `STATE-2026-07-12d`'s open user question (verbatim directive: "PHQ-9/GAD-7 등 공식 psychiatry standards를 research를 통해 reproduce하라"): reproduce the official/validated Korean item texts, response anchors, timeframe wording, and scoring confirmation for PHQ-9, GAD-7, PHQ-4, WHO-5, AUDIT-C into item bank v1, then run a v1-unlocked re-validation (GAD-7 cell, AUDIT-C live, item-8 recheck per `CVR-015` Finding 1 / `ISS-F2V-027`).
+
+### 2. Sourcing and content-fidelity gate — `CVR-016`
+
+Brainstorm authored `docs/ai/item_bank_v1_sources.md`: PHQ-9 (Pfizer 한국어판 + 정부 별지14호 alternate), GAD-7, PHQ-4 (Kim et al. 2021's documented composition method — first 2 GAD-7 items + first 2 PHQ-9 items), and AUDIT-C sourced with cited evidence per item; WHO-5 reported as an honest gap (0/5 items) after an exhaustive, documented multi-route retry (official host timeouts, gated academic mirrors, JS-blocked government CMS) — no placeholder text fabricated. Clinical-validator's content-fidelity gate (`CVR-016`): **adequate-with-conditions** (0 blocking, 8 major, 3 minor). The appendix-checkable subset at review time (PHQ-9 items 1/2/9 both variants, GAD-7 items 1/7, all 3 AUDIT-C items + anchors) matched character-for-character; the note's own promise that every claimed-verbatim item would carry an inline quote was not yet honored for 15/23 items (including item 8, the item this whole dispatch exists to fix) — a verification gap, not a demonstrated mismatch. Two real scoring-evidence discrepancies were also flagged for disposition, not fixed unilaterally: AUDIT-C's threshold (current international `male/unknown≥4`) vs. two independent Korean-population studies suggesting roughly double that cutoff (Seong 2009 ≥8; Woo 2017 men≥7/women≥6), and a WHO-5 raw≤13 vs. source raw<13 off-by-one (safer direction, currently unreachable regardless). 5 binding conditions filed.
+
+### 3. Disposition — `ADR-033`
+
+Orchestrator dispositioned all 5 `CVR-016` conditions: (1) PHQ-9 primary = Pfizer (the translation instance a Korean validation study, Seo & Park 2015, actually administered); (2) severity bands/thresholds stay byte-unchanged this mission (a pre-registered qa mutation check) — AUDIT-C's international threshold is retained, the Korean-population evidence goes to the user as an open disposition question; (3) AUDIT-C's "1잔의 기준" standard-drink block ships as administered content with a provenance note; (4) a supplemental appendix-completion pass ordered (not a policy-accept) — item 8 not treated as clinically re-verified until both the appendix quote lands AND `EXP-020`'s live recheck adjudicates; (5) WHO-5's boundary stays behavior-unchanged, a source-caveat comment added. A harness-only `--force-questionnaire <SCALE>` override was authorized (decision 6) — loudly labeled `administration_mode` in every artifact and ledger record, evidence-class-restricted to F3-administration-only, never natural-chain/F2-linkage evidence; production `f3.py`/`f2.py` behavior unmodified by the flag's existence.
+
+### 4. Pre-experiment design review — `REV-038`
+
+Critic reviewed `EXP-020`'s design (Cell A natural PHQ-9, Cell B forced GAD-7, Cell C forced AUDIT-C) ahead of implementation: **non-blocking-with-conditions** (6 major, 1 blocking-scoped on Cell B). Pre-registered a binding item-8 decision rule (n-instance in-band/out-of-band table, licensed wording per outcome, standing bundled-change qualifier) and an interim MAY/MUST-NOT wording table. The one blocking-scoped condition — a ledger-collision risk from Cell B's plan to reuse Cell A's F1/F2 artifacts, given the ledger's `"f3"` key is a singular, non-scale-namespaced sub-object — was resolved once qa/developer confirmed the append-only `_append_ledger_entry` mechanism structurally SAFE (no key-based merge exists), lifting the pause before Cell B executed.
+
+### 5. Implementation, qa gate, and `BUG-038` incident
+
+Developer implemented `item_bank.py` v1 (source-stamped, v0 retained unmodified), the anchor/instruction-menu prompt path in `tests/simulation/survey_answer_llm.py`, a deterministic PHQ-9 item-9 safety-pathway consumer seam (`continuous_test._route_phq9_safety_pathway`, F3 itself stays LLM-0), a `threshold_caveat` structural field (`SurveyResultOutput`, populated for AUDIT-C and GAD-7 — the GAD-7 half of this field is `CVR-017` binding condition 1 / `REV-039` correction D, implemented proactively this cycle), and the `--force-questionnaire`/`administration_mode` harness path. qa's gate on this tree hit a critical process incident (`BUG-038`): during an intentional test mutation to prove the GAD-7-caveat tests load-bearing, a `git checkout --` run from the wrong cwd failed silently, then a retry in a fresh Bash call (whose harness-reset cwd meant `src/f3.py` had never been `git add`ed this session) succeeded — and because the file had no staged index entry, the "revert my mutation" command instead reverted the **entire file** to its last-committed, pre-mission state, silently discarding all uncommitted v1 work in that one file. This was a qa tool-call sequencing error, not a defect in the reviewed code — the code was independently verified correct (CI-mirror 1415 passed/2 skipped) immediately before the incident occurred. Unrecoverable via git (the file was never staged, so never written to any git object); two prior `Read` calls had captured roughly 230 of the file's ~400 lines verbatim. Developer reconstructed the unrecovered middle (~168 lines) from the still-intact, still-passing test suite and the untouched consumer/schema interfaces, then re-ran the full CI-mirror gate, matching the pre-incident count exactly. qa's own independent re-gate — own tool calls, no reliance on developer's claims — confirmed: CI-mirror exact re-match (1415 passed/2 skipped); both verbatim-captured fragments diffed at 0 delta against the restored file; `git diff --stat` showing no file other than `src/f3.py` touched; `survey_scorer.py`'s bands byte-frozen (comment-only diff); 32/32 named tests passed across the GAD-7-caveat/forced-mode/safety-pathway test classes; and a field-by-field behavioral cross-check against the frozen `EXP-020` artifacts confirming every field traces to a currently-passing test (2 low-risk unpinned fields — `timestamp`/`disclaimer` — disclosed, not blocking). **GATE:PASS for the restored tree.** qa's own binding process lesson: working-tree-discarding git commands are now banned in qa dispatches, including for reverting qa's own intentional mutations.
+
+### 6. `EXP-020` — live re-validation
+
+Experiment-tracker's `EXP-020` ran all 3 pre-registered cells, exit 0 throughout. **Cell A** (VP-001, natural, 2 PHQ-9 sessions): totals 18/moderately_severe and 20/severe (v0 was 13/15; documented 7) — item 8 out-of-band both sessions (v=2, documented 0). **Cell B** (VP-001, forced GAD-7 — the system's first-ever live GAD-7 administration): total 17/severe vs. documented "~8, mild" — a 3-band crossing, reported descriptively (no per-item ground truth exists for GAD-7 in either persona file, so no invented pass/fail band). **Cell C** (VP-012, forced AUDIT-C): responses [4,1,4]=9/hazardous_drinking vs. documented [4,3,4]=11 — item 2 deviated -2, flagged for the soju-vs-Western-unit confound (the persona's documented value is derived in 소주-bottle terms; the administered instruction block is Western-unit-only) rather than defaulted to "elicitation artifact"; the natural chain still would have resolved to PHQ-9 over AUDIT-C this run too (0.532 vs. 0.523, a 0.009 margin — `VAL-014`/`ISS-F2V-026` reproducing under v1 content), confirming Cell C's forced design was necessary. Mechanical checks: 28/28 responses in range; 4/4 totals/bands independently recomputed exact match; HPI-isolation grep 0/4 forward + 0/4 reverse; ledger collision-safe (both VP-001 natural and forced records survive as distinct, live-confirmed append-only entries); F2 Pydantic 4/4 PASS; 0 crisis/errors across 3 F1 sessions.
+
+### 7. Evidence review — `CVR-017` and `REV-039`, never merged
+
+**`CVR-017` (clinical-validator): adequate-with-conditions**, dev-scope only. Fabrication-0/HPI-isolation/labeling discipline all independently re-confirmed. Central finding: v1 made the system's single most clinically consequential behavior — whole-instrument severity over-endorsement — **measurably worse, not better**, on exactly the two scales (PHQ-9, GAD-7) this mission existed to fix. Item 8's own recheck: "artifact persists in this instance(s)" (per `REV-038`'s decision rule), and — new interpretation this review — item 8 is no longer the instrument's outlier item under v1, shifting evidence weight toward a whole-instrument mechanism. Cell C's item-2 deviation is confirmed consistent with the pre-registered soju/Western-unit confound and newly noted as currently classification-inert only because the byte-frozen (low) threshold happens to absorb the -2 swing — a masked, not resolved, risk if the threshold is ever corrected. All 5 `CVR-016` conditions independently re-verified closed. 2 binding conditions: (1) GAD-7 needs AUDIT-C's `threshold_caveat`-equivalent structural field — **implemented this cycle proactively, qa-verified**; (2) any citation of "item bank v1" must disclose the whole-instrument over-endorsement finding as open/worsened.
+
+**`REV-039` (critic): evidence-sound-with-corrections.** Independently re-derived every load-bearing `EXP-020` number from raw artifacts and code — all matched exactly (totals, bands, ranges, retry/clamp/HTTP-call counts, the near-tie margin, item-8 byte-fidelity, the ledger append-only structure). All 6 major + 3 minor `REV-038` pre-registered conditions satisfied or transparently narrowed; the one blocking-scoped condition (Cell B ledger collision) confirmed genuinely SAFE by structural code read, not merely asserted. 4 minor documentation-precision corrections filed against `result.md` `EXP-020`'s own Summary/prose (arithmetic 39/39→28/28; an imprecise "further on every item" claim corrected to "5/9 farther, 4/9 tied, 0/9 closer"; a formal qa-gate-record gap — closed by this doc-fold pass; the GAD-7 caveat-field asymmetry, corroborating `CVR-017`). `REV-039`'s own §(3) validity analysis: the whole-instrument over-endorsement mechanism is **squarely unverified** — item text, anchor-menu presence, and instruction wording all changed simultaneously between v0 and v1 (confirmed at the code level); no cell in this battery isolates them. `REV-039`'s final v1 MAY/MUST-NOT wording table supersedes `ADR-032`(2) for all F3-v1 reporting going forward.
+
+### 8. Coverage boundary (stated plainly)
+
+**Item-8's artifact persists, unresolved** — anchor text alone did not fix it, and n=2/VP-001-only cannot rule out a real, not incidental, effect; the VP-012 v0 replicate is not retested under v1 this battery. **A new whole-instrument answer-LLM over-endorsement pattern is open and unmitigated** — PHQ-9/GAD-7 totals moved materially further from documented personas under v1 than v0; mechanism unverified, isolation design recommended but not run. **GAD-7's natural-selection rate remains 0/9** across every battery to date, including this one — the forced-mode engine is unlocked, natural selection is not. **The PHQ-9 item-9 safety pathway remains invoked-not-triggered** for a third consecutive battery (`EXP-018`, `EXP-019`, `EXP-020`) — code-verified only, never live-exercised against a documented-positive case.
+
+### 9. Linked items and cross-cutting notes
+
+`BUG-038` is resolved (byte-faithful restoration, qa-verified re-gate) — it does not reflect on the v1 content or the F3 engine's own correctness, both of which were independently verified sound before and after the incident. `ISS-F2V-027` (`docs/ai/workflow_discussion_f1f2.md`, this doc-fold pass) is reframed instrument-wide, its narrow anchor-absence hypothesis falsified as the primary explanation; a new `ISS-F2V-028` tracks the broader whole-instrument over-endorsement pattern.
+
+**Linked:** `PLAN-2026-W29-A`, `CVR-016`, `ADR-033`, `REV-038`, `CVR-017`, `REV-039`, `EXP-020`, `BUG-038`, `ISS-F2V-026`, `ISS-F2V-027`, `ISS-F2V-028`, `docs/ai/item_bank_v1_sources.md`, `docs/ai/workflow_results_f1f2.md` `item-bank-v1`.
+
+---
+
+## DR-020 | 2026-07-13 | Trustworthy-direction F3 decisions — Korean AUDIT-C v2 cutoffs/item-text, WHO-5 retry-2, ISS-F2V-028 factorial decomposition (`PLAN-2026-W29-B`) — `CVR-018`/`ADR-034`/`REV-040` pre-registration, dual-track implementation, `EXP-021`/`EXP-022`, `CVR-019` ∥ `REV-042` post-evidence, fix wave
+
+> **Scope and sourcing:** every number below is already recorded in `discussion.md` (`PLAN-2026-W29-B`, `CVR-018`, `ADR-034`, `REV-040`, `REV-041`, `CVR-019`, `REV-042`), `result.md` (`EXP-021`, `EXP-022`), and `error.md` (`BUG-039`, `BUG-040`, both resolved). No new measurement or reinterpretation is performed here. Wording is bound by `REV-042`'s final §(5) MAY/MUST-NOT table (extends `REV-039`'s F3-v1 table to AUDIT-C v2/ISS-F2V-028 reporting).
+
+### 1. Mission
+
+`PLAN-2026-W29-B`, dispatched per the user's directive "더 신뢰가능한 방향으로 진행" ("proceed in the more trustworthy direction"), to resolve the three open F3 dispositions carried from `STATE-2026-07-13`: (T1) adopt the best-supported Korean-validated AUDIT-C cutoff and re-source Korean item text with soju-unit framing, retaining the international cutoff as metadata; (T2) a second, deeper WHO-5 sourcing retry across additional official/academic routes; (T3) a pre-registered factorial decomposition of `ISS-F2V-028`'s whole-instrument over-endorsement pattern, harness-side only, fix implemented only if clinical-validator and critic jointly license it.
+
+### 2. Track 1 — AUDIT-C Korean localization
+
+Brainstorm authored `docs/ai/audit_c_korean_research.md` (9-study Korean AUDIT-C validation catalogue) and re-sourced item text verbatim from 별지 제15호의3서식 (Korea's official health-screening form, two independent mirror sources). Clinical-validator's adjudication (`CVR-018`): **adequate-with-conditions** (0 blocking, 6 major, 4 minor; 8 binding conditions). Adopted: Korean-primary cutoffs **male/unknown≥6, female≥5** (Lee JH et al. 2018 KNHANES, N=46,450 — the only general-population, non-clinical-intercept study in the table; male value independently corroborated by Kwon 2013's DSM-IV-TR-anchored at-risk tier, also 6; female value 5 sits inside the Kwon(4)/Woo(6) convergent range). Seong et al. 2009 (≥8) and Lee BW 2000 (≥8) were considered and explicitly not adopted — Seong lacks a female arm (a male-only study cannot found a dual-sex tool's cutoff without pairing an unrelated study's female number) and Lee BW is a small case-control design. The international cutoff (Bush et al. 1998, 4/3) is retained as **non-action-driving structured metadata** — a deliberate ruling against dual simultaneously-live severity labels for the same score, to avoid an ambiguity risk in a clinical-handoff artifact. Item text moved to the sourced-verbatim soju-track form as **AUDIT-C v2** — item 1 ships mirror-1's complete five-anchor set (including "전혀 안 마신다(0점)"), with the mirror-2 discrepancy disclosed in provenance; items 2/3 ship byte-identical text confirmed across both mirrors. The composed Western-to-soju administration-note (a fallback candidate from the original brief) was ruled superseded and rejected — its bridging purpose is structurally eliminated once native soju-track anchors ship. `AUDIT_C_THRESHOLD_CAVEAT` was rewritten per `CVR-018` Q4's five content requirements (adopted threshold+basis, explicit non-adoption rationale for the two demoted studies, international-cutoff-as-metadata note, translation-identity caveat, criterion-circularity disclosure). Orchestrator dispositioned all of the above as `ADR-034`. VP-012's documented AUDIT-C ground truth was independently re-derived by `data` (persona doc §9) after `CVR-018` Finding 5 identified a plausible 7g-vs-14g standard-drink convention mismatch in the old table — the new table (`[4,1,3]`, point-estimate total 8, range 7-9) supersedes the old (`[4,3,4]`, total 11) with a non-silent pointer, independently re-verified by both `REV-041` and `CVR-019` (46.9g/14g≈3.35 drinks, exact arithmetic match).
+
+### 3. Track 2 — WHO-5
+
+Brainstorm ran a second, 26-attempt sourcing retry (`docs/ai/who5_sourcing_retry2.md`) across the official host, WHO repositories, Kim 2010/Moon 2014 appendices, KoreaMed/RISS, and university repositories. No Korean WHO-5 text was found. A new, strong negative signal emerged: WHO's own 2024 official translation list covers 26 published languages, none of them Korean — corroborating, not merely repeating, the prior gap finding. Per the user's own conditional (fix contingent on sourcing success), the gap stands (`ADR-034` decision 4); the raw≤13 vs. "below 13" boundary stays byte-unchanged behind its existing source-caveat comment. Highest-value unblock remains user-supplied material.
+
+### 4. Track 3 — `ISS-F2V-028` factorial decomposition
+
+Brainstorm designed a 2×2×2 factorial (`docs/ai/exp021_factorial_design.md`): item-text richness (v0/v1) × response-anchor presence × instruction/timeframe presence, VP-001, PHQ-9, bypassing F1/F2 via the pre-existing `item_bank` override seam on `src.f3.administer_survey`/`resolve_outcome`. Critic's pre-registration (`REV-040`): **non-blocking-with-conditions** (4 major — one blocking-scoped, 4 minor). Confirmed the override seam genuinely pre-existing (not newly built), identified a concrete silent-corruption risk in the proposed `instruction_ko_override` sentinel API (Cell 3/Cell 7's `F_instr=off` contrast could silently leak the live v1 instruction if the driver passes `scale_name` without also explicitly overriding), and amended the design's dominant-factor decision rule: no H1/H2/H3 or interaction-driven claim may be licensed from Tier-0-only data (8 administrations) — Tier 1 (≥10 administrations, both corners replicated) is the pre-registered minimum. Developer implemented the driver (`tests.simulation.factorial_driver`, commit `2351e07`) including the required Cell-3/Cell-7-shaped golden leak test.
+
+### 5. Implementation and qa gates (three separate commits, three separate gates — closes `REV-042` Issue 1)
+
+Three independent qa gates ran this mission, each now formally recorded (`docs/ai/workflow_checklist_f1f2.md` "Trustworthy-direction F3 decisions" section), closing a recurring formal-record traceability gap `REV-039` first flagged for `EXP-020`'s gate and `REV-042` found recurring twice more:
+
+| Commit | Scope | Gate result |
+|:--|:--|:--|
+| `2351e07` | Track 3 — factorial harness | GATE:PASS, CI-mirror suite **1483 passed / 2 skipped**, blocking-scoped leak-test (`REV-040` Resolution 1) mutation-verified load-bearing |
+| `99c2f45` | Track 1 — AUDIT-C v2 cutoffs, metadata, item text, threshold-caveat rewrite | GATE:PASS, byte-fidelity **8/8** vs. the sourcing note, thresholds boundary-verified, CI-mirror suite **1505 passed / 2 skipped**; found and filed `BUG-039` (major) and `BUG-040` (minor) |
+| `2351bdc` | Fix wave (below) | GATE:PASS, CI-mirror suite **1529 passed / 2 skipped**; `BUG-039`/`BUG-040` independently re-verified resolved |
+
+### 6. `EXP-021` — factorial decomposition results
+
+10/10 pre-registered administrations (Tier 1: 8 base cells + 1 replicate each on Cell 1 and Cell 8), all exit 0. Cell-mean D (=total−7, documented) ranged from 7.0 (Cell 5, v1/off/off) to 12.0 (Cell 8, v1/on/on, pooled n=4). Factorial contrasts: Effect(F_text)=−0.3125, Effect(F_anchor)=2.6875 (largest main effect), Effect(F_instr)=1.1875; the 3-way interaction (4.75) is the single largest contrast overall. Dominant-factor test **FAILS** (margin 1.5 < margin_m=3); interaction test **FAILS** (margin 2.0625 < margin_m=3). **Verdict: no dominant factor / inconclusive**, Tier-1-licensed (both corners carry pooled n=4). A second finding, independently significant for fix-licensing: Cell 1 (v0/off/off, pooled n=4) — literally the pre-mission format `EXP-019` used before this whole item-bank-v1 program began — is itself already cell-mean D=7.25, roughly double documented; no cell among all 8 reaches documented totals, and the numerically lowest-mean cell (Cell 5) is v1-text, not v0's own baseline. This forecloses "revert the instrument family to its original/simplest format" as a plausible unilateral fix.
+
+### 7. `EXP-022` — VP-012 forced AUDIT-C v2 re-verification results
+
+Critic's pre-registration (`REV-041`): **non-blocking-with-conditions** (3 major — 1 blocking-scoped on a hypothetical `--answer-mode expected` invocation the actual cell does not use; 2 minor, including a newly-found `patient_sex` non-wiring gap in `continuous_test.py`'s F3 stage and the discovery that AUDIT-C v2's rendered item-2 prompt shows only the primary soju track — the finding later filed as `BUG-039`). 1/1 fresh VP-012 F1→F2→F3(forced) chain, `--answer-mode llm`, exit 0. Result: `[4,4,4]` = **12/12**, the scale's absolute ceiling — the **first such instance in this project's F3 validation history**. Against the re-derived ground truth (§9: `[4,1,3]`, point-estimate 8, range 7-9): item 1 and item 3 in-band; item 2 out-of-band, Δ=+3. Licensed framing, per `REV-041`'s pre-registered rules: "the item-2-specific deviation pattern recurs even under native soju-track administration; the working unit-confound hypothesis is not supported by this instance." Korean-primary severity crossed (12≥6 → `hazardous_drinking`/`clinician_review`, robust across the entire disclosed expected range); international metadata crossed (12≥4); `threshold_caveat` present with all 5 `CVR-018` Q4 elements verbatim.
+
+### 8. Post-evidence review — `CVR-019` and `REV-042`, formed independently, then cross-checked
+
+**`CVR-019` (clinical-validator): adequate-with-conditions** (0 blocking, 3 major, 5 minor). All 7 checkable `CVR-018` binding conditions independently re-verified CLOSED against live code/artifacts. Clinical read of `EXP-022`: the confound-resolution hope is not supported — the v1 instance deviated −2 (under-report), the v2 instance deviated +3 (over-report), a magnitude increase and a direction flip, on a persona whose own scripted usual quantity was present verbatim in the answering LLM's visible context. Most parsimoniously a simulator/answering-agent grounding-fidelity gap, not an instrument-content defect (a leading hypothesis at n=1, not established). No action-level over- or under-triage resulted — `clinician_review` is robust across the entire disclosed range; the degradation is to handoff informativeness, not safety. Clinical read of `EXP-021`: the over-endorsement pattern now has live evidence on a third, structurally different instrument (AUDIT-C, substance-use) beyond the two mood/anxiety screens, with an important disanalogy — AUDIT-C's ceiling response is considerably more extreme than PHQ-9's structurally closest comparison cell (Cell 7, D=8.0), tempering a purely elicitation-format-driven account. Fix-licensing ruling: **no fix licensed** — declines to license anchor-removal even provisionally on independent clinical-benefit grounds (a real patient benefits from seeing response-option anchors).
+
+**`REV-042` (critic): evidence-sound, no corrections required** (0 blocking, 0 major, 2 minor — both self-directed/traceability, not defects in `result.md`). Independently re-derived every load-bearing number in both experiments from raw artifacts via two independent computation paths where applicable (e.g. the 3-way interaction reproduced identically via signed-sum and marginal-difference-of-differences) — 10/10 `EXP-021` responses, all 7 factorial contrasts, all 3 `EXP-022` item verdicts, both band-crossings, 87/87 HTTP calls, all matched exactly, no fabrication, no leakage, no wording-table violation found in either entry. Fix-licensing ruling formed independently, before reading `CVR-019`: **no fix licensed** — Tier-1 evidence yields no dominant factor to found a fix on; reversion to the original format is independently foreclosed by Cell 1's own already-elevated baseline; `EXP-022` provides zero information about which property of AUDIT-C v2 drives its ceiling response (no v0-analogue, anchor-off, or instruction-on cell is constructible for AUDIT-C without fabrication). Cross-read against `CVR-019` afterward: **full convergence, zero factual divergence** on every checked number, wording-table rule, and licensing question — the triple-gate discipline functioned exactly as designed.
+
+### 9. Fix wave (post-evidence, in-mission)
+
+Two code defects the Track-1 gate found were fixed and independently re-gated: `BUG-039` (item 2's secondary "기타 술" track populated in the item bank but never rendered into any consumer's prompt — `build_item_prompt`/`SurveyAnswerLLM._build_prompt` gained 4 new optional kwargs; both tracks + the conversion note now render, byte-verified against the sourcing note) and `BUG-040` (the `threshold_caveat` OpenAPI schema description left describing the superseded international-only threshold — rewritten to the adopted Korean-primary framing, mechanical/documentation-only). Two `REV-041`-flagged standing gaps were addressed in the same commit: Resolution 1 (the `expected`-mode fixture made supersession-aware, so it asserts against §9's re-derived total rather than the superseded §3 table) and Resolution 2 (`patient_sex` wired into `continuous_test.py`'s F3 stage — the female threshold branch is now test-proven; a live female-persona administration exercising it end-to-end remains a separately-tracked open item, `CVR-019` binding condition 3). All four changes landed in commit `2351bdc`, qa re-gated independently (own tool calls): CI-mirror suite 1529 passed/2 skipped; `BUG-039` fix verified byte-exact against the sourcing note with non-regression on secondary-less items; `BUG-040` fix verified via a repo-wide sweep for stale threshold text (0 hits); regression sweep confirmed `survey_scorer.py`'s AUDIT-C thresholds byte-unchanged.
+
+### 10. Coverage boundary and standing disclosures (stated plainly)
+
+**The whole-instrument answer-LLM over-endorsement pattern is open and now confirmed on a third, structurally different instrument** (AUDIT-C, substance-use) beyond PHQ-9/GAD-7 — mechanism remains unverified. **No fix is licensed by any evidence in this project to date** — independently ruled by both `CVR-019` and `REV-042`. **`CVR-019` binding condition 1's second half** (a live non-soju-drinking-persona administration exercising the newly-rendered secondary track) **and `CVR-019` binding condition 3** (a live female-persona administration exercising the sex-conditional Korean-primary threshold branch) **both remain open** — neither is a code-correctness gap; both are future-experiment requirements. `ISS-F2V-028`'s status is narrowed, not resolved: Tier-1 factorial evidence on PHQ-9 rules out single-factor and interaction dominance among the three named formatting variables at current power; a structurally unrelated instrument independently reproduces the qualitative over-endorsement direction at unprecedented magnitude in a single instance; the two results are not statistically poolable and must not be combined into one finding (`REV-042` §3).
+
+### 11. Linked items and cross-cutting notes
+
+`BUG-039` and `BUG-040` are both resolved (fixed and independently re-gated same mission). `ISS-F2V-028` (`docs/ai/workflow_discussion_f1f2.md`) receives a status update this doc-fold pass (narrowed-not-resolved, per `REV-042` §3). A new `ISS-F2V-029` is filed for `EXP-022`'s scale-ceiling finding — a distinct, non-poolable instance on a different instrument, not merged into `ISS-F2V-028`.
+
+**Linked:** `PLAN-2026-W29-B`, `CVR-018`, `ADR-034`, `REV-040`, `REV-041`, `CVR-019`, `REV-042`, `EXP-021`, `EXP-022`, `BUG-039`, `BUG-040`, `ISS-F2V-028`, `ISS-F2V-029`, `docs/ai/audit_c_korean_research.md`, `docs/ai/who5_sourcing_retry2.md`, `docs/ai/exp021_factorial_design.md`, `docs/ai/workflow_results_f1f2.md` `trustworthy-f3-decisions`.
+
+---
+
+## DR-021 | 2026-07-13 | F4 quick development — longitudinal N-session state-change analysis engine (`PLAN-2026-W29-D`) — design, dual pre-implementation gates, implementation, qa gate, `CVR-021` pack pass, `EXP-023`, qa recompute, `REV-045`/`CVR-022` post-evidence review
+
+> **Scope and sourcing:** every number below is already recorded in `discussion.md` (`PLAN-2026-W29-D`,
+> `REV-044`, `CVR-020`, `ADR-036`, `CVR-021`, `REV-045`, `CVR-022`), `result.md` (`EXP-023`), and
+> `error.md` (`BUG-041`, `BUG-042`, both resolved; `VAL-010`/`VAL-014` status lines updated). No new
+> measurement or reinterpretation is performed here. Wording is bound by `REV-045`'s final wording
+> table (reproduced verbatim in §7 below), which extends/supersedes `REV-044`'s table, plus `CVR-022`'s
+> three binding conditions (§8).
+
+### 1. Mission
+
+`PLAN-2026-W29-D`, a single mission spanning design, implementation, and 약식 (abbreviated) functional
+validation for F4 — longitudinal (between-session) state-change analysis. User directive (verbatim,
+held): "F4 기능 quick 개발 및 필수 워크플로우 약식 기능 검증 하자," with a binding data-source
+directive that the longitudinal analysis consume each VP's F1 **and** F2 **and** F3 per-session
+information (slot/CTRS/risk/crisis/probe/sentiment from F1; domain candidates + `ai_predicted_disease`
+similarity trend from F2 — trend, never probability; per-item/total/severity-band transitions from
+F3).
+
+### 2. Design and dual pre-implementation gates
+
+Developer authored `docs/ai/f4_quick_dev_plan.md` (§0-§9 + self-check): a 2-VP × 11-session arc
+protocol (VP-001 `improvement_plateau`, VP-003 `relapse_after_partial_improvement`), a state taxonomy
+spanning all three upstream functions, a production/harness architecture split (`src/f4.py` zero-LLM
+vs. a `continuous_test.py` harness stage), and pre-registerable acceptance criteria.
+
+**`REV-044` (critic, pre-implementation):** non-blocking-with-conditions — 4 major issues (2
+blocking-scoped to Wave 1: the `scale_series` aggregation basis was unspecified and the one
+concretely-named mechanism, naive pairwise `_compare_scale` reuse with `SCALE_THRESHOLD=5`, was
+mathematically guaranteed by the arc tables' own numbers to suppress the intended signal; the
+`overall_direction` combination rule was undefined; 2 disclosure items: no stable/no-change archetype
+scripted this mission, F2/F3 artifacts lacked their own scenario-pack provenance tag), 2 minor. A
+circularity ruling established what a clean run would and would not validate (pipeline capability and
+F4's own arithmetic correctness — not independent change-detection sensitivity/specificity). Filed
+pre-registered acceptance Criteria 0/0b/1-6 and a MAY/MUST-NOT wording table, binding on the eventual
+EXP report.
+
+**`CVR-020` (clinical-validator, pre-implementation):** adequate-with-conditions — 1 finding rated
+blocking, scoped to Wave 3/7 (VP-003's persona names guardian-liaison recommendation as its expected
+system validation target, but the original 11-session arc depicted zero connection to actual care), 7
+major, 4 minor, 4 binding conditions. Independently converged with `REV-044`'s circularity ruling from
+a clinical-simulation-fidelity angle (Finding 12), with an honest independence disclosure where partial
+`REV-044` exposure could not be ruled out for one adjacent point.
+
+**`ADR-036` (orchestrator):** dispositioned every condition — adopted Criteria 0/0b as Wave-1
+requirements (first-vs-last delta + slope sign + band transitions as the primary basis, per-pair
+comparisons demoted to supplementary evidence; `overall_direction` = PRD §5's majority-vote-with-
+worsened-priority rule generalized to N dimensions); accepted the stable-arc coverage gap explicitly
+(no 3rd VP this mission, budget-driven); threaded `scenario_pack_id`/`arc_mode` onto F2/F3 artifact
+builders too; resolved `CVR-020` condition 1 by scripting a VP-003 care-connection event (S8) rather
+than caveat alone; corrected VP-001's S1 design-intent target to the persona-documented mild baseline
+(~7); adopted zero-marginal-cost schema/report upgrades (per-session `risk_signal` count, Mode-B
+`signal_strength`/`emotional_shift_detected`, `course_shape` field, cross-dimension concordance flag,
+band-transition constant-bias disclosure, on-chart low-confidence cue for the disease-similarity
+chart).
+
+### 3. Implementation
+
+Landed at commit `75472ee` (branch `feat/f4-longitudinal`): `src/f4.py` (N-session longitudinal
+analysis engine, zero LLM calls, Criterion-0/0b aggregation basis and combination rule disclosed in
+code docstrings) + `src/schemas/longitudinal.py` (`LongitudinalAnalysisOutput` and series-point models)
++ `src/services/f4_report.py` (file I/O split out, tightening Criterion 6 so `src/f4.py` itself has
+zero `open(` calls); `src/f1.py`'s narrow isolation seam (Option C: `scenario_guideline`/
+`scenario_pack_id` optional kwargs, inert for every non-scripted caller); `apps/ai-server/tests/
+simulation/scenario_pack.py` (both 11-session arc packs); `continuous_test.py`'s variable-cadence
+scheduling and F4 post-loop stage; `src/services/trend_plotter.py` extensions (slot-fill panel, new
+similarity/domain trend chart functions); `scenario_pack_id`/`arc_mode` provenance threading into F2/F3
+artifact builders (`REV-044` Issue 4 / `ADR-036` item 3).
+
+### 4. qa code gate
+
+**GATE:PASS** — CI-mirror suite 1669 passed / 2 skipped. Mutation-checks on the trend-math functions
+found two coverage gaps, both filed and resolved same session, no production-code change in either
+case (`git diff` empty, confirmed): `BUG-041` (`_first_last_slope_trend`'s confirmatory slope-sign
+computation — a sign-negated-slope mutant survived the full suite; regression test added, mutation
+re-applied and confirmed caught, then reverted) and `BUG-042` (`_SEVERITY_BAND_RANK`'s PHQ-9 ordinal
+ranking — an adjacent-band rank-swap mutant survived the full suite; same resolution pattern). Suite
+after fix: 1669 passed / 2 skipped, unchanged (the fix was test-only).
+
+### 5. `CVR-021` — scenario-pack content pass
+
+Clinical-validator reviewed the authored pack text (`scenario_pack.py`, both 11-session arcs) against
+each persona's own documented detail. **Verdict: adequate-with-conditions** — `CVR-020` conditions 1
+and 2 both SATISFIED as-implemented (VP-003's S8 care-connection event scripted as required; VP-001's
+S1 PHQ-9 target corrected to `~7`, matching the persona-documented mild baseline exactly). One new
+major, report-scoped (not execution-blocking) finding: the S8 event's causal framing ("계기로") is
+grounded only in the system's actual crisis behavior (a hotline referral plus a protective-factors
+probe question naming family as one example) — not a guardian-liaison-recommendation feature, which
+does not exist anywhere in `apps/ai-server/src` (0 grep hits for `보호자`). This finding became a
+binding caveat (carried into `REV-045`'s wording table row 6 below). **The live battery was clinically
+cleared to run** — nothing in this review blocked Wave 7 execution, only its reporting.
+
+### 6. `EXP-023` — 약식 validation battery
+
+2 VPs (VP-001 `improvement_plateau`, VP-003 `relapse_after_partial_improvement`) × 11 scripted
+sessions each (day 0 to day 183, ~6 months, weekly→biweekly→monthly cadence taper), F1→F2→F3 chained,
+followed by one F4 analysis per VP. **22/22 session-cells completed, 0 session-level failures, 0
+retries**, 1570/1570 HTTP calls returned 200. Git HEAD `75472ee` throughout; prompt pins re-verified
+unchanged.
+
+- **VP-001:** all 11 sessions F1 exit pass, F2 `mode=rag` (11/11), F3 `outcome=administered` (11/11,
+  PHQ-9), 0 crisis-triggered. Observed PHQ-9 series `[22,18,22,20,17,17,19,20,18,18,17]` — direction
+  `improved` (S1→S11: 22→17, severe→moderately_severe), `session_ctrs=unchanged` (flat at 4),
+  `sentiment=improved`, `slot_fill_count=improved` (4→7). `course_shape=unknown` (an honest fallback —
+  the observed series has one ≥2-step worsening run, sessions 6→7→8, plus one isolated single-step
+  worsening blip at session 2→3, and PHQ-9's global max ties at session 1, disqualifying every named
+  archetype under the disclosed decision order — corrected count per `REV-045` Issue 5, superseding
+  the original entry's overstated "two separate ≥2-step runs" language). Item-9 (SI) positive in 3/11
+  administered sessions (S1, S3, S7) on a persona documented as no-SI-at-any-point.
+- **VP-003:** F2 fell to `mode=llm_only` (empty candidates) in 10/11 sessions — only session 9 reached
+  `mode=rag`; F3 `outcome=no_questionnaire_indicated` (0 items) in the same 10/11 sessions, so
+  `phq9_total=unknown` (n=1 comparable point, the S9 administration, which landed at the scale's
+  absolute ceiling, 27/27, `critical_item_positive=True`). `overall_direction=worsened` is carried
+  entirely by `session_ctrs`'s first-vs-last decline (3→2), not by the survey-score series. All 3
+  pre-registered S5-S7 watch-window sessions plus 4 more (10 of 11 total, 7 coinciding with
+  `crisis_triggered=True`) are recorded in `crisis_f3_gaps` and surfaced prominently in the shipped
+  markdown report's risk section, per `CVR-020`/`ADR-036`'s mandated mechanism. `concordance_flag=
+  discordant` (`session_ctrs=worsened` vs. `sentiment=improved` in the same series) — the new
+  cross-dimension check caught a real contradiction it was built to catch.
+- **Ledger isolation:** both VPs' shared session ledgers carried 9/7 pre-existing entries from
+  unrelated prior batteries. `_run_f4_analysis` consumes a persona's entire ledger with no
+  scenario-pack filtering; left at the default path, F4 would have silently blended historical
+  sessions into this battery's series. Isolated via `--out` into `experiments/EXP-023/runs/<vp>/
+  artifacts/` — self-identified pre-run by the tracker, before it could contaminate any output.
+
+### 7. qa step-8 recompute and `REV-045` post-evidence adjudication
+
+qa independently recomputed severity bands (12/12 administered sessions exact match, 0 BUG), replayed
+the full production pipeline byte-for-byte against both shipped `temporal.json` files (exact match
+excl. timestamp), spot-checked plot-point traceability, confirmed non-silent crisis-session sentiment
+degradation, and swept both artifacts for wording-law compliance (7 sub-checks, all clean).
+
+**`REV-045` (critic, post-evidence): evidence-sound-with-conditions.** All 8 pre-registered criteria
+(0, 0b, 1, 2, 3, 4, 5, 6) **PASS**, 0 blocking. Two disclosed deviations both ruled sound: (a)
+`overall_direction`'s N-dimension vote deliberately includes `sentiment` beyond the as-built PRD §5
+membership (PHQ-9/GAD-7/CTRS only) — disclosed, outcome-blind, and independently confirmed
+**outcome-determinative** for VP-001 specifically (excluding sentiment would flip `improved` to
+`unchanged` for this exact series) — licensed to stand, but now bound to a new wording-table row; (b)
+the `--out` ledger-isolation workaround, confirmed sound by direct code trace, with a harness-side
+`--fresh-ledger`/scenario-scoped-filter fix licensed as non-urgent, opportunistic follow-up. Three
+further dispositions, none warranting a new VAL: (c) VP-003's F2 gap-at-scale extends the already-open
+`VAL-010` (Stage-1 query-exclusion precondition), now reproduced at 10/11 sessions across a full
+longitudinal arc; (d) item-9/SI positives on both VPs extend the already-open `ISS-F2V-028`
+whole-instrument over-endorsement finding; (e) VP-001's observed-vs-design-intent PHQ-9 magnitude
+divergence (22→17 vs. ~7→3-4 intended) is a reportable finding per Criterion 1's own carve-out, not an
+F4 arithmetic error (qa's byte-exact replay confirms the arithmetic given the actual raw scores). One
+narrative-only correction directed to `result.md`: Key Finding 2's original "two separate ≥2-step
+worsening runs" overstated the code-verified count by one (§6 above).
+
+### `REV-045` final wording table (verbatim — binding on `EXP-023` and every downstream doc citing it)
+
+| # | MAY say | MUST NOT say |
+|:--|:--|:--|
+| 1 | (carried) F4 correctly computed the shipped direction verdicts given the actual raw scores this battery produced — qa's step-8 recompute (Checks 2/3) confirms this exactly for both VPs | F4 "detects"/"validates" clinical state change in general — no non-scripted comparison condition exists (circularity ruling, REV-044) |
+| 2 | (new) `overall_direction`'s N-dimension vote deliberately includes `sentiment` (ADR-036 item 1, concretized in `_overall_direction`, f4.py:534-574) — a disclosed, outcome-blind, principled design choice grounded in the user's own directive and licensed to stand for future runs | Cite VP-001's `overall_direction=improved` without disclosing that this specific verdict is sensitive to the inclusion choice: excluding `sentiment` (the as-built PRD §5 membership) would yield `unchanged` instead for this exact series (independently re-derived, Issue 1) — a standing property whenever a series has an even number of non-excluded voting dimensions (e.g., GAD-7 not administered), not unique to this run |
+| 3 | (carried) `similarity_score`/disease-candidate content is a similarity TREND over noisy inputs (VAL-014 inherited, open) | Treat disease-candidate trend content as clinically validated, or treat VAL-014 as closed — VP-003 S9's rank-4 PMDD candidate for a documented-male patient is a fresh, live reconfirmation of VAL-014, not a new issue |
+| 4 | (carried) This is a single-batch (n=1 arc per VP) technical, pipeline-functional exercise; no non-scripted comparison condition exists | Generalize from 2 VPs, or claim F4's stable/no-change-patient behavior was tested (REV-044 Issue 3/ADR-036 item 2 stands, unremediated this mission) |
+| 5 | (new) VP-003's `overall_direction=worsened` is carried entirely by `session_ctrs`'s first-vs-last decline (3->2); `phq9_total` itself reads `unknown` (n=1, S9 only). S5 and S6 (2 of the pre-registered S5-S7 watch window's 3 sessions) both appear in `crisis_f3_gaps` with `session_ctrs` at its series minimum, consistent with (not proof of) elevated risk in that window | Say F4 "identified"/"flagged" S5-S7 as a distinct worsening episode as a machine-computed output — no such field exists; the S5-S7 framing in EXP-023 is the tracker's own CVR-020/ADR-036-mandated narrative disclosure of a data gap, not an F4-computed signal, and S7 itself (session_ctrs=3, non-crisis-triggered) is absent from every gap/crisis evidence list |
+| 6 | (carried, CVR-021 binding) VP-003's S8 event is patient-initiated narrative content loosely motivated by the system's actual crisis-response output (hotline referral + protective-factors probe naming family as one example) | Characterize S8 as validating a guardian-liaison-recommendation capability — none exists in apps/ai-server/src (0 grep hits for 보호자, CVR-021 Finding 1, re-confirmed) |
+| 7 | (new) VP-001's observed PHQ-9 trajectory (22->17) is directionally congruent with, but numerically far more severe than, the arc's design intent (~7->3-4); an upstream (simulator/F1/F3) divergence, not an F4 arithmetic error (qa Check 3 confirms exact arithmetic given actual scores); this, together with VP-001's 3/11 item-9-positive sessions on a no-SI-documented persona and VP-003's S9 ceiling response, extends the standing ISS-F2V-028 over-endorsement finding with a new longitudinal-scale instance | Describe this divergence as evidence against F4's own correctness, or as a newly diagnosed, independent mechanism requiring separate remediation this mission — it is one more data point on an already-open, disclosed issue |
+| 8 | (new) The isolated-ledger workaround (--out into experiments/EXP-023/) is confirmed, by direct code trace (this review), to produce a clean, contamination-free 11-entry series per VP for this battery | Assume ledger isolation happens automatically in any future scripted F4 battery that omits --out — the default path silently blends all historical sessions for a persona (Key Finding 1) until the licensed harness-side fix (Deviation (b) above) lands |
+
+### 8. `CVR-022` — post-evidence clinical review
+
+**Verdict: adequate-with-conditions.** The F4 report format has genuine, working clinical value — the
+`CVR-020`-mandated crisis/F3-gap surfacing mechanism fires cleanly and prominently, the new
+cross-dimension concordance check caught a real same-arc contradiction, and the per-session sentiment
+upgrades add real color at zero marginal cost. 0 findings are blocking to what already ran; all bind
+future reporting/development. Two new major findings drove three binding conditions: (1) VP-003's S8
+"care-connection" event — the exact event `CVR-021` conditionally accepted as resolving `CVR-020`'s
+original blocking finding — does not survive into S9's own F1 dialogue or slots one month later (a
+same-session slot-update lag plus a full narrative/slot reversal, including an explicit denial of any
+psychiatric contact); (2) no same-session reconciliation mechanism exists between F3's item-9
+(suicidal-ideation) positive/`safety_referral` and F1's `session_ctrs`/`crisis_triggered` — VP-001's
+3/11 item-9-positive sessions all showed flat CTRS and no crisis flag, and nothing in the shipped
+output co-displays the two signals; (3) F3-series completeness in this battery is not randomly missing
+— it is inversely correlated with patient acuity (VP-003: 10/11 gapped, 7 of those coinciding with
+crisis-triggered sessions), because the same risk-adjacent dialogue content that makes quantified
+tracking most valuable is exactly what trips the F2 gate that suppresses `recommended_questionnaire`.
+Six further minor findings (PHQ-9 panel chart-legibility defects, gap-interpolation charts implying
+false continuity, a fresh VP-001 PMDD top-ranking instance, `crisis_f3_gaps`' binary-threshold scope
+gap, `course_shape`'s 0/2 informative-but-uninterpreted yield, a garbled slot-quote fragment) round out
+real, fixable thinness. Five non-binding recommendations were routed to orchestrator (§8 of `f4_
+checklist.md`).
+
+**`CVR-022` binding conditions (paraphrased; full text `discussion.md` `CVR-022`):**
+1. Any future citation of VP-003's S8 event as evidence of durable improvement must first check S9's
+   own record and disclose the event's substance is absent from S9's captured dialogue/slots.
+2. Any future citation of VP-001's item-9-positive sessions as safety-pathway evidence must disclose,
+   alongside it, that the same sessions' F1-derived CTRS/crisis signal showed no elevation.
+3. Any future clinician-facing description of F4's longitudinal capability must state explicitly that
+   F3-series completeness was inversely correlated with patient acuity in this battery.
+
+### 9. Coverage boundary and standing disclosures (stated plainly)
+
+**This battery demonstrates pipeline capability and F4's own arithmetic correctness — not F4's
+sensitivity or specificity as an independent change-detection algorithm.** No non-scripted comparison
+condition exists in this battery (`REV-044` circularity ruling, unchanged). No stable/no-net-change
+archetype was scripted this mission — F4's false-positive-rate behavior on a genuinely stable patient
+remains untested (`REV-044` Issue 3 / `ADR-036` item 2, accepted, unremediated, reserved for a future
+wider battery). `VAL-010` (F2 Stage-1 query-exclusion precondition) and `VAL-014` (RAG candidate
+face-validity, including a fresh male-patient-adjacent PMDD instance for VP-001) are both open and both
+reconfirmed at a larger scale by this battery — no fix is licensed by this evidence for either.
+`ISS-F2V-028` (whole-instrument over-endorsement) gains a new longitudinal-scale instance, narrowed-not-
+resolved. `VP-001`'s `overall_direction=improved` is sensitive to a disclosed, principled but
+outcome-determinative design choice (sentiment inclusion) that must accompany any citation. The single
+scripted event this mission built specifically to resolve VP-003's care-continuity gap does not survive
+into the very next session's own record. No wording anywhere in this report or its downstream folds may
+imply F4 detects or validates clinical state change in general, that similarity trends are
+probabilities, or that a stable-patient false-positive rate was measured.
+
+### 10. Linked items and cross-cutting notes
+
+`BUG-041` and `BUG-042` are both resolved (test-only fixes, same session, independently re-verified by
+qa). `VAL-010`'s `error.md` status line is updated to record this battery's larger-scale reconfirmation
+(10/11 sessions, vs. the earlier single-session evidence base). `VAL-014`'s `error.md` status line is
+updated to record the VP-003 S9 male-patient-adjacent PMDD reconfirmation. `ISS-F2V-028` receives a
+longitudinal-scale instance, tracked in `docs/ai/workflow_discussion_f1f2.md` (not an `error.md`
+VAL-numbered entry). Full checklist, including 9 licensed-but-open follow-up items (harness ledger
+filter, a Mode-B sentiment-fallback regression test, the reserved stable-arc battery cell, `CVR-022`'s
+5 recommendations, and an F2 Stage-1 slot-coverage revisit): `docs/ai/f4_checklist.md`.
+
+**Linked:** `PLAN-2026-W29-D`, `REV-044`, `CVR-020`, `ADR-036`, `CVR-021`, `EXP-023`, `REV-045`,
+`CVR-022`, `BUG-041`, `BUG-042`, `VAL-010`, `VAL-014`, `ISS-F2V-028`, `docs/ai/f4_quick_dev_plan.md`,
+`docs/ai/f4_checklist.md`.
+
+---

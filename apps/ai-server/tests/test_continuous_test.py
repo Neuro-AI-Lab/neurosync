@@ -2,11 +2,13 @@
 
 No live DB/LLM anywhere in this file (mirrors `test_f2_pipeline.py`'s C-4
 mock-based constraint) — this only proves the module imports cleanly, the
-stage registry is correctly shaped (F1/F2 real, F3-F6 explicit logged skip
-stubs), the chain runner's skip/halt-on-fail semantics work end to end on
-synthetic stages, the CLI parses as documented, and the DSN-masking helper
-never leaks a password. The live F1->F2 chain run is out of scope here
-(experiment-tracker's job, behind the mandatory gates).
+stage registry is correctly shaped (F1/F2/F3 real, F4-F6 explicit logged
+skip stubs), the chain runner's skip/halt-on-fail semantics work end to end
+on synthetic stages, the CLI parses as documented, and the DSN-masking
+helper never leaks a password. The live F1->F2->F3 chain run is out of
+scope here (experiment-tracker's job, behind the mandatory gates). F3's own
+stage behavior (`run_f3_stage`, ledger `"f3"` sub-object, session chaining)
+is covered in `tests/test_continuous_test_f3.py`.
 """
 
 from __future__ import annotations
@@ -19,16 +21,18 @@ import src.continuous_test as ct
 
 
 class TestStageRegistryShape:
-    def test_f1_and_f2_are_implemented(self) -> None:
+    def test_f1_through_f4_are_implemented(self) -> None:
+        """F4 flips to implemented once `src/f4.py` ships (`PLAN-2026-W29-D`,
+        `ADR-036`) — the exact extension seam `STAGE_REGISTRY`'s own
+        docstring describes."""
         by_name = {s.name: s for s in ct.STAGE_REGISTRY}
-        assert by_name["F1"].implemented is True
-        assert callable(by_name["F1"].run)
-        assert by_name["F2"].implemented is True
-        assert callable(by_name["F2"].run)
+        for name in ("F1", "F2", "F3", "F4"):
+            assert by_name[name].implemented is True
+            assert callable(by_name[name].run)
 
-    def test_f3_through_f6_are_explicit_logged_skip_stubs(self) -> None:
+    def test_f5_f6_are_explicit_logged_skip_stubs(self) -> None:
         by_name = {s.name: s for s in ct.STAGE_REGISTRY}
-        for name in ("F3", "F4", "F5", "F6"):
+        for name in ("F5", "F6"):
             stage = by_name[name]
             assert stage.implemented is False
             assert stage.run is None
