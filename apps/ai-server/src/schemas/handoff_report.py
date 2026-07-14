@@ -129,6 +129,55 @@ OVERALL_DIRECTION_SENSITIVITY_NOTE_KO = (
 
 NARRATIVE_ABSENT_MARKER_KO = "AI 종합 소견 미생성 (narrative disabled)"
 
+# ── A8 FHIR-bundle omission note (ADR-038 Decision 2d, CVR-024 Finding 6 /
+# Recommendation 6) ─────────────────────────────────────────────────────
+# md/PDF render an explicit A8 disabled marker (NARRATIVE_ABSENT_MARKER_KO
+# above); the FHIR bundle's Composition.section list omits an A8 entry
+# entirely (REV-047 Criterion 6a: ruled a MORE conservative resolution,
+# not reversed here). This one-line note closes the resulting cross-format
+# reconciliation gap CVR-024 flagged (a clinician comparing 8 md/PDF
+# sections against 7 FHIR sections, with no explanation) — appended to the
+# FHIR bundle's own disclaimer section text, not a new A8-titled section
+# (that would recreate exactly the "checkable A8 placeholder" surface
+# REV-047's stronger-disposition ruling deliberately avoided).
+
+A8_FHIR_OMISSION_NOTE_KO = (
+    "A8(임상 종합 소견, 내러티브) 섹션은 이 FHIR 번들에 별도로 포함되지 않았습니다 — "
+    "narrative_enabled=false로 이번 미션에서 비활성화되었습니다 (A8 omitted — "
+    "narrative disabled this mission)."
+)
+
+# ── A7 validation-drop disclosure (ADR-038 Decision 2a, VAL-016) ──────────
+# Distinguishes a genuine model judgment of "no department to recommend"
+# from an upstream F2 atomic-schema-validation drop that silently
+# discarded already-generated candidates (VAL-016 lineage: a single
+# `source_id`-missing evidence item nested under `domain_candidates`
+# collapses the WHOLE LLM-response object, including an already-valid
+# `department_candidates` list). Never a bare "정보 없음" when the source
+# artifact's own `validation_errors` field is non-empty.
+
+A7_NO_CANDIDATES_MODEL_JUDGED_KO = "정보 없음 (권장 진료과 후보 없음 — 모델 판정)"
+A7_NO_CANDIDATES_VALIDATION_DROPPED_KO = (
+    "정보 없음 — 후보가 스키마 검증 오류로 제외됨 (validation_errors 존재, VAL-016/"
+    "BUG-031 계열). 모델이 후보를 찾지 못했다는 의미가 아니라, 상위 F2 단계에서 이미 "
+    "생성된 후보가 스키마 검증 실패로 삭제되었을 가능성이 있습니다."
+)
+
+# ── Ceiling-score over-endorsement caveat (ADR-038 Decision 2c, CVR-024
+# Finding 4) ────────────────────────────────────────────────────────────
+# A VERBATIM excerpt of `schemas.longitudinal.LONGITUDINAL_DISCLAIMER_KO`'s
+# own over-endorsement sentence (never invented fresh here — see
+# `tests/test_f5_report.py`'s substring-containment assertion binding the
+# two constants together). Co-located directly adjacent to any A3/A5 score
+# where `total_score == max_score` (scale ceiling), not only in B1's
+# longitudinal narrative. Exact-ceiling only — no near-ceiling threshold
+# judgment is computed here (`ADR-038` explicitly scopes that out).
+
+CEILING_SCORE_CAVEAT_KO = (
+    "동일 척도가 전 세션에서 체계적으로 과대추정(over-endorsement, ISS-F2V-028)되었을 "
+    "가능성은 이 결과에서 별도로 보정되지 않습니다."
+)
+
 # ── Top-level container disclaimer ─────────────────────────────────────────
 
 HANDOFF_REPORT_DISCLAIMER_KO = (
@@ -217,6 +266,13 @@ class LongitudinalRiskSignal(BaseModel):
     same_session_ctrs: int | None = None
     same_session_crisis_triggered: bool = False
     discordance_note: str
+    ceiling_caveat: str | None = Field(
+        default=None,
+        description=(
+            "Set to CEILING_SCORE_CAVEAT_KO iff total_score == max_score "
+            "(exact scale ceiling only, ADR-038 Decision 2c). None otherwise."
+        ),
+    )
 
 
 class StalenessPointer(BaseModel):
@@ -238,6 +294,14 @@ class StalenessPointer(BaseModel):
     sessions_stale: int | None = None
     days_stale: int | None = None
     note: str
+    ceiling_caveat: str | None = Field(
+        default=None,
+        description=(
+            "Set to CEILING_SCORE_CAVEAT_KO iff total_score == max_score "
+            "(exact scale ceiling only, ADR-038 Decision 2c). None otherwise, "
+            "including when applicable=False (no scored administration exists)."
+        ),
+    )
 
 
 class RiskSafetySection(BaseModel):
@@ -319,6 +383,14 @@ class QuestionnaireSection(BaseModel):
     non_validated_caveat: str = Field(default=NON_VALIDATED_ADMINISTRATION_CAVEAT_KO)
     gap_disclosure: list[str] = Field(default_factory=list)
     gap_acuity_framing_note: str | None = None
+    ceiling_caveat: str | None = Field(
+        default=None,
+        description=(
+            "Set to CEILING_SCORE_CAVEAT_KO iff total_score == max_score "
+            "(exact scale ceiling only, ADR-038 Decision 2c). None otherwise, "
+            "including when present=False."
+        ),
+    )
 
 
 # ── A6 (hard red line — own section, never merged elsewhere) ──────────────
@@ -353,6 +425,20 @@ class AIPredictedDiseaseSection(BaseModel):
     recommended_questionnaire: str | None = None
     recommendation_caveat: str | None = None
     no_data_note: str | None = None
+    reason_summary: str | None = Field(
+        default=None,
+        description=(
+            "Surfaced verbatim from the source artifact's own "
+            "AIPredictedDiseaseOutput.reason_summary (never invented here) "
+            "ONLY when candidates is empty AND mode != 'rag_live' (ADR-038 "
+            "Decision 2b, CVR-024 Finding 2/Recommendation 2) — e.g. "
+            "explains an 'experimental_unpopulated' mode's own cause (no "
+            "RAG chunks retrieved, or all candidate queries were "
+            "risk-lexicon-rejected). None when candidates is non-empty, "
+            "when mode == 'rag_live', or when the source artifact carried "
+            "no reason_summary."
+        ),
+    )
 
 
 # ── A7 ──────────────────────────────────────────────────────────────────
@@ -373,6 +459,18 @@ class RecommendationSection(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     department_candidates: list[DepartmentRecommendation] = Field(default_factory=list)
+    department_candidates_absence_note: str | None = Field(
+        default=None,
+        description=(
+            "Populated ONLY when department_candidates is empty -- "
+            "A7_NO_CANDIDATES_VALIDATION_DROPPED_KO if the source "
+            "domain_inference artifact carried non-empty validation_errors "
+            "(VAL-016 lineage: an atomic Pydantic parse failure can silently "
+            "collapse an already-valid department_candidates list), else "
+            "A7_NO_CANDIDATES_MODEL_JUDGED_KO (ADR-038 Decision 2a). None "
+            "when department_candidates is non-empty."
+        ),
+    )
     recommended_questionnaire: str | None = None
     recommendation_caveat: str | None = None
     medication_note: str = Field(default=MEDICATION_NOTE_KO)

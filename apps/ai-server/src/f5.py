@@ -48,6 +48,9 @@ from typing import Literal
 from src.schemas.ai_predicted_disease import AIPredictedDiseaseCandidate, AIPredictedDiseaseOutput
 from src.schemas.common import CTRS_TO_RISK, CTRSLevel
 from src.schemas.handoff_report import (
+    A7_NO_CANDIDATES_MODEL_JUDGED_KO,
+    A7_NO_CANDIDATES_VALIDATION_DROPPED_KO,
+    CEILING_SCORE_CAVEAT_KO,
     CRISIS_F3_GAP_ACUITY_FRAMING_KO,
     GAD7_THRESHOLD_CAVEAT_ASYMMETRY_NOTE_KO,
     MSE_FLAT_TEXT_LABEL_KO,
@@ -138,10 +141,23 @@ class DepartmentCandidateInput:
 @dataclass(frozen=True)
 class DomainInferenceSnapshot:
     """The LATEST session's F2 artifact content — `ai_predicted_disease`
-    (A6) + `department_candidates` (A7)."""
+    (A6) + `department_candidates` (A7).
+
+    `validation_errors_present` (`ADR-038` Decision 2a / `VAL-016`):
+    whether the SOURCE `domain_inference.json` artifact carried a
+    non-empty top-level `validation_errors` field — an atomic Pydantic
+    parse failure on `domain_candidates`/`department_candidates` (e.g. a
+    missing-`source_id` evidence item) can silently collapse an
+    ALREADY-VALID `department_candidates` list to `[]`. This flag is the
+    harness-supplied fact A7's rendering needs to distinguish that from a
+    genuine model judgment of "no department to recommend" — `src.f5`
+    itself never reads `domain_inference.json` (module docstring), so the
+    harness (`continuous_test.py`) computes this from the same artifact it
+    already reads to build `department_candidates` below."""
 
     ai_predicted_disease: AIPredictedDiseaseOutput | None
     department_candidates: tuple[DepartmentCandidateInput, ...] = ()
+    validation_errors_present: bool = False
 
 
 @dataclass(frozen=True)
@@ -212,6 +228,19 @@ def _days_between(earlier: str, later: str) -> int | None:
     if d1 is None or d2 is None:
         return None
     return (d2 - d1).days
+
+
+def _ceiling_caveat(total_score: int | None, max_score: int | None) -> str | None:
+    """`ADR-038` Decision 2c / `CVR-024` Finding 4: EXACT scale-ceiling
+    only (`total_score == max_score`, both present) — no near-ceiling
+    threshold judgment. Returns the verbatim `CEILING_SCORE_CAVEAT_KO`
+    excerpt of `schemas.longitudinal.LONGITUDINAL_DISCLAIMER_KO`'s own
+    over-endorsement sentence, or `None`."""
+    if total_score is None or max_score is None:
+        return None
+    if total_score == max_score:
+        return CEILING_SCORE_CAVEAT_KO
+    return None
 
 
 def _risk_elevated(session_ctrs: int | None, crisis_triggered: bool) -> bool:
@@ -322,6 +351,7 @@ def _build_staleness_pointer(inp: HandoffReportInput, current_has_f3: bool) -> S
         sessions_stale=sessions_stale,
         days_stale=days_stale,
         note=note,
+        ceiling_caveat=_ceiling_caveat(latest.total_score, latest.max_score),
     )
 
 
@@ -368,6 +398,7 @@ def _build_a3(inp: HandoffReportInput) -> RiskSafetySection:
                 same_session_ctrs=same_ctrs,
                 same_session_crisis_triggered=same_crisis,
                 discordance_note=note,
+                ceiling_caveat=_ceiling_caveat(admin.total_score, admin.max_score),
             )
         )
 
@@ -448,6 +479,7 @@ def _build_a5(inp: HandoffReportInput) -> QuestionnaireSection:
         non_validated_caveat=NON_VALIDATED_ADMINISTRATION_CAVEAT_KO,
         gap_disclosure=gap_notes,
         gap_acuity_framing_note=CRISIS_F3_GAP_ACUITY_FRAMING_KO if gap_notes else None,
+        ceiling_caveat=_ceiling_caveat(latest.total_score, latest.max_score),
     )
 
 
@@ -482,11 +514,24 @@ def _rank_candidates(
 def _build_a6(inp: HandoffReportInput) -> AIPredictedDiseaseSection:
     apd = inp.domain_inference.ai_predicted_disease
     if apd is None or not apd.candidates:
+        # `ADR-038` Decision 2b / `CVR-024` Finding 2, Recommendation 2:
+        # surface the artifact's OWN already-computed reason_summary
+        # (never invented here) whenever candidates is empty AND the mode
+        # is not "rag_live" — e.g. `mode="experimental_unpopulated"`
+        # explains itself ("no RAG chunks retrieved this run" / all
+        # candidate queries risk-lexicon-rejected). Excluded for
+        # `mode="rag_live"` per the same decision: a live RAG run that
+        # genuinely found nothing is a materially different (less
+        # ambiguous) case than an unpopulated run.
+        reason_summary = None
+        if apd is not None and apd.mode != "rag_live" and apd.reason_summary:
+            reason_summary = apd.reason_summary
         return AIPredictedDiseaseSection(
             present=False,
             mode=apd.mode if apd else None,
             disclaimer=apd.disclaimer if apd else None,
             no_data_note="정보 없음 (AI 예상질환 후보 없음)",
+            reason_summary=reason_summary,
         )
     return AIPredictedDiseaseSection(
         present=True,
@@ -507,8 +552,21 @@ def _build_a7(inp: HandoffReportInput) -> RecommendationSection:
         for d in inp.domain_inference.department_candidates
     ]
     apd = inp.domain_inference.ai_predicted_disease
+    # `ADR-038` Decision 2a / `VAL-016`: when no department candidates
+    # survived, distinguish a genuine model judgment from an upstream F2
+    # atomic-schema-validation drop (`inp.domain_inference.
+    # validation_errors_present`, harness-supplied from the same source
+    # artifact) — never a bare "정보 없음" when validation errors exist.
+    absence_note = None
+    if not depts:
+        absence_note = (
+            A7_NO_CANDIDATES_VALIDATION_DROPPED_KO
+            if inp.domain_inference.validation_errors_present
+            else A7_NO_CANDIDATES_MODEL_JUDGED_KO
+        )
     return RecommendationSection(
         department_candidates=depts,
+        department_candidates_absence_note=absence_note,
         recommended_questionnaire=apd.recommended_questionnaire if apd else None,
         recommendation_caveat=apd.recommendation_caveat if apd else None,
     )

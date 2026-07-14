@@ -64,38 +64,48 @@ def _write_conversation(
 
 
 def _write_domain_inference(
-    tmp_path: Path, persona_id: str, session_index: int, *, with_candidates: bool = True
+    tmp_path: Path,
+    persona_id: str,
+    session_index: int,
+    *,
+    with_candidates: bool = True,
+    department_candidates: list[dict] | None = None,
+    validation_errors: list[dict] | None = None,
 ) -> Path:
+    """`validation_errors` (`ADR-038` Decision 2a / `VAL-016`): the
+    artifact's own top-level field mirroring a real Pydantic atomic-parse
+    failure — `None`/absent by default (matches the common case)."""
     vp_dir = tmp_path / persona_id
     vp_dir.mkdir(parents=True, exist_ok=True)
     path = vp_dir / f"{persona_id}_202601{session_index:02d}_010000_domain_inference.json"
-    path.write_text(
-        json.dumps(
-            {
-                "domain_candidates": [{"domain": "depression", "confidence": 0.7}],
-                "department_candidates": [
-                    {
-                        "department": "정신건강의학과",
-                        "reason": "우울 증상",
-                        "domain_ref": "depression",
-                    }
-                ],
-                "ai_predicted_disease": {
-                    "candidates": [
-                        {"disease": "우울 삽화(우울증)", "similarity_score": 0.5}
-                    ]
-                    if with_candidates
-                    else [],
-                    "mode": "rag_live",
-                    "is_diagnostic": False,
-                    "recommended_questionnaire": "PHQ-9",
-                    "recommendation_caveat": None,
-                },
-            },
-            ensure_ascii=False,
+    artifact: dict = {
+        "domain_candidates": [{"domain": "depression", "confidence": 0.7}],
+        "department_candidates": (
+            department_candidates
+            if department_candidates is not None
+            else [
+                {
+                    "department": "정신건강의학과",
+                    "reason": "우울 증상",
+                    "domain_ref": "depression",
+                }
+            ]
         ),
-        encoding="utf-8",
-    )
+        "ai_predicted_disease": {
+            "candidates": [
+                {"disease": "우울 삽화(우울증)", "similarity_score": 0.5}
+            ]
+            if with_candidates
+            else [],
+            "mode": "rag_live",
+            "is_diagnostic": False,
+            "recommended_questionnaire": "PHQ-9",
+            "recommendation_caveat": None,
+        },
+    }
+    if validation_errors is not None:
+        artifact["validation_errors"] = validation_errors
+    path.write_text(json.dumps(artifact, ensure_ascii=False), encoding="utf-8")
     return path
 
 
@@ -277,6 +287,48 @@ class TestBuildF5F3Administration:
         assert ct._build_f5_f3_administration(entry) is None
 
 
+# ── _build_f5_domain_inference_snapshot (ADR-038 Decision 2a, VAL-016) ──
+
+
+class TestBuildF5DomainInferenceSnapshot:
+    def test_validation_errors_present_threaded_true(self, tmp_path: Path) -> None:
+        di_path = _write_domain_inference(
+            tmp_path,
+            "VP-X",
+            1,
+            department_candidates=[],
+            validation_errors=[
+                {
+                    "type": "missing",
+                    "loc": ["domain_candidates", 0, "evidence", 0, "source_id"],
+                    "msg": "Field required",
+                }
+            ],
+        )
+        snap = ct._build_f5_domain_inference_snapshot(str(di_path))
+        assert snap.validation_errors_present is True
+        assert snap.department_candidates == ()
+
+    def test_validation_errors_absent_threaded_false(self, tmp_path: Path) -> None:
+        di_path = _write_domain_inference(tmp_path, "VP-X", 1)
+        snap = ct._build_f5_domain_inference_snapshot(str(di_path))
+        assert snap.validation_errors_present is False
+
+    def test_validation_errors_empty_list_threaded_false(self, tmp_path: Path) -> None:
+        """An explicit empty list is the same "no validation drop" fact as
+        a wholly-absent field -- `bool([])` is `False`, matching the
+        real-artifact convention (`validation_errors: null` when clean)."""
+        di_path = _write_domain_inference(tmp_path, "VP-X", 1, validation_errors=[])
+        snap = ct._build_f5_domain_inference_snapshot(str(di_path))
+        assert snap.validation_errors_present is False
+
+    def test_no_path_degrades_to_empty_snapshot_validation_errors_false(self) -> None:
+        snap = ct._build_f5_domain_inference_snapshot(None)
+        assert snap.ai_predicted_disease is None
+        assert snap.department_candidates == ()
+        assert snap.validation_errors_present is False
+
+
 # ── _run_f5_report ────────────────────────────────────────────────────────
 
 
@@ -302,6 +354,47 @@ class TestRunF5Report:
         md = paths["markdown"].read_text(encoding="utf-8")
         assert "scales_ctrs_sentiment" in md
         assert "disease_similarity" in md
+
+    def test_validation_errors_flow_end_to_end_into_a7_disclosure(self, tmp_path: Path) -> None:
+        """ADR-038 Decision 2a / VAL-016, full pipeline: a domain_inference
+        artifact carrying validation_errors + empty department_candidates
+        on the LATEST session must produce the validation-dropped wording
+        (not a bare 정보 없음) in the rendered markdown."""
+        persona_id = "VP-VALERR"
+        ledger_path = ct._ledger_path(persona_id, tmp_path)
+        conv1 = _write_conversation(tmp_path, persona_id, 1, simulated_date="2026-01-01")
+        di1 = _write_domain_inference(tmp_path, persona_id, 1)
+        survey1 = _write_survey(tmp_path, persona_id, 1, total_score=20)
+        ct._append_ledger_entry(
+            ledger_path,
+            _ledger_entry(1, conv1, di1, simulated_date="2026-01-01", survey_path=survey1),
+        )
+        conv2 = _write_conversation(tmp_path, persona_id, 2, simulated_date="2026-01-08")
+        di2 = _write_domain_inference(
+            tmp_path,
+            persona_id,
+            2,
+            department_candidates=[],
+            validation_errors=[
+                {
+                    "type": "missing",
+                    "loc": ["domain_candidates", 0, "evidence", 0, "source_id"],
+                    "msg": "Field required",
+                }
+            ],
+        )
+        survey2 = _write_survey(tmp_path, persona_id, 2, total_score=10)
+        ct._append_ledger_entry(
+            ledger_path,
+            _ledger_entry(2, conv2, di2, simulated_date="2026-01-08", survey_path=survey2),
+        )
+        _write_temporal(tmp_path, persona_id)
+
+        paths = ct._run_f5_report(persona_id, tmp_path)
+        md = paths["markdown"].read_text(encoding="utf-8")
+        a7_section = md.split("## A7.")[1].split("## A8.")[0]
+        assert "VAL-016" in a7_section
+        assert "정보 없음 (권장 진료과 없음)" not in a7_section  # old bare wording gone
 
     def test_fewer_than_2_ledger_entries_raises_insufficient_sessions(
         self, tmp_path: Path

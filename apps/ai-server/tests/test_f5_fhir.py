@@ -352,3 +352,168 @@ class TestDisclaimerAndNonDiagnostic:
         assert "fhir-conformant" not in rendered
         assert "validated against the fhir spec" not in rendered
         assert "$validate" not in rendered
+
+
+# ── A8 FHIR-omission note (ADR-038 Decision 2d, CVR-024 Rec 6) ──────────
+
+
+class TestA8OmissionNote:
+    def test_disclaimer_section_carries_a8_omission_note_when_narrative_disabled(self) -> None:
+        from src.schemas.handoff_report import A8_FHIR_OMISSION_NOTE_KO
+
+        report = _report()
+        assert report.a8_narrative.narrative_enabled is False  # sanity
+        bundle = build_fhir_bundle(report)
+        comp = bundle["entry"][0]["resource"]
+        disclaimer_section = next(
+            s for s in comp["section"] if s["code"].get("text") == "disclaimer"
+        )
+        assert A8_FHIR_OMISSION_NOTE_KO in disclaimer_section["text"]["div"]
+
+    def test_no_a8_titled_section_exists(self) -> None:
+        """REV-047 Criterion 6a precedent (PASS-via-stronger-disposition)
+        stands unchanged -- the omission note is a ONE-LINE addendum to the
+        disclaimer section, not a new checkable A8 placeholder section."""
+        bundle = build_fhir_bundle(_report())
+        comp = bundle["entry"][0]["resource"]
+        assert not any(s["title"].startswith("A8") for s in comp["section"])
+
+    def test_bundle_still_validates_structurally(self) -> None:
+        bundle = build_fhir_bundle(_report())
+        assert validate_fhir_bundle(bundle) == []
+
+
+# ── A6 reason_summary surfacing, FHIR (ADR-038 Decision 2b) ──────────────
+
+
+class TestA6ReasonSummaryFhir:
+    def _report_with_apd(self, apd: AIPredictedDiseaseOutput):
+        session = SessionSnapshot(
+            session_id="f1_VP-TEST",
+            persona_id="VP-TEST",
+            persona_name="김테스트",
+            session_index=11,
+            simulated_date="2027-01-12",
+            model="solar-pro3-260323",
+            final_slots={"chief_complaint": "x"},
+            session_ctrs=4,
+            crisis_triggered=False,
+            crisis_turn=None,
+            risk_floor=None,
+            probe_event_count=0,
+        )
+        inp = HandoffReportInput(
+            vp_id="VP-TEST",
+            session=session,
+            current_session_f3=None,
+            all_f3_administrations=(),
+            domain_inference=DomainInferenceSnapshot(ai_predicted_disease=apd),
+            longitudinal=LongitudinalAnalysisOutput(vp_id="VP-TEST", n_sessions=1),
+        )
+        return assemble_handoff_report(inp)
+
+    def test_a6_section_text_includes_reason_summary_when_unpopulated(self) -> None:
+        apd = AIPredictedDiseaseOutput(
+            candidates=[],
+            mode="experimental_unpopulated",
+            reason_summary="no RAG chunks retrieved this run",
+        )
+        report = self._report_with_apd(apd)
+        bundle = build_fhir_bundle(report)
+        comp = bundle["entry"][0]["resource"]
+        a6_section = next(s for s in comp["section"] if s["title"].startswith("A6"))
+        assert "no RAG chunks retrieved this run" in a6_section["text"]["div"]
+
+    def test_a6_section_text_omits_reason_summary_for_rag_live_empty(self) -> None:
+        apd = AIPredictedDiseaseOutput(
+            candidates=[], mode="rag_live", reason_summary="should not appear"
+        )
+        report = self._report_with_apd(apd)
+        bundle = build_fhir_bundle(report)
+        comp = bundle["entry"][0]["resource"]
+        a6_section = next(s for s in comp["section"] if s["title"].startswith("A6"))
+        assert "should not appear" not in a6_section["text"]["div"]
+
+
+# ── A7 validation-drop disclosure, FHIR (ADR-038 Decision 2a) ────────────
+
+
+class TestA7DisclosureFhir:
+    def _report_no_departments(self, *, validation_errors_present: bool):
+        session = SessionSnapshot(
+            session_id="f1_VP-TEST",
+            persona_id="VP-TEST",
+            persona_name="김테스트",
+            session_index=11,
+            simulated_date="2027-01-12",
+            model="solar-pro3-260323",
+            final_slots={"chief_complaint": "x"},
+            session_ctrs=4,
+            crisis_triggered=False,
+            crisis_turn=None,
+            risk_floor=None,
+            probe_event_count=0,
+        )
+        inp = HandoffReportInput(
+            vp_id="VP-TEST",
+            session=session,
+            current_session_f3=None,
+            all_f3_administrations=(),
+            domain_inference=DomainInferenceSnapshot(
+                ai_predicted_disease=AIPredictedDiseaseOutput(
+                    candidates=[], mode="experimental_unpopulated"
+                ),
+                department_candidates=(),
+                validation_errors_present=validation_errors_present,
+            ),
+            longitudinal=LongitudinalAnalysisOutput(vp_id="VP-TEST", n_sessions=1),
+        )
+        return assemble_handoff_report(inp)
+
+    def test_a7_section_text_shows_validation_dropped_wording(self) -> None:
+        report = self._report_no_departments(validation_errors_present=True)
+        bundle = build_fhir_bundle(report)
+        comp = bundle["entry"][0]["resource"]
+        a7_section = next(s for s in comp["section"] if s["title"].startswith("A7"))
+        assert "VAL-016" in a7_section["text"]["div"]
+
+    def test_a7_section_text_shows_model_judged_wording(self) -> None:
+        report = self._report_no_departments(validation_errors_present=False)
+        bundle = build_fhir_bundle(report)
+        comp = bundle["entry"][0]["resource"]
+        a7_section = next(s for s in comp["section"] if s["title"].startswith("A7"))
+        assert "VAL-016" not in a7_section["text"]["div"]
+        assert "모델 판정" in a7_section["text"]["div"]
+
+
+# ── Exact-ceiling caveat co-location, FHIR (ADR-038 Decision 2c) ─────────
+
+
+class TestCeilingCaveatFhir:
+    def test_risk_assessment_note_carries_ceiling_caveat_for_ceiling_score(self) -> None:
+        """`_report()`'s staleness-pointer administration is PHQ-9 27/27
+        (scale ceiling) -- the RiskAssessment note (already carrying the
+        staleness pointer text) must also carry the ISS-F2V-028 caveat."""
+        report = _report()
+        assert report.a3_risk_safety.staleness_pointer.ceiling_caveat is not None  # sanity
+        bundle = build_fhir_bundle(report)
+        risk_assessment = next(
+            e["resource"]
+            for e in bundle["entry"]
+            if e["resource"]["resourceType"] == "RiskAssessment"
+        )
+        notes_text = " ".join(n["text"] for n in risk_assessment["note"])
+        assert "ISS-F2V-028" in notes_text
+
+    def test_a5_total_observation_note_carries_ceiling_caveat(self) -> None:
+        report = _report()
+        assert report.a5_questionnaires.ceiling_caveat is not None  # sanity
+        bundle = build_fhir_bundle(report)
+        a5_obs = next(
+            e["resource"]
+            for e in bundle["entry"]
+            if e["resource"]["resourceType"] == "Observation"
+            and e["resource"]["code"].get("text", "").startswith("PHQ-9")
+        )
+        notes_text = " ".join(n["text"] for n in a5_obs["note"])
+        assert "ISS-F2V-028" in notes_text

@@ -9,6 +9,7 @@ import re
 from pathlib import Path
 
 import pypdf
+import pytest
 
 from src.f5 import (
     ChartFilenames,
@@ -43,7 +44,21 @@ _EXPECTED_SECTION_MARKERS = [
 ]
 
 
-def _full_report():
+def _full_report(
+    *,
+    prior_total_score: int = 27,
+    prior_max_score: int = 27,
+    prior_severity: str = "severe",
+    validation_errors_present: bool = False,
+    department_candidates: tuple[DepartmentCandidateInput, ...] | None = None,
+    apd: AIPredictedDiseaseOutput | None = None,
+):
+    """`prior_total_score`/`prior_max_score`/`prior_severity` default to
+    27/27/"severe" (VP-003's real ceiling-score worked example, ADR-038
+    Decision 2c) — callers exercising the NO-ceiling path override these
+    (e.g. 17/27); every other default is unchanged from this fixture's
+    original shape, so `_full_report()` with no args is byte-identical to
+    the pre-ADR-038 fixture."""
     session = SessionSnapshot(
         session_id="f1_VP-TEST",
         persona_id="VP-TEST",
@@ -75,33 +90,37 @@ def _full_report():
         item_bank_version="v1",
         item_bank_provenance="v1, verbatim Pfizer PHQ-9",
         responses=(3,) * 9,
-        total_score=27,
-        max_score=27,
-        severity="severe",
+        total_score=prior_total_score,
+        max_score=prior_max_score,
+        severity=prior_severity,
         critical_item_positive=True,
         safety_referral=True,
     )
-    apd = AIPredictedDiseaseOutput(
-        candidates=[
-            AIPredictedDiseaseCandidate(
-                disease="계절성 정동장애",
-                similarity_score=0.485,
-                source_id="case_card:1045",
-                quote="q1",
+    if apd is None:
+        apd = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="계절성 정동장애",
+                    similarity_score=0.485,
+                    source_id="case_card:1045",
+                    quote="q1",
+                ),
+                AIPredictedDiseaseCandidate(
+                    disease="월경전 불쾌장애",
+                    similarity_score=0.485,
+                    source_id="case_card:1045",
+                    quote="q1",
+                ),
+            ],
+            mode="rag_live",
+            recommended_questionnaire="PHQ-9",
+        )
+    if department_candidates is None:
+        department_candidates = (
+            DepartmentCandidateInput(
+                department="정신건강의학과", reason="복합 증상", domain_ref="sleep"
             ),
-            AIPredictedDiseaseCandidate(
-                disease="월경전 불쾌장애",
-                similarity_score=0.485,
-                source_id="case_card:1045",
-                quote="q1",
-            ),
-        ],
-        mode="rag_live",
-        recommended_questionnaire="PHQ-9",
-    )
-    dept = DepartmentCandidateInput(
-        department="정신건강의학과", reason="복합 증상", domain_ref="sleep"
-    )
+        )
     longitudinal = LongitudinalAnalysisOutput(
         vp_id="VP-TEST",
         n_sessions=11,
@@ -120,9 +139,9 @@ def _full_report():
                     simulated_date="2026-11-12",
                     scale_name="PHQ-9",
                     administered=True,
-                    total_score=27,
-                    max_score=27,
-                    severity="severe",
+                    total_score=prior_total_score,
+                    max_score=prior_max_score,
+                    severity=prior_severity,
                 )
             ]
         },
@@ -139,7 +158,9 @@ def _full_report():
         current_session_f3=current_f3,
         all_f3_administrations=(prior_f3, current_f3),
         domain_inference=DomainInferenceSnapshot(
-            ai_predicted_disease=apd, department_candidates=(dept,)
+            ai_predicted_disease=apd,
+            department_candidates=department_candidates,
+            validation_errors_present=validation_errors_present,
         ),
         longitudinal=longitudinal,
         chart_filenames=ChartFilenames(
@@ -378,3 +399,238 @@ class TestSaveF5Result:
         pattern = re.compile(r"^VP-TEST_\d{8}_\d{6}_handoff")
         for p in paths.values():
             assert pattern.match(p.stem) or pattern.match(p.name)
+
+
+# ── Font embedding (ADR-038 Decision 1, BUG-044) ────────────────────────
+
+
+def _embedded_korean_font_names(pdf_bytes: bytes) -> set[str]:
+    """Returns the `/BaseFont` name of every font resource on page 1 whose
+    FontDescriptor (direct, or via `/DescendantFonts` for a Type0
+    composite) carries an embedded font program (`/FontFile`, `/FontFile2`,
+    or `/FontFile3`) — the pypdf-level equivalent of `pdffonts`' `emb=yes`
+    column."""
+    reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+    embedded: set[str] = set()
+    for page in reader.pages:
+        resources = page.get("/Resources") or {}
+        fonts = resources.get("/Font") or {}
+        for fref in fonts.values():
+            fobj = fref.get_object()
+            base_font = str(fobj.get("/BaseFont", ""))
+            descriptors = []
+            direct_desc = fobj.get("/FontDescriptor")
+            if direct_desc is not None:
+                descriptors.append(direct_desc.get_object())
+            for child_ref in fobj.get("/DescendantFonts") or []:
+                child = child_ref.get_object()
+                child_desc = child.get("/FontDescriptor")
+                if child_desc is not None:
+                    descriptors.append(child_desc.get_object())
+            for desc in descriptors:
+                if any(k in desc for k in ("/FontFile", "/FontFile2", "/FontFile3")):
+                    embedded.add(base_font)
+    return embedded
+
+
+class TestPdfFontEmbedding:
+    def test_korean_fonts_are_embedded(self) -> None:
+        """ADR-038 Decision 1 / BUG-044: the PDF must carry its own Korean
+        glyph outlines (emb=yes), not merely reference a CID font NAME the
+        consuming viewer is expected to substitute (the old `emb=no`
+        failure mode qa's multi-renderer adjudication confirmed breaks on
+        a no-CJK-fontconfig host AND under Ghostscript)."""
+        pdf_bytes = build_pdf_report(_full_report())
+        embedded = _embedded_korean_font_names(pdf_bytes)
+        assert embedded, "no embedded font found on page 1 at all"
+        assert any("NotoSansCJKkr" in name for name in embedded), embedded
+        assert any("NotoSerifCJKkr" in name for name in embedded), embedded
+
+    def test_old_non_embedded_cid_font_names_absent(self) -> None:
+        """Raster-independent regression guard: the old `ADR-037` Decision
+        7 CID font names must never appear anywhere in the PDF bytes —
+        proves the font choice was actually replaced, not merely
+        supplemented."""
+        pdf_bytes = build_pdf_report(_full_report())
+        assert b"HYGothic-Medium" not in pdf_bytes
+        assert b"HYSMyeongJo-Medium" not in pdf_bytes
+
+    def test_middle_dot_and_warning_glyph_extract_correctly(self) -> None:
+        """Content-integrity companion to the embedding check: `·`/`⚠`
+        (BUG-044's 2 tofu-glyph targets) still round-trip through the
+        text layer -- this does NOT by itself prove the RASTER renders
+        correctly (that needs a rasterizer, verified manually this
+        dispatch, see HANDOFF evidence), but confirms embedding did not
+        regress content fidelity."""
+        pdf_bytes = build_pdf_report(_full_report())
+        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+        text = "".join(p.extract_text() for p in reader.pages)
+        assert "·" in text
+        assert "⚠" in text
+
+    def test_register_korean_fonts_raises_on_missing_asset(self, monkeypatch, tmp_path) -> None:
+        """ADR-038 Decision 1: a missing font asset must raise a clear,
+        named error -- NEVER silently fall back to the old CID fonts."""
+        import src.services.f5_report as f5_report_module
+
+        monkeypatch.setattr(
+            f5_report_module, "_BODY_FONT_PATH", tmp_path / "does-not-exist.ttf"
+        )
+        # Force re-registration (module-level registry is process-global).
+        monkeypatch.setattr(f5_report_module, "_BODY_FONT", "test-missing-body-font")
+        with pytest.raises(RuntimeError, match="ADR-038"):
+            f5_report_module._register_korean_fonts()
+
+    def test_register_korean_fonts_raises_on_sha256_mismatch(self, monkeypatch, tmp_path) -> None:
+        """ADR-038 Decision 1: a font asset present but content-mismatched
+        against the pinned SHA256 must also raise loudly, not silently
+        register a swapped/corrupted font."""
+        import src.services.f5_report as f5_report_module
+
+        tampered = tmp_path / "tampered.ttf"
+        tampered.write_bytes(b"not a real font file")
+        monkeypatch.setattr(f5_report_module, "_BODY_FONT_PATH", tampered)
+        monkeypatch.setattr(f5_report_module, "_BODY_FONT", "test-tampered-body-font")
+        with pytest.raises(RuntimeError, match="SHA256"):
+            f5_report_module._register_korean_fonts()
+
+
+# ── A7 validation-drop disclosure, exporter-level (ADR-038 Decision 2a) ──
+
+
+class TestA7DisclosureExporters:
+    def test_markdown_shows_validation_dropped_wording_when_flagged(self) -> None:
+        from src.schemas.handoff_report import A7_NO_CANDIDATES_VALIDATION_DROPPED_KO
+
+        report = _full_report(department_candidates=(), validation_errors_present=True)
+        md = build_markdown_report(report)
+        a7_section = md.split("## A7.")[1].split("## A8.")[0]
+        assert A7_NO_CANDIDATES_VALIDATION_DROPPED_KO in a7_section
+        assert "VAL-016" in a7_section
+
+    def test_markdown_shows_model_judged_wording_when_not_flagged(self) -> None:
+        from src.schemas.handoff_report import (
+            A7_NO_CANDIDATES_MODEL_JUDGED_KO,
+            A7_NO_CANDIDATES_VALIDATION_DROPPED_KO,
+        )
+
+        report = _full_report(department_candidates=(), validation_errors_present=False)
+        md = build_markdown_report(report)
+        a7_section = md.split("## A7.")[1].split("## A8.")[0]
+        assert A7_NO_CANDIDATES_MODEL_JUDGED_KO in a7_section
+        assert A7_NO_CANDIDATES_VALIDATION_DROPPED_KO not in a7_section
+
+    def test_pdf_shows_validation_dropped_wording_when_flagged(self) -> None:
+        from src.schemas.handoff_report import A7_NO_CANDIDATES_VALIDATION_DROPPED_KO
+
+        report = _full_report(department_candidates=(), validation_errors_present=True)
+        pdf_bytes = build_pdf_report(report)
+        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+        text = "".join(p.extract_text() for p in reader.pages)
+        assert "VAL-016" in text
+        assert A7_NO_CANDIDATES_VALIDATION_DROPPED_KO[:20] in text
+
+    def test_non_empty_candidates_never_shows_absence_wording(self) -> None:
+        report = _full_report(validation_errors_present=True)  # default has 1 dept candidate
+        md = build_markdown_report(report)
+        a7_section = md.split("## A7.")[1].split("## A8.")[0]
+        assert "정보 없음" not in a7_section
+
+
+# ── A6 reason_summary surfacing, exporter-level (ADR-038 Decision 2b) ────
+
+
+class TestA6ReasonSummaryExporters:
+    def test_markdown_surfaces_reason_summary_when_unpopulated(self) -> None:
+        apd = AIPredictedDiseaseOutput(
+            candidates=[],
+            mode="experimental_unpopulated",
+            reason_summary="no RAG chunks retrieved this run",
+        )
+        report = _full_report(apd=apd)
+        md = build_markdown_report(report)
+        a6_section = md.split("## A6.")[1].split("## A7.")[0]
+        assert "no RAG chunks retrieved this run" in a6_section
+        assert "mode: experimental_unpopulated" in a6_section
+
+    def test_pdf_surfaces_reason_summary_when_unpopulated(self) -> None:
+        apd = AIPredictedDiseaseOutput(
+            candidates=[],
+            mode="experimental_unpopulated",
+            reason_summary="no RAG chunks retrieved this run",
+        )
+        report = _full_report(apd=apd)
+        pdf_bytes = build_pdf_report(report)
+        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+        text = "".join(p.extract_text() for p in reader.pages)
+        assert "no RAG chunks retrieved this run" in text
+
+    def test_markdown_omits_reason_summary_for_rag_live_empty(self) -> None:
+        apd = AIPredictedDiseaseOutput(
+            candidates=[], mode="rag_live", reason_summary="should not appear"
+        )
+        report = _full_report(apd=apd)
+        md = build_markdown_report(report)
+        a6_section = md.split("## A6.")[1].split("## A7.")[0]
+        assert "should not appear" not in a6_section
+
+
+# ── Exact-ceiling caveat co-location, exporter-level (ADR-038 Decision 2c) ──
+
+
+class TestCeilingCaveatExporters:
+    def test_markdown_a3_and_a5_show_caveat_adjacent_on_ceiling_score(self) -> None:
+        from src.schemas.handoff_report import CEILING_SCORE_CAVEAT_KO
+
+        report = _full_report(prior_total_score=27, prior_max_score=27)
+        md = build_markdown_report(report)
+        a3_section = md.split("## A3.")[1].split("## A4.")[0]
+        a5_section = md.split("## A5.")[1].split("## A6.")[0]
+        assert CEILING_SCORE_CAVEAT_KO in a3_section
+        assert CEILING_SCORE_CAVEAT_KO in a5_section
+        # adjacency: the caveat must sit on the same 27/27 line's table/note,
+        # not merely appear anywhere in the whole document -- already
+        # implied by the section-scoped assertions above, plus explicit
+        # score co-occurrence:
+        assert "27/27" in a3_section
+        assert "27" in a5_section
+
+    def test_markdown_no_new_caveat_below_ceiling(self) -> None:
+        """17/27 (below scale ceiling) must NOT trigger the new A3/A5
+        caveat insertions -- the pre-existing B1 occurrence is the only one
+        (no near-ceiling logic, ADR-038 explicitly scopes this out)."""
+        from src.schemas.handoff_report import CEILING_SCORE_CAVEAT_KO
+
+        report = _full_report(
+            prior_total_score=17, prior_max_score=27, prior_severity="moderately_severe"
+        )
+        md = build_markdown_report(report)
+        a3_section = md.split("## A3.")[1].split("## A4.")[0]
+        a5_section = md.split("## A5.")[1].split("## A6.")[0]
+        assert CEILING_SCORE_CAVEAT_KO not in a3_section
+        assert CEILING_SCORE_CAVEAT_KO not in a5_section
+        # B1's own pre-existing occurrence must still be present (unaffected).
+        b1_section = md.split("## B1.")[1].split("## B2.")[0]
+        assert CEILING_SCORE_CAVEAT_KO in b1_section
+
+    def test_pdf_shows_caveat_on_ceiling_score(self) -> None:
+        """`ISS-F2V-028` (not the full sentence): reportlab's Paragraph
+        line-wrapping inserts `\\n` into pypdf's extracted text at wrap
+        points, which can fall inside a long sentence -- same short-
+        distinctive-substring discipline `test_pdf_a3_caveat_present`
+        already uses above, not a weakened check."""
+        report = _full_report(prior_total_score=27, prior_max_score=27)
+        pdf_bytes = build_pdf_report(report)
+        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+        text = "".join(p.extract_text() for p in reader.pages)
+        assert text.count("ISS-F2V-028") >= 4  # B1 (pre-existing) + A3 x2 + A5
+
+    def test_pdf_caveat_absent_below_ceiling_except_b1(self) -> None:
+        report = _full_report(
+            prior_total_score=17, prior_max_score=27, prior_severity="moderately_severe"
+        )
+        pdf_bytes = build_pdf_report(report)
+        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+        text = "".join(p.extract_text() for p in reader.pages)
+        # exactly 1 occurrence (B1's own pre-existing disclaimer sentence)
+        assert text.count("ISS-F2V-028") == 1

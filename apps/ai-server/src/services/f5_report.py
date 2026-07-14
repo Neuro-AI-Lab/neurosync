@@ -19,6 +19,7 @@ conformance. No FHIR `$validate` service call anywhere in this module (D3).
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import uuid
@@ -27,6 +28,7 @@ from pathlib import Path
 
 from src.f1 import OUTPUT_DIR
 from src.schemas.handoff_report import (
+    A8_FHIR_OMISSION_NOTE_KO,
     NON_VALIDATED_ADMINISTRATION_CAVEAT_KO,
     HandoffReportOutput,
 )
@@ -216,6 +218,14 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
                 f"{sig.critical_item_positive} | {sig.same_session_ctrs} | "
                 f"{sig.same_session_crisis_triggered} | {sig.discordance_note} |"
             )
+        # ADR-038 Decision 2c: ceiling caveat rendered directly adjacent to
+        # the table (not only in B1), one line per ceiling-scoring session.
+        for sig in a3.longitudinal_risk_signals:
+            if sig.ceiling_caveat:
+                lines.append(
+                    f"> [{sig.session_index}회차, {sig.total_score}/{sig.max_score}] "
+                    f"{sig.ceiling_caveat}"
+                )
     else:
         lines.append(
             "해당 없음 — 이 환자의 전체 세션 중 item-9 양성/safety_referral 시행 이력이 없습니다."
@@ -228,6 +238,8 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     if a3.staleness_pointer.total_score is not None:
         lines += [f"> {NON_VALIDATED_ADMINISTRATION_CAVEAT_KO}", ""]
     lines += [a3.staleness_pointer.note, ""]
+    if a3.staleness_pointer.ceiling_caveat:
+        lines += [f"> {a3.staleness_pointer.ceiling_caveat}", ""]
 
     # ── A4 ──
     lines += [
@@ -270,6 +282,8 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
             f"| threshold_caveat | {_none_marker(a5.threshold_caveat, '(null)')} |",
             "",
         ]
+        if a5.ceiling_caveat:
+            lines += [f"> {a5.ceiling_caveat}", ""]
         if a5.threshold_caveat_asymmetry_note:
             lines += [f"> {a5.threshold_caveat_asymmetry_note}", ""]
         if a5.gap_disclosure:
@@ -290,6 +304,11 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     ]
     if not a6.present:
         lines += [_none_marker(a6.no_data_note, "정보 없음"), ""]
+        if a6.mode:
+            lines.append(f"mode: {a6.mode}")
+        if a6.reason_summary:
+            lines += ["", f"reason_summary: {a6.reason_summary}"]
+        lines.append("")
     else:
         lines += [
             f"mode: {a6.mode}",
@@ -320,7 +339,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
             lines.append(f"| {d.department} | {d.reason} | {d.domain_ref or '-'} |")
         lines.append("")
     else:
-        lines += ["정보 없음 (권장 진료과 없음)", ""]
+        lines += [_none_marker(a7.department_candidates_absence_note, "정보 없음"), ""]
     lines += [
         f"recommended_questionnaire: {_none_marker(a7.recommended_questionnaire, '(없음)')}",
         f"recommendation_caveat: {_none_marker(a7.recommendation_caveat, '(없음)')}",
@@ -431,20 +450,89 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# PDF (design doc §5.2 — reportlab, built-in Adobe CID Korean fonts)
+# PDF (design doc §5.2 — reportlab, EMBEDDED Korean TTF subsets)
 # ═══════════════════════════════════════════════════════════════════════
+#
+# `ADR-038` Decision 1 / `BUG-044`: the previous choice (`ADR-037` Decision
+# 7, reportlab's built-in `UnicodeCIDFont` predefined CID fonts) shipped
+# NON-embedded (`emb=no`, confirmed via `pdffonts`) — rendering depended
+# entirely on the CONSUMING viewer's own font substitution, which qa's
+# multi-renderer adjudication (`error.md` BUG-044) confirmed produces
+# near-total Hangul dropout on a no-Korean-font-package host AND under
+# Ghostscript, even though this project's own default host renders fine.
+#
+# Fix: EMBED a subsetted TrueType (`glyf`-outline) Korean font instead —
+# glyph outlines ship inside the PDF itself, independent of any consuming
+# renderer's installed fonts. Built by `scripts/build_korean_fonts.py`
+# (run from `apps/ai-server/`) from this host's Noto Sans/Serif CJK KR
+# (`fc-list`-confirmed installed, Noto CJK KR family) — those system fonts
+# are themselves `CFF `/OTTO-flavored (verified via `fontTools`, NOT
+# `glyf`), which reportlab's `TTFont` loader explicitly rejects
+# ("postscript outlines are not supported"); no TrueType-glyf Korean font
+# (e.g. Nanum/Baekmuk) is installed on this host (swept via `find`, none
+# found) — so the build script converts Noto's cubic (CFF) outlines to
+# quadratic (TrueType) outlines via `fontTools.pens.cu2quPen`, verified
+# both to cover `·` (U+00B7) and `⚠` (U+26A0) — BUG-044's 2 tofu-glyph
+# targets — and, separately, end-to-end via a real reportlab-built PDF
+# rasterized under 3 renderer configurations (default poppler, a
+# restricted no-CJK-fontconfig poppler, and Ghostscript 9.55 — the exact 2
+# configurations BUG-044's adjudication found broken) — all 3 now render
+# correctly. No ASCII/text substitution was needed for either target
+# glyph (both are present in the chosen font); nothing in this module
+# substitutes them.
+#
+# Asset provenance (`ADR-038` "font path + SHA256" requirement): the two
+# built files are committed at `assets/fonts/` (repo-relative to
+# `apps/ai-server/`); their SHA256 is pinned below and verified at
+# registration time — a missing OR content-mismatched asset raises
+# `RuntimeError` naming the exact requirement, never a silent fallback to
+# the old non-embedded CID fonts.
 
-_BODY_FONT = "HYGothic-Medium"
-_HEADING_FONT = "HYSMyeongJo-Medium"
+_FONT_ASSET_DIR = Path(__file__).resolve().parents[2] / "assets" / "fonts"
+
+_BODY_FONT = "NotoSansKR-Subset"
+_BODY_FONT_PATH = _FONT_ASSET_DIR / "NotoSansKR-Subset.ttf"
+_BODY_FONT_SHA256 = "4fc4ff8e7afe3170ecce9f947021abcafa17a0fd37723de66ce74503cdf41846"
+
+_HEADING_FONT = "NotoSerifKR-Subset"
+_HEADING_FONT_PATH = _FONT_ASSET_DIR / "NotoSerifKR-Subset.ttf"
+_HEADING_FONT_SHA256 = "6afa567f91cd3879754d7f05e2c9d48a02b270d0f988a6b6a42bffc255979710"
 
 
 def _register_korean_fonts() -> None:
+    """Registers the 2 embedded Korean TTF subset fonts (`ADR-038`
+    Decision 1). Raises `RuntimeError` — never silently falls back to a
+    non-Hangul-capable or non-embedded font — if either asset is missing
+    or its SHA256 does not match the pinned constant above (regenerate via
+    `scripts/build_korean_fonts.py` and update the constant deliberately
+    if this is an intentional font update)."""
     from reportlab.pdfbase import pdfmetrics
-    from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+    from reportlab.pdfbase.ttfonts import TTFont as ReportLabTTFont
 
-    for name in (_BODY_FONT, _HEADING_FONT):
-        if name not in pdfmetrics.getRegisteredFontNames():
-            pdfmetrics.registerFont(UnicodeCIDFont(name))
+    for face_name, path, expected_sha256 in (
+        (_BODY_FONT, _BODY_FONT_PATH, _BODY_FONT_SHA256),
+        (_HEADING_FONT, _HEADING_FONT_PATH, _HEADING_FONT_SHA256),
+    ):
+        if face_name in pdfmetrics.getRegisteredFontNames():
+            continue
+        if not path.exists():
+            raise RuntimeError(
+                f"F5 PDF export requires the embedded Korean font asset at "
+                f"{path}, which is missing (ADR-038 Decision 1 / BUG-044). "
+                f"Run `uv run python scripts/build_korean_fonts.py` from "
+                f"apps/ai-server/ to generate it. F5 will NOT fall back to "
+                f"the old non-embedded CID fonts."
+            )
+        actual_sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
+        if actual_sha256 != expected_sha256:
+            raise RuntimeError(
+                f"F5 PDF export's embedded Korean font asset at {path} has "
+                f"SHA256={actual_sha256}, expected {expected_sha256} "
+                f"(ADR-038 Decision 1 / BUG-044 provenance check — "
+                f"regenerate via scripts/build_korean_fonts.py and update "
+                f"the pinned hash if this font change is intentional)."
+            )
+        pdfmetrics.registerFont(ReportLabTTFont(face_name, str(path)))
 
 
 def build_pdf_report(
@@ -600,11 +688,24 @@ def build_pdf_report(
             )
         )
         story.append(t)
+        # ADR-038 Decision 2c: ceiling caveat rendered directly adjacent to
+        # the table (not only in B1), one line per ceiling-scoring session.
+        for sig in a3.longitudinal_risk_signals:
+            if sig.ceiling_caveat:
+                story.append(
+                    P(
+                        f"[{sig.session_index}회차, {sig.total_score}/{sig.max_score}] "
+                        f"{sig.ceiling_caveat}",
+                        "warn",
+                    )
+                )
     else:
         story.append(P("해당 없음 — item-9 양성/safety_referral 시행 이력 없음", "body"))
     if a3.staleness_pointer.total_score is not None:
         story.append(P(NON_VALIDATED_ADMINISTRATION_CAVEAT_KO, "warn"))
     story.append(P(f"최신성 안내: {a3.staleness_pointer.note}", "warn"))
+    if a3.staleness_pointer.ceiling_caveat:
+        story.append(P(a3.staleness_pointer.ceiling_caveat, "warn"))
 
     # ── A4 ──
     story.append(P("A4. 정신상태 검사 (부분, MSE)", "h2"))
@@ -628,6 +729,8 @@ def build_pdf_report(
             story.append(P(f"threshold_caveat: {a5.threshold_caveat}", "body"))
         if a5.threshold_caveat_asymmetry_note:
             story.append(P(a5.threshold_caveat_asymmetry_note, "body"))
+        if a5.ceiling_caveat:
+            story.append(P(a5.ceiling_caveat, "warn"))
         for g in a5.gap_disclosure:
             story.append(P(f"- {g}", "body"))
 
@@ -642,6 +745,10 @@ def build_pdf_report(
     ]
     if not a6.present:
         a6_flow.append(P(a6.no_data_note or "정보 없음", "body"))
+        if a6.mode:
+            a6_flow.append(P(f"mode: {a6.mode}", "body"))
+        if a6.reason_summary:
+            a6_flow.append(P(f"reason_summary: {a6.reason_summary}", "body"))
     else:
         rows = [["rank", "공동순위", "disease", "similarity_score"]]
         for rc in a6.candidates:
@@ -687,7 +794,7 @@ def build_pdf_report(
         for d in a7.department_candidates:
             story.append(P(f"- {d.department}: {d.reason}", "body"))
     else:
-        story.append(P("정보 없음", "body"))
+        story.append(P(a7.department_candidates_absence_note or "정보 없음", "body"))
     story.append(P(a7.medication_note, "body"))
 
     # ── A8 ──
@@ -933,6 +1040,11 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
                             if a3.staleness_pointer.total_score is not None
                             else ""
                         )
+                        + (
+                            f" {a3.staleness_pointer.ceiling_caveat}"
+                            if a3.staleness_pointer.ceiling_caveat
+                            else ""
+                        )
                     )
                 }
             ],
@@ -942,7 +1054,11 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
         [
             f"session_ctrs={a3.session_ctrs}({a3.risk_level})",
             f"safety_referral={a3.current_session_safety_referral}",
-            *[f"[{s.session_index}] {s.discordance_note}" for s in a3.longitudinal_risk_signals],
+            *[
+                f"[{s.session_index}] {s.discordance_note}"
+                + (f" {s.ceiling_caveat}" if s.ceiling_caveat else "")
+                for s in a3.longitudinal_risk_signals
+            ],
         ]
     )
     sections.append(
@@ -1027,6 +1143,8 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
             notes.append({"text": a5.threshold_caveat})
         if a5.threshold_caveat_asymmetry_note:
             notes.append({"text": a5.threshold_caveat_asymmetry_note})
+        if a5.ceiling_caveat:
+            notes.append({"text": a5.ceiling_caveat})
         obs_url = add(
             "a5_total_observation",
             {
@@ -1055,6 +1173,8 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
             f"{a5.scale_name} {a5.total_score}/{a5.max_score} ({a5.severity}) — "
             f"{a5.non_validated_caveat}"
         )
+        if a5.ceiling_caveat:
+            a5_text = f"{a5_text} {a5.ceiling_caveat}"
     else:
         a5_text = "정보 없음 (시행된 설문 없음)"
     sections.append(
@@ -1112,6 +1232,8 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     else:
         a6_obs_url = None
         a6_text = a6.no_data_note or "정보 없음"
+        if a6.reason_summary:
+            a6_text = f"{a6_text} (reason_summary: {a6.reason_summary})"
     sections.append(
         {
             "title": "A6. AI 예상질환 (비진단적 의사결정 지원)",
@@ -1141,9 +1263,9 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
             },
         )
         a7_entries.append({"reference": sr_url})
-    a7_text = (
-        "; ".join(f"{d.department}: {d.reason}" for d in a7.department_candidates) or "정보 없음"
-    )
+    a7_text = "; ".join(
+        f"{d.department}: {d.reason}" for d in a7.department_candidates
+    ) or (a7.department_candidates_absence_note or "정보 없음")
     sections.append(
         {
             "title": "A7. 권장 진료과 / 설문",
@@ -1243,11 +1365,16 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     )
 
     # ── Cross-cutting non-diagnostic disclosure (dedicated section) ──
+    disclaimer_text = report.disclaimer
+    if not report.a8_narrative.narrative_enabled:
+        # ADR-038 Decision 2d / CVR-024 Recommendation 6 -- one-line note,
+        # not a new A8-titled section (REV-047 Criterion 6a precedent).
+        disclaimer_text = f"{disclaimer_text} {A8_FHIR_OMISSION_NOTE_KO}"
     sections.append(
         {
             "title": "면책 조항 (Disclaimer)",
             "code": {"text": "disclaimer"},
-            "text": _div(report.disclaimer),
+            "text": _div(disclaimer_text),
         }
     )
 

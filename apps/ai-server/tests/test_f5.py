@@ -177,6 +177,7 @@ def _build_input(
     all_f3_administrations: tuple[F3Administration, ...] = (),
     ai_predicted_disease: AIPredictedDiseaseOutput | None = None,
     department_candidates: tuple[DepartmentCandidateInput, ...] = (),
+    validation_errors_present: bool = False,
     longitudinal: LongitudinalAnalysisOutput | None = None,
     narrative_enabled: bool = False,
 ) -> HandoffReportInput:
@@ -190,6 +191,7 @@ def _build_input(
             if ai_predicted_disease is not None
             else _apd(),
             department_candidates=department_candidates,
+            validation_errors_present=validation_errors_present,
         ),
         longitudinal=longitudinal or _longitudinal(),
         chart_filenames=ChartFilenames(),
@@ -592,3 +594,192 @@ class TestSchemaValidation:
     def test_is_diagnostic_fixed_false(self) -> None:
         out = assemble_handoff_report(_build_input())
         assert out.is_diagnostic is False
+
+
+# ── A7 validation-drop disclosure (ADR-038 Decision 2a, VAL-016) ──────────
+
+
+class TestA7ValidationDropDisclosure:
+    def test_empty_candidates_with_validation_errors_uses_dropped_wording(self) -> None:
+        """Mirrors VP-001 S11's real VAL-016 instance: department_candidates
+        empty AND the source artifact carried validation_errors -> never a
+        bare 정보 없음."""
+        from src.schemas.handoff_report import A7_NO_CANDIDATES_VALIDATION_DROPPED_KO
+
+        out = assemble_handoff_report(
+            _build_input(department_candidates=(), validation_errors_present=True)
+        )
+        assert (
+            out.a7_recommendations.department_candidates_absence_note
+            == A7_NO_CANDIDATES_VALIDATION_DROPPED_KO
+        )
+        assert "VAL-016" in out.a7_recommendations.department_candidates_absence_note
+
+    def test_empty_candidates_without_validation_errors_uses_model_judged_wording(self) -> None:
+        from src.schemas.handoff_report import A7_NO_CANDIDATES_MODEL_JUDGED_KO
+
+        out = assemble_handoff_report(
+            _build_input(department_candidates=(), validation_errors_present=False)
+        )
+        assert (
+            out.a7_recommendations.department_candidates_absence_note
+            == A7_NO_CANDIDATES_MODEL_JUDGED_KO
+        )
+
+    def test_non_empty_candidates_absence_note_is_none_regardless_of_flag(self) -> None:
+        dept = DepartmentCandidateInput(department="정신건강의학과", reason="복합 증상")
+        out = assemble_handoff_report(
+            _build_input(department_candidates=(dept,), validation_errors_present=True)
+        )
+        assert out.a7_recommendations.department_candidates_absence_note is None
+        assert len(out.a7_recommendations.department_candidates) == 1
+
+
+# ── A6 reason_summary surfacing (ADR-038 Decision 2b, CVR-024 Finding 2) ──
+
+
+class TestA6ReasonSummarySurfacing:
+    def test_experimental_unpopulated_empty_candidates_surfaces_reason_summary(self) -> None:
+        """Mirrors VP-003 S11's real instance: mode=experimental_unpopulated,
+        candidates=[], reason_summary already computed by the source
+        artifact -> must be surfaced, never dropped."""
+        apd = AIPredictedDiseaseOutput(
+            candidates=[],
+            mode="experimental_unpopulated",
+            reason_summary=(
+                "Stage 1 ran in llm_only mode (no RAG chunks retrieved this run)"
+            ),
+        )
+        out = assemble_handoff_report(_build_input(ai_predicted_disease=apd))
+        assert out.a6_ai_predicted_disease.present is False
+        assert out.a6_ai_predicted_disease.reason_summary == (
+            "Stage 1 ran in llm_only mode (no RAG chunks retrieved this run)"
+        )
+
+    def test_rag_live_empty_candidates_does_not_surface_reason_summary(self) -> None:
+        """ADR-038 Decision 2b explicitly scopes this OUT for mode='rag_live'
+        — a live RAG run that genuinely found nothing is not the same
+        ambiguity class as an unpopulated run."""
+        apd = AIPredictedDiseaseOutput(
+            candidates=[], mode="rag_live", reason_summary="some reason"
+        )
+        out = assemble_handoff_report(_build_input(ai_predicted_disease=apd))
+        assert out.a6_ai_predicted_disease.present is False
+        assert out.a6_ai_predicted_disease.reason_summary is None
+
+    def test_non_empty_candidates_reason_summary_is_none(self) -> None:
+        out = assemble_handoff_report(_build_input())  # default _apd() has candidates
+        assert out.a6_ai_predicted_disease.present is True
+        assert out.a6_ai_predicted_disease.reason_summary is None
+
+    def test_no_domain_inference_at_all_reason_summary_is_none(self) -> None:
+        """`_build_input`'s own `ai_predicted_disease=None` sentinel means
+        "use the default fixture" (matches its non-test caller convention
+        elsewhere in this file) -- to exercise a TRUE `apd is None` (no F2
+        artifact at all, `DomainInferenceSnapshot`'s own default), build
+        `HandoffReportInput` directly."""
+        inp = HandoffReportInput(
+            vp_id="VP-TEST",
+            session=_session(),
+            current_session_f3=None,
+            all_f3_administrations=(),
+            domain_inference=DomainInferenceSnapshot(ai_predicted_disease=None),
+            longitudinal=_longitudinal(),
+        )
+        out = assemble_handoff_report(inp)
+        assert out.a6_ai_predicted_disease.present is False
+        assert out.a6_ai_predicted_disease.reason_summary is None
+
+    def test_empty_candidates_with_no_reason_summary_stays_none(self) -> None:
+        apd = AIPredictedDiseaseOutput(
+            candidates=[], mode="experimental_unpopulated", reason_summary=""
+        )
+        out = assemble_handoff_report(_build_input(ai_predicted_disease=apd))
+        assert out.a6_ai_predicted_disease.reason_summary is None
+
+
+# ── Exact-ceiling caveat co-location (ADR-038 Decision 2c, CVR-024 Finding 4) ──
+
+
+class TestCeilingCaveat:
+    def test_staleness_pointer_ceiling_caveat_on_exact_ceiling(self) -> None:
+        from src.schemas.handoff_report import CEILING_SCORE_CAVEAT_KO
+
+        session = _session(session_index=11, simulated_date="2027-01-12")
+        f3_s9 = _f3(9, "2026-11-12", total_score=27, max_score=27, severity="severe")
+        f3_s11 = _f3(11, "2027-01-12", outcome="no_questionnaire_indicated")
+        out = assemble_handoff_report(
+            _build_input(
+                session=session,
+                current_session_f3=f3_s11,
+                all_f3_administrations=(f3_s9, f3_s11),
+            )
+        )
+        assert out.a3_risk_safety.staleness_pointer.ceiling_caveat == CEILING_SCORE_CAVEAT_KO
+
+    def test_staleness_pointer_no_ceiling_caveat_when_below_max(self) -> None:
+        session = _session(session_index=11, simulated_date="2027-01-12")
+        f3_s9 = _f3(9, "2026-11-12", total_score=17, max_score=27, severity="moderately_severe")
+        f3_s11 = _f3(11, "2027-01-12", outcome="no_questionnaire_indicated")
+        out = assemble_handoff_report(
+            _build_input(
+                session=session,
+                current_session_f3=f3_s11,
+                all_f3_administrations=(f3_s9, f3_s11),
+            )
+        )
+        assert out.a3_risk_safety.staleness_pointer.ceiling_caveat is None
+
+    def test_longitudinal_risk_signal_ceiling_caveat_per_row(self) -> None:
+        """Two flagged administrations, only one at ceiling -- caveat must
+        be per-row, not blanket-applied."""
+        from src.schemas.handoff_report import CEILING_SCORE_CAVEAT_KO
+
+        f3_ceiling = _f3(
+            1, "2026-08-01", critical_item_positive=True, safety_referral=True,
+            total_score=27, max_score=27,
+        )
+        f3_not_ceiling = _f3(
+            3, "2026-09-01", critical_item_positive=True, safety_referral=True,
+            total_score=22, max_score=27,
+        )
+        out = assemble_handoff_report(
+            _build_input(all_f3_administrations=(f3_ceiling, f3_not_ceiling))
+        )
+        signals = {s.session_index: s for s in out.a3_risk_safety.longitudinal_risk_signals}
+        assert signals[1].ceiling_caveat == CEILING_SCORE_CAVEAT_KO
+        assert signals[3].ceiling_caveat is None
+
+    def test_a5_ceiling_caveat_on_exact_ceiling(self) -> None:
+        from src.schemas.handoff_report import CEILING_SCORE_CAVEAT_KO
+
+        f3 = _f3(1, "2026-01-01", total_score=27, max_score=27, severity="severe")
+        out = assemble_handoff_report(
+            _build_input(current_session_f3=f3, all_f3_administrations=(f3,))
+        )
+        assert out.a5_questionnaires.ceiling_caveat == CEILING_SCORE_CAVEAT_KO
+
+    def test_a5_no_ceiling_caveat_when_below_max(self) -> None:
+        f3 = _f3(1, "2026-01-01", total_score=17, max_score=27, severity="moderately_severe")
+        out = assemble_handoff_report(
+            _build_input(current_session_f3=f3, all_f3_administrations=(f3,))
+        )
+        assert out.a5_questionnaires.ceiling_caveat is None
+
+    def test_ceiling_caveat_verbatim_substring_of_longitudinal_disclaimer(self) -> None:
+        """Binds ADR-038's 'mirror ... verbatim, do not invent new wording'
+        requirement mechanically: CEILING_SCORE_CAVEAT_KO must be an EXACT
+        substring of schemas.longitudinal.LONGITUDINAL_DISCLAIMER_KO (the
+        pre-existing B1 caveat text), not independently-authored wording."""
+        from src.schemas.handoff_report import CEILING_SCORE_CAVEAT_KO
+        from src.schemas.longitudinal import LONGITUDINAL_DISCLAIMER_KO
+
+        assert CEILING_SCORE_CAVEAT_KO in LONGITUDINAL_DISCLAIMER_KO
+
+    def test_ceiling_helper_none_when_either_score_missing(self) -> None:
+        from src.f5 import _ceiling_caveat
+
+        assert _ceiling_caveat(None, 27) is None
+        assert _ceiling_caveat(27, None) is None
+        assert _ceiling_caveat(None, None) is None
+        assert _ceiling_caveat(0, 0) is not None  # exact ceiling even at 0/0

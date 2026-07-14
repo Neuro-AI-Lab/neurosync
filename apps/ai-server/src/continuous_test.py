@@ -1135,7 +1135,19 @@ def _build_f5_domain_inference_snapshot(domain_inference_path: str | None) -> An
         )
         for d in di.get("department_candidates", [])
     )
-    return DomainInferenceSnapshot(ai_predicted_disease=apd, department_candidates=depts)
+    # `ADR-038` Decision 2a / `VAL-016`: the artifact's own top-level
+    # `validation_errors` field (a list when the F2 LLM response's atomic
+    # Pydantic parse hit >=1 field-validation error, `None`/absent
+    # otherwise) — threaded through so `src.f5._build_a7` can distinguish
+    # a genuine model judgment of "no department candidates" from an
+    # upstream schema-validation drop that silently collapsed an
+    # already-valid `department_candidates` list.
+    validation_errors_present = bool(di.get("validation_errors"))
+    return DomainInferenceSnapshot(
+        ai_predicted_disease=apd,
+        department_candidates=depts,
+        validation_errors_present=validation_errors_present,
+    )
 
 
 def _build_f5_f3_administration(entry: dict[str, Any]) -> Any | None:
