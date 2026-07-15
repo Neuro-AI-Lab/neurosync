@@ -88,6 +88,12 @@ APPROVED_FIELDS: dict[type[AgentInput], frozenset[str]] = {
         "safety_result",
         "session_state",
         "slot_updates_this_turn",
+        # (a) PHR/prescription document context (PR #57, add/phr-and-medication):
+        #     populated in f1.py from user-provided PHR document parsing
+        #     (phr_context_for_dialogue) — real-app user input, NOT persona-file
+        #     ground truth. Info-flow reviewed 2026-07-15 (f1.py PHR load -> ctx
+        #     -> DialogueInput; no persona channel involved).
+        "patient_history_context",
     },
     # (a) current-turn text (+ own config: input_type/dialect_hint)
     InputNormalizerInput: _BASE_FIELDS | {"raw_text", "input_type", "dialect_hint"},
