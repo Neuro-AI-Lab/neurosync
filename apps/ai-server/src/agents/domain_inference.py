@@ -22,6 +22,7 @@ from pydantic import ValidationError
 
 from src.adapters.base import ChatMessage, LLMAdapter
 from src.agents.base import AgentInput, BaseAgent
+from src.agents.clinical_slot import ALL_SLOT_KEYS
 from src.prompts.loader import PromptLoader
 from src.routing.model_router import ModelRouter
 from src.schemas.domain_inference import (
@@ -142,10 +143,28 @@ def _build_user_content(inp: DomainInferenceInput) -> str:
 # must not mask a genuinely malformed model output.
 _SOURCE_TYPE_TABLE_ORIGIN_RE = re.compile(r"^(?:case_card|qa)(?::\d+)?$")
 
+# BUG-045 (qa Stage-D finding, VP-004 EXP-025 artifacts; documented as an
+# out-of-scope trigger in BUG-031's own root-cause writeup, "chief_complaint"/
+# "history_of_present_illness" observed live): the model sometimes echoes a
+# CLINICAL SLOT NAME (`src.agents.clinical_slot.ALL_SLOT_KEYS`, the 12
+# standard slots) into `evidence[].source_type` instead of the required
+# `"rag_chunk"/"utterance"/"ocr_document"`. Every offending value observed is
+# slot-content-derived — the evidence item is quoting/citing patient
+# utterance content that happens to have been classified under that slot —
+# so the correct coercion target is `"utterance"`, NOT `"rag_chunk"` (this is
+# a DIFFERENT collision shape from BUG-019's DB-table-origin collision, and
+# must not share that coercion's target value). NARROW BY DESIGN, same
+# discipline as `_SOURCE_TYPE_TABLE_ORIGIN_RE`: matches only an exact slot
+# key from the standard 12, optionally suffixed ":<digits>" (a copied
+# source_id/turn id) — anything else still fails validation honestly.
+_SOURCE_TYPE_SLOT_NAME_RE = re.compile(
+    r"^(?:" + "|".join(re.escape(k) for k in ALL_SLOT_KEYS) + r")(?::\d+)?$"
+)
+
 
 def _normalize_source_type_collision(data: Any) -> Any:
-    """Coerce a known table-origin value in ``evidence[].source_type`` to
-    ``"rag_chunk"`` (BUG-019), in place, before Pydantic ever validates it.
+    """Coerce known collision values in ``evidence[].source_type`` to the
+    correct enum value, in place, before Pydantic ever validates it.
 
     Must run on the raw parsed JSON dict, before ``DomainInferenceLLMResponse.
     model_validate(data)`` — ``DomainEvidence.source_type`` is a Pydantic
@@ -155,13 +174,20 @@ def _normalize_source_type_collision(data: Any) -> Any:
     ``src.eval.f2_grounding`` because ``source_id`` is an unconstrained
     ``str`` there and the collision is only discovered post-parse).
 
-    Only mutates a ``source_type`` value matching the known collision shape
-    (``_SOURCE_TYPE_TABLE_ORIGIN_RE``) — a value that does not match (e.g.
-    already-valid ``"rag_chunk"``/``"utterance"``, or genuinely malformed
-    output such as ``"garbage"``) is left untouched, so validation still
-    fails honestly on real defects. Tolerates a non-dict/non-list shape at
-    any level (returns *data* unchanged for that branch) — malformed
-    structure is Pydantic's job to reject, not this function's.
+    Two known, narrowly-scoped collision shapes, checked in order (mutually
+    exclusive by construction — a value cannot match both a DB table name and
+    a clinical slot key):
+    1. ``_SOURCE_TYPE_TABLE_ORIGIN_RE`` (BUG-019) -> ``"rag_chunk"``.
+    2. ``_SOURCE_TYPE_SLOT_NAME_RE`` (BUG-045) -> ``"utterance"``.
+
+    A value matching neither (e.g. already-valid ``"rag_chunk"``/
+    ``"utterance"``/``"ocr_document"``, or genuinely malformed output such as
+    ``"garbage"``) is left untouched, so validation still fails honestly on
+    real defects — per-candidate salvage (BUG-031) keeps every OTHER
+    candidate alive even when one evidence item's `source_type` still fails
+    here. Tolerates a non-dict/non-list shape at any level (returns *data*
+    unchanged for that branch) — malformed structure is Pydantic's job to
+    reject, not this function's.
     """
     if not isinstance(data, dict):
         return data
@@ -178,9 +204,9 @@ def _normalize_source_type_collision(data: Any) -> Any:
             if not isinstance(evidence, dict):
                 continue
             source_type = evidence.get("source_type")
-            if isinstance(source_type, str) and _SOURCE_TYPE_TABLE_ORIGIN_RE.match(
-                source_type
-            ):
+            if not isinstance(source_type, str):
+                continue
+            if _SOURCE_TYPE_TABLE_ORIGIN_RE.match(source_type):
                 logger.info(
                     "DomainInference BUG-019 coercion: evidence.source_type "
                     "%r -> 'rag_chunk' (known DB table-origin collision, "
@@ -188,6 +214,14 @@ def _normalize_source_type_collision(data: Any) -> Any:
                     source_type, evidence.get("source_id"),
                 )
                 evidence["source_type"] = "rag_chunk"
+            elif _SOURCE_TYPE_SLOT_NAME_RE.match(source_type):
+                logger.info(
+                    "DomainInference BUG-045 coercion: evidence.source_type "
+                    "%r -> 'utterance' (known clinical-slot-name collision, "
+                    "source_id=%r)",
+                    source_type, evidence.get("source_id"),
+                )
+                evidence["source_type"] = "utterance"
     return data
 
 

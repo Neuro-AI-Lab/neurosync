@@ -387,6 +387,53 @@ def _build_domain_candidate_series(
 
 # ── TrendVerdict builders ─────────────────────────────────────────────────
 
+# CVR-028 (near-ceiling caveat coverage, major): a scale-ceiling-bounded
+# series whose first-vs-last SCORE is exactly flat (e.g. 26->26 on PHQ-9,
+# max 27) can still get a non-"unchanged" `direction` out of
+# `_first_last_slope_trend`'s documented slope-fallback (its `raw =
+# sign_delta if sign_delta != 0 else sign_slope` rule, designed to catch "a
+# flat first/last framing a real drift the slope can still see" in the
+# general case) — mid-series wobble AT/NEAR a scale's own ceiling is a
+# ceiling (ISS-F2V-028 over-endorsement) effect, not a real trend signal a
+# clinician should read as "worsened". Scoped narrowly to the near-ceiling
+# case only (within 1 point of `max_score`, matching `CEILING_SCORE_CAVEAT_KO`'s
+# own extended near-ceiling threshold) — the general slope-fallback rule is
+# UNCHANGED for every other (non-near-ceiling) flat-delta series.
+_NEAR_CEILING_MARGIN = 1
+
+
+def _near_ceiling_flat_override(
+    direction: _Direction,
+    comparable: list[tuple[int, float]],
+    max_score: int | None,
+) -> tuple[_Direction, str | None]:
+    """Force `direction` back to "unchanged" when the first-vs-last delta is
+    EXACTLY flat AND that flat score sits within `_NEAR_CEILING_MARGIN`
+    points of the scale's own `max_score` — regardless of what a mid-series
+    slope/band-transition signal would otherwise suggest ("flat delta must
+    render 변화 없음 regardless of band pressure", CVR-028). Returns
+    `(possibly-overridden direction, evidence note or None)`; a no-op
+    (returns `direction` unchanged, `None`) whenever the delta is not flat,
+    `max_score` is unknown, or the flat score is not near-ceiling.
+    """
+    if len(comparable) < 2 or max_score is None:
+        return direction, None
+    first_val, last_val = comparable[0][1], comparable[-1][1]
+    if first_val != last_val:
+        return direction, None
+    if first_val < max_score - _NEAR_CEILING_MARGIN:
+        return direction, None
+    if direction == "unchanged":
+        return direction, None
+    note = (
+        f"NEAR-CEILING FLAT OVERRIDE (CVR-028) — first-vs-last delta is flat "
+        f"({first_val:g}, within {_NEAR_CEILING_MARGIN} point(s) of max_score={max_score}); "
+        f"slope/band-derived direction '{direction}' suppressed and forced to 'unchanged' — "
+        "a ceiling-bounded scale's mid-series wobble at/near its own maximum is not a real "
+        "trend signal"
+    )
+    return "unchanged", note
+
 
 def _scale_trend_verdict(scale_name: str, points: list[ScaleSeriesPoint]) -> TrendVerdict:
     """Basis (Criterion 0): `_first_last_slope_trend` over every
@@ -406,6 +453,12 @@ def _scale_trend_verdict(scale_name: str, points: list[ScaleSeriesPoint]) -> Tre
     direction, evidence = _first_last_slope_trend(
         comparable, higher_is_better=higher_is_better, label=scale_name
     )
+
+    if administered_points:
+        max_score = administered_points[-1].max_score or administered_points[0].max_score
+        direction, override_note = _near_ceiling_flat_override(direction, comparable, max_score)
+        if override_note is not None:
+            evidence.append(f"{scale_name}: {override_note}")
 
     if len(administered_points) >= 2:
         first_point, last_point = administered_points[0], administered_points[-1]

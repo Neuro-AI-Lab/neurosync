@@ -50,6 +50,7 @@ from datetime import date as _date
 from datetime import datetime
 from typing import Literal
 
+from src.grounding import reply_has_negation
 from src.schemas.ai_predicted_disease import AIPredictedDiseaseCandidate, AIPredictedDiseaseOutput
 from src.schemas.common import CTRS_TO_RISK, CTRSLevel
 from src.schemas.handoff_report import (
@@ -297,17 +298,77 @@ def _days_between(earlier: str, later: str) -> int | None:
     return (d2 - d1).days
 
 
+# CVR-028 (near-ceiling caveat coverage, major): `ADR-038` Decision 2c /
+# `CVR-024` Finding 4 originally scoped this to EXACT scale-ceiling only
+# ("no near-ceiling threshold judgment is computed here") — CVR-028
+# extends coverage to scores within `_NEAR_CEILING_CAVEAT_MARGIN` point(s)
+# of max (e.g. PHQ-9 26/27), the same over-endorsement risk
+# (`ISS-F2V-028`) is not meaningfully different one point off the ceiling.
+_NEAR_CEILING_CAVEAT_MARGIN = 1
+
+
 def _ceiling_caveat(total_score: int | None, max_score: int | None) -> str | None:
-    """`ADR-038` Decision 2c / `CVR-024` Finding 4: EXACT scale-ceiling
-    only (`total_score == max_score`, both present) — no near-ceiling
-    threshold judgment. Returns the verbatim `CEILING_SCORE_CAVEAT_KO`
-    excerpt of `schemas.longitudinal.LONGITUDINAL_DISCLAIMER_KO`'s own
+    """CVR-028 remediation of `ADR-038` Decision 2c / `CVR-024` Finding 4:
+    within `_NEAR_CEILING_CAVEAT_MARGIN` point(s) of `max_score` (both
+    present) now also triggers this caveat, not only an EXACT match.
+    Returns the verbatim `CEILING_SCORE_CAVEAT_KO` excerpt of
+    `schemas.longitudinal.LONGITUDINAL_DISCLAIMER_KO`'s own
     over-endorsement sentence, or `None`."""
     if total_score is None or max_score is None:
         return None
-    if total_score == max_score:
+    if total_score >= max_score - _NEAR_CEILING_CAVEAT_MARGIN:
         return CEILING_SCORE_CAVEAT_KO
     return None
+
+
+# CVR-028 Finding 4 (major, VP-010): F1's own `_compose_probe_risk_assessment`/
+# `_compose_screen_risk_assessment` (`src.f1`) prefix a composed
+# `risk_assessment` slot value with a categorical label at COMPOSE time
+# (session of the actual probe/screen event) — that label then rides
+# UNCHANGED inside the slot's carried-forward text across every later
+# session that never re-triggers a new probe (VP-010: labeled "자살/자해
+# 사고 표현 있음" from S3 through S10), even when the CURRENT session's own
+# quoted patient utterance directly under that label is an explicit denial.
+# A clinician reading only the summary-table/SBAR-box row sees an
+# SI-positive categorical label directly contradicted by its own cited
+# evidence text.
+#
+# Fix scope, deliberately narrow (never a new clinical judgment/diagnosis,
+# `f5.py`'s own module-level invariant): this checks ONLY whether the FIRST
+# quoted "환자 발화: "..."" segment immediately following the "표현 있음"
+# label contains a negation/denial morpheme, via the SAME deterministic,
+# already-tested pattern `src.grounding.reply_has_negation` uses everywhere
+# else in this codebase (F1's own compose functions call it too) — no new
+# lexicon, no new free-text semantic parsing invented for this fix. When it
+# matches, the DISPLAY label is corrected to "자살사고 부인(탐색 완료)"; the
+# underlying quoted text is never altered/redacted, only the categorical
+# framing shown alongside it.
+_SI_EXPRESSED_LABEL_KO = "자살/자해 사고 표현 있음"
+_SI_DENIAL_RELABEL_KO = "자살사고 부인(탐색 완료)"
+_FIRST_QUOTE_AFTER_LABEL_RE = re.compile(r'환자\s*발화\s*:\s*"([^"]*)"')
+
+
+def _relabel_risk_assessment_text(text: str | None) -> str | None:
+    """Correct a stale/content-contradicted "표현 있음" categorical prefix
+    on a `risk_assessment` slot value, per CVR-028 Finding 4.
+
+    Only touches text that literally starts with `_SI_EXPRESSED_LABEL_KO`
+    (F1's own compose-time label, the exact known collision shape — never a
+    blanket rewrite of arbitrary risk_assessment prose) AND whose first
+    quoted "환자 발화: "..."" segment matches `reply_has_negation`. Anything
+    else (no label prefix, no quote to check, or a quote that is NOT a
+    denial) is returned unchanged — this function never invents content,
+    only relabels a prefix already proven content-inconsistent.
+    """
+    if text is None or not text.startswith(_SI_EXPRESSED_LABEL_KO):
+        return text
+    match = _FIRST_QUOTE_AFTER_LABEL_RE.search(text)
+    if match is None:
+        return text
+    quoted = match.group(1)
+    if not quoted or not reply_has_negation(quoted):
+        return text
+    return _SI_DENIAL_RELABEL_KO + text[len(_SI_EXPRESSED_LABEL_KO) :]
 
 
 def _risk_elevated(session_ctrs: int | None, crisis_triggered: bool) -> bool:
@@ -389,9 +450,18 @@ def _slot_row(key: str, label: str, sessions: list[SessionSlotSnapshot]) -> Slot
     line built from every DISTINCT non-empty value in chronological order
     (consecutive duplicates collapsed — a slot re-stated identically across
     3 sessions is not a "change"). `change_history` stays empty when the
-    slot was never filled, or was filled with the same value every time."""
+    slot was never filled, or was filled with the same value every time.
+
+    `risk_assessment` (CVR-028 Finding 4): each session's raw value passes
+    through `_relabel_risk_assessment_text` BEFORE the latest/distinct-value
+    computation below, so a per-session stale "표현 있음" label that its own
+    quoted content contradicts is corrected in both `latest_value` and every
+    `change_history`/`change_history_full` entry, not only the current-
+    session A3 narrative. Every other slot key is unaffected (identity
+    passthrough)."""
+    relabel = _relabel_risk_assessment_text if key == "risk_assessment" else (lambda v: v)
     filled = [
-        (s.session_index, s.simulated_date, v)
+        (s.session_index, s.simulated_date, relabel(v))
         for s in sessions
         if (v := s.final_slots.get(key))
     ]
@@ -549,7 +619,7 @@ def _build_a3(inp: HandoffReportInput) -> RiskSafetySection:
         current_session_index=s.session_index,
         current_simulated_date=s.simulated_date,
         risk_assessment_present=bool(s.final_slots.get("risk_assessment")),
-        risk_assessment_text=s.final_slots.get("risk_assessment"),
+        risk_assessment_text=_relabel_risk_assessment_text(s.final_slots.get("risk_assessment")),
         session_ctrs=s.session_ctrs,
         risk_level=_ctrs_risk_level(s.session_ctrs),
         risk_floor=s.risk_floor,

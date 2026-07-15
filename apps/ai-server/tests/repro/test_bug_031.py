@@ -103,14 +103,21 @@ class TestPerCandidateSalvage:
 
     def test_malformed_evidence_source_type_drops_only_that_candidate(self) -> None:
         """BUG-031 trigger 2: a merged/mistyped evidence source_type on one
-        candidate must not sink a sibling candidate's clean evidence."""
+        candidate must not sink a sibling candidate's clean evidence.
+
+        Uses a merged-key shape ("case_card:903:quote") that neither
+        BUG-019's DB-table-origin coercion nor BUG-045's clinical-slot-name
+        coercion recovers (both are narrow-by-design) — still genuinely
+        malformed, unlike a bare slot name ("chief_complaint"), which
+        BUG-045 now coerces to "utterance" and legitimately survives (see
+        `tests/repro/test_bug_045.py`, which covers that recovery path)."""
         good = _candidate_dict("sleep")
         bad = {
             "domain": "depression",
             "confidence": 0.6,
             "evidence": [
                 {
-                    "source_type": "chief_complaint",  # not rag_chunk/utterance/ocr_document
+                    "source_type": "case_card:903:quote",  # merged key, not a real enum value
                     "source_id": "turn_2",
                     "quote": "우울해요",
                 }

@@ -243,6 +243,107 @@ def resolve_effective_scale(
     return None, False
 
 
+def resolve_administration_mode(
+    forced_scale: ScaleName | None, safety_net_triggered: bool,
+) -> Literal["natural", "forced", "safety_net"]:
+    """Single source of truth for the natural/forced/safety_net derivation
+    `run_f3_administration` computes inline — factored out (CVR-030
+    remediation) so a caller (the harness) that needs to know the mode
+    BEFORE calling `run_f3_administration` (e.g. to decide whether to build
+    an SI-supplement `answer_fn`, `resolve_si_supplement_needed` below)
+    can never drift from what `run_f3_administration` itself derives from
+    the same two inputs. Pure, harness-agnostic, no I/O."""
+    if forced_scale is not None:
+        return "forced"
+    if safety_net_triggered:
+        return "safety_net"
+    return "natural"
+
+
+# CVR-030 remediation (major): "when a session has crisis_triggered=True AND
+# F3 administers a NON-PHQ-9 scale (a REAL F2 recommendation, e.g.
+# AUDIT-C), additionally administer a standalone item-9-equivalent SI
+# check" — the existing safety-net rule (`resolve_effective_scale` above)
+# only fires when F2 produced NO recommendation at all; a crisis-triggered
+# session where F2 DID recommend a real, non-PHQ-9 scale would otherwise
+# get ZERO SI-specific screening that session (the gap CVR-030 identified).
+
+
+def resolve_si_supplement_needed(
+    recommendation: SurveyRecommendation,
+    effective_scale: ScaleName | None,
+    administration_mode: Literal["natural", "forced", "safety_net"],
+) -> bool:
+    """Whether THIS session additionally needs the standalone item-9-
+    equivalent SI check, on top of whatever `effective_scale` F3 is
+    administering. Same resolve family as `resolve_effective_scale` — pure,
+    harness-agnostic, no I/O, no LLM/DB calls.
+
+    Fires when ALL of:
+    1. `recommendation.crisis_triggered` — the SAME field
+       `resolve_effective_scale`'s safety-net rule reads (CVR-028
+       Finding 1).
+    2. `administration_mode == "natural"` — F2 produced a REAL
+       recommendation this session (not the safety-net default, which is
+       already PHQ-9 and already asks item 9; not a harness
+       `--force-questionnaire` override, out of scope for a production
+       safety rule).
+    3. `effective_scale not in (None, "PHQ-9")` — a genuine NON-PHQ-9 scale
+       is what is actually being administered this session (PHQ-9 already
+       covers item 9 on its own; no scale at all means nothing to
+       supplement against).
+    """
+    return (
+        recommendation.crisis_triggered
+        and administration_mode == "natural"
+        and effective_scale is not None
+        and effective_scale != SAFETY_NET_SCALE
+    )
+
+
+async def administer_si_supplement(
+    answer_fn: AnswerFn,
+    *,
+    item_bank: Mapping[ScaleName, ItemBankEntry] | None = None,
+) -> tuple[int, bool]:
+    """Administer the standalone item-9-equivalent SI check (CVR-030).
+
+    Reuses PHQ-9 item 9 (suicidal/self-harm ideation) VERBATIM from the
+    SAME item bank v1 entry (`ITEM_BANK["PHQ-9"].items[8]`) the full PHQ-9
+    administration path uses — never a separately-authored item. Single
+    item, one `answer_fn` call (the same variability-point discipline
+    `administer_survey` uses). Positivity uses the SAME threshold rule
+    (`survey_scorer.is_phq9_item9_positive`) full PHQ-9 scoring applies to
+    its own item 9, so a session screened via this supplement and one
+    screened via a full PHQ-9 administration can never disagree about what
+    counts as critical.
+
+    Returns `(response, critical_positive)`. Raises `ValueError` if the
+    PHQ-9 item bank entry is missing/unpopulated or its layout ever
+    changes such that `items[8]` is not item 9 — this function never
+    guesses which item is item 9.
+    """
+    from src.scoring.survey_scorer import is_phq9_item9_positive
+
+    bank = item_bank if item_bank is not None else ITEM_BANK
+    phq9_entry = bank.get("PHQ-9")
+    if phq9_entry is None or not phq9_entry.populated:
+        raise ValueError(
+            "administer_si_supplement requires a populated PHQ-9 item bank entry "
+            f"(item 9 is reused from it, never separately authored) — got {phq9_entry!r}"
+        )
+    item9 = phq9_entry.items[8]
+    if item9.index != 9:
+        raise ValueError(
+            f"PHQ-9 item bank entry's items[8] has index={item9.index}, expected 9 — "
+            "item bank layout changed unexpectedly; administer_si_supplement never "
+            "guesses which item is item 9"
+        )
+    raw = await answer_fn(item9)
+    response = _clamp_response(raw, item9)
+    return response, is_phq9_item9_positive(response)
+
+
 def resolve_outcome(
     recommended_questionnaire: ScaleName | None,
     *,
@@ -349,6 +450,7 @@ async def run_f3_administration(
     vp_id: str | None = None,
     session_id: str | None = None,
     forced_scale: ScaleName | None = None,
+    si_supplement_answer_fn: AnswerFn | None = None,
 ) -> dict[str, Any]:
     """End-to-end F3 flow for one session: load the F2 artifact, resolve the
     outcome, administer (only for `outcome="administered"`), score, build +
@@ -365,20 +467,27 @@ async def run_f3_administration(
     caller before this mission, and every caller that never passes it)
     preserves the exact prior behavior.
 
-    Returns ``{"outcome": str, "output": SurveyResultOutput, "paths": {...}}``.
+    `si_supplement_answer_fn` (CVR-030 remediation, optional, keyword-only):
+    a SEPARATE `answer_fn` scoped to PHQ-9 (the SI-supplement item is
+    reused from PHQ-9's own item bank entry, a different scale than
+    whatever `effective_scale` this session administers) — only ever
+    invoked when `resolve_si_supplement_needed` returns `True` for this
+    session. `None` (the default) means: if the supplement is needed but no
+    such `answer_fn` was supplied, this function logs a loud WARNING and
+    skips the supplement (never crashes, never silently invents a
+    response) — the caller (the harness) is responsible for building and
+    passing this in whenever it knows a session might need it.
+
+    Returns ``{"outcome": str, "output": SurveyResultOutput, "paths": {...},
+    "si_supplement": {"needed": bool, "administered": bool, "output":
+    SurveyResultOutput | None, "paths": {...} | None}}``.
     """
     artifact = _load_domain_inference_artifact(domain_inference_path)
     recommendation = resolve_recommendation_from_artifact(artifact)
     effective_scale, safety_net_triggered = resolve_effective_scale(
         recommendation, forced_scale=forced_scale
     )
-    administration_mode: Literal["natural", "forced", "safety_net"] = (
-        "forced"
-        if forced_scale is not None
-        else "safety_net"
-        if safety_net_triggered
-        else "natural"
-    )
+    administration_mode = resolve_administration_mode(forced_scale, safety_net_triggered)
     outcome, entry = resolve_outcome(effective_scale)
 
     responses: list[int] = []
@@ -464,7 +573,72 @@ async def run_f3_administration(
         arc_mode=artifact.get("arc_mode"),
     )
     paths = save_f3_result(output, output_dir)
-    return {"outcome": outcome, "output": output, "paths": paths}
+
+    # CVR-030 remediation: standalone item-9-equivalent SI check, ADDITIONAL
+    # to the main administration above — own record, own save call, never
+    # merged into `output`/`paths` (the main artifact's `score_result`/
+    # `responses` describe `effective_scale` only, unchanged by this).
+    si_supplement_needed = resolve_si_supplement_needed(
+        recommendation, effective_scale, administration_mode
+    )
+    si_supplement_output: SurveyResultOutput | None = None
+    si_supplement_paths: dict[str, Path] | None = None
+    if si_supplement_needed:
+        if si_supplement_answer_fn is None:
+            logger.warning(
+                "f3.si_supplement_needed_but_not_administered — vp_id=%s "
+                "crisis_triggered=True, effective_scale=%s (non-PHQ-9, natural "
+                "administration) but no si_supplement_answer_fn was supplied — the "
+                "standalone SI item was NOT administered this session (CVR-030 "
+                "remediation gap; caller must build+pass si_supplement_answer_fn "
+                "whenever resolve_si_supplement_needed can be True)",
+                resolved_vp_id, effective_scale,
+            )
+        else:
+            si_response, si_critical_positive = await administer_si_supplement(
+                si_supplement_answer_fn
+            )
+            phq9_entry = ITEM_BANK.get("PHQ-9")
+            si_supplement_output = SurveyResultOutput(
+                vp_id=resolved_vp_id,
+                session_id=resolved_session_id,
+                timestamp=datetime.now().isoformat(),
+                outcome=ADMINISTERED_OUTCOME,
+                scale_name="PHQ-9",
+                item_bank_version=phq9_entry.version if phq9_entry else None,
+                item_bank_provenance=phq9_entry.provenance if phq9_entry else None,
+                responses=[si_response],
+                score_result=None,
+                safety_referral=si_critical_positive,
+                administration_mode="si_supplement",
+                recommendation_provenance=RecommendationProvenance(
+                    domain_inference_path=str(domain_inference_path),
+                    top_candidate_disease=recommendation.top_candidate_disease,
+                    top_candidate_similarity_score=recommendation.top_candidate_similarity_score,
+                    recommendation_caveat=recommendation.recommendation_caveat,
+                ),
+                answer_mode=answer_mode,  # type: ignore[arg-type]
+                scenario_pack_id=artifact.get("scenario_pack_id"),
+                arc_mode=artifact.get("arc_mode"),
+            )
+            si_supplement_paths = save_si_supplement_result(si_supplement_output, output_dir)
+            logger.warning(
+                "f3.si_supplement_administered — vp_id=%s response=%d critical_positive=%s "
+                "(CVR-030, crisis_triggered session administering non-PHQ-9 scale %s)",
+                resolved_vp_id, si_response, si_critical_positive, effective_scale,
+            )
+
+    return {
+        "outcome": outcome,
+        "output": output,
+        "paths": paths,
+        "si_supplement": {
+            "needed": si_supplement_needed,
+            "administered": si_supplement_output is not None,
+            "output": si_supplement_output,
+            "paths": si_supplement_paths,
+        },
+    }
 
 
 # ── Report + save (mirrors f2.py's _build_report/save_f2_result pair) ──
@@ -577,3 +751,70 @@ def save_f3_result(output: SurveyResultOutput, output_dir: Path | None = None) -
         paths["scale_scores"] = scale_scores_path
 
     return paths
+
+
+# ── CVR-030 SI-supplement record (own filename, own report) ────────────
+
+
+def _build_si_supplement_report(output: SurveyResultOutput) -> str:
+    """CVR-030 remediation: own report body, distinct from `_build_report`
+    above — never routed through that function's outcome-branching (the
+    supplement is always `outcome="administered"` with `score_result=None`,
+    a shape `_build_report` does not otherwise produce)."""
+    lines = [
+        f"# F3 SI-supplement check — {output.vp_id}",
+        "",
+        f"> session_id: {output.session_id} | timestamp: {output.timestamp}",
+        f"> administration_mode: **{output.administration_mode}** — crisis-triggered "
+        "supplement to a non-PHQ-9 natural administration (CVR-030 remediation)",
+        "",
+        "## Item (PHQ-9 item 9, reused verbatim from item bank v1)",
+        "",
+        f"- item_bank_version: {output.item_bank_version}",
+        f"- item_bank_provenance: {output.item_bank_provenance}",
+        f"- response: {output.responses[0] if output.responses else None}",
+        f"- critical (suicidal/self-harm ideation) positive: {output.safety_referral}",
+        "",
+        "## Recommendation provenance (F2, the session's actual administered scale)",
+        "",
+    ]
+    prov = output.recommendation_provenance
+    lines.extend(
+        [
+            f"- domain_inference_path: `{prov.domain_inference_path}`",
+            f"- top_candidate_disease: {prov.top_candidate_disease}",
+            f"- top_candidate_similarity_score: {prov.top_candidate_similarity_score}",
+            "",
+            "## Disclaimer",
+            "",
+            output.disclaimer,
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def save_si_supplement_result(
+    output: SurveyResultOutput, output_dir: Path | None = None
+) -> dict[str, Path]:
+    """CVR-030 remediation: same save discipline as `save_f3_result`, own
+    filename suffix (``_si_supplement.json``/``.md``, never ``_survey.*``)
+    so a consumer can always tell a standalone SI-supplement record apart
+    from a full scale administration at a glance. Never writes
+    ``_scale_scores.json`` — the supplement's own `score_result` is always
+    `None` (a single item is not a scored scale)."""
+    base = output_dir or OUTPUT_DIR
+    out = base / output.vp_id
+    out.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    prefix = f"{output.vp_id}_{ts}"
+
+    json_path = out / f"{prefix}_si_supplement.json"
+    json_path.write_text(
+        json.dumps(output.model_dump(), ensure_ascii=False, indent=2, default=str),
+        encoding="utf-8",
+    )
+    report_path = out / f"{prefix}_si_supplement.md"
+    report_path.write_text(_build_si_supplement_report(output), encoding="utf-8")
+
+    return {"json": json_path, "report": report_path}

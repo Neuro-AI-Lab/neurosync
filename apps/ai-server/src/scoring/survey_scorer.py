@@ -46,6 +46,18 @@ _PHQ9_SEVERITY = [
 ]
 
 
+# CVR-030 remediation: single source of truth for PHQ-9 item 9 (suicidal/
+# self-harm ideation) positivity, shared by `_score_phq9` below AND the
+# standalone item-9-equivalent SI-supplement check
+# (`src.f3.administer_si_supplement`) — a crisis-triggered session that
+# gets the supplement instead of a full PHQ-9 administration must apply the
+# EXACT same threshold, never a re-derived/duplicated one.
+def is_phq9_item9_positive(value: int) -> bool:
+    """PHQ-9 item 9 positivity rule: any response >= 1 ("여러 날" 이상) is
+    critical (Kroenke et al. 2001)."""
+    return value >= 1
+
+
 def _score_phq9(responses: list[int]) -> ScoreResult:
     if len(responses) != 9:
         raise ValueError(f"PHQ-9 requires 9 responses, got {len(responses)}")
@@ -57,7 +69,7 @@ def _score_phq9(responses: list[int]) -> ScoreResult:
     severity = next(s for lo, hi, s in _PHQ9_SEVERITY if lo <= total <= hi)
 
     # Item 9 (index 8): suicidal ideation
-    q9_positive = responses[8] >= 1
+    q9_positive = is_phq9_item9_positive(responses[8])
     critical = []
     if q9_positive:
         critical.append({"item": 9, "value": responses[8], "flag": "suicidal_ideation"})

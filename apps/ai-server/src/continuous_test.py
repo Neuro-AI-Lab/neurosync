@@ -226,6 +226,11 @@ class ChainContext:
     f3_survey_path: Path | None = None  # set by F3
     f3_scale_scores_path: Path | None = None  # set by F3 (only when outcome=="administered")
     f3_safety_pathway: dict[str, Any] | None = None  # set by F3 (PHQ-9 item-9 wiring, step 3)
+    # CVR-030 remediation: set by F3 only when the standalone SI-supplement
+    # check (crisis_triggered session administering a real non-PHQ-9 scale)
+    # was actually administered this session — `None` otherwise (not
+    # needed, or needed but skipped for lack of an answer_fn).
+    f3_si_supplement_pathway: dict[str, Any] | None = None
 
 
 StageFn = Callable[[ChainContext], Awaitable[StageResult]]
@@ -490,6 +495,40 @@ def _route_phq9_safety_pathway(
     }
 
 
+def _route_si_supplement_safety_pathway(persona_id: str, item9_response: int) -> dict[str, Any]:
+    """CVR-030 remediation counterpart to `_route_phq9_safety_pathway`
+    (above) for the standalone item-9-equivalent SI-supplement check
+    (`run_f3_stage`'s si_supplement branch).
+
+    Deliberately does NOT call `OrchestratorAgent.score_and_check_safety`
+    the way `_route_phq9_safety_pathway` does — that method's
+    `score_survey("PHQ-9", responses)` call requires EXACTLY 9 responses
+    (`survey_scorer._score_phq9`'s own length check) and the supplement
+    administers exactly ONE item, so padding a fake 9-item array just to
+    reuse that call would either raise or (if zero-padded) produce a
+    `total_score`/`severity` that describes a PHQ-9 administration that
+    never happened — a fabricated record this project's "never invent"
+    discipline rules out. Instead this reuses the SAME underlying item-9
+    positivity rule (`survey_scorer.is_phq9_item9_positive`, the single
+    source of truth also used inside `_score_phq9` itself) directly, so a
+    session screened via this supplement and one screened via a full
+    PHQ-9 administration can never disagree about what counts as
+    critical — same routing OUTCOME as `_route_phq9_safety_pathway`,
+    without the fabricated full-scale score. `persona_id` is accepted
+    (unused) only to mirror `_route_phq9_safety_pathway`'s own signature
+    shape for call-site symmetry and future logging use.
+    """
+    from src.scoring.survey_scorer import is_phq9_item9_positive
+
+    positive = is_phq9_item9_positive(item9_response)
+    return {
+        "safety_pathway_invoked": True,
+        "safety_triggered": positive,
+        "recommended_action": "safety_referral" if positive else "none",
+        "critical_item_positive": positive,
+    }
+
+
 async def run_f3_stage(ctx: ChainContext) -> StageResult:
     """Read `ctx.domain_inference_path` (F2's output), resolve the
     administered/no_questionnaire_indicated/item_bank_unpopulated outcome
@@ -546,6 +585,9 @@ async def run_f3_stage(ctx: ChainContext) -> StageResult:
             recommendation, forced_scale=ctx.forced_scale
         )
         outcome, _entry = f3.resolve_outcome(effective_scale)
+        administration_mode = f3.resolve_administration_mode(
+            ctx.forced_scale, _safety_net_triggered
+        )
 
         if outcome == f3.ADMINISTERED_OUTCOME:
             answer_fn = _build_survey_answer_fn(
@@ -557,6 +599,23 @@ async def run_f3_stage(ctx: ChainContext) -> StageResult:
                     "answer_fn must not be called for a non-administered F3 outcome"
                 )
 
+        # CVR-030 remediation: pre-compute (same seam discipline as
+        # `effective_scale`/`administration_mode` above — `f3.
+        # resolve_si_supplement_needed` is the single source of truth,
+        # never re-derived) whether this session needs the standalone SI
+        # supplement, and if so build the PHQ-9-scoped `answer_fn` it
+        # needs (item 9 is a DIFFERENT scale's item than `effective_scale`,
+        # so the main `answer_fn` above — scoped to `effective_scale` — is
+        # not reusable for it).
+        si_supplement_needed = f3.resolve_si_supplement_needed(
+            recommendation, effective_scale, administration_mode
+        )
+        si_supplement_answer_fn = (
+            _build_survey_answer_fn(ctx.persona_id, "PHQ-9", ctx.answer_mode)
+            if si_supplement_needed
+            else None
+        )
+
         result = await f3.run_f3_administration(
             domain_inference_path=ctx.domain_inference_path,
             answer_fn=answer_fn,
@@ -565,6 +624,7 @@ async def run_f3_stage(ctx: ChainContext) -> StageResult:
             output_dir=ctx.out_dir,
             vp_id=ctx.persona_id,
             forced_scale=ctx.forced_scale,
+            si_supplement_answer_fn=si_supplement_answer_fn,
         )
     except Exception as exc:  # noqa: BLE001 — harness must report, not crash, on stage failure
         logger.exception("continuous_test.f3.failed")
@@ -581,6 +641,20 @@ async def run_f3_stage(ctx: ChainContext) -> StageResult:
             ctx.persona_id, output.responses, patient_sex=effective_patient_sex
         )
 
+    # CVR-030 remediation: route the SI supplement's response (if
+    # administered this session) through the SAME item-9 positivity rule
+    # `_route_phq9_safety_pathway` uses (via `survey_scorer.
+    # is_phq9_item9_positive`, single source of truth) — this is the
+    # F3 artifact/ledger CONSUMER seam, same architectural boundary
+    # `_route_phq9_safety_pathway` itself documents (never inside `src/f3.py`).
+    ctx.f3_si_supplement_pathway = None
+    si_supp = result.get("si_supplement") or {}
+    if si_supp.get("administered") and si_supp.get("output") is not None:
+        si_output = si_supp["output"]
+        ctx.f3_si_supplement_pathway = _route_si_supplement_safety_pathway(
+            ctx.persona_id, si_output.responses[0]
+        )
+
     detail = (
         f"F3 outcome={output.outcome} answer_mode={ctx.answer_mode} "
         f"administration_mode={output.administration_mode} patient_sex={effective_patient_sex}"
@@ -592,7 +666,20 @@ async def run_f3_stage(ctx: ChainContext) -> StageResult:
         )
         if ctx.f3_safety_pathway is not None:
             detail += f" safety_pathway_triggered={ctx.f3_safety_pathway['safety_triggered']}"
-    return StageResult("F3", "pass", detail, artifacts=paths, duration_ms=_ms(t0))
+    if si_supp.get("needed"):
+        detail += (
+            f" si_supplement_needed=True si_supplement_administered="
+            f"{si_supp.get('administered')}"
+        )
+        if ctx.f3_si_supplement_pathway is not None:
+            detail += (
+                f" si_supplement_safety_triggered="
+                f"{ctx.f3_si_supplement_pathway['safety_triggered']}"
+            )
+    all_paths = dict(paths)
+    if si_supp.get("paths"):
+        all_paths.update({f"si_supplement_{k}": v for k, v in si_supp["paths"].items()})
+    return StageResult("F3", "pass", detail, artifacts=all_paths, duration_ms=_ms(t0))
 
 
 def _build_f3_ledger_subobject(ctx: ChainContext) -> dict[str, Any] | None:
@@ -650,6 +737,10 @@ def _build_f3_ledger_subobject(ctx: ChainContext) -> dict[str, Any] | None:
         # discipline as every other field above (absent on pre-F4 artifacts).
         "scenario_pack_id": data.get("scenario_pack_id"),
         "arc_mode": data.get("arc_mode"),
+        # CVR-030 remediation: present-key-null discipline, same as
+        # `safety_pathway` above — `None` whenever the SI supplement was
+        # not needed or not administered this session.
+        "si_supplement_pathway": ctx.f3_si_supplement_pathway,
     }
 
 

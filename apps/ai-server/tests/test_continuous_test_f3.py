@@ -196,6 +196,86 @@ class TestRunF3StageSafetyNetCvr028:
         assert "administration_mode=natural" in result.detail
 
 
+class TestRunF3StageSiSupplementCvr030:
+    """CVR-030 remediation at the harness (F2->F3 chain) consumption seam
+    — crisis_triggered + a REAL non-PHQ-9 F2 recommendation (VP-012's own
+    documented AUDIT-C table) additionally administers the standalone SI
+    supplement, using VP-012's own documented PHQ-9 item 9 score (0, per
+    `docs/ai/personas/VP-012_first_visit_alcohol.md`)."""
+
+    @pytest.mark.asyncio
+    async def test_crisis_audit_c_administers_si_supplement(self, tmp_path: Path) -> None:
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-012", recommended_questionnaire="AUDIT-C",
+            crisis_triggered=True,
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-012", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert "scale=AUDIT-C" in result.detail
+        assert "si_supplement_needed=True" in result.detail
+        assert "si_supplement_administered=True" in result.detail
+        assert ctx.f3_si_supplement_pathway is not None
+        # VP-012's documented item 9 score is 0 -> not critical.
+        assert ctx.f3_si_supplement_pathway["safety_triggered"] is False
+        assert "si_supplement_json" in result.artifacts
+        assert result.artifacts["si_supplement_json"].exists()
+
+    @pytest.mark.asyncio
+    async def test_not_crisis_triggered_no_supplement_in_ledger(self, tmp_path: Path) -> None:
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-012", recommended_questionnaire="AUDIT-C",
+            crisis_triggered=False,
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-012", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert "si_supplement_needed" not in result.detail
+        assert ctx.f3_si_supplement_pathway is None
+        assert "si_supplement_json" not in result.artifacts
+
+    @pytest.mark.asyncio
+    async def test_ledger_subobject_carries_si_supplement_pathway(self, tmp_path: Path) -> None:
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-012", recommended_questionnaire="AUDIT-C",
+            crisis_triggered=True,
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-012", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        await ct.run_f3_stage(ctx)
+        sub = ct._build_f3_ledger_subobject(ctx)
+        assert sub is not None
+        assert sub["si_supplement_pathway"] is not None
+        assert sub["si_supplement_pathway"]["safety_triggered"] is False
+
+    @pytest.mark.asyncio
+    async def test_ledger_subobject_null_when_not_needed(self, tmp_path: Path) -> None:
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-012", recommended_questionnaire="AUDIT-C",
+            crisis_triggered=False,
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-012", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        await ct.run_f3_stage(ctx)
+        sub = ct._build_f3_ledger_subobject(ctx)
+        assert sub is not None
+        assert sub["si_supplement_pathway"] is None
+
+
 class TestRunF3StageLLMModeConstructsSurveyAnswerLLM:
     @pytest.mark.asyncio
     async def test_llm_mode_builds_survey_answer_llm_from_real_persona(
@@ -271,6 +351,7 @@ class TestBuildF3LedgerSubobject:
             "scale_scores_path",
         }
         expected_keys |= {"scenario_pack_id", "arc_mode"}  # F4 quick-dev provenance, ADR-036 item 3
+        expected_keys |= {"si_supplement_pathway"}  # CVR-030 remediation
         assert set(sub.keys()) == expected_keys
         assert sub["outcome"] == "administered"
         assert sub["scale_name"] == "PHQ-9"

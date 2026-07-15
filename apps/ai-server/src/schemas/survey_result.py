@@ -166,7 +166,7 @@ class SurveyResultOutput(BaseModel):
             "never a trigger. Always false for outcome != 'administered'."
         ),
     )
-    administration_mode: Literal["natural", "forced", "safety_net"] = Field(
+    administration_mode: Literal["natural", "forced", "safety_net", "si_supplement"] = Field(
         default="natural",
         description=(
             "'natural': F2's own recommended_questionnaire drove this administration. "
@@ -178,7 +178,13 @@ class SurveyResultOutput(BaseModel):
             "src.f3.resolve_effective_scale defaulted to PHQ-9 independent of F2's "
             "recommendation path (CVR-028 Finding 1, clinical-blocking fix). Distinct "
             "provenance from 'natural' by construction — a downstream reader can always "
-            "tell F2-driven from safety-net-driven administration."
+            "tell F2-driven from safety-net-driven administration. "
+            "'si_supplement' (CVR-030 remediation): a crisis_triggered session whose "
+            "'natural' administration was a REAL, non-PHQ-9 F2 recommendation additionally "
+            "got the standalone item-9-equivalent SI check (src.f3.administer_si_supplement) "
+            "— always its own separate record (own _si_supplement.json/.md file, "
+            "scale_name='PHQ-9', responses=[item9_value], score_result=None; never merged "
+            "into the session's main 'natural' survey.json)."
         ),
     )
     threshold_caveat: str | None = Field(

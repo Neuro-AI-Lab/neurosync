@@ -455,6 +455,18 @@ def _key_concerns(
         concerns.append("최근 설문 만점(과대추정 가능성)")
     if lon.crisis_f3_gaps:
         concerns.append(f"위기 고조 세션 중 설문 미시행 {len(lon.crisis_f3_gaps)}건")
+    # CVR-028 Finding 7 (minor-major, VP-002): the SBAR headline must never
+    # read "특이 우려 사항 없음" while B1's own 종단추세 section (three
+    # paragraphs later in the same report) computes `overall_direction=
+    # worsened` — a time-pressed clinician reading only the headline would
+    # get a directly contradicted, falsely reassuring signal. Fires
+    # whenever F4's own `overall_direction` (never recomputed here, only
+    # juxtaposed) is "worsened" — an honest pointer to the body section,
+    # not a re-diagnosis of WHY it is worsened (that reasoning, including
+    # any dimension-vote tie-break nuance, lives in B1's own
+    # `overall_direction_sensitivity_note`).
+    if lon.overall_direction == "worsened":
+        concerns.append("추세 판정 혼재 — 본문 종단 추세 참조")
     return concerns or ["특이 우려 사항 없음"]
 
 
