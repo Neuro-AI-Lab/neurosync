@@ -1,6 +1,12 @@
 """Tests for `src/services/f5_report.py` — markdown/PDF/FHIR exporters +
 `save_f5_result`. `docs/ai/f5_quick_dev_plan.md` §5, §7.2 machine checks
-(a)/(d) (section completeness, PDF render sanity)."""
+(a)/(d) (section completeness, PDF render sanity).
+
+Readability redesign (this mission — clinician-first hand-off, <2-min read):
+markdown/PDF section headers below reflect the NEW structure (핵심요약 →
+위험 → 주호소/현병력 → 슬롯표+경과 → 설문 → 종단추세+차트 → AI참고 → 권고 →
+각주). `build_fhir_bundle`/`validate_fhir_bundle` are UNCHANGED (still use
+the old A0-A8/B1-B5 section titles) — FHIR-facing tests are untouched."""
 
 from __future__ import annotations
 
@@ -22,7 +28,12 @@ from src.f5 import (
     assemble_handoff_report,
 )
 from src.schemas.ai_predicted_disease import AIPredictedDiseaseCandidate, AIPredictedDiseaseOutput
-from src.schemas.longitudinal import CTRSSeriesPoint, LongitudinalAnalysisOutput, ScaleSeriesPoint
+from src.schemas.longitudinal import (
+    CTRSSeriesPoint,
+    LongitudinalAnalysisOutput,
+    ScaleSeriesPoint,
+    TrendVerdict,
+)
 from src.services.f5_report import (
     build_markdown_report,
     build_narrative_input_text,
@@ -30,23 +41,20 @@ from src.services.f5_report import (
     save_f5_result,
 )
 
-# All 15 §2.2 section labels a completeness grep expects, never silently
-# dropped (design doc §7.2 check (a) / qa's T1-F5-VER-011).
+# New top-level section markers, in rendering order (binding rule 10:
+# 핵심요약 → 위험 → 주호소/현병력 → 슬롯표+경과 → 설문 → 종단추세+차트 →
+# AI참고 → 권고 → 각주). 핵심 요약/면책 조항 render as blockquote boxes
+# (`> **...**`), never dropped — checked separately below.
 _EXPECTED_SECTION_MARKERS = [
-    "## A0.",
-    "## A1.",
-    "## A2.",
-    "## A3.",
-    "## A4.",
-    "## A5.",
-    "## A6.",
-    "## A7.",
-    "## A8.",
-    "## B1.",
-    "## B2.",
-    "## B3.",
-    "## B4.",
-    "## B5.",
+    "## 위험/안전 평가",
+    "## 주호소 및 현병력",
+    "## 전체 세션 요약",
+    "## 시행된 설문",
+    "## 종단 추세",
+    "## AI 참고 정보 (비진단)",
+    "## 권장 진료과 및 후속 조치",
+    "## 임상 종합 소견",
+    "## 각주",
 ]
 
 
@@ -221,6 +229,8 @@ class TestMarkdownCompleteness:
         md = build_markdown_report(_full_report())
         for marker in _EXPECTED_SECTION_MARKERS:
             assert marker in md, f"missing section marker {marker}"
+        assert "**핵심 요약**" in md
+        assert "**면책 조항**" in md
 
     def test_all_sections_present_minimal_report_with_absent_markers(self) -> None:
         """Every section header renders even when the underlying data is
@@ -231,17 +241,17 @@ class TestMarkdownCompleteness:
             assert marker in md, f"missing section marker {marker}"
         assert "정보 없음" in md
 
-    def test_a3_longitudinal_signal_and_staleness_rendered(self) -> None:
+    def test_a3_risk_signals_and_staleness_rendered(self) -> None:
         md = build_markdown_report(_full_report())
-        assert "종단 위험 신호" in md
-        assert "9회차" in md  # staleness pointer references S9
-        assert "27" in md
+        a3_section = md.split("## 위험/안전 평가")[1].split("## 주호소 및 현병력")[0]
+        assert "9회차" in a3_section  # staleness pointer references S9
+        assert "27" in a3_section
 
     def test_a5_stale_administering_session_disclosed(self) -> None:
         md = build_markdown_report(_full_report())
-        a5_section = md.split("## A5.")[1].split("## A6.")[0]
-        assert "administering_session_index | 9" in a5_section
-        assert "True" in a5_section  # is_stale_relative_to_header
+        a5_section = md.split("## 시행된 설문")[1].split("## 종단 추세")[0]
+        assert "9회차" in a5_section
+        assert "[당해 세션 미시행, 직전 시행값]" in a5_section
 
     def test_a6_tie_marker_rendered(self) -> None:
         md = build_markdown_report(_full_report())
@@ -253,32 +263,24 @@ class TestMarkdownCompleteness:
 
     def test_non_validated_caveat_adjacent_to_a5_numbers(self) -> None:
         md = build_markdown_report(_full_report())
-        a5_section = md.split("## A5.")[1].split("## A6.")[0]
+        a5_section = md.split("## 시행된 설문")[1].split("## 종단 추세")[0]
         assert "검증된 임상 설문 시행이 아닙니다" in a5_section
 
     def test_non_validated_caveat_adjacent_to_a3_numbers(self) -> None:
-        """EXP-024 check 5c FAIL regression: A3's 종단위험신호 table (S9
+        """EXP-024 check 5c FAIL regression: A3's risk-signal table (S9
         PHQ-9 27/27) AND the staleness-pointer prose (also citing PHQ-9
         27/27) must each carry the caveat, section-local, not only A5/B1.
         `_full_report()`'s prior_f3 (S9, flagged) + current session (S11,
         no F3) exercises both code paths at once."""
         md = build_markdown_report(_full_report())
-        a3_section = md.split("## A3.")[1].split("## A4.")[0]
-        signals_block, staleness_block = a3_section.split("최신성 안내 (staleness pointer)")
+        a3_section = md.split("## 위험/안전 평가")[1].split("## 주호소 및 현병력")[0]
+        signals_block, staleness_block = a3_section.split("최신 시행 척도 안내")
         assert "검증된 임상 설문 시행이 아닙니다" in signals_block, (
-            "A3 종단위험신호 subsection missing the non-validated-administration caveat"
+            "A3 risk-signal table missing the non-validated-administration caveat"
         )
         assert "검증된 임상 설문 시행이 아닙니다" in staleness_block, (
             "A3 staleness-pointer prose missing the non-validated-administration caveat"
         )
-
-    def test_document_disclaimer_scopes_to_a3_as_well_as_a5_b1(self) -> None:
-        """The document-level disclaimer must no longer self-declare its
-        questionnaire-score scope as A5/B1-only (EXP-024 check 5c root
-        cause) now that A3 also renders scored numbers."""
-        md = build_markdown_report(_full_report())
-        assert "설문(A3/A5/B1)" in md
-        assert "설문(A5/B1)" not in md
 
     def test_no_probability_wording_near_similarity_score(self) -> None:
         """REV-013 §4: `similarity_score` is never AFFIRMATIVELY labeled a
@@ -286,35 +288,181 @@ class TestMarkdownCompleteness:
         disclaimer ("...확률...아닙니다") — every line containing it must
         also contain a negation morpheme on the same line."""
         md = build_markdown_report(_full_report())
-        a6_section = md.split("## A6.")[1].split("## A7.")[0]
+        a6_section = md.split("## AI 참고 정보 (비진단)")[1].split("## 권장 진료과 및 후속 조치")[0]
         assert "probability" not in a6_section.lower()
         for line in a6_section.splitlines():
             if "확률" in line:
                 assert "아닙니다" in line or "아니" in line, f"unhedged 확률 mention: {line!r}"
+
+    def test_no_internal_field_names_in_body(self) -> None:
+        """Binding rule 1: internal field names / IDs never appear in the
+        body — only in the trailing 각주 footnote block, which carries
+        only model/generated_at/session_id/item_bank_provenance (none of
+        these ID-shaped internal tokens)."""
+        md = build_markdown_report(_full_report())
+        body = md.split("## 각주")[0]
+        for banned in (
+            "session_ctrs",
+            "risk_floor",
+            "probe_event_count",
+            "safety_referral",
+            "critical_item_positive",
+            "is_diagnostic",
+        ):
+            assert banned not in body, f"internal field name {banned!r} leaked into body"
+
+    def test_no_internal_dimension_labels_in_trend_evidence(self) -> None:
+        """Regression guard: F4's own `TrendVerdict.evidence[0]` is
+        prefixed `"{label}: "` where `label` is the RAW internal
+        dimension name for `session_ctrs`/`slot_fill_count` (confirmed
+        via `src/f4.py::_first_last_slope_trend`'s own `label=` call
+        sites) — the real VP-001 artifact exposed this because the
+        default `_full_report()` fixture leaves `trend_verdicts` empty."""
+        report = _full_report()
+        report.b_longitudinal.analysis.trend_verdicts = [
+            TrendVerdict(
+                dimension="session_ctrs",
+                direction="unchanged",
+                basis="first_vs_last_delta+slope_sign",
+                n_comparable_points=2,
+                evidence=["session_ctrs: first-vs-last delta session 1->2: 4 -> 4 (+0)"],
+            ),
+            TrendVerdict(
+                dimension="slot_fill_count",
+                direction="improved",
+                basis="first_vs_last_delta+slope_sign",
+                n_comparable_points=2,
+                evidence=["slot_fill_count: first-vs-last delta session 1->2: 4 -> 7 (+3)"],
+            ),
+        ]
+        md = build_markdown_report(report)
+        body = md.split("## 각주")[0]
+        assert "session_ctrs:" not in body
+        assert "slot_fill_count:" not in body
+        # the underlying numbers must still be present, not dropped
+        assert "4 → 4" in body
+        assert "4 → 7" in body
+
+
+class TestSummaryBox:
+    def test_summary_box_at_top_before_any_section_marker(self) -> None:
+        md = build_markdown_report(_full_report())
+        summary_pos = md.index("**핵심 요약**")
+        first_section_pos = min(md.index(m) for m in _EXPECTED_SECTION_MARKERS)
+        assert summary_pos < first_section_pos
+
+    def test_summary_box_has_risk_flag_and_scale_trend(self) -> None:
+        md = build_markdown_report(_full_report())
+        box = md.split("**핵심 요약**")[1].split("**면책 조항**")[0]
+        assert "위험 플래그" in box
+        assert "최신 설문" in box
+        assert "PHQ-9" in box
+
+    def test_summary_box_at_most_8_content_lines(self) -> None:
+        md = build_markdown_report(_full_report())
+        box = md.split("**핵심 요약**")[1].split("**면책 조항**")[0]
+        content_lines = [ln for ln in box.splitlines() if ln.strip() not in ("", ">")]
+        assert len(content_lines) <= 8
+
+    def test_disclaimer_box_at_most_3_bullets(self) -> None:
+        md = build_markdown_report(_full_report())
+        box = md.split("**면책 조항**")[1].split("## 위험/안전 평가")[0]
+        bullets = [ln for ln in box.splitlines() if ln.strip().startswith(">") and "-" in ln]
+        assert len(bullets) <= 3
+
+
+class TestCtrsStageLabelMapping:
+    """CTRS 1=most urgent ... 5=stable (`src.schemas.common.CTRSLevel`).
+    The Korean label table must track `CTRS_TO_RISK`'s actual risk
+    gradient (critical->high->medium->low->none), NOT the raw enum-member
+    comment text — that raw text literally reads "중증/주의" (severe/
+    caution) for level 4 even though level 4 maps to `RiskLevel.low`;
+    rendering that verbatim would contradict the risk_level shown
+    alongside it (conductor-flagged clinical-accuracy fix)."""
+
+    def test_all_5_levels_have_a_label(self) -> None:
+        from src.services.f5_report import _CTRS_STAGE_KO
+
+        assert set(_CTRS_STAGE_KO) == {1, 2, 3, 4, 5}
+
+    def test_level_1_and_5_match_specified_wording(self) -> None:
+        from src.services.f5_report import _CTRS_STAGE_KO
+
+        assert _CTRS_STAGE_KO[1] == "최긴급 (즉각 개입)"
+        assert _CTRS_STAGE_KO[5] == "안정"
+
+    def test_level_4_is_not_labeled_severe_or_caution(self) -> None:
+        """Regression guard: level 4 (RiskLevel.low) must never carry
+        severe/caution wording, however it is later edited."""
+        from src.services.f5_report import _CTRS_STAGE_KO
+
+        assert "중증" not in _CTRS_STAGE_KO[4]
+        assert "주의" not in _CTRS_STAGE_KO[4]
+
+    def test_labels_track_ctrs_to_risk_monotonic_gradient(self) -> None:
+        """Cross-checks against the actual source of truth
+        (`src.schemas.common.CTRS_TO_RISK`) so this table cannot silently
+        drift from the enum's own risk mapping."""
+        from src.schemas.common import CTRS_TO_RISK, CTRSLevel, RiskLevel
+        from src.services.f5_report import _CTRS_STAGE_KO
+
+        risk_rank = {
+            RiskLevel.critical: 0,
+            RiskLevel.high: 1,
+            RiskLevel.medium: 2,
+            RiskLevel.low: 3,
+            RiskLevel.none: 4,
+        }
+        ordered = sorted(CTRSLevel, key=lambda lvl: lvl.value)
+        ranks = [risk_rank[CTRS_TO_RISK[lvl]] for lvl in ordered]
+        assert ranks == sorted(ranks), "CTRS_TO_RISK must stay urgency-descending 1->5"
+        for lvl in ordered:
+            assert lvl.value in _CTRS_STAGE_KO
+
+    def test_ctrs_stage_ko_helper_renders_level_and_label(self) -> None:
+        from src.services.f5_report import _ctrs_stage_ko
+
+        assert _ctrs_stage_ko(4) == "4/5 — 경도 우려 (준안정)"
+        assert _ctrs_stage_ko(None) == "미상"
+
+
+class TestSlotTableExcludesSystemRows:
+    def test_system_and_mse_rows_removed_from_slot_table(self) -> None:
+        """Binding rule 4: system-only slots (never populated by the
+        conversation extractor) and the MSE slot (already covered in its
+        own subsection) are removed from the slot table."""
+        md = build_markdown_report(_full_report())
+        section = md.split("## 전체 세션 요약")[1].split("## 시행된 설문")[0]
+        table_block = section.split("**주요 경과**")[0]
+        assert "진료 기본정보" not in table_block
+        assert "정신상태검사" not in table_block
+        assert "평가/진단적 인상" not in table_block
+        assert "치료계획/치료내용" not in table_block
+        assert "주호소" in table_block  # a real clinical slot stays
 
 
 class TestChartAbsentMarkers:
     """EXP-024 check 7 finding regression: a missing F4 chart (filename is
     `None`) must render an explicit per-chart absent line, never be
     silently dropped — same explicit-absent-marker discipline as every
-    other section (A1/A2/A4/A5/A6/A7). `_full_report()` only sets the
-    `scales_ctrs_sentiment` filename, so the other 3 exercise the fix."""
+    other section. `_full_report()` only sets the `scales_ctrs_sentiment`
+    filename, so the other 3 exercise the fix."""
 
     def test_missing_charts_render_explicit_absent_markers(self) -> None:
         md = build_markdown_report(_full_report())
-        b5_section = md.split("## B5.")[1]
-        assert "![scales_ctrs_sentiment]" in b5_section  # the one present chart still renders
-        assert "질환 유사도 차트: 생성되지 않음" in b5_section
-        assert "CTRS 확대 차트: 생성되지 않음" in b5_section
-        assert "진료과 후보 신뢰도 차트: 생성되지 않음" in b5_section
+        chart_section = md.split("### 추세 차트")[1].split("## AI 참고 정보")[0]
+        assert "![scales_ctrs_sentiment]" in chart_section  # the present chart still renders
+        assert "질환 유사도 차트: 생성되지 않음" in chart_section
+        assert "CTRS 확대 차트: 생성되지 않음" in chart_section
+        assert "진료과 후보 신뢰도 차트: 생성되지 않음" in chart_section
         # partial presence must NOT trigger the old blanket all-absent marker
-        assert "정보 없음 (차트 없음)" not in b5_section
+        assert "정보 없음 (차트 없음)" not in chart_section
 
     def test_all_charts_absent_still_shows_blanket_marker_plus_per_chart_lines(self) -> None:
         md = build_markdown_report(_minimal_report())
-        b5_section = md.split("## B5.")[1]
-        assert "정보 없음 (차트 없음)" in b5_section
-        assert "질환 유사도 차트: 생성되지 않음" in b5_section
+        chart_section = md.split("### 추세 차트")[1].split("## AI 참고 정보")[0]
+        assert "정보 없음 (차트 없음)" in chart_section
+        assert "질환 유사도 차트: 생성되지 않음" in chart_section
 
 
 # ── PDF (design doc §7.2 check (d)) ─────────────────────────────────────
@@ -337,7 +485,7 @@ class TestPdfRenderSanity:
         pdf_bytes = build_pdf_report(_full_report())
         reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
         text = "".join(p.extract_text() for p in reader.pages)
-        for expected in ("비공식", "예상질환", "위험", "인계 요약"):
+        for expected in ("비공식", "AI 참고 정보", "위험", "인계 요약", "핵심 요약"):
             assert expected in text, f"expected Korean text {expected!r} not found/garbled"
 
     def test_pdf_disclaimer_present(self) -> None:
@@ -485,9 +633,7 @@ class TestPdfFontEmbedding:
         named error -- NEVER silently fall back to the old CID fonts."""
         import src.services.f5_report as f5_report_module
 
-        monkeypatch.setattr(
-            f5_report_module, "_BODY_FONT_PATH", tmp_path / "does-not-exist.ttf"
-        )
+        monkeypatch.setattr(f5_report_module, "_BODY_FONT_PATH", tmp_path / "does-not-exist.ttf")
         # Force re-registration (module-level registry is process-global).
         monkeypatch.setattr(f5_report_module, "_BODY_FONT", "test-missing-body-font")
         with pytest.raises(RuntimeError, match="ADR-038"):
@@ -516,7 +662,7 @@ class TestA7DisclosureExporters:
 
         report = _full_report(department_candidates=(), validation_errors_present=True)
         md = build_markdown_report(report)
-        a7_section = md.split("## A7.")[1].split("## A8.")[0]
+        a7_section = md.split("## 권장 진료과 및 후속 조치")[1].split("## 임상 종합 소견")[0]
         assert A7_NO_CANDIDATES_VALIDATION_DROPPED_KO in a7_section
         assert "VAL-016" in a7_section
 
@@ -528,7 +674,7 @@ class TestA7DisclosureExporters:
 
         report = _full_report(department_candidates=(), validation_errors_present=False)
         md = build_markdown_report(report)
-        a7_section = md.split("## A7.")[1].split("## A8.")[0]
+        a7_section = md.split("## 권장 진료과 및 후속 조치")[1].split("## 임상 종합 소견")[0]
         assert A7_NO_CANDIDATES_MODEL_JUDGED_KO in a7_section
         assert A7_NO_CANDIDATES_VALIDATION_DROPPED_KO not in a7_section
 
@@ -545,7 +691,7 @@ class TestA7DisclosureExporters:
     def test_non_empty_candidates_never_shows_absence_wording(self) -> None:
         report = _full_report(validation_errors_present=True)  # default has 1 dept candidate
         md = build_markdown_report(report)
-        a7_section = md.split("## A7.")[1].split("## A8.")[0]
+        a7_section = md.split("## 권장 진료과 및 후속 조치")[1].split("## 임상 종합 소견")[0]
         assert "정보 없음" not in a7_section
 
 
@@ -561,7 +707,7 @@ class TestA6ReasonSummaryExporters:
         )
         report = _full_report(apd=apd)
         md = build_markdown_report(report)
-        a6_section = md.split("## A6.")[1].split("## A7.")[0]
+        a6_section = md.split("## AI 참고 정보 (비진단)")[1].split("## 권장 진료과 및 후속 조치")[0]
         assert "no RAG chunks retrieved this run" in a6_section
         assert "mode: experimental_unpopulated" in a6_section
 
@@ -583,8 +729,30 @@ class TestA6ReasonSummaryExporters:
         )
         report = _full_report(apd=apd)
         md = build_markdown_report(report)
-        a6_section = md.split("## A6.")[1].split("## A7.")[0]
+        a6_section = md.split("## AI 참고 정보 (비진단)")[1].split("## 권장 진료과 및 후속 조치")[0]
         assert "should not appear" not in a6_section
+
+
+class TestA6TopThreeAndFootnote:
+    """Binding rule 8: top 3 candidates in the body, the rest compacted
+    into a footnote line."""
+
+    def test_more_than_3_candidates_splits_top3_and_rest(self) -> None:
+        apd = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease=f"질환{i}", similarity_score=0.5 - i * 0.01, source_id=f"c:{i}"
+                )
+                for i in range(5)
+            ],
+            mode="rag_live",
+        )
+        report = _full_report(apd=apd)
+        md = build_markdown_report(report)
+        a6_section = md.split("## AI 참고 정보 (비진단)")[1].split("## 권장 진료과 및 후속 조치")[0]
+        assert "질환0" in a6_section and "질환2" in a6_section
+        assert "기타 후보" in a6_section
+        assert "질환3" in a6_section and "질환4" in a6_section
 
 
 # ── Exact-ceiling caveat co-location, exporter-level (ADR-038 Decision 2c) ──
@@ -596,8 +764,8 @@ class TestCeilingCaveatExporters:
 
         report = _full_report(prior_total_score=27, prior_max_score=27)
         md = build_markdown_report(report)
-        a3_section = md.split("## A3.")[1].split("## A4.")[0]
-        a5_section = md.split("## A5.")[1].split("## A6.")[0]
+        a3_section = md.split("## 위험/안전 평가")[1].split("## 주호소 및 현병력")[0]
+        a5_section = md.split("## 시행된 설문")[1].split("## 종단 추세")[0]
         assert CEILING_SCORE_CAVEAT_KO in a3_section
         assert CEILING_SCORE_CAVEAT_KO in a5_section
         # adjacency: the caveat must sit on the same 27/27 line's table/note,
@@ -608,44 +776,39 @@ class TestCeilingCaveatExporters:
         assert "27" in a5_section
 
     def test_markdown_no_new_caveat_below_ceiling(self) -> None:
-        """17/27 (below scale ceiling) must NOT trigger the new A3/A5
-        caveat insertions -- the pre-existing B1 occurrence is the only one
-        (no near-ceiling logic, ADR-038 explicitly scopes this out)."""
+        """17/27 (below scale ceiling) must NOT trigger the A3/A5 caveat
+        insertions -- no near-ceiling logic (ADR-038 explicitly scopes this
+        out); the top-level 핵심요약/면책 boxes never repeat this caveat
+        either (binding rule 3: disclaimer stays a fixed 3-line box)."""
         from src.schemas.handoff_report import CEILING_SCORE_CAVEAT_KO
 
         report = _full_report(
             prior_total_score=17, prior_max_score=27, prior_severity="moderately_severe"
         )
         md = build_markdown_report(report)
-        a3_section = md.split("## A3.")[1].split("## A4.")[0]
-        a5_section = md.split("## A5.")[1].split("## A6.")[0]
+        a3_section = md.split("## 위험/안전 평가")[1].split("## 주호소 및 현병력")[0]
+        a5_section = md.split("## 시행된 설문")[1].split("## 종단 추세")[0]
         assert CEILING_SCORE_CAVEAT_KO not in a3_section
         assert CEILING_SCORE_CAVEAT_KO not in a5_section
-        # B1's own pre-existing occurrence must still be present (unaffected).
-        b1_section = md.split("## B1.")[1].split("## B2.")[0]
-        assert CEILING_SCORE_CAVEAT_KO in b1_section
+        assert CEILING_SCORE_CAVEAT_KO not in md
 
     def test_pdf_shows_caveat_on_ceiling_score(self) -> None:
-        """`ISS-F2V-028` (not the full sentence): reportlab's Paragraph
-        line-wrapping inserts `\\n` into pypdf's extracted text at wrap
-        points, which can fall inside a long sentence -- same short-
-        distinctive-substring discipline `test_pdf_a3_caveat_present`
-        already uses above, not a weakened check."""
         report = _full_report(prior_total_score=27, prior_max_score=27)
         pdf_bytes = build_pdf_report(report)
         reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
         text = "".join(p.extract_text() for p in reader.pages)
-        assert text.count("ISS-F2V-028") >= 4  # B1 (pre-existing) + A3 x2 + A5
+        # A3 (risk table adjacency) + A5 (questionnaire section) each carry
+        # the full caveat once — the compact table cell only adds "· 만점".
+        assert text.count("ISS-F2V-028") >= 2
 
-    def test_pdf_caveat_absent_below_ceiling_except_b1(self) -> None:
+    def test_pdf_caveat_absent_below_ceiling(self) -> None:
         report = _full_report(
             prior_total_score=17, prior_max_score=27, prior_severity="moderately_severe"
         )
         pdf_bytes = build_pdf_report(report)
         reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
         text = "".join(p.extract_text() for p in reader.pages)
-        # exactly 1 occurrence (B1's own pre-existing disclaimer sentence)
-        assert text.count("ISS-F2V-028") == 1
+        assert text.count("ISS-F2V-028") == 0
 
 
 # ── All-session slot overview exporters (Task 1) ────────────────────────
@@ -662,25 +825,32 @@ class TestSlotOverviewExporters:
     def test_markdown_section_present_with_table_and_caveat(self) -> None:
         report = _full_report(all_sessions=_SLOT_SESSIONS)
         md = build_markdown_report(report)
-        section = md.split("## A1-A2 확장.")[1].split("## A3.")[0]
+        section = md.split("## 전체 세션 요약")[1].split("## 시행된 설문")[0]
         assert "임상의의 직접 평가나 검증된 척도 시행이 아닙니다" in section
         assert "주호소" in section
         assert "잠을 잘 못 자는 것이 가장 신경 쓰임" in section
-        assert "S9:" in section and "S11:" in section
-        assert "미수집" in section  # e.g. treatment_plan, never populated
+        assert "미수집" in section  # e.g. medical_history, never populated
+
+    def test_markdown_major_course_bullets_rendered(self) -> None:
+        report = _full_report(all_sessions=_SLOT_SESSIONS)
+        md = build_markdown_report(report)
+        section = md.split("## 전체 세션 요약")[1].split("## 시행된 설문")[0]
+        assert "주요 경과" in section
+        assert "S9: '3개월 전부터 지속된 수면 문제'" in section
+        assert "S11: '잠을 잘 못 자는 것이 가장 신경 쓰임'" in section
 
     def test_markdown_section_pointer_rendered(self) -> None:
         report = _full_report(all_sessions=_SLOT_SESSIONS)
         md = build_markdown_report(report)
-        section = md.split("## A1-A2 확장.")[1].split("## A3.")[0]
-        assert "A1 참조" in section
+        section = md.split("## 전체 세션 요약")[1].split("## 시행된 설문")[0]
+        assert "A2 참조" in section  # HPI slot's pointer
 
     def test_pdf_slot_overview_table_present(self) -> None:
         report = _full_report(all_sessions=_SLOT_SESSIONS)
         pdf_bytes = build_pdf_report(report)
         reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
         text = "".join(p.extract_text() for p in reader.pages)
-        assert "전체 세션 슬롯 요약" in text
+        assert "전체 세션 요약" in text
         assert "미수집" in text
 
 
@@ -693,14 +863,14 @@ class TestNarrativeOptInExporters:
             narrative_enabled=True, narrative_text="환자는 수면 문제를 자가보고함."
         )
         md = build_markdown_report(report)
-        a8_section = md.split("## A8.")[1].split("## B1.")[0]
+        a8_section = md.split("## 임상 종합 소견")[1].split("## 각주")[0]
         assert "AI 생성 — 임상 진단 아님" in a8_section
         assert "환자는 수면 문제를 자가보고함." in a8_section
         assert "AI 종합 소견 미생성" not in a8_section
 
     def test_markdown_disabled_still_shows_absent_marker(self) -> None:
         md = build_markdown_report(_full_report())
-        a8_section = md.split("## A8.")[1].split("## B1.")[0]
+        a8_section = md.split("## 임상 종합 소견")[1].split("## 각주")[0]
         assert "AI 종합 소견 미생성 (narrative disabled)" in a8_section
 
     def test_pdf_renders_enabled_label_and_text(self) -> None:

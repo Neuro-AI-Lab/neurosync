@@ -22,6 +22,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -33,7 +34,14 @@ from src.schemas.handoff_report import (
     NON_VALIDATED_ADMINISTRATION_CAVEAT_KO,
     SLOT_NEVER_COLLECTED_KO,
     HandoffReportOutput,
+    LongitudinalSection,
+    MentalStatusSection,
+    QuestionnaireSection,
+    RiskSafetySection,
+    SlotOverviewRow,
+    SlotOverviewSection,
 )
+from src.schemas.longitudinal import LongitudinalAnalysisOutput
 
 logger = logging.getLogger(__name__)
 
@@ -106,12 +114,427 @@ _CHART_TITLES_KO = {
     "domain_confidence": "진료과 후보 신뢰도 차트",
 }
 
+# ═══════════════════════════════════════════════════════════════════════
+# Readability-layer shared helpers (rendering only — never invents a
+# clinical fact; every value below is derived from an existing
+# `HandoffReportOutput`/`LongitudinalAnalysisOutput` field). Used by BOTH
+# `build_markdown_report` and `build_pdf_report` so the two formats never
+# diverge in what they say, only in how they say it.
+# ═══════════════════════════════════════════════════════════════════════
+
+_SEVERITY_KO = {
+    "minimal": "최소",
+    "mild": "경도",
+    "moderate": "중등도",
+    "moderately_severe": "중등도-중증",
+    "severe": "중증",
+    "low_risk": "저위험",
+    "hazardous_drinking": "위험 음주",
+    "low_wellbeing": "낮은 웰빙",
+    "adequate_wellbeing": "적정 웰빙",
+}
+
+# `src.schemas.common.CTRSLevel`/`CTRS_TO_RISK` is the source of truth: 1 =
+# most urgent (EMERGENCY -> RiskLevel.critical) ... 5 = stable (STABLE ->
+# RiskLevel.none), the mapping is STRICTLY monotonic urgency-descending.
+# The raw enum member comments ("중증/주의" for level 4, etc.) are the
+# ENGLISH-adjacent enum-authoring label, not a clinician-facing severity
+# claim — level 4 maps to `RiskLevel.low`, so labeling it "중증/주의"
+# (severe/caution) here would contradict the very risk_level this report
+# renders alongside it. This table instead follows the actual
+# `CTRS_TO_RISK` risk gradient (critical/high/medium/low/none), verified
+# against `src/schemas/common.py` directly (never invented) —
+# `test_f5_report.py::TestCtrsStageLabelMapping` pins this monotonicity so
+# it cannot silently drift from the source enum again.
+_CTRS_STAGE_KO = {
+    1: "최긴급 (즉각 개입)",
+    2: "고위험",
+    3: "급성 우려",
+    4: "경도 우려 (준안정)",
+    5: "안정",
+}
+
+_DIRECTION_KO = {
+    "improved": "개선",
+    "worsened": "악화",
+    "unchanged": "변화 없음",
+    "unknown": "판정 불가",
+}
+
+_CONCORDANCE_KO = {"concordant": "일치", "discordant": "불일치", "unknown": "판정 불가"}
+
+# Plain-Korean paraphrase of `OVERALL_DIRECTION_SENSITIVITY_NOTE_KO`
+# (`schemas.handoff_report`) — that schema constant embeds internal
+# refs ("src.f4::_overall_direction", "REV-045 row 2", binding rule 1
+# violation). Same meaning, no internal refs; the original (with refs)
+# is cited once in the 각주 footnote block for audit traceability.
+_OVERALL_DIRECTION_NOTE_PLAIN_KO = (
+    "전체 방향은 척도·위기단계·정서 방향의 다수결로 계산되며, 악화 신호가 하나라도 "
+    "있으면 악화로 우선 판정합니다. 정서 포함 여부에 따라 결과가 달라질 수 있습니다."
+)
+
+_DIMENSION_KO = {
+    "phq9_total": "PHQ-9 총점",
+    "gad7_total": "GAD-7 총점",
+    "auditc_total": "AUDIT-C 총점",
+    "session_ctrs": "위기 단계(CTRS)",
+    "sentiment": "감성 점수",
+    "slot_fill_count": "문진 항목 충족도",
+}
+
+# 12 표준 슬롯 중 대화에서 절대 채워지지 않는 시스템 전용 슬롯
+# (`grounding.SYSTEM_SLOT_KEYS`) + 이미 A4에서 전문 서술로 다루는
+# 관찰 전용 슬롯(`grounding.OBSERVATION_SLOT_KEY`) — 슬롯 표에서 제거
+# (binding rule 4: "'진료 기본정보/정신상태검사' 같은 시스템 행 제거").
+_SLOT_TABLE_EXCLUDE_KEYS = frozenset(
+    {"encounter_metadata", "clinical_assessment", "treatment_plan", "mental_status_exam"}
+)
+
+# 주요 경과 불릿 후보 우선순위 — 위험 관련 슬롯을 최우선으로.
+_COURSE_BULLET_PRIORITY = (
+    "risk_assessment",
+    "chief_complaint",
+    "history_of_present_illness",
+    "personal_social_history",
+    "past_psychiatric_history",
+    "medical_history",
+    "family_history",
+    "substance_use_history",
+)
+
+_SLOT_HISTORY_SESSION_RE = re.compile(r"^S(\d+):")
+
+
+def _severity_ko(severity: str | None) -> str:
+    if not severity:
+        return "미상"
+    return _SEVERITY_KO.get(severity, severity)
+
+
+def _ctrs_stage_ko(ctrs: int | None) -> str:
+    if ctrs is None:
+        return "미상"
+    return f"{ctrs}/5 — {_CTRS_STAGE_KO.get(ctrs, '미상')}"
+
+
+def _dimension_ko(dimension: str) -> str:
+    return _DIMENSION_KO.get(dimension, dimension)
+
+
+def _truncate(text: str | None, limit: int = 80) -> str:
+    if not text:
+        return ""
+    t = str(text)
+    return t if len(t) <= limit else f"{t[:limit].rstrip()}… (상세 아래)"
+
+
+# Some engine-authored free text (F4's own `crisis_f3_gaps` sentences,
+# carried verbatim onto `QuestionnaireSection.gap_disclosure`) embeds raw
+# `field_name=value` tokens. Binding rule 1 bans internal field names in
+# the body — this translates those tokens to Korean clinical labels
+# in-place (reformatting only, never invents a new fact).
+_INTERNAL_FIELD_TOKEN_RE = re.compile(
+    r"\b(crisis_triggered|session_ctrs|probe_event_count|safety_referral|"
+    r"critical_item_positive|risk_floor)=([^\s,)]+)"
+)
+_INTERNAL_FIELD_LABEL_KO = {
+    "crisis_triggered": "위기반응",
+    "session_ctrs": "위기단계(CTRS)",
+    "probe_event_count": "위기확인질문",
+    "safety_referral": "안전의뢰",
+    "critical_item_positive": "9번문항",
+    "risk_floor": "안전최저기준",
+}
+_BOOL_VALUE_KO = {"True": "있음", "False": "없음", "None": "미상"}
+
+
+def _humanize_engine_text(text: str) -> str:
+    def _sub(m: re.Match[str]) -> str:
+        key, val = m.group(1), m.group(2)
+        label = _INTERNAL_FIELD_LABEL_KO.get(key, key)
+        val_ko = _BOOL_VALUE_KO.get(val, val)
+        return f"{label}={val_ko}"
+
+    return _INTERNAL_FIELD_TOKEN_RE.sub(_sub, text)
+
+
+def _staleness_note_ko(sp) -> str:
+    """Rebuilds `StalenessPointer.note` from its own STRUCTURED fields
+    (never invents) — the engine's own `.note` text embeds raw
+    `safety_referral=`/`critical_item_positive=` tokens (binding rule 1
+    bans those in the body); every fact below already exists on `sp`."""
+    if not sp.applicable or sp.latest_scored_session_index is None:
+        return sp.note  # no internal field tokens in these 2 branches
+    item9_label = _a6_item9_or_critical_label(sp.scale_name)
+    item9 = (
+        "양성"
+        if sp.critical_item_positive
+        else "음성"
+        if sp.critical_item_positive is False
+        else "미상"
+    )
+    referral = "있음" if sp.safety_referral else "없음" if sp.safety_referral is False else "미상"
+    stale = f"{sp.sessions_stale}회차" if sp.sessions_stale is not None else "미상"
+    if sp.days_stale is not None:
+        stale += f"({sp.days_stale}일)"
+    return (
+        f"당해 세션에는 설문이 시행되지 않았습니다. 가장 최근 시행: "
+        f"{sp.latest_scored_session_index}회차({sp.latest_scored_simulated_date}) "
+        f"{sp.scale_name} {sp.total_score}/{sp.max_score}점({_severity_ko(sp.severity)}), "
+        f"{item9_label} {item9} · 안전 의뢰 신호 {referral} — {stale} 경과."
+    )
+
+
+def _risk_flag_line(a3: RiskSafetySection) -> str:
+    """Never parses free-text for a denial/affirmation of suicidal
+    ideation (that would be an inference this renderer is not entitled to
+    make) — states only the structured item-9-positive count that already
+    exists on `longitudinal_risk_signals`, plus the current session's own
+    risk-assessment presence."""
+    positives = [s for s in a3.longitudinal_risk_signals if s.critical_item_positive]
+    if positives:
+        sessions = ", ".join(f"{s.session_index}회차" for s in positives)
+        line = f"자살사고 문항(9번) 양성 {len(positives)}회 확인 ({sessions}) — 임상 확인 권장"
+    elif a3.risk_assessment_present:
+        line = "자살사고 문항 양성 이력 없음 (자가보고 기준)"
+    else:
+        line = "위험평가 정보 없음"
+    if a3.crisis_triggered:
+        line = f"당해 세션 위기 반응 발생 — {line}"
+    return line
+
+
+def _scale_trend_line(a5: QuestionnaireSection, lon: LongitudinalAnalysisOutput) -> str:
+    if not a5.present or not a5.scale_name:
+        return "시행된 설문 없음"
+    base = f"{a5.scale_name} {a5.total_score}/{a5.max_score} ({_severity_ko(a5.severity)})"
+    points = sorted(
+        (
+            p
+            for p in lon.scale_series.get(a5.scale_name, [])
+            if p.administered and p.total_score is not None
+        ),
+        key=lambda p: p.session_index,
+    )
+    if len(points) >= 2:
+        first, last = points[0], points[-1]
+        if last.total_score == first.total_score:
+            arrow = "→"
+        elif last.total_score < first.total_score:
+            arrow = "↓"
+        else:
+            arrow = "↑"
+        base += f" {arrow} ({first.total_score}→{last.total_score}, {first.session_index}회차 대비)"
+    if a5.is_stale_relative_to_header:
+        base += " [당해 세션 미시행, 직전 시행값]"
+    return base
+
+
+def _key_concerns(
+    a3: RiskSafetySection, a5: QuestionnaireSection, lon: LongitudinalAnalysisOutput
+) -> list[str]:
+    concerns: list[str] = []
+    discordant = [
+        s for s in a3.longitudinal_risk_signals if s.discordance_note.startswith("불일치")
+    ]
+    if discordant:
+        concerns.append(f"설문 위험 신호와 CTRS 불일치 {len(discordant)}회 — 임상 확인 권장")
+    if a5.present and a5.ceiling_caveat:
+        concerns.append("최근 설문 만점(과대추정 가능성)")
+    if lon.crisis_f3_gaps:
+        concerns.append(f"위기 고조 세션 중 설문 미시행 {len(lon.crisis_f3_gaps)}건")
+    return concerns or ["특이 우려 사항 없음"]
+
+
+def _summary_box_lines(report: HandoffReportOutput) -> list[str]:
+    """핵심 요약 (SBAR식, ≤8줄) — binding rule 2."""
+    a0, a1, a3, a5 = (
+        report.a0_header,
+        report.a1_chief_complaint,
+        report.a3_risk_safety,
+        report.a5_questionnaires,
+    )
+    lon = report.b_longitudinal.analysis
+    span = f" · {lon.session_span_days}일" if lon.session_span_days is not None else ""
+    return [
+        f"환자: {a0.persona_name} ({a0.persona_id}) — {a0.session_index}회차 "
+        f"({a0.simulated_date}), 총 {lon.n_sessions}세션{span}",
+        f"주호소: {_truncate(a1.text, 80) if a1.present else '미수집'}",
+        f"위험 플래그: {_risk_flag_line(a3)}",
+        f"최신 설문: {_scale_trend_line(a5, lon)}",
+        f"주요 우려: {'; '.join(_key_concerns(a3, a5, lon))}",
+    ]
+
+
+_DISCLAIMER_BOX_KO = [
+    "자가보고(AI 대화형 문진) 기반 비공식 문서이며 공식 의무기록·의학적 진단이 아닙니다.",
+    "AI 예상질환(하단)은 유사도 기반 참고 정보일 뿐 확률·가능성·진단이 아닙니다.",
+    "최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+]
+
+
+def _risk_prose(a3: RiskSafetySection) -> str:
+    risk_text = (
+        _truncate(a3.risk_assessment_text, 100) if a3.risk_assessment_present else "정보 없음"
+    )
+    session_ref = f"당해 세션({a3.current_session_index}회차, {a3.current_simulated_date})"
+    parts = [
+        f"{session_ref} 위험평가: {risk_text}.",
+        f"위기 단계(CTRS) {_ctrs_stage_ko(a3.session_ctrs)}.",
+    ]
+    discordant = [
+        s for s in a3.longitudinal_risk_signals if s.discordance_note.startswith("불일치")
+    ]
+    if discordant:
+        parts.append(
+            f"과거 {len(discordant)}회 세션에서 설문 자살사고 문항(9번) 양성/안전 의뢰 신호가 "
+            "동일 세션 CTRS 상승에 반영되지 않아 불일치가 확인됩니다 — 임상 확인이 권장됩니다."
+        )
+    return " ".join(parts)
+
+
+def _risk_discordance_verdict(discordance_note: str) -> str:
+    if discordance_note.startswith("불일치"):
+        return "불일치"
+    if discordance_note.startswith("일치"):
+        return "일치"
+    return _truncate(discordance_note, 20)
+
+
+def _risk_table_rows(a3: RiskSafetySection) -> list[tuple[str, str, str, str, str]]:
+    rows = []
+    for sig in a3.longitudinal_risk_signals:
+        if sig.critical_item_positive is True:
+            item9 = "양성"
+        elif sig.critical_item_positive is False:
+            item9 = "음성"
+        else:
+            item9 = "미상"
+        verdict = _risk_discordance_verdict(sig.discordance_note)
+        if sig.ceiling_caveat:
+            verdict += " · 만점"
+        score = f"{sig.total_score}/{sig.max_score}" if sig.total_score is not None else "-"
+        rows.append((str(sig.session_index), sig.simulated_date, score, item9, verdict))
+    return rows
+
+
+def _mse_lines(a4: MentalStatusSection) -> list[str]:
+    assessable = [d for d in a4.domain_checklist if d.assessable]
+    if not a4.present and not assessable:
+        return ["텍스트 문진 특성상 관찰 기반 MSE는 평가 불가; 대화에서 도출된 소견 없음"]
+    lines = [f"{a4.label}: {a4.raw_text}"] if a4.present else []
+    if assessable:
+        lines += [f"- {d.domain}: {d.note}" for d in assessable]
+    elif a4.present:
+        lines.append("개별 영역(mood/insight 등) 평가는 이 슬롯 특성상 불가")
+    return lines
+
+
+def _slot_table_rows(so: SlotOverviewSection) -> list[SlotOverviewRow]:
+    return [r for r in so.rows if r.key not in _SLOT_TABLE_EXCLUDE_KEYS]
+
+
+def _change_history_summary(row: SlotOverviewRow) -> str:
+    if not row.change_history:
+        return "-"
+    sessions = [m.group(1) for h in row.change_history if (m := _SLOT_HISTORY_SESSION_RE.match(h))]
+    if not sessions:
+        return f"{len(row.change_history)}회 변화"
+    return f"{len(row.change_history)}회 변화 (S{'→S'.join(sessions)})"
+
+
+def _major_course_bullets(so: SlotOverviewSection, limit: int = 5) -> list[str]:
+    rows_by_key = {r.key: r for r in so.rows}
+    bullets: list[str] = []
+    for key in _COURSE_BULLET_PRIORITY:
+        row = rows_by_key.get(key)
+        if row and len(row.change_history) >= 2:
+            first, last = row.change_history[0], row.change_history[-1]
+            arrow = (
+                f"{first} → ... → {last}" if len(row.change_history) > 2 else f"{first} → {last}"
+            )
+            bullets.append(f"{row.label}: {arrow}")
+        if len(bullets) >= limit:
+            break
+    return bullets
+
+
+def _compact_evidence(evidence: list[str], dimension: str) -> str:
+    """`evidence[0]` (F4's own text) is prefixed `"{label}: "` where
+    `label` is often the RAW internal dimension name verbatim
+    (`session_ctrs`/`slot_fill_count` — `src/f4.py::_first_last_slope_
+    trend`'s own `label=` argument, confirmed by direct read). The row's
+    own '항목' column already shows the Korean dimension label, so this
+    strips that redundant (and sometimes internal-token) prefix rather
+    than translating it in place — reformatting only, drops no fact."""
+    if not evidence:
+        return "(근거 없음)"
+    line = evidence[0].replace("->", "→").replace("first-vs-last delta session", "세션")
+    prefix = f"{dimension}: "
+    if line.startswith(prefix):
+        line = line[len(prefix) :]
+    return line
+
+
+def _trend_table_rows(lon: LongitudinalAnalysisOutput) -> list[tuple[str, str, str]]:
+    return [
+        (
+            _dimension_ko(tv.dimension),
+            _DIRECTION_KO.get(tv.direction, tv.direction),
+            _compact_evidence(tv.evidence, tv.dimension),
+        )
+        for tv in lon.trend_verdicts
+    ]
+
+
+def _ctrs_table_rows(
+    lon: LongitudinalAnalysisOutput,
+) -> tuple[list[tuple[str, str, str, str, str | None]], bool]:
+    any_probe = any(p.probe_event_count for p in lon.ctrs_series)
+    rows = [
+        (
+            str(p.session_index),
+            p.simulated_date,
+            _ctrs_stage_ko(p.session_ctrs),
+            "위기 반응" if p.crisis_triggered else "-",
+            str(p.probe_event_count) if any_probe else None,
+        )
+        for p in lon.ctrs_series
+    ]
+    return rows, any_probe
+
+
+def _events_and_concordance_lines(
+    lon: LongitudinalAnalysisOutput, b: LongitudinalSection
+) -> list[str]:
+    lines: list[str] = []
+    crisis_sessions = [p for p in lon.ctrs_series if p.crisis_triggered]
+    if crisis_sessions:
+        s = ", ".join(f"{p.session_index}회차({p.simulated_date})" for p in crisis_sessions)
+        lines.append(f"위기 반응 발생 세션: {s}")
+    else:
+        lines.append("위기 반응 발생 세션 없음")
+    if lon.crisis_f3_gaps:
+        lines.append(f"위험 고조 세션 중 설문 미시행: {len(lon.crisis_f3_gaps)}건")
+        if b.gap_acuity_framing_note:
+            lines.append(b.gap_acuity_framing_note)
+    else:
+        lines.append("위험 고조 세션 중 설문 미시행 사례 없음")
+    concordance = _CONCORDANCE_KO.get(lon.concordance_flag, lon.concordance_flag)
+    lines.append(f"종단 추세 일관성(설문·CTRS·감성): {concordance}")
+    return lines
+
+
+def _a6_item9_or_critical_label(scale_name: str | None) -> str:
+    return "자살사고 문항(9번)" if scale_name == "PHQ-9" else "심각 문항(critical item)"
+
 
 def build_markdown_report(report: HandoffReportOutput) -> str:
-    """One `##`/`###` per §2.2 A0-A8/B1-B5 row — every section header is
-    ALWAYS present, with an explicit "정보 없음"/"평가 불가" marker when no
-    data exists (never silently dropped, qa's `T1-F5-VER-011` completeness
-    grep target)."""
+    """Clinician-first hand-off report — SBAR summary + risk up front, no
+    internal field/ID names in the body, ≤2-min read (binding rules 1-10,
+    this mission's readability redesign). Every underlying fact still
+    traces to a `HandoffReportOutput` field; this function only reorders,
+    translates, and compresses — it never invents."""
     a0, a1, a2, a3 = (
         report.a0_header,
         report.a1_chief_complaint,
@@ -127,334 +550,158 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     )
     b = report.b_longitudinal
     lon = b.analysis
-
-    lines: list[str] = [
-        f"# F5 인계 요약 보고서 (Hand-off report) — {report.vp_id}",
-        "",
-        f"> session_index: {a0.session_index} | simulated_date: {a0.simulated_date} | "
-        f"model: {a0.model} | generated_at: {report.generated_at}",
-        f"> session_ctrs: {a0.session_ctrs} | risk_level: {a0.risk_level} | "
-        f"crisis_triggered: {a0.crisis_triggered} | is_diagnostic: {report.is_diagnostic}",
-        "",
-        "## 면책 조항 (Disclaimer)",
-        "",
-        report.disclaimer,
-        "",
-        f"- {a0.disclaimer.self_report_only}",
-        f"- {a0.disclaimer.ai_assembled}",
-        f"- {a0.disclaimer.not_official_record}",
-        f"- {a0.disclaimer.non_diagnostic}",
-        "",
-    ]
-
-    # ── A0 ──
-    lines += [
-        "## A0. 헤더 / 상황 요약",
-        "",
-        "| 항목 | 값 |",
-        "|---|---|",
-        f"| session_id | {a0.session_id} |",
-        f"| persona_id / persona_name | {a0.persona_id} / {a0.persona_name} |",
-        f"| session_index | {a0.session_index} |",
-        f"| simulated_date | {a0.simulated_date} |",
-        f"| model | {a0.model} |",
-        f"| chief_complaint_summary | {_none_marker(a0.chief_complaint_summary, '정보 없음')} |",
-        f"| session_ctrs / risk_level | {a0.session_ctrs} / {a0.risk_level} |",
-        f"| crisis_triggered / crisis_turn | {a0.crisis_triggered} / {a0.crisis_turn} |",
-        "",
-    ]
-
-    # ── A1 ──
-    lines += [
-        "## A1. 주호소 (Chief complaint)",
-        "",
-        a1.text if a1.present else "정보 없음 (chief_complaint 슬롯 미채움)",
-        "",
-    ]
-
-    # ── A2 ──
-    lines += [
-        "## A2. 현병력 (History of present illness)",
-        "",
-        a2.text if a2.present else "정보 없음 (history_of_present_illness 슬롯 미채움)",
-        "",
-    ]
-
-    # ── All-session slot overview (Task 1, extends A1/A2) ──
     so = report.slot_overview
+
+    lines: list[str] = [f"# F5 인계 요약 보고서 — {report.vp_id}", ""]
+
+    # ── 핵심 요약 (SBAR box) ──
+    lines += ["> **핵심 요약**", ">"]
+    lines += [f"> - {line}" for line in _summary_box_lines(report)]
+    lines.append("")
+
+    # ── 면책 조항 (3줄 이내 박스) ──
+    lines += ["> **면책 조항**", ">"]
+    lines += [f"> - {line}" for line in _DISCLAIMER_BOX_KO]
+    lines.append("")
+
+    # ── 위험/안전 평가 ──
+    lines += ["## 위험/안전 평가", "", _risk_prose(a3), ""]
+    risk_rows = _risk_table_rows(a3)
+    if risk_rows:
+        lines += [
+            f"> {NON_VALIDATED_ADMINISTRATION_CAVEAT_KO} '판정'은 설문 위험 신호와 동일 세션 "
+            "CTRS 평가의 일치 여부입니다.",
+            "",
+            "| 세션 | 일자 | 점수 | 9번 문항 | 판정 |",
+            "|---|---|---|---|---|",
+        ]
+        lines += [
+            f"| {sid} | {date} | {score} | {item9} | {verdict} |"
+            for sid, date, score, item9, verdict in risk_rows
+        ]
+        # ADR-038 Decision 2c: full ceiling caveat text rendered adjacent to
+        # the table (never dropped to the "· 만점" table abbreviation alone).
+        ceiling_lines = [
+            f"> [{sig.session_index}회차, {sig.total_score}/{sig.max_score}] {sig.ceiling_caveat}"
+            for sig in a3.longitudinal_risk_signals
+            if sig.ceiling_caveat
+        ]
+        lines.append("")
+        lines += ceiling_lines
+        if ceiling_lines:
+            lines.append("")
+    else:
+        lines += ["해당 없음 — 전체 세션 중 item-9 양성/안전 의뢰 이력이 없습니다.", ""]
+    lines += [f"> 최신 시행 척도 안내: {_staleness_note_ko(a3.staleness_pointer)}"]
+    if a3.staleness_pointer.total_score is not None:
+        lines.append(f"> {NON_VALIDATED_ADMINISTRATION_CAVEAT_KO}")
+    if a3.staleness_pointer.ceiling_caveat:
+        lines.append(f"> {a3.staleness_pointer.ceiling_caveat}")
+    lines.append("")
+
+    # ── 주호소 및 현병력 (+ MSE) ──
     lines += [
-        "## A1-A2 확장. 전체 세션 슬롯 요약 (12개 표준 슬롯, 전 세션 최적값)",
+        "## 주호소 및 현병력",
+        "",
+        f"**주호소**: {a1.text if a1.present else '미수집'}",
+        "",
+        f"**현병력**: {a2.text if a2.present else '미수집'}",
+        "",
+        "### 정신상태검사 (MSE)",
+        "",
+    ]
+    lines += _mse_lines(a4)
+    lines.append("")
+
+    # ── 전체 세션 요약 (슬롯) + 주요 경과 ──
+    lines += [
+        "## 전체 세션 요약",
         "",
         f"> {so.non_validated_caveat}",
         "",
-        "| 슬롯 | 최신값 | 출처(세션/일자) | 변화 이력 | 비고 |",
+        "| 슬롯 | 최신값 | 출처 | 변화 | 비고 |",
         "|---|---|---|---|---|",
     ]
-    for row in so.rows:
+    for row in _slot_table_rows(so):
         if not row.collected:
-            value_cell = SLOT_NEVER_COLLECTED_KO
-            source_cell = "-"
+            value_cell, source_cell = SLOT_NEVER_COLLECTED_KO, "-"
         else:
-            value_cell = row.latest_value or ""
-            source_cell = f"{row.source_session_index}회차 / {row.source_simulated_date}"
-        history_cell = " → ".join(row.change_history) if row.change_history else "-"
-        note_cell = row.section_pointer or "-"
+            value_cell = _truncate(row.latest_value, 80)
+            source_cell = f"{row.source_session_index}회차/{row.source_simulated_date}"
         lines.append(
-            f"| {row.label} | {value_cell} | {source_cell} | {history_cell} | {note_cell} |"
+            f"| {row.label} | {value_cell} | {source_cell} | {_change_history_summary(row)} | "
+            f"{row.section_pointer or '-'} |"
         )
     lines.append("")
-
-    # ── A3 ──
-    lines += [
-        "## A3. 위험/안전 평가 (Risk / safety assessment)",
-        "",
-        f"### 당해 세션 ({a3.current_session_index}회차, {a3.current_simulated_date})",
-        "",
-        "| 항목 | 값 |",
-        "|---|---|",
-        f"| risk_assessment (슬롯) | "
-        f"{_none_marker(a3.risk_assessment_text, '정보 없음 (Safety Probe 미시행)')} |",
-        f"| session_ctrs / risk_level | {a3.session_ctrs} / {a3.risk_level} |",
-        f"| risk_floor | {a3.risk_floor} |",
-        f"| probe_event_count | {a3.probe_event_count} |",
-        f"| crisis_triggered / crisis_turn | {a3.crisis_triggered} / {a3.crisis_turn} |",
-        f"| 당해 세션 F3 시행 여부 | {a3.current_session_has_f3} |",
-        f"| 당해 세션 safety_referral | {a3.current_session_safety_referral} |",
-        f"| 당해 세션 critical_item_positive | {a3.current_session_critical_item_positive} |",
-        "",
-        "### 종단 위험 신호 (모든 세션의 item-9 양성 / safety_referral 시행)",
-        "",
-        f"> {NON_VALIDATED_ADMINISTRATION_CAVEAT_KO}",
-        "",
-        f"> 추세-수준 일치도(trend_concordance_flag, F4 산출, 종단 전체): "
-        f"**{a3.trend_concordance_flag}** — 이는 아래 세션별(same-session) 항목9-CTRS "
-        "불일치와는 다른 질문에 답합니다 (B4 참조, 혼동 금지).",
-        "",
-    ]
-    if a3.longitudinal_risk_signals:
-        lines += [
-            "| session | date | scale | total/max | severity | safety_referral | "
-            "critical_item_positive | 동일 세션 CTRS | 동일 세션 위기 | 판정 |",
-            "|---|---|---|---|---|---|---|---|---|---|",
-        ]
-        for sig in a3.longitudinal_risk_signals:
-            lines.append(
-                f"| {sig.session_index} | {sig.simulated_date} | {sig.scale_name} | "
-                f"{sig.total_score}/{sig.max_score} | {sig.severity} | {sig.safety_referral} | "
-                f"{sig.critical_item_positive} | {sig.same_session_ctrs} | "
-                f"{sig.same_session_crisis_triggered} | {sig.discordance_note} |"
-            )
-        # ADR-038 Decision 2c: ceiling caveat rendered directly adjacent to
-        # the table (not only in B1), one line per ceiling-scoring session.
-        for sig in a3.longitudinal_risk_signals:
-            if sig.ceiling_caveat:
-                lines.append(
-                    f"> [{sig.session_index}회차, {sig.total_score}/{sig.max_score}] "
-                    f"{sig.ceiling_caveat}"
-                )
+    lines.append("**주요 경과**")
+    lines.append("")
+    course_bullets = _major_course_bullets(so)
+    if course_bullets:
+        lines += [f"- {b_}" for b_ in course_bullets]
     else:
-        lines.append(
-            "해당 없음 — 이 환자의 전체 세션 중 item-9 양성/safety_referral 시행 이력이 없습니다."
-        )
-    lines += [
-        "",
-        "### 최신 시행 척도 최신성 안내 (staleness pointer)",
-        "",
-    ]
-    if a3.staleness_pointer.total_score is not None:
-        lines += [f"> {NON_VALIDATED_ADMINISTRATION_CAVEAT_KO}", ""]
-    lines += [a3.staleness_pointer.note, ""]
-    if a3.staleness_pointer.ceiling_caveat:
-        lines += [f"> {a3.staleness_pointer.ceiling_caveat}", ""]
-
-    # ── A4 ──
-    lines += [
-        "## A4. 정신상태 검사 (부분, MSE — text-derived only)",
-        "",
-        f"레이블: {a4.label}",
-        "",
-        a4.raw_text
-        if a4.present
-        else "정보 없음 (mental_status_exam 슬롯 미채움 — 설계상 드물게 발생)",
-        "",
-        "| 영역 (domain) | 개별 평가 가능 | 비고 |",
-        "|---|---|---|",
-    ]
-    for d in a4.domain_checklist:
-        lines.append(f"| {d.domain} | {d.assessable} | {d.note} |")
+        lines.append("- 표시할 주요 경과 변화 없음")
     lines.append("")
 
-    # ── A5 ──
-    lines += ["## A5. 시행된 설문 (Administered questionnaires)", ""]
+    # ── 시행된 설문 ──
+    lines += ["## 시행된 설문", ""]
     if not a5.present:
-        lines += ["정보 없음 (이 VP의 전체 세션 중 시행된 설문 없음)", ""]
+        lines += ["정보 없음 (전체 세션 중 시행된 설문 없음)", ""]
     else:
         lines += [
             f"> {a5.non_validated_caveat}",
             "",
-            "| 항목 | 값 |",
-            "|---|---|",
-            f"| administering_session_index | {a5.administering_session_index} |",
-            f"| administering_simulated_date | {a5.administering_simulated_date} |",
-            f"| 헤더(당해) 세션과 상이(stale) | {a5.is_stale_relative_to_header} |",
-            f"| scale_name | {a5.scale_name} |",
-            f"| item_bank_version | {a5.item_bank_version} |",
-            f"| item_bank_provenance | {a5.item_bank_provenance} |",
-            f"| responses | {a5.responses} |",
-            f"| total_score / max_score | {a5.total_score} / {a5.max_score} |",
-            f"| severity | {a5.severity} |",
-            f"| critical_item_positive | {a5.critical_item_positive} |",
-            f"| administration_mode | {a5.administration_mode} |",
-            f"| threshold_caveat | {_none_marker(a5.threshold_caveat, '(null)')} |",
+            f"**{a5.scale_name} {a5.total_score}/{a5.max_score} "
+            f"({_severity_ko(a5.severity)})** — {a5.administering_session_index}회차 "
+            f"({a5.administering_simulated_date})"
+            + (" [당해 세션 미시행, 직전 시행값]" if a5.is_stale_relative_to_header else ""),
             "",
+            f"- 응답: {','.join(str(v) for v in a5.responses)}",
+            f"- {_a6_item9_or_critical_label(a5.scale_name)}: "
+            + (
+                "양성"
+                if a5.critical_item_positive
+                else "음성"
+                if a5.critical_item_positive is False
+                else "미상"
+            ),
+            f"- 문진 방식: {a5.administration_mode or '미상'}",
         ]
-        if a5.ceiling_caveat:
-            lines += [f"> {a5.ceiling_caveat}", ""]
+        if a5.threshold_caveat:
+            lines.append(f"- {a5.threshold_caveat}")
         if a5.threshold_caveat_asymmetry_note:
-            lines += [f"> {a5.threshold_caveat_asymmetry_note}", ""]
+            lines.append(f"- {a5.threshold_caveat_asymmetry_note}")
+        if a5.ceiling_caveat:
+            lines.append(f"- {a5.ceiling_caveat}")
+        lines.append("")
         if a5.gap_disclosure:
-            lines += ["**F3 gap 공백 (당해 세션까지):**", ""]
+            lines.append("**F3 공백 (당해 세션까지):**")
+            lines.append("")
             if a5.gap_acuity_framing_note:
                 lines += [f"> {a5.gap_acuity_framing_note}", ""]
-            for g in a5.gap_disclosure:
-                lines.append(f"- {g}")
+            lines += [f"- {_humanize_engine_text(g)}" for g in a5.gap_disclosure]
             lines.append("")
 
-    # ── A6 (hard red line — own fenced section) ──
+    # ── 종단 추세 + 차트 ──
     lines += [
-        "## A6. AI 예상질환 (비진단적 의사결정 지원, non-diagnostic decision-support)",
+        "## 종단 추세",
         "",
-        "> ⚠ 이 섹션은 A0-A5/A7-A8의 결정론적 임상 서술과 별개인 독립 섹션입니다. "
-        "similarity_score는 '유사도'일 뿐 '확률'/'가능성'/'신뢰도'가 아닙니다 (REV-013 §4).",
+        f"전체 방향: **{_DIRECTION_KO.get(lon.overall_direction, lon.overall_direction)}** "
+        f"({lon.n_sessions}세션"
+        + (f", {lon.session_span_days}일" if lon.session_span_days is not None else "")
+        + ")",
         "",
+        f"> {_OVERALL_DIRECTION_NOTE_PLAIN_KO}",
+        "",
+        "| 항목 | 방향 | 근거 |",
+        "|---|---|---|",
     ]
-    if not a6.present:
-        lines += [_none_marker(a6.no_data_note, "정보 없음"), ""]
-        if a6.mode:
-            lines.append(f"mode: {a6.mode}")
-        if a6.reason_summary:
-            lines += ["", f"reason_summary: {a6.reason_summary}"]
-        lines.append("")
-    else:
-        lines += [
-            f"mode: {a6.mode}",
-            "",
-            "| 순위(rank) | 공동순위 | 질환(disease) | 유사도(similarity_score) | "
-            "source_id | quote |",
-            "|---|---|---|---|---|---|",
-        ]
-        for rc in a6.candidates:
-            c = rc.candidate
-            lines.append(
-                f"| {rc.rank} | {rc.tie_marker or '-'} | {c.disease} | {c.similarity_score:.3f} | "
-                f"{c.source_id or '-'} | {c.quote or '-'} |"
-            )
-        lines += [
-            "",
-            f"disclaimer: {a6.disclaimer}",
-            f"recommended_questionnaire: {a6.recommended_questionnaire}",
-            f"recommendation_caveat: {_none_marker(a6.recommendation_caveat, '(없음)')}",
-            "",
-        ]
-
-    # ── A7 ──
-    lines += ["## A7. 권장 진료과 / 설문 (Recommended department / questionnaire)", ""]
-    if a7.department_candidates:
-        lines += ["| 진료과 | 사유 | domain_ref |", "|---|---|---|"]
-        for d in a7.department_candidates:
-            lines.append(f"| {d.department} | {d.reason} | {d.domain_ref or '-'} |")
-        lines.append("")
-    else:
-        lines += [_none_marker(a7.department_candidates_absence_note, "정보 없음"), ""]
-    lines += [
-        f"recommended_questionnaire: {_none_marker(a7.recommended_questionnaire, '(없음)')}",
-        f"recommendation_caveat: {_none_marker(a7.recommendation_caveat, '(없음)')}",
-        "",
-        f"> {a7.medication_note}",
-        "",
-    ]
-
-    # ── A8 ──
-    lines += ["## A8. 임상 종합 소견 (AI narrative synthesis, optional)", ""]
-    if a8.narrative_enabled and a8.text:
-        lines += [f"> {NARRATIVE_ENABLED_LABEL_KO}", "", a8.text, ""]
-    else:
-        lines += [a8.absent_marker, ""]
-
-    # ── B1 ──
-    lines += [
-        "## B1. 추세 판정 (Trend verdicts)",
-        "",
-        f"> arc_mode: {lon.arc_mode or 'N/A'} | n_sessions: {lon.n_sessions} | "
-        f"session_span_days: {lon.session_span_days}",
-        f"> overall_direction: **{lon.overall_direction}** | "
-        f"course_shape: **{lon.course_shape}** | "
-        f"concordance_flag(trend-level): **{lon.concordance_flag}**",
-        "",
-        f"> {b.overall_direction_sensitivity_note}",
-        "",
-        lon.disclaimer,
-        "",
-        "| dimension | direction | basis | n_comparable | evidence |",
-        "|---|---|---|---|---|",
-    ]
-    for tv in lon.trend_verdicts:
-        ev = "<br>".join(tv.evidence) if tv.evidence else "(none)"
-        lines.append(
-            f"| {tv.dimension} | {tv.direction} | {tv.basis} | {tv.n_comparable_points} | {ev} |"
-        )
+    for dim, direction, evidence in _trend_table_rows(lon):
+        lines.append(f"| {dim} | {direction} | {evidence} |")
     lines.append("")
-
-    # ── B2 ──
-    lines += [
-        "## B2. CTRS 추이 (CTRS trajectory)",
-        "",
-        "| session | date | session_ctrs | crisis_triggered | probe_event_count | risk_floor |",
-        "|---|---|---|---|---|---|",
-    ]
-    for p in lon.ctrs_series:
-        lines.append(
-            f"| {p.session_index} | {p.simulated_date} | {p.session_ctrs} | {p.crisis_triggered} | "
-            f"{p.probe_event_count} | {p.risk_floor} |"
-        )
-    if not lon.ctrs_series:
-        lines.append("| - | - | (없음) | - | - | - |")
+    lines += _events_and_concordance_lines(lon, b)
     lines.append("")
-
-    # ── B3 ──
-    lines += ["## B3. 사건 타임라인 (Event timeline)", ""]
-    crisis_points = [p for p in lon.ctrs_series if p.crisis_triggered]
-    if crisis_points:
-        lines += ["| session | date | probe_event_count |", "|---|---|---|"]
-        for p in crisis_points:
-            lines.append(f"| {p.session_index} | {p.simulated_date} | {p.probe_event_count} |")
-        lines.append("")
-    else:
-        lines += ["crisis_triggered=true 세션 없음.", ""]
-    if lon.crisis_f3_gaps:
-        lines += ["**F3 gap (risk-elevated 세션 중 미시행):**", ""]
-        if b.gap_acuity_framing_note:
-            lines += [f"> {b.gap_acuity_framing_note}", ""]
-        for g in lon.crisis_f3_gaps:
-            lines.append(f"- {g}")
-        lines.append("")
-    else:
-        lines += ["risk-elevated 세션 중 F3 gap 없음.", ""]
-
-    # ── B4 ──
-    lines += [
-        "## B4. 불일치 신호 (Discordance flags)",
-        "",
-        f"trend-level concordance_flag (F4 산출, primary scale vs session_ctrs vs sentiment): "
-        f"**{lon.concordance_flag}**",
-        "",
-        "> 이 값은 추세(trend) 수준 지표이며, A3의 세션별(item-9-vs-CTRS same-session) "
-        "co-display 표와는 별개의 질문에 답합니다 — 두 지표를 서술에서 혼동하지 않습니다.",
-        "",
-    ]
-
-    # ── B5 ──
-    lines += ["## B5. 추세 차트 (Trend charts, F4 PNG 재사용)", ""]
+    lines.append("### 추세 차트")
+    lines.append("")
     chart_map = {
         "scales_ctrs_sentiment": b.chart_filenames.scales_ctrs_sentiment,
         "ctrs_zoom": b.chart_filenames.ctrs_zoom,
@@ -470,6 +717,75 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
             lines.append(f"{_CHART_TITLES_KO[key]}: 생성되지 않음")
     if not any_chart:
         lines.append("정보 없음 (차트 없음)")
+    lines.append("")
+
+    # ── AI 참고 정보 (비진단) ──
+    lines += [
+        "## AI 참고 정보 (비진단)",
+        "",
+        "> ⚠ 유사도(similarity)일 뿐 확률·가능성·신뢰도가 아닙니다 — 임상 판단 대체 불가.",
+        "",
+    ]
+    if not a6.present:
+        lines += [_none_marker(a6.no_data_note, "정보 없음"), ""]
+        if a6.mode:
+            lines.append(f"mode: {a6.mode}")
+        if a6.reason_summary:
+            lines += ["", f"reason_summary: {a6.reason_summary}"]
+        lines.append("")
+    else:
+        top, rest = a6.candidates[:3], a6.candidates[3:]
+        lines += ["| 순위 | 질환 | 유사도 |", "|---|---|---|"]
+        for rc in top:
+            rank_cell = rc.tie_marker or str(rc.rank)
+            score = f"{rc.candidate.similarity_score:.3f}"
+            lines.append(f"| {rank_cell} | {rc.candidate.disease} | {score} |")
+        lines.append("")
+        if rest:
+            rest_txt = ", ".join(
+                f"{rc.candidate.disease}({rc.candidate.similarity_score:.3f})" for rc in rest
+            )
+            lines.append(f"기타 후보: {rest_txt}")
+            lines.append("")
+        lines.append(f"> {a6.disclaimer}")
+        if a6.recommended_questionnaire:
+            lines.append(
+                f"> 추천 설문: {a6.recommended_questionnaire}"
+                + (f" — {a6.recommendation_caveat}" if a6.recommendation_caveat else "")
+            )
+        lines.append("")
+
+    # ── 권장 진료과 및 후속 조치 ──
+    lines += ["## 권장 진료과 및 후속 조치", ""]
+    if a7.department_candidates:
+        lines += ["| 진료과 | 사유 |", "|---|---|"]
+        lines += [f"| {d.department} | {d.reason} |" for d in a7.department_candidates]
+        lines.append("")
+    else:
+        lines += [_none_marker(a7.department_candidates_absence_note, "정보 없음"), ""]
+    if a7.recommended_questionnaire:
+        lines.append(
+            f"추천 설문: {a7.recommended_questionnaire}"
+            + (f" — {a7.recommendation_caveat}" if a7.recommendation_caveat else "")
+        )
+        lines.append("")
+    lines += [f"> {a7.medication_note}", ""]
+
+    # ── 임상 종합 소견 (own top-level section — same structural-separation
+    # discipline as AI 참고 정보/A6, never nested inside another section) ──
+    lines += ["## 임상 종합 소견", ""]
+    if a8.narrative_enabled and a8.text:
+        lines += [f"> {NARRATIVE_ENABLED_LABEL_KO}", "", a8.text, ""]
+    else:
+        lines += [a8.absent_marker, ""]
+
+    # ── 각주 (감사용 메타) ──
+    lines += ["## 각주", ""]
+    footnote = f"모델: {a0.model} · 생성 시각: {report.generated_at} · 세션ID: {a0.session_id}"
+    lines.append(footnote)
+    if a5.present:
+        lines.append(f"설문 문항 출처: {a5.item_bank_provenance or '미상'}")
+    lines.append(f"종단 추세 판정 근거(감사용): {b.overall_direction_sensitivity_note}")
     lines.append("")
 
     return "\n".join(lines)
@@ -615,11 +931,13 @@ def _register_korean_fonts() -> None:
 def build_pdf_report(
     report: HandoffReportOutput, chart_paths: dict[str, Path] | None = None
 ) -> bytes:
-    """Renders the same A0-A8/B1-B5 content as `build_markdown_report`
-    into a paginated PDF (reportlab platypus), embedding the 4 F4 PNG
-    charts directly (design doc §5.2 — a PDF has no reliable external-file
-    reference convention). A6 is visually fenced with a bordered/shaded
-    table (decision-support, structurally separate)."""
+    """Renders the SAME clinician-first structure as `build_markdown_report`
+    (핵심요약 → 위험 → 주호소/현병력 → 슬롯표+경과 → 설문 → 종단추세+차트 →
+    AI참고 → 권고 → 각주) into a paginated PDF (reportlab platypus),
+    embedding the 4 F4 PNG charts directly (a PDF has no reliable
+    external-file reference convention). AI 참고(A6) stays visually fenced
+    with a bordered/shaded table (decision-support, structurally
+    separate)."""
     import io
 
     from reportlab.lib import colors
@@ -666,6 +984,36 @@ def build_pdf_report(
         safe = (text or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         return Paragraph(safe.replace("\n", "<br/>"), styles[style])
 
+    def _table(rows: list[list[str]], font_size: float = 7.5) -> Table:
+        t = Table(rows, hAlign="LEFT")
+        t.setStyle(
+            TableStyle(
+                [
+                    ("FONTNAME", (0, 0), (-1, -1), _BODY_FONT),
+                    ("FONTSIZE", (0, 0), (-1, -1), font_size),
+                    ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EEEEEE")),
+                ]
+            )
+        )
+        return t
+
+    def _boxed(flow: list, border: str = "#4A6FA5", fill: str = "#F1F5FB") -> Table:
+        fence = Table([[flow]], hAlign="LEFT")
+        fence.setStyle(
+            TableStyle(
+                [
+                    ("BOX", (0, 0), (-1, -1), 1.2, colors.HexColor(border)),
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(fill)),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ]
+            )
+        )
+        return fence
+
     story: list = []
     a0, a1, a2, a3 = (
         report.a0_header,
@@ -682,117 +1030,33 @@ def build_pdf_report(
     )
     b = report.b_longitudinal
     lon = b.analysis
-
-    # ── Title / A0 situation header (SBAR-first, design doc §5.2 layout) ──
-    story.append(P(f"F5 인계 요약 보고서 — {report.vp_id}", "title"))
-    story.append(
-        P(
-            f"session_index {a0.session_index} | {a0.simulated_date} | model {a0.model} | "
-            f"generated_at {report.generated_at}",
-            "meta",
-        )
-    )
-    story.append(
-        P(
-            f"session_ctrs {a0.session_ctrs} | risk_level {a0.risk_level} | "
-            f"crisis_triggered {a0.crisis_triggered}",
-            "meta",
-        )
-    )
-    story.append(Spacer(1, 0.3 * cm))
-    story.append(P("면책 조항", "h2"))
-    story.append(P(report.disclaimer, "body"))
-    for line in (
-        a0.disclaimer.self_report_only,
-        a0.disclaimer.ai_assembled,
-        a0.disclaimer.not_official_record,
-        a0.disclaimer.non_diagnostic,
-    ):
-        story.append(P(f"- {line}", "body"))
-    story.append(P(f"chief_complaint_summary: {a0.chief_complaint_summary or '정보 없음'}", "body"))
-
-    # ── A1 / A2 ──
-    story.append(P("A1. 주호소 (Chief complaint)", "h2"))
-    story.append(P(a1.text if a1.present else "정보 없음", "body"))
-    story.append(P("A2. 현병력 (HPI)", "h2"))
-    story.append(P(a2.text if a2.present else "정보 없음", "body"))
-
-    # ── All-session slot overview (Task 1, extends A1/A2) ──
     so = report.slot_overview
-    story.append(P("A1-A2 확장. 전체 세션 슬롯 요약 (12개 표준 슬롯, 전 세션 최적값)", "h2"))
-    story.append(P(so.non_validated_caveat, "warn"))
-    rows = [["슬롯", "최신값", "출처", "변화 이력", "비고"]]
-    for row in so.rows:
-        if not row.collected:
-            value_cell, source_cell = SLOT_NEVER_COLLECTED_KO, "-"
-        else:
-            value_cell = row.latest_value or ""
-            source_cell = f"{row.source_session_index}회차/{row.source_simulated_date}"
-        history_cell = " -> ".join(row.change_history) if row.change_history else "-"
-        rows.append([row.label, value_cell, source_cell, history_cell, row.section_pointer or "-"])
-    t = Table(rows, hAlign="LEFT")
-    t.setStyle(
-        TableStyle(
-            [
-                ("FONTNAME", (0, 0), (-1, -1), _BODY_FONT),
-                ("FONTSIZE", (0, 0), (-1, -1), 7),
-                ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EEEEEE")),
-            ]
-        )
-    )
-    story.append(t)
 
-    # ── A3 (risk, promoted top-level) ──
-    story.append(P("A3. 위험/안전 평가", "h2"))
-    story.append(P(f"당해 세션 {a3.current_session_index}회차 ({a3.current_simulated_date})", "h3"))
-    story.append(
-        P(
-            f"risk_assessment: {a3.risk_assessment_text or '정보 없음'} | session_ctrs: "
-            f"{a3.session_ctrs} ({a3.risk_level}) | risk_floor: {a3.risk_floor} | "
-            f"probe_event_count: {a3.probe_event_count} | crisis_triggered: {a3.crisis_triggered}",
-            "body",
-        )
-    )
-    story.append(
-        P(
-            f"당해 세션 F3 시행: {a3.current_session_has_f3} | safety_referral: "
-            f"{a3.current_session_safety_referral} | critical_item_positive: "
-            f"{a3.current_session_critical_item_positive}",
-            "body",
-        )
-    )
-    story.append(P("종단 위험 신호 (모든 세션)", "h3"))
-    story.append(P(NON_VALIDATED_ADMINISTRATION_CAVEAT_KO, "warn"))
-    story.append(P(f"추세-수준 concordance_flag: {a3.trend_concordance_flag}", "body"))
-    if a3.longitudinal_risk_signals:
-        rows = [["session", "date", "scale", "score", "severity", "동일세션CTRS", "판정"]]
-        for sig in a3.longitudinal_risk_signals:
-            rows.append(
-                [
-                    str(sig.session_index),
-                    sig.simulated_date,
-                    str(sig.scale_name),
-                    f"{sig.total_score}/{sig.max_score}",
-                    str(sig.severity),
-                    str(sig.same_session_ctrs),
-                    sig.discordance_note[:40],
-                ]
-            )
-        t = Table(rows, hAlign="LEFT")
-        t.setStyle(
-            TableStyle(
-                [
-                    ("FONTNAME", (0, 0), (-1, -1), _BODY_FONT),
-                    ("FONTSIZE", (0, 0), (-1, -1), 7.5),
-                    ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EEEEEE")),
-                ]
-            )
-        )
-        story.append(t)
-        # ADR-038 Decision 2c: ceiling caveat rendered directly adjacent to
-        # the table (not only in B1), one line per ceiling-scoring session.
+    # ── Title ──
+    story.append(P(f"F5 인계 요약 보고서 — {report.vp_id}", "title"))
+
+    # ── 핵심 요약 (SBAR box) ──
+    summary_flow = [P("핵심 요약", "h3")]
+    summary_flow += [P(f"- {line}", "body") for line in _summary_box_lines(report)]
+    story.append(_boxed(summary_flow))
+    story.append(Spacer(1, 0.2 * cm))
+
+    # ── 면책 조항 (3줄 이내 박스) ──
+    disclaimer_flow = [P("면책 조항", "h3")]
+    disclaimer_flow += [P(f"- {line}", "body") for line in _DISCLAIMER_BOX_KO]
+    story.append(_boxed(disclaimer_flow, border="#B00020", fill="#FFF3F3"))
+    story.append(Spacer(1, 0.2 * cm))
+
+    # ── 위험/안전 평가 ──
+    story.append(P("위험/안전 평가", "h2"))
+    story.append(P(_risk_prose(a3), "body"))
+    risk_rows = _risk_table_rows(a3)
+    if risk_rows:
+        story.append(P(NON_VALIDATED_ADMINISTRATION_CAVEAT_KO, "warn"))
+        rows = [["세션", "일자", "점수", "9번 문항", "판정"]] + [list(r) for r in risk_rows]
+        story.append(_table(rows))
+        # ADR-038 Decision 2c: full ceiling caveat text rendered adjacent to
+        # the table (never dropped to the "· 만점" table abbreviation alone).
         for sig in a3.longitudinal_risk_signals:
             if sig.ceiling_caveat:
                 story.append(
@@ -803,148 +1067,104 @@ def build_pdf_report(
                     )
                 )
     else:
-        story.append(P("해당 없음 — item-9 양성/safety_referral 시행 이력 없음", "body"))
+        story.append(P("해당 없음 — item-9 양성/안전 의뢰 이력 없음", "body"))
     if a3.staleness_pointer.total_score is not None:
         story.append(P(NON_VALIDATED_ADMINISTRATION_CAVEAT_KO, "warn"))
-    story.append(P(f"최신성 안내: {a3.staleness_pointer.note}", "warn"))
+    story.append(P(f"최신 시행 척도 안내: {_staleness_note_ko(a3.staleness_pointer)}", "warn"))
     if a3.staleness_pointer.ceiling_caveat:
         story.append(P(a3.staleness_pointer.ceiling_caveat, "warn"))
 
-    # ── A4 ──
-    story.append(P("A4. 정신상태 검사 (부분, MSE)", "h2"))
-    story.append(P(f"[{a4.label}] " + (a4.raw_text if a4.present else "정보 없음"), "body"))
+    # ── 주호소 및 현병력 (+ MSE) ──
+    story.append(P("주호소 및 현병력", "h2"))
+    story.append(P(f"주호소: {a1.text if a1.present else '미수집'}", "body"))
+    story.append(P(f"현병력: {a2.text if a2.present else '미수집'}", "body"))
+    story.append(P("정신상태검사 (MSE)", "h3"))
+    for line in _mse_lines(a4):
+        story.append(P(line, "body"))
 
-    # ── A5 ──
-    story.append(P("A5. 시행된 설문", "h2"))
+    # ── 전체 세션 요약 (슬롯) + 주요 경과 ──
+    story.append(P("전체 세션 요약", "h2"))
+    story.append(P(so.non_validated_caveat, "warn"))
+    rows = [["슬롯", "최신값", "출처", "변화", "비고"]]
+    for row in _slot_table_rows(so):
+        if not row.collected:
+            value_cell, source_cell = SLOT_NEVER_COLLECTED_KO, "-"
+        else:
+            value_cell = _truncate(row.latest_value, 80)
+            source_cell = f"{row.source_session_index}회차/{row.source_simulated_date}"
+        rows.append(
+            [
+                row.label,
+                value_cell,
+                source_cell,
+                _change_history_summary(row),
+                row.section_pointer or "-",
+            ]
+        )
+    story.append(_table(rows, font_size=7))
+    story.append(P("주요 경과", "h3"))
+    course_bullets = _major_course_bullets(so)
+    if course_bullets:
+        for line in course_bullets:
+            story.append(P(f"- {line}", "body"))
+    else:
+        story.append(P("표시할 주요 경과 변화 없음", "body"))
+
+    # ── 시행된 설문 ──
+    story.append(P("시행된 설문", "h2"))
     if not a5.present:
-        story.append(P("정보 없음 (시행된 설문 없음)", "body"))
+        story.append(P("정보 없음 (전체 세션 중 시행된 설문 없음)", "body"))
     else:
         story.append(P(a5.non_validated_caveat, "warn"))
+        stale = " [당해 세션 미시행, 직전 시행값]" if a5.is_stale_relative_to_header else ""
         story.append(
             P(
-                f"{a5.scale_name} — {a5.administering_session_index}회차 "
-                f"({a5.administering_simulated_date}), stale={a5.is_stale_relative_to_header}: "
-                f"{a5.total_score}/{a5.max_score} ({a5.severity}), mode={a5.administration_mode}",
+                f"{a5.scale_name} {a5.total_score}/{a5.max_score} ({_severity_ko(a5.severity)}) — "
+                f"{a5.administering_session_index}회차 ({a5.administering_simulated_date}){stale}",
+                "body",
+            )
+        )
+        item9_label = _a6_item9_or_critical_label(a5.scale_name)
+        item9_value = (
+            "양성"
+            if a5.critical_item_positive
+            else "음성"
+            if a5.critical_item_positive is False
+            else "미상"
+        )
+        story.append(P(f"응답: {','.join(str(v) for v in a5.responses)}", "body"))
+        story.append(
+            P(
+                f"{item9_label}: {item9_value} | 문진 방식: {a5.administration_mode or '미상'}",
                 "body",
             )
         )
         if a5.threshold_caveat:
-            story.append(P(f"threshold_caveat: {a5.threshold_caveat}", "body"))
+            story.append(P(a5.threshold_caveat, "body"))
         if a5.threshold_caveat_asymmetry_note:
             story.append(P(a5.threshold_caveat_asymmetry_note, "body"))
         if a5.ceiling_caveat:
             story.append(P(a5.ceiling_caveat, "warn"))
         for g in a5.gap_disclosure:
-            story.append(P(f"- {g}", "body"))
-
-    # ── A6 (visually fenced decision-support box) ──
-    story.append(P("A6. AI 예상질환 (비진단적 의사결정 지원)", "h2"))
-    a6_flow: list = [
-        P(
-            "⚠ DECISION-SUPPORT ONLY — 이 섹션의 내용은 similarity_score(유사도)이며 확률/가능성/"
-            "신뢰도가 아닙니다. A0-A5/A7-A8과 구조적으로 분리됩니다.",
-            "warn",
-        )
-    ]
-    if not a6.present:
-        a6_flow.append(P(a6.no_data_note or "정보 없음", "body"))
-        if a6.mode:
-            a6_flow.append(P(f"mode: {a6.mode}", "body"))
-        if a6.reason_summary:
-            a6_flow.append(P(f"reason_summary: {a6.reason_summary}", "body"))
-    else:
-        rows = [["rank", "공동순위", "disease", "similarity_score"]]
-        for rc in a6.candidates:
-            rows.append(
-                [
-                    str(rc.rank),
-                    rc.tie_marker or "-",
-                    rc.candidate.disease,
-                    f"{rc.candidate.similarity_score:.3f}",
-                ]
-            )
-        t = Table(rows, hAlign="LEFT")
-        t.setStyle(
-            TableStyle(
-                [
-                    ("FONTNAME", (0, 0), (-1, -1), _BODY_FONT),
-                    ("FONTSIZE", (0, 0), (-1, -1), 8),
-                    ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#EEEEEE")),
-                ]
-            )
-        )
-        a6_flow.append(t)
-        a6_flow.append(P(f"mode: {a6.mode} | disclaimer: {a6.disclaimer}", "body"))
-    fence = Table([[a6_flow]], hAlign="LEFT")
-    fence.setStyle(
-        TableStyle(
-            [
-                ("BOX", (0, 0), (-1, -1), 1.2, colors.HexColor("#B00020")),
-                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FFF3F3")),
-                ("LEFTPADDING", (0, 0), (-1, -1), 8),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                ("TOPPADDING", (0, 0), (-1, -1), 6),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-            ]
-        )
-    )
-    story.append(fence)
-
-    # ── A7 ──
-    story.append(P("A7. 권장 진료과 / 설문", "h2"))
-    if a7.department_candidates:
-        for d in a7.department_candidates:
-            story.append(P(f"- {d.department}: {d.reason}", "body"))
-    else:
-        story.append(P(a7.department_candidates_absence_note or "정보 없음", "body"))
-    story.append(P(a7.medication_note, "body"))
-
-    # ── A8 ──
-    story.append(P("A8. 임상 종합 소견 (내러티브)", "h2"))
-    if a8.narrative_enabled and a8.text:
-        story.append(P(NARRATIVE_ENABLED_LABEL_KO, "meta"))
-        story.append(P(a8.text, "body"))
-    else:
-        story.append(P(a8.absent_marker, "body"))
+            story.append(P(f"- {_humanize_engine_text(g)}", "body"))
 
     story.append(PageBreak())
 
-    # ── B section ──
+    # ── 종단 추세 + 차트 ──
+    overall_direction_ko = _DIRECTION_KO.get(lon.overall_direction, lon.overall_direction)
     story.append(
         P(
-            f"B1. 추세 판정 — overall_direction: {lon.overall_direction}, "
-            f"course_shape: {lon.course_shape}",
+            f"종단 추세 — 전체 방향: {overall_direction_ko}",
             "h2",
         )
     )
-    story.append(P(b.overall_direction_sensitivity_note, "body"))
-    story.append(P(lon.disclaimer, "meta"))
-    for tv in lon.trend_verdicts:
-        story.append(P(f"- {tv.dimension}: {tv.direction} ({tv.basis})", "body"))
+    story.append(P(_OVERALL_DIRECTION_NOTE_PLAIN_KO, "body"))
+    rows = [["항목", "방향", "근거"]] + [list(r) for r in _trend_table_rows(lon)]
+    story.append(_table(rows, font_size=7.5))
+    for line in _events_and_concordance_lines(lon, b):
+        story.append(P(f"- {line}", "body"))
 
-    story.append(P("B2. CTRS 추이", "h2"))
-    for p in lon.ctrs_series:
-        story.append(
-            P(
-                f"- {p.session_index}회차 ({p.simulated_date}): session_ctrs={p.session_ctrs}, "
-                f"crisis_triggered={p.crisis_triggered}",
-                "body",
-            )
-        )
-
-    story.append(P("B3. 사건 타임라인", "h2"))
-    for g in lon.crisis_f3_gaps:
-        story.append(P(f"- {g}", "body"))
-    if not lon.crisis_f3_gaps:
-        story.append(P("risk-elevated 세션 중 F3 gap 없음", "body"))
-
-    story.append(P(f"B4. 불일치 신호 — trend concordance_flag: {lon.concordance_flag}", "h2"))
-    story.append(
-        P("추세-수준 지표이며 A3의 세션별 item-9-vs-CTRS co-display와는 별개입니다.", "body")
-    )
-
-    story.append(P("B5. 추세 차트", "h2"))
+    story.append(P("추세 차트", "h3"))
     chart_map = {
         "scales_ctrs_sentiment": b.chart_filenames.scales_ctrs_sentiment,
         "ctrs_zoom": b.chart_filenames.ctrs_zoom,
@@ -963,6 +1183,69 @@ def build_pdf_report(
             story.append(Image(str(path), width=16 * cm, height=9 * cm, kind="proportional"))
     if not any_chart:
         story.append(P("정보 없음 (차트 없음 또는 chart_paths 미전달)", "body"))
+
+    # ── AI 참고 정보 (비진단, 시각적으로 분리된 박스) ──
+    story.append(P("AI 참고 정보 (비진단)", "h2"))
+    a6_flow: list = [
+        P(
+            "⚠ 유사도(similarity)일 뿐 확률·가능성·신뢰도가 아닙니다 — 임상 판단 대체 불가.",
+            "warn",
+        )
+    ]
+    if not a6.present:
+        a6_flow.append(P(a6.no_data_note or "정보 없음", "body"))
+        if a6.mode:
+            a6_flow.append(P(f"mode: {a6.mode}", "body"))
+        if a6.reason_summary:
+            a6_flow.append(P(f"reason_summary: {a6.reason_summary}", "body"))
+    else:
+        top, rest = a6.candidates[:3], a6.candidates[3:]
+        rows = [["순위", "질환", "유사도"]]
+        for rc in top:
+            rank_cell = rc.tie_marker or str(rc.rank)
+            rows.append([rank_cell, rc.candidate.disease, f"{rc.candidate.similarity_score:.3f}"])
+        a6_flow.append(_table(rows, font_size=8))
+        if rest:
+            rest_txt = ", ".join(
+                f"{rc.candidate.disease}({rc.candidate.similarity_score:.3f})" for rc in rest
+            )
+            a6_flow.append(P(f"기타 후보: {rest_txt}", "meta"))
+        a6_flow.append(P(f"disclaimer: {a6.disclaimer}", "meta"))
+    story.append(_boxed(a6_flow, border="#B00020", fill="#FFF3F3"))
+
+    # ── 권장 진료과 및 후속 조치 ──
+    story.append(P("권장 진료과 및 후속 조치", "h2"))
+    if a7.department_candidates:
+        rows = [["진료과", "사유"]] + [[d.department, d.reason] for d in a7.department_candidates]
+        story.append(_table(rows, font_size=8))
+    else:
+        story.append(P(a7.department_candidates_absence_note or "정보 없음", "body"))
+    if a7.recommended_questionnaire:
+        story.append(
+            P(
+                f"추천 설문: {a7.recommended_questionnaire}"
+                + (f" — {a7.recommendation_caveat}" if a7.recommendation_caveat else ""),
+                "body",
+            )
+        )
+    story.append(P(a7.medication_note, "meta"))
+
+    # ── 임상 종합 소견 (own top-level section, same as markdown) ──
+    story.append(P("임상 종합 소견", "h2"))
+    if a8.narrative_enabled and a8.text:
+        story.append(P(NARRATIVE_ENABLED_LABEL_KO, "meta"))
+        story.append(P(a8.text, "body"))
+    else:
+        story.append(P(a8.absent_marker, "body"))
+
+    # ── 각주 (감사용 메타) ──
+    story.append(Spacer(1, 0.3 * cm))
+    story.append(
+        P(f"모델: {a0.model} · 생성 시각: {report.generated_at} · 세션ID: {a0.session_id}", "meta")
+    )
+    if a5.present:
+        story.append(P(f"설문 문항 출처: {a5.item_bank_provenance or '미상'}", "meta"))
+    story.append(P(f"종단 추세 판정 근거(감사용): {b.overall_direction_sensitivity_note}", "meta"))
 
     buf = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -1392,9 +1675,9 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
             },
         )
         a7_entries.append({"reference": sr_url})
-    a7_text = "; ".join(
-        f"{d.department}: {d.reason}" for d in a7.department_candidates
-    ) or (a7.department_candidates_absence_note or "정보 없음")
+    a7_text = "; ".join(f"{d.department}: {d.reason}" for d in a7.department_candidates) or (
+        a7.department_candidates_absence_note or "정보 없음"
+    )
     sections.append(
         {
             "title": "A7. 권장 진료과 / 설문",

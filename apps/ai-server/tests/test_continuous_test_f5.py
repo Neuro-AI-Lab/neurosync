@@ -388,7 +388,7 @@ class TestRunF5Report:
 
         paths = ct._run_f5_report(persona_id, tmp_path)
         md = paths["markdown"].read_text(encoding="utf-8")
-        section = md.split("## A1-A2 확장.")[1].split("## A3.")[0]
+        section = md.split("## 전체 세션 요약")[1].split("## 시행된 설문")[0]
         assert "S1: '2주 전부터 불면'" in section
         assert "S2: '수면 개선 추세'" in section
         assert "2회차" in section  # provenance for the LATEST value
@@ -430,7 +430,7 @@ class TestRunF5Report:
 
         paths = ct._run_f5_report(persona_id, tmp_path)
         md = paths["markdown"].read_text(encoding="utf-8")
-        a7_section = md.split("## A7.")[1].split("## A8.")[0]
+        a7_section = md.split("## 권장 진료과 및 후속 조치")[1].split("## 임상 종합 소견")[0]
         assert "VAL-016" in a7_section
         assert "정보 없음 (권장 진료과 없음)" not in a7_section  # old bare wording gone
 
@@ -522,7 +522,7 @@ class TestRunF5Report:
 
         paths = ct._run_f5_report(persona_id, tmp_path)
         md = paths["markdown"].read_text(encoding="utf-8")
-        assert "정보 없음 (이 VP의 전체 세션 중 시행된 설문 없음)" in md
+        assert "정보 없음 (전체 세션 중 시행된 설문 없음)" in md
 
     def test_write_dir_overrides_where_output_lands_read_stays_at_out_dir(
         self, tmp_path: Path

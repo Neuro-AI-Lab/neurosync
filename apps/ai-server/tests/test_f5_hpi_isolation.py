@@ -305,7 +305,7 @@ class TestNarrativeOptInLeakGuard:
     def test_rejected_marker_never_appears_in_markdown_a8(self) -> None:
         report = _marker_report_with_narrative(f"환자는 {_LEAK_MARKER_DISEASE} 소견이 의심됨.")
         md = build_markdown_report(report)
-        a8_section = md.split("## A8.")[1].split("## B1.")[0]
+        a8_section = md.split("## 임상 종합 소견")[1].split("## 각주")[0]
         assert _LEAK_MARKER_DISEASE not in a8_section
 
     def test_rejected_marker_never_appears_in_pdf_a8(self) -> None:
@@ -313,8 +313,8 @@ class TestNarrativeOptInLeakGuard:
         pdf_bytes = build_pdf_report(report)
         reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
         full_text = "\n".join(p.extract_text() for p in reader.pages)
-        a6_start = full_text.index("A6.")
-        a7_start = full_text.index("A7.")
+        a6_start = full_text.index("AI 참고 정보")
+        a7_start = full_text.index("권장 진료과 및 후속 조치")
         # The marker legitimately appears once, inside A6's own fenced box.
         assert full_text.count(_LEAK_MARKER_DISEASE) == 1
         assert _LEAK_MARKER_DISEASE in full_text[a6_start:a7_start]
@@ -346,10 +346,12 @@ class TestMarkdownIsolation:
         md = build_markdown_report(report)
         assert _LEAK_MARKER_DISEASE in md  # sanity: it IS rendered somewhere
 
-        a6_section = md.split("## A6.")[1].split("## A7.")[0]
+        a6_section = md.split("## AI 참고 정보 (비진단)")[1].split("## 권장 진료과 및 후속 조치")[0]
         assert _LEAK_MARKER_DISEASE in a6_section
 
-        other_sections = md.split("## A6.")[0] + md.split("## A7.", 1)[1]
+        other_sections = (
+            md.split("## AI 참고 정보 (비진단)")[0] + md.split("## 권장 진료과 및 후속 조치", 1)[1]
+        )
         assert _LEAK_MARKER_DISEASE not in other_sections
         assert _LEAK_MARKER_QUOTE not in other_sections
 
@@ -360,8 +362,8 @@ class TestMarkdownIsolation:
         violation; F5 renders A7's own field verbatim in A7, never in A6."""
         report = _marker_report(other_slots_contain_marker=True)
         md = build_markdown_report(report)
-        a6_section = md.split("## A6.")[1].split("## A7.")[0]
-        a7_section = md.split("## A7.")[1].split("## A8.")[0]
+        a6_section = md.split("## AI 참고 정보 (비진단)")[1].split("## 권장 진료과 및 후속 조치")[0]
+        a7_section = md.split("## 권장 진료과 및 후속 조치")[1].split("## 임상 종합 소견")[0]
         # The disease candidate itself still only appears in A6 (by rank/score).
         assert (
             f"{_LEAK_MARKER_DISEASE} |" in a6_section or f"| {_LEAK_MARKER_DISEASE} " in a6_section
@@ -381,23 +383,27 @@ class TestPdfIsolation:
         full_text = "\n".join(p.extract_text() for p in reader.pages)
         assert _LEAK_MARKER_DISEASE in full_text  # sanity: rendered somewhere
 
-        # A6 is visually fenced between its own heading and A7's heading.
-        assert "A6." in full_text and "A7." in full_text
-        a6_start = full_text.index("A6.")
-        a7_start = full_text.index("A7.")
+        # A6 (AI 참고 정보) is visually fenced between its own heading and
+        # A7's (권장 진료과) heading.
+        a6_heading, a7_heading = "AI 참고 정보", "권장 진료과 및 후속 조치"
+        assert a6_heading in full_text and a7_heading in full_text
+        a6_start = full_text.index(a6_heading)
+        a7_start = full_text.index(a7_heading)
         a6_chunk = full_text[a6_start:a7_start]
         assert _LEAK_MARKER_DISEASE in a6_chunk
 
         before_a6 = full_text[:a6_start]
-        after_a7_heading_body = full_text[a7_start + len("A7.") :]
+        after_a7_heading_body = full_text[a7_start + len(a7_heading) :]
         # A0-A5 (before A6) never mention the disease-candidate marker.
         assert _LEAK_MARKER_DISEASE not in before_a6
-        # A8/B-section text after A7's own heading (excluding A7's own
-        # department text, which legitimately may echo caller-supplied
-        # text unrelated to the disease-candidate channel) — check the
-        # narrative marker specifically never appears past A8's heading.
-        if "A8." in after_a7_heading_body:
-            a8_onward = after_a7_heading_body[after_a7_heading_body.index("A8.") :]
+        # A8(임상 종합 소견)/B-section text after A7's own heading (excluding
+        # A7's own department text, which legitimately may echo
+        # caller-supplied text unrelated to the disease-candidate channel)
+        # — check the narrative marker specifically never appears past A8's
+        # heading.
+        a8_heading = "임상 종합 소견"
+        if a8_heading in after_a7_heading_body:
+            a8_onward = after_a7_heading_body[after_a7_heading_body.index(a8_heading) :]
             assert _LEAK_MARKER_DISEASE not in a8_onward
 
 
