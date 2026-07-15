@@ -40,12 +40,14 @@ finding 3d).
 Residual exposure, disclosed (not closed by this module — critic
 adjudicates redesign-vs-disclosure at the W4 gate, per this dispatch's
 brief): the risk lexicon (``src.eval.f2_grounding._RISK_PHRASES``) is a
-20-stem-family taxonomy (37 literal entries; REV-024 corrected the earlier
-"15-stem" undercount — ``tests/test_f2_grounding.py::
-test_risk_lexicon_stem_family_count_is_20_not_15`` pins the mechanical
-count) with this project's own documented paraphrase-coverage-gap history
-(BUG-014/VAL-009) — a query whose risk content is worded outside every
-stem's paraphrase family is not caught by this filter. This module
+30-stem-family taxonomy (48 literal entries as of the VAL-010/VAL-015
+expansion, docs/ai/lexicon_expansion_val010.md; REV-024 corrected the
+earlier "15-stem" undercount to 20/37, since expanded again — ``tests/
+test_f2_grounding.py::test_risk_lexicon_stem_family_count_is_30_not_20``
+pins the mechanical count) with this project's own documented paraphrase-
+coverage-gap history (BUG-014/VAL-009/VAL-015) — a query whose risk content
+is worded outside every stem's paraphrase family is not caught by this
+filter. This module
 closes the "which channel is filtered" gap REV-022 found (cc/HPI content
 now IS filtered, for both arms, at one place); it does not, and cannot by
 construction, close the separate "is the lexicon's coverage complete"

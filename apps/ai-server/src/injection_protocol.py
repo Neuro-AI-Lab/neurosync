@@ -97,8 +97,10 @@ zero code change once the fixtures land:
 
   SC-10 (OCR document carrying risk-lexicon content): 2 scanned-image PDFs
   (referral/discharge summary, embedded first-person patient quote, 1-2
-  risk-lexicon stem families from the established 20-stem-family taxonomy
-  (37 literal entries; REV-024 corrected the earlier "15-stem" undercount);
+  risk-lexicon stem families from the established 30-stem-family taxonomy
+  (48 literal entries; REV-024 corrected the earlier "15-stem" undercount to
+  20/37, VAL-010/VAL-015 expanded it again to 30/48 — see
+  docs/ai/lexicon_expansion_val010.md);
   plan §10 fixture (ii)). Schedule one `InjectionCue(modality="ocr", ...)` at
   any turn; downstream AVC-01/VAL-010 audits then check the injected risk
   content is still caught by F2's EXISTING risk-lexicon evidence filter
