@@ -1,0 +1,1026 @@
+{
+  "session_id": "f1_VP-010_followup",
+  "persona_id": "VP-010",
+  "persona_name": "강태민",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "잠들기 힘들고 새벽에 자주 깨며, 4-5시간 수면 후 다시 잠들기 어려움"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "퇴근 후 누워만 있는 상태 반복, 게임 몰입도 감소, 운동 기피, 에너지 저하, 가슴 두근거림 및 숨 막힘 증상(주로 침대에 누울 때, 승진 심사 생각 시 악화), 수면 시간 4-5시간, 새벽 자주 깨고 재수면 어려움, 체중 감소 및 식욕 저하"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 표현 있음 — 환자 발화: \"그렇군요. 사실 요즘 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 그냥 지나가는 구름처럼 지나가는 거고, 실행에 옮기고 싶은 생각은 전혀 없어요. 진짜로요...\""
+    },
+    {
+      "key": "substance_use_history",
+      "value": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음"
+    },
+    {
+      "key": "personal_social_history",
+      "value": "주변에 힘들 때 연락하거나 도움을 요청할 수 있는 사람 없음, 가끔 연락함"
+    },
+    {
+      "key": "family_history",
+      "value": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "아, 그래요? 별거 아니에요. 다들 이 정도는 힘들지 않나요? 그냥 좀 피곤하고 스트레스 좀 받는 정도예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 지난번에 이어서 상담을 이어가시는군요. 오늘은 어떤 이야기부터 시작해볼까요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 좀 나아짐",
+        "history_of_present_illness": "지난주에 비해 잠들기 쉬워짐",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"그렇군요. 사실 요즘 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 그냥 지나가는 구름처럼 지나가는 거고, 실행에 옮기고 싶은 생각은 전혀 없어요. 진짜로요...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "주변에 힘들 때 연락하거나 도움을 요청할 수 있는 사람 없음, 가끔 연락함",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 8271.20096096769,
+      "timestamp": "2026-07-15T16:36:52.874311",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아, 그래요? 별거 아니에요. 다들 이 정도는 힘들지 않나요? 그냥 좀 피곤하고 스트레스 좀 받는 정도예요.",
+        "normalized": "아, 그래요? 별거 아니에요. 다들 이 정도는 힘들지 않나요? 그냥 좀 피곤하고 스트레스 좀 받는 정도예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1236.2154070287943,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.3,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "다들 이 정도는 힘들지 않나요? 그냥 좀 피곤하고 스트레스 좀 받는 정도예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "아, 그래요? 별거 아니에요. 다들 이 정도는 힘들지 않나요? 그냥 좀 피곤하고 스트레스 좀 받는 정도예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "다들 비슷한 상황에서 힘들어하시곤 하죠. 지금 말씀하신 피로와 스트레스가 어떤 식으로 일상에 영향을 미치고 있는지 조금 더 자세히 들어볼 수 있을까요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 좀 나아짐",
+        "history_of_present_illness": "지난주에 비해 잠들기 쉬워짐",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"그렇군요. 사실 요즘 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 그냥 지나가는 구름처럼 지나가는 거고, 실행에 옮기고 싶은 생각은 전혀 없어요. 진짜로요...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "주변에 힘들 때 연락하거나 도움을 요청할 수 있는 사람 없음, 가끔 연락함",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3453.8860116153955,
+      "timestamp": "2026-07-15T16:36:56.328223",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아, 그래요? 별거 아니에요. 다들 이 정도는 힘들지 않나요? 그냥 좀 피곤하고 스트레스 좀 받는 정도예요.",
+        "normalized": "아, 그래요? 별거 아니에요. 다들 이 정도는 힘들지 않나요? 그냥 좀 피곤하고 스트레스 좀 받는 정도예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1236.2154070287943,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아, 그래요? 별거 아니에요. 다들 이 정도는 힘들지 않나요? 그냥 좀 피곤하고 스트레스 좀 받는 정도예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "음... 요즘 퇴근하면 그냥 눕기만 해요. 게임도 예전처럼 재밌지 않고, 운동도 가기 싫고... 에너지가 거의 없는 것 같아요.  \n근데 \"다들 그렇지 않나요?\" 싶어서 크게 말하긴 좀 그래요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "에너지가 거의 없는 것 같아요"
+      ],
+      "agent_response": "다들 비슷한 상황에서 힘들어하시곤 하죠. 요즘 에너지가 많이 떨어지셨다고 하셨는데, 구체적으로 어떤 순간이나 상황에서 가장 지치고 무기력하게 느껴지시나요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 좀 나아짐",
+        "history_of_present_illness": "지난주에 비해 잠들기 쉬워짐",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"그렇군요. 사실 요즘 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 그냥 지나가는 구름처럼 지나가는 거고, 실행에 옮기고 싶은 생각은 전혀 없어요. 진짜로요...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "주변에 힘들 때 연락하거나 도움을 요청할 수 있는 사람 없음, 가끔 연락함",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 2963.1100548431277,
+      "timestamp": "2026-07-15T16:37:05.204220",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "음... 요즘 퇴근하면 그냥 눕기만 해요. 게임도 예전처럼 재밌지 않고, 운동도 가기 싫고... 에너지가 거의 없는 것 같아요.  \n근데 \"다들 그렇지 않나요?\" 싶어서 크게 말하긴 좀 그래요.",
+        "normalized": "음... 요즘 퇴근하면 그냥 눕기만 해요. 게임도 예전처럼 재밌지 않고, 운동도 가기 싫고... 에너지가 거의 없는 것 같아요.  \n근데 \"다들 그렇지 않나요?\" 싶어서 크게 말하긴 좀 그래요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2267.126026097685,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "요즘 퇴근하면 그냥 눕기만 해요. 게임도 예전처럼 재밌지 않고, 운동도 가기 싫고... 에너지가 거의 없는 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "퇴근 후 바로 아무것도 못 하고 하루 종일 누워 있는 게 반복돼요. 게임도 예전처럼 몰입이 안 되고, 그냥 계속 누워만 있어도 에너지가 확 떨어지는 게 느껴져요. 근데 이게 매일 그런 건 아니고… 일주일에 몇 번 정도 그런 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "다들 비슷한 상황에서 힘들어하시곤 하죠. 퇴근 후 에너지가 급격히 떨어지는 느낌이 들 때, 혹시 몸이나 마음에서 특별한 신호나 변화가 느껴지시나요?",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 스트레스 받는 정도",
+        "history_of_present_illness": "퇴근 후 누워만 있고 게임 몰입도 떨어지며 에너지 저하가 느껴짐"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 스트레스 받는 정도",
+        "history_of_present_illness": "퇴근 후 누워만 있고 게임 몰입도 떨어지며 에너지 저하가 느껴짐",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"그렇군요. 사실 요즘 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 그냥 지나가는 구름처럼 지나가는 거고, 실행에 옮기고 싶은 생각은 전혀 없어요. 진짜로요...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "주변에 힘들 때 연락하거나 도움을 요청할 수 있는 사람 없음, 가끔 연락함",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3146.0306928493083,
+      "timestamp": "2026-07-15T16:37:13.509992",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "퇴근 후 바로 아무것도 못 하고 하루 종일 누워 있는 게 반복돼요.  \n게임도 예전처럼 몰입이 안 되고, 그냥 계속 누워만 있어도 에너지가 확 떨어지는 게 느껴져요.  \n근데 이게 매일 그런 건 아니고… 일주일에 몇 번 정도 그런 것 같아요.",
+        "normalized": "퇴근 후 바로 아무것도 못 하고 하루 종일 누워 있는 게 반복돼요. 게임도 예전처럼 몰입이 안 되고, 그냥 계속 누워만 있어도 에너지가 확 떨어지는 게 느껴져요. 근데 이게 매일 그런 건 아니고… 일주일에 몇 번 정도 그런 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1491.1254970356822,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "퇴근 후 바로 아무것도 못 하고 하루 종일 누워 있는 게 반복돼요. 게임도 예전처럼 몰입이 안 되고, 그냥 계속 누워만 있어도 에너지가 확 떨어지는 게 느껴져요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "가슴이 두근거리거나, 가끔 긴장돼서 숨이 막힐 것 같은 느낌이 들어요. 특히 승진 심사 생각만 하면 그런 게 더 심해지는 것 같아요. 근데 이건 다들 긴장하니까 그런 거 아닐까요?",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가슴이 두근거리거나, 가끔 긴장돼서 숨이 막힐 것 같은 느낌",
+        "승진 심사 생각만 하면 그런 게 더 심해지는 것"
+      ],
+      "agent_response": "다들 비슷한 상황에서 힘들어하시곤 하죠. 승진 심사 때문에 느끼는 긴장이나 숨 막히는 느낌이 어떤 식으로 일상에 영향을 미치고 있는지 조금 더 자세히 들어볼 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 스트레스 받는 정도",
+        "history_of_present_illness": "퇴근 후 에너지가 급격히 떨어지며, 일주일에 몇 번 정도 하루 종일 누워 있는 상태. 게임 몰입도 감소, 운동 의욕 상실. 승진 심사 생각 시 가슴 두근거림 및 숨 막힐 듯한 긴장감 발생"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 스트레스 받는 정도",
+        "history_of_present_illness": "퇴근 후 에너지가 급격히 떨어지며, 일주일에 몇 번 정도 하루 종일 누워 있는 상태. 게임 몰입도 감소, 운동 의욕 상실. 승진 심사 생각 시 가슴 두근거림 및 숨 막힐 듯한 긴장감 발생",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"그렇군요. 사실 요즘 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 그냥 지나가는 구름처럼 지나가는 거고, 실행에 옮기고 싶은 생각은 전혀 없어요. 진짜로요...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "주변에 힘들 때 연락하거나 도움을 요청할 수 있는 사람 없음, 가끔 연락함",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4417.866389732808,
+      "timestamp": "2026-07-15T16:37:22.979596",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "가슴이 두근거리거나, 가끔 긴장돼서 숨이 막힐 것 같은 느낌이 들어요.  \n특히 승진 심사 생각만 하면 그런 게 더 심해지는 것 같아요.  \n근데 이건 다들 긴장하니까 그런 거 아닐까요?",
+        "normalized": "가슴이 두근거리거나, 가끔 긴장돼서 숨이 막힐 것 같은 느낌이 들어요. 특히 승진 심사 생각만 하면 그런 게 더 심해지는 것 같아요. 근데 이건 다들 긴장하니까 그런 거 아닐까요?",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1417.370597831905,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "가슴이 두근거리거나, 가끔 긴장돼서 숨이 막힐 것 같은 느낌이 들어요. 특히 승진 심사 생각만 하면 그런 게 더 심해지는 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "주로 퇴근 후에 가슴이 두근거리거나, 가끔 긴장돼서 숨이 막힐 것 같은 느낌이 들어요. 특히 승진 심사 생각만 하면 그런 게 더 심해지는 것 같아요. 근데 이건 다들 긴장하니까 그런 거 아닐까요?",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가슴이 두근거리거나, 가끔 긴장돼서 숨이 막힐 것 같은 느낌",
+        "승진 심사"
+      ],
+      "agent_response": "다들 비슷한 상황에서 힘들어하시곤 하죠. 지난번에 말씀드린 가슴 두근거림과 숨 막힘 증상이 실제로 어떤 상황에서 더 자주 나타나는지, 그리고 그때의 감정이나 신체 변화가 구체적으로 어떻게 느껴지는지 조금 더 자세히 들어볼 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 두근거림, 숨 막힘, 승진 심사 관련 긴장감",
+        "history_of_present_illness": "퇴근 후 반복적으로 가슴 두근거림 및 숨 막힘 증상 발생, 승진 심사 생각 시 증상 악화, 주 2~3회 정도 반복"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 두근거림, 숨 막힘, 승진 심사 관련 긴장감",
+        "history_of_present_illness": "퇴근 후 반복적으로 가슴 두근거림 및 숨 막힘 증상 발생, 승진 심사 생각 시 증상 악화, 주 2~3회 정도 반복",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"그렇군요. 사실 요즘 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 그냥 지나가는 구름처럼 지나가는 거고, 실행에 옮기고 싶은 생각은 전혀 없어요. 진짜로요...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "주변에 힘들 때 연락하거나 도움을 요청할 수 있는 사람 없음, 가끔 연락함",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4686.403580009937,
+      "timestamp": "2026-07-15T16:37:32.537556",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "주로 퇴근 후에 가슴이 두근거리거나, 가끔 긴장돼서 숨이 막힐 것 같은 느낌이 들어요.  \n특히 승진 심사 생각만 하면 그런 게 더 심해지는 것 같아요.  \n근데 이건 다들 긴장하니까 그런 거 아닐까요?",
+        "normalized": "주로 퇴근 후에 가슴이 두근거리거나, 가끔 긴장돼서 숨이 막힐 것 같은 느낌이 들어요. 특히 승진 심사 생각만 하면 그런 게 더 심해지는 것 같아요. 근데 이건 다들 긴장하니까 그런 거 아닐까요?",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1525.900716893375,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.3
+          }
+        ],
+        "evidence_phrase": "퇴근 후에 가슴이 두근거리거나, 가끔 긴장돼서 숨이 막힐 것 같은 느낌이 들어요. 특히 승진 심사 생각만 하면 그런 게 더 심해지는 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "가슴이 두근거리는 건 주로 퇴근 후, 특히 침대에 누울 때 자주 느껴져요. 숨이 좀 막히는 듯한 느낌도 가끔 오는데, 주로 승진 심사 생각이 떠오를 때 더 심해지는 것 같아요. 근데 이건 다들 긴장하니까 그런 거 아닐까요?",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가슴이 두근거리는 건 주로 퇴근 후, 특히 침대에 누울 때 자주 느껴져요",
+        "숨이 좀 막히는 듯한 느낌도 가끔 오는데",
+        "승진 심사 생각이 떠오를 때 더 심해지는 것 같아요"
+      ],
+      "agent_response": "다들 비슷한 상황에서 힘들어하시곤 하죠. 혹시 과거에 정신건강의학과 진료나 심리 상담을 받으신 적이 있는지, 또는 진단받은 병명이 있는지 알려주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 두근거림과 숨 막힘 증상, 특히 퇴근 후 침대에 누울 때와 승진 심사 생각 시 더 심해짐",
+        "history_of_present_illness": "퇴근 후 침대에 누울 때 가슴 두근거림과 숨 막힘 증상이 자주 나타나며, 승진 심사 생각이 떠오를 때 증상이 더 심해짐. 증상은 매일 발생하지 않고 일주일에 몇 번 정도 반복됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 두근거림과 숨 막힘 증상, 특히 퇴근 후 침대에 누울 때와 승진 심사 생각 시 더 심해짐",
+        "history_of_present_illness": "퇴근 후 침대에 누울 때 가슴 두근거림과 숨 막힘 증상이 자주 나타나며, 승진 심사 생각이 떠오를 때 증상이 더 심해짐. 증상은 매일 발생하지 않고 일주일에 몇 번 정도 반복됨",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"그렇군요. 사실 요즘 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 그냥 지나가는 구름처럼 지나가는 거고, 실행에 옮기고 싶은 생각은 전혀 없어요. 진짜로요...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "주변에 힘들 때 연락하거나 도움을 요청할 수 있는 사람 없음, 가끔 연락함",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 7487.097067758441,
+      "timestamp": "2026-07-15T16:37:45.766814",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "가슴이 두근거리는 건 주로 퇴근 후, 특히 침대에 누울 때 자주 느껴져요.  \n숨이 좀 막히는 듯한 느낌도 가끔 오는데, 주로 승진 심사 생각이 떠오를 때 더 심해지는 것 같아요.  \n근데 이건 다들 긴장하니까 그런 거 아닐까요?",
+        "normalized": "가슴이 두근거리는 건 주로 퇴근 후, 특히 침대에 누울 때 자주 느껴져요. 숨이 좀 막히는 듯한 느낌도 가끔 오는데, 주로 승진 심사 생각이 떠오를 때 더 심해지는 것 같아요. 근데 이건 다들 긴장하니까 그런 거 아닐까요?",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1423.9648822695017,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "가슴이 두근거리는 건 주로 퇴근 후, 특히 침대에 누울 때 자주 느껴져요. 숨이 좀 막히는 듯한 느낌도 가끔 오는데, 주로 승진 심사 생각이 떠오를 때 더 심해지는 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1380.2313767373562,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 그런 건 전혀 없어요.  \n그냥 요즘 좀 피곤하고 스트레스 받아서 그런 거지, 병은 아닌 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가슴이 두근거리는 건 주로 퇴근 후, 특히 침대에 누울 때 자주 느껴져요",
+        "숨이 좀 막히는 듯한 느낌도 가끔 오는데, 주로 승진 심사 생각이 떠오를 때 더 심해지는 것 같아요"
+      ],
+      "agent_response": "다들 비슷한 상황에서 힘들어하시곤 하죠. 혹시 과거에 정신건강의학과나 심리 상담을 받아보신 적이 있으신가요? 그때 어떤 이야기를 나누셨고, 어떤 도움을 받으셨는지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "가슴 두근거림 및 숨 막힘 증상, 승진 심사 관련 긴장",
+        "history_of_present_illness": "퇴근 후 침대에 누울 때 가슴 두근거림 및 숨 막힘 증상 발생, 승진 심사 생각이 떠오를 때 증상 심화, 주 2~3회 정도 반복"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 두근거림 및 숨 막힘 증상, 승진 심사 관련 긴장",
+        "history_of_present_illness": "퇴근 후 침대에 누울 때 가슴 두근거림 및 숨 막힘 증상 발생, 승진 심사 생각이 떠오를 때 증상 심화, 주 2~3회 정도 반복",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"그렇군요. 사실 요즘 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 그냥 지나가는 구름처럼 지나가는 거고, 실행에 옮기고 싶은 생각은 전혀 없어요. 진짜로요...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "주변에 힘들 때 연락하거나 도움을 요청할 수 있는 사람 없음, 가끔 연락함",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6034.878181759268,
+      "timestamp": "2026-07-15T16:37:57.091771",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 전혀 없어요.  \n그냥 요즘 좀 피곤하고 스트레스 받아서 그런 거지, 병은 아닌 것 같아요.",
+        "normalized": "아니요, 그런 건 전혀 없어요.  \n그냥 요즘 좀 피곤하고 스트레스 받아서 그런 거지, 병은 아닌 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2114.6051809191704,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "그냥 요즘 좀 피곤하고 스트레스 받아서 그런 거지, 병은 아닌 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1296.9951932318509,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요, 그런 건 전혀. 처음이에요. 그냥 요즘 좀 피곤하고 스트레스 좀 받아서 그런 거지, 병은 아니라고 생각해요. 근데 솔직히 말하면... 잠들기도 좀 힘들고, 가끔 밤에 자주 깨요. 정확히 몇 시간 정도 주무시는지는 잘 모르겠는데, 4-5시간 정도 자는 것 같아요. 새벽에도 자주 깨고, 다시 잘 수가 없어서 계속 뒤척여요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가슴이 두근거리는 건 주로 퇴근 후, 특히 침대에 누울 때 자주 느껴져요",
+        "숨이 좀 막히는 듯한 느낌도 가끔 오는데, 주로 승진 심사 생각이 떠오를 때 더 심해지는 것 같아요",
+        "잠들기도 좀 힘들고, 가끔 밤에 자주 깨요",
+        "새벽에도 자주 깨고, 다시 잘 수가 없어서 계속 뒤척여요",
+        "4-5시간 정도 자는 것 같아요"
+      ],
+      "agent_response": "다들 비슷한 상황에서 힘들어하시곤 하죠. 과거에 정신건강의학과나 심리 상담을 받아보신 적이 있으신가요? 그때 어떤 이야기를 나누셨고, 어떤 도움을 받으셨는지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "잠들기 힘들고 새벽에 자주 깨며, 4-5시간 수면 후 다시 잠들기 어려움",
+        "history_of_present_illness": "퇴근 후 누워만 있는 반복, 게임 몰입도 감소, 운동 기피, 에너지 저하, 가슴 두근거림 및 숨 막힘 증상이 승진 심사 생각 시 악화, 수면 시간 4-5시간, 새벽 각성 및 재수면 곤란"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 힘들고 새벽에 자주 깨며, 4-5시간 수면 후 다시 잠들기 어려움",
+        "history_of_present_illness": "퇴근 후 누워만 있는 반복, 게임 몰입도 감소, 운동 기피, 에너지 저하, 가슴 두근거림 및 숨 막힘 증상이 승진 심사 생각 시 악화, 수면 시간 4-5시간, 새벽 각성 및 재수면 곤란",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"그렇군요. 사실 요즘 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 그냥 지나가는 구름처럼 지나가는 거고, 실행에 옮기고 싶은 생각은 전혀 없어요. 진짜로요...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "주변에 힘들 때 연락하거나 도움을 요청할 수 있는 사람 없음, 가끔 연락함",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6682.599828578532,
+      "timestamp": "2026-07-15T16:38:10.563115",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 전혀.  \n처음이에요. 그냥 요즘 좀 피곤하고 스트레스 좀 받아서 그런 거지, 병은 아니라고 생각해요.  \n근데 솔직히 말하면... 잠들기도 좀 힘들고, 가끔 밤에 자주 깨요.  \n정확히 몇 시간 정도 주무시는지는 잘 모르겠는데, 4-5시간 정도 자는 것 같아요.  \n새벽에도 자주 깨고, 다시 잘 수가 없어서 계속 뒤척여요.",
+        "normalized": "아니요, 그런 건 전혀. 처음이에요. 그냥 요즘 좀 피곤하고 스트레스 좀 받아서 그런 거지, 병은 아니라고 생각해요. 근데 솔직히 말하면... 잠들기도 좀 힘들고, 가끔 밤에 자주 깨요. 정확히 몇 시간 정도 주무시는지는 잘 모르겠는데, 4-5시간 정도 자는 것 같아요. 새벽에도 자주 깨고, 다시 잘 수가 없어서 계속 뒤척여요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2132.5644832104445,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.55,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "잠들기도 좀 힘들고, 가끔 밤에 자주 깨요. 정확히 몇 시간 정도 주무시는지는 잘 모르겠는데, 4-5시간 정도 자는 것 같아요. 새벽에도 자주 깨고, 다시 잘 수가 없어서 계속 뒤척여요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2100.0044723041356,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 그런 건 전혀 없어요. 처음이에요. 그냥 요즘 좀 피곤하고 스트레스 좀 받아서 그런 거지, 병은 아니라고 생각해요. 근데 솔직히 말하면... 잠들기도 좀 힘들고, 가끔 밤에 자주 깨요. 정확히 몇 시간 정도 주무시는지는 잘 모르겠는데, 4-5시간 정도 자는 것 같아요. 새벽에도 자주 깨고, 다시 잘 수가 없어서 계속 뒤척여요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가슴이 두근거리는 건 주로 퇴근 후, 특히 침대에 누울 때 자주 느껴져요",
+        "숨이 좀 막히는 듯한 느낌도 가끔 오는데, 주로 승진 심사 생각이 떠오를 때 더 심해지는 것 같아요",
+        "잠들기도 좀 힘들고, 가끔 밤에 자주 깨요",
+        "새벽에도 자주 깨고, 다시 잘 수가 없어서 계속 뒤척여요"
+      ],
+      "agent_response": "다들 비슷한 상황에서 힘들어하시곤 하죠. 이전에 다른 병원에서 진단받은 신체 질환이 있으신가요? 또는 현재 복용 중인 약이 새로 생겼거나 기존 약이 변경된 적이 있는지 알려주시면, 혹시 그로 인해 증상이 영향을 받고 있는지 함께 살펴볼 수 있을 것 같아요.",
+      "slot_updates": {
+        "history_of_present_illness": "퇴근 후 누워만 있어도 에너지 저하, 게임 몰입도 감소, 운동 기피, 가슴 두근거림 및 숨 막힘 증상(주로 침대에 누울 때, 승진 심사 생각 시 악화), 수면 시작 및 유지 어려움, 새벽 각성 후 재수면 불가, 수면 시간 4-5시간 추정"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 힘들고 새벽에 자주 깨며, 4-5시간 수면 후 다시 잠들기 어려움",
+        "history_of_present_illness": "퇴근 후 누워만 있어도 에너지 저하, 게임 몰입도 감소, 운동 기피, 가슴 두근거림 및 숨 막힘 증상(주로 침대에 누울 때, 승진 심사 생각 시 악화), 수면 시작 및 유지 어려움, 새벽 각성 후 재수면 불가, 수면 시간 4-5시간 추정",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"그렇군요. 사실 요즘 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 그냥 지나가는 구름처럼 지나가는 거고, 실행에 옮기고 싶은 생각은 전혀 없어요. 진짜로요...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "주변에 힘들 때 연락하거나 도움을 요청할 수 있는 사람 없음, 가끔 연락함",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6711.523051839322,
+      "timestamp": "2026-07-15T16:38:34.359059",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 전혀 없어요.  \n처음이에요. 그냥 요즘 좀 피곤하고 스트레스 좀 받아서 그런 거지, 병은 아니라고 생각해요.  \n근데 솔직히 말하면... 잠들기도 좀 힘들고, 가끔 밤에 자주 깨요.  \n정확히 몇 시간 정도 주무시는지는 잘 모르겠는데, 4-5시간 정도 자는 것 같아요.  \n새벽에도 자주 깨고, 다시 잘 수가 없어서 계속 뒤척여요.",
+        "normalized": "아니요, 그런 건 전혀 없어요. 처음이에요. 그냥 요즘 좀 피곤하고 스트레스 좀 받아서 그런 거지, 병은 아니라고 생각해요. 근데 솔직히 말하면... 잠들기도 좀 힘들고, 가끔 밤에 자주 깨요. 정확히 몇 시간 정도 주무시는지는 잘 모르겠는데, 4-5시간 정도 자는 것 같아요. 새벽에도 자주 깨고, 다시 잘 수가 없어서 계속 뒤척여요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1740.7497121021152,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "잠들기도 좀 힘들고, 가끔 밤에 자주 깨요. 정확히 몇 시간 정도 주무시는지는 잘 모르겠는데, 4-5시간 정도 자는 것 같아요. 새벽에도 자주 깨고, 다시 잘 수가 없어서 계속 뒤척여요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1145.1714150607586,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 그런 건 전혀 없어요. 약도 먹지 않고, 병원도 거의 안 가요. 근데 요즘 체중이 좀 줄었고, 입맛도 없어서 원래보다 음식을 잘 안 먹게 돼요. 근데 이건 다들 바쁘면 그런 거 아닐까요?",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "다들 비슷한 상황에서 힘들어하시곤 하죠. 이전에 정신건강의학과 진료나 심리 상담을 받아보신 적이 있으신가요? 그때 어떤 이야기를 나누셨고, 어떤 도움을 받으셨는지 궁금해요.",
+      "slot_updates": {
+        "history_of_present_illness": "퇴근 후 누워만 있는 상태 반복, 게임 몰입도 감소, 운동 기피, 에너지 저하, 가슴 두근거림 및 숨 막힘 증상(주로 침대에 누울 때, 승진 심사 생각 시 악화), 수면 시간 4-5시간, 새벽 자주 깨고 재수면 어려움, 체중 감소 및 식욕 저하"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 힘들고 새벽에 자주 깨며, 4-5시간 수면 후 다시 잠들기 어려움",
+        "history_of_present_illness": "퇴근 후 누워만 있는 상태 반복, 게임 몰입도 감소, 운동 기피, 에너지 저하, 가슴 두근거림 및 숨 막힘 증상(주로 침대에 누울 때, 승진 심사 생각 시 악화), 수면 시간 4-5시간, 새벽 자주 깨고 재수면 어려움, 체중 감소 및 식욕 저하",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"그렇군요. 사실 요즘 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 진짜로요. 그런 생각은 그냥 지나가는 구름처럼 지나가는 거고, 실행에 옮기고 싶은 생각은 전혀 없어요. 진짜로요...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "주변에 힘들 때 연락하거나 도움을 요청할 수 있는 사람 없음, 가끔 연락함",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 7534.298852086067,
+      "timestamp": "2026-07-15T16:38:47.553031",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 전혀 없어요.  \n약도 먹지 않고, 병원도 거의 안 가요.  \n근데 요즘 체중이 좀 줄었고, 입맛도 없어서 원래보다 음식을 잘 안 먹게 돼요.  \n근데 이건 다들 바쁘면 그런 거 아닐까요?",
+        "normalized": "아니요, 그런 건 전혀 없어요. 약도 먹지 않고, 병원도 거의 안 가요. 근데 요즘 체중이 좀 줄었고, 입맛도 없어서 원래보다 음식을 잘 안 먹게 돼요. 근데 이건 다들 바쁘면 그런 거 아닐까요?",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1946.5543311089277,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "체중이 좀 줄었고, 입맛도 없어서 원래보다 음식을 잘 안 먹게 돼요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2395.0661923736334,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-15T16:36:44.603071",
+  "ended_at": "2026-07-15T16:38:54.482809",
+  "grounded_coverage": 0.75,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5636,
+  "patient_lng": 127.0369,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.11678272858262062,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.45,
+      "anxiety": 0.32,
+      "neutral": 0.14,
+      "despair": 0.09
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.3
+      },
+      {
+        "turn": 1,
+        "polarity": 0.0
+      },
+      {
+        "turn": 2,
+        "polarity": -0.6
+      },
+      {
+        "turn": 3,
+        "polarity": -0.6
+      },
+      {
+        "turn": 4,
+        "polarity": -0.6
+      },
+      {
+        "turn": 5,
+        "polarity": -0.4
+      },
+      {
+        "turn": 6,
+        "polarity": -0.6
+      },
+      {
+        "turn": 7,
+        "polarity": -0.4
+      },
+      {
+        "turn": 8,
+        "polarity": -0.55
+      },
+      {
+        "turn": 9,
+        "polarity": -0.6
+      },
+      {
+        "turn": 10,
+        "polarity": -0.6
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 10회 반복",
+      "anxiety 표현 7회 반복",
+      "neutral 표현 3회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.3
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "sadness",
+          "despair",
+          "neutral"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.55
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      }
+    ]
+  },
+  "phr_summary": {},
+  "prompts_degraded": false,
+  "session_index": 4,
+  "simulated_date": "2026-08-05",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- chief_complaint: 잠들기 좀 나아짐\n- history_of_present_illness: 지난주에 비해 잠들기 쉬워짐\n- substance_use_history: 주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음\n- personal_social_history: 주변에 힘들 때 연락하거나 도움을 요청할 수 있는 사람 없음, 가끔 연락함\n- family_history: 어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음\n\n[이전 세션 요약 — 미수집 정보]\npast_psychiatric_history, medical_history",
+  "carried_slot_provenance": {
+    "substance_use_history": "carried_from_session_3",
+    "personal_social_history": "carried_from_session_3",
+    "family_history": "carried_from_session_3",
+    "risk_assessment": "carried_from_session_3"
+  },
+  "scenario_pack_id": "VP-010_stable_minimizing_slow_disclosure_s04",
+  "arc_mode": "stable_minimizing_slow_disclosure"
+}

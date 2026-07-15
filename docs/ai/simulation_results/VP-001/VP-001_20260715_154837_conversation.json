@@ -1,0 +1,1024 @@
+{
+  "session_id": "f1_VP-001",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "잠 못 자는 문제로 인해 낮에도 집중이 어렵고 실수가 늘어나 속상함"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반"
+    },
+    {
+      "key": "family_history",
+      "value": "어머니는 가끔 잠 못 주무심"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "커피 대신 차 위주로 마심"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "음... 글쎄요. 사실 요즘 잠을 잘 못 자는 게 제일 신경 써요. 누우면 한 시간 정도 뒤척이고, 새벽에도 두세 번 깨니까 아침에 일어나도 개운한 느낌이 전혀 안 들어요. 그래서 그런지 낮에 집중도 잘 안 되고, 일할 때도 실수가 늘어서 좀 속상해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자는 게 제일 신경 써요",
+        "누우면 한 시간 정도 뒤척이고, 새벽에도 두세 번 깨니까",
+        "아침에 일어나도 개운한 느낌이 전혀 안 들어요",
+        "낮에 집중도 잘 안 되고, 일할 때도 실수가 늘어서"
+      ],
+      "agent_response": "안녕하세요. 저는 정신건강 사전문진을 돕는 AI 상담 도우미입니다. 실제 의사와의 대화가 아니며, 편하게 이야기하셔도 됩니다. 오늘 가장 도움받고 싶은 문제나 증상은 무엇인가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것이 신경 쓰임. 누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨며, 아침에 개운하지 않고 낮에 집중이 안 되며 일할 때 실수가 늘어 속상함.",
+        "history_of_present_illness": "잠을 잘 못 자는 문제가 최근 신경 쓰임. 누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨며, 아침에 개운하지 않고 낮에 집중이 안 되며 일할 때 실수가 늘어 속상함."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것이 신경 쓰임. 누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨며, 아침에 개운하지 않고 낮에 집중이 안 되며 일할 때 실수가 늘어 속상함.",
+        "history_of_present_illness": "잠을 잘 못 자는 문제가 최근 신경 쓰임. 누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨며, 아침에 개운하지 않고 낮에 집중이 안 되며 일할 때 실수가 늘어 속상함."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 10876.35351717472,
+      "timestamp": "2026-07-15T15:46:37.136180",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "음... 글쎄요. 사실 요즘 잠을 잘 못 자는 게 제일 신경 써요.  \n누우면 한 시간 정도 뒤척이고, 새벽에도 두세 번 깨니까 아침에 일어나도 개운한 느낌이 전혀 안 들어요.  \n그래서 그런지 낮에 집중도 잘 안 되고, 일할 때도 실수가 늘어서 좀 속상해요.",
+        "normalized": "음... 글쎄요. 사실 요즘 잠을 잘 못 자는 게 제일 신경 써요. 누우면 한 시간 정도 뒤척이고, 새벽에도 두세 번 깨니까 아침에 일어나도 개운한 느낌이 전혀 안 들어요. 그래서 그런지 낮에 집중도 잘 안 되고, 일할 때도 실수가 늘어서 좀 속상해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2179.1264661587775,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "잠을 잘 못 자는 게 제일 신경 써요. 누우면 한 시간 정도 뒤척이고, 새벽에도 두세 번 깨니까 아침에 일어나도 개운한 느낌이 전혀 안 들어요. 그래서 그런지 낮에 집중도 잘 안 되고, 일할 때도 실수가 늘어서 좀 속상해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "음... 글쎄요. 사실 요즘 잠을 잘 못 자는 게 제일 신경 써요. 누우면 한 시간 정도 뒤척이고, 새벽에도 두세 번 깨니까 아침에 일어나도 개운한 느낌이 전혀 안 들어요. 그래서 그런지 낮에 집중도 잘 안 되고, 일할 때도 실수가 늘어서 좀 속상해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠 못 자는 문제로 인해 낮에도 집중이 어렵고 실수가 늘어나 속상하시겠어요. 혹시 과거에 정신건강의학과 진료를 받아보신 적이 있거나, 심리상담을 받은 경험이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 문제",
+        "history_of_present_illness": "누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨며, 아침에 개운하지 않고 낮에 집중이 안 되어 실수가 늘음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 문제",
+        "history_of_present_illness": "누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨며, 아침에 개운하지 않고 낮에 집중이 안 되어 실수가 늘음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4366.39403225854,
+      "timestamp": "2026-07-15T15:46:41.502606",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "음... 글쎄요. 사실 요즘 잠을 잘 못 자는 게 제일 신경 써요.  \n누우면 한 시간 정도 뒤척이고, 새벽에도 두세 번 깨니까 아침에 일어나도 개운한 느낌이 전혀 안 들어요.  \n그래서 그런지 낮에 집중도 잘 안 되고, 일할 때도 실수가 늘어서 좀 속상해요.",
+        "normalized": "음... 글쎄요. 사실 요즘 잠을 잘 못 자는 게 제일 신경 써요. 누우면 한 시간 정도 뒤척이고, 새벽에도 두세 번 깨니까 아침에 일어나도 개운한 느낌이 전혀 안 들어요. 그래서 그런지 낮에 집중도 잘 안 되고, 일할 때도 실수가 늘어서 좀 속상해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2179.1264661587775,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "잠을 잘 못 자는 게 제일 신경 써요. 누우면 한 시간 정도 뒤척이고, 새벽에도 두세 번 깨니까 아침에 일어나도 개운한 느낌이 전혀 안 들어요. 그래서 그런지 낮에 집중도 잘 안 되고, 일할 때도 실수가 늘어서 좀 속상해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "아, 그런 건 처음이에요. 정신과를 가본 적도 없고, 상담 같은 것도 받아본 적 없어요.  \n그냥 요즘 회사에서 프로젝트 데드라인이 코앞이라 스트레스만 쌓인다 싶었죠.  \n근데 이게 그냥 스트레스인지, 아니면 좀 더 신경 써야 할 정도 싶은 생각이 들어서요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자는 게 제일 신경 써요",
+        "누우면 한 시간 정도 뒤척이고, 새벽에도 두세 번 깨니까",
+        "아침에 일어나도 개운한 느낌이 전혀 안 들어요",
+        "낮에 집중도 잘 안 되고, 일할 때도 실수가 늘어서"
+      ],
+      "agent_response": "스트레스 때문에 잠을 제대로 못 자고 낮에 집중이 잘 안 되시는 상황이군요. 혹시 기존에 진단받은 신체 질환이 있거나, 현재 복용 중인 약이 있으신가요? 아니면 최근에 새로 시작하거나 변경하신 약이 있으신지도 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 문제로 낮에 집중이 어렵고 실수가 늘어나 속상함",
+        "history_of_present_illness": "누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 일할 때 실수가 늘어남"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 문제로 낮에 집중이 어렵고 실수가 늘어나 속상함",
+        "history_of_present_illness": "누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 일할 때 실수가 늘어남"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4525.869551114738,
+      "timestamp": "2026-07-15T15:46:53.315959",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아, 그런 건 처음이에요. 정신과를 가본 적도 없고, 상담 같은 것도 받아본 적 없어요.  \n그냥 요즘 회사에서 프로젝트 데드라인이 코앞이라 스트레스만 쌓인다 싶었죠.  \n근데 이게 그냥 스트레스인지, 아니면 좀 더 신경 써야 할 정도 싶은 생각이 들어서요.",
+        "normalized": "아, 그런 건 처음이에요. 정신과를 가본 적도 없고, 상담 같은 것도 받아본 적 없어요.  \n그냥 요즘 회사에서 프로젝트 데드라인이 코앞이라 스트레스만 쌓인다 싶었죠.  \n근데 이게 그냥 스트레스인지, 아니면 좀 더 신경 써야 할 정도 싶은 생각이 들어서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3529.7844130545855,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.55,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "프로젝트 데드라인이 코앞이라 스트레스만 쌓인다 싶었죠",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "아니요, 딱히 복용 중인 약은 없어요. 건강검진 때도 특별히 문제 없다 했고, 평소에 약을 먹는 경우도 거의 없어요. 다만 요즘 카페인은 커피 대신 차 위주로 마시고 있어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "가족분들 중에 잠을 잘 못 자거나 집중력이 떨어지는 비슷한 어려움을 겪으신 분이 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 문제로 낮에 집중이 어렵고 실수가 늘어나 속상함",
+        "history_of_present_illness": "누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨며, 아침에 개운하지 않아 낮에 집중이 잘 안 되고 일할 때 실수가 늘어남"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 문제로 낮에 집중이 어렵고 실수가 늘어나 속상함",
+        "history_of_present_illness": "누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨며, 아침에 개운하지 않아 낮에 집중이 잘 안 되고 일할 때 실수가 늘어남"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3084.608356934041,
+      "timestamp": "2026-07-15T15:47:01.526472",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요, 딱히 복용 중인 약은 없어요.  \n건강검진 때도 특별히 문제 없다 했고, 평소에 약을 먹는 경우도 거의 없어요.  \n다만 요즘 카페인은 커피 대신 차 위주로 마시고 있어요.",
+        "normalized": "아니요, 딱히 복용 중인 약은 없어요. 건강검진 때도 특별히 문제 없다 했고, 평소에 약을 먹는 경우도 거의 없어요. 다만 요즘 카페인은 커피 대신 차 위주로 마시고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1461.3367500714958,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 딱히 복용 중인 약은 없어요. 건강검진 때도 특별히 문제 없다 했고, 평소에 약을 먹는 경우도 거의 없어요. 다만 요즘 카페인은 커피 대신 차 위주로 마시고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "글쎄요... 어머니는 가끔 잠 못 주무신다고는 하시는데, 저만큼은 아니에요.  \n저도 그런 걸 원래 잘 못 자는 편인가 싶었는데, 요즘은 너무 심해서 걱정이에요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자는 게 제일 신경 써요",
+        "누우면 한 시간 정도 뒤척이고, 새벽에도 두세 번 깨니까",
+        "아침에 일어나도 개운한 느낌이 전혀 안 들어요",
+        "낮에 집중도 잘 안 되고, 일할 때도 실수가 늘어서"
+      ],
+      "agent_response": "가족 중에 비슷한 수면 문제를 겪으신 분이 계셨군요. 혹시 최근에 특별히 스트레스를 많이 받으셨거나, 생활 패턴이 크게 변한 일이 있으신가요? 아니면 다른 신체적 증상이나 불편함이 함께 나타나지는 않았는지도 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 문제로 인해 낮에 집중이 어렵고 실수가 늘어나는 상황",
+        "history_of_present_illness": "누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨며, 아침에 개운하지 않고 낮에 집중이 잘 안 되어 업무 실수가 늘어남",
+        "family_history": "어머니가 가끔 잠을 잘 못 주무시지만 본인만큼은 아님",
+        "substance_use_history": "커피 대신 차 위주로 마시며 카페인 섭취"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 문제로 인해 낮에 집중이 어렵고 실수가 늘어나는 상황",
+        "history_of_present_illness": "누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨며, 아침에 개운하지 않고 낮에 집중이 잘 안 되어 업무 실수가 늘어남",
+        "family_history": "어머니가 가끔 잠을 잘 못 주무시지만 본인만큼은 아님",
+        "substance_use_history": "커피 대신 차 위주로 마시며 카페인 섭취"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 6480.471324175596,
+      "timestamp": "2026-07-15T15:47:13.341851",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {},
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "글쎄요... 어머니는 가끔 잠 못 주무신다고는 하시는데, 저만큼은 아니에요.  \n저도 그런 걸 원래 잘 못 자는 편인가 싶었는데, 요즘은 너무 심해서 걱정이에요.",
+        "normalized": "글쎄요... 어머니는 가끔 잠 못 주무신다고는 하시는데, 저만큼은 아니에요.  \n저도 그런 걸 원래 잘 못 자는 편인가 싶었는데, 요즘은 너무 심해서 걱정이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1886.4891100674868,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "어머니는 가끔 잠 못 주무신다고는 하시는데, 저만큼은 아니에요. 저도 그런 걸 원래 잘 못 자는 편인가 싶었는데, 요즘은 너무 심해서 걱정이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 들어서요. 아침을 자주 거르게 되고, 밥도 예전보다는 덜 먹게 되면서 체력이 떨어지는 기분이 들어서 더 힘드네요. 운동도 예전처럼은 못 하고 있어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠들기 전부터 마음이 조마조마해졌어요",
+        "어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌",
+        "아침을 자주 거르게 되고, 밥도 예전보다는 덜 먹게 되면서 체력이 떨어지는 기분",
+        "운동도 예전처럼은 못 하고 있어요"
+      ],
+      "agent_response": "힘든 상황을 혼자서 감당하시느라 몸과 마음이 많이 지치셨겠어요. 혹시 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 주변에 계신가요?",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "chief_complaint": "잠을 잘 못 자는 문제로 인해 낮에 집중이 어렵고 실수가 늘어나며, 프로젝트 데드라인 스트레스로 인해 잠들기 전부터 마음이 조마조마하고, 퇴근 후 어깨와 목 뻐근함, 가슴 답답함, 아침 거르기, 식욕 감소, 체력 저하, 운동 감소 등의 증상이 동반됨",
+        "history_of_present_illness": "최근 대규모 프로젝트 진행으로 인해 잠들기 전부터 마음이 조마조마해졌으며, 누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨는 수면 장애가 발생함. 이로 인해 아침에 개운하지 못하고 낮에 집중이 잘 안 되며 일할 때 실수가 늘어남. 퇴근 후 어깨와 목이 뻐근하고 가끔 가슴이 답답한 느낌이 들며, 아침을 자주 거르고 식욕이 감소하여 체력이 떨어지고 운동도 예전처럼 하지 못함",
+        "family_history": "어머니가 가끔 잠을 잘 못 주무시는 편이나, 환자 본인보다는 증상이 덜 심함",
+        "substance_use_history": "커피 대신 차 위주로 마시고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 문제로 인해 낮에 집중이 어렵고 실수가 늘어나며, 프로젝트 데드라인 스트레스로 인해 잠들기 전부터 마음이 조마조마하고, 퇴근 후 어깨와 목 뻐근함, 가슴 답답함, 아침 거르기, 식욕 감소, 체력 저하, 운동 감소 등의 증상이 동반됨",
+        "history_of_present_illness": "최근 대규모 프로젝트 진행으로 인해 잠들기 전부터 마음이 조마조마해졌으며, 누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨는 수면 장애가 발생함. 이로 인해 아침에 개운하지 못하고 낮에 집중이 잘 안 되며 일할 때 실수가 늘어남. 퇴근 후 어깨와 목이 뻐근하고 가끔 가슴이 답답한 느낌이 들며, 아침을 자주 거르고 식욕이 감소하여 체력이 떨어지고 운동도 예전처럼 하지 못함",
+        "family_history": "어머니가 가끔 잠을 잘 못 주무시는 편이나, 환자 본인보다는 증상이 덜 심함",
+        "substance_use_history": "커피 대신 차 위주로 마시고 있음",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6258.388438727707,
+      "timestamp": "2026-07-15T15:47:26.337032",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요.  \n퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 들어서요.  \n아침을 자주 거르게 되고, 밥도 예전보다는 덜 먹게 되면서 체력이 떨어지는 기분이 들어서 더 힘드네요.  \n운동도 예전처럼은 못 하고 있어요.",
+        "normalized": "회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 들어서요. 아침을 자주 거르게 되고, 밥도 예전보다는 덜 먹게 되면서 체력이 떨어지는 기분이 들어서 더 힘드네요. 운동도 예전처럼은 못 하고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1896.388839930296,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "despair",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 들어서요. 아침을 자주 거르게 되고, 밥도 예전보다는 덜 먹게 되면서 체력이 떨어지는 기분이 들어서 더 힘드네요. 운동도 예전처럼은 못 하고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "음... 글쎄요. 직장 동료 중에 몇 명은 편하게 이야기 나누긴 하는데, 이런 감정까지 털어놓을 정도는 아니에요. 어머니하고는 주에 두 번 정도 통화하는데, 요즘은 제가 좀 힘들다고는 말 안 했어요. 그냥 \"피곤하다\" 정도만 말씀드렸죠. 근데 진짜로 혼자 감당하려다 보니 더 무거워지는 것 같아요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠들기 전부터 마음이 조마조마",
+        "가슴이 답답한 느낌",
+        "체력이 떨어지는 기분",
+        "혼자 감당하려다 보니 더 무거워지는 것"
+      ],
+      "agent_response": "혼자 감당하려다 보니 더 무거워지는 것 같아 참 힘드시겠어요. 혹시 최근에 극단적인 생각이나 자해 충동이 생기신 적은 있으신가요? 아니면 그런 감정이 밀려올 때 어떤 식으로 대처하려고 노력하셨는지도 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 문제로 인해 낮에 집중이 어렵고 실수가 늘어나 속상함",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행으로 인해 잠들기 전부터 마음이 조마조마해지고, 퇴근 후에도 어깨와 목이 뻐근하며 가슴이 답답한 느낌이 있음. 아침을 자주 거르고 식욕이 감소하여 체력이 떨어지며, 예전처럼 운동을 하지 못함. 이로 인해 수면 장애가 심해져 누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨며 아침에 개운하지 않음",
+        "family_history": "어머니는 가끔 잠 못 주무시지만 본인만큼은 아님"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 문제로 인해 낮에 집중이 어렵고 실수가 늘어나 속상함",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행으로 인해 잠들기 전부터 마음이 조마조마해지고, 퇴근 후에도 어깨와 목이 뻐근하며 가슴이 답답한 느낌이 있음. 아침을 자주 거르고 식욕이 감소하여 체력이 떨어지며, 예전처럼 운동을 하지 못함. 이로 인해 수면 장애가 심해져 누우면 한 시간 정도 뒤척이고 새벽에도 두세 번 깨며 아침에 개운하지 않음",
+        "family_history": "어머니는 가끔 잠 못 주무시지만 본인만큼은 아님",
+        "substance_use_history": "커피 대신 차 위주로 마시고 있음",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 7284.412312321365,
+      "timestamp": "2026-07-15T15:47:40.433851",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "음... 글쎄요.  \n직장 동료 중에 몇 명은 편하게 이야기 나누긴 하는데, 이런 감정까지 털어놓을 정도는 아니에요.  \n어머니하고는 주에 두 번 정도 통화하는데, 요즘은 제가 좀 힘들다고는 말 안 했어요.  \n그냥 \"피곤하다\" 정도만 말씀드렸죠.  \n근데 진짜로 혼자 감당하려다 보니 더 무거워지는 것 같아요.",
+        "normalized": "음... 글쎄요. 직장 동료 중에 몇 명은 편하게 이야기 나누긴 하는데, 이런 감정까지 털어놓을 정도는 아니에요. 어머니하고는 주에 두 번 정도 통화하는데, 요즘은 제가 좀 힘들다고는 말 안 했어요. 그냥 \"피곤하다\" 정도만 말씀드렸죠. 근데 진짜로 혼자 감당하려다 보니 더 무거워지는 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1698.763356078416,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "진짜로 혼자 감당하려다 보니 더 무거워지는 것 같아요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "near_dup_back_to_back",
+        "presence_missing"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2006.5253200009465,
+      "dialogue_crisis_adjacent": true,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "힘든 상황을 혼자서 감당하시느라 몸과 마음이 많이 지치셨겠어요",
+          "count": 1
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "그런 생각은 전혀 없어요. 아, 그런 건 없고요. 그냥 힘들다는 생각이 계속 들고, 무기력해서 아무것도 하고 싶지 않은 정도예요. 혼자 감정을 다 안고 있으려다 보니 더 복잡해지는 것 같기도 하고요. 그래서 요즘 앱으로라도 한번 말을 꺼내보려는 거예요. 아직 잘 모르겠지만, 이렇게라도 정리해보는 게 도움이 될 것 같아서요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "힘든 감정을 혼자 안고 있으려다 보니 더 복잡해지시는 상황이군요. 혹시 최근에 잠을 제대로 못 자거나 집중이 흐트러지는 증상이 나타나기 전에 특별히 겪은 사건이나 변화가 있으신가요? 아니면 다른 신체적 증상이나 불편함이 함께 나타나지는 않았는지도 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 문제로 인해 낮에 집중이 어렵고 실수가 늘어나 속상함",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행으로 인한 스트레스 시작 이후 잠들기 전 조마조마함, 새벽 2-3회 깨는 수면 장애, 낮 시간 집중력 저하 및 실수 증가, 어깨와 목 뻐근함, 가슴 답답함, 아침 거르기 및 식욕 감소, 체력 저하, 운동 감소",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 문제로 인해 낮에 집중이 어렵고 실수가 늘어나 속상함",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행으로 인한 스트레스 시작 이후 잠들기 전 조마조마함, 새벽 2-3회 깨는 수면 장애, 낮 시간 집중력 저하 및 실수 증가, 어깨와 목 뻐근함, 가슴 답답함, 아침 거르기 및 식욕 감소, 체력 저하, 운동 감소",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4982.499571051449,
+      "timestamp": "2026-07-15T15:47:51.062462",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "그런 생각은 전혀 없어요.  \n아, 그런 건 없고요. 그냥 힘들다는 생각이 계속 들고, 무기력해서 아무것도 하고 싶지 않은 정도예요.  \n혼자 감정을 다 안고 있으려다 보니 더 복잡해지는 것 같기도 하고요.  \n그래서 요즘 앱으로라도 한번 말을 꺼내보려는 거예요.  \n아직 잘 모르겠지만, 이렇게라도 정리해보는 게 도움이 될 것 같아서요.",
+        "normalized": "그런 생각은 전혀 없어요. 아, 그런 건 없고요. 그냥 힘들다는 생각이 계속 들고, 무기력해서 아무것도 하고 싶지 않은 정도예요. 혼자 감정을 다 안고 있으려다 보니 더 복잡해지는 것 같기도 하고요. 그래서 요즘 앱으로라도 한번 말을 꺼내보려는 거예요. 아직 잘 모르겠지만, 이렇게라도 정리해보는 게 도움이 될 것 같아서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1737.1305441483855,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.8
+          },
+          {
+            "label": "despair",
+            "intensity": 0.7
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "힘들다는 생각이 계속 들고, 무기력해서 아무것도 하고 싶지 않은 정도예요. 혼자 감정을 다 안고 있으려다 보니 더 복잡해지는 것 같기도 하고요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 8,
+      "patient_message": "회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 들어서요. 아침을 자주 거르게 되고, 밥도 예전보다는 덜 먹게 되면서 체력이 떨어지는 기분이 들어서 더 힘드네요. 운동도 예전처럼은 못 하고 있어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "회사에서 대규모 프로젝트를 시작하면서부터 잠들기 전부터 마음이 조마조마해지고, 새벽에도 2-3번 깨며 아침에 개운하지 않고, 낮에 집중이 잘 안 되고 실수가 늘어나 속상하시겠어요. 혹시 과거에 정신건강의학과 진료를 받아보신 적이 있거나, 심리상담을 받은 경험이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 문제로 인해 낮에 집중이 어렵고 실수가 늘어나 속상함",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽에도 2-3번 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 일할 때 실수가 늘어남. 어깨와 목 뻐근함, 가슴 답답함, 아침 거르기, 식사량 감소, 체력 저하, 운동 감소 등의 신체적 증상 동반"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 문제로 인해 낮에 집중이 어렵고 실수가 늘어나 속상함",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽에도 2-3번 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 일할 때 실수가 늘어남. 어깨와 목 뻐근함, 가슴 답답함, 아침 거르기, 식사량 감소, 체력 저하, 운동 감소 등의 신체적 증상 동반",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4276.737759355456,
+      "timestamp": "2026-07-15T15:48:01.561860",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요.  \n퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 들어서요.  \n아침을 자주 거르게 되고, 밥도 예전보다는 덜 먹게 되면서 체력이 떨어지는 기분이 들어서 더 힘드네요.  \n운동도 예전처럼은 못 하고 있어요.",
+        "normalized": "회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 들어서요. 아침을 자주 거르게 되고, 밥도 예전보다는 덜 먹게 되면서 체력이 떨어지는 기분이 들어서 더 힘드네요. 운동도 예전처럼은 못 하고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1879.5123156160116,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "despair",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 들어서요. 아침을 자주 거르게 되고, 밥도 예전보다는 덜 먹게 되면서 체력이 떨어지는 기분이 들어서 더 힘드네요. 운동도 예전처럼은 못 하고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 그런 건 처음이에요. 정신과를 가본 적도 없고, 상담 같은 것도 받아본 적 없어요.  \n그냥 요즘 회사에서 프로젝트 데드라인이 코앞이라 스트레스만 쌓인다 싶었죠.  \n근데 이게 그냥 스트레스인지, 아니면 좀 더 신경 써야 할 정도 싶은 생각이 들어서요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠들기 전부터 마음이 조마조마해졌어요",
+        "새벽에도 2-3번 깨며 아침에 개운하지 않고",
+        "낮에 집중이 잘 안 되고 실수가 늘어나 속상하시겠어요"
+      ],
+      "agent_response": "잠 못 자는 문제로 인해 낮에도 집중이 어렵고 실수가 늘어나 속상하시겠어요. 혹시 과거에 정신건강의학과 진료를 받아보신 적이 있거나, 심리상담을 받은 경험이 있으신가요? 또한 기존에 진단받은 신체 질환이 있거나, 현재 복용 중인 약이 있으신지, 아니면 최근에 새로 시작하거나 변경하신 약이 있으신지도 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "잠들기 전부터 마음이 조마조마하고 새벽 2-3회 깨며 아침에 개운하지 않고 낮에 집중이 잘 안 되어 실수가 늘어나는 수면 문제",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 수면 장애 발생: 잠들기 전 불안, 새벽 2-3회 각성, 아침 피로감, 낮 집중력 저하 및 업무 실수 증가, 식욕 감소 및 아침 결식, 체력 저하, 운동 감소"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 전부터 마음이 조마조마하고 새벽 2-3회 깨며 아침에 개운하지 않고 낮에 집중이 잘 안 되어 실수가 늘어나는 수면 문제",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 수면 장애 발생: 잠들기 전 불안, 새벽 2-3회 각성, 아침 피로감, 낮 집중력 저하 및 업무 실수 증가, 식욕 감소 및 아침 결식, 체력 저하, 운동 감소",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6935.4543052613735,
+      "timestamp": "2026-07-15T15:48:17.016911",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 처음이에요. 정신과를 가본 적도 없고, 상담 같은 것도 받아본 적 없어요.  \n그냥 요즘 회사에서 프로젝트 데드라인이 코앞이라 스트레스만 쌓인다 싶었죠.  \n근데 이게 그냥 스트레스인지, 아니면 좀 더 신경 써야 할 정도 싶은 생각이 들어서요.",
+        "normalized": "아니요, 그런 건 처음이에요. 정신과를 가본 적도 없고, 상담 같은 것도 받아본 적 없어요.  \n그냥 요즘 회사에서 프로젝트 데드라인이 코앞이라 스트레스만 쌓인다 싶었죠.  \n근데 이게 그냥 스트레스인지, 아니면 좀 더 신경 써야 할 정도 싶은 생각이 들어서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3462.7166870050132,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "잠들기 전부터 마음이 조마조마해지고, 새벽에도 2-3번 깨며 아침에 개운하지 않고, 낮에 집중이 잘 안 되고 실수가 늘어나 속상하시겠어요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1150.5508529953659,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 딱히 복용 중인 약은 없어요. 건강검진 때도 특별히 문제 없다 했고, 평소에 약을 먹는 경우도 거의 없어요. 다만 요즘 카페인은 커피 대신 차 위주로 마시고 있어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠들기 전부터 마음이 조마조마해졌어요",
+        "새벽에도 2-3번 깨며 아침에 개운하지 않고",
+        "낮에 집중이 잘 안 되고 실수가 늘어나 속상하시겠어요"
+      ],
+      "agent_response": "잠 못 자는 문제로 인해 낮에도 집중이 어렵고 실수가 늘어나 속상하시겠어요. 혹시 과거에 정신과적 진단을 받으신 적이 있거나, 심리상담을 받으신 경험이 있으신가요? 또한 최근에 새로 시작하거나 변경하신 약이 있으신지, 아니면 현재 복용 중인 약이 있으신지도 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "잠 못 자는 문제로 인해 낮에도 집중이 어렵고 실수가 늘어나 속상함",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠 못 자는 문제로 인해 낮에도 집중이 어렵고 실수가 늘어나 속상함",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6377.689965069294,
+      "timestamp": "2026-07-15T15:48:28.417814",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아니요, 딱히 복용 중인 약은 없어요.  \n건강검진 때도 특별히 문제 없다 했고, 평소에 약을 먹는 경우도 거의 없어요.  \n다만 요즘 카페인은 커피 대신 차 위주로 마시고 있어요.",
+        "normalized": "아니요, 딱히 복용 중인 약은 없어요. 건강검진 때도 특별히 문제 없다 했고, 평소에 약을 먹는 경우도 거의 없어요. 다만 요즘 카페인은 커피 대신 차 위주로 마시고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1607.1618972346187,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 딱히 복용 중인 약은 없어요. 건강검진 때도 특별히 문제 없다 했고, 평소에 약을 먹는 경우도 거의 없어요. 다만 요즘 카페인은 커피 대신 차 위주로 마시고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1170.991766732186,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-15T15:46:26.259801",
+  "ended_at": "2026-07-15T15:48:37.152124",
+  "grounded_coverage": 0.625,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 4,
+      "forced": false
+    },
+    {
+      "type": "si_screen_result",
+      "turn": 5,
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+    }
+  ],
+  "session_ctrs": 3,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5807,
+  "patient_lng": 126.8898,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.1425822265446186,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.39,
+      "anxiety": 0.3,
+      "despair": 0.17,
+      "neutral": 0.13
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.65
+      },
+      {
+        "turn": 1,
+        "polarity": -0.65
+      },
+      {
+        "turn": 2,
+        "polarity": -0.55
+      },
+      {
+        "turn": 3,
+        "polarity": 0.0
+      },
+      {
+        "turn": 4,
+        "polarity": -0.65
+      },
+      {
+        "turn": 5,
+        "polarity": -0.75
+      },
+      {
+        "turn": 6,
+        "polarity": -0.65
+      },
+      {
+        "turn": 7,
+        "polarity": -0.65
+      },
+      {
+        "turn": 8,
+        "polarity": -0.75
+      },
+      {
+        "turn": 9,
+        "polarity": -0.65
+      },
+      {
+        "turn": 10,
+        "polarity": 0.0
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 9회 반복",
+      "anxiety 표현 7회 반복",
+      "despair 표현 4회 반복",
+      "neutral 표현 3회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.55
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "anxiety",
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "sadness",
+          "despair",
+          "neutral"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "anxiety",
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      }
+    ]
+  },
+  "phr_summary": {},
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-15",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": null,
+  "carried_slot_provenance": {},
+  "scenario_pack_id": "VP-001_improvement_plateau_s01",
+  "arc_mode": "improvement_plateau"
+}
