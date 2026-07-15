@@ -257,8 +257,14 @@ class DialogueAgent(BaseAgent):
                     "직접 위기 상담을 하지 말고, 따뜻하게 경청하세요.]"
                 )
 
-        # 4. Build messages — slot context(지시) → safety → base prompt
+        # 4. Build messages — PHR history(사전 인지) → slot context(지시)
+        #                    → base prompt → safety
         full_system = ""
+        # 환자 PHR 요약이 있으면 dialogue system prompt 맨 앞에 삽입해
+        # LLM이 대화 시작 전부터 병력·복약을 인지한 상태로 응답하게 한다.
+        history_ctx = (inp.patient_history_context or "").strip()
+        if history_ctx:
+            full_system += history_ctx + "\n\n---\n\n"
         if slot_context:
             full_system += slot_context + "\n\n---\n\n"
         full_system += system_prompt

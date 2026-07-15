@@ -1,0 +1,515 @@
+{
+  "publicData": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "10000000",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+          ]
+        },
+        "identifier": [
+          {
+            "type": {
+              "coding": [
+                {
+                  "system": "http://myhealthway.go.kr(가칭)",
+                  "code": "MHID"
+                }
+              ]
+            },
+            "system": "미정",
+            "value": "20530001"
+          },
+          {
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                  "code": "NNKOR"
+                }
+              ]
+            },
+            "system": "http://mois.go.kr/rnn",
+            "value": "0004293******"
+          }
+        ],
+        "name": [
+          {
+            "text": "김서연"
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "MedicationDispense",
+        "id": "m001-1",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicMedicationDispense"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "리소스식별자(미정)",
+            "value": "m001-1"
+          }
+        ],
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "m001-1-org",
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "미정",
+                    "code": "미정",
+                    "display": "약국"
+                  }
+                ],
+                "text": "약국"
+              }
+            ],
+            "name": "상암약국",
+            "address": [
+              {
+                "text": "서울특별시 마포구 상암로"
+              }
+            ]
+          }
+        ],
+        "status": "completed",
+        "medicationReference": {
+          "reference": "Medication/m001-1-m",
+          "resource": {
+            "resourceType": "Medication",
+            "id": "m001-1-m",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicMedication"
+              ]
+            },
+            "code": {
+              "coding": [
+                {
+                  "system": "https://biz.kpis.or.kr/CodeSystem/kdcode",
+                  "code": "643700350",
+                  "display": "아세트아미노펜정500mg"
+                }
+              ],
+              "text": "아세트아미노펜정500mg"
+            },
+            "ingredient": [
+              {
+                "itemReference": {
+                  "reference": "Substance/m001-1-s",
+                  "resource": {
+                    "resourceType": "Substance",
+                    "id": "m001-1-s",
+                    "code": {
+                      "coding": [
+                        {
+                          "system": "https://www.hira.or.kr",
+                          "code": "101408ATB",
+                          "display": "acetaminophen"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "subject": {
+          "reference": "Patient/10000000",
+          "resource": {
+            "resourceType": "Patient",
+            "id": "10000000",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+              ]
+            },
+            "identifier": [
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://myhealthway.go.kr(가칭)",
+                      "code": "MHID"
+                    }
+                  ]
+                },
+                "system": "미정",
+                "value": "20530001"
+              },
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                      "code": "NNKOR"
+                    }
+                  ]
+                },
+                "system": "http://mois.go.kr/rnn",
+                "value": "0004293******"
+              }
+            ],
+            "name": [
+              {
+                "text": "김서연"
+              }
+            ]
+          }
+        },
+        "whenPrepared": "2026-04-12",
+        "daysSupply": {
+          "value": 3,
+          "unit": "일",
+          "system": "http://unitsofmeasure.org",
+          "code": "d"
+        },
+        "dosageInstruction": [
+          {
+            "text": "1정 3회/일 3일",
+            "timing": {
+              "repeat": {
+                "frequency": 3,
+                "period": 1,
+                "periodUnit": "d"
+              }
+            },
+            "doseAndRate": [
+              {
+                "doseQuantity": {
+                  "value": 1.0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "MedicationDispense",
+        "id": "m001-2",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicMedicationDispense"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "리소스식별자(미정)",
+            "value": "m001-2"
+          }
+        ],
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "m001-2-org",
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "미정",
+                    "code": "미정",
+                    "display": "약국"
+                  }
+                ],
+                "text": "약국"
+              }
+            ],
+            "name": "상암약국",
+            "address": [
+              {
+                "text": "서울특별시 마포구 상암로"
+              }
+            ]
+          }
+        ],
+        "status": "completed",
+        "medicationReference": {
+          "reference": "Medication/m001-2-m",
+          "resource": {
+            "resourceType": "Medication",
+            "id": "m001-2-m",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicMedication"
+              ]
+            },
+            "code": {
+              "coding": [
+                {
+                  "system": "https://biz.kpis.or.kr/CodeSystem/kdcode",
+                  "code": "649600070",
+                  "display": "가스모틴정5mg (모사프리드)"
+                }
+              ],
+              "text": "가스모틴정5mg (모사프리드)"
+            },
+            "ingredient": [
+              {
+                "itemReference": {
+                  "reference": "Substance/m001-2-s",
+                  "resource": {
+                    "resourceType": "Substance",
+                    "id": "m001-2-s",
+                    "code": {
+                      "coding": [
+                        {
+                          "system": "https://www.hira.or.kr",
+                          "code": "421001ATB",
+                          "display": "mosapride"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "subject": {
+          "reference": "Patient/10000000",
+          "resource": {
+            "resourceType": "Patient",
+            "id": "10000000",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+              ]
+            },
+            "identifier": [
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://myhealthway.go.kr(가칭)",
+                      "code": "MHID"
+                    }
+                  ]
+                },
+                "system": "미정",
+                "value": "20530001"
+              },
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                      "code": "NNKOR"
+                    }
+                  ]
+                },
+                "system": "http://mois.go.kr/rnn",
+                "value": "0004293******"
+              }
+            ],
+            "name": [
+              {
+                "text": "김서연"
+              }
+            ]
+          }
+        },
+        "whenPrepared": "2026-04-12",
+        "daysSupply": {
+          "value": 7,
+          "unit": "일",
+          "system": "http://unitsofmeasure.org",
+          "code": "d"
+        },
+        "dosageInstruction": [
+          {
+            "text": "1정 3회/일 7일",
+            "timing": {
+              "repeat": {
+                "frequency": 3,
+                "period": 1,
+                "periodUnit": "d"
+              }
+            },
+            "doseAndRate": [
+              {
+                "doseQuantity": {
+                  "value": 1.0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "MedicationDispense",
+        "id": "m001-3",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicMedicationDispense"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "리소스식별자(미정)",
+            "value": "m001-3"
+          }
+        ],
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "m001-3-org",
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "미정",
+                    "code": "미정",
+                    "display": "약국"
+                  }
+                ],
+                "text": "약국"
+              }
+            ],
+            "name": "홍제약국",
+            "address": [
+              {
+                "text": "서울특별시 마포구 홍제천로"
+              }
+            ]
+          }
+        ],
+        "status": "completed",
+        "medicationReference": {
+          "reference": "Medication/m001-3-m",
+          "resource": {
+            "resourceType": "Medication",
+            "id": "m001-3-m",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicMedication"
+              ]
+            },
+            "code": {
+              "coding": [
+                {
+                  "system": "https://biz.kpis.or.kr/CodeSystem/kdcode",
+                  "code": "643103180",
+                  "display": "테라마이신연고 (옥시테트라사이클린)"
+                }
+              ],
+              "text": "테라마이신연고 (옥시테트라사이클린)"
+            },
+            "ingredient": [
+              {
+                "itemReference": {
+                  "reference": "Substance/m001-3-s",
+                  "resource": {
+                    "resourceType": "Substance",
+                    "id": "m001-3-s",
+                    "code": {
+                      "coding": [
+                        {
+                          "system": "https://www.hira.or.kr",
+                          "code": "207404COO",
+                          "display": "oxytetracycline"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "subject": {
+          "reference": "Patient/10000000",
+          "resource": {
+            "resourceType": "Patient",
+            "id": "10000000",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+              ]
+            },
+            "identifier": [
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://myhealthway.go.kr(가칭)",
+                      "code": "MHID"
+                    }
+                  ]
+                },
+                "system": "미정",
+                "value": "20530001"
+              },
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                      "code": "NNKOR"
+                    }
+                  ]
+                },
+                "system": "http://mois.go.kr/rnn",
+                "value": "0004293******"
+              }
+            ],
+            "name": [
+              {
+                "text": "김서연"
+              }
+            ]
+          }
+        },
+        "whenPrepared": "2026-05-20",
+        "daysSupply": {
+          "value": 5,
+          "unit": "일",
+          "system": "http://unitsofmeasure.org",
+          "code": "d"
+        },
+        "dosageInstruction": [
+          {
+            "text": "국소 1회 2회/일 5일",
+            "timing": {
+              "repeat": {
+                "frequency": 2,
+                "period": 1,
+                "periodUnit": "d"
+              }
+            },
+            "doseAndRate": [
+              {
+                "doseQuantity": {
+                  "value": 1.0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "medicalData": [],
+  "healthData": {
+    "stepCount": [],
+    "stepDistance": [],
+    "energyBurned": [],
+    "sleep": [],
+    "bloodGlucose": [],
+    "weight": [],
+    "bloodPressure": []
+  }
+}
