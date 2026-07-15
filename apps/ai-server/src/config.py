@@ -111,6 +111,14 @@ class Settings(BaseSettings):
             "getDgsbjtInfo2.8 endpoint 사용. 활용신청 승인 필요 (승인 전 403)."
         ),
     )
+    hira_drug_efficacy_service_url: str = Field(
+        default="https://apis.data.go.kr/B551182/msupCmpnMeftInfoService",
+        description=(
+            "HIRA 의약품성분약효정보조회서비스 — 일반명코드(gnlNmCd)로 약효분류번호"
+            "(meftDivNo)·분류명(divNm) 조회. getMajorCmpnNmCdList endpoint. "
+            "정신과 약물 판정의 authoritative 소스 (하드코딩 카탈로그 대체)."
+        ),
+    )
 
     # ── Kakao (좌표 보정 · 지도 SDK) ────────────────────────────────────
     # .env에서 KAKAO_REST_KEY_ENCODED / KAKAO_JS_KEY_ENCODED 로 저장한

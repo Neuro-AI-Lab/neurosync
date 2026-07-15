@@ -16,7 +16,7 @@ export default function Index() {
     );
   }
   if (status === "authenticated") {
-    return <Redirect href="/(patient)/home" />;
+    return <Redirect href="/(patient)/(tabs)/home" />;
   }
   // First-ever launch (anonymous + never seen intro) → onboarding.
   if (seenOnboarding === false) {

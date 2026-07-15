@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors, fontSize, radius, spacing } from "../lib/tokens";
+import { colors } from "../lib/tokens";
 
 export type MessageBubbleProps = {
   role: "user" | "ai";
@@ -10,64 +10,48 @@ export type MessageBubbleProps = {
 
 export function MessageBubble({ role, content, safetyLevel }: MessageBubbleProps) {
   const isUser = role === "user";
+  const flagged = safetyLevel && safetyLevel !== "low";
   return (
-    <View style={[styles.row, isUser ? styles.rowRight : styles.rowLeft]}>
+    <View style={isUser ? styles.rowRight : styles.rowLeft}>
       <View
-        style={[
-          styles.bubble,
-          isUser ? styles.bubbleUser : styles.bubbleAi,
-        ]}
+        style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAi]}
         accessibilityRole="text"
         accessibilityLabel={`${isUser ? "내 메시지" : "AI 메시지"}: ${content}`}
       >
-        <Text
-          style={[
-            styles.content,
-            { color: isUser ? "#FFFFFF" : colors.textPrimary },
-          ]}
-        >
+        <Text style={[styles.content, { color: isUser ? colors.onInk : colors.ink }]}>
           {content}
         </Text>
-        {safetyLevel && safetyLevel !== "low" ? (
-          <Text style={styles.meta}>
-            safety: {safetyLevel}
-          </Text>
-        ) : null}
       </View>
+      {flagged ? <Text style={styles.meta}>안전 확인 · {safetyLevel}</Text> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    paddingHorizontal: spacing.md,
-    marginVertical: spacing.xs,
-  },
-  rowLeft: { justifyContent: "flex-start" },
-  rowRight: { justifyContent: "flex-end" },
+  rowLeft: { alignItems: "flex-start", marginVertical: 4 },
+  rowRight: { alignItems: "flex-end", marginVertical: 4 },
   bubble: {
-    maxWidth: "80%",
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    gap: 2,
+    maxWidth: "82%",
+    borderRadius: 18,
+    paddingHorizontal: 13,
+    paddingVertical: 10,
   },
   bubbleUser: {
-    backgroundColor: colors.stateInfo,
-    borderBottomRightRadius: 2,
+    backgroundColor: colors.ink,
+    borderBottomRightRadius: 5,
   },
   bubbleAi: {
-    backgroundColor: colors.surfaceElevated,
-    borderBottomLeftRadius: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.fill,
+    borderBottomLeftRadius: 5,
   },
   content: {
-    fontSize: fontSize.bodyLg,
+    fontSize: 14,
+    lineHeight: 20,
   },
   meta: {
-    fontSize: fontSize.caption,
-    color: colors.textSecondary,
+    fontSize: 10.5,
+    color: colors.faint,
+    marginTop: 3,
+    marginHorizontal: 3,
   },
 });
