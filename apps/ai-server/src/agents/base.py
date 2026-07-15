@@ -26,6 +26,15 @@ class AgentOutput(BaseModel):
         default="",
         description="One-line policy reason for this output (never raw CoT)",
     )
+    prompts_degraded: bool = Field(
+        default=False,
+        description=(
+            "BUG-021: True when this agent's system prompt failed to load "
+            "from PROMPTS_BASE_DIR and a hardcoded generic fallback prompt "
+            "was used instead — makes a degraded run machine-visible in its "
+            "artifacts instead of only a WARNING log line."
+        ),
+    )
 
 
 class BaseAgent(abc.ABC):

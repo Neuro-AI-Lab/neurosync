@@ -1,0 +1,191 @@
+[
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-11",
+    "is_revisit": false,
+    "final_slots": {
+      "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+      "history_of_present_illness": "매일 새벽 3시에 깨어 천장만 보며 다시 잠들지 못함. 술 없이는 버틸 수 없다고 표현함. '뭘 해도 안 될 것 같다'는 절망감 표현",
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"형이 있는데... 연락 안 해요. 짐이 되기 싫어서. ...도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 처음이에요. 정신과... 가본 적 없어요.\"",
+      "family_history": "형이 있으나 연락 없음"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "substance_use_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v3"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260711_222625_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260711_222635_domain_inference.json",
+    "written_at": "2026-07-11T22:26:35.163827"
+  },
+  {
+    "session_index": 2,
+    "simulated_date": "2026-07-25",
+    "is_revisit": true,
+    "final_slots": {
+      "chief_complaint": "살고 싶지 않고 사라지고 싶다는 생각이 매일 반복됨",
+      "history_of_present_illness": "살고 싶지 않음, 너무 힘듦",
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요. 수면제나 그런 건... 몰라요. 카페인은 별로 안 마셔요. 술은 매일 마셔요. 안 마시면 못 버텨요. ... (침묵 4초) 도움이 되나...\"; 구체적 계획/의도 부인 — 환자 발화: \"아니요. 구체적으로는... 생각해 본 적 없어요. 그냥 사라지고 싶은 거예요. ... (침묵 3초) 술 없이는 못 버텨요.\"",
+      "family_history": "형이 있으나 연락 없음",
+      "substance_use_history": "술은 매일 마시며, 안 마시면 못 버틴다고 표현함",
+      "medical_history": "고혈압은 있으나 약은 안 먹음"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "personal_social_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v3"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260711_222843_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260711_222853_domain_inference.json",
+    "written_at": "2026-07-11T22:28:53.902063"
+  },
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-12",
+    "is_revisit": false,
+    "final_slots": {
+      "chief_complaint": "살고 싶지 않다, 매일 그런 생각이 든다",
+      "history_of_present_illness": "매일 사라지고 싶다는 생각이 반복되며, 형이 짐이 될까 봐 연락도 하지 않고 있다",
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"... 형이 있긴 한데, 연락 안 해요. 짐이 되기 싫어서. 도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"생각 안 했어요. 어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.\"",
+      "family_history": "형이 있으나 연락하지 않음"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "substance_use_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_095027_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_095033_domain_inference.json",
+    "written_at": "2026-07-12T09:50:33.893647"
+  },
+  {
+    "session_index": 2,
+    "simulated_date": "2026-07-26",
+    "is_revisit": true,
+    "final_slots": {
+      "chief_complaint": "사라지고 싶은 마음이 더 커요",
+      "history_of_present_illness": "사라지고 싶은 마음이 더 커요",
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"... 형이 있긴 한데, 연락 안 해요. 짐이 되기 싫어서. 도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"생각 안 했어요. 어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.\"",
+      "family_history": "형이 있으나 연락하지 않음"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "substance_use_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_095056_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_095111_domain_inference.json",
+    "written_at": "2026-07-12T09:51:11.927826"
+  },
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-12",
+    "is_revisit": false,
+    "final_slots": {
+      "chief_complaint": "회사에서 잘린 후 모든 게 무너졌고 이혼도 내 탓인 것 같아 힘들어요",
+      "history_of_present_illness": "15년 다닌 회사에서 구조조정으로 해고된 후 모든 것이 무너졌고 이혼도 자신의 탓으로 생각하며 살고 싶지 않은 생각이 거의 매일 하루 종일 지속됨",
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"형이... 있긴 한데... 연락 안 해요. 짐이 되기 싫어서. ... 도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"구체적으로는... 생각 안 했어요. 그냥 사라지고 싶은 거예요. 어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.\""
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "family_history",
+      "substance_use_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_142022_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_142040_domain_inference.json",
+    "written_at": "2026-07-12T14:20:40.548270"
+  },
+  {
+    "session_index": 2,
+    "simulated_date": "2026-07-26",
+    "is_revisit": true,
+    "final_slots": {
+      "chief_complaint": "회사에서 잘린 후 모든 게 무너졌고 이혼도 내 탓인 것 같아 힘들어요",
+      "history_of_present_illness": "살아가는 의미가 없고 사라지고 싶은 생각이 지속됨",
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"형이 있긴 한데... 연락 안 해요. 짐이 되기 싫어서. 도움이 되나요? 뭘 해도 안 될 것 같은데.\"; 구체적 계획/의도 부인 — 환자 발화: \"...어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.\""
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "family_history",
+      "substance_use_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_142223_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_142242_domain_inference.json",
+    "written_at": "2026-07-12T14:22:42.078091"
+  },
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-12",
+    "is_revisit": false,
+    "final_slots": {
+      "chief_complaint": "살고 싶지 않고 사라지고 싶은 생각이 매일 들며, 죄책감과 의미 없음으로 인해 힘들다고 표현함",
+      "history_of_present_illness": "매일 사라지고 싶은 생각이 들며, 죄책감('내가 잘못해서 이런 거야')과 삶의 의미 상실로 인해 힘들어함. 술은 마시지 않았으나 멍한 상태로 있었음",
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"... 도움이 될까요? 뭘 해도 안 될 것 같은데. 형한테도 말 못 해요. 짐 되는 거 같아서. ... 어제는 술 안 마셨는데… 그냥 멍하니 있...\"; 구체적 계획/의도 부인 — 환자 발화: \"... 그냥… 아무도 안 보는 곳으로 사라지고 싶어요. 살아서 뭐 하나 싶어요. ... 형한테도 말 못 해요. 내가 짐 되는 거 같아서.\""
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "family_history",
+      "substance_use_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_204049_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_204052_domain_inference.json",
+    "f3": {
+      "outcome": "no_questionnaire_indicated",
+      "scale_name": null,
+      "item_bank_version": null,
+      "item_bank_provenance": null,
+      "responses": [],
+      "total_score": null,
+      "max_score": null,
+      "severity": null,
+      "subscale_scores": null,
+      "safety_referral": false,
+      "answer_mode": "llm",
+      "recommendation_provenance": {
+        "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_204052_domain_inference.json",
+        "top_candidate_disease": null,
+        "top_candidate_similarity_score": null,
+        "recommendation_caveat": null
+      },
+      "survey_artifact_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_204052_survey.json",
+      "scale_scores_path": null
+    },
+    "written_at": "2026-07-12T20:40:52.709741"
+  }
+]

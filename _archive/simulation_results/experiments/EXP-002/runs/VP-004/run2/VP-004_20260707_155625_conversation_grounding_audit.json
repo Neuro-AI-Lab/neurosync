@@ -1,0 +1,30 @@
+{
+  "session_id": "f1_VP-004",
+  "persona_id": "VP-004",
+  "total_turns": 3,
+  "n_patient_utterances": 3,
+  "reported_slot_coverage": 0.4,
+  "reported_grounded_coverage": 0.25,
+  "recomputed_grounded_coverage": 0.25,
+  "counts": {
+    "grounded": 2,
+    "negative_grounded": 0,
+    "system_slot": 0,
+    "ungrounded": 0
+  },
+  "slots": [
+    {
+      "key": "chief_complaint",
+      "value": "약을 먹는데도 전혀 나아지지 않고 오히려 더 나빠진 느낌, 감정에서 벗어날 수 없을 것 같은 절망감",
+      "verdict": "grounded",
+      "reason": "lexical evidence in patient utterances"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "약을 복용 중임에도 증상이 개선되지 않고 악화되는 느낌, 감정에서 벗어날 수 있을지에 대한 절망감 표현",
+      "verdict": "grounded",
+      "reason": "lexical evidence in patient utterances"
+    }
+  ],
+  "source_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-004/VP-004_20260707_155625_conversation.json"
+}

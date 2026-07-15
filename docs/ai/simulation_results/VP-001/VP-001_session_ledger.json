@@ -1,0 +1,390 @@
+[
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-11",
+    "is_revisit": false,
+    "final_slots": {
+      "history_of_present_illness": "한 달 반 전 큰 프로젝트 시작 이후 퇴근이 늦어지고 밤에도 생각이 많아져 잠들기 어려워짐. 아침을 자주 거르고 운동도 거의 하지 않으며, 퇴근 후 무기력함 호소. 주 1-2회 맥주 한 캔 섭취, 카페인 섭취 감소, 약물 복용 없음.",
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 조금 힘들고 피곤한 정도.\"",
+      "chief_complaint": "잠들기 어려움 및 새벽 각성",
+      "family_history": "어머니가 가끔 밤에 자주 깨는 증상 있음",
+      "personal_social_history": "아침 결식, 운동 감소, 주 1-2회 맥주 1캔 섭취, 카페인 섭취 감소 노력",
+      "substance_use_history": "주 1-2회 맥주 한 캔 섭취, 카페인 섭취 감소, 약물 복용 없음"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v3"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260711_222617_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260711_222640_domain_inference.json",
+    "written_at": "2026-07-11T22:26:40.143924"
+  },
+  {
+    "session_index": 2,
+    "simulated_date": "2026-07-25",
+    "is_revisit": true,
+    "final_slots": {
+      "history_of_present_illness": "한 달 반 전 큰 프로젝트 시작 이후 퇴근이 늦어지고 밤에도 생각이 많아져 잠들기 어려워짐. 아침을 자주 거르고 운동도 거의 하지 않으며, 퇴근 후 무기력함 호소. 주 1-2회 맥주 한 캔 섭취, 카페인 섭취 감소, 약물 복용 없음. 현재도 잠들기 어려움과 새벽 각성이 계속되며, 누우면 한 시간 넘게 뒤척이고 새벽에 두세 번 깨는 상태. 낮 졸음과 집중력 저하로 인해 업무 실수 증가 및 선임 지적 받음. 기분은 예전보다 덜 우울함.",
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 조금 힘들고 피곤한 정도.\"",
+      "chief_complaint": "잠들기 어려움과 새벽 각성 지속, 아침 거르기, 낮 졸음, 집중력 저하 및 실수 증가",
+      "family_history": "어머니가 가끔 밤에 자주 깨는 증상 있음",
+      "personal_social_history": "아침 결식, 운동 감소, 주 1-2회 맥주 1캔 섭취, 카페인 섭취 감소 노력",
+      "substance_use_history": "주 1-2회 맥주 한 캔 섭취, 카페인 섭취 감소, 약물 복용 없음",
+      "medical_history": "건강검진에서 혈압이나 당 수치는 괜찮다고 했었고, 스트레스 때문인지 가슴 답답함이 가끔 오고 목과 어깨도 뻐근함"
+    },
+    "missing_slots": [
+      "past_psychiatric_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v3"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260711_222759_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260711_222829_domain_inference.json",
+    "written_at": "2026-07-11T22:28:29.751871"
+  },
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-11",
+    "is_revisit": false,
+    "final_slots": {
+      "chief_complaint": "잠을 잘 못 자서 누우면 머릿속이 복잡해지고 한 시간 넘게 뒤척이며 새벽에도 두세 번 깨고 아침엔 더 피곤함",
+      "history_of_present_illness": "최근 수면 문제로 인해 아침에 피로감을 느끼며, 이로 인해 불안감과 신체적 긴장(가슴 답답함, 어깨와 목 뻣뻣함)을 경험하고 있음",
+      "substance_use_history": "주 1-2회 맥주 한 캔, 아침에 커피 한 잔 섭취, 수면제/진정제 복용 없음",
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\""
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "family_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v3"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260711_223150_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260711_223204_domain_inference.json",
+    "written_at": "2026-07-11T22:32:04.836077"
+  },
+  {
+    "session_index": 2,
+    "simulated_date": "2026-07-25",
+    "is_revisit": true,
+    "final_slots": {
+      "chief_complaint": "잠을 잘 못 자서 피로감이 크고, 가슴 답답함과 어깨·목 뻐근함이 있음",
+      "history_of_present_illness": "잠을 잘 못 자서 피로감 호소, 가슴 답답함 간헐적 발생, 전반적 기분 상태는 괜찮음",
+      "substance_use_history": "주 1-2회 맥주 한 캔, 아침에 커피 한 잔 섭취, 수면제/진정제 복용 없음",
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.\"",
+      "personal_social_history": "아침을 자주 거르고 식욕이 약간 줄었으며, 운동도 예전보다 덜 하게 됨",
+      "past_psychiatric_history": "정신과 진단이나 치료 받은 적 없음",
+      "medical_history": "특별한 신체 질환 없음"
+    },
+    "missing_slots": [
+      "family_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v3"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260711_223422_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260711_223435_domain_inference.json",
+    "written_at": "2026-07-11T22:34:35.974433"
+  },
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-12",
+    "is_revisit": false,
+    "final_slots": {
+      "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자주 깨서 아침에 피곤함.",
+      "history_of_present_illness": "최근 회사 큰 프로젝트 마감이 가까워지면서 증상이 더 심해짐. 잠들기 어려움, 새벽 각성, 아침 피로감 지속. 식욕 감소, 아침 식사 거름, 퇴근 후 무기력, 운동 감소.",
+      "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심"
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "personal_social_history",
+      "family_history",
+      "risk_assessment"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260712_204038_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260712_204048_domain_inference.json",
+    "f3": {
+      "outcome": "administered",
+      "scale_name": "PHQ-9",
+      "item_bank_version": "v0",
+      "item_bank_provenance": "construct-labels-v0, persona-file-sourced, non-validated",
+      "responses": [
+        1,
+        1,
+        3,
+        2,
+        1,
+        1,
+        2,
+        2,
+        0
+      ],
+      "total_score": 13,
+      "max_score": 27,
+      "severity": "moderate",
+      "subscale_scores": {},
+      "safety_referral": false,
+      "answer_mode": "llm",
+      "recommendation_provenance": {
+        "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260712_204048_domain_inference.json",
+        "top_candidate_disease": "우울 삽화(우울증)",
+        "top_candidate_similarity_score": 0.492,
+        "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+      },
+      "survey_artifact_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260712_204054_survey.json",
+      "scale_scores_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260712_204054_scale_scores.json"
+    },
+    "written_at": "2026-07-12T20:40:54.633820"
+  },
+  {
+    "session_index": 2,
+    "simulated_date": "2026-07-26",
+    "is_revisit": true,
+    "final_slots": {
+      "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기 어려움, 새벽 각성, 아침 피로감 지속",
+      "history_of_present_illness": "새벽 3시쯤에 깨서 다시 잠들기 어려움. 지난번보다 약간 나아졌다고 생각했으나 여전히 비슷한 증상 지속",
+      "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심",
+      "personal_social_history": "회사 동료와 편하게 이야기하지만 정신적으로 힘들다고 솔직히 말하기는 어려움. 어머니와 주 2회 통화하며 털어놓음",
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각이나 충동은 전혀 없어요. 그냥 좀 힘들 뿐이지, 그 정도는 아니에요.\""
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "family_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260712_204231_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260712_204243_domain_inference.json",
+    "f3": {
+      "outcome": "administered",
+      "scale_name": "PHQ-9",
+      "item_bank_version": "v0",
+      "item_bank_provenance": "construct-labels-v0, persona-file-sourced, non-validated",
+      "responses": [
+        2,
+        1,
+        3,
+        2,
+        1,
+        2,
+        2,
+        2,
+        0
+      ],
+      "total_score": 15,
+      "max_score": 27,
+      "severity": "moderately_severe",
+      "subscale_scores": {},
+      "safety_referral": false,
+      "answer_mode": "llm",
+      "recommendation_provenance": {
+        "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260712_204243_domain_inference.json",
+        "top_candidate_disease": "우울 삽화(우울증)",
+        "top_candidate_similarity_score": 0.493,
+        "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+      },
+      "survey_artifact_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260712_204247_survey.json",
+      "scale_scores_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260712_204247_scale_scores.json"
+    },
+    "written_at": "2026-07-12T20:42:47.863470"
+  },
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-13",
+    "is_revisit": false,
+    "final_slots": {
+      "chief_complaint": "잠을 잘 못 자서 힘들어요. 자는 데 시간이 오래 걸리고 새벽에 자꾸 깨서 아침에 개운하지 않아요.",
+      "history_of_present_illness": "잠을 잘 못 자서 힘들어요. 자는 데 시간이 오래 걸리고 새벽에 자꾸 깨서 아침에 개운하지 않아요. 잠을 적게 자니까 회사에서 집중이 안 되고 실수가 늘었어요. 아침도 자주 거르게 되고, 퇴근 후에 아무것도 하고 싶지 않아져요. 선임한테 지적도 받아서 더 스트레스를 받아요.",
+      "personal_social_history": "어머니와 주 2회 통화하고 직장 동료 몇 명과는 자주 이야기함",
+      "substance_use_history": "술은 일주일에 한두 번 맥주 한 캔 정도 마시고, 카페인은 아침에 커피 한 잔 정도 마심",
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 좀 힘들 뿐이지, 그 정도는 아니에요.\""
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "family_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114434_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114442_domain_inference.json",
+    "f3": {
+      "outcome": "administered",
+      "scale_name": "PHQ-9",
+      "administration_mode": "natural",
+      "item_bank_version": "v1",
+      "item_bank_provenance": "v1, verbatim Pfizer/phqscreeners.com Korean PHQ-9 PDF, retrieved 2026-07-13 (item_bank_v1_sources.md §1.2/§1.3, appendix §A1); translation chosen per ADR-033 decision 1 (Seo & Park 2015's Korean validation study administered this same translation)",
+      "responses": [
+        2,
+        2,
+        3,
+        2,
+        2,
+        2,
+        3,
+        2,
+        0
+      ],
+      "total_score": 18,
+      "max_score": 27,
+      "severity": "moderately_severe",
+      "subscale_scores": {},
+      "safety_referral": false,
+      "threshold_caveat": null,
+      "safety_pathway": {
+        "safety_pathway_invoked": true,
+        "safety_triggered": false,
+        "recommended_action": "clinician_review",
+        "critical_item_positive": false
+      },
+      "answer_mode": "llm",
+      "recommendation_provenance": {
+        "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114442_domain_inference.json",
+        "top_candidate_disease": "우울 삽화(우울증)",
+        "top_candidate_similarity_score": 0.468,
+        "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+      },
+      "survey_artifact_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114444_survey.json",
+      "scale_scores_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114444_scale_scores.json"
+    },
+    "written_at": "2026-07-13T11:44:44.117802"
+  },
+  {
+    "session_index": 2,
+    "simulated_date": "2026-07-27",
+    "is_revisit": true,
+    "final_slots": {
+      "chief_complaint": "잠을 잘 못 자서 힘들어요. 누우면 생각이 많아져서 한참을 뒤척이고, 새벽에 또 깨서 다시 자기도 해요. 아침엔 개운하지도 않고요.",
+      "history_of_present_illness": "잠을 잘 못 자는 게 여전히 힘드시겠어요. 지난번에 이어 수면 문제가 어떻게 이어지고 있는지 말씀해 주셔서 감사해요. 오늘은 기존에 진단받은 신체 질환이 있는지, 그리고 현재 복용 중인 약이 있는지 여쭤보고 싶어요.",
+      "personal_social_history": "어머니와 주 2회 통화하고 직장 동료 몇 명과는 자주 이야기함",
+      "substance_use_history": "술은 일주일에 한두 번 맥주 한 캔 정도 마시고, 카페인은 아침에 커피 한 잔 정도 마심",
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 좀 힘들 뿐이지, 그 정도는 아니에요.\"",
+      "medical_history": "신체적으로 특별히 앓고 있는 병은 없어요. 그리고 약도 전혀 안 먹고 있어요."
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "family_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114612_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114624_domain_inference.json",
+    "f3": {
+      "outcome": "administered",
+      "scale_name": "PHQ-9",
+      "administration_mode": "natural",
+      "item_bank_version": "v1",
+      "item_bank_provenance": "v1, verbatim Pfizer/phqscreeners.com Korean PHQ-9 PDF, retrieved 2026-07-13 (item_bank_v1_sources.md §1.2/§1.3, appendix §A1); translation chosen per ADR-033 decision 1 (Seo & Park 2015's Korean validation study administered this same translation)",
+      "responses": [
+        3,
+        3,
+        3,
+        2,
+        2,
+        2,
+        3,
+        2,
+        0
+      ],
+      "total_score": 20,
+      "max_score": 27,
+      "severity": "severe",
+      "subscale_scores": {},
+      "safety_referral": false,
+      "threshold_caveat": null,
+      "safety_pathway": {
+        "safety_pathway_invoked": true,
+        "safety_triggered": false,
+        "recommended_action": "clinician_review",
+        "critical_item_positive": false
+      },
+      "answer_mode": "llm",
+      "recommendation_provenance": {
+        "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114624_domain_inference.json",
+        "top_candidate_disease": "계절성 정동장애",
+        "top_candidate_similarity_score": 0.464,
+        "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+      },
+      "survey_artifact_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114625_survey.json",
+      "scale_scores_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114625_scale_scores.json"
+    },
+    "written_at": "2026-07-13T11:46:25.866811"
+  },
+  {
+    "session_index": 1,
+    "simulated_date": "2026-07-13",
+    "is_revisit": false,
+    "final_slots": {
+      "chief_complaint": "잠을 잘 못 자서 힘들어요. 자는 데 시간이 오래 걸리고 새벽에 자꾸 깨서 아침에 개운하지 않아요.",
+      "history_of_present_illness": "잠을 잘 못 자서 힘들어요. 자는 데 시간이 오래 걸리고 새벽에 자꾸 깨서 아침에 개운하지 않아요. 잠을 적게 자니까 회사에서 집중이 안 되고 실수가 늘었어요. 아침도 자주 거르게 되고, 퇴근 후에 아무것도 하고 싶지 않아져요. 선임한테 지적도 받아서 더 스트레스를 받아요.",
+      "personal_social_history": "어머니와 주 2회 통화하고 직장 동료 몇 명과는 자주 이야기함",
+      "substance_use_history": "술은 일주일에 한두 번 맥주 한 캔 정도 마시고, 카페인은 아침에 커피 한 잔 정도 마심",
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 좀 힘들 뿐이지, 그 정도는 아니에요.\""
+    },
+    "missing_slots": [
+      "past_psychiatric_history",
+      "medical_history",
+      "family_history"
+    ],
+    "repro": {
+      "model": "solar-pro3-260323",
+      "prompt_version": "v4"
+    },
+    "conversation_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114434_conversation.json",
+    "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114900_domain_inference.json",
+    "f3": {
+      "outcome": "administered",
+      "scale_name": "GAD-7",
+      "administration_mode": "forced",
+      "item_bank_version": "v1",
+      "item_bank_provenance": "v1, verbatim Pfizer/phqscreeners.com Korean GAD-7 PDF, retrieved 2026-07-13 (item_bank_v1_sources.md §2.2/§2.3, appendix §A2); severity bands remain international-convention-sourced only (Spitzer et al. 2006), NOT independently confirmed against a Korean-language source (§2.4) — reporting only, values unchanged",
+      "responses": [
+        2,
+        3,
+        3,
+        2,
+        2,
+        3,
+        2
+      ],
+      "total_score": 17,
+      "max_score": 21,
+      "severity": "severe",
+      "subscale_scores": {},
+      "safety_referral": false,
+      "threshold_caveat": null,
+      "safety_pathway": null,
+      "answer_mode": "llm",
+      "recommendation_provenance": {
+        "domain_inference_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114900_domain_inference.json",
+        "top_candidate_disease": "우울 삽화(우울증)",
+        "top_candidate_similarity_score": 0.468,
+        "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+      },
+      "survey_artifact_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114902_survey.json",
+      "scale_scores_path": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_114902_scale_scores.json"
+    },
+    "written_at": "2026-07-13T11:49:02.318863"
+  }
+]

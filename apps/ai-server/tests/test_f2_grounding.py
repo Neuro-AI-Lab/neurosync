@@ -367,6 +367,21 @@ class TestRiskLexiconFilter:
             for i in idiom:
                 assert r not in i and i not in r, f"overlap between {r!r} and {i!r}"
 
+    def test_risk_lexicon_stem_family_count_is_20_not_15(self) -> None:
+        """REV-024 ruling 1/5, Issue 5: the "15-stem" citation (`rag_trigger.
+        py`, `injection_protocol.py`) undercounted the actual lexicon.
+        Mechanical, drift-proof count — same space-insensitive normalization
+        `test_risk_and_panic_idiom_lexicons_are_disjoint` above already uses
+        for this exact list: every stem's spaced/no-space sibling collapses
+        to one family (the tuple's own consistent construction pattern; the
+        3 bare 2-char nouns 자살/자해/유서 have no sibling to collapse). This
+        pins the exact number cited in both code comments — any future edit
+        to `_RISK_PHRASES` that shifts the family count must update this
+        test deliberately, not silently drift the citation again."""
+        assert len(_RISK_PHRASES) == 37
+        families = {p.replace(" ", "") for p in _RISK_PHRASES}
+        assert len(families) == 20
+
     def test_risk_lexicon_verdict_counted_separately_in_audit(self) -> None:
         """New verdict class must be distinguishable from existing reject
         reasons in the audit counts, not folded into quote_mismatch."""

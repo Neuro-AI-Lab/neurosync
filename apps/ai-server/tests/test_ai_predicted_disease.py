@@ -185,6 +185,109 @@ class TestAIPredictedDiseaseOutput:
         assert not hasattr(out, "softmax_scores")
 
 
+class TestRecommendedQuestionnaireField:
+    """Container field, PLAN-2026-W28-Q W5 (plan §3 "Disease questionnaire
+    linkage" row / §9 answer #5a). Population-correctness (mapping content,
+    derivation from candidates) is `f2.py`'s and
+    `tests/test_f2_pipeline.py`/`tests/test_questionnaire_mapping.py`'s
+    concern; this class covers the schema-layer contract only."""
+
+    def test_defaults_to_none(self) -> None:
+        out = AIPredictedDiseaseOutput(mode="experimental_unpopulated")
+        assert out.recommended_questionnaire is None
+
+    def test_accepts_each_supported_scale_name(self) -> None:
+        for scale in ("PHQ-9", "GAD-7", "PHQ-4", "WHO-5", "AUDIT-C"):
+            out = AIPredictedDiseaseOutput(mode="rag_live", recommended_questionnaire=scale)
+            assert out.recommended_questionnaire == scale
+
+    def test_rejects_a_scale_name_outside_the_licensed_literal(self) -> None:
+        with pytest.raises(ValidationError):
+            AIPredictedDiseaseOutput(
+                mode="rag_live", recommended_questionnaire="MADRS"  # type: ignore[arg-type]
+            )
+
+    def test_field_present_on_model_fields(self) -> None:
+        assert "recommended_questionnaire" in AIPredictedDiseaseOutput.model_fields
+
+    def test_none_survives_model_dump(self) -> None:
+        out = AIPredictedDiseaseOutput(mode="experimental_unpopulated")
+        assert out.model_dump()["recommended_questionnaire"] is None
+
+    def test_populated_value_survives_model_dump(self) -> None:
+        out = AIPredictedDiseaseOutput(mode="rag_live", recommended_questionnaire="AUDIT-C")
+        assert out.model_dump()["recommended_questionnaire"] == "AUDIT-C"
+
+
+class TestRecommendationCaveatField:
+    """Container field, CVR-003 Findings 1/3 (W5 addendum,
+    `discussion.md` "CVR-003 folded" disposition, PLAN-2026-W28-Q W5
+    addendum mission) — the machine-readable caveat sibling to
+    `recommended_questionnaire`. Population-correctness (mapping content,
+    derivation from candidates) is `f2.py`'s and
+    `tests/test_f2_pipeline.py`/`tests/test_questionnaire_mapping.py`'s
+    concern; this class covers the schema-layer contract only, mirroring
+    `TestRecommendedQuestionnaireField` above."""
+
+    def test_defaults_to_none(self) -> None:
+        out = AIPredictedDiseaseOutput(mode="experimental_unpopulated")
+        assert out.recommendation_caveat is None
+
+    def test_accepts_an_arbitrary_string(self) -> None:
+        """Unlike recommended_questionnaire, this is a free-form `str |
+        None` field, not a `Literal` — any non-empty string is schema-valid
+        (content correctness is f2.py's/questionnaire_mapping's concern)."""
+        out = AIPredictedDiseaseOutput(
+            mode="rag_live", recommendation_caveat="an arbitrary caveat string"
+        )
+        assert out.recommendation_caveat == "an arbitrary caveat string"
+
+    def test_field_present_on_model_fields(self) -> None:
+        assert "recommendation_caveat" in AIPredictedDiseaseOutput.model_fields
+
+    def test_none_survives_model_dump(self) -> None:
+        out = AIPredictedDiseaseOutput(mode="experimental_unpopulated")
+        assert out.model_dump()["recommendation_caveat"] is None
+
+    def test_populated_value_survives_model_dump(self) -> None:
+        out = AIPredictedDiseaseOutput(mode="rag_live", recommendation_caveat="a caveat")
+        assert out.model_dump()["recommendation_caveat"] == "a caveat"
+
+    def test_is_sibling_to_recommended_questionnaire_not_a_replacement(self) -> None:
+        """Both fields coexist independently — setting one never implies or
+        clears the other at the schema level."""
+        out = AIPredictedDiseaseOutput(
+            mode="rag_live",
+            recommended_questionnaire="PHQ-9",
+            recommendation_caveat="mania blind spot",
+        )
+        assert out.recommended_questionnaire == "PHQ-9"
+        assert out.recommendation_caveat == "mania blind spot"
+
+
+class TestDisclaimerCoversQuestionnaireRecommendation:
+    """CVR-003 Finding 4 (minor, ADOPTED, W5 addendum): the disclaimer must
+    explicitly name the questionnaire recommendation, not just the disease
+    candidates. Code-side string only — no prompt-file change."""
+
+    def test_disclaimer_mentions_questionnaire_recommendation(self) -> None:
+        assert "recommended_questionnaire" in AI_PREDICTED_DISEASE_DISCLAIMER_KO
+
+    def test_disclaimer_still_mentions_disease_candidates(self) -> None:
+        """The original disease-candidate framing must survive the
+        extension, not be replaced by it."""
+        assert "예상 질환 후보" in AI_PREDICTED_DISEASE_DISCLAIMER_KO
+        assert "의학적 진단이 아닙니다" in AI_PREDICTED_DISEASE_DISCLAIMER_KO
+
+    def test_disclaimer_frames_questionnaire_as_non_diagnostic(self) -> None:
+        assert "진단적 판단이 아닙니다" in AI_PREDICTED_DISEASE_DISCLAIMER_KO
+
+    def test_default_output_disclaimer_is_the_extended_constant(self) -> None:
+        out = AIPredictedDiseaseOutput(mode="experimental_unpopulated")
+        assert out.disclaimer == AI_PREDICTED_DISEASE_DISCLAIMER_KO
+        assert "recommended_questionnaire" in out.disclaimer
+
+
 class TestStandaloneModule:
     """REV-013 §3: this module shares no base class/field/inheritance with
     SlotData/HandoffInput/HandoffOutput/DomainCandidate."""

@@ -42,9 +42,11 @@ class TestSurveyScoreRoute:
         assert resp.json()["severity"] == "moderate"
 
     def test_audit_c_female(self):
+        # Korean-primary threshold (CVR-018 Q1 / ADR-034 decision 1):
+        # female >= 5.
         resp = client.post("/ai/survey/score", json={
             "scale_name": "AUDIT-C",
-            "responses": [1, 1, 1],
+            "responses": [2, 2, 1],
             "patient_sex": "female",
         })
         assert resp.status_code == 200

@@ -71,10 +71,19 @@ class StubDialogueAgent:
 
     @property
     def probe_instructions(self) -> list[str | None]:
-        """probe_instruction (or None) per dialogue call, in order."""
+        """probe_instruction (or None) per dialogue call, in order.
+
+        Dialogue v3 (PLAN-2026-W28-Q W2): DialogueAgent is now also called
+        at turn 0 (the autonomous opening greeting, session_state
+        `opening_turn=True`). That call is filtered out here so this
+        property's index contract stays "one entry per round-robin/probe
+        turn call" — unchanged for every pre-v3 caller of this test helper.
+        """
         out: list[str | None] = []
         for c in self.calls:
             state = c.session_state or {}
+            if state.get("opening_turn"):
+                continue
             out.append(state.get("probe_instruction"))
         return out
 

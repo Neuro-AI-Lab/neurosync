@@ -1,0 +1,323 @@
+{
+  "session_id": "f1_VP-003_followup",
+  "persona_id": "VP-003",
+  "repro": {
+    "git_head": "266eea1ad9c3173c25d09b236a69d41cc83a39a8",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260712_142223_conversation.json",
+    "input_sha256": "a72a7b122e6f829ae04806430e7ed6d706c6c21d5a64576ec73ff61b1a5eddd1",
+    "mode": "rag",
+    "latency_ms": 7662.7,
+    "generated_at": "2026-07-12T14:22:42.034922",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 3774,
+      "completion_tokens": 975,
+      "total_tokens": 4749
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "depression",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:1041",
+          "quote": "이혼 후 주변 사람들에게 자신의 상황을 털어놓지 못하고 혼자서 감정을 억누르며 살아왔다. 특히, 자녀와의 관계에서 오는 걱정과 외로움이 그의 우울감을 더욱 심화시키고 있다. 내담자는 자신의 감정을 표현할 기회가 부족했고, 이러한 억눌린 감정이 일상생활에서 갑작스러운 답답함과 불안으로 나타나고 있다. 내담자는 부모님과의 사별, 이혼, 그리고 자녀 양육의 책임을 혼자 감당해야 하는 상황에서 부담감과 사회적 지지 부족을 느끼고 있다. 경제적 자원 부족도 그의 스트레스 요인 중 하나로 작용하고 있다. 내담자는 자신의 상황을 이해하고 지지해 줄 수 있는 사람이 주변에 없다고 느끼며, 이러한 고립감이 그의 정신적 고통을 가중시키고 있다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:686",
+          "quote": "이혼 후 우울한 기분, 무가치감, 죄책감, 흥미 감소 등의 증상을 경험하고 있다. 특히 주말이나 휴일에 아들과 함께 시간을 보내지 못하는 것에 대한 죄책감이 크며, 이로 인해 우울한 기분이 심화되는 경향이 있다. 또한, 이혼 후 체중 감소와 원형 탈모 같은 신체적 변화도 겪고 있으며, 이러한 증상들은 주로 스트레스와 관련이 있다. 내담자는 일상생활에서의 기능적 손상은 없으나, 특정 상황에서 우울한 감정을 느끼고 있다. 내담자는 이혼과 관련된 스트레스, 경제적 어려움, 그리고 가족과의 단절로 인한 사회적 지지 부족을 위험 요인으로 가지고 있다. 이혼 후 주식 투자 실패로 인한 경제적 부담이 있으며, 이로 인해 아들과의 여가 활동이 제한되고 있다. 또한, 내담자는 술과 담배를 스트레스 해소 수단으로 사용하고 있으며, 이는 건강에 부정적인 영향을 미칠 수 있다."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_2",
+          "quote": "거의 매일이요. 아침에 눈 뜨자마자부터 밤까지... 계속 맴돌아요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_5",
+          "quote": "거의 매일이요. 아침에 눈 뜨자마자부터 밤까지... 계속 맴돌아요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_7",
+          "quote": "거의 매일이요. 아침에 눈 뜨자마자부터 밤까지... 계속 맴돌아요. 도움이 되나요? 뭘 해도 안 될 것 같은데."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_10",
+          "quote": "...안 마시면 못 버텨요. 소주 한 병. 매일 마셔요. 안 마시면 못 버텨요."
+        }
+      ],
+      "recommended_surveys": null
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "이혼 후 우울감, 무가치감, 죄책감, 흥미 감소, 수면 문제, 체중 감소, 원형 탈모 등 우울증 증상을 보이며, 사회적 지지 부족과 고립감이 지속되고 있음. 자살 사고는 있으나 구체적 계획 없이 '사라지고 싶은' 표현만 있어 위험성은 있으나, 이는 domain confidence의 근거로 사용되지 않음.",
+      "domain_ref": "depression"
+    }
+  ],
+  "summary": "이혼 후 우울감, 무가치감, 죄책감, 흥미 감소, 수면 문제, 체중 감소, 원형 탈모 등 우울증 증상이 지속되고 있으며, 사회적 지지 부족과 고립감이 주요 스트레스 요인으로 작용하고 있음. 자살 사고는 있으나 구체적 계획 없이 '사라지고 싶은' 표현만 있어 위험성은 있으나, 이는 domain confidence의 근거로 사용되지 않음. 술과 담배를 스트레스 해소 수단으로 사용하고 있음.",
+  "retrieval_meta": {
+    "mode": "rag",
+    "chunks_returned": 12,
+    "chunk_ids": [
+      "case_card:1041",
+      "case_card:686",
+      "case_card:1042",
+      "qa:1537",
+      "qa:762",
+      "qa:1178",
+      "case_card:803",
+      "case_card:70",
+      "case_card:701",
+      "qa:408",
+      "qa:1304",
+      "qa:663"
+    ],
+    "queries": [
+      "회사에서 잘린 후 모든 게 무너졌고 이혼도 내 탓인 것 같아 힘들어요",
+      "거의 매일이요. 아침에 눈 뜨자마자부터 밤까지... 계속 맴돌아요.  \n도움이 되나요? 뭘 해도 안 될 것 같은데."
+    ]
+  },
+  "chunk_texts": {
+    "case_card:1041": "내담자는 이혼 후 주변 사람들에게 자신의 상황을 털어놓지 못하고 혼자서 감정을 억누르며 살아왔다. 특히, 자녀와의 관계에서 오는 걱정과 외로움이 그의 우울감을 더욱 심화시키고 있다. 내담자는 자신의 감정을 표현할 기회가 부족했고, 이러한 억눌린 감정이 일상생활에서 갑작스러운 답답함과 불안으로 나타나고 있다.  내담자는 부모님과의 사별, 이혼, 그리고 자녀 양육의 책임을 혼자 감당해야 하는 상황에서 부담감과 사회적 지지 부족을 느끼고 있다. 경제적 자원 부족도 그의 스트레스 요인 중 하나로 작용하고 있다. 내담자는 자신의 상황을 이해하고 지지해 줄 수 있는 사람이 주변에 없다고 느끼며, 이러한 고립감이 그의 정신적 고통을 가중시키고 있다.",
+    "case_card:686": "내담자는 이혼 후 우울한 기분, 무가치감, 죄책감, 흥미 감소 등의 증상을 경험하고 있다. 특히 주말이나 휴일에 아들과 함께 시간을 보내지 못하는 것에 대한 죄책감이 크며, 이로 인해 우울한 기분이 심화되는 경향이 있다. 또한, 이혼 후 체중 감소와 원형 탈모 같은 신체적 변화도 겪고 있으며, 이러한 증상들은 주로 스트레스와 관련이 있다. 내담자는 일상생활에서의 기능적 손상은 없으나, 특정 상황에서 우울한 감정을 느끼고 있다.  내담자는 이혼과 관련된 스트레스, 경제적 어려움, 그리고 가족과의 단절로 인한 사회적 지지 부족을 위험 요인으로 가지고 있다. 이혼 후 주식 투자 실패로 인한 경제적 부담이 있으며, 이로 인해 아들과의 여가 활동이 제한되고 있다. 또한, 내담자는 술과 담배를 스트레스 해소 수단으로 사용하고 있으며, 이는 건강에 부정적인 영향을 미칠 수 있다.",
+    "case_card:1042": "내담자는 과거의 폭력적인 결혼 생활과 그로 인한 자아 상실감, 그리고 원가족에서의 상처로 인해 자신을 잃어버린 듯한 느낌을 받았다고 한다. 또한, 내담자는 자신이 잘못한 것 같다는 죄책감과 책임감에 시달리며, 이러한 감정들이 우울감을 더욱 심화시키고 있다고 느끼고 있다.  내담자는 어린 시절부터 가족 내에서의 불안정한 환경과 학대, 그리고 부모의 이혼으로 인한 정서적 상처를 경험했다. 이러한 경험은 내담자에게 지속적인 불안감과 죄책감을 남겼으며, 이는 성인이 된 후의 대인관계와 결혼 생활에서도 부정적인 영향을 미쳤다. 특히, 최근의 결혼과 이혼 과정에서 경험한 폭력과 학대는 내담자의 자존감과 정체성에 큰 상처를 주었고, 이는 우울감과 무기력함으로 이어졌다. 내담자는 이러한 감정에서 벗어나기 위해 신앙생활을 통해 회복을 시도하고 있지만, 여전히 과거의 상처와 죄책감이 내면에 남아 있어 심리적 불안정성을 초래하고 있다. 이러한 요소들은 내담자의 정신 건강에 지속적인 위협이 될 수 있다.",
+    "qa:1537": "Q: 35세 여성이 불안과 불면을 호소하며 병원에 내원하였다. 환자는 회사원으로, 최근 업무 스트레스가 심해지며 불면, 불안, 식욕저하 등의 증상이 나타났다고 한다. 환자는 회사에서 믿고 따르던 팀장이 있었으며, 팀장의 지시에 따라 일을 처리하는 것에 좋은 성과를 보였다고 한다. 또한 퇴근 후나 휴일에도 팀장의 요청을 자주 들어주었으며, 본인의 취미생활이나 연애상대에 대한 조언도 그대로 따랐다고 한다. 한편, 환자는 회의 시간에 자신의 의견을 이야기하거나, 자신이 주도해 새로운 업무를 맡는 것에 어려움을 느껴왔다고 한다. 최근 팀장이 은퇴하면서 환자가 팀장 직책을 맡게 되었고, 이로 인해 불안 증상이 심화되었다. 이 환자의 진단으로 가장 적절한 것은 무엇인가?  \n1) 조현성 성격장애  \n2) 연극성 성격장애  \n3) 의존성 성격장애  \n4) 회피성 성격장애  \n5) 경계성 성격장애\nA: 3) 의존성 성격장애",
+    "qa:762": "Q: 45세 남성이 외래에 방문하여 최근 몇 달 동안 지속되는 극심한 외로움과 우울감을 호소하였다. 환자는 이혼 후 혼자 생활하고 있으며, 친구들과의 교류가 거의 없는 상황이다. 또한, 잠을 잘 이루지 못하고 피로감을 느끼며, 자신이 사회적으로 고립되어 있다고 느끼고 있다. 이 환자에서 가장 우선적으로 고려해야 할 치료 방법을 서술하시오.\nA: 이 환자에서 가장 우선적으로 고려해야 할 치료 방법은 심리치료와 약물치료를 병행하는 것이다. 심리치료는 환자가 자신의 감정을 이해하고 부정적인 사고를 교정하며, 사회적 연결을 회복할 수 있도록 돕는다. 특히, 인지행동치료는 우울감과 고립감을 완화하는 데 효과적이다. 또한, 환자의 증상이 심각한 경우 항우울제를 사용하여 기분을 안정시키고 수면 문제를 개선할 수 있다. 이러한 치료는 환자의 전반적인 삶의 질을 향상시키는 데 기여할 수 있다.",
+    "qa:1178": "Q: 25세 여성이 기억이 나지 않는다며 응급실에 내원하였다. 환자는 어제 보이스피싱으로 인해 5년간 아르바이트를 하며 모아둔 돈을 모두 잃었다고 한다. 이후 연락이 두절되었다가 오늘 아침 다니던 회사 앞에서 탈진한 상태로 발견되었다. 환자는 지난 1년간 자신이 한 일이 기억나지 않으며, 오늘이 몇 년인지 묻는 질문에 작년의 연도를 대답하였다. 1년 이전의 일은 모두 기억하고 있었으며, 다른 인지 기능 이상은 없었다. 시행한 검사에서도 특이 소견은 보이지 않았다. 이 환자의 진단으로 가장 적절한 것은 무엇인가?  \n1) 전환장애  \n2) 해리정체성장애  \n3) 해리기억상실  \n4) 급성스트레스장애  \n5) 적응장애\nA: 3) 해리기억상실",
+    "case_card:803": "내담자는 자기 전에 스마트폰을 사용하면서 시간이 가는 줄 모르고 사용하게 된다고 언급했다. 스마트폰을 사용하고 싶은 충동을 자제할 수 있다고 하면서도, 실제로는 사용 시간이 길어지는 경향이 있다. 내담자는 스마트폰 사용 후 아침에 눈의 피로를 느끼며 후회하는 경우가 많다고 하며, 이는 부정적 결과를 인식하고 있음을 보여준다.  내담자는 스마트폰 사용이 눈 건강과 다음 날 컨디션에 부정적인 영향을 미친다는 것을 인지하고 있지만, 이를 바꾸려는 간절함이 부족하다고 언급했다. 또한, 내담자는 스마트폰 사용 후 후회와 자책을 느끼지만, 이러한 감정을 조절하는 데 어려움을 겪고 있다.",
+    "case_card:70": "내담자는 \"초조하거나 불안하거나 조마조마하게 느낀다\"며 불안감을 호소하고, \"잠도 못 잤고 아침에 또 문자 온 거 또 받아보고 나니까 밥이 안 들어가는 거예요\"라고 말하며 수면 문제를 언급한다. 또한, \"안 그래도 지금 머릿속에 그 생각밖에 없어요. 앞에 있는 게 들어오지 않아요\"라고 하여 집중력 저하를 나타낸다.  내담자는 \"부모님이랑 싸웠기 때문에\"라고 하여 가족과의 갈등을 언급하고, \"어머니가 제가 좀 집에 저희 어머니도 좀 그 편이거든요. 약간 과잉보호는 아닌데 과잉보호 맞아요\"라고 하여 과잉보호로 인한 스트레스를 나타낸다. 또한, \"어머니가 또 회사 생활을 제대로 하신 것도 아니고\"라고 하여 가족력과 관련된 스트레스 요인을 언급한다.",
+    "case_card:701": "내담자는 숏폼 콘텐츠를 중단하려고 노력했지만, 여전히 스마트폰 사용을 줄이는 데 어려움을 겪고 있다. 특히, 밤에 스마트폰을 사용하면서 수면에 방해를 받고 있으며, 이는 일상생활에 부정적인 영향을 미치고 있다. 내담자는 스마트폰을 무의식적으로 사용하고 있다. 또한, 내담자는 미디어 사용이 스트레스 해소에 도움이 된다고 느끼며, 스마트폰 사용에 대한 갈망을 호소했다.  내담자는 스트레스를 해소하기 위해 미디어를 사용하며, 이는 현실의 문제를 잊고자 하는 도피 수단으로 작용하고 있다. 또한, 내담자는 집안일과 육아로 인한 스트레스를 자주 경험하며, 이러한 스트레스가 미디어 사용을 증가시키는 요인으로 작용하고 있다. 그는 미디어 사용이 강한 자극을 제공하여 현실 도피를 쉽게 할 수 있게 한다고 느끼며, 이는 중독의 위험요인으로 작용하고 있다.",
+    "qa:408": "Q: 25세 남자가 직장에서 해고당할까봐 불안하다며 병원에 왔다. 최근 취직한 마트에서 2일에 1번 꼴로 물건을 제자리에 두지 않거나, 떨어트리거나, 해야 하는 일을 깜빡하는 등의 모습을 보였다고 한다. 환자는 학창시절부터 부주의하고 산만한 모습을 보였으며, 마음먹고 공부를 하려고 해도 숙제를 까먹거나, 수업시간에 금방 집중력이 흐트러지며 제자리에 가만히 앉아있지를 못했다고 한다. 다른 사람의 말에 끼어들거나 친구의 게임을 방해하는 등의 일로 다퉜던 적은 종종 있었으나 현재까지 연락하는 친구들은 있다고 한다. 이 환자에게 적절한 치료 약물은 무엇인가?  \n1) 클로자핀  \n2) 메틸페니데이트  \n3) 발프로에이트  \n4) 졸피뎀  \n5) 클로나제팜\nA: 2) 메틸페니데이트",
+    "qa:1304": "Q: 50세 남자가 낮 동안 졸음을 참을 수 없다며 병원에 왔다. 환자는 밤 10시에 침대에 누워 아침 8시에 침대 밖으로 나오지만, 총 10차례 가량 깨기를 반복하며 아침에도 개운하지 않은 느낌이라고 한다. 신체검사에서 키 180cm, 체중 100kg으로 확인되었다. 수면다원검사 결과, 총수면시간 4시간 30분, 수면 잠복기 10분, 무호흡-저호흡 지수 19회/시간이었다. 이 환자에게 가장 적절한 치료는 무엇인가?  \n1) 메틸페니데이트  \n2) 경두개자기자극술  \n3) 지속기도양압  \n4) 광치료  \n5) 모다피닐\nA: 3) 지속기도양압",
+    "qa:663": "Q: 21세 여성이 고등학생 때부터 거의 매일 우울한 기분을 느꼈다고 병원에 내원했다. 환자는 하루에 12시간 이상 침대에서 보내며, 의욕이 없어 학교 생활에 어려움을 겪었다고 한다. 기분이 좋고 들뜬 경험은 환자 및 보호자 보고상으로 없었다. 이 환자에게 가장 적합한 정신과적 진단은 무엇인가?\nA: 지속성 우울장애"
+  },
+  "utterances": {
+    "turn_0": "그냥... 여전히 힘들어요. 살아서 뭐 하나 싶고, 사라지고 싶은 생각이 계속 들어요.",
+    "turn_1": "그냥... 여전히 힘들어요. 살아서 뭐 하나 싶고, 사라지고 싶은 생각이 계속 들어요.",
+    "turn_2": "거의 매일이요. 아침에 눈 뜨자마자부터 밤까지... 계속 맴돌아요.",
+    "turn_3": "...어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.",
+    "turn_4": "형이 있긴 한데... 연락 안 해요. 짐이 되기 싫어서. 도움이 되나요? 뭘 해도 안 될 것 같은데.",
+    "turn_5": "거의 매일이요. 아침에 눈 뜨자마자부터 밤까지... 계속 맴돌아요.",
+    "turn_6": "...어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.",
+    "turn_7": "거의 매일이요. 아침에 눈 뜨자마자부터 밤까지... 계속 맴돌아요.  \n도움이 되나요? 뭘 해도 안 될 것 같은데.",
+    "turn_8": "형이... 있긴 한데... 연락 안 해요. 짐이 되기 싫어서.  \n...\"",
+    "turn_9": "형이... 있긴 한데... 연락 안 해요. 짐이 되기 싫어서.  \n도움이 되나요? 뭘 해도 안 될 것 같은데.",
+    "turn_10": "...안 마시면 못 버텨요. 소주 한 병. 매일 마셔요. 안 마시면 못 버텨요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 6,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 7
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:1041",
+        "quote": "이혼 후 주변 사람들에게 자신의 상황을 털어놓지 못하고 혼자서 감정을 억누르며 살아왔다. 특히, 자녀와의 관계에서 오는 걱정과 외로움이 그의 우울감을 더욱 심화시키고 있다. 내담자는 자신의 감정을 표현할 기회가 부족했고, 이러한 억눌린 감정이 일상생활에서 갑작스러운 답답함과 불안으로 나타나고 있다. 내담자는 부모님과의 사별, 이혼, 그리고 자녀 양육의 책임을 혼자 감당해야 하는 상황에서 부담감과 사회적 지지 부족을 느끼고 있다. 경제적 자원 부족도 그의 스트레스 요인 중 하나로 작용하고 있다. 내담자는 자신의 상황을 이해하고 지지해 줄 수 있는 사람이 주변에 없다고 느끼며, 이러한 고립감이 그의 정신적 고통을 가중시키고 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:686",
+        "quote": "이혼 후 우울한 기분, 무가치감, 죄책감, 흥미 감소 등의 증상을 경험하고 있다. 특히 주말이나 휴일에 아들과 함께 시간을 보내지 못하는 것에 대한 죄책감이 크며, 이로 인해 우울한 기분이 심화되는 경향이 있다. 또한, 이혼 후 체중 감소와 원형 탈모 같은 신체적 변화도 겪고 있으며, 이러한 증상들은 주로 스트레스와 관련이 있다. 내담자는 일상생활에서의 기능적 손상은 없으나, 특정 상황에서 우울한 감정을 느끼고 있다. 내담자는 이혼과 관련된 스트레스, 경제적 어려움, 그리고 가족과의 단절로 인한 사회적 지지 부족을 위험 요인으로 가지고 있다. 이혼 후 주식 투자 실패로 인한 경제적 부담이 있으며, 이로 인해 아들과의 여가 활동이 제한되고 있다. 또한, 내담자는 술과 담배를 스트레스 해소 수단으로 사용하고 있으며, 이는 건강에 부정적인 영향을 미칠 수 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "그냥... 여전히 힘들어요. 살아서 뭐 하나 싶고, 사라지고 싶은 생각이 계속 들어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶, 살아서 뭐하, 살아서뭐하) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "그냥... 여전히 힘들어요. 살아서 뭐 하나 싶고, 사라지고 싶은 생각이 계속 들어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶, 살아서 뭐하, 살아서뭐하) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "거의 매일이요. 아침에 눈 뜨자마자부터 밤까지... 계속 맴돌아요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_3",
+        "quote": "...어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_4",
+        "quote": "형이 있긴 한데... 연락 안 해요. 짐이 되기 싫어서. 도움이 되나요? 뭘 해도 안 될 것 같은데.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (짐이 되, 짐이되) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_5",
+        "quote": "거의 매일이요. 아침에 눈 뜨자마자부터 밤까지... 계속 맴돌아요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_6",
+        "quote": "...어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_7",
+        "quote": "거의 매일이요. 아침에 눈 뜨자마자부터 밤까지... 계속 맴돌아요. 도움이 되나요? 뭘 해도 안 될 것 같은데.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_8",
+        "quote": "형이... 있긴 한데... 연락 안 해요. 짐이 되기 싫어서.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (짐이 되, 짐이되) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_9",
+        "quote": "형이... 있긴 한데... 연락 안 해요. 짐이 되기 싫어서. 도움이 되나요? 뭘 해도 안 될 것 같은데.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (짐이 되, 짐이되) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_10",
+        "quote": "...안 마시면 못 버텨요. 소주 한 병. 매일 마셔요. 안 마시면 못 버텨요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 1,
+    "candidates_after": 1,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 7,
+    "evidence_stripped_risk_lexicon": 7
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "이혼 후 경제적 어려움의 구체적인 내용은 무엇인가요?",
+    "자녀와의 관계에서 오는 구체적인 걱정과 외로움은 무엇인가요?",
+    "술과 담배 사용 외에 다른 약물 사용 이력이 있나요?",
+    "사회적 지지 체계(가족, 친구, 지역사회 등)의 현재 상태는 어떠한가요?",
+    "자살 사고에 대한 구체적인 계획이나 의도는 없는지 추가 확인이 필요합니다."
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 7662.710973992944,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 3774,
+    "completion_tokens": 975,
+    "total_tokens": 4749
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [
+      {
+        "disease": "계절성 정동장애",
+        "similarity_score": 0.384,
+        "source_id": "case_card:1041",
+        "quote": "...기회가 부족했고, 이러한 억눌린 감정이 일상생활에서 갑작스러운 답답함과 불안으로 나타나고 있다.  내담자는 부모님과의 사별, 이혼, 그리고 자녀 양..."
+      },
+      {
+        "disease": "공황발작 징후",
+        "similarity_score": 0.384,
+        "source_id": "case_card:1041",
+        "quote": "...기회가 부족했고, 이러한 억눌린 감정이 일상생활에서 갑작스러운 답답함과 불안으로 나타나고 있다.  내담자는 부모님과의 사별, 이혼, 그리고 자녀 양..."
+      },
+      {
+        "disease": "우울 삽화(우울증)",
+        "similarity_score": 0.384,
+        "source_id": "case_card:686",
+        "quote": "내담자는 이혼 후 우울한 기분, 무가치감, 죄책감, 흥미 감소 등의 증상을 경험하고 있다. 특히 주말이나 휴일에..."
+      },
+      {
+        "disease": "순환성 장애",
+        "similarity_score": 0.384,
+        "source_id": "case_card:686",
+        "quote": "내담자는 이혼 후 우울한 기분, 무가치감, 죄책감, 흥미 감소 등의 증상을 경험하고 있다. 특히 주말이나 휴일에..."
+      },
+      {
+        "disease": "범불안장애",
+        "similarity_score": 0.355,
+        "source_id": "case_card:70",
+        "quote": "내담자는 \"초조하거나 불안하거나 조마조마하게 느낀다\"며 불안감을 호소하고, \"잠도 못..."
+      }
+    ],
+    "mode": "rag_live",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "5 disease candidate(s) derived from 12 retrieved chunk(s) via symptom-keyword match (path1, ADR-020). similarity_score is a RAG cosine-similarity signal between the retrieved chunk and the Stage-1 query — NOT a patient-to-disease similarity, and NOT a calibrated probability (two-hop proxy, RES-001 §2 step 9 / ADR-020 condition 3).",
+    "recommended_questionnaire": "PHQ-9",
+    "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 2,
+    "rag_chunk_qa": 0,
+    "rag_chunk_other": 0,
+    "utterance": 4,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "A",
+    "retrieve": true,
+    "queries": [
+      "회사에서 잘린 후 모든 게 무너졌고 이혼도 내 탓인 것 같아 힘들어요",
+      "거의 매일이요. 아침에 눈 뜨자마자부터 밤까지... 계속 맴돌아요.  \n도움이 되나요? 뭘 해도 안 될 것 같은데."
+    ],
+    "dropped_queries": [
+      "살아가는 의미가 없고 사라지고 싶은 생각이 지속됨",
+      "그냥... 여전히 힘들어요. 살아서 뭐 하나 싶고, 사라지고 싶은 생각이 계속 들어요.",
+      "형이... 있긴 한데... 연락 안 해요. 짐이 되기 싫어서.  \n...\""
+    ],
+    "trigger_reason": "insufficient_fallback_used_retrieve",
+    "fallback_used": true,
+    "judge_output": null
+  }
+}

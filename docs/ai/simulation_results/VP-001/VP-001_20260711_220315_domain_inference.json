@@ -1,0 +1,256 @@
+{
+  "session_id": "f1_VP-001",
+  "persona_id": "VP-001",
+  "repro": {
+    "git_head": "c2c631b53922a584d0e70585e70442ad04af2a52",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260711_211256_conversation.json",
+    "input_sha256": "ad3f6a35ade32bcf073a1dfebce62f7155ee9c2f6907bee05a90ac276b416b6f",
+    "mode": "rag",
+    "latency_ms": 13133.4,
+    "generated_at": "2026-07-11T22:03:15.132074",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 2873,
+      "completion_tokens": 593,
+      "total_tokens": 3466
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "sleep",
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:933",
+          "quote": "내담자는 수면 문제와 피로감을 주요 증상으로 호소하고 있다. 잠에 드는 데 어려움을 겪고 있으며, 심할 때는 새벽 4~5시까지 잠들지 못하는 경우가 있다. 이러한 수면 패턴의 변화로 인해 피로감이 지속되고 있으며, 이는 일상생활에 영향을 미치고 있다."
+        }
+      ],
+      "recommended_surveys": [
+        "PSQI"
+      ]
+    },
+    {
+      "domain": "anxiety",
+      "confidence": 0.45,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:1045",
+          "quote": "내담자는 주로 업무와 관련된 스트레스를 경험하고 있으며, 이는 환자와의 상호작용에서 발생하는 리스크에 대한 걱정으로 나타난다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:654",
+          "quote": "Q: 45세 남성이 최근 몇 달 동안 지속적인 불안과 함께 수면 장애를 호소하며 내원하였다. 그는 직장에서의 스트레스가 많고, 최근 가족 문제로 인해 불안감이 더욱 악화되었다고 한다."
+        }
+      ],
+      "recommended_surveys": [
+        "GAD-7"
+      ]
+    },
+    {
+      "domain": "depression",
+      "confidence": 0.35,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:1045",
+          "quote": "내담자는 자신의 삶이 단순하고 반복적이라고 느끼며, 특별한 흥미나 목표가 없다고 언급했다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:673",
+          "quote": "내담자는 업무에 대한 흥미가 감소하고 있으며, 이는 일상적인 활동에 대한 관심 저하로 나타난다."
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "수면 장애, 업무 스트레스, 불안 및 우울 증상이 복합적으로 나타나며, 수면 위생 교육과 인지행동치료(CBT) 등의 비약물적 치료가 권고됨",
+      "domain_ref": "sleep"
+    }
+  ],
+  "summary": "환자는 수면 장애(잠들기 어려움, 새벽 각성)와 업무 스트레스로 인한 불안 및 우울 증상을 호소하고 있으며, 수면 위생 교육과 인지행동치료(CBT)가 적절한 비약물적 치료법으로 제시됨",
+  "retrieval_meta": {
+    "mode": "rag",
+    "chunks_returned": 6,
+    "chunk_ids": [
+      "case_card:1045",
+      "case_card:673",
+      "case_card:933",
+      "qa:654",
+      "qa:1393",
+      "qa:1707"
+    ],
+    "queries": [
+      "불면증, 수면 유지 장애, 스트레스 관련 수면 문제, 프로젝트 마감으로 인한 스트레스"
+    ]
+  },
+  "chunk_texts": {
+    "case_card:1045": "내담자는 수면 패턴의 불규칙성과 피로감을 호소하고 있다. 밤 근무 후에도 낮에 잠을 자고 밤에 깨어 있는 생활 패턴이 지속되고 있으며, 이는 일상 생활에 지장을 주고 있다. 또한, 내담자는 자신의 삶이 단순하고 반복적이라고 느끼며, 특별한 흥미나 목표가 없다고 언급했다. 이러한 생활 패턴과 감정 상태는 우울의 주요 증상으로 분류될 수 있다. 내담자는 사람들과의 눈 맞춤을 어려워하며, 이는 사회적 상호작용에서 불편함을 초래하고 있다.  내담자는 주로 업무와 관련된 스트레스를 경험하고 있으며, 이는 환자와의 상호작용에서 발생하는 리스크에 대한 걱정으로 나타난다. 또한, 내담자는 자신의 선택에 대한 확신이 부족하며, 이는 삶의 방향성에 대한 불안으로 이어질 수 있다. 사회적 관계에서는 친구들과의 만남이 드물고, 주로 일과 관련된 대화에 집중되어 있어 사회적 지지망이 약화될 위험이 있다.",
+    "case_card:673": "내담자는 주로 업무 환경에서 오는 스트레스로 인해 우울한 기분과 피로감을 경험하고 있다. 불규칙한 근무 패턴으로 인해 수면 문제가 발생하며, 이는 피로감과 식욕 변화로 이어지고 있다. 내담자는 업무에 대한 흥미가 감소하고 있으며, 이는 일상적인 활동에 대한 관심 저하로 나타난다. 또한, 내담자는 자신의 직업에 대한 만족도가 낮고, 이로 인해 장기적으로 직업에 대한 비전이 없다고 느끼고 있다.  내담자는 불규칙한 근무 시간과 과도한 업무로 인해 스트레스를 받고 있으며, 이는 수면 문제와 피로감으로 이어지고 있다. 또한, 직업에 대한 낮은 만족도와 미래에 대한 불확실성으로 인해 스트레스가 가중되고 있다. 내담자는 가족과의 의견 차이로 인해 원하는 진로를 선택하지 못했고, 이는 현재 직업에 대한 불만족으로 이어지고 있다. 경제적 이유로 인해 직업을 유지하고 있으며, 이는 내담자의 스트레스 요인 중 하나로 작용하고 있다.",
+    "case_card:933": "내담자는 수면 문제와 피로감을 주요 증상으로 호소하고 있다. 잠에 드는 데 어려움을 겪고 있으며, 심할 때는 새벽 4~5시까지 잠들지 못하는 경우가 있다. 이러한 수면 패턴의 변화로 인해 피로감이 지속되고 있으며, 이는 일상생활에 영향을 미치고 있다. 내담자는 잠을 잘 자지 못하는 이유로 잡생각이 많고, 핸드폰 사용이 영향을 미친다고 느끼고 있다. 또한, 수면 패턴의 불규칙성으로 인해 하루가 짧게 느껴지고, 이로 인해 자는 시간이 아깝다는 생각을 하게 된다.  내담자는 낮은 정서조절 능력과 대처전략 부족을 위험 요인으로 가지고 있다. 수면 문제와 관련하여 잡생각이 많고, 핸드폰 사용을 줄이려는 시도가 잘 이루어지지 않고 있다. 또한, 내담자는 자신의 생활 패턴에 대한 부정적인 평가를 하며, 남들의 기준에 맞추려는 경향이 있다. 이러한 생각들은 내담자에게 스트레스를 주고 있으며, 이는 수면 문제를 악화시키는 요인으로 작용하고 있다.",
+    "qa:654": "Q: 45세 남성이 최근 몇 달 동안 지속적인 불안과 함께 수면 장애를 호소하며 내원하였다. 그는 직장에서의 스트레스가 많고, 최근 가족 문제로 인해 불안감이 더욱 악화되었다고 한다. 이 환자의 증상과 관련된 가장 가능성 높은 정신과적 진단은 무엇인가?\nA: 범불안장애",
+    "qa:1393": "Q: 45세 남성이 최근 스트레스와 불안감으로 인해 수면 장애를 호소하며 병원에 방문하였다. 그는 최근 직장에서의 업무 부담이 증가하면서 긴장성 두통도 자주 발생한다고 한다. 이 환자에게 적절한 비약물적 치료법을 추천하시오.\nA: 이 환자에게는 스트레스와 불안감, 수면 장애 및 긴장성 두통을 완화하기 위해 인지행동치료(Cognitive Behavioral Therapy, CBT)를 추천할 수 있다. 인지행동치료는 스트레스와 불안을 관리하는 데 효과적이며, 수면 위생 교육과 함께 진행될 경우 수면의 질을 개선하는 데 도움을 줄 수 있다. 또한, 긴장성 두통 완화를 위해 이완 요법(예: 점진적 근육 이완법)과 명상 또는 심호흡 훈련을 병행하는 것도 효과적이다. 이러한 비약물적 치료법은 환자의 전반적인 정신적, 신체적 건강을 증진시키는 데 기여할 수 있다.",
+    "qa:1707": "Q: 45세 남자가 최근 업무 스트레스 증가로 인해 불면증, 집중력 저하, 그리고 소화 불량을 호소하며 내원했다. 환자는 이러한 증상이 자주 재발하며, 특히 업무에서 중요한 결정을 내려야 할 때 악화된다고 설명했다. 이 환자의 상태를 이해하고 개선하기 위해 스트레스 관리와 관련된 의학적 접근법을 서술하시오.\nA: 이 환자의 상태를 개선하기 위해 스트레스 관리와 관련된 의학적 접근법으로는 첫째, 환자의 스트레스 요인을 파악하고 이를 줄이기 위한 상담 및 교육을 제공하는 것이 중요하다. 둘째, 불면증과 같은 증상을 완화하기 위해 수면 위생 교육을 시행하고, 필요시 단기적으로 수면제를 처방할 수 있다. 셋째, 집중력 저하와 소화 불량과 같은 신체적 증상을 완화하기 위해 적절한 약물 치료를 고려할 수 있다. 넷째, 환자에게 명상, 심호흡 운동, 규칙적인 운동과 같은 스트레스 관리 기법을 권장하여 자율신경계의 균형을 회복하도록 돕는다. 마지막으로, 환자가 업무 환경에서 스트레스를 줄일 수 있도록 시간 관리 및 의사결정 과정에 대한 구체적인 전략을 제안하는 것도 도움이 될 수 있다."
+  },
+  "utterances": {
+    "turn_0": "음... 글쎄요. 요즘 잠을 잘 못 자는 게 제일 걱정이에요. 침대에 누워도 한 시간 넘게 뒤척이고, 새벽에 두세 번씩 깨서 다시 잘 수가 없어요.",
+    "turn_1": "음... 글쎄요. 요즘 잠을 잘 못 자는 게 제일 걱정이에요. 침대에 누워도 한 시간 넘게 뒤척이고, 새벽에 두세 번씩 깨서 다시 잘 수가 없어요.",
+    "turn_2": "아뇨, 정신과나 상담은 한 번도 안 가봤어요. 그냥 스스로 해결해 보려고 했는데 잘 안 되는 것 같아서요.",
+    "turn_3": "아니요, 특별히 진단받은 병은 없어요. 약도 평소엔 안 먹고, 요즘도 복용 중인 건 없어요.",
+    "turn_4": "네, 직장 동료 두세 명이랑은 꽤 친하게 지내고, 어머니랑도 주 이틀에 한 번씩은 통화해요. 그래도 요즘은 퇴근 후엔 그냥 쉬고 싶어서 연락도 줄이게 되네요.",
+    "turn_5": "음. 평소엔 거의 안 마셨는데, 요즘 프로젝트 마감이 다가와서 스트레스를 받는지 주 1-2회 맥주 한 캔씩 마시고 있어요. 수면제나 진정제 같은 건 전혀 안 먹어요.",
+    "turn_6": "아니요, 가족 중에 그런 경험이 있는 분은 없어요. 어머니는 가끔 스트레스로 힘들다고 하시긴 하는데, 병원에 가신 적은 없어요.",
+    "turn_7": "음... 글쎄요. 딱히 큰 사건은 없었는데, 회사에서 대규모 프로젝트 마감일이 다가오면서부터 일이 많아지고, 실수도 좀 늘었어요. 그게 계속되니까 스트레스가 쌓인 것 같아요.",
+    "turn_8": "아니요, 그런 적은 없어요. 처음 해보는 건데, 이게 병원에 갈 정도 싶기도 하고… 그냥 한번 점검해 보는 거예요.",
+    "turn_9": "아니요, 그런 생각은 전혀 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요.",
+    "turn_10": "아니요, 그런 적은 없어요. 처음 해보는 건데, 이게 병원에 갈 정도 싶기도 하고… 그냥 한번 점검해 보는 거예요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 5,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 0
+    },
+    "verdicts": [
+      {
+        "domain": "sleep",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:933",
+        "quote": "내담자는 수면 문제와 피로감을 주요 증상으로 호소하고 있다. 잠에 드는 데 어려움을 겪고 있으며, 심할 때는 새벽 4~5시까지 잠들지 못하는 경우가 있다. 이러한 수면 패턴의 변화로 인해 피로감이 지속되고 있으며, 이는 일상생활에 영향을 미치고 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:1045",
+        "quote": "내담자는 주로 업무와 관련된 스트레스를 경험하고 있으며, 이는 환자와의 상호작용에서 발생하는 리스크에 대한 걱정으로 나타난다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "rag_chunk",
+        "source_id": "qa:654",
+        "quote": "Q: 45세 남성이 최근 몇 달 동안 지속적인 불안과 함께 수면 장애를 호소하며 내원하였다. 그는 직장에서의 스트레스가 많고, 최근 가족 문제로 인해 불안감이 더욱 악화되었다고 한다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:1045",
+        "quote": "내담자는 자신의 삶이 단순하고 반복적이라고 느끼며, 특별한 흥미나 목표가 없다고 언급했다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:673",
+        "quote": "내담자는 업무에 대한 흥미가 감소하고 있으며, 이는 일상적인 활동에 대한 관심 저하로 나타난다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 3,
+    "candidates_after": 3,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 0,
+    "evidence_stripped_risk_lexicon": 0
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "수면 위생 개선을 위해 현재 어떤 습관을 가지고 계신가요?",
+    "업무 스트레스를 줄이기 위해 어떤 방법을 시도해 보셨나요?",
+    "불안이나 우울감을 느낄 때 어떤 신체 증상이 동반되나요?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 13133.378325030208,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 2873,
+    "completion_tokens": 593,
+    "total_tokens": 3466
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [
+      {
+        "disease": "계절성 정동장애",
+        "similarity_score": 0.435,
+        "source_id": "qa:654",
+        "quote": "Q: 45세 남성이 최근 몇 달 동안 지속적인 불안과 함께 수면 장애를 호소하며 내원하였다. 그는 직장에서의 스트레스가 많..."
+      },
+      {
+        "disease": "월경전 불쾌장애",
+        "similarity_score": 0.435,
+        "source_id": "qa:654",
+        "quote": "Q: 45세 남성이 최근 몇 달 동안 지속적인 불안과 함께 수면 장애를 호소하며 내원하였다. 그는 직장에서의 스트레스가 많..."
+      },
+      {
+        "disease": "우울 삽화(우울증)",
+        "similarity_score": 0.417,
+        "source_id": "qa:1707",
+        "quote": "Q: 45세 남자가 최근 업무 스트레스 증가로 인해 불면증, 집중력 저하, 그리고 소화 불량을 호소하며 내원했다. 환자는 이러한..."
+      },
+      {
+        "disease": "소아·청소년 우울증",
+        "similarity_score": 0.417,
+        "source_id": "qa:1707",
+        "quote": "Q: 45세 남자가 최근 업무 스트레스 증가로 인해 불면증, 집중력 저하, 그리고 소화 불량을 호소하며 내원했다. 환자는 이러한..."
+      }
+    ],
+    "mode": "rag_live",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "4 disease candidate(s) derived from 6 retrieved chunk(s) via symptom-keyword match (path1, ADR-020). similarity_score is a RAG cosine-similarity signal between the retrieved chunk and the Stage-1 query — NOT a patient-to-disease similarity, and NOT a calibrated probability (two-hop proxy, RES-001 §2 step 9 / ADR-020 condition 3).",
+    "recommended_questionnaire": "PHQ-9",
+    "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 4,
+    "rag_chunk_qa": 1,
+    "rag_chunk_other": 0,
+    "utterance": 0,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "B",
+    "retrieve": true,
+    "queries": [
+      "불면증, 수면 유지 장애, 스트레스 관련 수면 문제, 프로젝트 마감으로 인한 스트레스"
+    ],
+    "dropped_queries": [],
+    "trigger_reason": "judge_retrieve",
+    "fallback_used": false,
+    "judge_output": {
+      "retrieve": true,
+      "query": "불면증, 수면 유지 장애, 스트레스 관련 수면 문제, 프로젝트 마감으로 인한 스트레스",
+      "reason_summary": "retrieve/query decision generated",
+      "model_used": "solar-pro3-260323",
+      "prompt_version": "v1",
+      "prompts_degraded": false,
+      "latency_ms": 1269.0938711166382
+    }
+  }
+}

@@ -34,18 +34,47 @@ os.environ.setdefault(
     str(REPO_ROOT / "docs" / "ai" / "prompts"),
 )
 VP_DIR = REPO_ROOT / "docs" / "ai" / "simulation_results" / "VP-001"
+# STT_RESULTS and ORIGINAL_TEXT_RUN are regenerable OUTPUT artifacts from prior
+# runs, not test fixtures. They were moved to `_archive/simulation_results/VP-001/`
+# during the W1 fixture cleanup (PLAN-2026-W28-Q, answer #8a) and this script
+# deliberately does NOT read from `_archive/**` -- that tree is off-limits to
+# agent access once the blind-validation gate arms (W6->W7). If they are absent
+# here, `_require_artifact()` below fails fast with regeneration instructions
+# instead of falling back to the archive or crashing with a bare FileNotFoundError.
 STT_RESULTS = VP_DIR / "VP-001_stt_smoke_results.json"
 ORIGINAL_TEXT_RUN = VP_DIR / "VP-001_20260708_140746_conversation.json"
-TTS_INDEX = (
-    REPO_ROOT / "docs" / "ai" / "simulation_results" / "tts_scripts" / "patient_tts_index.json"
-)
+FIXTURES_DIR = REPO_ROOT / "apps" / "ai-server" / "tests" / "fixtures"
+TTS_INDEX = FIXTURES_DIR / "tts_scripts" / "patient_tts_index.json"
+
+_ARTIFACT_REGEN_HINT: dict[Path, str] = {
+    STT_RESULTS: (
+        "regenerate via `.venv/bin/python -m tests.smoke_stt_skt --vp VP-001` "
+        "(hits the SKT STT vendor API)"
+    ),
+    ORIGINAL_TEXT_RUN: (
+        "regenerate via `.venv/bin/python -m src.f1 --persona VP-001` "
+        "(text-mode simulation run)"
+    ),
+}
 
 logger = logging.getLogger(__name__)
 
 
+def _require_artifact(path: Path) -> Path:
+    """Fail fast if a required OUTPUT artifact is missing, without falling back to `_archive/`."""
+    if not path.exists():
+        hint = _ARTIFACT_REGEN_HINT.get(path, "regenerate it")
+        raise SystemExit(
+            f"[ERR] required artifact missing: {path}\n"
+            "  This is an archived/regenerable OUTPUT artifact, not a fixture, and this "
+            "script does not read from _archive/. To proceed, " + hint + "."
+        )
+    return path
+
+
 def load_stt_transcripts() -> list[str]:
     """Load 7 STT transcripts, substitute #5 (corrupt) with expected text from TTS index."""
-    stt_data = json.loads(STT_RESULTS.read_text(encoding="utf-8"))
+    stt_data = json.loads(_require_artifact(STT_RESULTS).read_text(encoding="utf-8"))
     stt_by_idx = {r["utterance_index"]: r["hypothesis"] for r in stt_data}
 
     tts_idx = json.loads(TTS_INDEX.read_text(encoding="utf-8"))
@@ -140,7 +169,7 @@ async def main() -> int:
     from src.f1 import F1Pipeline, save_f1_result
 
     # Load original for comparison
-    original = json.loads(ORIGINAL_TEXT_RUN.read_text(encoding="utf-8"))
+    original = json.loads(_require_artifact(ORIGINAL_TEXT_RUN).read_text(encoding="utf-8"))
     print("=== STT → F1 재현 검증 (VP-001) ===")
     print(f"Original run: {ORIGINAL_TEXT_RUN.name}")
     print(f"  turns={original['total_turns']} crisis={original['crisis_triggered']} "

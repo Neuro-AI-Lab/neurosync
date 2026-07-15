@@ -45,6 +45,11 @@ class TrendDataPoint:
     ctrs: int | None = None
     sentiment: float | None = None
     label: str = ""                                    # e.g. "Visit 1", "F/U 3"
+    # F4 quick-dev (`docs/ai/f4_quick_dev_plan.md` §5.2 chart 5, wave 5):
+    # 0..12 count of `QUESTIONABLE_SLOT_KEYS` filled this session. Smallest-
+    # footprint extension — reuses `_draw_panel`/zones/axis code unchanged,
+    # same shape as the `sentiment` panel above (`zones=[]`, fixed y-range).
+    slot_fill_count: int | None = None
 
 
 @dataclass
@@ -180,6 +185,7 @@ def _render_plot(
     has_gad7 = any(dp.gad7 is not None for dp in data_points)
     has_ctrs = any(dp.ctrs is not None for dp in data_points)
     has_sentiment = any(dp.sentiment is not None for dp in data_points)
+    has_slot_fill = any(dp.slot_fill_count is not None for dp in data_points)
 
     panels: list[tuple] = []
     if has_phq9:
@@ -197,6 +203,17 @@ def _render_plot(
     if has_sentiment:
         panels.append(
             ("Sentiment Polarity", [dp.sentiment for dp in data_points], [], -1.0, 1.0, False)
+        )
+    if has_slot_fill:
+        panels.append(
+            (
+                "Slot Fill (F4)",
+                [dp.slot_fill_count for dp in data_points],
+                [],
+                0,
+                12,
+                False,
+            )
         )
 
     if not panels:
@@ -447,3 +464,163 @@ def _find_nearest_x(dates, target, x_vals):
     diffs = [abs((d - target).total_seconds()) for d in dates]
     idx = diffs.index(min(diffs))
     return x_vals[idx]
+
+
+# ── F4 multi-series trend charts (`docs/ai/f4_quick_dev_plan.md` §5.2
+#    charts 3-4, wave 5) ────────────────────────────────────────────────
+#
+# Disease-similarity (chart 3) / domain-confidence (chart 4) are
+# fundamentally N-series-per-date, unlike every panel above (1 value per
+# date) — new functions rather than forcing them through `_draw_panel`.
+
+
+@dataclass
+class NamedSeriesPoint:
+    """One (date, name, value) datum for a multi-series line chart — F2
+    `disease_candidate_series`/`domain_candidate_series` points."""
+
+    date: str
+    name: str
+    value: float
+
+
+def generate_similarity_trend_plot(
+    points: list[NamedSeriesPoint],
+    patient_name: str = "",
+    title: str = "Disease-Similarity Trend (F4, per disease)",
+    min_sessions: int = 2,
+    figsize: tuple[float, float] = (12, 6),
+    dpi: int = 150,
+) -> TrendPlotResult | None:
+    """F4 chart 3: one line per disease name recurring in >= `min_sessions`
+    distinct sessions. VAL-014 inherited (design doc §5.3 item 5 / CVR-020
+    Finding 10, Rec 6): y-axis label reads "similarity score" — NEVER
+    "probability"/"confidence" (REV-013 §4 binding rule) — and every line
+    is rendered dashed + low-opacity with an on-chart caption, an ON-CHART
+    low-confidence visual cue (not merely accompanying text)."""
+    try:
+        return _render_named_series_plot(
+            points, patient_name, title, min_sessions, figsize, dpi,
+            y_label="similarity score (RAG cosine-similarity signal, NOT a probability)",
+            caption=(
+                "VAL-014 (open): F2 disease-candidate face-validity is not established — "
+                "this trend is computed over noisy inputs and is not for clinical trend "
+                "interpretation."
+            ),
+        )
+    except ImportError:
+        logger.warning("matplotlib not installed — similarity trend plot skipped")
+        return None
+    except Exception as exc:
+        logger.warning("Similarity trend plot generation failed: %s", exc)
+        return None
+
+
+def generate_domain_trend_plot(
+    points: list[NamedSeriesPoint],
+    patient_name: str = "",
+    title: str = "Domain-Confidence Trend (F4, per domain)",
+    min_sessions: int = 2,
+    figsize: tuple[float, float] = (12, 6),
+    dpi: int = 150,
+) -> TrendPlotResult | None:
+    """F4 chart 4: one line per `DomainName` recurring in >= `min_sessions`
+    distinct sessions. `confidence` is the schema's own field name — never
+    relabeled "probability"."""
+    try:
+        return _render_named_series_plot(
+            points, patient_name, title, min_sessions, figsize, dpi,
+            y_label="confidence (domain_candidates.confidence)",
+            caption=None,
+        )
+    except ImportError:
+        logger.warning("matplotlib not installed — domain trend plot skipped")
+        return None
+    except Exception as exc:
+        logger.warning("Domain trend plot generation failed: %s", exc)
+        return None
+
+
+def _render_named_series_plot(
+    points: list[NamedSeriesPoint],
+    patient_name: str,
+    title: str,
+    min_sessions: int,
+    figsize: tuple[float, float],
+    dpi: int,
+    *,
+    y_label: str,
+    caption: str | None,
+) -> TrendPlotResult:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.dates as mdates
+    import matplotlib.font_manager as fm
+    import matplotlib.pyplot as plt
+
+    for fpath in [
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
+    ]:
+        try:
+            fm.fontManager.addfont(fpath)
+            plt.rcParams["font.family"] = fm.FontProperties(fname=fpath).get_name()
+            break
+        except Exception:
+            continue
+    plt.rcParams["axes.unicode_minus"] = False
+
+    by_name: dict[str, list[tuple[datetime, float]]] = {}
+    for p in points:
+        by_name.setdefault(p.name, []).append((_parse_date(p.date), p.value))
+    recurring = {
+        name: sorted(vals, key=lambda t: t[0])
+        for name, vals in by_name.items()
+        if len({d for d, _ in vals}) >= min_sessions
+    }
+    if not recurring:
+        raise ValueError("No name recurs in >= min_sessions distinct sessions — nothing to plot")
+
+    fig, ax = plt.subplots(figsize=figsize)
+    fig.suptitle(
+        f"{title}\n{patient_name}" if patient_name else title, fontsize=13, fontweight="bold"
+    )
+
+    cmap = plt.get_cmap("tab10")
+    for i, (name, vals) in enumerate(sorted(recurring.items())):
+        xs = [d for d, _ in vals]
+        ys = [v for _, v in vals]
+        ax.plot(
+            xs, ys, marker="o", markersize=5, linewidth=1.5, linestyle="--", alpha=0.55,
+            color=cmap(i % 10), label=name,
+        )
+
+    ax.set_ylabel(y_label, fontsize=9)
+    ax.set_ylim(-0.05, 1.05)
+    ax.grid(axis="y", alpha=0.2, linestyle="--")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.legend(loc="upper left", fontsize=7, framealpha=0.7)
+
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
+    ax.tick_params(axis="x", rotation=45, labelsize=7)
+
+    caption_text = (
+        "Dashed, low-opacity lines = low-confidence visual cue. " + (caption or "")
+    ).strip()
+    fig.text(0.02, 0.01, caption_text, fontsize=7, color="#B00020", ha="left", va="bottom")
+
+    plt.tight_layout(rect=[0, 0.04, 1, 0.93])
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
+    buf.seek(0)
+    png_bytes = buf.getvalue()
+
+    return TrendPlotResult(
+        png_bytes=png_bytes,
+        base64_str=base64.b64encode(png_bytes).decode("ascii"),
+        width_px=int(figsize[0] * dpi),
+        height_px=int(figsize[1] * dpi),
+    )

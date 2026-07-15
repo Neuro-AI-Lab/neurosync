@@ -21,11 +21,11 @@ from dotenv import load_dotenv
 from src.config import Settings
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-SIMULATION_DIR = REPO_ROOT / "docs" / "ai" / "simulation_results"
+OCR_FIXTURES_DIR = REPO_ROOT / "apps" / "ai-server" / "tests" / "fixtures" / "ocr"
 
 
 def find_pdfs() -> list[Path]:
-    return sorted(SIMULATION_DIR.glob("VP-*/VP-*_ocr.pdf"))
+    return sorted(OCR_FIXTURES_DIR.glob("VP-*/VP-*_ocr.pdf"))
 
 
 def parse_document(pdf_path: Path, settings: Settings) -> dict:
@@ -95,7 +95,7 @@ def main() -> int:
 
     pdfs = find_pdfs()
     if not pdfs:
-        print(f"[ERR] PDF 없음 in {SIMULATION_DIR}", file=sys.stderr)
+        print(f"[ERR] PDF 없음 in {OCR_FIXTURES_DIR}", file=sys.stderr)
         return 1
 
     print("=== Upstage Document Parse Smoke Test ===")

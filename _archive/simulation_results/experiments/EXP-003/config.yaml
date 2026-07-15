@@ -1,0 +1,89 @@
+# EXP-003 — safety_classifier v3 (ADR-010 policy) live re-validation vs EXP-002 baseline
+# Config captured before any run started (experiment-reproducibility skill).
+# Brief: PLAN-2026-W28-B Step 3, HANDOFF (2026-07-07).
+
+git_head: 210429c007bb2a33f0b548767b5829773e6cb6c1
+git_branch: Master
+git_status_note: >
+  Working tree has uncommitted changes at run time (ADR-011 batch, not yet
+  committed by filemanager — Step 6 is still pending). Modified:
+  apps/ai-server/src/agents/safety_classifier.py, tests/test_prompt_v3.py,
+  tests/test_scripted_patient.py, docs/ai/checklist_task1.md,
+  docs/ai/personas/_simulation_spec.md, docs/ai/vp_validation_scenarios.md.
+  Untracked: tests/repro/test_bug_009.py, tests/simulation/scenarios/SM-08a.json,
+  tests/simulation/scenarios/SM-08b.json, docs/ai/prompts/safety_classifier/v3.system.md,
+  plus docs/ai/simulation_results/ artifacts from EXP-002's own run (pre-existing,
+  not touched by this experiment). No code/prompt/test edits made by this agent —
+  out of charter per brief constraints.
+
+python: apps/ai-server/.venv (Python 3.12.13)
+working_dir: apps/ai-server
+prompts_base_dir_env: docs/ai/prompts   # PROMPTS_BASE_DIR, set automatically by f1.py/safety_matrix.py main()
+
+prompt_version_pins:
+  safety_classifier: v3   # CHANGED from EXP-002's v2 — ADR-010 policy (passive SI -> immediate CTRS 2), PLAN-2026-W28-B Step 1
+  dialogue: v2            # unchanged from EXP-002
+  clinical_slot: v3       # unchanged from EXP-002
+  handoff_generator: v2   # unchanged from EXP-002; not exercised by this path (f1.py scope)
+  sentiment_analyzer: v2  # unchanged from EXP-002; not exercised by this path (f1.py scope)
+  confirmed_via: "grep -n PROMPT_VERSION apps/ai-server/src/agents/{safety_classifier,dialogue,clinical_slot,handoff_generator,sentiment_analyzer}.py"
+
+model:
+  primary_vendor: upstage
+  chat_model: solar-pro3
+  base_url: https://api.upstage.ai/v1
+  secondary_vendor: lg_k_exaone
+  secondary_model: LGAI-EXAONE/EXAONE-4.0.1-32B
+  temperatures_unchanged_from_baseline: true   # no temperature/max_tokens lines touched in agents/*.py since EXP-002
+
+qa_gate:
+  suite: apps/ai-server/tests/
+  result: "529 passed, 0 failed"
+  command: ".venv/bin/python -m pytest tests/ -q"
+  run_by_tracker_before_launch: true
+  prior_gate_history: "qa GATE: PASS twice per HANDOFF (implementation pass + SM-08a/b addition pass)"
+
+pre_run_checklist:
+  plan: "PLAN-2026-W28-B Step 3 (discussion.md) — mission-scoped validation task, not a HYP-NNN"
+  critic_review: "REV-004 (discussion.md) — NON-BLOCKING for proceeding to Step 3, with two conditions binding DR-005 interpretation (not this run): (1) burden-ideation negation untested beyond SM-08a now added, (2) VP-001 n=1->raised to n=2 per ADR-011"
+  qa_gate: "no open critical BUG on this code path (BUG-001/004/005/006 are critical but scoped to interactive_chatbot.py/DialogueAgent repetition/slot-extraction path, not f1.py/safety_classifier; BUG-008/BUG-009 major, non-blocking); suite 529 green"
+  dataset: "DATASET-003 (discussion.md) covers VP-001/VP-003 (and VP-002/VP-004) with leakage checklist; 2 items open (target-leakage-in-features standing test, pretraining contamination) per ADR-009, accepted as non-blocking documentation gaps"
+  adr: "ADR-010 (policy), ADR-011 (SM-08a/b addition + VP-001 n=2 + full 11-scenario matrix)"
+
+runs:
+  safety_matrix:
+    command: ".venv/bin/python -m src.safety_matrix --scenario all"
+    scenarios: [SM-01, SM-02, SM-03, SM-04a, SM-04b, SM-05, SM-06, SM-07a, SM-07b, SM-08a, SM-08b]
+    n_scenarios: 11   # 9 (EXP-002 set) + 2 new (SM-08a/b, ADR-011)
+    n_per_scenario: 1   # deterministic scripted patient, matches EXP-002/DR-003 methodology
+  vp_sessions:
+    command: ".venv/bin/python -m src.f1 --persona <VP-ID> --max-turns 12"
+    personas: [VP-003, VP-001]
+    n_per_vp: 2   # VP-001 raised from EXP-002's n/a to n=2 per ADR-011; VP-003 n=2 matches EXP-002
+    max_turns: 12   # matches EXP-002/DR-003
+    mode: first-visit (no --followup-from, matches EXP-002)
+    rationale: >
+      VP-002/VP-004 not re-run this mission — brief scopes Step 3 to VP-003 (policy-delta
+      target) + VP-001 (mild-persona false-crisis watch), per PLAN-2026-W28-B Step 3 and
+      ADR-011. VP-002/VP-004 EXP-002 results stand as the v3-adjacent-agent baseline for
+      those two personas (unaffected by the safety_classifier v2->v3 change on their
+      clinical presentation, which does not touch passive-SI/burden-ideation phrasing).
+
+evaluation:
+  grounding_audit_command: ".venv/bin/python -m src.eval.grounding_audit <conversation.json>"
+  applied_to: "all 4 VP session conversation.json files (VP-003 run1/run2, VP-001 run1/run2)"
+
+rollback_watch_conditions: >
+  PLAN-2026-W28-B + ADR-011 rollback rule (verbatim consequence, checked immediately after
+  each stage completes, before proceeding to the next): any SM-02 FALSE CRISIS, any SM-07a
+  FALSE CRISIS, any SM-08a FALSE CRISIS, any SM-04a/SM-04b PROBE REGRESSION, or any SM-08b
+  MISSED CRISIS -> STOP further runs, flag in the first Evidence line with run tag + log
+  path, report back to orchestrator. Do not revert the pin; do not soften wording.
+
+artifact_note: >
+  f1.py and safety_matrix.py hardcode their output directory to
+  docs/ai/simulation_results/ (no --output-dir flag). All resulting artifacts are copied
+  (not moved) into experiments/EXP-003/runs/<tag>/ after each run completes, same
+  convention as EXP-002.
+
+comparison_baseline: "EXP-002 (result.md, incl. its Correction subsection) — same execution path/config except safety_classifier pin (v2 -> v3)"

@@ -2,12 +2,23 @@
 
 - BUCKETS         : case_card 플래그 67개 → 4군(symptom/context/change/intervention)
 - SYMPTOM_KO/SYN  : 증상 버킷 26개 canonical 플래그의 한글명·동의어(Ada 흡수)
-- DISEASES        : Ada 26 질병 (slug → 영문/한글/KCD/분류/요약)
+- DISEASES        : Ada 26 + team-authored 1(AUD 초안) = 27 질병
+                     (slug → 영문/한글/KCD/분류/요약; 5-필드 shape 유지 —
+                     아래 DISEASE_SOURCE 참고)
 - DISEASE_SYMPTOMS: 질병 slug → canonical 증상 플래그 리스트 (Ada 증상 매핑 결과)
+- DISEASE_SOURCE  : 질병 slug → 데이터 출처('ada'|'team'). 미등록 slug는 'ada'
+                     (Ada 26 전원 해당) — PLAN-2026-W28-Q W6, load_ontology.py의
+                     source='ada' 하드코딩 결함(§9) 수정.
 - UNMAPPED        : 어떤 플래그에도 안 붙은 Ada 증상 (보고 대상)
 
 심리상담 플래그는 우울/불안/중독 중심 → 그 3계열은 풍부히 매핑되나
 정신병/조증/신경발달/치매/신경학/신체 특이증상은 대거 미매핑(UNMAPPED).
+
+W6 AUD 초안(`alcohol-use-disorder`, PLAN-2026-W28-Q W6, plan §9): DSM-5/
+ICD-10/KCD 진단 기준만으로 작성 — VP-012 페르소나 파일에서 역방향으로
+가져온 문구 없음 (reverse-direction blind-authorship discipline). 한글명은
+DRAFT — clinical-validator 최종 확정 전까지 DB에 적재하지 않는다
+(load_ontology.py는 이 미션에서 실행하지 않음).
 """
 
 # ── 1. 버킷맵: 67 플래그 → 4군 ──────────────────────────────────
@@ -323,6 +334,21 @@ DISEASES = {
         "substance",
         "알코올 의존자가 음주를 중단·감량할 때 나타나는 금단 증상군.",
     ),
+    # W6 AUD 초안 (PLAN-2026-W28-Q W6, plan §9) — team-authored, DB 미적재
+    # (clinical-validator 내용 sign-off 대기, load_ontology.py 실행 안 함).
+    # alcohol-intoxication(급성 중독)/alcohol-withdrawal(금단)과 구분되는
+    # 만성 의존 증후군 항목. DSM-5 Alcohol Use Disorder 진단기준(조절 상실,
+    # 갈망, 내성, 금단, 해로운 결과에도 지속되는 사용 등 11개 기준) +
+    # ICD-10/KCD-8 F10.2 "의존 증후군"(dependence syndrome) 정의만 근거로
+    # 작성 — VP-012 페르소나 파일 문구를 역방향으로 가져오지 않음.
+    "alcohol-use-disorder": (
+        "Alcohol Use Disorder",
+        "알코올 사용장애(의존)",  # KO name finalized per CVR-006 sign-off, 2026-07-11
+        "F10.2",
+        "substance",
+        "반복적 음주로 조절 상실·내성·금단 등 신체적·심리적 의존이 형성되고, "
+        "음주로 인한 해로운 결과가 있음에도 사용을 지속하는 만성 물질사용장애.",
+    ),
     "conversion-disorder": (
         "Conversion Disorder",
         "전환장애",
@@ -352,6 +378,28 @@ DISEASES = {
         "HIV 감염이 뇌를 침범해 생기는 인지기능 저하.",
     ),
 }
+
+# ── 3b. 질병 출처(provenance) : slug → 'ada' | 'team' ──────────────
+# load_ontology.py:18은 과거 모든 rag.disease INSERT에 source='ada'를
+# 하드코딩했다(Ada 26 질병 기준 설계 — 원 26개 전원에 정확). W6부터는
+# Ada 유래가 아닌 team-authored 엔트리(예: alcohol-use-disorder, DSM-5/
+# ICD-10/KCD 근거)가 섞이므로, pretraining-contamination band 판단을
+# 위해 slug별 출처가 필요하다(PLAN-2026-W28-Q W6, plan §9 provenance
+# 결함 기록). DISEASES 튜플 자체는 5-필드 shape을 그대로 유지한다 —
+# questionnaire_mapping.py가 `for slug, (name, name_ko, kcd, cls, desc)
+# in DISEASES.items()` 형태로 위치 기반 unpacking을 수행하므로, 튜플을
+# 6-필드로 넓히면 그 모듈이 import 시점에 깨진다(원치 않는 코드 변경).
+# 이 별도 맵이 backward-compatible한 확장 지점이다.
+DISEASE_SOURCE: dict[str, str] = {
+    "alcohol-use-disorder": "team",
+}
+
+
+def disease_source(slug: str) -> str:
+    """slug의 데이터 출처. `DISEASE_SOURCE`에 없으면 기존 Ada 26 전원과
+    동일하게 'ada' (하위호환 기본값)."""
+    return DISEASE_SOURCE.get(slug, "ada")
+
 
 # ── 4. 질병 → 증상 매핑 (Ada 증상 → canonical 플래그) ───────────
 DISEASE_SYMPTOMS = {
@@ -492,6 +540,23 @@ DISEASE_SYMPTOMS = {
         "craving",
         "weight_appetite",
     ],
+    # W6 AUD 초안 — CVR-002 Finding 6 권고 반영: acute intoxication/
+    # withdrawal 플래그(위 alcohol-intoxication/alcohol-withdrawal 항목이
+    # 이미 소유)가 아니라, 이미 어휘집에 있는 "craving"(:494 SYMPTOM_KO)과
+    # "perceived_loss_of_control"(:502 borderline-personality-disorder에서
+    # 재사용 중)을 재사용 — option (a) "가장 가까운 기존 플래그 재사용
+    # (disclosed imprecision)"을 따름. sleep_disturbance는 의도적으로
+    # 추가하지 않음: (1) DSM-5 AUD 11개 진단기준에 수면장애가 핵심 기준으로
+    # 명시되지 않음(금단-인접/이차 소견에 가까움), (2) CVR-002 Finding 6은
+    # craving/perceived_loss_of_control만 명시적으로 권고, (3)
+    # alcohol-withdrawal이 이미 sleep_disturbance를 소유 — 급성 금단과
+    # 만성 의존을 플래그 집합에서 계속 구분하기 위함, (4) 이 판단 시점에
+    # VP-012 페르소나 파일(자체적으로 수면 내용을 상세히 서술)을 이미 읽은
+    # 상태였으므로, 역방향 각색(reverse-authorship contamination) 위험을
+    # 피하기 위해 최소 집합을 유지함(VP-012 §8: ontology 항목이 VP-012의
+    # 서사에 맞춰 재단되지 않아야 candidate 도달 실패 시 원인이 ontology
+    # 갭 하나로 귀속됨 — 그 isolation 설계 취지와도 부합).
+    "alcohol-use-disorder": ["craving", "perceived_loss_of_control"],
     "conversion-disorder": ["impaired_cognition"],
     "alzheimers-disease": [
         "impaired_cognition",

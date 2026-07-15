@@ -1,0 +1,190 @@
+{
+  "session_id": "f1_VP-003",
+  "persona_id": "VP-003",
+  "repro": {
+    "git_head": "7d316a7b753612af29e90763c82ea68802eef0ae",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260711_210747_conversation.json",
+    "input_sha256": "90233e4e8476ab7ec474dd3caa1af8cb73731da74944fb0d5999d36185b90ee8",
+    "mode": "llm_only",
+    "latency_ms": 5811.8,
+    "generated_at": "2026-07-11T21:07:53.464800",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 1752,
+      "completion_tokens": 437,
+      "total_tokens": 2189
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "depression",
+      "confidence": 0.35,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_0",
+          "quote": "그냥 너무 힘들어요. 잠도 못 자고, 아무것도 하고 싶지 않아요."
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9"
+      ]
+    },
+    {
+      "domain": "alcohol",
+      "confidence": 0.3,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_6",
+          "quote": "매일 소주 한 병 마셔요. 안 마시면 못 버텨요."
+        }
+      ],
+      "recommended_surveys": [
+        "AUDIT"
+      ]
+    },
+    {
+      "domain": "sleep",
+      "confidence": 0.25,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_0",
+          "quote": "잠도 못 자고"
+        }
+      ],
+      "recommended_surveys": [
+        "PSQI"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "우울감, 수면 장애, 알코올 의존 증상이 복합적으로 나타나며, 자살 생각이 있으나 구체적 계획 없음",
+      "domain_ref": "depression"
+    }
+  ],
+  "summary": "환자는 지속적인 수면 장애, 무기력감, 자살 생각, 매일 소주 한 병 섭취 등의 증상을 호소하고 있습니다. 자살 생각은 있으나 구체적 계획이나 의도는 부인했습니다.",
+  "retrieval_meta": {
+    "mode": "llm_only",
+    "chunks_returned": 0,
+    "chunk_ids": [],
+    "queries": null
+  },
+  "chunk_texts": {},
+  "utterances": {
+    "turn_0": "...그냥 너무 힘들어요. 잠도 못 자고, 아무것도 하고 싶지 않아요.",
+    "turn_1": "...그냥 너무 힘들어요. 잠도 못 자고, 아무것도 하고 싶지 않아요.",
+    "turn_2": "아니요. 정신과 가본 적도 없고, 상담도 처음이에요. ...도움이 되나요? 뭘 해도 안 될 것 같은데.",
+    "turn_3": "고혈압 약은 있는데, 안 먹고 있어요. ...안 먹으면 못 버텨요.",
+    "turn_4": "형이 있긴 한데... 연락 안 해요. 짐이 되기 싫어서.",
+    "turn_5": "...모르겠어요. 형도 별로 안 보고 지내요.",
+    "turn_6": "매일 소주 한 병 마셔요. 안 마시면 못 버텨요. 카페인은 거의 안 먹어요. ...그냥 다 괜찮을 리가 없잖아요.",
+    "turn_7": "...사라지고 싶다는 생각이 매일 들어요.  그냥 죽으면 편할 것 같아요.  근데 어떻게까지는... 생각 안 했어요.  그냥 사라지고 싶은 거예요.",
+    "turn_8": "...생각 안 했어요. \n어떻게까지는 몰라요. \n그냥 사라지고 싶은 거예요.",
+    "turn_9": "아니요. 그런 거 처음이에요. ...도움이 되나요? 뭘 해도 안 될 것 같은데.",
+    "turn_10": "모르겠어요.  \n형도 별로 안 보고 지내요.  \n...연락 안 해요.  \n짐이 되기 싫어서."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 3,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 1
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "그냥 너무 힘들어요. 잠도 못 자고, 아무것도 하고 싶지 않아요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_7",
+        "quote": "매일 사라지고 싶다는 생각이 매일 들어요. 그냥 죽으면 편할 것 같아요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶, 죽으면 편할, 죽으면편할) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "utterance",
+        "source_id": "turn_6",
+        "quote": "매일 소주 한 병 마셔요. 안 마시면 못 버텨요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "잠도 못 자고",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 3,
+    "candidates_after": 3,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 1,
+    "evidence_stripped_risk_lexicon": 1
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "자살 생각이 얼마나 자주 발생하는지 구체적으로 알려주세요.",
+    "소주를 마시지 않을 때 어떤 신체적/정신적 증상이 나타나는지 알려주세요.",
+    "과거에 정신과 치료를 받은 적이 있는지, 있다면 어떤 치료를 받았는지 알려주세요."
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 5811.785940080881,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 1752,
+    "completion_tokens": 437,
+    "total_tokens": 2189
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [],
+    "mode": "experimental_unpopulated",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "Stage 1 ran in llm_only mode (no RAG chunks retrieved this run) — the AI-disease container has no chunk-derived evidence to populate from",
+    "recommended_questionnaire": null,
+    "recommendation_caveat": null
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 0,
+    "rag_chunk_qa": 0,
+    "rag_chunk_other": 0,
+    "utterance": 3,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "A",
+    "retrieve": false,
+    "queries": [],
+    "dropped_queries": [
+      "잠도 못 자고 아무것도 하고 싶지 않음, 매일 사라지고 싶다는 생각이 듦",
+      "매일 잠 못 자고 아무것도 하고 싶지 않은 상태, 매일 사라지고 싶다는 생각이 지속됨"
+    ],
+    "trigger_reason": "sufficient_no_fallback_no_usable_queries",
+    "fallback_used": false,
+    "judge_output": null
+  }
+}

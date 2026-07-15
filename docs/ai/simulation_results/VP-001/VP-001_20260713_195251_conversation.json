@@ -1,0 +1,992 @@
+{
+  "session_id": "f1_VP-001_followup",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "가슴 답답함, 어깨·목 뻐근함, 수면 문제"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "새 프로젝트 시작 후 데드라인이 빡빡해지면서 긴장이 풀리지 않고, 잠들기 전 머릿속이 복잡하며 아침에 눈 뜨면 '또 시작이네' 하는 생각이 듦. 가슴 답답함과 어깨·목 뻐근함이 동반되며 식욕이 줄어듦. 지난번 프로젝트 종료 후에는 긴장이 풀렸으나 이번에는 끝날 때까지 긴장이 지속될 것 같아 걱정됨"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음"
+    },
+    {
+      "key": "personal_social_history",
+      "value": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요… 음, 요즘은 좀 나아졌어요. 사실 지난번에 새 프로젝트 데드라인이 걱정돼서 잠도 잘 못 자고 그랬는데, 그 마일스톤은 무사히 끝냈거든요. 그래서 그런지… 마음이 좀 가벼워진 느낌이에요.  \n\n지금은 수면도 여전히 완전히 회복되진 않았지만, 전보다는 잠들기까지 시간이 좀 줄었고, 새벽에 깨는 횟수도 줄었어요. 그래도 아침에 일어날 때 여전히 ‘또 시작이네’ 하는 생각은 가끔 들어요.  \n\n가슴 답답함이나 어깨 뻐근함은 여전히 가끔 있긴 한데, 운동도 다시 시작해보려고 하고 있어요. 전체적으로… 비슷한 수준이에요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요! 지난번에 이어서 다시 뵙게 되어 반갑습니다. 오늘은 어떤 마음 상태인지 편하게 말씀해 주시면 함께 들어볼게요.",
+      "slot_updates": {
+        "chief_complaint": "새 프로젝트 데드라인으로 인한 수면 문제",
+        "history_of_present_illness": "지난번 마일스톤 완료 후 수면 개선(잠들기 시간 감소, 새벽 깨는 횟수 감소), 가슴 답답함 및 어깨 뻐근함 지속, 운동 재개 시도"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "새 프로젝트 데드라인으로 인한 수면 문제",
+        "history_of_present_illness": "지난번 마일스톤 완료 후 수면 개선(잠들기 시간 감소, 새벽 깨는 횟수 감소), 가슴 답답함 및 어깨 뻐근함 지속, 운동 재개 시도",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 11652.4897958152,
+      "timestamp": "2026-07-13T19:51:16.343974",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "안녕하세요… 음, 요즘은 좀 나아졌어요. 사실 지난번에 새 프로젝트 데드라인이 걱정돼서 잠도 잘 못 자고 그랬는데, 그 마일스톤은 무사히 끝냈거든요. 그래서 그런지… 마음이 좀 가벼워진 느낌이에요.  \n\n지금은 수면도 여전히 완전히 회복되진 않았지만, 전보다는 잠들기까지 시간이 좀 줄었고, 새벽에 깨는 횟수도 줄었어요. 그래도 아침에 일어날 때 여전히 ‘또 시작이네’ 하는 생각은 가끔 들어요.  \n\n가슴 답답함이나 어깨 뻐근함은 여전히 가끔 있긴 한데, 운동도 다시 시작해보려고 하고 있어요. 전체적으로… 비슷한 수준이에요.",
+        "normalized": "안녕하세요… 음, 요즘은 좀 나아졌어요. 사실 지난번에 새 프로젝트 데드라인이 걱정돼서 잠도 잘 못 자고 그랬는데, 그 마일스톤은 무사히 끝냈거든요. 그래서 그런지… 마음이 좀 가벼워진 느낌이에요.  \n\n지금은 수면도 여전히 완전히 회복되진 않았지만, 전보다는 잠들기까지 시간이 좀 줄었고, 새벽에 깨는 횟수도 줄었어요. 그래도 아침에 일어날 때 여전히 ‘또 시작이네’ 하는 생각은 가끔 들어요.  \n\n가슴 답답함이나 어깨 뻐근함은 여전히 가끔 있긴 한데, 운동도 다시 시작해보려고 하고 있어요. 전체적으로… 비슷한 수준이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 5131.164733320475,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.2,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.3
+          }
+        ],
+        "evidence_phrase": "‘또 시작이네’ 하는 생각은 가끔 들어요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요… 음, 요즘은 좀 나아졌어요. 사실 지난번에 새 프로젝트 데드라인이 걱정돼서 잠도 잘 못 자고 그랬는데, 그 마일스톤은 무사히 끝냈거든요. 그래서 그런지… 마음이 좀 가벼워진 느낌이에요.  \n\n지금은 수면도 여전히 완전히 회복되진 않았지만, 전보다는 잠들기까지 시간이 좀 줄었고, 새벽에 깨는 횟수도 줄었어요. 그래도 아침에 일어날 때 여전히 ‘또 시작이네’ 하는 생각은 가끔 들어요.  \n\n가슴 답답함이나 어깨 뻐근함은 여전히 가끔 있긴 한데, 운동도 다시 시작해보려고 하고 있어요. 전체적으로… 비슷한 수준이에요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "프로젝트 마일스톤을 무사히 마치셨다니 정말 다행이에요. 그 과정에서 몸과 마음이 많이 힘들었을 텐데, 그 고비를 잘 넘기셨다니 대단합니다. 오늘은 혹시 최근에 새롭게 진단받은 신체 질환이 있거나, 기존에 처방받은 약 외에 추가로 복용하고 계신 약이 있는지 편하게 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "새 프로젝트 데드라인 종료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각과 가슴 답답함, 어깨 뻐근함이 지속됨",
+        "history_of_present_illness": "새 프로젝트 마일스톤 완료 후 수면이 전보다는 개선되었으나 완전히 회복되지 않음. 잠들기 시간 단축, 새벽 깨는 횟수 감소. 아침에 '또 시작이네' 하는 생각이 가끔 들며 가슴 답답함과 어깨·목 뻐근함이 가끔 동반됨. 운동 재개 시도 중"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "새 프로젝트 데드라인 종료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각과 가슴 답답함, 어깨 뻐근함이 지속됨",
+        "history_of_present_illness": "새 프로젝트 마일스톤 완료 후 수면이 전보다는 개선되었으나 완전히 회복되지 않음. 잠들기 시간 단축, 새벽 깨는 횟수 감소. 아침에 '또 시작이네' 하는 생각이 가끔 들며 가슴 답답함과 어깨·목 뻐근함이 가끔 동반됨. 운동 재개 시도 중",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3694.5580248720944,
+      "timestamp": "2026-07-13T19:51:20.038560",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "안녕하세요… 음, 요즘은 좀 나아졌어요. 사실 지난번에 새 프로젝트 데드라인이 걱정돼서 잠도 잘 못 자고 그랬는데, 그 마일스톤은 무사히 끝냈거든요. 그래서 그런지… 마음이 좀 가벼워진 느낌이에요.  \n\n지금은 수면도 여전히 완전히 회복되진 않았지만, 전보다는 잠들기까지 시간이 좀 줄었고, 새벽에 깨는 횟수도 줄었어요. 그래도 아침에 일어날 때 여전히 ‘또 시작이네’ 하는 생각은 가끔 들어요.  \n\n가슴 답답함이나 어깨 뻐근함은 여전히 가끔 있긴 한데, 운동도 다시 시작해보려고 하고 있어요. 전체적으로… 비슷한 수준이에요.",
+        "normalized": "안녕하세요… 음, 요즘은 좀 나아졌어요. 사실 지난번에 새 프로젝트 데드라인이 걱정돼서 잠도 잘 못 자고 그랬는데, 그 마일스톤은 무사히 끝냈거든요. 그래서 그런지… 마음이 좀 가벼워진 느낌이에요.  \n\n지금은 수면도 여전히 완전히 회복되진 않았지만, 전보다는 잠들기까지 시간이 좀 줄었고, 새벽에 깨는 횟수도 줄었어요. 그래도 아침에 일어날 때 여전히 ‘또 시작이네’ 하는 생각은 가끔 들어요.  \n\n가슴 답답함이나 어깨 뻐근함은 여전히 가끔 있긴 한데, 운동도 다시 시작해보려고 하고 있어요. 전체적으로… 비슷한 수준이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 5131.164733320475,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.1,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.85
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.3
+          }
+        ],
+        "evidence_phrase": "프로젝트 마일스톤을 무사히 끝냈거든요. 그래서 그런지… 마음이 좀 가벼워진 느낌이에요. 전보다는 잠들기까지 시간이 좀 줄었고, 새벽에 깨는 횟수도 줄었어요. 그래도 아침에 일어날 때 여전히 ‘또 시작이네’ 하는 생각은 가끔 들어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "아, 그런 건 없어요. 딱히 새로 생긴 신체 문제나 약은 없어요. 평소랑 비슷한 상태고, 약도 전혀 안 먹고 있어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "신체적인 문제는 없고 약도 안 드시고 계신다니 다행이에요. 혹시 가족분들 중에서 비슷한 어려움을 겪으셨던 분이 계신지 편하게 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "새 프로젝트 마일스톤 완료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각 지속",
+        "history_of_present_illness": "프로젝트 마일스톤 완료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각 지속, 가슴 답답함과 어깨·목 뻐근함은 가끔 있으나 운동 재개 시도, 식욕은 변함 없음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "새 프로젝트 마일스톤 완료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각 지속",
+        "history_of_present_illness": "프로젝트 마일스톤 완료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각 지속, 가슴 답답함과 어깨·목 뻐근함은 가끔 있으나 운동 재개 시도, 식욕은 변함 없음",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 2963.502645958215,
+      "timestamp": "2026-07-13T19:51:29.157215",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아, 그런 건 없어요. 딱히 새로 생긴 신체 문제나 약은 없어요. 평소랑 비슷한 상태고, 약도 전혀 안 먹고 있어요.",
+        "normalized": "아, 그런 건 없어요. 딱히 새로 생긴 신체 문제나 약은 없어요. 평소랑 비슷한 상태고, 약도 전혀 안 먹고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1410.4791642166674,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아, 그런 건 없어요. 딱히 새로 생긴 신체 문제나 약은 없어요. 평소랑 비슷한 상태고, 약도 전혀 안 먹고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "음… 글쎄요, 딱히 그런 분은 없어요. 부모님은 특별히 정신적인 문제는 없으셨던 것 같고, 가족력이라고 할 만한 건 딱히 떠오르지 않아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "가족 중에 비슷한 어려움을 겪으신 분이 없으시다고 하니, 혹시 현재 정신건강의학과 진료를 받고 계시거나 심리상담을 정기적으로 받고 계신지 편하게 말씀해 주실 수 있을까요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "새 프로젝트 마일스톤 완료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각 지속",
+        "history_of_present_illness": "프로젝트 마일스톤 완료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각 지속, 가슴 답답함과 어깨·목 뻐근함은 가끔 있으나 운동 재개 시도, 식욕은 변함 없음",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3013.1078115664423,
+      "timestamp": "2026-07-13T19:51:36.097677",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "음… 글쎄요, 딱히 그런 분은 없어요. 부모님은 특별히 정신적인 문제는 없으셨던 것 같고, 가족력이라고 할 만한 건 딱히 떠오르지 않아요.",
+        "normalized": "음… 글쎄요, 딱히 그런 분은 없어요. 부모님은 특별히 정신적인 문제는 없으셨던 것 같고, 가족력이라고 할 만한 건 딱히 떠오르지 않아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1058.0071741715074,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "음… 글쎄요, 딱히 그런 분은 없어요. 부모님은 특별히 정신적인 문제는 없으셨던 것 같고, 가족력이라고 할 만한 건 딱히 떠오르지 않아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "아니요, 정신과를 간 적도 없고, 심리상담도 받아본 적 없어요. 이번이 처음이에요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "정신과나 심리상담을 받아본 적이 없으시다고 하니, 혹시 현재 복용하고 계신 다른 약이나 보충제가 있으신가요? 예를 들어, 감기약이나 소화제 같은 일상적인 약도 괜찮으니 편하게 말씀해 주세요.",
+      "slot_updates": {
+        "chief_complaint": "새 프로젝트 마일스톤 완료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각 지속, 가슴 답답함과 어깨·목 뻐근함 가끔 있음",
+        "history_of_present_illness": "새 프로젝트 마일스톤 완료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각 지속, 가슴 답답함과 어깨·목 뻐근함 가끔 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "새 프로젝트 마일스톤 완료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각 지속, 가슴 답답함과 어깨·목 뻐근함 가끔 있음",
+        "history_of_present_illness": "새 프로젝트 마일스톤 완료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각 지속, 가슴 답답함과 어깨·목 뻐근함 가끔 있음",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4039.2466760240495,
+      "timestamp": "2026-07-13T19:51:44.173309",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아니요, 정신과를 간 적도 없고, 심리상담도 받아본 적 없어요. 이번이 처음이에요.",
+        "normalized": "아니요, 정신과를 간 적도 없고, 심리상담도 받아본 적 없어요. 이번이 처음이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1218.8883568160236,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.3,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "아니요, 정신과를 간 적도 없고, 심리상담도 받아본 적 없어요. 이번이 처음이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "아, 그런 건 없어요. 평소랑 비슷한 상태고, 약도 전혀 안 먹고 있어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "{}",
+      "slot_updates": {
+        "chief_complaint": "새 프로젝트 마일스톤 완료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각이 가끔 들고, 가슴 답답함과 어깨 뻐근함이 가끔 있음",
+        "history_of_present_illness": "새 프로젝트 데드라인 종료 후 수면이 전보다는 개선되었으나 완전히 회복되지 않음. 잠들기 시간 단축 및 새벽 깨는 횟수 감소. 아침에 '또 시작이네' 하는 생각이 가끔 듦. 가슴 답답함과 어깨·목 뻐근함이 가끔 동반되며 식욕은 변함 없음. 운동 재개 시도 중"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "새 프로젝트 마일스톤 완료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각이 가끔 들고, 가슴 답답함과 어깨 뻐근함이 가끔 있음",
+        "history_of_present_illness": "새 프로젝트 데드라인 종료 후 수면이 전보다는 개선되었으나 완전히 회복되지 않음. 잠들기 시간 단축 및 새벽 깨는 횟수 감소. 아침에 '또 시작이네' 하는 생각이 가끔 듦. 가슴 답답함과 어깨·목 뻐근함이 가끔 동반되며 식욕은 변함 없음. 운동 재개 시도 중",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4354.115928057581,
+      "timestamp": "2026-07-13T19:51:52.207741",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아, 그런 건 없어요. 평소랑 비슷한 상태고, 약도 전혀 안 먹고 있어요.",
+        "normalized": "아, 그런 건 없어요. 평소랑 비슷한 상태고, 약도 전혀 안 먹고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1236.5806610323489,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아, 그런 건 없어요. 평소랑 비슷한 상태고, 약도 전혀 안 먹고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "네. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근한데, 그럴 땐 잠깐 멈춰서 숨을 깊게 쉬어보는 정도예요. 특별한 건 없고, 평소랑 비슷한 상태예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "가슴 답답함이나 어깨 뻐근함이 가끔 있으시다니, 그때마다 숨을 깊게 쉬어보는 방법이 도움이 되시는 것 같아요. 혹시 그 증상들이 언제부터 시작되었는지, 혹은 특정 상황이나 생각과 연결될 때가 있는지 편하게 말씀해 주실 수 있을까요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "새 프로젝트 마일스톤 완료 후 수면 개선되었으나 아침에 '또 시작이네' 하는 생각이 가끔 들고, 가슴 답답함과 어깨 뻐근함이 가끔 있음",
+        "history_of_present_illness": "새 프로젝트 데드라인 종료 후 수면이 전보다는 개선되었으나 완전히 회복되지 않음. 잠들기 시간 단축 및 새벽 깨는 횟수 감소. 아침에 '또 시작이네' 하는 생각이 가끔 듦. 가슴 답답함과 어깨·목 뻐근함이 가끔 동반되며 식욕은 변함 없음. 운동 재개 시도 중",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3465.9207719378173,
+      "timestamp": "2026-07-13T19:51:59.612663",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "네. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근한데, 그럴 땐 잠깐 멈춰서 숨을 깊게 쉬어보는 정도예요. 특별한 건 없고, 평소랑 비슷한 상태예요.",
+        "normalized": "네. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근한데, 그럴 땐 잠깐 멈춰서 숨을 깊게 쉬어보는 정도예요. 특별한 건 없고, 평소랑 비슷한 상태예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1116.2783689796925,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "가슴이 답답하거나 어깨가 뻐근한데, 그럴 땐 잠깐 멈춰서 숨을 깊게 쉬어보는 정도예요. 특별한 건 없고, 평소랑 비슷한 상태예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "음… 글쎄요, 딱 언제부터인지는 정확히 모르겠지만, 프로젝트가 본격적으로 시작되면서부터 그런 느낌이 더 자주 오는 것 같아요. 특히 밤에 혼자 있을 때, ‘내가 잘하고 있나’ 싶을 때 가슴이 조이는 느낌이 들어요. 어깨나 목 뻐근함은 하루 종일 앉아 있다 보니까 더 심해지는 것 같고요. 그래도 요즘은 그 생각을 하다가도 ‘그래도 해내고 있잖아’ 하고 스스로 다독이는 편이에요. 조금씩 익숙해지는 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "가슴 답답함이나 어깨 뻐근함이 프로젝트 시작과 함께 더 자주 느껴지고, 특히 밤에 혼자 있을 때 '내가 잘하고 있나' 하는 생각이 들 때 조이는 느낌이 드신다니, 그 감정이 꽤 힘드셨을 것 같아요. 혹시 최근에 수면이나 식욕에 변화가 있었는지 편하게 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함, 어깨·목 뻐근함, 잠들기 전 머릿속 복잡함",
+        "history_of_present_illness": "새 프로젝트 시작 후 데드라인이 빡빡해지면서 긴장이 풀리지 않고, 잠들기 전 머릿속이 복잡하며 아침에 눈 뜨면 '또 시작이네' 하는 생각이 듦. 가슴 답답함과 어깨·목 뻐근함이 동반되며 식욕이 줄어듦. 지난번 프로젝트 종료 후에는 긴장이 풀렸으나 이번에는 끝날 때까지 긴장이 지속될 것 같아 걱정됨. 현재는 수면이 완전히 회복되진 않았으나 잠들기까지 시간이 줄었고 새벽 깨는 횟수도 감소함. 가슴 답답함과 어깨 뻐근함은 가끔 있으나 운동 재개 시도 중. '내가 잘하고 있나' 하는 생각이 들 때 가슴이 조이는 느낌. '그래도 해내고 있잖아' 하며 스스로 다독이는 편"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함, 어깨·목 뻐근함, 잠들기 전 머릿속 복잡함",
+        "history_of_present_illness": "새 프로젝트 시작 후 데드라인이 빡빡해지면서 긴장이 풀리지 않고, 잠들기 전 머릿속이 복잡하며 아침에 눈 뜨면 '또 시작이네' 하는 생각이 듦. 가슴 답답함과 어깨·목 뻐근함이 동반되며 식욕이 줄어듦. 지난번 프로젝트 종료 후에는 긴장이 풀렸으나 이번에는 끝날 때까지 긴장이 지속될 것 같아 걱정됨. 현재는 수면이 완전히 회복되진 않았으나 잠들기까지 시간이 줄었고 새벽 깨는 횟수도 감소함. 가슴 답답함과 어깨 뻐근함은 가끔 있으나 운동 재개 시도 중. '내가 잘하고 있나' 하는 생각이 들 때 가슴이 조이는 느낌. '그래도 해내고 있잖아' 하며 스스로 다독이는 편",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5103.215076029301,
+      "timestamp": "2026-07-13T19:52:11.155898",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "음… 글쎄요, 딱 언제부터인지는 정확히 모르겠지만, 프로젝트가 본격적으로 시작되면서부터 그런 느낌이 더 자주 오는 것 같아요. 특히 밤에 혼자 있을 때, ‘내가 잘하고 있나’ 싶을 때 가슴이 조이는 느낌이 들어요. 어깨나 목 뻐근함은 하루 종일 앉아 있다 보니까 더 심해지는 것 같고요.  \n\n그래도 요즘은 그 생각을 하다가도 ‘그래도 해내고 있잖아’ 하고 스스로 다독이는 편이에요. 조금씩 익숙해지는 것 같아요.",
+        "normalized": "음… 글쎄요, 딱 언제부터인지는 정확히 모르겠지만, 프로젝트가 본격적으로 시작되면서부터 그런 느낌이 더 자주 오는 것 같아요. 특히 밤에 혼자 있을 때, ‘내가 잘하고 있나’ 싶을 때 가슴이 조이는 느낌이 들어요. 어깨나 목 뻐근함은 하루 종일 앉아 있다 보니까 더 심해지는 것 같고요. 그래도 요즘은 그 생각을 하다가도 ‘그래도 해내고 있잖아’ 하고 스스로 다독이는 편이에요. 조금씩 익숙해지는 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2309.553919825703,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.3,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "가슴 답답함이나 어깨 뻐근함이 프로젝트 시작과 함께 더 자주 느껴지고, 특히 밤에 혼자 있을 때, ‘내가 잘하고 있나’ 싶을 때 가슴이 조이는 느낌이 들어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 8,
+      "patient_message": "네… 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근한데, 그럴 땐 잠깐 멈춰서 숨을 깊게 쉬어보는 정도예요. 특별한 건 없고, 평소랑 비슷한 상태예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "프로젝트로 인해 몸과 마음이 계속 긴장 상태에 놓이시는 것 같아 마음이 무겁겠어요. 혹시 최근에 수면이나 식욕에 변화가 있었는지 편하게 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함, 어깨·목 뻐근함, 잠들기 어려움, 새벽에 깨는 증상",
+        "history_of_present_illness": "새 프로젝트 시작 후 데드라인이 빡빡해지면서 긴장이 풀리지 않고, 잠들기 전 머릿속이 복잡하며 아침에 눈 뜨면 '또 시작이네' 하는 생각이 듦. 가슴 답답함과 어깨·목 뻐근함이 동반되며 식욕이 줄어듦. 지난번 프로젝트 종료 후에는 긴장이 풀렸으나 이번에는 끝날 때까지 긴장이 지속될 것 같아 걱정됨. 프로젝트 마일스톤을 무사히 마친 후 수면은 전보다는 개선되었으나 완전히 회복되지는 않았고, 가슴 답답함과 어깨 뻐근함은 여전히 가끔 있으며, 밤에 혼자 있을 때 '내가 잘하고 있나' 하는 생각이 들 때 조이는 느낌이 듦. 스스로 다독이는 편이지만 증상은 지속되고 있음."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함, 어깨·목 뻐근함, 잠들기 어려움, 새벽에 깨는 증상",
+        "history_of_present_illness": "새 프로젝트 시작 후 데드라인이 빡빡해지면서 긴장이 풀리지 않고, 잠들기 전 머릿속이 복잡하며 아침에 눈 뜨면 '또 시작이네' 하는 생각이 듦. 가슴 답답함과 어깨·목 뻐근함이 동반되며 식욕이 줄어듦. 지난번 프로젝트 종료 후에는 긴장이 풀렸으나 이번에는 끝날 때까지 긴장이 지속될 것 같아 걱정됨. 프로젝트 마일스톤을 무사히 마친 후 수면은 전보다는 개선되었으나 완전히 회복되지는 않았고, 가슴 답답함과 어깨 뻐근함은 여전히 가끔 있으며, 밤에 혼자 있을 때 '내가 잘하고 있나' 하는 생각이 들 때 조이는 느낌이 듦. 스스로 다독이는 편이지만 증상은 지속되고 있음.",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 7656.758237164468,
+      "timestamp": "2026-07-13T19:52:23.063611",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "네… 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근한데, 그럴 땐 잠깐 멈춰서 숨을 깊게 쉬어보는 정도예요. 특별한 건 없고, 평소랑 비슷한 상태예요.",
+        "normalized": "네… 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근한데, 그럴 땐 잠깐 멈춰서 숨을 깊게 쉬어보는 정도예요. 특별한 건 없고, 평소랑 비슷한 상태예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1125.3484692424536,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.55,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "가슴 답답함이나 어깨 뻐근함이 프로젝트 시작과 함께 더 자주 느껴지고, 특히 밤에 혼자 있을 때 '내가 잘하고 있나' 하는 생각이 들 때 조이는 느낌이 드신다니, 그 감정이 꽤 힘드셨을 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "near_dup_back_to_back"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2660.501841455698,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "가슴 답답함이나 어깨 뻐근함이 프로젝트 시작과 함께 더 자주 느껴지고, 특히 밤에 혼자 있을 때 '내가 잘하고 있나' 하는 생각이 들 때 조이는 느낌이 드신다니, 그 감정이 꽤 힘드셨을 것 같아요",
+          "count": 1
+        },
+        {
+          "reason": "back_to_back",
+          "family": "가슴 답답함이나 어깨 뻐근함이 프로젝트 시작과 함께 더 자주 느껴지고, 특히 밤에 혼자 있을 때 '내가 잘하고 있나' 하는 생각이 들 때 조이는 느낌이 드신다니, 그 감정이 꽤 힘드셨을 것 같아요",
+          "count": 1
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "잠들기까지 시간이 좀 걸리고, 새벽에 두세 번 깨는 건 여전해요. 수면은 전보다는 나아졌지만, 아직 완전히 회복되진 않았어요. 아침을 자주 거르게 되고, 식욕도 예전보다는 좀 줄었어요. 식욕은 특별히 음식을 안 먹고 싶은 건 아니고… 그냥 배 안 고파도 아침을 먹으러 일어나는 게 귀찮아요. 퇴근 후엔 뭘 먹고 싶지도 않고, 그래서 자연스럽게 식사 시간이 줄어들었어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠들기 전 머릿속이 복잡하거나 새벽에 깨는 증상이 여전하고, 아침을 거르는 경우가 많아지면서 식욕도 예전보다 줄어든 것 같아 마음이 지치실 것 같아요. 혹시 최근에 우울감이나 무기력함 같은 감정이 더 심해졌거나, 평소 즐기던 활동에 대한 흥미가 떨어졌는지 편하게 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함, 어깨·목 뻐근함, 수면 문제",
+        "history_of_present_illness": "새 프로젝트 시작 후 데드라인이 빡빡해지면서 긴장이 풀리지 않고, 잠들기 전 머릿속이 복잡하며 아침에 눈 뜨면 '또 시작이네' 하는 생각이 듦. 가슴 답답함과 어깨·목 뻐근함이 동반되며 식욕이 줄어듦. 지난번 프로젝트 종료 후에는 긴장이 풀렸으나 이번에는 끝날 때까지 긴장이 지속될 것 같아 걱정됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함, 어깨·목 뻐근함, 수면 문제",
+        "history_of_present_illness": "새 프로젝트 시작 후 데드라인이 빡빡해지면서 긴장이 풀리지 않고, 잠들기 전 머릿속이 복잡하며 아침에 눈 뜨면 '또 시작이네' 하는 생각이 듦. 가슴 답답함과 어깨·목 뻐근함이 동반되며 식욕이 줄어듦. 지난번 프로젝트 종료 후에는 긴장이 풀렸으나 이번에는 끝날 때까지 긴장이 지속될 것 같아 걱정됨",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4867.434051353484,
+      "timestamp": "2026-07-13T19:52:35.837129",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "잠들기까지 시간이 좀 걸리고, 새벽에 두세 번 깨는 건 여전해요. 수면은 전보다는 나아졌지만, 아직 완전히 회복되진 않았어요. 아침을 자주 거르게 되고, 식욕도 예전보다는 좀 줄었어요.  \n\n식욕은 특별히 음식을 안 먹고 싶은 건 아니고… 그냥 배 안 고파도 아침을 먹으러 일어나는 게 귀찮아요. 퇴근 후엔 뭘 먹고 싶지도 않고, 그래서 자연스럽게 식사 시간이 줄어들었어요.",
+        "normalized": "잠들기까지 시간이 좀 걸리고, 새벽에 두세 번 깨는 건 여전해요. 수면은 전보다는 나아졌지만, 아직 완전히 회복되진 않았어요. 아침을 자주 거르게 되고, 식욕도 예전보다는 좀 줄었어요. 식욕은 특별히 음식을 안 먹고 싶은 건 아니고… 그냥 배 안 고파도 아침을 먹으러 일어나는 게 귀찮아요. 퇴근 후엔 뭘 먹고 싶지도 않고, 그래서 자연스럽게 식사 시간이 줄어들었어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2151.70213393867,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "잠들기까지 시간이 좀 걸리고, 새벽에 두세 번 깨는 건 여전해요. 수면은 전보다는 나아졌지만, 아직 완전히 회복되진 않았어요. 아침을 자주 거르게 되고, 식욕도 예전보다는 좀 줄었어요. 식욕은 특별히 음식을 안 먹고 싶은 건 아니고… 그냥 배 안 고파도 아침을 먹으러 일어나는 게 귀찮아요. 퇴근 후엔 뭘 먹고 싶지도 않고, 그래서 자연스럽게 식사 시간이 줄어들었어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 10,
+      "patient_message": "기분이 가끔 우울하긴 한데, 대체로 괜찮은 편이에요. 죽고 싶다는 생각이나 자해 충동은 전혀 없고, 그 정도로 심하진 않아요. 다만 퇴근 후엔 아무것도 하기 싫어서 운동도 자연스럽게 줄었고, 집중도 잘 안 돼서 실수도 늘었어요. 선임한테 지적도 받고요. 그래도 동료들이랑 점심시간에 스트레스 이야기를 조금씩 나누는 건 도움이 된다고 느껴요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "distress"
+      ],
+      "safety_flagged": [
+        "죽고 싶",
+        "죽고싶",
+        "자해"
+      ],
+      "agent_response": "퇴근 후엔 아무것도 하기 싫어서 운동도 자연스럽게 줄었고, 집중도 잘 안 돼서 실수도 늘었어요. 선임한테 지적도 받고요. 그래도 동료들이랑 점심시간에 스트레스 이야기를 조금씩 나누는 건 도움이 된다고 느껴요. 오늘 말씀하신 내용을 바탕으로, 혹시 현재 복용하고 계신 다른 약이나 보충제가 있으신가요? 예를 들어, 감기약이나 소화제 같은 일상적인 약도 괜찮으니 편하게 말씀해 주세요.",
+      "slot_updates": {
+        "history_of_present_illness": "새 프로젝트 시작 후 데드라인이 빡빡해지면서 긴장이 풀리지 않고, 잠들기 전 머릿속이 복잡하며 아침에 눈 뜨면 '또 시작이네' 하는 생각이 듦. 가슴 답답함과 어깨·목 뻐근함이 동반되며 식욕이 줄어듦. 지난번 프로젝트 종료 후에는 긴장이 풀렸으나 이번에는 끝날 때까지 긴장이 지속될 것 같아 걱정됨",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함, 어깨·목 뻐근함, 수면 문제",
+        "history_of_present_illness": "새 프로젝트 시작 후 데드라인이 빡빡해지면서 긴장이 풀리지 않고, 잠들기 전 머릿속이 복잡하며 아침에 눈 뜨면 '또 시작이네' 하는 생각이 듦. 가슴 답답함과 어깨·목 뻐근함이 동반되며 식욕이 줄어듦. 지난번 프로젝트 종료 후에는 긴장이 풀렸으나 이번에는 끝날 때까지 긴장이 지속될 것 같아 걱정됨",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음",
+        "personal_social_history": "회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아, 그런 생각은 없어요. 그냥 좀 힘들 뿐이지 그 정도는 아니에요. 요즘도 가끔 가슴이 답답하거나 어깨가 뻐근하긴 한데, 죽고 싶다거나 스스로...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5438.753372058272,
+      "timestamp": "2026-07-13T19:52:47.373344",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "기분이 가끔 우울하긴 한데, 대체로 괜찮은 편이에요. 죽고 싶다는 생각이나 자해 충동은 전혀 없고, 그 정도로 심하진 않아요.  \n\n다만 퇴근 후엔 아무것도 하기 싫어서 운동도 자연스럽게 줄었고, 집중도 잘 안 돼서 실수도 늘었어요. 선임한테 지적도 받고요. 그래도 동료들이랑 점심시간에 스트레스 이야기를 조금씩 나누는 건 도움이 된다고 느껴요.",
+        "normalized": "기분이 가끔 우울하긴 한데, 대체로 괜찮은 편이에요. 죽고 싶다는 생각이나 자해 충동은 전혀 없고, 그 정도로 심하진 않아요. 다만 퇴근 후엔 아무것도 하기 싫어서 운동도 자연스럽게 줄었고, 집중도 잘 안 돼서 실수도 늘었어요. 선임한테 지적도 받고요. 그래도 동료들이랑 점심시간에 스트레스 이야기를 조금씩 나누는 건 도움이 된다고 느껴요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1831.5786700695753,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "기분이 가끔 우울하긴 한데, 대체로 괜찮은 편이에요. 다만 퇴근 후엔 아무것도 하기 싫어서 운동도 자연스럽게 줄었고, 집중도 잘 안 돼서 실수도 늘었어요. 선임한테 지적도 받고요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-13T19:51:04.691446",
+  "ended_at": "2026-07-13T19:52:51.713374",
+  "grounded_coverage": 0.625,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5807,
+  "patient_lng": 126.8898,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.12398324906826019,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.35,
+      "anxiety": 0.3,
+      "neutral": 0.25,
+      "relief": 0.1
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": 0.2
+      },
+      {
+        "turn": 1,
+        "polarity": 0.1
+      },
+      {
+        "turn": 2,
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "polarity": 0.0
+      },
+      {
+        "turn": 4,
+        "polarity": -0.3
+      },
+      {
+        "turn": 5,
+        "polarity": 0.0
+      },
+      {
+        "turn": 6,
+        "polarity": 0.0
+      },
+      {
+        "turn": 7,
+        "polarity": -0.3
+      },
+      {
+        "turn": 8,
+        "polarity": -0.55
+      },
+      {
+        "turn": 9,
+        "polarity": -0.6
+      },
+      {
+        "turn": 10,
+        "polarity": -0.4
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": true,
+    "shift_description": "대화 전반부 polarity 0.0 → 후반부 -0.3 (악화)",
+    "repeated_patterns": [
+      "sadness 표현 7회 반복",
+      "anxiety 표현 6회 반복",
+      "neutral 표현 5회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "relief",
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": 0.2
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "relief",
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": 0.1
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.3
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.3
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.55
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.4
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 7,
+  "simulated_date": "2026-09-14",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- chief_complaint: 잠들기 전 머릿속 복잡함과 새 프로젝트로 인한 긴장 지속\n- history_of_present_illness: 새 프로젝트 시작 후 데드라인이 빡빡해지면서 긴장이 풀리지 않고, 잠들기 전 머릿속이 복잡하며 아침에 눈 뜨면 '또 시작이네' 하는 생각이 듦. 가슴 답답함과 어깨·목 뻐근함이 동반되며 식욕이 줄어듦. 지난번 프로젝트 종료 후에는 긴장이 풀렸으나 이번에는 끝날 때까지 긴장이 지속될 것 같아 걱정됨\n- substance_use_history: 주 1-2회 맥주 한 캔 정도 마심, 카페인은 평소보다 조금 줄였으나 수면제나 진정제는 전혀 사용하지 않음\n- personal_social_history: 회사 동료 2-3명과 점심 시간에 스트레스 관련 대화, 집에서 일할 때 상황 공유. 어머니와는 주 2회 통화하며 위로와 이야기 나눔. 혼자 감당하려는 것보다는 동료와의 대화가 도움이 된다고 생각함\n\n[이전 세션 요약 — 미수집 정보]\npast_psychiatric_history, medical_history, family_history",
+  "carried_slot_provenance": {
+    "substance_use_history": "carried_from_session_6",
+    "risk_assessment": "carried_from_session_6"
+  },
+  "scenario_pack_id": "VP-001_improvement_plateau_s07",
+  "arc_mode": "improvement_plateau"
+}

@@ -1,0 +1,42 @@
+{
+  "session_id": "f1_VP-002",
+  "persona_id": "VP-002",
+  "total_turns": 12,
+  "n_patient_utterances": 10,
+  "reported_slot_coverage": 0.6,
+  "reported_grounded_coverage": 0.5,
+  "recomputed_grounded_coverage": 0.5,
+  "counts": {
+    "grounded": 4,
+    "negative_grounded": 0,
+    "system_slot": 0,
+    "ungrounded": 0
+  },
+  "slots": [
+    {
+      "key": "history_of_present_illness",
+      "value": "약 복용 6주 경과, 수업 준비 가능, 주말 외식 가능, 수면 개선(잠들기 30분 이내, 6~7시간 수면), 간헐적 야간 각성, 식욕 정상화, 새로운 일에 대한 집중력 저하 지속",
+      "verdict": "grounded",
+      "reason": "lexical evidence in patient utterances"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없었어요. 아내가 많이 도와줘서 그런지, 그런 생각은 한 번도 안 들었어요. 지금은 그냥 피곤하긴 해도, 마음이 무겁...\"",
+      "verdict": "grounded",
+      "reason": "populated by the safety probe protocol (probe_events)"
+    },
+    {
+      "key": "chief_complaint",
+      "value": "약 복용 6주 후 증상 호전 확인 및 회복 경과 보고",
+      "verdict": "grounded",
+      "reason": "lexical evidence in patient utterances"
+    },
+    {
+      "key": "personal_social_history",
+      "value": "중학교 국어 교사, 아내와 경기도 성남시 거주, 아내의 병원 동행 및 일상 지원",
+      "verdict": "grounded",
+      "reason": "lexical evidence in patient utterances"
+    }
+  ],
+  "source_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-002/VP-002_20260707_154407_conversation.json"
+}

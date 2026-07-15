@@ -14,10 +14,17 @@ from src.rag.tooling._db import connect
 def main() -> None:
     with connect() as conn, conn.cursor() as cur:
         for slug, (name, name_ko, kcd, cat, desc) in O.DISEASES.items():
+            # Per-entry source (PLAN-2026-W28-Q W6, plan §9 provenance
+            # fix): was hardcoded 'ada' for every row — now 'ada' for the
+            # original 26, 'team' for W6+ team-authored entries (e.g.
+            # alcohol-use-disorder), via O.disease_source(). Unpacking
+            # above is untouched (DISEASES stays a 5-tuple; see
+            # ontology.py's DISEASE_SOURCE comment for why).
+            source = O.disease_source(slug)
             cur.execute(
                 """INSERT INTO rag.disease (slug,name,name_ko,kcd_code,category,description,source)
-                   VALUES (%s,%s,%s,%s,%s,%s,'ada') ON CONFLICT (slug) DO NOTHING""",
-                (slug, name, name_ko, kcd, cat, desc),
+                   VALUES (%s,%s,%s,%s,%s,%s,%s) ON CONFLICT (slug) DO NOTHING""",
+                (slug, name, name_ko, kcd, cat, desc, source),
             )
         for flag in O.SYMPTOMS:
             src = "ada" if flag in O.ADA_SOURCE else "flag"

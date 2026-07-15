@@ -308,6 +308,13 @@ class DomainInferenceAgent(BaseAgent):
 
         retrieval_meta = self._retrieval_meta(inp)
 
+        # BUG-021: makes a degraded run machine-visible on this agent's own
+        # output artifact, not just a WARNING log line — same pattern as
+        # ClinicalSlotAgent/DialogueAgent/InputNormalizerAgent/
+        # SafetyClassifierAgent. DomainInferenceAgent runs on every F2 call
+        # (the W7 battery invokes it every time), so a silent degraded F2
+        # prompt would invisibly corrupt validation results.
+        prompts_degraded = False
         try:
             system_prompt = self._prompt_loader.load_system_prompt(
                 _PROMPT_AGENT_NAME, PROMPT_VERSION
@@ -315,6 +322,7 @@ class DomainInferenceAgent(BaseAgent):
         except FileNotFoundError:
             logger.warning("domain_inference prompt not found, using fallback")
             system_prompt = _LLM_FALLBACK_PROMPT
+            prompts_degraded = True
 
         user_content = _build_user_content(inp)
         messages = [
@@ -356,6 +364,7 @@ class DomainInferenceAgent(BaseAgent):
                     latency_ms=latency_ms,
                     reason_summary=f"LLM unavailable, no fallback: {exc}",
                     retrieval_meta=retrieval_meta,
+                    prompts_degraded=prompts_degraded,
                 )
             try:
                 fb_adapter = self._router.get_adapter(fallback.adapter_name)
@@ -378,6 +387,7 @@ class DomainInferenceAgent(BaseAgent):
                     latency_ms=latency_ms,
                     reason_summary=f"LLM unavailable (primary+fallback failed): {fb_exc}",
                     retrieval_meta=retrieval_meta,
+                    prompts_degraded=prompts_degraded,
                 )
 
         parsed, reason, validation_errors = self._parse(raw_content)
@@ -410,6 +420,7 @@ class DomainInferenceAgent(BaseAgent):
                 usage=usage,
                 raw_response=raw_content,
                 validation_errors=validation_errors,
+                prompts_degraded=prompts_degraded,
             )
 
         logger.info(
@@ -428,4 +439,5 @@ class DomainInferenceAgent(BaseAgent):
             additional_questions=parsed.additional_questions,
             finish_reason=finish_reason,
             usage=usage,
+            prompts_degraded=prompts_degraded,
         )

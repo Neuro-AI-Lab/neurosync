@@ -62,6 +62,14 @@ def _read(agent: str, version: str) -> str:
 SAFETY_V2 = _read("safety_classifier", "v2")
 SAFETY_V3 = _read("safety_classifier", "v3")
 DIALOGUE_V2 = _read("dialogue", "v2")
+# PLAN-2026-W28-Q W2: dialogue v3 redesign (autonomous turn-0 greeting +
+# question-induction continuity phrasing) — superseded by v4 below (v3 file
+# kept, rollback policy).
+DIALOGUE_V3 = _read("dialogue", "v3")
+# BUG-030 / ADR-028: dialogue v4 — empathy-phrase repetition fix (example
+# menu -> principle-level natural generation). The ONE licensed prompt
+# change this mission; v3 -> v4 (v3 file kept, rollback policy).
+DIALOGUE_V4 = _read("dialogue", "v4")
 CLINICAL_SLOT_V2 = _read("clinical_slot", "v2")
 CLINICAL_SLOT_V3 = _read("clinical_slot", "v3")
 HANDOFF_V2 = _read("handoff_generator", "v2")
@@ -71,6 +79,8 @@ _ALL_NEW_FILES = {
     "safety_classifier/v2": SAFETY_V2,
     "safety_classifier/v3": SAFETY_V3,
     "dialogue/v2": DIALOGUE_V2,
+    "dialogue/v3": DIALOGUE_V3,
+    "dialogue/v4": DIALOGUE_V4,
     "clinical_slot/v3": CLINICAL_SLOT_V3,
     "handoff_generator/v2": HANDOFF_V2,
     "sentiment_analyzer/v2": SENTIMENT_V2,
@@ -287,8 +297,123 @@ class TestDialogueV2File:
     def test_char_budget(self) -> None:
         assert len(DIALOGUE_V2) <= 1500
 
+
+class TestDialogueV3File:
+    """PLAN-2026-W28-Q W2: dialogue v3 redesign — the pinned prompt as of
+    this mission. v2's clinical-dialogue core is preserved (evolution, not a
+    rewrite); v3 adds autonomous turn-0 greeting + continuity phrasing."""
+
+    def test_v2_kept_per_versioning_policy(self) -> None:
+        assert (_PROMPTS_DIR / "dialogue" / "v2.system.md").exists()
+
+    def test_output_schema_key_documented(self) -> None:
+        assert "assistant_response" in DIALOGUE_V3
+
+    def test_absolute_rules_present(self) -> None:
+        for phrase in [
+            "진단 확정 금지",
+            "약물/치료 권유 금지",
+            "근거 없는 안심 금지",
+            "환자 감정 부정 금지",
+            "반말 금지",
+        ]:
+            assert phrase in DIALOGUE_V3, f"missing absolute rule text: {phrase!r}"
+
+    def test_safety_dedup_p12(self) -> None:
+        """v2's dedup discipline is preserved unchanged."""
+        assert "Safety 지시" in DIALOGUE_V3
+        assert "risk_level이 medium 이상" not in DIALOGUE_V3  # old v1 hardcoded branch
+
+    def test_opening_turn_section_present(self) -> None:
+        """v3 addition (a): autonomous turn-0 greeting is now documented."""
+        assert "세션 시작 인사" in DIALOGUE_V3
+        assert "슬롯 문진" in DIALOGUE_V3  # "no premature clinical/slot content" rule
+
+    def test_continuity_phrasing_section_present(self) -> None:
+        """v3 addition (b): question-induction continuity phrasing."""
+        assert "연속성" in DIALOGUE_V3
+
+    def test_no_raw_risk_narration_licensed(self) -> None:
+        """AVC-02: the greeting may reference the FACT of a prior session but
+        never raw risk narration — the static prompt says so explicitly."""
+        assert "위험" not in DIALOGUE_V3 or "추측하거나" in DIALOGUE_V3
+
     def test_line_budget(self) -> None:
         assert len(DIALOGUE_V2.splitlines()) <= 50
+
+
+class TestDialogueV4File:
+    """BUG-030 / ADR-028 (`docs/ai/fix_proposal_bug030.md`): dialogue v4 —
+    empathy-phrase repetition fix. Rule 2's 3 canned example phrases are
+    removed and replaced with a principle-level natural-generation
+    instruction; every other v3 structural constraint is carried forward
+    verbatim (locked in by re-running v3's own assertions against v4)."""
+
+    def test_v3_kept_per_versioning_policy(self) -> None:
+        assert (_PROMPTS_DIR / "dialogue" / "v3.system.md").exists()
+
+    def test_output_schema_key_documented(self) -> None:
+        assert "assistant_response" in DIALOGUE_V4
+
+    def test_absolute_rules_present(self) -> None:
+        for phrase in [
+            "진단 확정 금지",
+            "약물/치료 권유 금지",
+            "근거 없는 안심 금지",
+            "환자 감정 부정 금지",
+            "반말 금지",
+        ]:
+            assert phrase in DIALOGUE_V4, f"missing absolute rule text: {phrase!r}"
+
+    def test_safety_dedup_p12(self) -> None:
+        """v2/v3's dedup discipline is preserved unchanged (critic condition 5)."""
+        assert "Safety 지시" in DIALOGUE_V4
+        assert "risk_level이 medium 이상" not in DIALOGUE_V4  # old v1 hardcoded branch
+
+    def test_opening_turn_section_present(self) -> None:
+        """v3 addition (a), carried forward unchanged: autonomous turn-0 greeting."""
+        assert "세션 시작 인사" in DIALOGUE_V4
+        assert "슬롯 문진" in DIALOGUE_V4  # "no premature clinical/slot content" rule
+
+    def test_continuity_phrasing_section_present(self) -> None:
+        """v3 addition (b), carried forward unchanged: continuity phrasing."""
+        assert "연속성" in DIALOGUE_V4
+
+    def test_no_raw_risk_narration_licensed(self) -> None:
+        """AVC-02, carried forward unchanged: fact-of-prior-session only,
+        never raw risk narration."""
+        assert "위험" not in DIALOGUE_V4 or "추측하거나" in DIALOGUE_V4
+
+    def test_no_canned_empathy_examples(self) -> None:
+        """BUG-030 fix intent, at the prompt-file level: none of v3's 3
+        canonical example phrases (the specific echo-risk targets) survive
+        into v4."""
+        for phrase in [
+            "많이 힘드셨겠어요.",
+            "그런 상황이라면 정말 지치셨을 것 같아요.",
+            "이야기해 주셔서 감사합니다.",
+        ]:
+            assert phrase not in DIALOGUE_V4, f"canned empathy example survives: {phrase!r}"
+
+    def test_principle_level_empathy_instruction_present(self) -> None:
+        """BUG-030 fix intent: natural generation, not menu selection."""
+        assert "그때그때 새로 표현" in DIALOGUE_V4
+
+    def test_char_budget(self) -> None:
+        """Measured 2026-07-12: 3320 chars (v3 was 2513) — growth is the new
+        v4 changelog note documenting the BUG-030 fix rationale (rule 2's
+        own content is shorter than v3's 3-phrase list, per the fix
+        proposal). Ceiling set with modest headroom over the measured size —
+        fixes (c-viii)'s v3-class copy-paste bug (asserted DIALOGUE_V2)
+        rather than propagating it forward.
+        """
+        assert len(DIALOGUE_V4) <= 3600
+
+    def test_line_budget(self) -> None:
+        """Measured 2026-07-12: 95 lines (v3 was 79). Same rationale as
+        test_char_budget above; asserted against DIALOGUE_V4 itself.
+        """
+        assert len(DIALOGUE_V4.splitlines()) <= 105
 
 
 # Key anti-fabrication phrases that must survive verbatim from v2 into v3.
@@ -483,7 +608,9 @@ class TestAgentPinsAndRuntimeVersion:
         assert SAFETY_VERSION == "v2"
 
     def test_dialogue_pin(self) -> None:
-        assert DIALOGUE_VERSION == "v2"
+        """BUG-030 / ADR-028: dialogue v4 — empathy-phrase repetition fix
+        (example menu -> principle-level natural generation); v3 -> v4."""
+        assert DIALOGUE_VERSION == "v4"
 
     def test_clinical_slot_pin(self) -> None:
         assert CLINICAL_SLOT_VERSION == "v3"
@@ -514,7 +641,7 @@ class TestAgentPinsAndRuntimeVersion:
         assert out.prompt_version == "v2"
 
     @pytest.mark.asyncio
-    async def test_dialogue_loads_and_reports_v2(self) -> None:
+    async def test_dialogue_loads_and_reports_v4(self) -> None:
         agent = DialogueAgent.__new__(DialogueAgent)
         agent._prompt_loader = MagicMock()
         agent._prompt_loader.load_system_prompt.return_value = "대화 프롬프트"
@@ -522,8 +649,8 @@ class TestAgentPinsAndRuntimeVersion:
 
         out = await agent.run(DialogueInput(session_id="t", user_message="안녕하세요"))
 
-        agent._prompt_loader.load_system_prompt.assert_called_once_with("dialogue", "v2")
-        assert out.prompt_version == "v2"
+        agent._prompt_loader.load_system_prompt.assert_called_once_with("dialogue", "v4")
+        assert out.prompt_version == "v4"
 
     @pytest.mark.asyncio
     async def test_clinical_slot_loads_and_reports_v3(self) -> None:

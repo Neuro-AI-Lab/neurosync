@@ -259,6 +259,7 @@ def check_evidence(
     *,
     chunk_texts: Mapping[str, str],
     utterances: Mapping[str, str],
+    ocr_texts: Mapping[str, str] | None = None,
     domain: str = "",
 ) -> EvidenceVerdict:
     """Whitelist check for a single evidence item.
@@ -268,9 +269,18 @@ def check_evidence(
             run (Stage 1 output, e.g. ``{"case_card:12": "..."}``).
         utterances: {utterance_id: text} for F1 patient utterances ACTUALLY
             available this run (e.g. ``{"turn_3": "..."}``).
+        ocr_texts: {document_id: full_text} for OCR documents ACTUALLY
+            available this run. PLAN-2026-W28-Q W1: the ``ocr_document``
+            ``EvidenceSourceType`` value exists (auditability), but no
+            caller wires real OCR content into this run yet — defaults to
+            ``{}``, so any ``ocr_document`` citation today correctly falls
+            through to ``rejected_unknown_source`` (no evidence, no
+            candidate) rather than being misclassified as an unrecognized
+            type.
     """
     quote = (quote or "").strip()
     source_id = (source_id or "").strip()
+    ocr_texts = ocr_texts or {}
 
     if source_type == "rag_chunk":
         # BUG-016: normalize a benign `chunk_id=` prefix echo ONCE, before
@@ -293,10 +303,19 @@ def check_evidence(
                 f"source_id {source_id!r} is not among the F1 utterances actually "
                 "available this run",
             )
+    elif source_type == "ocr_document":
+        text = ocr_texts.get(source_id)
+        if text is None:
+            return EvidenceVerdict(
+                domain, source_type, source_id, quote, VERDICT_REJECTED_UNKNOWN_SOURCE,
+                f"source_id {source_id!r} is not among the OCR documents actually "
+                "available this run",
+            )
     else:
         return EvidenceVerdict(
             domain, source_type, source_id, quote, VERDICT_REJECTED_UNKNOWN_TYPE,
-            f"unknown source_type {source_type!r} — must be rag_chunk|utterance",
+            f"unknown source_type {source_type!r} — must be "
+            "rag_chunk|utterance|ocr_document",
         )
 
     if not quote:
@@ -343,6 +362,7 @@ def audit_domain_candidates(
     *,
     chunk_texts: Mapping[str, str],
     utterances: Mapping[str, str],
+    ocr_texts: Mapping[str, str] | None = None,
 ) -> tuple[list[EvidenceVerdict], dict[str, int]]:
     """Run the whitelist check over every evidence item of every candidate.
 
@@ -358,6 +378,7 @@ def audit_domain_candidates(
                     ev.quote,
                     chunk_texts=chunk_texts,
                     utterances=utterances,
+                    ocr_texts=ocr_texts,
                     domain=cand.domain,
                 )
             )
@@ -372,6 +393,7 @@ def filter_domain_candidates(
     *,
     chunk_texts: Mapping[str, str],
     utterances: Mapping[str, str],
+    ocr_texts: Mapping[str, str] | None = None,
 ) -> tuple[list[DomainCandidate], list[EvidenceVerdict], dict[str, int]]:
     """Apply the whitelist (incl. the risk-lexicon filter) AND cascade the result.
 
@@ -401,7 +423,8 @@ def filter_domain_candidates(
         for ev in cand.evidence:
             v = check_evidence(
                 ev.source_type, ev.source_id, ev.quote,
-                chunk_texts=chunk_texts, utterances=utterances, domain=cand.domain,
+                chunk_texts=chunk_texts, utterances=utterances, ocr_texts=ocr_texts,
+                domain=cand.domain,
             )
             verdicts.append(v)
             if v.accepted:

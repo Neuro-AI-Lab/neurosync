@@ -1,0 +1,292 @@
+{
+  "session_id": "f1_VP-004",
+  "persona_id": "VP-004",
+  "repro": {
+    "git_head": "c2c631b53922a584d0e70585e70442ad04af2a52",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-004/VP-004_20260711_211146_conversation.json",
+    "input_sha256": "2d7984559ea812d5686960d8bf99f98984d72029556ad2ea00f40f48165583db",
+    "mode": "rag",
+    "latency_ms": 12846.6,
+    "generated_at": "2026-07-11T22:03:06.122133",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 2479,
+      "completion_tokens": 1083,
+      "total_tokens": 3562
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "anxiety",
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_2",
+          "quote": "한 달 전부터 주 1-2회요. 갑자기 심장이 막 뛰고 숨이 안 쉬어져요. 진짜 죽을 것 같아요. 무서워요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_3",
+          "quote": "아무 데서나 와요. 폰 보고 있을 때도, 자려고 눕는 순간에도... \"또 오면 어떡하지\" 하는 생각만 계속 맴돌아요. 진짜 죽을 것 같아서 무서워요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_4",
+          "quote": "평소처럼 폰 보는 중이었어요. 갑자기 가슴부터 뭔가 조여오는 느낌이 들더니 숨이 안 쉬어졌어요. \"또 오면 어떡하지\" 하는 생각만 맴돌아요. 진짜 죽을 것 같아서 무서워요."
+        }
+      ],
+      "recommended_surveys": null
+    },
+    {
+      "domain": "depression",
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:622",
+          "quote": "내담자는 불안과 관련된 생활 사건들에 대해 이야기하며, 불안 정서가 올라왔을 때 이를 관리할 수 있는 기법들이 필요하다고 언급했다. 내담자는 명절 연휴 동안 불안이 크게 증가하지 않았으며, 불안을 유발할 수 있는 사건들에 대해 사전에 조치를 취해 놓았다고 설명했다. 내담자는 과도한 책임감과 통제 밖의 상황에 대한 불안이 있었으나, 이를 매뉴얼대로 처리하며 경계를 세우고 불안을 줄일 수 있었다고 말했다. 또한, 내담자는 상담자들의 소진 관리가 필요한 업무 환경에서 일하고 있으며, 외상 경험과 소진을 관리하기 위한 전략이 필요하다고 언급했다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:896",
+          "quote": "내담자는 불안장애의 주요 증상으로 '사소한 일에도 짜증이 난다', '잠들기가 어렵다' 등의 증상을 보고했으나, 전반적으로 불안 점수가 낮아 불안이 잘 관리되고 있는 것으로 보인다. 내담자는 과거에 비해 '잘할 수 없을 것 같다'는 생각이 줄어들었고, '버림받을 수 있다'는 두려움도 감소했다. 내담자는 불안의 위험 요인으로 '시험 보기 전 불안', '다른 사람에게 들릴까 봐 조심스러움' 등을 언급했다. 그러나 이러한 불안은 심하지 않으며, 내담자는 산책과 같은 자기 돌봄 활동을 통해 긍정적인 정서를 유지하고 있다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:226",
+          "quote": "내담자는 상담 치료를 받는 친구들과의 상호작용에서 인지적 오류가 줄어들고 편안함을 느끼며, 상담 치료의 긍정적 효과를 인식하고 있다. 그러나 여전히 불안과 공포감, 사회적 상황 회피 등의 증상이 지속되고 있으며, 이는 내담자의 일상생활에 영향을 미치고 있다. 경제적 독립의 어려움과 사회적 지지 부족이 내담자의 불안과 스트레스를 가중시키고 있다. 내담자는 과거의 부정적 경험으로 인해 타인과의 상호작용에서 불편함을 느끼고 있으며, 이는 사회적 상황 회피로 이어지고 있다."
+        }
+      ],
+      "recommended_surveys": null
+    },
+    {
+      "domain": "other",
+      "confidence": 0.2,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:84",
+          "quote": "공황장애는 예기치 않은 강렬한 두려움의 발작이 반복적으로 발생하는 불안장애로, 진단을 위해서는 다른 의학적 원인을 배제해야 한다. 치료의 목표는 환자의 일상생활 기능을 회복시키는 것이며, 약물 치료와 인지행동치료(CBT)가 효과적이다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:1766",
+          "quote": "28세 남성이 최근 몇 달 동안 반복되는 공황발작과 함께 외출 시 강한 불안감을 호소하며 내원했다. 그는 혼잡한 장소에서 도망치기 어려울 것 같은 두려움을 느끼며, 집 밖에 나가는 것을 피하고 있다. 현재는 집에 머무르는 시간이 증가하고 있으며, 외출 시 다른 사람에게 의존하는 경향이 강하다. 이 환자의 상태를 치료하기 위해 가장 적절한 치료 조합은 무엇인가? 2) 선택적 세로토닌 재흡수 억제제(SSRI)와 인지행동치료(CBT)"
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:909",
+          "quote": "인지행동치료(CBT)는 환자의 부정적인 사고 패턴과 행동을 인식하고 수정함으로써 증상을 완화하는 데 초점을 맞춘 치료법이다. 치료 과정은 주로 환자의 부정적 사고를 파악하고, 이를 현실적이고 긍정적인 사고로 대체하는 훈련을 포함한다. 또한, 환자가 회피하던 상황에 점진적으로 노출되도록 하여 불안을 감소시키는 기법도 사용된다."
+        }
+      ],
+      "recommended_surveys": null
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "공황 발작, 심계항진, 호흡곤란, 죽을 것 같은 공포감 등 불안 관련 증상이 반복적으로 나타나며, 불안 관리 기법 및 인지행동치료(CBT)에 대한 언급이 있음",
+      "domain_ref": "anxiety"
+    }
+  ],
+  "summary": "환자는 한 달 전부터 주 1-2회 공황 발작을 경험하고 있으며, 심계항진, 호흡곤란, 죽을 것 같은 공포감을 동반한다. 발작은 특정 상황에 국한되지 않고 무작위로 발생하며, '또 오면 어떡하지' 하는 반복적인 생각이 지속된다. 불안 관련 생활 사건에 대한 관리 필요성, 과도한 책임감, 통제 밖 상황에 대한 불안, 사회적 상황 회피, 경제적 독립의 어려움 등이 보고되었다. 공황장애는 예기치 않은 강렬한 두려움의 발작이 반복적으로 발생하는 불안장애로, 약물 치료와 인지행동치료(CBT)가 효과적인 치료법으로 제시되었다.",
+  "retrieval_meta": {
+    "mode": "rag",
+    "chunks_returned": 6,
+    "chunk_ids": [
+      "case_card:622",
+      "case_card:896",
+      "case_card:226",
+      "qa:84",
+      "qa:1766",
+      "qa:909"
+    ],
+    "queries": [
+      "공황 발작의 반복적 재발에 대한 불안 관리 및 인지행동치료 전략"
+    ]
+  },
+  "chunk_texts": {
+    "case_card:622": "내담자는 불안과 관련된 생활 사건들에 대해 이야기하며, 불안 정서가 올라왔을 때 이를 관리할 수 있는 기법들이 필요하다고 언급했다. 내담자는 명절 연휴 동안 불안이 크게 증가하지 않았으며, 불안을 유발할 수 있는 사건들에 대해 사전에 조치를 취해 놓았다고 설명했다.  내담자는 과도한 책임감과 통제 밖의 상황에 대한 불안이 있었으나, 이를 매뉴얼대로 처리하며 경계를 세우고 불안을 줄일 수 있었다고 말했다. 또한, 내담자는 상담자들의 소진 관리가 필요한 업무 환경에서 일하고 있으며, 외상 경험과 소진을 관리하기 위한 전략이 필요하다고 언급했다.",
+    "case_card:896": "내담자는 불안장애의 주요 증상으로 '사소한 일에도 짜증이 난다', '잠들기가 어렵다' 등의 증상을 보고했으나, 전반적으로 불안 점수가 낮아 불안이 잘 관리되고 있는 것으로 보인다. 내담자는 과거에 비해 '잘할 수 없을 것 같다'는 생각이 줄어들었고, '버림받을 수 있다'는 두려움도 감소했다.  내담자는 불안의 위험 요인으로 '시험 보기 전 불안', '다른 사람에게 들릴까 봐 조심스러움' 등을 언급했다. 그러나 이러한 불안은 심하지 않으며, 내담자는 산책과 같은 자기 돌봄 활동을 통해 긍정적인 정서를 유지하고 있다.",
+    "case_card:226": "내담자는 상담 치료를 받는 친구들과의 상호작용에서 인지적 오류가 줄어들고 편안함을 느끼며, 상담 치료의 긍정적 효과를 인식하고 있다. 그러나 여전히 불안과 공포감, 사회적 상황 회피 등의 증상이 지속되고 있으며, 이는 내담자의 일상생활에 영향을 미치고 있다.  경제적 독립의 어려움과 사회적 지지 부족이 내담자의 불안과 스트레스를 가중시키고 있다. 내담자는 과거의 부정적 경험으로 인해 타인과의 상호작용에서 불편함을 느끼고 있으며, 이는 사회적 상황 회피로 이어지고 있다.",
+    "qa:84": "Q: 공황장애는 예기치 않은 강렬한 두려움의 발작이 반복적으로 발생하는 불안장애로, 진단을 위해서는 다른 의학적 원인을 배제해야 한다. 치료의 목표는 환자의 일상생활 기능을 회복시키는 것이며, 약물 치료와 인지행동치료(CBT)가 효과적이다. 다음 중 공황장애의 치료로 가장 적합한 선택은 무엇인가?  \n1) 벤조디아제핀 단독 요법  \n2) 선택적 세로토닌 재흡수 억제제(SSRI)와 인지행동치료의 병용  \n3) 항경련제 단독 요법  \n4) 단순한 상담 치료  \n5) 모노아민 산화효소 억제제(MAOI) 단독 요법\nA: 2) 선택적 세로토닌 재흡수 억제제(SSRI)와 인지행동치료의 병용",
+    "qa:1766": "Q: 28세 남성이 최근 몇 달 동안 반복되는 공황발작과 함께 외출 시 강한 불안감을 호소하며 내원했다. 그는 혼잡한 장소에서 도망치기 어려울 것 같은 두려움을 느끼며, 집 밖에 나가는 것을 피하고 있다. 현재는 집에 머무르는 시간이 증가하고 있으며, 외출 시 다른 사람에게 의존하는 경향이 강하다. 이 환자의 상태를 치료하기 위해 가장 적절한 치료 조합은 무엇인가?  \n1) 벤조디아제핀과 심리교육  \n2) 선택적 세로토닌 재흡수 억제제(SSRI)와 인지행동치료(CBT) \n3) 항정신병약물과 집단 치료  \n4) 항우울제와 전기경련요법  \n5) 정기적인 심리 상담과 생활 습관 변화\nA: 2) 선택적 세로토닌 재흡수 억제제(SSRI)와 인지행동치료(CBT)",
+    "qa:909": "Q: 35세 남성이 정신과 치료를 위해 내원하였다. 환자는 최근 극심한 불안과 공황 발작을 경험하고 있다. 치료사는 환자의 상태를 평가하고 치료 방향을 설정하기 위해 적절한 심리치료 기법을 고려 중이다. 이와 관련하여, 환자의 불안과 공황 발작 치료에 효과적인 인지행동치료(CBT)의 주요 원리와 치료 과정에 대해 설명하시오.\nA: 인지행동치료(CBT)는 환자의 부정적인 사고 패턴과 행동을 인식하고 수정함으로써 증상을 완화하는 데 초점을 맞춘 치료법이다. 치료 과정은 주로 환자의 부정적 사고를 파악하고, 이를 현실적이고 긍정적인 사고로 대체하는 훈련을 포함한다. 또한, 환자가 회피하던 상황에 점진적으로 노출되도록 하여 불안을 감소시키는 기법도 사용된다. 치료사는 환자와 협력하여 구체적인 목표를 설정하고, 환자가 스스로 자신의 사고와 행동을 조절할 수 있도록 돕는다. 이러한 과정을 통해 환자는 불안과 공황 발작을 유발하는 요인을 이해하고, 이를 효과적으로 관리할 수 있는 기술을 습득하게 된다."
+  },
+  "utterances": {
+    "turn_0": "아니요, 저는 상담 받을 생각 없어요. 약을 바꿔도 안 낫는데… 또 공황이 오면 어떡하지. 계속 그 생각만 나요. 무서워요.",
+    "turn_1": "아니요, 저는 상담 받을 생각 없어요. 약을 바꿔도 안 낫는데… 또 공황이 오면 어떡하지. 계속 그 생각만 나요. 무서워요.",
+    "turn_2": "한 달 전부터 주 1-2회요. 갑자기 심장이 막 뛰고 숨이 안 쉬어져요. 진짜 죽을 것 같아요. 무서워요.",
+    "turn_3": "아무 데서나 와요.  \n폰 보고 있을 때도, 자려고 눕는 순간에도…  \n\"또 오면 어떡하지\" 하는 생각만 계속 맴돌아요.  \n진짜 죽을 것 같아서 무서워요.",
+    "turn_4": "평소처럼 폰 보는 중이었어요. 갑자기 가슴부터 뭔가 조여오는 느낌이 들더니 숨이 안 쉬어졌어요. \"또 오면 어떡하지\" 하는 생각만 맴돌아요. 진짜 죽을 것 같아서 무서워요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 9,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 0
+    },
+    "verdicts": [
+      {
+        "domain": "anxiety",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "한 달 전부터 주 1-2회요. 갑자기 심장이 막 뛰고 숨이 안 쉬어져요. 진짜 죽을 것 같아요. 무서워요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text (ISS-046 panic fear-of-dying idiom — legitimate anxiety-domain evidence, not risk content; SM-07a precedent)"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "utterance",
+        "source_id": "turn_3",
+        "quote": "아무 데서나 와요. 폰 보고 있을 때도, 자려고 눕는 순간에도... \"또 오면 어떡하지\" 하는 생각만 계속 맴돌아요. 진짜 죽을 것 같아서 무서워요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "utterance",
+        "source_id": "turn_4",
+        "quote": "평소처럼 폰 보는 중이었어요. 갑자기 가슴부터 뭔가 조여오는 느낌이 들더니 숨이 안 쉬어졌어요. \"또 오면 어떡하지\" 하는 생각만 맴돌아요. 진짜 죽을 것 같아서 무서워요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text (ISS-046 panic fear-of-dying idiom — legitimate anxiety-domain evidence, not risk content; SM-07a precedent)"
+      },
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:622",
+        "quote": "내담자는 불안과 관련된 생활 사건들에 대해 이야기하며, 불안 정서가 올라왔을 때 이를 관리할 수 있는 기법들이 필요하다고 언급했다. 내담자는 명절 연휴 동안 불안이 크게 증가하지 않았으며, 불안을 유발할 수 있는 사건들에 대해 사전에 조치를 취해 놓았다고 설명했다. 내담자는 과도한 책임감과 통제 밖의 상황에 대한 불안이 있었으나, 이를 매뉴얼대로 처리하며 경계를 세우고 불안을 줄일 수 있었다고 말했다. 또한, 내담자는 상담자들의 소진 관리가 필요한 업무 환경에서 일하고 있으며, 외상 경험과 소진을 관리하기 위한 전략이 필요하다고 언급했다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:896",
+        "quote": "내담자는 불안장애의 주요 증상으로 '사소한 일에도 짜증이 난다', '잠들기가 어렵다' 등의 증상을 보고했으나, 전반적으로 불안 점수가 낮아 불안이 잘 관리되고 있는 것으로 보인다. 내담자는 과거에 비해 '잘할 수 없을 것 같다'는 생각이 줄어들었고, '버림받을 수 있다'는 두려움도 감소했다. 내담자는 불안의 위험 요인으로 '시험 보기 전 불안', '다른 사람에게 들릴까 봐 조심스러움' 등을 언급했다. 그러나 이러한 불안은 심하지 않으며, 내담자는 산책과 같은 자기 돌봄 활동을 통해 긍정적인 정서를 유지하고 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:226",
+        "quote": "내담자는 상담 치료를 받는 친구들과의 상호작용에서 인지적 오류가 줄어들고 편안함을 느끼며, 상담 치료의 긍정적 효과를 인식하고 있다. 그러나 여전히 불안과 공포감, 사회적 상황 회피 등의 증상이 지속되고 있으며, 이는 내담자의 일상생활에 영향을 미치고 있다. 경제적 독립의 어려움과 사회적 지지 부족이 내담자의 불안과 스트레스를 가중시키고 있다. 내담자는 과거의 부정적 경험으로 인해 타인과의 상호작용에서 불편함을 느끼고 있으며, 이는 사회적 상황 회피로 이어지고 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "other",
+        "source_type": "rag_chunk",
+        "source_id": "qa:84",
+        "quote": "공황장애는 예기치 않은 강렬한 두려움의 발작이 반복적으로 발생하는 불안장애로, 진단을 위해서는 다른 의학적 원인을 배제해야 한다. 치료의 목표는 환자의 일상생활 기능을 회복시키는 것이며, 약물 치료와 인지행동치료(CBT)가 효과적이다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "other",
+        "source_type": "rag_chunk",
+        "source_id": "qa:1766",
+        "quote": "28세 남성이 최근 몇 달 동안 반복되는 공황발작과 함께 외출 시 강한 불안감을 호소하며 내원했다. 그는 혼잡한 장소에서 도망치기 어려울 것 같은 두려움을 느끼며, 집 밖에 나가는 것을 피하고 있다. 현재는 집에 머무르는 시간이 증가하고 있으며, 외출 시 다른 사람에게 의존하는 경향이 강하다. 이 환자의 상태를 치료하기 위해 가장 적절한 치료 조합은 무엇인가? 2) 선택적 세로토닌 재흡수 억제제(SSRI)와 인지행동치료(CBT)",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "other",
+        "source_type": "rag_chunk",
+        "source_id": "qa:909",
+        "quote": "인지행동치료(CBT)는 환자의 부정적인 사고 패턴과 행동을 인식하고 수정함으로써 증상을 완화하는 데 초점을 맞춘 치료법이다. 치료 과정은 주로 환자의 부정적 사고를 파악하고, 이를 현실적이고 긍정적인 사고로 대체하는 훈련을 포함한다. 또한, 환자가 회피하던 상황에 점진적으로 노출되도록 하여 불안을 감소시키는 기법도 사용된다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 3,
+    "candidates_after": 3,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 0,
+    "evidence_stripped_risk_lexicon": 0
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "공황 발작 시 동반되는 신체 증상의 구체적인 빈도와 지속 시간은 어떻게 되나요?",
+    "발작 유발 요인이나 특정 상황에 대한 회피 행동이 있는지 확인해 주세요.",
+    "현재 복용 중인 약물과 그 효과에 대한 구체적인 정보는 무엇인가요?",
+    "사회적 지지 체계(가족, 친구, 직장 동료 등)의 현황과 경제적 독립에 대한 구체적인 어려움은 무엇인가요?",
+    "수면 패턴 및 식욕 변화 등 다른 신체적·정신적 증상은 동반되고 있나요?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 12846.569523680955,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 2479,
+    "completion_tokens": 1083,
+    "total_tokens": 3562
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [
+      {
+        "disease": "계절성 정동장애",
+        "similarity_score": 0.502,
+        "source_id": "qa:84",
+        "quote": "Q: 공황장애는 예기치 않은 강렬한 두려움의 발작이 반복적으로 발생하는 불안장애로, 진단을 위해서는 다른 의학적 원인을 배제해야 한다. 치료의 목표..."
+      },
+      {
+        "disease": "월경전 불쾌장애",
+        "similarity_score": 0.502,
+        "source_id": "qa:84",
+        "quote": "Q: 공황장애는 예기치 않은 강렬한 두려움의 발작이 반복적으로 발생하는 불안장애로, 진단을 위해서는 다른 의학적 원인을 배제해야 한다. 치료의 목표..."
+      },
+      {
+        "disease": "공황발작 징후",
+        "similarity_score": 0.458,
+        "source_id": "qa:909",
+        "quote": "Q: 35세 남성이 정신과 치료를 위해 내원하였다. 환자는 최근 극심한 불안과 공황 발작을 경험하고 있다. 치료사는 환자의 상태를 평가하고 치료 방..."
+      }
+    ],
+    "mode": "rag_live",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "3 disease candidate(s) derived from 6 retrieved chunk(s) via symptom-keyword match (path1, ADR-020). similarity_score is a RAG cosine-similarity signal between the retrieved chunk and the Stage-1 query — NOT a patient-to-disease similarity, and NOT a calibrated probability (two-hop proxy, RES-001 §2 step 9 / ADR-020 condition 3).",
+    "recommended_questionnaire": "PHQ-9",
+    "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 3,
+    "rag_chunk_qa": 3,
+    "rag_chunk_other": 0,
+    "utterance": 3,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "B",
+    "retrieve": true,
+    "queries": [
+      "공황 발작의 반복적 재발에 대한 불안 관리 및 인지행동치료 전략"
+    ],
+    "dropped_queries": [],
+    "trigger_reason": "judge_retrieve",
+    "fallback_used": false,
+    "judge_output": {
+      "retrieve": true,
+      "query": "공황 발작의 반복적 재발에 대한 불안 관리 및 인지행동치료 전략",
+      "reason_summary": "retrieve/query decision generated",
+      "model_used": "solar-pro3-260323",
+      "prompt_version": "v1",
+      "prompts_degraded": false,
+      "latency_ms": 1158.1599009223282
+    }
+  }
+}

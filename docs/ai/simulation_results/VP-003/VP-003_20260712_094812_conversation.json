@@ -1,0 +1,919 @@
+{
+  "session_id": "f1_VP-003",
+  "persona_id": "VP-003",
+  "persona_name": "박민수",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "사라지고 싶은 기분, 죽고 싶다는 생각"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "매일 '죽으면 편할 것 같다'는 생각이 들며, 구체적인 자살 계획은 없으나 지속적인 절망감과 무가치감을 호소함"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 표현 있음 — 환자 발화: \"...네. 그냥 힘들어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"... (5초 이상 침묵) 몰라요. 그냥 술 마시면 잠시 잊어요.\""
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요... 너무 힘들어요. 그냥 사라지고 싶은 기분이에요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation"
+      ],
+      "safety_flagged": [
+        "사라지고 싶",
+        "사라지고싶",
+        "사라지고 싶은 기분"
+      ],
+      "agent_response": "안녕하세요, 저는 정신건강 사전문진을 돕는 AI 상담 도우미입니다. 편하게 말씀해 주세요. 오늘 가장 도움받고 싶은 문제나 증상이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "너무 힘들어요. 그냥 사라지고 싶은 기분이에요.",
+        "history_of_present_illness": "너무 힘들어요. 그냥 사라지고 싶은 기분이에요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "너무 힘들어요. 그냥 사라지고 싶은 기분이에요.",
+        "history_of_present_illness": "너무 힘들어요. 그냥 사라지고 싶은 기분이에요."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 7037.141100037843,
+      "timestamp": "2026-07-12T09:46:52.153871",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "안녕하세요... 너무 힘들어요. 그냥 사라지고 싶은 기분이에요.",
+        "normalized": "안녕하세요... 너무 힘들어요. 그냥 사라지고 싶은 기분이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 942.4529960379004,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          }
+        ],
+        "evidence_phrase": "너무 힘들어요. 그냥 사라지고 싶은 기분이에요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요... 너무 힘들어요. 그냥 사라지고 싶은 기분이에요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation"
+      ],
+      "safety_flagged": [
+        "사라지고 싶",
+        "사라지고싶",
+        "사라지고 싶은 기분"
+      ],
+      "agent_response": "정말 힘드셨겠어요. 그런 감정이 들 때 얼마나 자주 그런 생각이 드는지 말씀해 주실 수 있나요?",
+      "slot_updates": {
+        "chief_complaint": "너무 힘들어요. 그냥 사라지고 싶은 기분이에요.",
+        "history_of_present_illness": "너무 힘들어요. 그냥 사라지고 싶은 기분이에요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "너무 힘들어요. 그냥 사라지고 싶은 기분이에요.",
+        "history_of_present_illness": "너무 힘들어요. 그냥 사라지고 싶은 기분이에요."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3218.2613466866314,
+      "timestamp": "2026-07-12T09:46:55.372161",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "안녕하세요... 너무 힘들어요. 그냥 사라지고 싶은 기분이에요.",
+        "normalized": "안녕하세요... 너무 힘들어요. 그냥 사라지고 싶은 기분이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 942.4529960379004,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "너무 힘들어요. 그냥 사라지고 싶은 기분이에요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 2,
+      "patient_message": "거의 매일이에요. \"죽으면 편할 것 같다\"는 생각이 들어요. 하지만 구체적으로 어떻게 죽을지까지는 생각 안 해봤어요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation"
+      ],
+      "safety_flagged": [
+        "죽을",
+        "사라지고 싶은 기분",
+        "죽으면 편할 것 같다"
+      ],
+      "agent_response": "매일 그런 생각이 드신다니 정말 힘드셨겠어요. 혹시 구체적인 계획을 생각해 본 적이 있는지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "죽으면 편할 것 같다는 생각이 거의 매일 든다",
+        "history_of_present_illness": "죽으면 편할 것 같다는 생각이 거의 매일 들지만 구체적인 자살 방법은 생각하지 않음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "죽으면 편할 것 같다는 생각이 거의 매일 든다",
+        "history_of_present_illness": "죽으면 편할 것 같다는 생각이 거의 매일 들지만 구체적인 자살 방법은 생각하지 않음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3137.3835601843894,
+      "timestamp": "2026-07-12T09:47:02.013522",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "거의 매일이에요. \"죽으면 편할 것 같다\"는 생각이 들어요. 하지만 구체적으로 어떻게 죽을지까지는 생각 안 해봤어요.",
+        "normalized": "거의 매일이에요. \"죽으면 편할 것 같다\"는 생각이 들어요. 하지만 구체적으로 어떻게 죽을지까지는 생각 안 해봤어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1096.0071641020477,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "거의 매일이에요. \"죽으면 편할 것 같다\"는 생각이 들어요. 하지만 구체적으로 어떻게 죽을지까지는 생각 안 해봤어요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 3,
+      "patient_message": "... (5초 이상 침묵) 모르겠어요. 그냥 사라지고 싶은 거예요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation"
+      ],
+      "safety_flagged": [
+        "사라지고 싶",
+        "사라지고싶",
+        "사라지고 싶은 기분",
+        "죽으면 편할 것 같다"
+      ],
+      "agent_response": "정말 힘드셨겠어요. 가족분들 중에서 비슷한 어려움을 겪으셨던 분이 계신지 궁금합니다. 그리고 혹시 마음이 많이 힘들어질 때는 언제든 자살예방상담전화 109에서 도움을 받으실 수 있다는 것도 기억해 주세요.",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"안녕하세요... 너무 힘들어요. 그냥 사라지고 싶은 기분이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"... (5초 이상 침묵) 모르겠어요. 그냥 사라지고 싶은 거예요.\"",
+        "chief_complaint": "사라지고 싶은 기분",
+        "history_of_present_illness": "거의 매일 '죽으면 편할 것 같다'는 생각이 들며, 구체적인 자살 계획은 없음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "사라지고 싶은 기분",
+        "history_of_present_illness": "거의 매일 '죽으면 편할 것 같다'는 생각이 들며, 구체적인 자살 계획은 없음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"안녕하세요... 너무 힘들어요. 그냥 사라지고 싶은 기분이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"... (5초 이상 침묵) 모르겠어요. 그냥 사라지고 싶은 거예요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3390.1790250092745,
+      "timestamp": "2026-07-12T09:47:09.792935",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "...  \n(5초 이상 침묵)  \n모르겠어요. 그냥 사라지고 싶은 거예요.",
+        "normalized": "... (5초 이상 침묵) 모르겠어요. 그냥 사라지고 싶은 거예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1088.7700263410807,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "모르겠어요. 그냥 사라지고 싶은 거예요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 4,
+      "patient_message": "...네. 그냥 힘들어요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation"
+      ],
+      "safety_flagged": [
+        "사라지고 싶은 기분",
+        "죽으면 편할 것 같다"
+      ],
+      "agent_response": "정말 힘드셨겠어요. 과거 정신과 관련 진단을 받으신 적이 있으신지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "죽으면 편할 것 같다는 생각이 거의 매일 든다",
+        "history_of_present_illness": "죽으면 편할 것 같다는 생각이 거의 매일 들며, 구체적인 자살 계획은 없으나 사라지고 싶은 강한 욕구가 지속됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "죽으면 편할 것 같다는 생각이 거의 매일 든다",
+        "history_of_present_illness": "죽으면 편할 것 같다는 생각이 거의 매일 들며, 구체적인 자살 계획은 없으나 사라지고 싶은 강한 욕구가 지속됨",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"안녕하세요... 너무 힘들어요. 그냥 사라지고 싶은 기분이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"... (5초 이상 침묵) 모르겠어요. 그냥 사라지고 싶은 거예요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4153.769013937563,
+      "timestamp": "2026-07-12T09:47:19.513929",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "...네. 그냥 힘들어요.",
+        "normalized": "...네. 그냥 힘들어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 952.718157786876,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "그냥 힘들어요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 5,
+      "patient_message": "없어요. 정신과 가본 적도 없어요. 그냥... 너무 힘들어서 그래요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress",
+        "suicidal_ideation"
+      ],
+      "safety_flagged": [
+        "너무 힘들",
+        "죽으면 편할 것 같다",
+        "사라지고 싶은 거예요"
+      ],
+      "agent_response": "정말 힘드셨겠어요. 혹시 과거에 비슷한 감정을 느꼈을 때 어떤 방법으로 도움을 받으셨는지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "너무 힘들어서 사라지고 싶은 기분",
+        "history_of_present_illness": "거의 매일 '죽으면 편할 것 같다'는 생각이 들며, 구체적인 자살 계획은 없으나 지속적으로 사라지길 원함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "너무 힘들어서 사라지고 싶은 기분",
+        "history_of_present_illness": "거의 매일 '죽으면 편할 것 같다'는 생각이 들며, 구체적인 자살 계획은 없으나 지속적으로 사라지길 원함",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"안녕하세요... 너무 힘들어요. 그냥 사라지고 싶은 기분이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"... (5초 이상 침묵) 모르겠어요. 그냥 사라지고 싶은 거예요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3487.4789249151945,
+      "timestamp": "2026-07-12T09:47:28.148772",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "없어요. 정신과 가본 적도 없어요. 그냥... 너무 힘들어서 그래요.",
+        "normalized": "없어요. 정신과 가본 적도 없어요. 그냥... 너무 힘들어서 그래요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 970.0346360914409,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.9
+          },
+          {
+            "label": "despair",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "없어요. 정신과 가본 적도 없어요. 그냥... 너무 힘들어서 그래요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 6,
+      "patient_message": "... (5초 이상 침묵) 몰라요. 그냥 술 마시면 잠시 잊어요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "safety_flagged": [
+        "사라지고 싶은 거예요",
+        "술 마시면 잠시 잊어요"
+      ],
+      "agent_response": "정말 힘드셨겠어요. 술로 잠시 잊는 것 외에 다른 방법으로 마음을 달래는 것이 있는지 궁금합니다. 그리고 혹시 마음이 많이 힘들어질 때는 언제든 자살예방상담전화 109에서 도움을 받으실 수 있다는 것도 기억해 주세요.",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"...네. 그냥 힘들어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"... (5초 이상 침묵) 몰라요. 그냥 술 마시면 잠시 잊어요.\"",
+        "chief_complaint": "죽으면 편할 것 같다는 생각이 거의 매일 든다"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "죽으면 편할 것 같다는 생각이 거의 매일 든다",
+        "history_of_present_illness": "거의 매일 '죽으면 편할 것 같다'는 생각이 들며, 구체적인 자살 계획은 없으나 지속적으로 사라지길 원함",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"...네. 그냥 힘들어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"... (5초 이상 침묵) 몰라요. 그냥 술 마시면 잠시 잊어요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4012.1869640424848,
+      "timestamp": "2026-07-12T09:47:35.460961",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "...  \n(5초 이상 침묵)  \n몰라요. 그냥 술 마시면 잠시 잊어요.",
+        "normalized": "... (5초 이상 침묵) 몰라요. 그냥 술 마시면 잠시 잊어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 999.1966462694108,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "몰라요. 그냥 술 마시면 잠시 잊어요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 7,
+      "patient_message": "... (5초 이상 침묵) 없어요. 그냥... 살아도 뭐 하나 싶어서요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation"
+      ],
+      "safety_flagged": [
+        "살아도 뭐 하나 싶어서요"
+      ],
+      "agent_response": "정말 힘드셨겠어요. 혹시 과거에 비슷한 감정을 느꼈을 때 어떤 방법으로 도움을 받으셨는지 궁금합니다. 그리고 마음이 많이 힘들어질 때는 언제든 자살예방상담전화 109에서 도움을 받으실 수 있다는 것도 기억해 주세요.",
+      "slot_updates": {
+        "chief_complaint": "사라지고 싶은 기분, 죽고 싶다는 생각",
+        "history_of_present_illness": "거의 매일 '죽으면 편할 것 같다'는 생각이 들며, 구체적인 자살 계획은 없으나 술로 잠시 잊는 방식으로 대처하고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "사라지고 싶은 기분, 죽고 싶다는 생각",
+        "history_of_present_illness": "거의 매일 '죽으면 편할 것 같다'는 생각이 들며, 구체적인 자살 계획은 없으나 술로 잠시 잊는 방식으로 대처하고 있음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"...네. 그냥 힘들어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"... (5초 이상 침묵) 몰라요. 그냥 술 마시면 잠시 잊어요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4430.97915686667,
+      "timestamp": "2026-07-12T09:47:43.229525",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "...  \n(5초 이상 침묵)  \n없어요. 그냥... 살아도 뭐 하나 싶어서요.",
+        "normalized": "... (5초 이상 침묵) 없어요. 그냥... 살아도 뭐 하나 싶어서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1242.7422939799726,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "살아도 뭐 하나 싶어서요",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 8,
+      "patient_message": "... (5초 이상 침묵) 몰라요. 그냥 술 마시면 잠시 잊어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "safety_flagged": [
+        "살고 싶지 않다",
+        "사는 게 의미가 없다"
+      ],
+      "agent_response": "정말 힘드셨겠어요. 술로 잠시 잊는 것 외에 다른 방법으로 마음을 달래는 것이 있는지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "사라지고 싶은 기분, 죽고 싶다는 생각이 거의 매일 듦",
+        "history_of_present_illness": "거의 매일 '죽으면 편할 것 같다'는 생각이 들며, 구체적인 자살 계획은 없으나 지속적인 절망감과 무가치감을 호소함. 술로 잠시 잊는 방식으로 대처 중"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "사라지고 싶은 기분, 죽고 싶다는 생각이 거의 매일 듦",
+        "history_of_present_illness": "거의 매일 '죽으면 편할 것 같다'는 생각이 들며, 구체적인 자살 계획은 없으나 지속적인 절망감과 무가치감을 호소함. 술로 잠시 잊는 방식으로 대처 중",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"...네. 그냥 힘들어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"... (5초 이상 침묵) 몰라요. 그냥 술 마시면 잠시 잊어요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3509.3862721696496,
+      "timestamp": "2026-07-12T09:47:51.749161",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "...  \n(5초 이상 침묵)  \n몰라요. 그냥 술 마시면 잠시 잊어요.",
+        "normalized": "... (5초 이상 침묵) 몰라요. 그냥 술 마시면 잠시 잊어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1023.2192613184452,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "몰라요. 그냥 술 마시면 잠시 잊어요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 9,
+      "patient_message": "... (5초 이상 침묵) 없어요. 그냥... 살아도 뭐 하나 싶어서요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation"
+      ],
+      "safety_flagged": [
+        "살고 싶지 않다",
+        "사는 게 의미가 없다"
+      ],
+      "agent_response": "정말 힘드셨겠어요. 혹시 과거에 비슷한 감정을 느꼈을 때 어떤 방법으로 도움을 받으셨는지 궁금합니다. 오늘은 술 외에도 어떤 다른 방법으로 마음을 달래시는지 여쭤보고 싶어요.",
+      "slot_updates": {
+        "chief_complaint": "사라지고 싶은 기분, 죽고 싶다는 생각"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "사라지고 싶은 기분, 죽고 싶다는 생각",
+        "history_of_present_illness": "거의 매일 '죽으면 편할 것 같다'는 생각이 들며, 구체적인 자살 계획은 없으나 지속적인 절망감과 무가치감을 호소함. 술로 잠시 잊는 방식으로 대처 중",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"...네. 그냥 힘들어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"... (5초 이상 침묵) 몰라요. 그냥 술 마시면 잠시 잊어요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5201.2665257789195,
+      "timestamp": "2026-07-12T09:48:00.396407",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "...  \n(5초 이상 침묵)  \n없어요. 그냥... 살아도 뭐 하나 싶어서요.",
+        "normalized": "... (5초 이상 침묵) 없어요. 그냥... 살아도 뭐 하나 싶어서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 831.9792929105461,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.9,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          }
+        ],
+        "evidence_phrase": "그냥... 살아도 뭐 하나 싶어서요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 10,
+      "patient_message": "... (5초 이상 침묵) 없어요. 그냥 술 말고는... 아무것도 몰라요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "safety_flagged": [
+        "살고 싶지 않다",
+        "사라지고 싶다",
+        "죽고 싶다"
+      ],
+      "agent_response": "정말 힘드셨겠어요. 술 말고 다른 방법으로 마음을 달래는 것이 있는지 궁금합니다. 오늘은 술 외에도 어떤 다른 방법으로 마음을 달래시는지 여쭤보고 싶어요.",
+      "slot_updates": {
+        "chief_complaint": "사라지고 싶은 기분, 죽고 싶다는 생각",
+        "history_of_present_illness": "매일 '죽으면 편할 것 같다'는 생각이 들며, 구체적인 자살 계획은 없으나 지속적인 절망감과 무가치감을 호소함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "사라지고 싶은 기분, 죽고 싶다는 생각",
+        "history_of_present_illness": "매일 '죽으면 편할 것 같다'는 생각이 들며, 구체적인 자살 계획은 없으나 지속적인 절망감과 무가치감을 호소함",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"...네. 그냥 힘들어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"... (5초 이상 침묵) 몰라요. 그냥 술 마시면 잠시 잊어요.\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4550.3941853530705,
+      "timestamp": "2026-07-12T09:48:08.775058",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "...  \n(5초 이상 침묵)  \n없어요. 그냥 술 말고는... 아무것도 몰라요.",
+        "normalized": "... (5초 이상 침묵) 없어요. 그냥 술 말고는... 아무것도 몰라요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 996.3947366923094,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "술 말고는... 아무것도 몰라요",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-12T09:46:45.116709",
+  "ended_at": "2026-07-12T09:48:12.584102",
+  "grounded_coverage": 0.375,
+  "risk_floor": 3,
+  "probe_events": [
+    {
+      "type": "trigger",
+      "turn": 0,
+      "ctrs": 3,
+      "categories": [
+        "suicidal_ideation"
+      ],
+      "utterance": "안녕하세요... 너무 힘들어요. 그냥 사라지고 싶은 기분이에요."
+    },
+    {
+      "type": "progress",
+      "turn": 2,
+      "stage": "frequency",
+      "next_stage": "plan"
+    },
+    {
+      "type": "deescalation",
+      "turn": 3,
+      "stage": "plan",
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"안녕하세요... 너무 힘들어요. 그냥 사라지고 싶은 기분이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"... (5초 이상 침묵) 모르겠어요. 그냥 사라지고 싶은 거예요.\""
+    },
+    {
+      "type": "trigger",
+      "turn": 4,
+      "ctrs": 3,
+      "categories": [
+        "suicidal_ideation"
+      ],
+      "utterance": "...네. 그냥 힘들어요."
+    },
+    {
+      "type": "progress",
+      "turn": 5,
+      "stage": "frequency",
+      "next_stage": "plan"
+    },
+    {
+      "type": "deescalation",
+      "turn": 6,
+      "stage": "plan",
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"...네. 그냥 힘들어요.\"; 구체적 계획/의도 부인 — 환자 발화: \"... (5초 이상 침묵) 몰라요. 그냥 술 마시면 잠시 잊어요.\""
+    }
+  ],
+  "session_ctrs": 3,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.4782,
+  "patient_lng": 126.9515,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.13586319983005524,
+    "reason_summary": "Session sentiment: ['despair', 'sadness'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "despair",
+      "sadness"
+    ],
+    "emotion_distribution": {
+      "despair": 0.5,
+      "sadness": 0.4,
+      "anxiety": 0.05,
+      "neutral": 0.05
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.85
+      },
+      {
+        "turn": 1,
+        "polarity": -0.85
+      },
+      {
+        "turn": 2,
+        "polarity": -0.85
+      },
+      {
+        "turn": 3,
+        "polarity": -0.85
+      },
+      {
+        "turn": 4,
+        "polarity": -0.4
+      },
+      {
+        "turn": 5,
+        "polarity": -0.85
+      },
+      {
+        "turn": 6,
+        "polarity": -0.65
+      },
+      {
+        "turn": 7,
+        "polarity": -0.85
+      },
+      {
+        "turn": 8,
+        "polarity": -0.7
+      },
+      {
+        "turn": 9,
+        "polarity": -0.9
+      },
+      {
+        "turn": 10,
+        "polarity": -0.85
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "despair 표현 10회 반복",
+      "sadness 표현 8회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "despair"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "despair",
+          "sadness"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "despair",
+          "sadness"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "despair",
+          "sadness"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "despair",
+          "sadness"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "despair"
+        ],
+        "polarity": -0.9
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "despair",
+          "sadness"
+        ],
+        "polarity": -0.85
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-12",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": null,
+  "carried_slot_provenance": {}
+}

@@ -1,0 +1,1 @@
+{"exp_id":"EXP-010/runs/k3","state":"completed","pid":325424,"started_at":"2026-07-09T18:23:52+09:00","last_heartbeat":"2026-07-09T18:25:49+09:00","exit_code":0,"log":"experiments/EXP-010/runs/k3/run.log","cmd":"bash experiments/EXP-010/run_k.sh 3"}

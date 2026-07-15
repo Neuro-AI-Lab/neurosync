@@ -1,0 +1,966 @@
+{
+  "session_id": "f1_VP-001",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자주 깨서 아침에 피곤함."
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "최근 회사 큰 프로젝트 마감이 가까워지면서 증상이 더 심해짐. 잠들기 어려움, 새벽 각성, 아침 피로감 지속. 식욕 감소, 아침 식사 거름, 퇴근 후 무기력, 운동 감소."
+    },
+    {
+      "key": "substance_use_history",
+      "value": "주 1-2회 맥주 한 캔 정도 마심"
+    }
+  ],
+  "slot_coverage": 0.4,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요. 요즘 잠을 잘 못 자는 게 제일 걱정돼요. 잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자는 게 제일 걱정돼요",
+        "잠들기까지 한참 걸리고",
+        "새벽에도 자꾸 깨서 아침에 피곤해요"
+      ],
+      "agent_response": "안녕하세요, 편하게 이야기 나눠볼 수 있도록 도와드릴게요. 오늘 가장 도움받고 싶은 문제나 증상이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것",
+        "history_of_present_illness": "잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것",
+        "history_of_present_illness": "잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤함"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 7175.942113157362,
+      "timestamp": "2026-07-12T20:39:09.267405",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "안녕하세요. 요즘 잠을 잘 못 자는 게 제일 걱정돼요. 잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤해요.",
+        "normalized": "안녕하세요. 요즘 잠을 잘 못 자는 게 제일 걱정돼요. 잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1251.5990613028407,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "잠을 잘 못 자는 게 제일 걱정돼요. 잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요. 요즘 잠을 잘 못 자는 게 제일 걱정돼요. 잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤해요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠을 잘 못 자는 게 정말 힘드셨겠어요. 혹시 이전에 정신건강의학과 진료를 받으시거나 심리상담을 해보신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것",
+        "history_of_present_illness": "잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것",
+        "history_of_present_illness": "잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤함"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3090.810682158917,
+      "timestamp": "2026-07-12T20:39:12.358247",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "안녕하세요. 요즘 잠을 잘 못 자는 게 제일 걱정돼요. 잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤해요.",
+        "normalized": "안녕하세요. 요즘 잠을 잘 못 자는 게 제일 걱정돼요. 잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1251.5990613028407,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "잠을 잘 못 자는 게 제일 걱정돼요. 잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "음... 글쎄요, 지금까지는 정신과나 상담을 받아본 적은 없어요. 그냥 요즘 스트레스가 좀 많아서 그런가 보다 싶었죠.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자는 게 제일 걱정돼요",
+        "잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤해요"
+      ],
+      "agent_response": "스트레스가 쌓여서 잠까지 방해받는 상황이 많이 힘드셨겠어요.",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기 어렵고 새벽에 자주 깨서 아침에 피곤함."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기 어렵고 새벽에 자주 깨서 아침에 피곤함.",
+        "history_of_present_illness": "잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤함"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3858.164405915886,
+      "timestamp": "2026-07-12T20:39:20.375933",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "음... 글쎄요, 지금까지는 정신과나 상담을 받아본 적은 없어요. 그냥 요즘 스트레스가 좀 많아서 그런가 보다 싶었죠.",
+        "normalized": "음... 글쎄요, 지금까지는 정신과나 상담을 받아본 적은 없어요. 그냥 요즘 스트레스가 좀 많아서 그런가 보다 싶었죠.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 990.0621399283409,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "스트레스가 좀 많아서 그런가 보다 싶었죠",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "near_dup_back_to_back"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 655.7758743874729,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "스트레스가 많아서 잠을 잘 못 주무시는 게 정말 힘드셨겠어요",
+          "count": 1
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "네, 맞아요. 특히 회사에서 큰 프로젝트 마감이 가까워지면서부터 더 심해진 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠을 잘 못 자는 게 제일 걱정돼요",
+        "잠들기까지 한참 걸리고, 새벽에도 자꾸 깨서 아침에 피곤해요",
+        "회사에서 큰 프로젝트 마감이 가까워지면서부터 더 심해진 것 같아요"
+      ],
+      "agent_response": "회사에서 큰 프로젝트 마감이 가까워지면서부터 증상이 더 심해지셨다니 정말 힘드셨겠어요. 혹시 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자꾸 깨서 아침에 피곤함.",
+        "history_of_present_illness": "최근 회사 큰 프로젝트 마감이 가까워지면서부터 증상이 심해지기 시작함. 잠들기 어려움, 새벽 각성, 아침 피로 지속."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자꾸 깨서 아침에 피곤함.",
+        "history_of_present_illness": "최근 회사 큰 프로젝트 마감이 가까워지면서부터 증상이 심해지기 시작함. 잠들기 어려움, 새벽 각성, 아침 피로 지속."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3967.5148618407547,
+      "timestamp": "2026-07-12T20:39:29.030395",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "네, 맞아요. 특히 회사에서 큰 프로젝트 마감이 가까워지면서부터 더 심해진 것 같아요.",
+        "normalized": "네, 맞아요. 특히 회사에서 큰 프로젝트 마감이 가까워지면서부터 더 심해진 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1263.895588926971,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "회사에서 큰 프로젝트 마감이 가까워지면서부터 더 심해진 것 같아요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "네, 직장 동료 2-3명하고는 편하게 얘기하는 사이예요. 어머니랑도 요즘 주 2회 정도 통화하면서 이야기 나누고, 그럴 때 좀 마음이 가라앉는 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "가족분들 중에 비슷한 어려움을 겪으셨던 분이 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자꾸 깨서 아침에 피곤함",
+        "history_of_present_illness": "회사 큰 프로젝트 마감이 가까워지면서부터 증상이 더 심해짐. 직장 동료 2-3명과 편하게 얘기하고, 어머니와 주 2회 통화하며 마음이 가라앉는 느낌"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자꾸 깨서 아침에 피곤함",
+        "history_of_present_illness": "회사 큰 프로젝트 마감이 가까워지면서부터 증상이 더 심해짐. 직장 동료 2-3명과 편하게 얘기하고, 어머니와 주 2회 통화하며 마음이 가라앉는 느낌"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3421.352201141417,
+      "timestamp": "2026-07-12T20:39:37.642214",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "네, 직장 동료 2-3명하고는 편하게 얘기하는 사이예요. 어머니랑도 요즘 주 2회 정도 통화하면서 이야기 나누고, 그럴 때 좀 마음이 가라앉는 것 같아요.",
+        "normalized": "네, 직장 동료 2-3명하고는 편하게 얘기하는 사이예요. 어머니랑도 요즘 주 2회 정도 통화하면서 이야기 나누고, 그럴 때 좀 마음이 가라앉는 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1928.5757038742304,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.7
+          },
+          {
+            "label": "hope",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "어머니랑도 요즘 주 2회 정도 통화하면서 이야기 나누고, 그럴 때 좀 마음이 가라앉는 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "음... 글쎄요, 어머니께서는 예전에 스트레스 많을 때 잠을 잘 못 주무신다고 하셨는데, 크게 걱정되진 않으셨어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "어머니께서 예전에 비슷한 경험을 하셨을 수도 있겠네요. 혹시 최근에 술이나 수면제, 진정제, 카페인 같은 것을 더 많이 섭취하시게 되었나요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자주 깨서 아침에 피곤함",
+        "history_of_present_illness": "최근 회사 큰 프로젝트 마감이 가까워지면서 증상이 더 심해짐. 직장 동료 2-3명과 편하게 이야기하며, 어머니와 주 2회 통화 시 마음이 가라앉는 느낌"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자주 깨서 아침에 피곤함",
+        "history_of_present_illness": "최근 회사 큰 프로젝트 마감이 가까워지면서 증상이 더 심해짐. 직장 동료 2-3명과 편하게 이야기하며, 어머니와 주 2회 통화 시 마음이 가라앉는 느낌"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3584.726999979466,
+      "timestamp": "2026-07-12T20:39:47.752904",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "음... 글쎄요, 어머니께서는 예전에 스트레스 많을 때 잠을 잘 못 주무신다고 하셨는데, 크게 걱정되진 않으셨어요.",
+        "normalized": "음... 글쎄요, 어머니께서는 예전에 스트레스 많을 때 잠을 잘 못 주무신다고 하셨는데, 크게 걱정되진 않으셨어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3320.1231472194195,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "어머니께서는 예전에 스트레스 많을 때 잠을 잘 못 주무신다고 하셨는데, 크게 걱정되진 않으셨어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "음, 술은 주에 1-2회 맥주 한 캔 정도 마시고, 특별히 더 많이 먹거나 수면 관련 제품은 쓰진 않아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠을 잘 못 자는 게 정말 힘드셨겠어요. 혹시 과거에 정신건강의학과 진료를 받으신 적이 있거나, 심리상담을 받아보신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자꾸 깨서 아침에 피곤함.",
+        "history_of_present_illness": "회사 큰 프로젝트 마감이 가까워지면서부터 증상이 더 심해짐. 직장 동료 2-3명과는 편하게 얘기하는 사이이며, 어머니와 주 2회 통화하면서 마음이 가라앉는 느낌.",
+        "substance_use_history": "주에 1-2회 맥주 한 캔 정도 마심. 특별히 더 많이 먹거나 수면 관련 제품은 사용하지 않음."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자꾸 깨서 아침에 피곤함.",
+        "history_of_present_illness": "회사 큰 프로젝트 마감이 가까워지면서부터 증상이 더 심해짐. 직장 동료 2-3명과는 편하게 얘기하는 사이이며, 어머니와 주 2회 통화하면서 마음이 가라앉는 느낌.",
+        "substance_use_history": "주에 1-2회 맥주 한 캔 정도 마심. 특별히 더 많이 먹거나 수면 관련 제품은 사용하지 않음."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4472.502341028303,
+      "timestamp": "2026-07-12T20:39:58.384371",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "음, 술은 주에 1-2회 맥주 한 캔 정도 마시고, 특별히 더 많이 먹거나 수면 관련 제품은 쓰진 않아요.",
+        "normalized": "음, 술은 주에 1-2회 맥주 한 캔 정도 마시고, 특별히 더 많이 먹거나 수면 관련 제품은 쓰진 않아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1572.7537362836301,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "음, 술은 주에 1-2회 맥주 한 캔 정도 마시고, 특별히 더 많이 먹거나 수면 관련 제품은 쓰진 않아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 671.8666111119092,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 지금까지는 정신과나 상담을 받아본 적은 없어요. 그냥 요즘 일이 바빠서 그런가 보다 싶었죠.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그래도 혼자서 힘들어하시는 게 많이 지치셨을 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자주 깨서 아침에 피곤함.",
+        "history_of_present_illness": "회사 큰 프로젝트 마감이 가까워지면서 증상이 더 심해짐. 직장 동료 2-3명과 편하게 얘기하고 어머니와 주 2회 통화하며 마음이 가라앉는 느낌.",
+        "substance_use_history": "주에 1-2회 맥주 한 캔 정도 마심. 수면 관련 제품은 사용하지 않음."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자주 깨서 아침에 피곤함.",
+        "history_of_present_illness": "회사 큰 프로젝트 마감이 가까워지면서 증상이 더 심해짐. 직장 동료 2-3명과 편하게 얘기하고 어머니와 주 2회 통화하며 마음이 가라앉는 느낌.",
+        "substance_use_history": "주에 1-2회 맥주 한 캔 정도 마심. 수면 관련 제품은 사용하지 않음."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4207.105993293226,
+      "timestamp": "2026-07-12T20:40:06.343900",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "아니요, 지금까지는 정신과나 상담을 받아본 적은 없어요. 그냥 요즘 일이 바빠서 그런가 보다 싶었죠.",
+        "normalized": "아니요, 지금까지는 정신과나 상담을 받아본 적은 없어요. 그냥 요즘 일이 바빠서 그런가 보다 싶었죠.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1006.1766668222845,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "아니요, 지금까지는 정신과나 상담을 받아본 적은 없어요. 그냥 요즘 일이 바빠서 그런가 보다 싶었죠.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "near_dup_back_to_back"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 627.885545603931,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "잠을 잘 못 자는 게 정말 힘드셨겠어요",
+          "count": 2
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 8,
+      "patient_message": "네, 사실 요즘 회사에서 집중이 안 되고 실수도 늘어서 좀 위축되긴 했어요. 선임한테 지적받은 적도 있어서 더 조심스러워졌죠.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "회사에서 집중이 안 되고 실수가 늘어서 위축되셨다니 정말 힘드셨겠어요. 혹시 최근에 술이나 수면제, 진정제, 카페인 같은 것을 더 많이 섭취하시게 되었나요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자주 깨서 아침에 피곤함",
+        "history_of_present_illness": "최근 회사 큰 프로젝트 마감이 가까워지면서 증상이 더 심해짐. 잠들기 어려움, 새벽 각성, 아침 피로감 지속",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 섭취, 수면 관련 제품 사용 없음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자주 깨서 아침에 피곤함",
+        "history_of_present_illness": "최근 회사 큰 프로젝트 마감이 가까워지면서 증상이 더 심해짐. 잠들기 어려움, 새벽 각성, 아침 피로감 지속",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 섭취, 수면 관련 제품 사용 없음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4945.051067043096,
+      "timestamp": "2026-07-12T20:40:16.066689",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "네, 사실 요즘 회사에서 집중이 안 되고 실수도 늘어서 좀 위축되긴 했어요. 선임한테 지적받은 적도 있어서 더 조심스러워졌죠.",
+        "normalized": "네, 사실 요즘 회사에서 집중이 안 되고 실수도 늘어서 좀 위축되긴 했어요. 선임한테 지적받은 적도 있어서 더 조심스러워졌죠.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1429.3136661872268,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "회사에서 집중이 안 되고 실수가 늘어서 위축되셨다니 정말 힘드셨겠어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "음... 술은 주에 1-2회 맥주 한 캔 정도 마시고, 특별히 더 많이 먹거나 수면 관련 제품은 쓰진 않아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "회사에서 집중이 안 되고 실수가 늘어서 위축되셨다니 정말 마음이 무겁겠어요.",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자꾸 깨서 아침에 피곤함",
+        "history_of_present_illness": "최근 회사 큰 프로젝트 마감이 가까워지면서 증상이 더 심해짐. 회사에서 집중이 안 되고 실수가 늘었으며, 선임에게 지적받은 적이 있어 위축됨",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자꾸 깨서 아침에 피곤함",
+        "history_of_present_illness": "최근 회사 큰 프로젝트 마감이 가까워지면서 증상이 더 심해짐. 회사에서 집중이 안 되고 실수가 늘었으며, 선임에게 지적받은 적이 있어 위축됨",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 6031.489460729063,
+      "timestamp": "2026-07-12T20:40:26.324023",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "음... 술은 주에 1-2회 맥주 한 캔 정도 마시고, 특별히 더 많이 먹거나 수면 관련 제품은 쓰진 않아요.",
+        "normalized": "음... 술은 주에 1-2회 맥주 한 캔 정도 마시고, 특별히 더 많이 먹거나 수면 관련 제품은 쓰진 않아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1455.0118022598326,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "회사에서 집중이 안 되고 실수가 늘어서 위축되셨다니 정말 마음이 무겁겠어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "near_dup_session_cap"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2030.4936040192842,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "session_cap",
+          "family": "잠을 잘 못 자는 게 정말 힘드셨겠어요",
+          "count": 2
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 10,
+      "patient_message": "네, 요즘 아침을 자주 거르게 되고, 식욕도 약간 줄. 퇴근 후엔 아무것도 하고 싶지 않아서 운동도 예전보다 덜 하게 됐어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "아침을 자주 거르게 되고 식욕도 줄어들며, 퇴근 후에는 아무것도 하고 싶지 않아 운동도 덜 하게 되셨다니 정말 힘드셨겠어요. 혹시 최근에 스스로를 해치고 싶거나 죽고 싶다는 생각이 드신 적이 있으신가요? 아니면 주변에 해를 끼칠 수 있는 충동이나 생각이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자주 깨서 아침에 피곤함.",
+        "history_of_present_illness": "최근 회사 큰 프로젝트 마감이 가까워지면서 증상이 더 심해짐. 잠들기 어려움, 새벽 각성, 아침 피로감 지속. 식욕 감소, 아침 식사 거름, 퇴근 후 무기력, 운동 감소."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠을 잘 못 자는 것이 제일 걱정됨. 잠들기까지 시간이 오래 걸리고 새벽에도 자주 깨서 아침에 피곤함.",
+        "history_of_present_illness": "최근 회사 큰 프로젝트 마감이 가까워지면서 증상이 더 심해짐. 잠들기 어려움, 새벽 각성, 아침 피로감 지속. 식욕 감소, 아침 식사 거름, 퇴근 후 무기력, 운동 감소.",
+        "substance_use_history": "주 1-2회 맥주 한 캔 정도 마심"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3814.0627979300916,
+      "timestamp": "2026-07-12T20:40:34.603701",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "네, 요즘 아침을 자주 거르게 되고, 식욕도 약간 줄. 퇴근 후엔 아무것도 하고 싶지 않아서 운동도 예전보다 덜 하게 됐어요.",
+        "normalized": "네, 요즘 아침을 자주 거르게 되고, 식욕도 약간 줄. 퇴근 후엔 아무것도 하고 싶지 않아서 운동도 예전보다 덜 하게 됐어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1708.7150500155985,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "아침을 자주 거르게 되고 식욕도 약간 줄. 퇴근 후엔 아무것도 하고 싶지 않아서 운동도 예전보다 덜 하게 됐어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-12T20:39:02.091436",
+  "ended_at": "2026-07-12T20:40:38.005743",
+  "grounded_coverage": 0.375,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 10,
+      "forced": false
+    }
+  ],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5807,
+  "patient_lng": 126.8898,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.14269212260842323,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.4,
+      "anxiety": 0.35,
+      "neutral": 0.1,
+      "relief": 0.05,
+      "hope": 0.05,
+      "despair": 0.05
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.6
+      },
+      {
+        "turn": 1,
+        "polarity": -0.6
+      },
+      {
+        "turn": 2,
+        "polarity": -0.6
+      },
+      {
+        "turn": 3,
+        "polarity": -0.75
+      },
+      {
+        "turn": 4,
+        "polarity": 0.4
+      },
+      {
+        "turn": 5,
+        "polarity": 0.0
+      },
+      {
+        "turn": 6,
+        "polarity": 0.0
+      },
+      {
+        "turn": 7,
+        "polarity": -0.6
+      },
+      {
+        "turn": 8,
+        "polarity": -0.7
+      },
+      {
+        "turn": 9,
+        "polarity": -0.5
+      },
+      {
+        "turn": 10,
+        "polarity": -0.65
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 8회 반복",
+      "anxiety 표현 7회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "relief",
+          "hope"
+        ],
+        "polarity": 0.4
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.65
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-12",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": null,
+  "carried_slot_provenance": {}
+}

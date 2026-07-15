@@ -1,0 +1,281 @@
+{
+  "session_id": "f1_VP-001",
+  "persona_id": "VP-001",
+  "repro": {
+    "git_head": "c2c631b53922a584d0e70585e70442ad04af2a52",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260711_220428_conversation.json",
+    "input_sha256": "ed5caf9441cc7c3367d9013a3405d1f6b96b2a3cae125c5bfb5f9c39b02d85c4",
+    "mode": "rag",
+    "latency_ms": 8937.0,
+    "generated_at": "2026-07-11T22:04:51.374067",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 2567,
+      "completion_tokens": 640,
+      "total_tokens": 3207
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "sleep",
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_0",
+          "quote": "누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:966",
+          "quote": "잠들기 어렵거나 자주 깨는 수면 문제와 피로감을 호소하고 있다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:221",
+          "quote": "집중력 저하와 수면 문제를 겪고 있다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:1116",
+          "quote": "특히 수면 문제와 관련된 어려움을 겪고 있다고 언급했다."
+        }
+      ],
+      "recommended_surveys": [
+        "PSQI"
+      ]
+    },
+    {
+      "domain": "depression",
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:966",
+          "quote": "일상적인 활동에 대한 흥미나 즐거움이 거의 없고, ... 무가치감, 죄책감 등은 나타나지 않고 있다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:1116",
+          "quote": "우울한 기분과 피로감을 호소하며, ... 어머니의 알츠하이머 진단 이후로, 이는 내담자에게 큰 영향을 미쳤다."
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9"
+      ]
+    },
+    {
+      "domain": "anxiety",
+      "confidence": 0.4,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:221",
+          "quote": "불안감과 피로감을 느끼고 있으며, ... '경제적으로 여유가 없었던 부분도 불안하고'라고 언급하며 불안감을 표현했고"
+        }
+      ],
+      "recommended_surveys": [
+        "GAD-7"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "수면 장애와 관련된 증상(잠들기 어려움, 새벽 각성, 피로감)이 주요 호소이며, 우울감 및 불안감도 동반되어 정신건강의학과 진료가 필요함",
+      "domain_ref": "sleep"
+    }
+  ],
+  "summary": "환자는 수면 시작 및 유지 장애, 새벽 각성, 피로감을 호소하고 있으며, 우울감 및 불안감도 동반되어 있음. 수면 문제 외에도 정서적 어려움이 관찰되어 정신건강의학과 진료가 필요함.",
+  "retrieval_meta": {
+    "mode": "rag",
+    "chunks_returned": 6,
+    "chunk_ids": [
+      "case_card:966",
+      "case_card:221",
+      "case_card:1116",
+      "qa:1138",
+      "qa:313",
+      "qa:1581"
+    ],
+    "queries": [
+      "불면증, 수면 시작 및 유지 장애, 새벽 각성, 개운하지 않은 기상, 정신과 상담 및 진단 이력 없음"
+    ]
+  },
+  "chunk_texts": {
+    "case_card:966": "내담자는 일상적인 활동에 대한 흥미나 즐거움이 거의 없고, 잠들기 어렵거나 자주 깨는 수면 문제와 피로감을 호소하고 있다. 또한, 체중 변화나 식욕 변화는 없으며, 자살 생각이나 무가치감, 죄책감 등은 나타나지 않고 있다. 내담자는 일상적인 일에 집중하기 어렵다고 느끼며, 정신운동 변화는 없다고 보고한다.  내담자는 과거에 정신질환을 앓았던 경험이 있으며, 현재 스트레스 사건과 관련된 어려움을 겪고 있다. 경제적, 사회적 자원 부족이나 사회적 지지 부족은 언급되지 않았으나, 가족력이나 기저질환과 관련된 언급이 있었다. 내담자는 과거의 트라우마 경험이나 부정적 자아상, 낮은 정서조절 능력 등은 보고하지 않았다.",
+    "case_card:221": "내담자는 불안감과 피로감을 느끼고 있으며, 집중력 저하와 수면 문제를 겪고 있다. 내담자는 \"경제적으로 여유가 없었던 부분도 불안하고\"라고 언급하며 불안감을 표현했고, \"체력적으로 많이 힘들었고\"라고 피로감을 호소했다. 또한 \"잠을 별로 못 자고 밤새 하다가 출근을 할 때도 있어요\"라고 수면 문제를 언급했다. 이러한 증상들은 내담자의 일상생활에 영향을 미치고 있다.  내담자가 경제적, 사회적 자원 부족과 스트레스 사건을 경험하고 있으며, 가족력과 과거 정신질환의 영향도 받고 있다. 내담자는 \"경제적으로도 아직 불안하고\"라고 언급하며 경제적 자원 부족을 드러냈고, \"전에 항암 치료를 했었거든요\"라고 과거 질환을 언급했다. 이러한 위험요인들은 내담자의 정신 건강에 부정적인 영향을 미치고 있으며, 상담을 통해 이를 완화할 수 있는 전략이 필요하다.",
+    "case_card:1116": "내담자는 우울한 기분과 피로감을 호소하며, 특히 수면 문제와 관련된 어려움을 겪고 있다고 언급했다. 임신으로 인해 수면이 많아졌지만, 과거에는 잠들기 어려웠고 자주 깼다고 회상했다. 우울감의 시작은 어머니의 알츠하이머 진단 이후로, 이는 내담자에게 큰 영향을 미쳤다. 어머니의 병이 내담자에게 우울감을 유발했으며, 이는 가족의 건강 문제와 관련된 죄책감과 연결되어 있다. 내담자는 과거의 트라우마 경험, 특히 가족의 경제적 어려움과 관련된 사건들을 회상하며, 이러한 경험들이 현재의 정서적 상태에 영향을 미쳤음을 인식하고 있다.  내담자는 가족력과 과거 정신질환의 경험을 언급하며, 어머니의 알츠하이머 진단이 본인에게 큰 정서적 충격을 주었다고 밝혔다. 또한, 가족의 경제적 어려움과 관련된 스트레스 사건들이 내담자의 정서적 안정에 부정적인 영향을 미쳤다. 내담자는 과거의 어려운 경험들로 인해 자신을 비난하고 죄책감을 느끼는 경향이 있으며, 이는 현재의 우울감과 연결되어 있다. 가족의 지원 부족과 경제적 자원의 부족도 내담자의 정서적 어려움을 가중시키는 요인으로 작용하고 있다.",
+    "qa:1138": "Q: 45세 여성이 지속적인 수면 장애와 낮 동안의 피로를 주소로 수면 클리닉에 내원하였다. 환자는 밤에 잠들기 어려워하고 자주 깨며, 아침에 일어났을 때 상쾌하지 않다고 한다. 환자는 최근 스트레스를 많이 받고 있으며, 수면제 복용에 대한 거부감을 나타내고 있다. 이 환자에게 적합한 진단 방법과 이 방법이 제공할 수 있는 정보에 대해 설명하시오.\nA: 이 환자에게 적합한 진단 방법은 액티그래피이다. 액티그래피는 환자가 손목에 착용하는 장치를 통해 신체 활동을 지속적으로 기록하여 수면-각성 패턴과 일주기 리듬을 평가할 수 있다. 이 방법은 환자가 수면 연구실에서 검사를 받기 어려운 경우에도 유용하며, 불면증, 일주기 리듬 수면 장애, 하지불안증후군 등 다양한 수면 관련 문제를 평가하는 데 도움을 준다. 또한, 액티그래피는 약물치료나 행동치료, 광치료와 같은 치료의 효과를 모니터링하는 데도 활용될 수 있다.",
+    "qa:313": "Q: 18세 여성이 수면 문제로 내원했다. 환자는 평일 아침에 일어나기 어려워하며, 주말에는 오후까지 자는 경향이 있다. 평소 잠자리에 드는 시간은 새벽 3시 이후로 일정하며, 이러한 패턴이 수년간 지속되었다. 기존에 불면증으로 진단받고 수면제를 처방받았으나 효과가 없었다. 이 환자에게 가장 적합한 치료법은 무엇인가?  \n\n1) 저용량 항우울제 투여  \n2) 수면 위생 교육  \n3) 아침 햇빛 노출을 통한 광치료  \n4) 저녁 시간에 카페인 섭취 제한  \n5) 주말에 충분한 수면 보장\nA: 3) 아침 햇빛 노출을 통한 광치료",
+    "qa:1581": "Q: 28세 남성이 최근 불면증과 불안 증상을 호소하며 병원을 방문했다. 환자는 2주 전부터 수면이 어려워졌고, 낮 동안 피로와 집중력 저하를 경험하고 있다고 말했다. 환자는 특별한 기저 질환은 없으며, 현재 복용 중인 약물도 없다. 이 환자의 불면증에 대한 초기 평가와 치료 방침에 대해 설명하시오.\nA: 이 환자의 불면증에 대한 초기 평가는 철저한 병력 청취와 신체 검사를 통해 이루어져야 한다. 병력 청취에서는 불면증의 시작 시점, 지속 시간, 수면 패턴, 스트레스 요인, 카페인 섭취 여부, 그리고 수면 환경 등을 확인해야 한다. 또한, 불면증의 원인이 될 수 있는 정신적, 신체적 질환(예: 우울증, 불안 장애, 갑상선 기능 항진증 등)을 배제하기 위해 추가적인 평가가 필요하다. 치료 방침으로는 비약물적 치료가 우선적으로 고려되며, 수면 위생 교육과 인지행동치료(CBT-I)가 권장된다. 필요 시 단기적으로 수면제를 사용할 수 있으나, 장기 사용은 피해야 한다."
+  },
+  "utterances": {
+    "turn_0": "안녕하세요. 요즘 잠을 잘 못 자는 게 제일 걱정돼요. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요.",
+    "turn_1": "안녕하세요. 요즘 잠을 잘 못 자는 게 제일 걱정돼요. 누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요.",
+    "turn_2": "음... 정신과 가 본거나 상담 받은 적은 없어요. 그냥 지금 상태가 병원에 갈 정도 싶기도 하고.",
+    "turn_3": "아니요, 진단받은 병도 없고 복용 중인 약도 없어요. 건강 검진은 일 년에 한 번씩 받는데, 특별한 문제는 없었어요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 7,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 0
+    },
+    "verdicts": [
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "누우면 생각이 계속 돌아서 한참 뒤척이고, 새벽에 자주 깨니까 아침에 일어나도 개운하지 않아요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:966",
+        "quote": "잠들기 어렵거나 자주 깨는 수면 문제와 피로감을 호소하고 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:221",
+        "quote": "집중력 저하와 수면 문제를 겪고 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:1116",
+        "quote": "특히 수면 문제와 관련된 어려움을 겪고 있다고 언급했다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:966",
+        "quote": "일상적인 활동에 대한 흥미나 즐거움이 거의 없고, ... 무가치감, 죄책감 등은 나타나지 않고 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:1116",
+        "quote": "우울한 기분과 피로감을 호소하며, ... 어머니의 알츠하이머 진단 이후로, 이는 내담자에게 큰 영향을 미쳤다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:221",
+        "quote": "불안감과 피로감을 느끼고 있으며, ... '경제적으로 여유가 없었던 부분도 불안하고'라고 언급하며 불안감을 표현했고",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 3,
+    "candidates_after": 3,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 0,
+    "evidence_stripped_risk_lexicon": 0
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "수면 위생 상태는 어떠한가요? (예: 카페인 섭취, 전자기기 사용, 취침 시간 등)",
+    "낮 동안의 기분 상태는 어떠한가요? (예: 지속적인 우울감, 흥미 상실 등)",
+    "일상생활에서의 집중력 저하 정도는 어떠한가요?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 8937.045207247138,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 2567,
+    "completion_tokens": 640,
+    "total_tokens": 3207
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [
+      {
+        "disease": "계절성 정동장애",
+        "similarity_score": 0.482,
+        "source_id": "qa:1138",
+        "quote": "...방법은 환자가 수면 연구실에서 검사를 받기 어려운 경우에도 유용하며, 불면증, 일주기 리듬 수면 장애, 하지불안증후군 등 다양한 수면 관련 문제를..."
+      },
+      {
+        "disease": "월경전 불쾌장애",
+        "similarity_score": 0.482,
+        "source_id": "qa:1138",
+        "quote": "...방법은 환자가 수면 연구실에서 검사를 받기 어려운 경우에도 유용하며, 불면증, 일주기 리듬 수면 장애, 하지불안증후군 등 다양한 수면 관련 문제를..."
+      },
+      {
+        "disease": "우울 삽화(우울증)",
+        "similarity_score": 0.475,
+        "source_id": "qa:313",
+        "quote": "...새벽 3시 이후로 일정하며, 이러한 패턴이 수년간 지속되었다. 기존에 불면증으로 진단받고 수면제를 처방받았으나 효과가 없었다. 이 환자에게 가장..."
+      },
+      {
+        "disease": "소아·청소년 우울증",
+        "similarity_score": 0.475,
+        "source_id": "qa:313",
+        "quote": "...새벽 3시 이후로 일정하며, 이러한 패턴이 수년간 지속되었다. 기존에 불면증으로 진단받고 수면제를 처방받았으나 효과가 없었다. 이 환자에게 가장..."
+      },
+      {
+        "disease": "순환성 장애",
+        "similarity_score": 0.412,
+        "source_id": "case_card:1116",
+        "quote": "...병이 내담자에게 우울감을 유발했으며, 이는 가족의 건강 문제와 관련된 죄책감과 연결되어 있다. 내담자는 과거의 트라우마 경험, 특히 가족의 경제적..."
+      }
+    ],
+    "mode": "rag_live",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "5 disease candidate(s) derived from 6 retrieved chunk(s) via symptom-keyword match (path1, ADR-020). similarity_score is a RAG cosine-similarity signal between the retrieved chunk and the Stage-1 query — NOT a patient-to-disease similarity, and NOT a calibrated probability (two-hop proxy, RES-001 §2 step 9 / ADR-020 condition 3). 2 candidate vote(s) dropped by the risk-lexicon filter before ranking (VAL-011/ADR-020 condition 1).",
+    "recommended_questionnaire": "PHQ-9",
+    "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 6,
+    "rag_chunk_qa": 0,
+    "rag_chunk_other": 0,
+    "utterance": 1,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "B",
+    "retrieve": true,
+    "queries": [
+      "불면증, 수면 시작 및 유지 장애, 새벽 각성, 개운하지 않은 기상, 정신과 상담 및 진단 이력 없음"
+    ],
+    "dropped_queries": [],
+    "trigger_reason": "judge_retrieve",
+    "fallback_used": false,
+    "judge_output": {
+      "retrieve": true,
+      "query": "불면증, 수면 시작 및 유지 장애, 새벽 각성, 개운하지 않은 기상, 정신과 상담 및 진단 이력 없음",
+      "reason_summary": "retrieve/query decision generated",
+      "model_used": "solar-pro3-260323",
+      "prompt_version": "v1",
+      "prompts_degraded": false,
+      "latency_ms": 1195.0332601554692
+    }
+  }
+}

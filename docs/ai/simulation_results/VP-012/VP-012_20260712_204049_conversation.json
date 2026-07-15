@@ -1,0 +1,1039 @@
+{
+  "session_id": "f1_VP-012",
+  "persona_id": "VP-012",
+  "persona_name": "정우식",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "history_of_present_illness",
+      "value": "매일 소주 한 병 이상 마시는 습관이 있으며, 술을 줄이려고 시도하지만 중단이 어렵고 스트레스 받을 때마다 술 생각이 먼저 듦. 손이 떨릴 때 한 잔 마시면 일시적으로 나아지지만 결국 더 많이 마시게 됨. 간 수치 상승으로 인해 아침에 컨디션이 안 좋아지고 식당 운영이 힘들어짐. 배우자와 자주 다퉈 미안한 마음이 큼"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마...\""
+    },
+    {
+      "key": "substance_use_history",
+      "value": "매일 소주 한 병 이상 음주"
+    },
+    {
+      "key": "chief_complaint",
+      "value": "술을 줄이려는 생각이 많이 들지만 스스로 인정하는 것이 어려움"
+    },
+    {
+      "key": "personal_social_history",
+      "value": "식당 운영 중"
+    },
+    {
+      "key": "medical_history",
+      "value": "건강검진에서 간 수치 상승"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "최근 건강검진에서 간 수치가 많이 올라갔다는 결과가 나와서 술을 줄이려고 하는데, 잘 안 되네요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 정신건강 사전문진을 도와드리는 AI 상담 도우미입니다. 편하게 말씀해 주세요. 오늘 가장 도움받고 싶은 문제나 증상이 무엇인가요?",
+      "slot_updates": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치가 많이 올라갔다는 결과를 받았고, 술을 줄이려고 시도했으나 잘 되지 않고 있음"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치가 많이 올라갔다는 결과를 받았고, 술을 줄이려고 시도했으나 잘 되지 않고 있음"
+      },
+      "slot_coverage": 0.2,
+      "latency_ms": 7321.860540192574,
+      "timestamp": "2026-07-12T20:39:11.299929",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.125,
+      "normalizer_meta": {
+        "original": "최근 건강검진에서 간 수치가 많이 올라갔다는 결과가 나와서 술을 줄이려고 하는데, 잘 안 되네요.",
+        "normalized": "최근 건강검진에서 간 수치가 많이 올라갔다는 결과가 나와서 술을 줄이려고 하는데, 잘 안 되네요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1244.431016035378,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "최근 건강검진에서 간 수치가 많이 올라갔다는 결과가 나와서 술을 줄이려고 하는데, 잘 안 되네요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "최근 건강검진에서 간 수치가 많이 올라갔다는 결과가 나와서 술을 줄이려고 하는데, 잘 안 되네요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "간 수치 상승으로 술을 줄이려고 노력하고 계시군요. 그 과정에서 느끼는 어려움이나 감정이 있으신가요?",
+      "slot_updates": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치가 많이 올라갔다는 결과를 받았고, 술을 줄이려고 시도했으나 잘 되지 않고 있음"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치가 많이 올라갔다는 결과를 받았고, 술을 줄이려고 시도했으나 잘 되지 않고 있음"
+      },
+      "slot_coverage": 0.2,
+      "latency_ms": 3258.507452905178,
+      "timestamp": "2026-07-12T20:39:14.558468",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.125,
+      "normalizer_meta": {
+        "original": "최근 건강검진에서 간 수치가 많이 올라갔다는 결과가 나와서 술을 줄이려고 하는데, 잘 안 되네요.",
+        "normalized": "최근 건강검진에서 간 수치가 많이 올라갔다는 결과가 나와서 술을 줄이려고 하는데, 잘 안 되네요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1244.431016035378,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "최근 건강검진에서 간 수치가 많이 올라갔다는 결과가 나와서 술을 줄이려고 하는데, 잘 안 되네요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마시면 좀 나아지긴 하지만, 결국 더 많이 마시게 되는 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "손이 떨릴 때 한 잔 마시면 좀 나아지긴 하지만, 결국 더 많이 마시게 되는 것 같아요"
+      ],
+      "agent_response": "매일 소주 한 병 이상 마시는 상황이 스트레스 완화에 도움이 되지만 동시에 중단이 어려운 점이 힘들겠네요. 가장 먼저 말씀하고 싶은 문제나 증상은 무엇인가요?",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마...\"",
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 확인 후 술을 줄이려고 시도했으나, 거의 매일 소주 한 병 이상 마시며 스트레스 시 술 생각이 먼저 들고 손이 떨릴 때 한 잔 마시면 일시적 완화되나 결국 더 많이 마시게 됨",
+        "substance_use_history": "거의 매일 소주 한 병 이상 음주"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "최근 건강검진에서 간 수치 상승 확인 후 술을 줄이려고 시도했으나, 거의 매일 소주 한 병 이상 마시며 스트레스 시 술 생각이 먼저 들고 손이 떨릴 때 한 잔 마시면 일시적 완화되나 결국 더 많이 마시게 됨",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마...\"",
+        "substance_use_history": "거의 매일 소주 한 병 이상 음주"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4259.589874185622,
+      "timestamp": "2026-07-12T20:39:23.527406",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마시면 좀 나아지긴 하지만, 결국 더 많이 마시게 되는 것 같아요.",
+        "normalized": "거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마시면 좀 나아지긴 하지만, 결국 더 많이 마시게 되는 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1454.0283312089741,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "despair",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "손이 떨릴 때 한 잔 마시면 좀 나아지긴 하지만, 결국 더 많이 마시게 되는 것 같아요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 769.4635051302612,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "간 수치 상승으로 술을 줄이려고 노력하고 계시군요",
+          "count": 1
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "술을 줄이려고 해도 멈추기 어렵고, 배우자와도 자주 다퉈서 미안한 마음이 커요. 간 수치가 높다는 걸 알고 나서부터는 아침에 컨디션이 더 안 좋아져서 식당 운영도 힘들어졌어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술을 줄이려고 해도 멈추기 어렵고",
+        "배우자와도 자주 다퉈서 미안한 마음이 커요",
+        "간 수치가 높다는 걸 알고 나서부터는 아침에 컨디션이 더 안 좋아져서 식당 운영도 힘들어졌어요"
+      ],
+      "agent_response": "술을 줄이려고 해도 멈추기 어렵고, 배우자와도 자주 다퉈서 미안한 마음이 크시군요. 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어지는 상황이 많이 답답하시겠어요. 현재 정신건강의학과 진료를 받고 계신지, 혹은 심리상담을 받아보신 적이 있으신가요? 진단받은 병명이 있다면 말씀해 주실 수 있나요?",
+      "slot_updates": {
+        "chief_complaint": "술을 줄이려고 해도 멈추기 어렵고, 배우자와 자주 다퉈 미안한 마음이 크며, 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 있으며, 스트레스 받을 때마다 술 생각이 먼저 들고 손이 떨릴 때 한 잔 마시면 일시적으로 나아지지만 결국 더 많이 마시게 됨. 간 수치 상승 진단 후 술을 줄이려고 시도했으나 중단이 어렵고, 이로 인해 아침 컨디션이 악화되어 식당 운영에 어려움을 겪고 있음",
+        "personal_social_history": "식당 운영",
+        "substance_use_history": "매일 소주 한 병 이상 음주"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 있으며, 스트레스 받을 때마다 술 생각이 먼저 들고 손이 떨릴 때 한 잔 마시면 일시적으로 나아지지만 결국 더 많이 마시게 됨. 간 수치 상승 진단 후 술을 줄이려고 시도했으나 중단이 어렵고, 이로 인해 아침 컨디션이 악화되어 식당 운영에 어려움을 겪고 있음",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마...\"",
+        "substance_use_history": "매일 소주 한 병 이상 음주",
+        "chief_complaint": "술을 줄이려고 해도 멈추기 어렵고, 배우자와 자주 다퉈 미안한 마음이 크며, 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "personal_social_history": "식당 운영"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5025.137143209577,
+      "timestamp": "2026-07-12T20:39:33.483164",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "medical_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "술을 줄이려고 해도 멈추기 어렵고, 배우자와도 자주 다퉈서 미안한 마음이 커요. 간 수치가 높다는 걸 알고 나서부터는 아침에 컨디션이 더 안 좋아져서 식당 운영도 힘들어졌어요.",
+        "normalized": "술을 줄이려고 해도 멈추기 어렵고, 배우자와도 자주 다퉈서 미안한 마음이 커요. 간 수치가 높다는 걸 알고 나서부터는 아침에 컨디션이 더 안 좋아져서 식당 운영도 힘들어졌어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1319.7919446974993,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          },
+          {
+            "label": "despair",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "술을 줄이려고 해도 멈추기 어렵고, 배우자와도 자주 다퉈서 미안한 마음이 커요. 간 수치가 높다는 걸 알고 나서부터는 아침에 컨디션이 더 안 좋아져서 식당 운영도 힘들어졌어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "정신과 진료는 처음 받아봐요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 들어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술을 줄이려고 해도 멈추기 어렵고",
+        "배우자와도 자주 다퉈서 미안한 마음이 커요",
+        "간 수치가 높다는 걸 알고 나서부터는 아침에 컨디션이 더 안 좋아져서 식당 운영도 힘들어졌어요"
+      ],
+      "agent_response": "정신과 진료를 처음 받아보시는군요. 진단받은 병은 없지만 술을 줄이려는 생각이 많이 드신다니, 그 고민이 많이 힘드시겠어요. 혹시 이전에 정신과나 심리상담을 받아보신 적이 있으신가요? 만약 없다면, 어떤 점이 가장 걱정되거나 궁금한지 말씀해 주실 수 있나요?",
+      "slot_updates": {
+        "chief_complaint": "술을 줄이려고 해도 멈추기 어렵고, 배우자와 자주 다퉈 미안한 마음이 크며, 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 스트레스 완화에 도움이 되지만 중단이 어렵고, 손이 떨릴 때 한 잔 마시면 일시적으로 나아지나 결국 더 많이 마시게 됨. 간 수치 상승으로 인해 아침 컨디션이 안 좋아지고 식당 운영이 힘들어짐"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 스트레스 완화에 도움이 되지만 중단이 어렵고, 손이 떨릴 때 한 잔 마시면 일시적으로 나아지나 결국 더 많이 마시게 됨. 간 수치 상승으로 인해 아침 컨디션이 안 좋아지고 식당 운영이 힘들어짐",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마...\"",
+        "substance_use_history": "매일 소주 한 병 이상 음주",
+        "chief_complaint": "술을 줄이려고 해도 멈추기 어렵고, 배우자와 자주 다퉈 미안한 마음이 크며, 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "personal_social_history": "식당 운영"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4544.016059953719,
+      "timestamp": "2026-07-12T20:39:43.589200",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "정신과 진료는 처음 받아봐요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 들어요.",
+        "normalized": "정신과 진료는 처음 받아봐요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 들어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1931.0554061084986,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "정신과 진료를 처음 받아보시는군요. 진단받은 병은 없지만 술을 줄이려는 생각이 많이 드신다니, 그 고민이 많이 힘드시겠어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "아니요, 정신과 진료는 처음이에요. 걱정되는 건 술이 문제라는 걸 인정하는 게 힘들다는 점이에요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "술을 줄이려는 생각이 많이 드시면서도 인정하는 게 힘들다는 점이 많이 답답하시겠어요. 혹시 가족분들 중에 비슷한 어려움을 겪으셨던 분이 계신지 궁금하네요.",
+      "slot_updates": {
+        "chief_complaint": "술을 줄이려고 해도 멈추기 어렵고, 배우자와 자주 다퉈 미안한 마음이 크며, 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 스트레스 완화에 도움이 되지만 중단이 어렵고, 손이 떨릴 때 한 잔 마시면 일시적으로 나아지나 결국 더 많이 마시게 됨. 간 수치 상승 진단 후 아침 컨디션 악화 및 식당 운영 어려움 발생"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 스트레스 완화에 도움이 되지만 중단이 어렵고, 손이 떨릴 때 한 잔 마시면 일시적으로 나아지나 결국 더 많이 마시게 됨. 간 수치 상승 진단 후 아침 컨디션 악화 및 식당 운영 어려움 발생",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마...\"",
+        "substance_use_history": "매일 소주 한 병 이상 음주",
+        "chief_complaint": "술을 줄이려고 해도 멈추기 어렵고, 배우자와 자주 다퉈 미안한 마음이 크며, 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "personal_social_history": "식당 운영"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3819.1052535548806,
+      "timestamp": "2026-07-12T20:39:53.505928",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아니요, 정신과 진료는 처음이에요. 걱정되는 건 술이 문제라는 걸 인정하는 게 힘들다는 점이에요.",
+        "normalized": "아니요, 정신과 진료는 처음이에요. 걱정되는 건 술이 문제라는 걸 인정하는 게 힘들다는 점이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1313.7461468577385,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "술을 줄이려는 생각이 많이 드시면서도 인정하는 게 힘들다는 점이 많이 답답하시겠어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "가족 중에 술 문제로 힘들어하는 사람은 없어요. 그런데 제가 술을 조절 못 한다는 걸 스스로 인정하는 게 제일 어렵더라고요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "술을 조절 못 한다는 걸 스스로 인정하는 게 제일 어려우시군요. 혹시 이전에 정신과나 심리상담을 받아보신 적이 있으신가요? 진단받은 병명이 있다면 말씀해 주실 수 있나요?",
+      "slot_updates": {
+        "chief_complaint": "술을 줄이려고 해도 멈추기 어렵고, 배우자와 자주 다퉈 미안한 마음이 크며, 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 스트레스 완화에 도움이 되지만 중단이 어렵고, 손이 떨릴 때 한 잔 마시면 일시적으로 나아지나 결국 더 많이 마시게 됨. 간 수치 상승 결과로 술을 줄이려고 시도했으나 실패하고, 배우자의 불만과 식당 운영 어려움으로 인해 미안함과 좌절감을 느낌",
+        "medical_history": "건강검진에서 간 수치 상승",
+        "personal_social_history": "식당 운영 중, 매일 소주 한 병 이상 음주, 스트레스 시 술 생각이 먼저 듦",
+        "substance_use_history": "매일 소주 한 병 이상 음주, 스트레스 시 음주 습관 악화"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 스트레스 완화에 도움이 되지만 중단이 어렵고, 손이 떨릴 때 한 잔 마시면 일시적으로 나아지나 결국 더 많이 마시게 됨. 간 수치 상승 결과로 술을 줄이려고 시도했으나 실패하고, 배우자의 불만과 식당 운영 어려움으로 인해 미안함과 좌절감을 느낌",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마...\"",
+        "substance_use_history": "매일 소주 한 병 이상 음주, 스트레스 시 음주 습관 악화",
+        "chief_complaint": "술을 줄이려고 해도 멈추기 어렵고, 배우자와 자주 다퉈 미안한 마음이 크며, 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "personal_social_history": "식당 운영 중, 매일 소주 한 병 이상 음주, 스트레스 시 술 생각이 먼저 듦",
+        "medical_history": "건강검진에서 간 수치 상승"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4465.507064945996,
+      "timestamp": "2026-07-12T20:40:04.296639",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "가족 중에 술 문제로 힘들어하는 사람은 없어요. 그런데 제가 술을 조절 못 한다는 걸 스스로 인정하는 게 제일 어렵더라고요.",
+        "normalized": "가족 중에 술 문제로 힘들어하는 사람은 없어요. 그런데 제가 술을 조절 못 한다는 걸 스스로 인정하는 게 제일 어렵더라고요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1283.6401681415737,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "제가 술을 조절 못 한다는 걸 스스로 인정하는 게 제일 어렵더라고요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 정신과 진료는 처음이에요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 들어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술을 줄이려는 생각"
+      ],
+      "agent_response": "술을 줄이려는 생각이 많이 드시면서도 인정하는 게 힘들다는 점이 많이 답답하시겠어요. 혹시 이전에 정신과나 심리상담을 받아보신 적이 있으신가요? 진단받은 병명이 있다면 말씀해 주실 수 있나요?",
+      "slot_updates": {
+        "chief_complaint": "술을 줄이려고 해도 멈추기 어렵고, 배우자와 자주 다퉈서 미안한 마음이 크며, 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 있으며, 스트레스 받을 때마다 술 생각이 먼저 들고 손이 떨릴 때 한 잔 마시면 일시적으로 나아지지만 결국 더 많이 마시게 됨. 간 수치 상승으로 술을 줄이려고 노력 중이지만 중단이 어렵고, 이로 인해 배우자와의 갈등이 잦아지며 미안한 마음이 커짐. 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 있으며, 스트레스 받을 때마다 술 생각이 먼저 들고 손이 떨릴 때 한 잔 마시면 일시적으로 나아지지만 결국 더 많이 마시게 됨. 간 수치 상승으로 술을 줄이려고 노력 중이지만 중단이 어렵고, 이로 인해 배우자와의 갈등이 잦아지며 미안한 마음이 커짐. 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마...\"",
+        "substance_use_history": "매일 소주 한 병 이상 음주, 스트레스 시 음주 습관 악화",
+        "chief_complaint": "술을 줄이려고 해도 멈추기 어렵고, 배우자와 자주 다퉈서 미안한 마음이 크며, 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "personal_social_history": "식당 운영 중, 매일 소주 한 병 이상 음주, 스트레스 시 술 생각이 먼저 듦",
+        "medical_history": "건강검진에서 간 수치 상승"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4954.711096826941,
+      "timestamp": "2026-07-12T20:40:13.476276",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 정신과 진료는 처음이에요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 들어요.",
+        "normalized": "아니요, 정신과 진료는 처음이에요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 들어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1162.9991000518203,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "술을 줄이려는 생각이 많이 드시면서도 인정하는 게 힘들다는 점이 많이 답답하시겠어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요, 정신과 진료는 처음이에요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 있어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "술을 줄이려는 생각이 많이 드시면서도 인정하는 게 힘들다는 점이 많이 답답하시겠어요. 이전에 정신건강의학과 진료를 받아보신 적이 있으신지, 그리고 가족 중에 비슷한 어려움을 겪으신 분이 계신지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "술을 줄이려고 해도 멈추기 어렵고, 배우자와 자주 다퉈 미안한 마음이 크며, 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 있으며, 스트레스 받을 때마다 술 생각이 먼저 들고 손이 떨릴 때 한 잔 마시면 일시적으로 나아지지만 결국 더 많이 마시게 됨. 간 수치 상승으로 술을 줄이려고 노력 중이지만 중단이 어렵고, 이로 인해 아침 컨디션 저하 및 식당 운영 어려움 발생",
+        "personal_social_history": "식당 운영 중, 배우자와 자주 다툼",
+        "substance_use_history": "매일 소주 한 병 이상 음주"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 있으며, 스트레스 받을 때마다 술 생각이 먼저 들고 손이 떨릴 때 한 잔 마시면 일시적으로 나아지지만 결국 더 많이 마시게 됨. 간 수치 상승으로 술을 줄이려고 노력 중이지만 중단이 어렵고, 이로 인해 아침 컨디션 저하 및 식당 운영 어려움 발생",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마...\"",
+        "substance_use_history": "매일 소주 한 병 이상 음주",
+        "chief_complaint": "술을 줄이려고 해도 멈추기 어렵고, 배우자와 자주 다퉈 미안한 마음이 크며, 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "personal_social_history": "식당 운영 중, 배우자와 자주 다툼",
+        "medical_history": "건강검진에서 간 수치 상승"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5752.063861116767,
+      "timestamp": "2026-07-12T20:40:23.794355",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "medical_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 정신과 진료는 처음이에요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 있어요.",
+        "normalized": "아니요, 정신과 진료는 처음이에요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1376.5358538366854,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "despair",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "술을 줄이려는 생각이 많이 드시면서도 인정하는 게 힘들다는 점이 많이 답답하시겠어요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1555.291147902608,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 정신과 진료는 처음이에요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 있어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "이렇게 솔직하게 이야기해 주셔서 감사합니다. 술을 줄이려는 생각이 많이 드시면서도 인정하는 게 힘들다는 점이 많이 답답하시겠어요. 이전에 정신건강의학과 진료를 받아보신 적이 있으신지, 그리고 가족 중에 비슷한 어려움을 겪으신 분이 계신지 궁금합니다.",
+      "slot_updates": {
+        "chief_complaint": "술을 줄이려고 해도 멈추기 어렵고, 배우자와 자주 다퉈 미안한 마음이 크며, 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "history_of_present_illness": "매일 소주 한 병 이상 마시며, 스트레스 받을 때마다 술 생각이 먼저 들고 손이 떨릴 때 한 잔 마시면 일시적으로 나아지지만 결국 더 많이 마시게 됨. 간 수치 상승 결과를 알고 술을 줄이려고 시도했으나 중단이 어려움",
+        "personal_social_history": "식당 운영 중",
+        "substance_use_history": "매일 소주 한 병 이상 음주"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "매일 소주 한 병 이상 마시며, 스트레스 받을 때마다 술 생각이 먼저 들고 손이 떨릴 때 한 잔 마시면 일시적으로 나아지지만 결국 더 많이 마시게 됨. 간 수치 상승 결과를 알고 술을 줄이려고 시도했으나 중단이 어려움",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마...\"",
+        "substance_use_history": "매일 소주 한 병 이상 음주",
+        "chief_complaint": "술을 줄이려고 해도 멈추기 어렵고, 배우자와 자주 다퉈 미안한 마음이 크며, 간 수치 상승으로 아침 컨디션이 안 좋아져 식당 운영이 힘들어짐",
+        "personal_social_history": "식당 운영 중",
+        "medical_history": "건강검진에서 간 수치 상승"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6826.7820021137595,
+      "timestamp": "2026-07-12T20:40:34.749274",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "medical_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 정신과 진료는 처음이에요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 있어요.",
+        "normalized": "아니요, 정신과 진료는 처음이에요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1309.566954150796,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "despair",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "아니요, 정신과 진료는 처음이에요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "exact_repeat",
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2256.3842087984085,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": "exact_repeat",
+      "dialogue_exhaustion_degrade_phrase": "이렇게 솔직하게 이야기해 주셔서 감사합니다"
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 정신과 진료는 처음이에요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 있어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술을 줄이려는 생각"
+      ],
+      "agent_response": "술을 줄이려는 생각이 많이 드시면서도 인정하는 게 힘들다는 점이 많이 답답하시겠어요. 혹시 이전에 정신건강의학과 진료를 받아보신 적이 있으신가요? 그리고 가족분들 중에 비슷한 어려움을 겪으신 분이 계신지도 궁금하네요.",
+      "slot_updates": {
+        "chief_complaint": "술을 줄이려는 생각이 많이 들지만 스스로 인정하는 것이 어려움",
+        "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 있으며, 술을 줄이려고 시도하지만 중단이 어렵고 스트레스 받을 때마다 술 생각이 먼저 듦. 손이 떨릴 때 한 잔 마시면 일시적으로 나아지지만 결국 더 많이 마시게 됨. 간 수치 상승으로 인해 아침에 컨디션이 안 좋아지고 식당 운영이 힘들어짐. 배우자와 자주 다퉈 미안한 마음이 큼",
+        "personal_social_history": "식당 운영 중",
+        "substance_use_history": "매일 소주 한 병 이상 음주"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "매일 소주 한 병 이상 마시는 습관이 있으며, 술을 줄이려고 시도하지만 중단이 어렵고 스트레스 받을 때마다 술 생각이 먼저 듦. 손이 떨릴 때 한 잔 마시면 일시적으로 나아지지만 결국 더 많이 마시게 됨. 간 수치 상승으로 인해 아침에 컨디션이 안 좋아지고 식당 운영이 힘들어짐. 배우자와 자주 다퉈 미안한 마음이 큼",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마...\"",
+        "substance_use_history": "매일 소주 한 병 이상 음주",
+        "chief_complaint": "술을 줄이려는 생각이 많이 들지만 스스로 인정하는 것이 어려움",
+        "personal_social_history": "식당 운영 중",
+        "medical_history": "건강검진에서 간 수치 상승"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5782.627499196678,
+      "timestamp": "2026-07-12T20:40:45.016880",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "medical_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 정신과 진료는 처음이에요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 있어요.",
+        "normalized": "아니요, 정신과 진료는 처음이에요. 진단받은 병도 없고, 이 앱이 처음이에요. 술을 줄이려는 생각만 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1320.087430998683,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "술을 줄이려는 생각이 많이 드시면서도 인정하는 게 힘들다는 점이 많이 답답하시겠어요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1215.598399285227,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-12T20:39:03.978050",
+  "ended_at": "2026-07-12T20:40:49.015608",
+  "grounded_coverage": 0.75,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 1,
+      "forced": false
+    },
+    {
+      "type": "si_screen_result",
+      "turn": 2,
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"거의 매일 소주 한 병 이상 마시다 보니 줄이려고 해도 멈추기가 어렵고, 스트레스 받을 때마다 술 생각이 먼저 들어요. 손이 떨릴 때 한 잔 마...\""
+    }
+  ],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.6395,
+  "patient_lng": 127.0255,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.1417812891304493,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.46,
+      "anxiety": 0.29,
+      "despair": 0.25
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.65
+      },
+      {
+        "turn": 1,
+        "polarity": -0.65
+      },
+      {
+        "turn": 2,
+        "polarity": -0.75
+      },
+      {
+        "turn": 3,
+        "polarity": -0.65
+      },
+      {
+        "turn": 4,
+        "polarity": -0.65
+      },
+      {
+        "turn": 5,
+        "polarity": -0.65
+      },
+      {
+        "turn": 6,
+        "polarity": -0.65
+      },
+      {
+        "turn": 7,
+        "polarity": -0.6
+      },
+      {
+        "turn": 8,
+        "polarity": -0.5
+      },
+      {
+        "turn": 9,
+        "polarity": -0.5
+      },
+      {
+        "turn": 10,
+        "polarity": -0.7
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 11회 반복",
+      "anxiety 표현 7회 반복",
+      "despair 표현 6회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "anxiety",
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "sadness",
+          "anxiety",
+          "despair"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.7
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-12",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": null,
+  "carried_slot_provenance": {}
+}

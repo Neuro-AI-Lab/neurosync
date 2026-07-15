@@ -1,0 +1,267 @@
+{
+  "session_id": "f1_VP-002",
+  "persona_id": "VP-002",
+  "repro": {
+    "git_head": "c2c631b53922a584d0e70585e70442ad04af2a52",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-002/VP-002_20260711_220423_conversation.json",
+    "input_sha256": "972fd304501ddc0d6b6b1a493a3741db69e7d2e135c4d3c33dc9fe82ded02c35",
+    "mode": "rag",
+    "latency_ms": 16188.9,
+    "generated_at": "2026-07-11T22:04:40.608438",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 3201,
+      "completion_tokens": 786,
+      "total_tokens": 3987
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "depression",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:1038",
+          "quote": "내담자는 우울과 관련하여 몇 가지 주요 증상을 보이고 있다. 첫째, 내담자는 피곤함을 자주 느끼고 기운이 없다고 보고했으며, 이는 신체적 무기력감으로 나타날 수 있다. 둘째, 식욕이 줄어들었다고 언급하여 체중 변화나 식습관의 변화가 있을 가능성이 있다. 셋째, 내담자는 일상적인 활동 중에도 빨리 집에 가서 쉬고 싶다는 생각을 자주 한다고 하여, 일상생활에서의 흥미나 즐거움이 감소했음을 시사한다. 이러한 증상들은 내담자의 우울 상태를 반영하며, 이는 경미한 수준의 우울로 평가되었다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:1024",
+          "quote": "내담자는 완벽하지 않으면 시작하지 않으려는 경향과 작은 실수에도 자책하는 경향이 있으며, 최근 탁구 시합에서 4등을 한 후 자책감이 심해졌다고 한다. 또한, 구글 드라이브 링크를 잘못 보낸 것에 대해서도 큰 자책감을 느끼고 있다. 이러한 증상들은 내담자의 우울 점수 9점과 관련이 있을 것으로 보인다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:1163",
+          "quote": "내담자는 최근에 심한 편두통과 피로감으로 인해 일상생활이 어려워졌다고 했다. 약을 복용하지 못해 편두통이 심해졌고, 그로 인해 잠을 많이 자게 되었다고 했다. 이러한 증상은 내담자의 일상에 큰 영향을 미쳤으며, 연차를 모두 소진할 정도로 심각한 상태였다. 또한, 내담자는 임신으로 인한 체중 증가와 피로감이 겹쳐져 더욱 힘들어하고 있었다. 이러한 신체적 증상들은 내담자의 정신적, 정서적 상태에도 영향을 미쳐 우울한 기분을 느끼게 했다."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_0",
+          "quote": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_1",
+          "quote": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_2",
+          "quote": "아니요, 그런 생각은 전혀 없어요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_3",
+          "quote": "처음 방문했고, 경도 우울이라고 하셨어요. 지금 약 먹는 중이에요."
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9",
+        "GAD-7"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "우울감, 피로, 식욕 감소, 자책감, 일상 흥미 감소 등의 증상이 지속되며, 과거 경도 우울증 진단 및 현재 약물 복용 중으로, 정신건강의학과에서 지속적인 관리가 필요함",
+      "domain_ref": "depression"
+    }
+  ],
+  "summary": "환자는 6주간 항우울제 복용 중이며, 피로감, 식욕 감소, 일상 흥미 감소, 자책감 등의 우울 증상을 호소하고 있음. 과거 경도 우울증 진단 및 현재 약물 복용 중으로, 정신건강의학과에서 지속적인 관리가 필요함.",
+  "retrieval_meta": {
+    "mode": "rag",
+    "chunks_returned": 10,
+    "chunk_ids": [
+      "case_card:1038",
+      "case_card:1024",
+      "case_card:1163",
+      "qa:1092",
+      "qa:562",
+      "qa:548",
+      "case_card:858",
+      "case_card:1031",
+      "qa:1642",
+      "qa:639"
+    ],
+    "queries": [
+      "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.",
+      "처음 방문했고, 경도 우울이라고 하셨어요. 지금 약 먹는 중이에요."
+    ]
+  },
+  "chunk_texts": {
+    "case_card:1038": "내담자는 우울과 관련하여 몇 가지 주요 증상을 보이고 있다. 첫째, 내담자는 피곤함을 자주 느끼고 기운이 없다고 보고했으며, 이는 신체적 무기력감으로 나타날 수 있다. 둘째, 식욕이 줄어들었다고 언급하여 체중 변화나 식습관의 변화가 있을 가능성이 있다. 셋째, 내담자는 일상적인 활동 중에도 빨리 집에 가서 쉬고 싶다는 생각을 자주 한다고 하여, 일상생활에서의 흥미나 즐거움이 감소했음을 시사한다. 이러한 증상들은 내담자의 우울 상태를 반영하며, 이는 경미한 수준의 우울로 평가되었다.  내담자는 38년째 약을 복용 중이며, 약을 먹지 못했을 때 응급실에 실려간 경험이 있다. 또한, 약물 부작용으로 인해 신체적 불편함을 겪고 있으며, 경제적으로 아내에게 의존하는 상황에서 가장으로서의 부담감을 느끼고 있다. 과거 아버지와의 사건으로 인해 병이 시작되었으며, 이로 인해 가족 내에서의 갈등과 심리적 부담을 안고 있다. 이러한 요인들이 내담자의 우울과 불안에 영향을 미치고 있는 것으로 보인다.",
+    "case_card:1024": "내담자는 완벽하지 않으면 시작하지 않으려는 경향과 작은 실수에도 자책하는 경향이 있으며, 최근 탁구 시합에서 4등을 한 후 자책감이 심해졌다고 한다. 또한, 구글 드라이브 링크를 잘못 보낸 것에 대해서도 큰 자책감을 느끼고 있다. 이러한 증상들은 내담자의 우울 점수 9점과 관련이 있을 것으로 보인다.  내담자는 가족과의 관계에서 특히 어머니와의 관계가 어려웠으며, 과거에 항우울제와 수면제를 복용한 경험이 있다. 또한, 친구들과의 관계에서도 어려움을 겪고 있으며, 최근에는 탁구팀과의 관계에서도 거리감을 느끼고 있다. 이러한 위험 요인들은 내담자의 우울 증상을 악화시키는 요소로 작용할 수 있다.",
+    "case_card:1163": "내담자는 최근에 심한 편두통과 피로감으로 인해 일상생활이 어려워졌다고 했다. 약을 복용하지 못해 편두통이 심해졌고, 그로 인해 잠을 많이 자게 되었다고 했다. 이러한 증상은 내담자의 일상에 큰 영향을 미쳤으며, 연차를 모두 소진할 정도로 심각한 상태였다. 또한, 내담자는 임신으로 인한 체중 증가와 피로감이 겹쳐져 더욱 힘들어하고 있었다. 이러한 신체적 증상들은 내담자의 정신적, 정서적 상태에도 영향을 미쳐 우울한 기분을 느끼게 했다.  내담자는 최근 임신과 유산의 위험, 그리고 건강 문제로 인해 정신적으로 매우 불안정한 상태에 있었다. 병원에서의 경험이 내담자에게 스트레스를 주었고, 의사와의 소통 문제로 인해 불안감이 가중되었다고 했다. 또한, 내담자는 가족과의 관계에서 느끼는 부담감과 책임감으로 인해 스트레스를 받고 있었다. 특히, 남편의 힘든 상황을 보며 안타까움을 느끼고, 자신이 그 상황을 해결할 수 없다는 무력감에 시달리고 있었다. 이러한 요인들은 내담자의 정신적 건강에 부정적인 영향을 미치고 있었다.",
+    "qa:1092": "Q: 45세 남성 환자가 우울증 진단을 받고 항우울제 치료를 시작한 지 3주가 지났으나 증상 개선이 미미하다고 호소하며 내원하였다. 환자는 현재 복용 중인 항우울제의 효과에 대해 의구심을 가지고 있으며, 약물 부작용으로 인한 불편함을 호소하고 있다. 이 환자의 치료 효과를 극대화하기 위해 의사가 취할 수 있는 구체적인 접근법을 설명하시오.\nA: 이 환자의 경우, 치료 효과를 극대화하기 위해 환자와의 신뢰 관계를 형성하고, 치료에 대한 긍정적인 기대를 높이는 것이 중요하다. 이를 위해 첫째, 환자에게 항우울제의 작용 기전, 효과가 나타나는 데 시간이 걸릴 수 있다는 점, 그리고 치료의 중요성에 대해 명확히 설명한다. 둘째, 환자가 호소하는 부작용에 대해 경청하고, 이를 완화할 수 있는 방법(예: 약물 용량 조정, 부작용 관리 방법)을 제안한다. 셋째, 환자가 치료 과정에서 느끼는 불안감을 줄이기 위해 심리적 지지를 제공하고, 필요시 심리치료를 병행한다. 이러한 접근은 환자의 치료 순응도를 높이고, 약물의 효과를 극대화하는 데 기여할 수 있다.",
+    "qa:562": "Q: 30세 남자가 최근 6개월 동안 지속된 환청과 망상으로 인해 정신과를 방문하였다. 환자는 약물 복용을 주기적으로 중단하며, 최근 증상이 악화되어 직장 생활에 어려움을 겪고 있다. 정신 상태 검사에서 망상과 환청이 확인되었으며, 조현병이 의심된다. 다음 중 이 환자에게 가장 적절한 치료 약물은 무엇인가?  \n1) 플루옥세틴  \n2) 로라제팜  \n3) 올란자핀  \n4) 발프로산  \n5) 아세트아미노펜\nA: 3) 올란자핀",
+    "qa:548": "Q: 23세 여성이 3개월 전부터 지속적인 우울감과 무기력감을 호소하며 외래에 내원했다. 환자는 고등학교 졸업 후 수능 준비를 계속했으나 원하는 결과를 얻지 못했고, 6개월 전에는 오랜 기간 사귀던 남자친구와 헤어지며 삶의 의미를 잃었다고 느꼈다. 현재는 하루 대부분을 잠으로 보내며, 자신이 쓸모없는 사람이라고 생각하고 있다. 플루옥세틴을 2주간 복용했으나 증상 호전이 없다고 하며, 보호자는 약물 교체를 요구하고 있다. 환자의 현재 상태를 평가하고, 적절한 치료 계획을 설명하라.\nA: 환자는 2주 이상 지속된 우울감, 무기력, 부적절한 자책, 에너지 상실, 과수면, 집중력 감소 등의 증상을 보이며, 이는 주요우울장애(Major Depressive Disorder)의 진단 기준에 부합한다. 플루옥세틴(SSRI 계열 약물)을 2주간 복용했으나 증상 호전이 없다고 보고되었으나, SSRI 계열 약물은 일반적으로 효과를 평가하기 위해 최소 4주 이상의 시간이 필요하다. 따라서 현재로서는 약물을 유지하며, 필요 시 용량을 증량하는 것이 적절하다. 플루옥세틴의 최대 용량은 80mg/일이므로, 증량 후에도 효과가 없을 경우 다른 치료 전략을 고려할 수 있다. 이후에도 반응이 없을 경우, SNRI 계열 약물로 변경하거나 비정형 항정신병 약물을 추가하는 등의 2단계 치료 전략을 시행할 수 있다.",
+    "case_card:858": "내담자는 우울한 기분과 피로감을 호소하며, 특히 점심 이후에 우울감이 심해진다고 말했다. 수면 문제와 식욕 변화도 경험하고 있으며, 자신을 실패자로 느끼는 경향이 있다. 내담자는 통증으로 인해 약을 복용하고 있으며, 이는 우울감에 영향을 미치고 있다. 또한, 일상적인 활동에 대한 흥미가 감소하고, 집중하기 어려운 상태다.  내담자는 과거의 정신질환과 스트레스 사건을 경험했으며, 현재 사회적 지지 부족을 느끼고 있다. 친구들과의 거리감이 생겨 만남을 피하고 있으며, 이는 우울감을 악화시키고 있다. 또한, 통증으로 인해 활동 범위가 제한되어 있어 무의미하다는 생각이 들 때가 많다.",
+    "case_card:1031": "내담자는 우울한 기분과 무가치감을 느끼고 있으며, 삶의 재미를 잃은 느낌을 받고 있다고 했다. 또한, 과거 정신과를 방문한 경험이 있지만 큰 도움이 되지 않았다고 말했다. 내담자는 현재 집에만 머무르는 경향이 있으며, 외출이나 새로운 사람을 만나는 것이 어렵다고 느끼고 있다. 이러한 상황에서 내담자는 피로감과 수면 문제를 겪고 있으며, 자책감과 함께 자신의 부족함을 느끼고 있다고 했다. 내담자는 자신의 멘털이 약해졌다고 느끼며, 과거의 부정적인 경험이 현재의 우울감에 영향을 미치고 있다고 설명했다.  내담자는 과거에 직장에서의 부당한 대우와 스트레스로 인해 큰 상처를 받았다고 했다. 이 경험은 내담자의 자아상에 부정적인 영향을 미쳤으며, 사람들과의 관계에서 경계심을 갖게 만들었다. 또한, 내담자는 가족과의 소통이 부족한 환경에서 자라왔으며, 외로움을 많이 느꼈다고 했다. 이러한 환경적 요인들이 내담자의 낮은 정서조절 능력과 부정적 자아상을 형성하는 데 기여한 것으로 보인다. 내담자는 현재 경제적 활동을 통해 약간의 사회적 활동을 하고 있지만, 여전히 외출이나 새로운 활동을 시작하는 데 어려움을 겪고 있다.",
+    "qa:1642": "Q: 38세 남성이 6개월 전부터 지속적인 우울감, 피로, 그리고 집중력 저하를 호소하며 병원을 찾았다. 환자는 최근 직장에서의 성과 저하로 인해 스트레스를 받고 있으며, 이러한 기분 변화가 일상생활에 상당한 지장을 초래하고 있다고 진술했다. 신체 검사와 혈액 검사는 모두 정상으로 나타났다. 환자는 주요우울장애(Major Depressive Disorder)로 진단되었으며, 증상의 정도는 경도에서 중등도로 평가되었다. 다음 중 이 환자에게 가장 적절한 초기 치료 방법은 무엇인가?  \n1) 인지행동치료  \n2) 선택적 세로토닌 재흡수 억제제(SSRIs) 처방  \n3) 전기경련요법  \n4) 항정신병제 투여  \n5) 입원 치료\nA: 1) 인지행동치료",
+    "qa:639": "Q: 45세 여성이 최근 몇 년 동안 지속된 경미한 우울감과 무기력감을 호소하며 정신과를 방문했습니다. 그녀는 과거에 주요 우울증 진단을 받은 적이 없으며, 현재 치료 중인 다른 만성 질환도 없었습니다. 이 환자에게 항우울제를 선택할 때 가장 중요한 고려 사항은 무엇인가요?  \n1) 치료 효과가 가장 높은 약물 선택  \n2) 부작용 프로필을 고려하여 약물 선택  \n3) 비용이 가장 저렴한 약물 선택  \n4) 복용이 가장 간편한 약물 선택  \n5) 가족력이 있는 약물 선택\nA: 2) 부작용 프로필을 고려하여 약물 선택"
+  },
+  "utterances": {
+    "turn_0": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.",
+    "turn_1": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.",
+    "turn_2": "아니요, 그런 생각은 전혀 없어요.",
+    "turn_3": "처음 방문했고, 경도 우울이라고 하셨어요. 지금 약 먹는 중이에요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 7,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 0
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:1038",
+        "quote": "내담자는 우울과 관련하여 몇 가지 주요 증상을 보이고 있다. 첫째, 내담자는 피곤함을 자주 느끼고 기운이 없다고 보고했으며, 이는 신체적 무기력감으로 나타날 수 있다. 둘째, 식욕이 줄어들었다고 언급하여 체중 변화나 식습관의 변화가 있을 가능성이 있다. 셋째, 내담자는 일상적인 활동 중에도 빨리 집에 가서 쉬고 싶다는 생각을 자주 한다고 하여, 일상생활에서의 흥미나 즐거움이 감소했음을 시사한다. 이러한 증상들은 내담자의 우울 상태를 반영하며, 이는 경미한 수준의 우울로 평가되었다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:1024",
+        "quote": "내담자는 완벽하지 않으면 시작하지 않으려는 경향과 작은 실수에도 자책하는 경향이 있으며, 최근 탁구 시합에서 4등을 한 후 자책감이 심해졌다고 한다. 또한, 구글 드라이브 링크를 잘못 보낸 것에 대해서도 큰 자책감을 느끼고 있다. 이러한 증상들은 내담자의 우울 점수 9점과 관련이 있을 것으로 보인다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:1163",
+        "quote": "내담자는 최근에 심한 편두통과 피로감으로 인해 일상생활이 어려워졌다고 했다. 약을 복용하지 못해 편두통이 심해졌고, 그로 인해 잠을 많이 자게 되었다고 했다. 이러한 증상은 내담자의 일상에 큰 영향을 미쳤으며, 연차를 모두 소진할 정도로 심각한 상태였다. 또한, 내담자는 임신으로 인한 체중 증가와 피로감이 겹쳐져 더욱 힘들어하고 있었다. 이러한 신체적 증상들은 내담자의 정신적, 정서적 상태에도 영향을 미쳐 우울한 기분을 느끼게 했다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "아니요, 그런 생각은 전혀 없어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_3",
+        "quote": "처음 방문했고, 경도 우울이라고 하셨어요. 지금 약 먹는 중이에요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 1,
+    "candidates_after": 1,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 0,
+    "evidence_stripped_risk_lexicon": 0
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "현재 복용 중인 항우울제의 종류와 용량은 어떻게 되나요?",
+    "약 복용 후 구체적인 증상 변화(예: 수면, 식욕, 기분 등)가 있었나요?",
+    "일상생활에서의 기능 저하 정도(예: 직장, 대인관계 등)는 어떻게 되나요?",
+    "가족이나 친구와의 관계에서 느끼는 부담감이나 갈등은 어떤가요?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 16188.93855297938,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 3201,
+    "completion_tokens": 786,
+    "total_tokens": 3987
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [
+      {
+        "disease": "우울 삽화(우울증)",
+        "similarity_score": 0.447,
+        "source_id": "qa:639",
+        "quote": "Q: 45세 여성이 최근 몇 년 동안 지속된 경미한 우울감과 무기력감을 호소하며 정신과를 방문했습니다. 그녀는 과거에 주요 우울증 진단을..."
+      },
+      {
+        "disease": "소아·청소년 우울증",
+        "similarity_score": 0.447,
+        "source_id": "qa:639",
+        "quote": "Q: 45세 여성이 최근 몇 년 동안 지속된 경미한 우울감과 무기력감을 호소하며 정신과를 방문했습니다. 그녀는 과거에 주요 우울증 진단을..."
+      },
+      {
+        "disease": "계절성 정동장애",
+        "similarity_score": 0.414,
+        "source_id": "qa:1092",
+        "quote": "..., 부작용 관리 방법)을 제안한다. 셋째, 환자가 치료 과정에서 느끼는 불안감을 줄이기 위해 심리적 지지를 제공하고, 필요시 심리치료를 병행한다...."
+      },
+      {
+        "disease": "월경전 불쾌장애",
+        "similarity_score": 0.414,
+        "source_id": "qa:1092",
+        "quote": "..., 부작용 관리 방법)을 제안한다. 셋째, 환자가 치료 과정에서 느끼는 불안감을 줄이기 위해 심리적 지지를 제공하고, 필요시 심리치료를 병행한다...."
+      },
+      {
+        "disease": "양극성 정동장애(조울증)",
+        "similarity_score": 0.392,
+        "source_id": "case_card:1031",
+        "quote": "내담자는 우울한 기분과 무가치감을 느끼고 있으며, 삶의 재미를 잃은 느낌을 받고 있다고 했다. 또한,..."
+      }
+    ],
+    "mode": "rag_live",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "5 disease candidate(s) derived from 10 retrieved chunk(s) via symptom-keyword match (path1, ADR-020). similarity_score is a RAG cosine-similarity signal between the retrieved chunk and the Stage-1 query — NOT a patient-to-disease similarity, and NOT a calibrated probability (two-hop proxy, RES-001 §2 step 9 / ADR-020 condition 3).",
+    "recommended_questionnaire": "PHQ-9",
+    "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 3,
+    "rag_chunk_qa": 0,
+    "rag_chunk_other": 0,
+    "utterance": 4,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "A",
+    "retrieve": true,
+    "queries": [
+      "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.",
+      "처음 방문했고, 경도 우울이라고 하셨어요. 지금 약 먹는 중이에요."
+    ],
+    "dropped_queries": [],
+    "trigger_reason": "insufficient_fallback_used_retrieve",
+    "fallback_used": true,
+    "judge_output": null
+  }
+}

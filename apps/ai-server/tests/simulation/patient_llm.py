@@ -47,27 +47,59 @@ class PatientPersona:
     example_utterances: str  # Section 5 from MD file
     prior_handoff: str = ""  # Section 4: 이전 handoff report (재진 시)
     prior_conversation: str = ""  # Section 5 이전 대화 기록 (재진 시)
+    # "male" / "female" / "unknown" — parsed from Section 1's "성별" row
+    # (REV-041 Resolution 2). Feeds F3 AUDIT-C's sex-conditional Korean
+    # threshold (`src.scoring.survey_scorer._score_audit_c`), matching the
+    # domain `tests/simulation/factorial_driver.py`'s own `--patient-sex`
+    # flag already uses. Defaults to "unknown" when Section 1 has no
+    # parseable 성별 row — never guessed.
+    patient_sex: str = "unknown"
 
 
 def load_persona(persona_id: str) -> PatientPersona:
-    """Load persona from docs/ai/personas/VP-NNN_*.md file.
+    """Load persona from docs/ai/personas/VP-NNN_*.md file, or an explicit path.
+
+    Harness-only path-mode seam (`validation_plan_f1f2_continuous.md` §6
+    canary design): if `persona_id` ends with ``.md`` and resolves to an
+    existing file, that file is loaded DIRECTLY — enabling audit-only
+    persona copies stored outside `PERSONAS_DIR` (e.g.
+    `docs/ai/personas/_canary_audit/`, provably disjoint from this
+    function's own non-recursive `PERSONAS_DIR.glob(f"{persona_id}_*.md")`
+    below) to be loaded for SC-13's canary battery. A nonexistent path
+    fails loudly (`FileNotFoundError`) — it never silently falls back to
+    ID-glob mode. Any string not ending in ``.md`` keeps the original
+    ID-glob resolution, byte-for-byte unchanged — f1.py's own `--persona`
+    CLI argument (a plain VP-NNN ID) passes through this function exactly
+    as before.
 
     Extracts:
     - Section 6 (Patient LLM simulation prompt) → system_prompt
     - Section 5 (Expected dialogue patterns) → example_utterances
     - Demographics from Section 1
     """
-    # Find the MD file
-    pattern = f"{persona_id}_*.md"
-    matches = list(PERSONAS_DIR.glob(pattern))
-    if not matches:
-        raise FileNotFoundError(f"Persona file not found: {PERSONAS_DIR}/{pattern}")
-    md_path = matches[0]
+    if persona_id.endswith(".md"):
+        md_path = Path(persona_id)
+        if not md_path.is_file():
+            raise FileNotFoundError(f"Persona file path not found: {md_path}")
+        # Path-mode id: the filename's own leading token, matching the same
+        # `{persona_id}_*.md` naming convention ID-glob mode relies on (e.g.
+        # `_canary_audit/VP-001_first_visit_mild.md` -> "VP-001") so
+        # downstream session-id/PERSONA_LOCATIONS lookups behave identically
+        # to a normal ID-mode load of the same VP.
+        resolved_persona_id = md_path.stem.split("_", 1)[0]
+    else:
+        # Find the MD file
+        pattern = f"{persona_id}_*.md"
+        matches = list(PERSONAS_DIR.glob(pattern))
+        if not matches:
+            raise FileNotFoundError(f"Persona file not found: {PERSONAS_DIR}/{pattern}")
+        md_path = matches[0]
+        resolved_persona_id = persona_id
 
     content = md_path.read_text(encoding="utf-8")
 
     # Extract persona name from title (# VP-001: 초진 경증 -- 김서연)
-    name = persona_id
+    name = resolved_persona_id
     title_match = re.search(r"#.*?[—–-]{1,2}\s*(\S+)\s*$", content, re.MULTILINE)
     if title_match:
         name = title_match.group(1).strip()
@@ -80,6 +112,12 @@ def load_persona(persona_id: str) -> PatientPersona:
     # Extract CTRS target
     ctrs_match = re.search(r"CTRS.*?(\d)", content)
     ctrs_expected = int(ctrs_match.group(1)) if ctrs_match else 5
+
+    # Extract Section 1's "성별" (sex) demographics row (REV-041 Resolution
+    # 2) — e.g. `| 성별 | 남성 |`. Matches the FIRST such row (every persona
+    # file's Section 1 table has exactly one); defaults to "unknown" rather
+    # than guessing when absent or unrecognized.
+    patient_sex = _extract_patient_sex(content)
 
     # Extract Section 6: Patient LLM simulation prompt (between ``` markers)
     section6 = _extract_section_content(content, "Patient LLM simulation prompt")
@@ -127,7 +165,7 @@ def load_persona(persona_id: str) -> PatientPersona:
 """
 
     return PatientPersona(
-        persona_id=persona_id,
+        persona_id=resolved_persona_id,
         name=name,
         severity=severity,
         ctrs_expected=ctrs_expected,
@@ -136,7 +174,30 @@ def load_persona(persona_id: str) -> PatientPersona:
         example_utterances=section5 or "",
         prior_handoff=prior_handoff,
         prior_conversation=prior_conversation,
+        patient_sex=patient_sex,
     )
+
+
+_PATIENT_SEX_ROW_RE = re.compile(r"\|\s*성별\s*\|\s*([^|]+?)\s*\|")
+
+
+def _extract_patient_sex(content: str) -> str:
+    """Parse the `| 성별 | <값> |` demographics row into "male"/"female"/
+    "unknown" (REV-041 Resolution 2, `CVR-018`/`ADR-034` sex-conditional
+    AUDIT-C threshold — `src.scoring.survey_scorer._score_audit_c`). Never
+    guesses: an absent row, or a value that is neither "남성" nor "여성",
+    both degrade to "unknown" (the scorer's own safe default), same
+    discipline as `factorial_driver.py --patient-sex`'s own default.
+    """
+    match = _PATIENT_SEX_ROW_RE.search(content)
+    if match is None:
+        return "unknown"
+    value = match.group(1)
+    if "여성" in value:
+        return "female"
+    if "남성" in value:
+        return "male"
+    return "unknown"
 
 
 def _extract_section_content(md: str, section_name: str) -> str:

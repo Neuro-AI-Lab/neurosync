@@ -1,0 +1,906 @@
+{
+  "session_id": "f1_VP-012",
+  "persona_id": "VP-012",
+  "persona_name": "정우식",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "술 때문에 조절이 안 되어 고민"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "건강검진에서 간 수치 상승 확인 후 술 줄이려고 시도했으나 조절 어려움"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "술을 줄이려고 해도 조절이 안 돼서 힘들어요."
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 술을 줄이고 싶은 마음뿐이에요.\""
+    },
+    {
+      "key": "medical_history",
+      "value": "건강검진에서 간 수치가 많이 올라갔다고 했어요."
+    },
+    {
+      "key": "personal_social_history",
+      "value": "배우자하고는 자주 다투긴 하지만, 속내는 미안하고 걱정 끼치는 게 제일 마음에 걸려요."
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요. 요즘 술 때문에 고민이 많아요. 예전보다 술을 줄이려고 해도 조절이 안 돼서 힘들어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술 때문에 고민이 많아요",
+        "조절이 안 돼서 힘들어요"
+      ],
+      "agent_response": "안녕하세요, 마음을 편하게 털어놓으실 수 있도록 도와드리는 AI 상담 도우미입니다. 오늘은 어떤 부분이 가장 힘드신가요? 편하게 말씀해 주세요.",
+      "slot_updates": {
+        "chief_complaint": "술 때문에 고민이 많음",
+        "history_of_present_illness": "예전보다 술을 줄이려고 해도 조절이 안 되어 힘듦"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "술 때문에 고민이 많음",
+        "history_of_present_illness": "예전보다 술을 줄이려고 해도 조절이 안 되어 힘듦"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 8621.26695504412,
+      "timestamp": "2026-07-11T21:40:24.468307",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "안녕하세요. 요즘 술 때문에 고민이 많아요. 예전보다 술을 줄이려고 해도 조절이 안 돼서 힘들어요.",
+        "normalized": "안녕하세요. 요즘 술 때문에 고민이 많아요. 예전보다 술을 줄이려고 해도 조절이 안 돼서 힘들어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1740.1133719831705,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "요즘 술 때문에 고민이 많아요. 예전보다 술을 줄이려고 해도 조절이 안 돼서 힘들어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요. 요즘 술 때문에 고민이 많아요. 예전보다 술을 줄이려고 해도 조절이 안 돼서 힘들어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술 때문에 고민이 많아요",
+        "조절이 안 돼서 힘들어요"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 과거 정신건강의학과 진료나 심리상담을 받은 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "술 때문에 고민이 많음",
+        "history_of_present_illness": "예전보다 술을 줄이려고 해도 조절이 안 되어 힘듦"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "술 때문에 고민이 많음",
+        "history_of_present_illness": "예전보다 술을 줄이려고 해도 조절이 안 되어 힘듦"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4949.384184088558,
+      "timestamp": "2026-07-11T21:40:29.417718",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "안녕하세요. 요즘 술 때문에 고민이 많아요. 예전보다 술을 줄이려고 해도 조절이 안 돼서 힘들어요.",
+        "normalized": "안녕하세요. 요즘 술 때문에 고민이 많아요. 예전보다 술을 줄이려고 해도 조절이 안 돼서 힘들어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1740.1133719831705,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "요즘 술 때문에 고민이 많아요. 예전보다 술을 줄이려고 해도 조절이 안 돼서 힘들어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 2,
+      "patient_message": "아니요, 정신과나 상담은 한 번도 받아본 적 없어요. 이 앱이 처음으로 이런 고민을 말해보는 자리예요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "이야기해 주셔서 감사합니다. 혹시 현재 신체질환으로 진단받아 치료 중이신가요? 있다면 어떤 질환인지 알려주시겠어요?",
+      "slot_updates": {
+        "chief_complaint": "술 때문에 조절이 안 되어 고민",
+        "history_of_present_illness": "예전보다 술을 줄이려고 해도 조절이 안 되어 힘들어함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "술 때문에 조절이 안 되어 고민",
+        "history_of_present_illness": "예전보다 술을 줄이려고 해도 조절이 안 되어 힘들어함"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3532.266371883452,
+      "timestamp": "2026-07-11T21:40:37.218638",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요, 정신과나 상담은 한 번도 받아본 적 없어요. 이 앱이 처음으로 이런 고민을 말해보는 자리예요.",
+        "normalized": "아니요, 정신과나 상담은 한 번도 받아본 적 없어요. 이 앱이 처음으로 이런 고민을 말해보는 자리예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1239.291894249618,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "이 앱이 처음으로 이런 고민을 말해보는 자리예요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 3,
+      "patient_message": "건강검진에서 간 수치가 많이 올라갔다고 해서요. 술을 좀 줄여야 할 것 같은데, 잘 안 되네요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술을 줄이려고 해도 조절이 안 돼서 힘들어요"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 주변에 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "술 때문에 조절이 안 되고 간 수치가 많이 올라간 것에 대한 고민",
+        "history_of_present_illness": "예전보다 술을 줄이려고 해도 조절이 안 되고, 건강검진에서 간 수치가 많이 올라갔다는 사실을 알게 되어 술을 줄여야 할 필요성을 느끼고 있음",
+        "substance_use_history": "술을 줄이려고 해도 조절이 안 되는 상태"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "술 때문에 조절이 안 되고 간 수치가 많이 올라간 것에 대한 고민",
+        "history_of_present_illness": "예전보다 술을 줄이려고 해도 조절이 안 되고, 건강검진에서 간 수치가 많이 올라갔다는 사실을 알게 되어 술을 줄여야 할 필요성을 느끼고 있음",
+        "substance_use_history": "술을 줄이려고 해도 조절이 안 되는 상태"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4625.373303890228,
+      "timestamp": "2026-07-11T21:40:45.908356",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "medical_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "건강검진에서 간 수치가 많이 올라갔다고 해서요. 술을 좀 줄여야 할 것 같은데, 잘 안 되네요.",
+        "normalized": "건강검진에서 간 수치가 많이 올라갔다고 해서요. 술을 좀 줄여야 할 것 같은데, 잘 안 되네요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1145.6547263078392,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "despair",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "술을 좀 줄여야 할 것 같은데, 잘 안 되네요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 4,
+      "patient_message": "배우자하고는 자주 다투긴 하지만, 그래도 속내는 미안하고 걱정 끼치는 게 제일 마음에 걸려요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술을 줄이려고 해도 조절이 안 돼서 힘들어요",
+        "간 수치가 많이 올라갔다고 해서요"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 가족분들 중에 비슷한 어려움을 겪으셨던 분이 계신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "술 때문에 조절이 안 되고 간 수치가 많이 올라가서 고민",
+        "history_of_present_illness": "예전보다 술을 줄이려고 해도 조절이 안 되고, 건강검진에서 간 수치가 많이 올라갔다는 사실을 알게 되어 걱정",
+        "substance_use_history": "술을 줄이려고 해도 조절이 안 됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "술 때문에 조절이 안 되고 간 수치가 많이 올라가서 고민",
+        "history_of_present_illness": "예전보다 술을 줄이려고 해도 조절이 안 되고, 건강검진에서 간 수치가 많이 올라갔다는 사실을 알게 되어 걱정",
+        "substance_use_history": "술을 줄이려고 해도 조절이 안 됨"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4062.038406729698,
+      "timestamp": "2026-07-11T21:40:55.656609",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "배우자하고는 자주 다투긴 하지만, 그래도 속내는 미안하고 걱정 끼치는 게 제일 마음에 걸려요.",
+        "normalized": "배우자하고는 자주 다투긴 하지만, 그래도 속내는 미안하고 걱정 끼치는 게 제일 마음에 걸려요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2214.3253120593727,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "배우자하고는 자주 다투긴 하지만, 그래도 속내는 미안하고 걱정 끼치는 게 제일 마음에 걸려요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 5,
+      "patient_message": "가족 중에 술을 좀 줄이지 못했던 사람은 없었어요. 저 혼자 이런 문제를 갖고 있다는 생각이 더 부담이에요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 최근에 스스로를 해치고 싶거나 죽고 싶다는 생각이 들거나, 타인에게 해를 끼치고 싶다는 충동이 있었던 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "술 때문에 조절이 안 되고 힘들어요",
+        "history_of_present_illness": "건강검진에서 간 수치가 많이 올라갔으나 술을 줄이려고 해도 조절이 안 되어 힘들다고 호소",
+        "substance_use_history": "술을 줄이려고 하지만 조절이 안 됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "술 때문에 조절이 안 되고 힘들어요",
+        "history_of_present_illness": "건강검진에서 간 수치가 많이 올라갔으나 술을 줄이려고 해도 조절이 안 되어 힘들다고 호소",
+        "substance_use_history": "술을 줄이려고 하지만 조절이 안 됨"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4166.373627725989,
+      "timestamp": "2026-07-11T21:41:04.560878",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "가족 중에 술을 좀 줄이지 못했던 사람은 없었어요. 저 혼자 이런 문제를 갖고 있다는 생각이 더 부담이에요.",
+        "normalized": "가족 중에 술을 좀 줄이지 못했던 사람은 없었어요. 저 혼자 이런 문제를 갖고 있다는 생각이 더 부담이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1145.706290844828,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "가족 중에 술을 좀 줄이지 못했던 사람은 없었어요. 저 혼자 이런 문제를 갖고 있다는 생각이 더 부담이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 6,
+      "patient_message": "아니요, 그런 생각은 전혀 없어요. 그냥 술을 줄이고 싶은 마음뿐이에요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "이야기해 주셔서 감사합니다. 혹시 가족 중에 정신건강의학과 진료를 받은 적이 있거나, 정신과적 진단을 받으신 분이 계신가요? 있다면 어떤 진단인지 알려주시겠어요?",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 술을 줄이고 싶은 마음뿐이에요.\"",
+        "chief_complaint": "술 때문에 조절이 안 되어 고민",
+        "history_of_present_illness": "예전보다 술을 줄이려고 해도 조절이 안 되어 힘들다고 호소",
+        "medical_history": "건강검진에서 간 수치가 많이 올라갔다",
+        "personal_social_history": "배우자와 자주 다투지만 속내는 미안하고 걱정 끼치는 것이 부담",
+        "substance_use_history": "술을 줄이려고 하지만 조절이 안 되어 고민"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "술 때문에 조절이 안 되어 고민",
+        "history_of_present_illness": "예전보다 술을 줄이려고 해도 조절이 안 되어 힘들다고 호소",
+        "substance_use_history": "술을 줄이려고 하지만 조절이 안 되어 고민",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 술을 줄이고 싶은 마음뿐이에요.\"",
+        "medical_history": "건강검진에서 간 수치가 많이 올라갔다",
+        "personal_social_history": "배우자와 자주 다투지만 속내는 미안하고 걱정 끼치는 것이 부담"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4595.805328805,
+      "timestamp": "2026-07-11T21:41:13.795836",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 생각은 전혀 없어요. 그냥 술을 줄이고 싶은 마음뿐이에요.",
+        "normalized": "아니요, 그런 생각은 전혀 없어요. 그냥 술을 줄이고 싶은 마음뿐이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1137.8764007240534,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 생각은 전혀 없어요. 그냥 술을 줄이고 싶은 마음뿐이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 7,
+      "patient_message": "가족 중에 그런 경험이 있는 사람은 없어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 가족 중에 정신건강의학과 진료를 받은 적이 있거나, 정신과적 진단을 받으신 분이 계신가요? 있다면 어떤 진단인지 알려주시겠어요?",
+      "slot_updates": {
+        "chief_complaint": "술 때문에 고민이 많아 조절이 안 됨",
+        "history_of_present_illness": "건강검진에서 간 수치가 많이 올라가 술을 줄여야 할 필요성을 느꼈으나, 예전보다 술을 줄이려고 해도 조절이 안 되어 힘듦",
+        "medical_history": "건강검진에서 간 수치 상승",
+        "personal_social_history": "배우자와 자주 다투지만 속내는 미안하고 걱정 끼치는 것이 부담",
+        "substance_use_history": "술을 줄이려고 하지만 조절이 안 됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "술 때문에 고민이 많아 조절이 안 됨",
+        "history_of_present_illness": "건강검진에서 간 수치가 많이 올라가 술을 줄여야 할 필요성을 느꼈으나, 예전보다 술을 줄이려고 해도 조절이 안 되어 힘듦",
+        "substance_use_history": "술을 줄이려고 하지만 조절이 안 됨",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 술을 줄이고 싶은 마음뿐이에요.\"",
+        "medical_history": "건강검진에서 간 수치 상승",
+        "personal_social_history": "배우자와 자주 다투지만 속내는 미안하고 걱정 끼치는 것이 부담"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6227.928413078189,
+      "timestamp": "2026-07-11T21:41:23.788118",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "가족 중에 그런 경험이 있는 사람은 없어요.",
+        "normalized": "가족 중에 그런 경험이 있는 사람은 없어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1040.562589187175,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.3,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "가족 중에 그런 경험이 있는 사람은 없어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요, 가족 중에 그런 경험이 있는 사람은 없어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 과거에 정신건강의학과 진료를 받은 적이 있거나, 정신과적 진단을 받으신 적이 있으신가요? 있다면 어떤 진단이었는지 알려주시겠어요?",
+      "slot_updates": {
+        "chief_complaint": "술 때문에 고민이 많아요. 예전보다 술을 줄이려고 해도 조절이 안 돼서 힘들어요.",
+        "history_of_present_illness": "건강검진에서 간 수치가 많이 올라갔다고 해서 술을 좀 줄여야 할 것 같은데, 잘 안 되고 있음.",
+        "medical_history": "건강검진에서 간 수치가 많이 올라감.",
+        "personal_social_history": "배우자와 자주 다투지만 속내는 미안하고 걱정 끼치는 게 제일 마음에 걸림.",
+        "substance_use_history": "술을 줄이려고 해도 조절이 안 됨."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "술 때문에 고민이 많아요. 예전보다 술을 줄이려고 해도 조절이 안 돼서 힘들어요.",
+        "history_of_present_illness": "건강검진에서 간 수치가 많이 올라갔다고 해서 술을 좀 줄여야 할 것 같은데, 잘 안 되고 있음.",
+        "substance_use_history": "술을 줄이려고 해도 조절이 안 됨.",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 술을 줄이고 싶은 마음뿐이에요.\"",
+        "medical_history": "건강검진에서 간 수치가 많이 올라감.",
+        "personal_social_history": "배우자와 자주 다투지만 속내는 미안하고 걱정 끼치는 게 제일 마음에 걸림."
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4996.246711350977,
+      "timestamp": "2026-07-11T21:41:33.808998",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 가족 중에 그런 경험이 있는 사람은 없어요.",
+        "normalized": "아니요, 가족 중에 그런 경험이 있는 사람은 없어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1448.8667622208595,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "아니요, 가족 중에 그런 경험이 있는 사람은 없어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 정신과 진료는 한 번도 받아본 적 없어요. 이 앱이 처음으로 이런 고민을 말하는 자리예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 가족 중에 정신건강의학과 진료를 받은 적이 있거나, 정신과적 진단을 받으신 분이 계신가요? 있다면 어떤 진단이었는지 구체적으로 말씀해 주시겠어요?",
+      "slot_updates": {
+        "chief_complaint": "술 때문에 고민이 많아요. 예전보다 술을 줄이려고 해도 조절이 안 돼서 힘들어요.",
+        "history_of_present_illness": "건강검진에서 간 수치가 많이 올라갔다고 해서 술을 좀 줄여야 할 것 같은데, 잘 안 되고 있어요. 배우자하고는 자주 다투긴 하지만, 속내는 미안하고 걱정 끼치는 게 제일 마음에 걸려요. 가족 중에 술을 줄이지 못했던 사람은 없었고, 저 혼자 이런 문제를 갖고 있다는 생각이 더 부담이에요.",
+        "medical_history": "건강검진에서 간 수치가 많이 올라갔다고 했어요.",
+        "personal_social_history": "배우자하고는 자주 다투긴 하지만, 속내는 미안하고 걱정 끼치는 게 제일 마음에 걸려요.",
+        "substance_use_history": "술을 줄이려고 해도 조절이 안 돼서 힘들어요."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "술 때문에 고민이 많아요. 예전보다 술을 줄이려고 해도 조절이 안 돼서 힘들어요.",
+        "history_of_present_illness": "건강검진에서 간 수치가 많이 올라갔다고 해서 술을 좀 줄여야 할 것 같은데, 잘 안 되고 있어요. 배우자하고는 자주 다투긴 하지만, 속내는 미안하고 걱정 끼치는 게 제일 마음에 걸려요. 가족 중에 술을 줄이지 못했던 사람은 없었고, 저 혼자 이런 문제를 갖고 있다는 생각이 더 부담이에요.",
+        "substance_use_history": "술을 줄이려고 해도 조절이 안 돼서 힘들어요.",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 술을 줄이고 싶은 마음뿐이에요.\"",
+        "medical_history": "건강검진에서 간 수치가 많이 올라갔다고 했어요.",
+        "personal_social_history": "배우자하고는 자주 다투긴 하지만, 속내는 미안하고 걱정 끼치는 게 제일 마음에 걸려요."
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 8351.397795137018,
+      "timestamp": "2026-07-11T21:41:47.239082",
+      "targeted_slot": "family_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 정신과 진료는 한 번도 받아본 적 없어요. 이 앱이 처음으로 이런 고민을 말하는 자리예요.",
+        "normalized": "아니요, 정신과 진료는 한 번도 받아본 적 없어요. 이 앱이 처음으로 이런 고민을 말하는 자리예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1626.5911320224404,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "아니요, 정신과 진료는 한 번도 받아본 적 없어요. 이 앱이 처음으로 이런 고민을 말하는 자리예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 가족 중에 그런 경험이 있는 사람은 없어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 혹시 과거에 정신건강의학과 진료를 받은 적이 있거나, 정신과적 진단을 받으신 적이 있으신가요? 있다면 어떤 진단이었는지 구체적으로 말씀해 주시겠어요?",
+      "slot_updates": {
+        "chief_complaint": "술 때문에 조절이 안 되어 고민",
+        "history_of_present_illness": "건강검진에서 간 수치 상승 확인 후 술 줄이려고 시도했으나 조절 어려움"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "술 때문에 조절이 안 되어 고민",
+        "history_of_present_illness": "건강검진에서 간 수치 상승 확인 후 술 줄이려고 시도했으나 조절 어려움",
+        "substance_use_history": "술을 줄이려고 해도 조절이 안 돼서 힘들어요.",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 술을 줄이고 싶은 마음뿐이에요.\"",
+        "medical_history": "건강검진에서 간 수치가 많이 올라갔다고 했어요.",
+        "personal_social_history": "배우자하고는 자주 다투긴 하지만, 속내는 미안하고 걱정 끼치는 게 제일 마음에 걸려요."
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5374.141151085496,
+      "timestamp": "2026-07-11T21:41:57.366806",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 가족 중에 그런 경험이 있는 사람은 없어요.",
+        "normalized": "아니요, 가족 중에 그런 경험이 있는 사람은 없어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1140.986423008144,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 가족 중에 그런 경험이 있는 사람은 없어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-11T21:40:15.847018",
+  "ended_at": "2026-07-11T21:42:02.608603",
+  "grounded_coverage": 0.75,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 5,
+      "forced": false
+    },
+    {
+      "type": "si_screen_result",
+      "turn": 6,
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 술을 줄이고 싶은 마음뿐이에요.\""
+    }
+  ],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.6395,
+  "patient_lng": 127.0255,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.13787392526865005,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.45,
+      "anxiety": 0.2,
+      "neutral": 0.2,
+      "despair": 0.15
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.7
+      },
+      {
+        "turn": 1,
+        "polarity": -0.6
+      },
+      {
+        "turn": 2,
+        "polarity": -0.65
+      },
+      {
+        "turn": 3,
+        "polarity": -0.6
+      },
+      {
+        "turn": 4,
+        "polarity": -0.65
+      },
+      {
+        "turn": 5,
+        "polarity": -0.65
+      },
+      {
+        "turn": 6,
+        "polarity": 0.0
+      },
+      {
+        "turn": 7,
+        "polarity": -0.3
+      },
+      {
+        "turn": 8,
+        "polarity": -0.4
+      },
+      {
+        "turn": 9,
+        "polarity": -0.65
+      },
+      {
+        "turn": 10,
+        "polarity": 0.0
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": true,
+    "shift_description": "대화 전반부 polarity -0.6 → 후반부 -0.3 (호전)",
+    "repeated_patterns": [
+      "sadness 표현 9회 반복",
+      "anxiety 표현 4회 반복",
+      "neutral 표현 4회 반복",
+      "despair 표현 3회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.3
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      }
+    ]
+  },
+  "prompts_degraded": false,
+  "session_index": 1,
+  "simulated_date": "2026-07-11",
+  "is_revisit": false,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v3",
+  "prior_handoff": null,
+  "carried_slot_provenance": {}
+}

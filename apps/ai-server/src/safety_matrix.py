@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Any
 
 from src.f1 import PROJECT_ROOT, F1Pipeline, F1Result
+from src.prompts.loader import resolve_prompts_base_dir
 
 logger = logging.getLogger(__name__)
 
@@ -267,8 +268,10 @@ def main() -> None:
         print("UPSTAGE_API_KEY not set — the safety matrix needs the clinical LLM (.env)")
         sys.exit(1)
 
-    if not os.environ.get("PROMPTS_BASE_DIR"):
-        os.environ["PROMPTS_BASE_DIR"] = str(PROJECT_ROOT / "docs" / "ai" / "prompts")
+    # BUG-021: fail-fast path-existence validation, not the old unset-only
+    # guard (which silently let an explicit-but-wrong PROMPTS_BASE_DIR
+    # through and degraded every prompt-driven agent to a generic fallback).
+    resolve_prompts_base_dir(PROJECT_ROOT)
 
     if args.scenario == "all":
         ids = list_scenario_ids()

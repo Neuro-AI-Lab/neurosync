@@ -453,13 +453,16 @@ class TestSurveyBoundaryValues:
     # ── AUDIT-C sex-specific thresholds ─────────────────────────────
 
     def test_audit_c_female_lower_threshold(self):
-        """Female threshold=3: score 3 → hazardous."""
-        r = score_survey("AUDIT-C", [1, 1, 1], patient_sex="female")
+        """Korean-primary female threshold=5 (CVR-018 Q1 / ADR-034 decision
+        1): score 5 -> hazardous."""
+        r = score_survey("AUDIT-C", [2, 2, 1], patient_sex="female")
         assert r.severity == "hazardous_drinking"
 
     def test_audit_c_male_same_score_safe(self):
-        """Male threshold=4: score 3 → low_risk."""
-        r = score_survey("AUDIT-C", [1, 1, 1], patient_sex="male")
+        """Korean-primary male/unknown threshold=6: same total (5) -> still
+        low_risk for male (female's lower threshold is what makes the
+        difference, not the raw score)."""
+        r = score_survey("AUDIT-C", [2, 2, 1], patient_sex="male")
         assert r.severity == "low_risk"
 
     # ── Invalid inputs ──────────────────────────────────────────────

@@ -67,16 +67,25 @@ class SentimentAnalyzerAgent(BaseAgent):
         """Mode A: Analyze a single patient utterance."""
         start = time.perf_counter()
 
+        # BUG-021: makes a degraded run machine-visible on this agent's own
+        # output artifact, not just a WARNING log line — same pattern as
+        # ClinicalSlotAgent/DialogueAgent/InputNormalizerAgent/
+        # SafetyClassifierAgent/DomainInferenceAgent. Mode B (_analyze_session)
+        # never loads a prompt file (see module docstring / PROMPT_VERSION
+        # comment) so it has no fallback-catch site to instrument.
+        prompts_degraded = False
         try:
             system_prompt = self._prompt_loader.load_system_prompt(
                 "sentiment_analyzer", PROMPT_VERSION
             )
         except FileNotFoundError:
+            logger.warning("sentiment_analyzer prompt not found, using fallback")
             system_prompt = (
                 "환자 발화의 감정을 분석하세요. JSON 출력: "
                 "{turn_index, emotions: [{label, intensity}], polarity, arousal, "
                 "evidence_phrase, risk_signal}"
             )
+            prompts_degraded = True
 
         mode_instruction = (
             "\n\n[MODE: utterance]\n"
@@ -135,6 +144,7 @@ class SentimentAnalyzerAgent(BaseAgent):
             arousal=data.get("arousal", "medium"),
             evidence_phrase=data.get("evidence_phrase", ""),
             risk_signal=data.get("risk_signal", False),
+            prompts_degraded=prompts_degraded,
         )
 
     async def _analyze_session(self, inp: SentimentSessionInput) -> SentimentSessionOutput:
