@@ -54,6 +54,9 @@ select = ["E", "F", "I", "B", "UP"]
 # routes/nearby.py contains a large embedded HTML/CSS/JS template (Kakao Map demo);
 # reflowing the string would break the rendered page.
 "src/routes/nearby.py" = ["E501"]
+# vp011's module docstring embeds a markdown reveal-partition table (design doc content);
+# wrapping a table row mid-cell would break markdown table rendering.
+"tests/simulation/scenario_packs/vp011_somatic_persistent_late_mood_disclosure.py" = ["E501"]
 
 [tool.ruff.lint.flake8-bugbear]
 # FastAPI DI helpers are intentionally called in argument defaults (Depends/Query/Form/File).
