@@ -536,7 +536,15 @@ async def run_f3_stage(ctx: ChainContext) -> StageResult:
         from src import f3
 
         recommendation = f3.load_recommendation(ctx.domain_inference_path)
-        effective_scale = ctx.forced_scale or recommendation.recommended_questionnaire
+        # CVR-028 Finding 1: same seam `run_f3_administration` uses below —
+        # `resolve_effective_scale` is the single source of truth for
+        # forced/natural/safety_net resolution, so this pre-computation
+        # (needed to build `answer_fn` before the F3 call) can never drift
+        # from what `run_f3_administration` independently re-derives from
+        # the same artifact + forced_scale.
+        effective_scale, _safety_net_triggered = f3.resolve_effective_scale(
+            recommendation, forced_scale=ctx.forced_scale
+        )
         outcome, _entry = f3.resolve_outcome(effective_scale)
 
         if outcome == f3.ADMINISTERED_OUTCOME:

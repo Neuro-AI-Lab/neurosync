@@ -23,6 +23,8 @@ def _write_domain_inference_artifact(
     *,
     persona_id: str = "VP-001",
     recommended_questionnaire: str | None = "PHQ-9",
+    crisis_triggered: bool = False,
+    session_ctrs: int | None = None,
 ) -> Path:
     persona_dir = tmp_path / persona_id
     persona_dir.mkdir(parents=True, exist_ok=True)
@@ -39,6 +41,9 @@ def _write_domain_inference_artifact(
                     "recommended_questionnaire": recommended_questionnaire,
                     "recommendation_caveat": None,
                 },
+                # CVR-028 Finding 1 safety-net wiring.
+                "crisis_triggered": crisis_triggered,
+                "session_ctrs": session_ctrs,
             },
             ensure_ascii=False,
         ),
@@ -121,6 +126,74 @@ class TestRunF3StageNoQuestionnaireIndicated:
         assert result.status == "pass"
         assert "outcome=no_questionnaire_indicated" in result.detail
         assert ctx.f3_scale_scores_path is None
+
+
+class TestRunF3StageSafetyNetCvr028:
+    """CVR-028 Finding 1 at the harness (F2->F3 chain) consumption seam —
+    proves the same `f3.resolve_effective_scale` seam `run_f3_administration`
+    uses is also what `run_f3_stage`'s own pre-computation (needed to build
+    `answer_fn` before the F3 call) resolves against, so the two never
+    disagree about which outcome/scale this session gets."""
+
+    @pytest.mark.asyncio
+    async def test_crisis_session_no_f2_recommendation_administers_phq9(
+        self, tmp_path: Path
+    ) -> None:
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-001", recommended_questionnaire=None,
+            crisis_triggered=True,
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-001", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert "outcome=administered" in result.detail
+        assert "scale=PHQ-9" in result.detail
+        assert "administration_mode=safety_net" in result.detail
+        assert ctx.f3_survey_path is not None
+        saved = json.loads(ctx.f3_survey_path.read_text(encoding="utf-8"))
+        assert saved["administration_mode"] == "safety_net"
+
+    @pytest.mark.asyncio
+    async def test_low_ctrs_session_no_f2_recommendation_administers_phq9(
+        self, tmp_path: Path
+    ) -> None:
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-001", recommended_questionnaire=None,
+            session_ctrs=1,
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-001", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert "administration_mode=safety_net" in result.detail
+
+    @pytest.mark.asyncio
+    async def test_non_crisis_session_no_f2_recommendation_unaffected(
+        self, tmp_path: Path
+    ) -> None:
+        """No regression to the pre-existing, still-legitimate
+        no_questionnaire_indicated outcome for a genuinely low-acuity,
+        no-recommendation session."""
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-001", recommended_questionnaire=None,
+            crisis_triggered=False, session_ctrs=5,
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-001", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert "outcome=no_questionnaire_indicated" in result.detail
+        assert "administration_mode=natural" in result.detail
 
 
 class TestRunF3StageLLMModeConstructsSurveyAnswerLLM:

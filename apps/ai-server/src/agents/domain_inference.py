@@ -25,6 +25,7 @@ from src.agents.base import AgentInput, BaseAgent
 from src.prompts.loader import PromptLoader
 from src.routing.model_router import ModelRouter
 from src.schemas.domain_inference import (
+    DomainCandidate,
     DomainInferenceInput,
     DomainInferenceLLMResponse,
     DomainInferenceOutput,
@@ -241,6 +242,31 @@ class DomainInferenceAgent(BaseAgent):
         contract on a GENUINE validation failure — only the known collision
         shape is corrected; anything else still raises `ValidationError`
         and is reported exactly as before.
+
+        BUG-031 fix (per-candidate validation): the ORIGINAL atomic
+        `DomainInferenceLLMResponse.model_validate(data)` call fails the
+        WHOLE response when even one `domain_candidates[i]` field is
+        malformed (e.g. an out-of-enum `domain` literal, a malformed
+        `evidence[].source_type`) — every other, perfectly valid candidate
+        in the same response was silently discarded along with it (EXP-025,
+        10/72 sessions, 32 field errors, `domain_candidates` degraded to
+        `[]` every time even though most of those responses had >=1 valid
+        candidate). This method now tries the atomic validation FIRST (the
+        common case, zero behavior change on a clean response); only on a
+        `ValidationError` does it fall back to a per-candidate salvage pass
+        — `DomainCandidate.model_validate()` on each raw `domain_candidates`
+        item individually, keeping every candidate that validates and
+        dropping (with its own error, tagged by index, appended to
+        `validation_errors`) only the ones that don't. If at least one
+        candidate survives, the salvaged list is substituted back in and the
+        FULL response is re-validated once more (still catches a genuinely
+        malformed `department_candidates`/`summary`/etc. — the salvage is
+        scoped to `domain_candidates` only, per BUG-031's two observed
+        trigger classes, not a blanket tolerance for any malformed field
+        anywhere in the response). If nothing survives (0 candidates valid,
+        or `domain_candidates` itself isn't a list), this degrades to the
+        exact pre-fix atomic-failure behavior — `parsed=None`, same
+        `validation_errors` shape as before.
         """
         try:
             data = json.loads(content)
@@ -254,11 +280,81 @@ class DomainInferenceAgent(BaseAgent):
         try:
             return DomainInferenceLLMResponse.model_validate(data), "", None
         except ValidationError as exc:
-            return (
-                None,
-                f"LLM response schema validation failure: {exc.error_count()} error(s)",
-                [dict(e) for e in exc.errors()],
+            atomic_errors = [dict(e) for e in exc.errors()]
+            atomic_reason = (
+                f"LLM response schema validation failure: {exc.error_count()} error(s)"
             )
+
+            salvaged, dropped = DomainInferenceAgent._salvage_domain_candidates(data)
+            if not salvaged:
+                # Nothing to salvage from (domain_candidates absent/not a
+                # list/all malformed) — identical to pre-fix behavior.
+                return None, atomic_reason, atomic_errors
+
+            data_salvaged = dict(data)
+            data_salvaged["domain_candidates"] = [c.model_dump() for c in salvaged]
+            try:
+                parsed = DomainInferenceLLMResponse.model_validate(data_salvaged)
+            except ValidationError as exc2:
+                # A field OUTSIDE domain_candidates is also malformed — this
+                # method only salvages the domain_candidates class of defect
+                # BUG-031 identified; report the full picture (both the
+                # per-candidate drops and the still-fatal outer error) and
+                # degrade exactly as before.
+                return (
+                    None,
+                    f"LLM response schema validation failure (per-candidate salvage "
+                    f"recovered {len(salvaged)}/{len(salvaged) + len(dropped)} "
+                    f"domain_candidates, but {exc2.error_count()} error(s) remain "
+                    "outside domain_candidates)",
+                    dropped + [dict(e) for e in exc2.errors()],
+                )
+
+            reason = (
+                f"LLM response schema validation partial recovery: "
+                f"{len(dropped)} domain_candidates[] item(s) dropped "
+                f"(BUG-031 per-candidate salvage), {len(salvaged)} retained"
+            )
+            return parsed, reason, dropped or None
+
+    @staticmethod
+    def _salvage_domain_candidates(
+        data: Any,
+    ) -> tuple[list[DomainCandidate], list[dict[str, Any]]]:
+        """BUG-031: validate each raw `domain_candidates[i]` item
+        individually against `DomainCandidate`, instead of trusting the
+        atomic `DomainInferenceLLMResponse` validation's all-or-nothing
+        verdict. Returns `(salvaged_candidates, dropped_errors)` —
+        `dropped_errors` is `Pydantic.ValidationError.errors()` dict output
+        per failed item, each tagged with its original list index
+        (`domain_candidates_index`) so the artifact/logs can point at
+        exactly which candidate was lost and why.
+
+        Defensive against a malformed `data`/`domain_candidates` shape
+        (non-dict `data`, missing/non-list `domain_candidates`) — returns
+        `([], [])` rather than raising; the caller treats an empty salvage
+        list the same as "nothing to salvage from".
+        """
+        if not isinstance(data, dict):
+            return [], []
+        raw_candidates = data.get("domain_candidates")
+        if not isinstance(raw_candidates, list):
+            return [], []
+
+        salvaged: list[DomainCandidate] = []
+        dropped: list[dict[str, Any]] = []
+        for i, raw_candidate in enumerate(raw_candidates):
+            try:
+                salvaged.append(DomainCandidate.model_validate(raw_candidate))
+            except ValidationError as exc:
+                for e in exc.errors():
+                    dropped.append({**dict(e), "domain_candidates_index": i})
+                logger.warning(
+                    "DomainInference BUG-031 per-candidate salvage: dropping "
+                    "domain_candidates[%d] (%d field error(s)): %s",
+                    i, exc.error_count(), exc,
+                )
+        return salvaged, dropped
 
     async def _call(
         self,
@@ -427,11 +523,16 @@ class DomainInferenceAgent(BaseAgent):
             "DomainInference call ok — model=%s, finish_reason=%s, usage=%s",
             model_used, finish_reason, usage,
         )
+        # BUG-031: `reason`/`validation_errors` are non-empty here exactly
+        # when `_parse` took the per-candidate salvage path (a partial
+        # recovery, still a "success" in that >=1 valid candidate ships) —
+        # threaded onto the artifact so a salvage event is visible on the
+        # SUCCESS output too, not only on the total-failure branch above.
         return DomainInferenceOutput(
             model_used=model_used,
             prompt_version=PROMPT_VERSION,
             latency_ms=latency_ms,
-            reason_summary="domain/department candidates generated",
+            reason_summary=reason or "domain/department candidates generated",
             domain_candidates=parsed.domain_candidates,
             department_candidates=parsed.department_candidates,
             summary=parsed.summary,
@@ -439,5 +540,6 @@ class DomainInferenceAgent(BaseAgent):
             additional_questions=parsed.additional_questions,
             finish_reason=finish_reason,
             usage=usage,
+            validation_errors=validation_errors,
             prompts_degraded=prompts_degraded,
         )

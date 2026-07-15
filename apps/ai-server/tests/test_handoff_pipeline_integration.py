@@ -174,7 +174,16 @@ class TestHandoffPipelineIntegration:
 
     @pytest.mark.asyncio
     async def test_verifier_reject_records_error(self):
-        """Verifier reject → handoff_report is None, error logged."""
+        """Verifier reject → handoff_report is None, error logged.
+
+        REV-001 fix (critic, `discussion.md`): `handoff_ready` used to be
+        hardcoded `True` here regardless of `handoff_report` — a rejected
+        handoff shipped a fake "ready" signal to the client with no report
+        reachable through the wire contract. `handoff_ready` now reflects
+        reality: False whenever `handoff_report` is None, including this
+        reject path (current_stage is still `completed` — the pipeline DID
+        run to completion, it just produced no usable report).
+        """
         agent, mocks = _make_orchestrator_with_mocks()
         state = _make_high_coverage_state()
 
@@ -186,8 +195,9 @@ class TestHandoffPipelineIntegration:
         inp = OrchestratorInput(session_id="s1", raw_input="test", session_state=state)
         result = await agent.process_turn(inp)
 
-        assert result.handoff_ready is True  # pipeline still completes
-        assert result.handoff_report is None  # but no valid report
+        assert result.current_stage == SessionStage.completed  # pipeline still completes
+        assert result.handoff_ready is False  # but no valid report was ever produced
+        assert result.handoff_report is None  # no valid report
         assert len(result.session_state.error_log) >= 1
 
     @pytest.mark.asyncio

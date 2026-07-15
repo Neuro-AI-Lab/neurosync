@@ -54,6 +54,7 @@ from __future__ import annotations
 import logging
 
 from src.rag.ontology import DISEASES
+from src.schemas.domain_inference import DomainName
 from src.scoring.survey_scorer import SUPPORTED_SCALES, ScaleName
 
 logger = logging.getLogger(__name__)
@@ -310,3 +311,82 @@ def resolve_questionnaire_caveat_for_disease_slug(slug: str) -> str | None:
     if entry is None:
         return None
     return resolve_questionnaire_caveat_for_classification(entry[3])
+
+
+# ── DomainName (F2 domain_candidates) -> recommended scale ─────────────────
+#
+# BUG-031: a SEPARATE, parallel table from `CLASSIFICATION_TO_SCALE` above —
+# `schemas.domain_inference.DomainName` (F2's `domain_candidates[].domain`
+# field, the model-facing 9-value enum) is NOT the same taxonomy as
+# `rag.ontology.DISEASES`' classification field (`CLASSIFICATION_TO_SCALE`'s
+# key set): DomainName has no `mood`/`ocd`/`personality`/`neurodevelopmental`/
+# `somatic`/`neurocognitive` values and DISEASES-classification has no
+# `depression`/`alcohol`/`sleep`/`psychosis`/`other`/`panic` values. Every
+# `DISEASES` entry whose surface text concerns panic attacks (e.g.
+# `acute-panic-attack`, `signs-of-panic-attack`) already classifies as
+# `"anxiety"` in `rag/ontology.py` and therefore already resolves to GAD-7
+# via `CLASSIFICATION_TO_SCALE` above with ZERO code change there — this
+# table exists for the DIFFERENT call site that reasons over F2's own
+# `DomainCandidate.domain` value directly (never the disease-name path),
+# extended here to cover the new `"panic"` `DomainName` value the SAME way:
+# GAD-7, per the identical anxiety-family precedent (DSM-5 classifies Panic
+# Disorder under Anxiety Disorders; `docs/ai/golden_labels_f1f2.md` VP-004's
+# own reasoning cites the same precedent for its panic->anxiety mapping).
+# Not wired into any production call site as of this fix (no current caller
+# resolves a questionnaire from `DomainCandidate.domain` directly — F2's
+# `recommended_questionnaire` is derived from the disease-name path only,
+# `f2.py:565`); kept available so a future domain-candidate-triggered
+# recommendation (e.g. CVR-028 Finding 6's "intake-time AUDIT/CAGE trigger
+# keyed off domain-candidate presence") has a ready, reviewed mapping to use
+# rather than inventing one ad hoc. `None` follows the same no-forced-
+# mismatch discipline as `CLASSIFICATION_TO_SCALE` (`"other"` explicitly has
+# no construct-valid scale among the 5 `SUPPORTED_SCALES`).
+DOMAIN_TO_SCALE: dict[DomainName, ScaleName | None] = {
+    "anxiety": "GAD-7",
+    "panic": "GAD-7",  # anxiety-family precedent (DSM-5: Panic Disorder is an anxiety disorder)
+    "depression": "PHQ-9",
+    "alcohol": "AUDIT-C",
+    "substance": "AUDIT-C",
+    "trauma": None,  # PTSD/acute-stress construct not covered — same rationale as "trauma" above
+    "sleep": None,  # no dedicated sleep-disorder scale among SUPPORTED_SCALES
+    "psychosis": None,  # same no-forced-mismatch rationale as "psychotic" row above
+    "other": None,
+}
+
+# Fail fast at import time — same discipline as CLASSIFICATION_TO_SCALE:
+# every DomainName value must have an explicit (possibly None) disposition,
+# and every non-None value must be a scale this project actually supports.
+_DOMAIN_NAME_VALUES = set(DomainName.__args__)  # type: ignore[attr-defined]
+if set(DOMAIN_TO_SCALE) != _DOMAIN_NAME_VALUES:
+    raise AssertionError(
+        f"DOMAIN_TO_SCALE key set must exactly match DomainName's: "
+        f"{set(DOMAIN_TO_SCALE) ^ _DOMAIN_NAME_VALUES}"
+    )
+for _domain, _domain_scale in DOMAIN_TO_SCALE.items():
+    if _domain_scale is not None and _domain_scale not in SUPPORTED_SCALES:
+        raise AssertionError(
+            f"DOMAIN_TO_SCALE[{_domain!r}] = {_domain_scale!r} is not in "
+            f"SUPPORTED_SCALES {sorted(SUPPORTED_SCALES)}"
+        )
+
+
+def resolve_questionnaire_for_domain_name(domain: str) -> ScaleName | None:
+    """Look up the recommended scale for an F2 `DomainCandidate.domain`
+    value directly (the `DOMAIN_TO_SCALE` table above) — NOT the same lookup
+    path as :func:`resolve_questionnaire_for_disease_name_ko`/
+    :func:`resolve_questionnaire_for_classification`, which key on
+    `rag.ontology.DISEASES`, a different taxonomy.
+
+    Returns `None` both for an explicit no-questionnaire domain and for an
+    unrecognized domain value (logged as a warning — should not happen once
+    `DomainName`'s Literal validates the input, but this function stays
+    defensive against a future unmapped domain reaching a live call site).
+    """
+    if domain not in DOMAIN_TO_SCALE:
+        logger.warning(
+            "questionnaire_mapping.unmapped_domain_name domain=%r -- "
+            "no recommended_questionnaire will be resolved",
+            domain,
+        )
+        return None
+    return DOMAIN_TO_SCALE[domain]  # type: ignore[index]

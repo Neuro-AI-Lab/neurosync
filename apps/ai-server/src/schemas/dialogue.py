@@ -102,6 +102,22 @@ class DialogueOutput(AgentOutput):
         default=False,
         description="True when slot coverage threshold reached — trigger handoff",
     )
+    # REV-001 Issue 1 (critic, `discussion.md`): this schema previously had
+    # NO field at all that could carry `OrchestratorTurnResult.handoff_report`
+    # onto the wire — not a null-check gap, a structural absence. Every
+    # handoff-ready turn through `routes/chat.py` shipped a Korean "report
+    # will be written" message with zero report content reachable by the
+    # client. Typed the same shape as `OrchestratorTurnResult.handoff_report`
+    # (`dict[str, Any] | None`, `schemas/orchestrator.py`) — a passthrough,
+    # never re-derived here. `None` on every non-handoff-ready turn and on
+    # every pre-fix caller that never sets it (additive, non-breaking).
+    handoff_report: dict[str, Any] | None = Field(
+        default=None,
+        description=(
+            "Passthrough of OrchestratorTurnResult.handoff_report when "
+            "handoff_ready=True. Always None when handoff_ready=False."
+        ),
+    )
     # BUG-030 iter-2 / BUG-035 guard telemetry (`docs/ai/fix_design_bug030_
     # iter2.md` §6, ADR-029). Additive, safe defaults — the two non-guard
     # construction sites (`routes/chat.py:95,111`) never set these.

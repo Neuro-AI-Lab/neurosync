@@ -166,13 +166,19 @@ class SurveyResultOutput(BaseModel):
             "never a trigger. Always false for outcome != 'administered'."
         ),
     )
-    administration_mode: Literal["natural", "forced"] = Field(
+    administration_mode: Literal["natural", "forced", "safety_net"] = Field(
         default="natural",
         description=(
             "'natural': F2's own recommended_questionnaire drove this administration. "
             "'forced': a harness-only --force-questionnaire override at the F2->F3 "
             "stage boundary (PLAN-2026-W29-A step 6, ADR-033 decision 6) — F3-administration "
-            "evidence only, never natural-chain (F2-linkage) evidence."
+            "evidence only, never natural-chain (F2-linkage) evidence. "
+            "'safety_net': F2 produced NO recommended_questionnaire this session AND the "
+            "session was high-acuity (crisis_triggered=True or session_ctrs<=3) — "
+            "src.f3.resolve_effective_scale defaulted to PHQ-9 independent of F2's "
+            "recommendation path (CVR-028 Finding 1, clinical-blocking fix). Distinct "
+            "provenance from 'natural' by construction — a downstream reader can always "
+            "tell F2-driven from safety-net-driven administration."
         ),
     )
     threshold_caveat: str | None = Field(

@@ -15,6 +15,15 @@ is the sole variability point — this module has no knowledge of "llm" vs
 from `tests/` (grep-enforced, `tests/test_f3_hpi_isolation.py` +
 `ADR-032` (4) qa gate).
 
+Exception (CVR-028 Finding 1, clinical-blocking): `resolve_effective_scale`
+is a bounded, code-level safety net — when F2 produced NO recommendation
+this session AND the session was high-acuity (`crisis_triggered=True` or
+`session_ctrs<=3`), it defaults the effective scale to PHQ-9 instead of
+leaving the highest-acuity sessions with zero quantified severity data.
+This is still not "planner logic": it is a single deterministic fallback
+rule, not subscale escalation or re-evaluation, and it never overrides a
+real F2 recommendation.
+
 Architected the same way `f1.py`/`f2.py` are: a standalone module invocable
 by the `continuous_test.py` validation harness (or a future patient-UI
 route, or a CLI replay of pre-collected answers) — not a route, not wired
@@ -103,12 +112,22 @@ class SurveyRecommendation:
     """F2's `ai_predicted_disease` fields this module reads, read-only,
     never mutated (plan §3). Passthrough of already-schema-validated F2
     output — not new judgment.
+
+    `crisis_triggered`/`session_ctrs` (CVR-028 Finding 1): the SAME
+    session-level risk-context fields `DomainInferenceInput` already carried
+    into F2, reprojected onto the F2 artifact's own top level (see
+    `f2.py::_build_artifact`) and read here read-only, same discipline as
+    every other field on this dataclass — never a new judgment computed by
+    this module. Default `False`/`None` only for a pre-CVR-028-fix artifact
+    that predates these two keys.
     """
 
     recommended_questionnaire: ScaleName | None
     recommendation_caveat: str | None
     top_candidate_disease: str | None
     top_candidate_similarity_score: float | None
+    crisis_triggered: bool = False
+    session_ctrs: int | None = None
 
 
 def _load_domain_inference_artifact(path: Path) -> dict[str, Any]:
@@ -135,6 +154,8 @@ def resolve_recommendation_from_artifact(artifact: dict[str, Any]) -> SurveyReco
         recommendation_caveat=ai_disease.get("recommendation_caveat"),
         top_candidate_disease=(top or {}).get("disease"),
         top_candidate_similarity_score=(top or {}).get("similarity_score"),
+        crisis_triggered=bool(artifact.get("crisis_triggered", False)),
+        session_ctrs=artifact.get("session_ctrs"),
     )
 
 
@@ -146,6 +167,80 @@ def load_recommendation(domain_inference_path: Path) -> SurveyRecommendation:
     """
     artifact = _load_domain_inference_artifact(domain_inference_path)
     return resolve_recommendation_from_artifact(artifact)
+
+
+# CVR-028 Finding 1 (blocking): "a safety-net administration path — when
+# `crisis_triggered=True` or repeated critical-lexicon hits occur, force
+# PHQ-9 item-9 (or the full instrument) independent of F2's domain-
+# inference/questionnaire-recommendation success — is clinically required
+# before this system is used on real crisis-presenting patients." PHQ-9
+# carries the SI item (item 9) this project's other safety machinery
+# (`OrchestratorAgent.score_and_check_safety`, `_route_phq9_safety_pathway`)
+# already knows how to route on — the same instrument, not a new one.
+SAFETY_NET_SCALE: ScaleName = "PHQ-9"
+
+# CVR-029 (major, accepted): threshold widened from <=2 to <=3 — VP-003
+# reproduction showed 8/11 sessions with critical-level rule hits while
+# `crisis_triggered` stayed False at the CTRS-3 boundary specifically, so a
+# `<=2` cutoff still missed most of the same high-acuity cohort CVR-028
+# Finding 1 was about. `session_ctrs<=3` now also covers `orchestrator.py`'s
+# `_CRISIS_CTRS = {EMERGENCY, HIGH_RISK}` cutoff (CTRSLevel 1-2,
+# `src/schemas/common.py`) plus the adjacent CTRS-3 band VP-003 actually
+# lived in — a low-CTRS session is acuity-equivalent to a crisis trigger for
+# THIS purpose even when the rule-based crisis flag itself didn't fire.
+_SAFETY_NET_CTRS_THRESHOLD = 3
+
+
+def resolve_effective_scale(
+    recommendation: SurveyRecommendation,
+    *,
+    forced_scale: ScaleName | None = None,
+) -> tuple[ScaleName | None, bool]:
+    """Resolve which scale F3 should actually administer this session.
+
+    Single seam for BOTH F2->F3 consumption sites (`run_f3_administration`
+    below and `continuous_test.run_f3_stage`'s harness call) — CVR-028
+    Finding 1 requires the safety-net rule to live where the recommendation
+    is CONSUMED, production-side, not duplicated per-caller and not living
+    only in the harness.
+
+    Precedence (highest first):
+    1. `forced_scale` (harness-only `--force-questionnaire` override) — an
+       explicit human override always wins, never overridden by the safety
+       net.
+    2. F2's own `recommended_questionnaire`, when F2 produced one — the
+       normal, non-degraded path is never bypassed by the safety net.
+    3. The safety net: when F2 yielded NO recommendation (`None` — the
+       `llm_only`-fallback-with-no-candidates shape CVR-028 Finding 1
+       reproduces) AND the session was high-acuity
+       (`crisis_triggered=True` OR `session_ctrs<=3`), default to
+       `SAFETY_NET_SCALE` (PHQ-9).
+    4. Otherwise `None` (genuinely no questionnaire indicated this session
+       — the pre-existing, still-legitimate 7-of-9-classifications outcome
+       `resolve_outcome`'s own docstring describes).
+
+    Returns `(effective_scale, safety_net_triggered)` — the second element
+    is `True` only when case 3 fired, so callers can record a provenance
+    marker (`administration_mode="safety_net"`) distinct from both
+    `"natural"` (F2-driven) and `"forced"` (harness-driven).
+    """
+    if forced_scale is not None:
+        return forced_scale, False
+    if recommendation.recommended_questionnaire is not None:
+        return recommendation.recommended_questionnaire, False
+    high_acuity = recommendation.crisis_triggered or (
+        recommendation.session_ctrs is not None
+        and recommendation.session_ctrs <= _SAFETY_NET_CTRS_THRESHOLD
+    )
+    if high_acuity:
+        logger.warning(
+            "f3.safety_net_triggered — F2 yielded no recommended_questionnaire "
+            "(crisis_triggered=%s, session_ctrs=%s) — defaulting to %s "
+            "(CVR-028 Finding 1)",
+            recommendation.crisis_triggered, recommendation.session_ctrs, SAFETY_NET_SCALE,
+        )
+        return SAFETY_NET_SCALE, True
+    return None, False
 
 
 def resolve_outcome(
@@ -274,11 +369,15 @@ async def run_f3_administration(
     """
     artifact = _load_domain_inference_artifact(domain_inference_path)
     recommendation = resolve_recommendation_from_artifact(artifact)
-    administration_mode: Literal["natural", "forced"] = (
-        "forced" if forced_scale is not None else "natural"
+    effective_scale, safety_net_triggered = resolve_effective_scale(
+        recommendation, forced_scale=forced_scale
     )
-    effective_scale: ScaleName | None = (
-        forced_scale if forced_scale is not None else recommendation.recommended_questionnaire
+    administration_mode: Literal["natural", "forced", "safety_net"] = (
+        "forced"
+        if forced_scale is not None
+        else "safety_net"
+        if safety_net_triggered
+        else "natural"
     )
     outcome, entry = resolve_outcome(effective_scale)
 
