@@ -106,6 +106,25 @@ Source: `discussion.md` `PLAN-2026-W29-A`, `CVR-016`, `ADR-033`, `REV-038`, `CVR
 
 Source: `discussion.md` `PLAN-2026-W29-B`, `CVR-018`, `ADR-034`, `REV-040`, `REV-041`, `CVR-019`, `REV-042`; `result.md` `EXP-021`, `EXP-022`; `error.md` `BUG-039`, `BUG-040`.
 
+## F1–F5 total validation program (stages B–E, `docs/ai/f1f5_total_validation_plan.md`)
+
+> Separate program thread from the F1–F2 continuous-scenario validation program above (stage A
+> design work + this checklist's cohort/plan tables are in `discussion.md`/`docs/ai/f1f5_total_validation_plan.md`, not repeated here). This section tracks only stages B–E's status.
+
+| Stage | Essence | Owning agent(s) | Status |
+|:--|:--|:--|:--|
+| B — 수집 (collection) | Live F1→F2→F3 chain, all 7 VPs, 72 sessions, `continuous_test.py run_multi_session_chain` | experiment-tracker | ☑ (2026-07-15) — `result.md` `EXP-025`, 72/72 sessions exit 0, 0 fatal |
+| C — F4/F5 (compute) | Deterministic F4 longitudinal pass + F5 hand-off report generation, all 7 VPs, 0 LLM calls | experiment-tracker (auto-run within EXP-025) | ☑ (2026-07-15) — F4/F5 outputs captured in `workflow_results_f1f2.md` `[exp-025]`; 7 handoff reports at `docs/ai/simulation_results/VP-*/*_handoff.md` |
+| D — 감사·이슈수집 (audit / issue collection) | Standing audits + carried-over cell disposition + new issue filing | qa, critic, clinical-validator | ☑ (2026-07-15) — `error.md` `BUG-031` (new)/`BUG-020` (standing, both re-confirmed live); `discussion.md` `REV-001` (orchestration-evidence adjudication), `REV-002` (Stage-D evidence review, 12-row issue register), `CVR-027` (arc gate), `CVR-028` (clinical adequacy, VP-003 blocking) |
+| E — 분석/issue/해결방안 보고 | Writer synthesis of stage D findings, issue register, remediation roadmap, three-lens gate | writer | ☑ (2026-07-15) — `docs/ai/f1f5_total_validation_report.md`; three-lens gate: qa (BUG-031/BUG-020 status), critic (REV-002 wording table, binding), clinical-validator (CVR-028 verdict, binding) |
+
+**Stage-D disposition summary:** 7/7 VPs, 72/72 sessions, 0 fatal (re-confirmed independently by
+`REV-002` §1 for 2 fully re-derived VPs). One clinical-blocking finding (VP-003 acuity class,
+`CVR-028` Finding 1) and two production-blocking code findings (`REV-001` Issues 1 & 5) carry
+into stage E's remediation roadmap. Two carried-over AUDIT-C cells (female-threshold, non-soju
+track) remain **not satisfied** by this cohort — see `f1f5_total_validation_report.md` §5, no
+closure claim made. Full detail, issue register, and roadmap: `docs/ai/f1f5_total_validation_report.md`.
+
 ## Reading this checklist
 
 - A ☑ plan-finalization row means the step's RESULT exists and is folded into plan v1.2 — it does not mean the step's content is beyond challenge; `CVR-002`/`REV-023` (now ☑, verdicts recorded in plan section 8) were exactly that challenge mechanism, applied against this revision.
