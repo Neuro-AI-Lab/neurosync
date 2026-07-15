@@ -1535,10 +1535,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
             "tests/simulation/factorial_driver.py --patient-sex와 동일한 값 도메인."
         ),
     )
+    from tests.simulation.scenario_pack import _SCENARIO_PACKS
+
     parser.add_argument(
         "--scenario-pack",
         default=None,
-        choices=["VP-001", "VP-003"],
+        choices=sorted(_SCENARIO_PACKS),
         help=(
             "F4 quick-dev (PLAN-2026-W29-D): tests/simulation/scenario_pack.py의 "
             "해당 VP 11-세션 스크립트를 로드해 --sessions 체인에 threading한다 "
