@@ -397,7 +397,10 @@ class TestRunF5Report:
         """ADR-038 Decision 2a / VAL-016, full pipeline: a domain_inference
         artifact carrying validation_errors + empty department_candidates
         on the LATEST session must produce the validation-dropped wording
-        (not a bare 정보 없음) in the rendered markdown."""
+        (not a bare 정보 없음) in the rendered markdown. CVR-026 Finding 5
+        (major): the internal ticket ID itself must NOT appear inline in
+        the clinician-facing A7 body — only in the 각주 시스템 참고
+        subsection (relocated, never dropped)."""
         persona_id = "VP-VALERR"
         ledger_path = ct._ledger_path(persona_id, tmp_path)
         conv1 = _write_conversation(tmp_path, persona_id, 1, simulated_date="2026-01-01")
@@ -431,8 +434,10 @@ class TestRunF5Report:
         paths = ct._run_f5_report(persona_id, tmp_path)
         md = paths["markdown"].read_text(encoding="utf-8")
         a7_section = md.split("## 권장 진료과 및 후속 조치")[1].split("## 임상 종합 소견")[0]
-        assert "VAL-016" in a7_section
+        assert "VAL-016" not in a7_section  # internal ticket ID relocated, not inline
         assert "정보 없음 (권장 진료과 없음)" not in a7_section  # old bare wording gone
+        assert "이번 실행에서는 진료과 후보가 산출되지 않았습니다" in a7_section  # honest KO note
+        assert "VAL-016" in md.split("## 각주")[1]  # relocated, not dropped
 
     def test_fewer_than_2_ledger_entries_raises_insufficient_sessions(
         self, tmp_path: Path

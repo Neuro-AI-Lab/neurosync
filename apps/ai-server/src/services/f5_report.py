@@ -29,6 +29,7 @@ from pathlib import Path
 
 from src.f1 import OUTPUT_DIR
 from src.schemas.handoff_report import (
+    A7_NO_CANDIDATES_VALIDATION_DROPPED_KO,
     A8_FHIR_OMISSION_NOTE_KO,
     NARRATIVE_ENABLED_LABEL_KO,
     NON_VALIDATED_ADMINISTRATION_CAVEAT_KO,
@@ -37,6 +38,7 @@ from src.schemas.handoff_report import (
     LongitudinalSection,
     MentalStatusSection,
     QuestionnaireSection,
+    RecommendationSection,
     RiskSafetySection,
     SlotOverviewRow,
     SlotOverviewSection,
@@ -44,6 +46,47 @@ from src.schemas.handoff_report import (
 from src.schemas.longitudinal import LongitudinalAnalysisOutput
 
 logger = logging.getLogger(__name__)
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 상세 부록 (detail appendix) + 시스템 참고 (internal-ref audit) collectors
+# (CVR-026 Findings 1/2/5/6, this mission) — one fresh instance per
+# `build_markdown_report`/`build_pdf_report` call, threaded through every
+# helper that truncates a clinically material field or strips an internal
+# review/bug ID out of body prose. Never invents text: every entry is the
+# SAME string a truncation/strip site already had in hand, just relocated.
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class _AppendixCollector:
+    """Collects `(anchor_no, label, full_text)` for one render call.
+    `anchor()` is the only mutator; call order fixes the anchor numbering
+    (1-based) referenced inline as `(상세 부록 N 참조)` — CVR-026 Finding 1
+    (blocking): a truncation marker must point to a REAL entry, never a
+    dead `"(상세 아래)"` reference."""
+
+    def __init__(self) -> None:
+        self.entries: list[tuple[int, str, str]] = []
+
+    def anchor(self, label: str, full_text: str) -> int:
+        n = len(self.entries) + 1
+        self.entries.append((n, label, full_text))
+        return n
+
+
+class _SystemNoteCollector:
+    """Dedup-preserving list of internal review/bug-ID citations stripped
+    out of body prose (CVR-026 Finding 5: `CVR-022`/`REV-045`/`src.f4::`
+    etc. must live only in the audit footnote, never the clinical body)."""
+
+    def __init__(self) -> None:
+        self._seen: set[str] = set()
+        self.notes: list[str] = []
+
+    def add(self, note: str | None) -> None:
+        if note and note not in self._seen:
+            self._seen.add(note)
+            self.notes.append(note)
 
 
 def save_f5_result(
@@ -113,6 +156,38 @@ _CHART_TITLES_KO = {
     "disease_similarity": "질환 유사도 차트",
     "domain_confidence": "진료과 후보 신뢰도 차트",
 }
+
+# Task (chart-readability fix, this mission): 1-line Korean caption
+# rendered directly UNDER each embedded chart (md + PDF), stating what the
+# chart shows and how to read it — never invents a number, `{n}`/`{span}`
+# are filled from the SAME `LongitudinalAnalysisOutput` fields the rest of
+# this report already cites (`lon.n_sessions`/`lon.session_span_days`).
+_CHART_CAPTIONS_KO = {
+    "scales_ctrs_sentiment": (
+        "설문 총점·위기 단계(CTRS)·정서·문진 충족도 추이 ({n}세션{span}) — "
+        "위기 단계는 값이 낮을수록(1에 가까울수록) 위험이 높습니다."
+    ),
+    "ctrs_zoom": (
+        "위기 단계(CTRS) 확대 추이 — 1(최긴급)에 가까울수록 위험, "
+        "5(안정)에 가까울수록 안정적입니다."
+    ),
+    "disease_similarity": (
+        "세션별 질환 유사도 추이 — 점선·저채도 선은 참고용 유사도 신호일 뿐이며 "
+        "확률·가능성·진단이 아닙니다."
+    ),
+    "domain_confidence": (
+        "세션별 진료과 후보 신뢰도 추이 — 값이 높을수록 해당 진료과 매칭 신뢰도가 높습니다."
+    ),
+}
+
+
+def _chart_caption_ko(key: str, lon: LongitudinalAnalysisOutput, fig_no: int) -> str:
+    """`그림 N. <1-line Korean caption>` — `fig_no` is the running figure
+    index among charts actually rendered this call (never counts an
+    absent/`None` chart)."""
+    span = f", {lon.session_span_days}일" if lon.session_span_days is not None else ""
+    body = _CHART_CAPTIONS_KO[key].format(n=lon.n_sessions, span=span)
+    return f"그림 {fig_no}. {body}"
 
 # ═══════════════════════════════════════════════════════════════════════
 # Readability-layer shared helpers (rendering only — never invents a
@@ -221,11 +296,22 @@ def _dimension_ko(dimension: str) -> str:
     return _DIMENSION_KO.get(dimension, dimension)
 
 
-def _truncate(text: str | None, limit: int = 80) -> str:
+def _truncate(
+    text: str | None, limit: int = 80, *, appendix: _AppendixCollector, label: str
+) -> str:
+    """Truncates *text* for a compact body cell/line — CVR-026 Finding 1
+    (blocking): a truncated value's marker now points to a REAL, numbered
+    "상세 부록" (detail appendix) entry carrying the SAME full *text*
+    (never `"(상세 아래)"`, which pointed nowhere). `appendix`/`label` are
+    mandatory — every call site owns an `_AppendixCollector` for its
+    render pass."""
     if not text:
         return ""
     t = str(text)
-    return t if len(t) <= limit else f"{t[:limit].rstrip()}… (상세 아래)"
+    if len(t) <= limit:
+        return t
+    n = appendix.anchor(label, t)
+    return f"{t[:limit].rstrip()}… (상세 부록 {n} 참조)"
 
 
 # Some engine-authored free text (F4's own `crisis_f3_gaps` sentences,
@@ -247,15 +333,41 @@ _INTERNAL_FIELD_LABEL_KO = {
 }
 _BOOL_VALUE_KO = {"True": "있음", "False": "없음", "None": "미상"}
 
+# CVR-026 Finding 5 (minor): internal review/bug-ID citations (`CVR-020
+# Finding 4 / binding condition 3`, `REV-045 row 2`, `src.f4::_overall_
+# direction`, ...) embedded in engine-authored free text (F4's own
+# `crisis_f3_gaps` sentences) — stripped from body prose and relocated to
+# the 각주 "시스템 참고" subsection via `_SystemNoteCollector`, never
+# dropped outright (audit traceability preserved, just not in front of a
+# clinician scanning the body).
+_INTERNAL_REF_RE = re.compile(
+    r"\s*\((?:CVR|REV|VAL|BUG|ADR|ISS)-\d+[^)]*\)|\bsrc\.\w+(?:\.\w+)*::\w+\b"
+)
 
-def _humanize_engine_text(text: str) -> str:
+
+def _strip_internal_refs(text: str, notes: _SystemNoteCollector) -> str:
+    """Removes every internal review/bug-ID citation from *text*, recording
+    each stripped citation (trimmed) into *notes* for the 각주 "시스템 참고"
+    subsection. Reformatting only — the citation's SURROUNDING clinical
+    content is never altered or dropped."""
+
+    def _sub(m: re.Match[str]) -> str:
+        notes.add(m.group(0).strip(" ()"))
+        return ""
+
+    cleaned = _INTERNAL_REF_RE.sub(_sub, text)
+    return re.sub(r"\s+", " ", cleaned).strip()
+
+
+def _humanize_engine_text(text: str, notes: _SystemNoteCollector) -> str:
     def _sub(m: re.Match[str]) -> str:
         key, val = m.group(1), m.group(2)
         label = _INTERNAL_FIELD_LABEL_KO.get(key, key)
         val_ko = _BOOL_VALUE_KO.get(val, val)
         return f"{label}={val_ko}"
 
-    return _INTERNAL_FIELD_TOKEN_RE.sub(_sub, text)
+    translated = _INTERNAL_FIELD_TOKEN_RE.sub(_sub, text)
+    return _strip_internal_refs(translated, notes)
 
 
 def _staleness_note_ko(sp) -> str:
@@ -346,7 +458,7 @@ def _key_concerns(
     return concerns or ["특이 우려 사항 없음"]
 
 
-def _summary_box_lines(report: HandoffReportOutput) -> list[str]:
+def _summary_box_lines(report: HandoffReportOutput, appendix: _AppendixCollector) -> list[str]:
     """핵심 요약 (SBAR식, ≤8줄) — binding rule 2."""
     a0, a1, a3, a5 = (
         report.a0_header,
@@ -359,7 +471,12 @@ def _summary_box_lines(report: HandoffReportOutput) -> list[str]:
     return [
         f"환자: {a0.persona_name} ({a0.persona_id}) — {a0.session_index}회차 "
         f"({a0.simulated_date}), 총 {lon.n_sessions}세션{span}",
-        f"주호소: {_truncate(a1.text, 80) if a1.present else '미수집'}",
+        "주호소: "
+        + (
+            _truncate(a1.text, 80, appendix=appendix, label="주호소 전문")
+            if a1.present
+            else "미수집"
+        ),
         f"위험 플래그: {_risk_flag_line(a3)}",
         f"최신 설문: {_scale_trend_line(a5, lon)}",
         f"주요 우려: {'; '.join(_key_concerns(a3, a5, lon))}",
@@ -373,9 +490,17 @@ _DISCLAIMER_BOX_KO = [
 ]
 
 
-def _risk_prose(a3: RiskSafetySection) -> str:
+def _risk_prose(a3: RiskSafetySection, appendix: _AppendixCollector) -> str:
+    # CVR-026 Finding 1 (blocking, 최우선): the current-session risk
+    # narrative's own patient-quote — a truncated, dead-referenced cut of
+    # this exact quote was the single highest-severity finding. Full text
+    # now always lands in the 상세 부록.
     risk_text = (
-        _truncate(a3.risk_assessment_text, 100) if a3.risk_assessment_present else "정보 없음"
+        _truncate(
+            a3.risk_assessment_text, 100, appendix=appendix, label="위험평가 발화 원문 (당해 세션)"
+        )
+        if a3.risk_assessment_present
+        else "정보 없음"
     )
     session_ref = f"당해 세션({a3.current_session_index}회차, {a3.current_simulated_date})"
     parts = [
@@ -393,15 +518,17 @@ def _risk_prose(a3: RiskSafetySection) -> str:
     return " ".join(parts)
 
 
-def _risk_discordance_verdict(discordance_note: str) -> str:
+def _risk_discordance_verdict(discordance_note: str, appendix: _AppendixCollector) -> str:
     if discordance_note.startswith("불일치"):
         return "불일치"
     if discordance_note.startswith("일치"):
         return "일치"
-    return _truncate(discordance_note, 20)
+    return _truncate(discordance_note, 20, appendix=appendix, label="위험 신호 판정 원문")
 
 
-def _risk_table_rows(a3: RiskSafetySection) -> list[tuple[str, str, str, str, str]]:
+def _risk_table_rows(
+    a3: RiskSafetySection, appendix: _AppendixCollector
+) -> list[tuple[str, str, str, str, str]]:
     rows = []
     for sig in a3.longitudinal_risk_signals:
         if sig.critical_item_positive is True:
@@ -410,7 +537,7 @@ def _risk_table_rows(a3: RiskSafetySection) -> list[tuple[str, str, str, str, st
             item9 = "음성"
         else:
             item9 = "미상"
-        verdict = _risk_discordance_verdict(sig.discordance_note)
+        verdict = _risk_discordance_verdict(sig.discordance_note, appendix)
         if sig.ceiling_caveat:
             verdict += " · 만점"
         score = f"{sig.total_score}/{sig.max_score}" if sig.total_score is not None else "-"
@@ -438,21 +565,39 @@ def _change_history_summary(row: SlotOverviewRow) -> str:
     if not row.change_history:
         return "-"
     sessions = [m.group(1) for h in row.change_history if (m := _SLOT_HISTORY_SESSION_RE.match(h))]
-    if not sessions:
-        return f"{len(row.change_history)}회 변화"
-    return f"{len(row.change_history)}회 변화 (S{'→S'.join(sessions)})"
+    base = (
+        f"{len(row.change_history)}회 변화 (S{'→S'.join(sessions)})"
+        if sessions
+        else f"{len(row.change_history)}회 변화"
+    )
+    # CVR-026 Finding 2: the table cell stays compact (60-char-per-entry
+    # preview), but every distinct-change slot now has a real pointer to
+    # its own full, untruncated quotes in the 상세 부록.
+    if row.change_history_full:
+        base += " · 상세 부록 참조"
+    return base
 
 
 def _major_course_bullets(so: SlotOverviewSection, limit: int = 5) -> list[str]:
+    """CVR-026 Finding 3 (major): a first/last-only selection can silently
+    drop a clinically material EARLY signal (e.g. an HPI slot's original
+    precipitant, only ever stated in session 1) into the elided middle.
+    Selects first + one material MIDDLE change point (whenever >=3 change
+    points exist — every `change_history` entry is already a materially
+    DISTINCT value, the engine collapses non-changes before this list is
+    built, `f5.py::_slot_row`) + last, instead of first/last with an
+    ellipsis placeholder."""
     rows_by_key = {r.key: r for r in so.rows}
     bullets: list[str] = []
     for key in _COURSE_BULLET_PRIORITY:
         row = rows_by_key.get(key)
         if row and len(row.change_history) >= 2:
-            first, last = row.change_history[0], row.change_history[-1]
-            arrow = (
-                f"{first} → ... → {last}" if len(row.change_history) > 2 else f"{first} → {last}"
-            )
+            history = row.change_history
+            if len(history) >= 3:
+                middle = history[len(history) // 2]
+                arrow = f"{history[0]} → {middle} → {history[-1]}"
+            else:
+                arrow = f"{history[0]} → {history[-1]}"
             bullets.append(f"{row.label}: {arrow}")
         if len(bullets) >= limit:
             break
@@ -504,8 +649,20 @@ def _ctrs_table_rows(
     return rows, any_probe
 
 
+_GAP_ACUITY_FRAMING_POINTER_KO = "※ 위 '시행된 설문 · F3 공백' 참조 (동일 안내)"
+
+# CVR-026 Finding 8 (minor): within A3 alone, the exact-ceiling caveat
+# previously repeated in full between the risk-signal table and the
+# staleness-pointer note immediately below it.
+_CEILING_POINTER_KO = "※ 위 표 참조 (동일 세션 만점 캐비앗)"
+
+
 def _events_and_concordance_lines(
-    lon: LongitudinalAnalysisOutput, b: LongitudinalSection
+    lon: LongitudinalAnalysisOutput,
+    b: LongitudinalSection,
+    *,
+    gap_framing_already_shown: bool,
+    notes: _SystemNoteCollector,
 ) -> list[str]:
     lines: list[str] = []
     crisis_sessions = [p for p in lon.ctrs_series if p.crisis_triggered]
@@ -517,7 +674,15 @@ def _events_and_concordance_lines(
     if lon.crisis_f3_gaps:
         lines.append(f"위험 고조 세션 중 설문 미시행: {len(lon.crisis_f3_gaps)}건")
         if b.gap_acuity_framing_note:
-            lines.append(b.gap_acuity_framing_note)
+            # CVR-026 Finding 6 (major): the near-identical F3-gap-acuity
+            # caveat previously repeated verbatim in BOTH "시행된 설문"
+            # (F3 공백) and here — collapsed to one canonical rendering
+            # (there, if it already showed) plus a short back-pointer here.
+            lines.append(
+                _GAP_ACUITY_FRAMING_POINTER_KO
+                if gap_framing_already_shown
+                else _strip_internal_refs(b.gap_acuity_framing_note, notes)
+            )
     else:
         lines.append("위험 고조 세션 중 설문 미시행 사례 없음")
     concordance = _CONCORDANCE_KO.get(lon.concordance_flag, lon.concordance_flag)
@@ -529,12 +694,67 @@ def _a6_item9_or_critical_label(scale_name: str | None) -> str:
     return "자살사고 문항(9번)" if scale_name == "PHQ-9" else "심각 문항(critical item)"
 
 
+# CVR-026 Finding 4 (major): A6's `reason_summary` is surfaced VERBATIM
+# from `src.f2`'s own English engineering prose (schema docstring,
+# `handoff_report.py::AIPredictedDiseaseSection.reason_summary`) whenever
+# Stage 1 produced zero candidates outside `rag_live` mode — exposing raw
+# English pipeline internals in the highest-acuity artifacts (an
+# unpopulated A6 tends to co-occur with a crisis-heavy case, CVR-024/026's
+# own repeated observation). Matched by EXACT string equality only (a
+# regex/substring guess could silently misrender a FUTURE f2.py wording
+# change) — an unrecognized string falls through to the generic fallback,
+# never guessed at, with the original preserved in the 각주 시스템 참고
+# subsection for audit traceability.
+_A6_REASON_SUMMARY_KO_MAP: dict[str, str] = {
+    (
+        "Stage 1 ran in llm_only mode (no RAG chunks retrieved this run) — the "
+        "AI-disease container has no chunk-derived evidence to populate from"
+    ): "1단계 분석이 RAG(근거 검색) 없이 대화 기반으로만 진행되어 질환 후보를 생성하지 못했습니다.",
+}
+_A6_REASON_SUMMARY_FALLBACK_KO = "검색 보조 없이 대화 기반으로만 산출됨 — 원문은 각주 참조."
+
+
+def _a6_reason_summary_ko(reason_summary: str, notes: _SystemNoteCollector) -> str:
+    known = _A6_REASON_SUMMARY_KO_MAP.get(reason_summary)
+    if known is not None:
+        return known
+    notes.add(f"AI 참고정보(A6) 사유 원문(미매칭, 감사용): {reason_summary}")
+    return _A6_REASON_SUMMARY_FALLBACK_KO
+
+
+# CVR-026 Finding 5 (major): A7's own "no candidates" absence note embeds
+# an internal bug-ticket ID (`VAL-016/BUG-031`) inline in clinician-facing
+# prose whenever the upstream cause is a schema-validation drop — rendered
+# here as honest, ID-free Korean; the ID-bearing original moves to the
+# 각주 시스템 참고 subsection (never dropped, just relocated).
+_A7_ABSENCE_VALIDATION_DROPPED_PLAIN_KO = (
+    "이번 실행에서는 진료과 후보가 산출되지 않았습니다(후보 검증 단계에서 제외됨). "
+    "원 데이터는 각주 참조."
+)
+
+
+def _a7_absence_note_ko(a7: RecommendationSection, notes: _SystemNoteCollector) -> str:
+    note = a7.department_candidates_absence_note
+    if note is None:
+        return "정보 없음"
+    if note == A7_NO_CANDIDATES_VALIDATION_DROPPED_KO:
+        notes.add(f"권장 진료과 미산출 원문(감사용): {note}")
+        return _A7_ABSENCE_VALIDATION_DROPPED_PLAIN_KO
+    return note
+
+
 def build_markdown_report(report: HandoffReportOutput) -> str:
     """Clinician-first hand-off report — SBAR summary + risk up front, no
     internal field/ID names in the body, ≤2-min read (binding rules 1-10,
     this mission's readability redesign). Every underlying fact still
     traces to a `HandoffReportOutput` field; this function only reorders,
-    translates, and compresses — it never invents."""
+    translates, and compresses — it never invents. `appendix`/`notes`
+    (CVR-026, this mission) collect the full-text/internal-ID material this
+    function relocates rather than drops — rendered as "## 상세 부록" and
+    the 각주's "시스템 참고" subsection, both near the end."""
+    appendix = _AppendixCollector()
+    notes = _SystemNoteCollector()
+
     a0, a1, a2, a3 = (
         report.a0_header,
         report.a1_chief_complaint,
@@ -556,7 +776,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
 
     # ── 핵심 요약 (SBAR box) ──
     lines += ["> **핵심 요약**", ">"]
-    lines += [f"> - {line}" for line in _summary_box_lines(report)]
+    lines += [f"> - {line}" for line in _summary_box_lines(report, appendix)]
     lines.append("")
 
     # ── 면책 조항 (3줄 이내 박스) ──
@@ -565,8 +785,15 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     lines.append("")
 
     # ── 위험/안전 평가 ──
-    lines += ["## 위험/안전 평가", "", _risk_prose(a3), ""]
-    risk_rows = _risk_table_rows(a3)
+    lines += ["## 위험/안전 평가", "", _risk_prose(a3, appendix), ""]
+    risk_rows = _risk_table_rows(a3, appendix)
+    # CVR-026 Finding 8 (minor): the exact-ceiling caveat previously
+    # repeated verbatim BOTH adjacent to the risk table AND in the
+    # staleness-pointer note directly below it (same fact, same session,
+    # same section) — first full occurrence wins, the second collapses to
+    # a short back-pointer. A5's OWN occurrence (ADR-038 Decision 2c,
+    # locked by test) is untouched — this dedup is scoped to within A3.
+    ceiling_shown_in_a3 = False
     if risk_rows:
         lines += [
             f"> {NON_VALIDATED_ADMINISTRATION_CAVEAT_KO} '판정'은 설문 위험 신호와 동일 세션 "
@@ -586,6 +813,8 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
             for sig in a3.longitudinal_risk_signals
             if sig.ceiling_caveat
         ]
+        if ceiling_lines:
+            ceiling_shown_in_a3 = True
         lines.append("")
         lines += ceiling_lines
         if ceiling_lines:
@@ -596,7 +825,10 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     if a3.staleness_pointer.total_score is not None:
         lines.append(f"> {NON_VALIDATED_ADMINISTRATION_CAVEAT_KO}")
     if a3.staleness_pointer.ceiling_caveat:
-        lines.append(f"> {a3.staleness_pointer.ceiling_caveat}")
+        staleness_ceiling_text = (
+            _CEILING_POINTER_KO if ceiling_shown_in_a3 else a3.staleness_pointer.ceiling_caveat
+        )
+        lines.append(f"> {staleness_ceiling_text}")
     lines.append("")
 
     # ── 주호소 및 현병력 (+ MSE) ──
@@ -626,7 +858,9 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         if not row.collected:
             value_cell, source_cell = SLOT_NEVER_COLLECTED_KO, "-"
         else:
-            value_cell = _truncate(row.latest_value, 80)
+            value_cell = _truncate(
+                row.latest_value, 80, appendix=appendix, label=f"{row.label} 최신값 전문"
+            )
             source_cell = f"{row.source_session_index}회차/{row.source_simulated_date}"
         lines.append(
             f"| {row.label} | {value_cell} | {source_cell} | {_change_history_summary(row)} | "
@@ -644,6 +878,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
 
     # ── 시행된 설문 ──
     lines += ["## 시행된 설문", ""]
+    gap_framing_shown = False
     if not a5.present:
         lines += ["정보 없음 (전체 세션 중 시행된 설문 없음)", ""]
     else:
@@ -671,14 +906,17 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         if a5.threshold_caveat_asymmetry_note:
             lines.append(f"- {a5.threshold_caveat_asymmetry_note}")
         if a5.ceiling_caveat:
+            # A5 stays the canonical cross-section occurrence (ADR-038
+            # Decision 2c, locked by test) — never deduped away.
             lines.append(f"- {a5.ceiling_caveat}")
         lines.append("")
         if a5.gap_disclosure:
             lines.append("**F3 공백 (당해 세션까지):**")
             lines.append("")
             if a5.gap_acuity_framing_note:
-                lines += [f"> {a5.gap_acuity_framing_note}", ""]
-            lines += [f"- {_humanize_engine_text(g)}" for g in a5.gap_disclosure]
+                lines += [f"> {_strip_internal_refs(a5.gap_acuity_framing_note, notes)}", ""]
+                gap_framing_shown = True
+            lines += [f"- {_humanize_engine_text(g, notes)}" for g in a5.gap_disclosure]
             lines.append("")
 
     # ── 종단 추세 + 차트 ──
@@ -698,7 +936,9 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     for dim, direction, evidence in _trend_table_rows(lon):
         lines.append(f"| {dim} | {direction} | {evidence} |")
     lines.append("")
-    lines += _events_and_concordance_lines(lon, b)
+    lines += _events_and_concordance_lines(
+        lon, b, gap_framing_already_shown=gap_framing_shown, notes=notes
+    )
     lines.append("")
     lines.append("### 추세 차트")
     lines.append("")
@@ -709,10 +949,15 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         "domain_confidence": b.chart_filenames.domain_confidence,
     }
     any_chart = False
+    fig_no = 0
     for key, filename in chart_map.items():
         if filename:
             any_chart = True
+            fig_no += 1
             lines.append(f"![{key}]({filename})")
+            lines.append("")
+            lines.append(f"*{_chart_caption_ko(key, lon, fig_no)}*")
+            lines.append("")
         else:
             lines.append(f"{_CHART_TITLES_KO[key]}: 생성되지 않음")
     if not any_chart:
@@ -731,7 +976,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         if a6.mode:
             lines.append(f"mode: {a6.mode}")
         if a6.reason_summary:
-            lines += ["", f"reason_summary: {a6.reason_summary}"]
+            lines += ["", f"사유: {_a6_reason_summary_ko(a6.reason_summary, notes)}"]
         lines.append("")
     else:
         top, rest = a6.candidates[:3], a6.candidates[3:]
@@ -762,7 +1007,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         lines += [f"| {d.department} | {d.reason} |" for d in a7.department_candidates]
         lines.append("")
     else:
-        lines += [_none_marker(a7.department_candidates_absence_note, "정보 없음"), ""]
+        lines += [_a7_absence_note_ko(a7, notes), ""]
     if a7.recommended_questionnaire:
         lines.append(
             f"추천 설문: {a7.recommended_questionnaire}"
@@ -779,13 +1024,38 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     else:
         lines += [a8.absent_marker, ""]
 
+    # ── 상세 부록 (CVR-026 Finding 1/2/3) ──
+    lines += ["## 상세 부록", ""]
+    if appendix.entries:
+        for n, label, text in appendix.entries:
+            lines += [f"**{n}. {label}**", "", text, ""]
+    slot_history_sections = [
+        (row.label, " → ".join(row.change_history_full))
+        for row in _slot_table_rows(so)
+        if len(row.change_history_full) >= 2
+    ]
+    if slot_history_sections:
+        lines += ["### 슬롯별 전체 변화 이력 (미압축)", ""]
+        for label, text in slot_history_sections:
+            lines += [f"**{label}**", "", text, ""]
+    if not appendix.entries and not slot_history_sections:
+        lines += ["해당 없음 — 본문에서 잘린 항목이 없습니다.", ""]
+
     # ── 각주 (감사용 메타) ──
     lines += ["## 각주", ""]
     footnote = f"모델: {a0.model} · 생성 시각: {report.generated_at} · 세션ID: {a0.session_id}"
     lines.append(footnote)
     if a5.present:
         lines.append(f"설문 문항 출처: {a5.item_bank_provenance or '미상'}")
-    lines.append(f"종단 추세 판정 근거(감사용): {b.overall_direction_sensitivity_note}")
+    lines.append("")
+    # CVR-026 Finding 5/7: internal review/bug-ID citations + code-path
+    # audit refs live ONLY here, separated from the clinical footnote line
+    # above (Finding 7's own recommendation) — never in the scannable body.
+    lines.append("### 시스템 참고 (내부 감사용, 임상 판단 근거 아님)")
+    lines.append("")
+    lines.append(f"종단 추세 판정 근거: {b.overall_direction_sensitivity_note}")
+    for note in notes.notes:
+        lines.append(note)
     lines.append("")
 
     return "\n".join(lines)
@@ -956,6 +1226,8 @@ def build_pdf_report(
 
     _register_korean_fonts()
     chart_paths = chart_paths or {}
+    appendix = _AppendixCollector()
+    notes = _SystemNoteCollector()
 
     styles = {
         "title": ParagraphStyle(
@@ -1037,7 +1309,7 @@ def build_pdf_report(
 
     # ── 핵심 요약 (SBAR box) ──
     summary_flow = [P("핵심 요약", "h3")]
-    summary_flow += [P(f"- {line}", "body") for line in _summary_box_lines(report)]
+    summary_flow += [P(f"- {line}", "body") for line in _summary_box_lines(report, appendix)]
     story.append(_boxed(summary_flow))
     story.append(Spacer(1, 0.2 * cm))
 
@@ -1049,8 +1321,9 @@ def build_pdf_report(
 
     # ── 위험/안전 평가 ──
     story.append(P("위험/안전 평가", "h2"))
-    story.append(P(_risk_prose(a3), "body"))
-    risk_rows = _risk_table_rows(a3)
+    story.append(P(_risk_prose(a3, appendix), "body"))
+    risk_rows = _risk_table_rows(a3, appendix)
+    ceiling_shown_in_a3 = False
     if risk_rows:
         story.append(P(NON_VALIDATED_ADMINISTRATION_CAVEAT_KO, "warn"))
         rows = [["세션", "일자", "점수", "9번 문항", "판정"]] + [list(r) for r in risk_rows]
@@ -1059,6 +1332,7 @@ def build_pdf_report(
         # the table (never dropped to the "· 만점" table abbreviation alone).
         for sig in a3.longitudinal_risk_signals:
             if sig.ceiling_caveat:
+                ceiling_shown_in_a3 = True
                 story.append(
                     P(
                         f"[{sig.session_index}회차, {sig.total_score}/{sig.max_score}] "
@@ -1072,7 +1346,13 @@ def build_pdf_report(
         story.append(P(NON_VALIDATED_ADMINISTRATION_CAVEAT_KO, "warn"))
     story.append(P(f"최신 시행 척도 안내: {_staleness_note_ko(a3.staleness_pointer)}", "warn"))
     if a3.staleness_pointer.ceiling_caveat:
-        story.append(P(a3.staleness_pointer.ceiling_caveat, "warn"))
+        # CVR-026 Finding 8 (minor): collapse the within-A3 duplicate (see
+        # markdown builder's identical comment) — A5's own occurrence is
+        # untouched (ADR-038 Decision 2c, locked by test).
+        staleness_ceiling_text = (
+            _CEILING_POINTER_KO if ceiling_shown_in_a3 else a3.staleness_pointer.ceiling_caveat
+        )
+        story.append(P(staleness_ceiling_text, "warn"))
 
     # ── 주호소 및 현병력 (+ MSE) ──
     story.append(P("주호소 및 현병력", "h2"))
@@ -1090,7 +1370,9 @@ def build_pdf_report(
         if not row.collected:
             value_cell, source_cell = SLOT_NEVER_COLLECTED_KO, "-"
         else:
-            value_cell = _truncate(row.latest_value, 80)
+            value_cell = _truncate(
+                row.latest_value, 80, appendix=appendix, label=f"{row.label} 최신값 전문"
+            )
             source_cell = f"{row.source_session_index}회차/{row.source_simulated_date}"
         rows.append(
             [
@@ -1112,6 +1394,7 @@ def build_pdf_report(
 
     # ── 시행된 설문 ──
     story.append(P("시행된 설문", "h2"))
+    gap_framing_shown = False
     if not a5.present:
         story.append(P("정보 없음 (전체 세션 중 시행된 설문 없음)", "body"))
     else:
@@ -1145,8 +1428,11 @@ def build_pdf_report(
             story.append(P(a5.threshold_caveat_asymmetry_note, "body"))
         if a5.ceiling_caveat:
             story.append(P(a5.ceiling_caveat, "warn"))
+        if a5.gap_disclosure and a5.gap_acuity_framing_note:
+            story.append(P(_strip_internal_refs(a5.gap_acuity_framing_note, notes), "warn"))
+            gap_framing_shown = True
         for g in a5.gap_disclosure:
-            story.append(P(f"- {_humanize_engine_text(g)}", "body"))
+            story.append(P(f"- {_humanize_engine_text(g, notes)}", "body"))
 
     story.append(PageBreak())
 
@@ -1161,7 +1447,9 @@ def build_pdf_report(
     story.append(P(_OVERALL_DIRECTION_NOTE_PLAIN_KO, "body"))
     rows = [["항목", "방향", "근거"]] + [list(r) for r in _trend_table_rows(lon)]
     story.append(_table(rows, font_size=7.5))
-    for line in _events_and_concordance_lines(lon, b):
+    for line in _events_and_concordance_lines(
+        lon, b, gap_framing_already_shown=gap_framing_shown, notes=notes
+    ):
         story.append(P(f"- {line}", "body"))
 
     story.append(P("추세 차트", "h3"))
@@ -1172,6 +1460,7 @@ def build_pdf_report(
         "domain_confidence": b.chart_filenames.domain_confidence,
     }
     any_chart = False
+    fig_no = 0
     for key, filename in chart_map.items():
         if not filename:
             story.append(P(f"{_CHART_TITLES_KO[key]}: 생성되지 않음", "body"))
@@ -1179,8 +1468,18 @@ def build_pdf_report(
         path = chart_paths.get(key)
         if path is not None and Path(path).exists():
             any_chart = True
+            fig_no += 1
             story.append(P(filename, "meta"))
-            story.append(Image(str(path), width=16 * cm, height=9 * cm, kind="proportional"))
+            # Chart-readability fix (this mission): embed near A4 usable
+            # width (18cm minus margin buffer) rather than a small fixed
+            # box — `trend_plotter.py`'s own font constants are sized for
+            # THIS exact box width (see its module-level comment); a
+            # smaller box here would silently re-shrink the fix below
+            # clinician-readable size. Height is a generous cap, not a
+            # binding constraint at this figure's aspect ratio.
+            story.append(Image(str(path), width=17 * cm, height=24 * cm, kind="proportional"))
+            story.append(P(_chart_caption_ko(key, lon, fig_no), "meta"))
+            story.append(Spacer(1, 0.3 * cm))
     if not any_chart:
         story.append(P("정보 없음 (차트 없음 또는 chart_paths 미전달)", "body"))
 
@@ -1197,7 +1496,7 @@ def build_pdf_report(
         if a6.mode:
             a6_flow.append(P(f"mode: {a6.mode}", "body"))
         if a6.reason_summary:
-            a6_flow.append(P(f"reason_summary: {a6.reason_summary}", "body"))
+            a6_flow.append(P(f"사유: {_a6_reason_summary_ko(a6.reason_summary, notes)}", "body"))
     else:
         top, rest = a6.candidates[:3], a6.candidates[3:]
         rows = [["순위", "질환", "유사도"]]
@@ -1219,7 +1518,7 @@ def build_pdf_report(
         rows = [["진료과", "사유"]] + [[d.department, d.reason] for d in a7.department_candidates]
         story.append(_table(rows, font_size=8))
     else:
-        story.append(P(a7.department_candidates_absence_note or "정보 없음", "body"))
+        story.append(P(_a7_absence_note_ko(a7, notes), "body"))
     if a7.recommended_questionnaire:
         story.append(
             P(
@@ -1238,6 +1537,26 @@ def build_pdf_report(
     else:
         story.append(P(a8.absent_marker, "body"))
 
+    # ── 상세 부록 (CVR-026 Finding 1/2/3) ──
+    story.append(PageBreak())
+    story.append(P("상세 부록", "h2"))
+    if appendix.entries:
+        for n, label, full_text in appendix.entries:
+            story.append(P(f"{n}. {label}", "h3"))
+            story.append(P(full_text, "body"))
+    slot_history_sections = [
+        (row.label, " → ".join(row.change_history_full))
+        for row in _slot_table_rows(so)
+        if len(row.change_history_full) >= 2
+    ]
+    if slot_history_sections:
+        story.append(P("슬롯별 전체 변화 이력 (미압축)", "h3"))
+        for label, full_text in slot_history_sections:
+            story.append(P(label, "meta"))
+            story.append(P(full_text, "body"))
+    if not appendix.entries and not slot_history_sections:
+        story.append(P("해당 없음 — 본문에서 잘린 항목이 없습니다.", "body"))
+
     # ── 각주 (감사용 메타) ──
     story.append(Spacer(1, 0.3 * cm))
     story.append(
@@ -1245,7 +1564,12 @@ def build_pdf_report(
     )
     if a5.present:
         story.append(P(f"설문 문항 출처: {a5.item_bank_provenance or '미상'}", "meta"))
-    story.append(P(f"종단 추세 판정 근거(감사용): {b.overall_direction_sensitivity_note}", "meta"))
+    # CVR-026 Finding 5/7: internal review/bug-ID citations relocated here,
+    # separated from the clinical footnote line above.
+    story.append(P("시스템 참고 (내부 감사용, 임상 판단 근거 아님)", "meta"))
+    story.append(P(f"종단 추세 판정 근거: {b.overall_direction_sensitivity_note}", "meta"))
+    for note in notes.notes:
+        story.append(P(note, "meta"))
 
     buf = io.BytesIO()
     doc = SimpleDocTemplate(

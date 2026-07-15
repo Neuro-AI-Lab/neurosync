@@ -54,6 +54,7 @@ _EXPECTED_SECTION_MARKERS = [
     "## AI 참고 정보 (비진단)",
     "## 권장 진료과 및 후속 조치",
     "## 임상 종합 소견",
+    "## 상세 부록",
     "## 각주",
 ]
 
@@ -658,13 +659,25 @@ class TestPdfFontEmbedding:
 
 class TestA7DisclosureExporters:
     def test_markdown_shows_validation_dropped_wording_when_flagged(self) -> None:
+        """CVR-026 Finding 5 (major): the internal bug-ticket ID
+        (`VAL-016/BUG-031`) must NOT appear inline in the clinician-facing
+        A7 body — only the honest, ID-free Korean plain-text note there;
+        the ID-bearing original moves to the 각주 시스템 참고 subsection
+        (never dropped, verified via the whole-document `md` search
+        below)."""
         from src.schemas.handoff_report import A7_NO_CANDIDATES_VALIDATION_DROPPED_KO
+        from src.services.f5_report import _A7_ABSENCE_VALIDATION_DROPPED_PLAIN_KO
 
         report = _full_report(department_candidates=(), validation_errors_present=True)
         md = build_markdown_report(report)
         a7_section = md.split("## 권장 진료과 및 후속 조치")[1].split("## 임상 종합 소견")[0]
-        assert A7_NO_CANDIDATES_VALIDATION_DROPPED_KO in a7_section
-        assert "VAL-016" in a7_section
+        assert _A7_ABSENCE_VALIDATION_DROPPED_PLAIN_KO in a7_section
+        assert A7_NO_CANDIDATES_VALIDATION_DROPPED_KO not in a7_section
+        assert "VAL-016" not in a7_section
+        # relocated, not dropped — the full original + ID lives in the
+        # 각주 시스템 참고 subsection of the SAME document.
+        assert A7_NO_CANDIDATES_VALIDATION_DROPPED_KO in md
+        assert "VAL-016" in md.split("## 각주")[1]
 
     def test_markdown_shows_model_judged_wording_when_not_flagged(self) -> None:
         from src.schemas.handoff_report import (
@@ -700,6 +713,14 @@ class TestA7DisclosureExporters:
 
 class TestA6ReasonSummaryExporters:
     def test_markdown_surfaces_reason_summary_when_unpopulated(self) -> None:
+        """CVR-026 Finding 4 (major): an unrecognized English
+        `reason_summary` (this fixture's ad-hoc string, not the real
+        `src.f2` production wording) must render as the generic Korean
+        fallback in the clinician-facing A6 body — never raw English —
+        with the original relocated to the 각주 시스템 참고 subsection
+        (never dropped)."""
+        from src.services.f5_report import _A6_REASON_SUMMARY_FALLBACK_KO
+
         apd = AIPredictedDiseaseOutput(
             candidates=[],
             mode="experimental_unpopulated",
@@ -708,8 +729,28 @@ class TestA6ReasonSummaryExporters:
         report = _full_report(apd=apd)
         md = build_markdown_report(report)
         a6_section = md.split("## AI 참고 정보 (비진단)")[1].split("## 권장 진료과 및 후속 조치")[0]
-        assert "no RAG chunks retrieved this run" in a6_section
+        assert "no RAG chunks retrieved this run" not in a6_section
+        assert _A6_REASON_SUMMARY_FALLBACK_KO in a6_section
         assert "mode: experimental_unpopulated" in a6_section
+        assert "no RAG chunks retrieved this run" in md.split("## 각주")[1]
+
+    def test_markdown_translates_known_production_reason_summary(self) -> None:
+        """The REAL `src.f2` unpopulated-mode wording is a known, exact
+        mapping — translated to plain Korean directly in the body, no
+        English leak."""
+        apd = AIPredictedDiseaseOutput(
+            candidates=[],
+            mode="experimental_unpopulated",
+            reason_summary=(
+                "Stage 1 ran in llm_only mode (no RAG chunks retrieved this run) — the "
+                "AI-disease container has no chunk-derived evidence to populate from"
+            ),
+        )
+        report = _full_report(apd=apd)
+        md = build_markdown_report(report)
+        a6_section = md.split("## AI 참고 정보 (비진단)")[1].split("## 권장 진료과 및 후속 조치")[0]
+        assert "Stage 1 ran in llm_only mode" not in a6_section
+        assert "RAG" in a6_section  # plain-Korean translation still names RAG
 
     def test_pdf_surfaces_reason_summary_when_unpopulated(self) -> None:
         apd = AIPredictedDiseaseOutput(
@@ -721,6 +762,8 @@ class TestA6ReasonSummaryExporters:
         pdf_bytes = build_pdf_report(report)
         reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
         text = "".join(p.extract_text() for p in reader.pages)
+        # relocated to the PDF's own 시스템 참고 footnote, not the A6 box —
+        # still present somewhere in the full document (audit trail).
         assert "no RAG chunks retrieved this run" in text
 
     def test_markdown_omits_reason_summary_for_rag_live_empty(self) -> None:
@@ -906,3 +949,138 @@ class TestBuildNarrativeInputText:
         assert "시행된 설문:" in text
         assert "권장 진료과:" in text
         assert "종단 추세:" in text
+
+
+# ── CVR-026 fix verification (this mission) ──────────────────────────────
+
+
+class TestDetailAppendix:
+    """Finding 1 (blocking): every truncation marker must point to a REAL,
+    numbered 상세 부록 entry — never the old dead `"(상세 아래)"` reference."""
+
+    def test_truncated_risk_quote_gets_numbered_appendix_entry(self) -> None:
+        report = _full_report()
+        long_quote = "환자 발화: " + "가" * 150
+        report.a3_risk_safety.risk_assessment_text = long_quote
+        md = build_markdown_report(report)
+        assert "(상세 아래)" not in md
+        assert "(상세 부록 1 참조)" in md
+        appendix = md.split("## 상세 부록")[1].split("## 각주")[0]
+        assert long_quote in appendix
+
+    def test_truncated_slot_value_gets_appendix_entry(self) -> None:
+        long_value = "개" * 120
+        sessions = (
+            SessionSlotSnapshot(1, "2026-01-01", {"personal_social_history": long_value}),
+            SessionSlotSnapshot(2, "2026-02-01", {"personal_social_history": long_value}),
+        )
+        report = _full_report(all_sessions=sessions)
+        md = build_markdown_report(report)
+        assert "(상세 아래)" not in md
+        appendix = md.split("## 상세 부록")[1].split("## 각주")[0]
+        assert long_value in appendix
+
+    def test_minimal_report_appendix_shows_explicit_absence(self) -> None:
+        md = build_markdown_report(_minimal_report())
+        appendix = md.split("## 상세 부록")[1].split("## 각주")[0]
+        assert "해당 없음" in appendix
+
+    def test_pdf_appendix_section_present_with_full_text(self) -> None:
+        report = _full_report()
+        long_quote = "환자 발화: " + "가" * 150
+        report.a3_risk_safety.risk_assessment_text = long_quote
+        pdf_bytes = build_pdf_report(report)
+        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+        text = "".join(p.extract_text() for p in reader.pages)
+        assert "상세 부록" in text
+        assert "위험평가 발화 원문" in text
+        # reportlab's own line-wrap inserts newlines pypdf's text layer
+        # reproduces — compare with whitespace collapsed, not verbatim.
+        assert long_quote.replace(" ", "") in text.replace("\n", "").replace(" ", "")
+
+
+class TestSlotHistoryFullAppendix:
+    """Finding 2 (major): the compact slot table's per-entry 60-char cap on
+    `change_history` loses clinically material text (an A1-A3 style
+    appendix regression) — the FULL, untruncated quotes now always live in
+    a dedicated 상세 부록 subsection, pointed to from the table."""
+
+    def test_full_change_history_quotes_appear_in_appendix_not_table(self) -> None:
+        long_value_1 = "짧은값1" * 20
+        long_value_2 = "짧은값2" * 20
+        sessions = (
+            SessionSlotSnapshot(1, "2026-01-01", {"chief_complaint": long_value_1}),
+            SessionSlotSnapshot(2, "2026-02-01", {"chief_complaint": long_value_2}),
+        )
+        report = _full_report(all_sessions=sessions)
+        md = build_markdown_report(report)
+        table_section = md.split("## 전체 세션 요약")[1].split("**주요 경과**")[0]
+        appendix_section = md.split("## 상세 부록")[1].split("## 각주")[0]
+        assert "상세 부록 참조" in table_section
+        assert long_value_1 not in table_section  # compact cell stays truncated
+        assert long_value_1 in appendix_section
+        assert long_value_2 in appendix_section
+
+
+class TestMajorCourseBulletsMaterialMiddle:
+    """Finding 3 (major): a first/last-only selection can silently elide a
+    clinically material EARLY signal into the "..." placeholder — the
+    bullet now surfaces a real MIDDLE change point too."""
+
+    def test_selects_first_material_middle_and_last_not_ellipsis(self) -> None:
+        sessions = tuple(
+            SessionSlotSnapshot(i, f"2026-0{i}-01", {"history_of_present_illness": f"값{i}"})
+            for i in range(1, 6)
+        )
+        report = _full_report(all_sessions=sessions)
+        md = build_markdown_report(report)
+        section = md.split("## 전체 세션 요약")[1].split("## 시행된 설문")[0]
+        assert "→ ... →" not in section
+        assert "S1: '값1'" in section
+        assert "S3: '값3'" in section  # material middle point, not elided
+        assert "S5: '값5'" in section
+
+
+class TestInternalRefStrippingAndDedup:
+    """Findings 5-8: internal review/bug-ID citations relocate to the 각주
+    시스템 참고 subsection; the near-duplicate F3-gap/ceiling caveats
+    collapse to one canonical body location."""
+
+    def test_gap_disclosure_bullet_strips_review_id_suffix(self) -> None:
+        report = _full_report()
+        report.a5_questionnaires.gap_disclosure = [
+            "session 10 (2026-12-12): risk-elevated (crisis_triggered=True, session_ctrs=2) but "
+            "NO scale was administered this session — F3 gap at a clinically high-value point "
+            "(CVR-020 Finding 4 / binding condition 3)"
+        ]
+        md = build_markdown_report(report)
+        body = md.split("## 각주")[0]
+        assert "CVR-020" not in body
+        assert "binding condition" not in body
+        footnote = md.split("## 각주")[1]
+        assert "CVR-020" in footnote
+
+    def test_gap_acuity_framing_note_has_no_review_id_in_body(self) -> None:
+        from src.schemas.handoff_report import CRISIS_F3_GAP_ACUITY_FRAMING_KO
+
+        md = build_markdown_report(_full_report())
+        body = md.split("## 각주")[0]
+        assert "CVR-022" not in body
+        assert CRISIS_F3_GAP_ACUITY_FRAMING_KO not in body
+
+    def test_ceiling_caveat_not_repeated_verbatim_within_a3(self) -> None:
+        from src.schemas.handoff_report import CEILING_SCORE_CAVEAT_KO
+
+        report = _full_report(prior_total_score=27, prior_max_score=27)
+        md = build_markdown_report(report)
+        a3_section = md.split("## 위험/안전 평가")[1].split("## 주호소 및 현병력")[0]
+        assert a3_section.count(CEILING_SCORE_CAVEAT_KO) == 1
+
+    def test_pdf_ceiling_caveat_not_repeated_within_a3(self) -> None:
+        report = _full_report(prior_total_score=27, prior_max_score=27)
+        pdf_bytes = build_pdf_report(report)
+        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+        text = "".join(p.extract_text() for p in reader.pages)
+        # A3 contributes exactly 1 occurrence (table-adjacent), A5 its own
+        # separate ADR-038 Decision 2c occurrence -> total 2, not 3+.
+        assert text.count("ISS-F2V-028") == 2

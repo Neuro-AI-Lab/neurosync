@@ -331,6 +331,18 @@ class SlotOverviewRow(BaseModel):
     source_session_index: int | None = None
     source_simulated_date: str | None = None
     change_history: list[str] = Field(default_factory=list)
+    change_history_full: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Same (session, value) points as `change_history`, but each "
+            "value only whitespace-flattened — NEVER character-truncated "
+            "(CVR-026 Finding 1/2: `change_history`'s own 60-char-per-entry "
+            "cap loses clinically material text, e.g. an early HPI "
+            "precipitant/symptom mentioned only in an early session). "
+            "Renderer-only field: consumed exclusively by the 상세 부록 "
+            "(detail appendix) section, never the compact slot table."
+        ),
+    )
     section_pointer: str | None = None
 
 

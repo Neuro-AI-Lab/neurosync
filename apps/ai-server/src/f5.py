@@ -255,6 +255,19 @@ def _truncate_one_line(text: str, max_len: int = 80) -> str:
     return first_line
 
 
+def _flatten_full(text: str) -> str:
+    """Collapses internal newlines/repeated whitespace to single spaces,
+    NEVER character-truncates (CVR-026 Finding 1/2: `SlotOverviewRow.
+    latest_value` is the renderer's own source of truth for a slot's full
+    text — a 상세 부록 appendix entry built from an already-160-char-capped
+    `latest_value` would still be a dead-end truncation, just moved one
+    layer down). Table-cell-safe compaction (removing the newline, which a
+    markdown/PDF table cell cannot safely contain) still happens — only the
+    LENGTH cap is gone; the renderer applies its OWN 80-char compact-cell
+    truncation on top of this at render time, with a real appendix pointer."""
+    return " ".join(text.split())
+
+
 def _flatten_for_cell(text: str, max_len: int = 160) -> str:
     """Collapses internal newlines/repeated whitespace to single spaces
     (never drops content after the first line, unlike `_truncate_one_line`
@@ -397,19 +410,31 @@ def _slot_row(key: str, label: str, sessions: list[SessionSlotSnapshot]) -> Slot
 
     latest_idx, latest_date, latest_value = distinct[-1]
     change_history: list[str] = []
+    change_history_full: list[str] = []
     if len(distinct) > 1:
         change_history = [
             f"S{idx}: '{_flatten_for_cell(value, 60)}'" for idx, _date, value in distinct
+        ]
+        # CVR-026 Finding 1/2: `change_history` above is a 60-char-per-entry
+        # COMPACT preview for the slot table cell — this parallel field
+        # keeps the same (session, value) points whitespace-flattened only
+        # (never character-truncated), so the renderer's 상세 부록 (detail
+        # appendix) can restore the full quote a clinician would otherwise
+        # never see (e.g. an S1 precipitant/symptom mentioned only once,
+        # early in the arc).
+        change_history_full = [
+            f"S{idx}: '{' '.join(value.split())}'" for idx, _date, value in distinct
         ]
 
     return SlotOverviewRow(
         key=key,
         label=label,
         collected=True,
-        latest_value=_flatten_for_cell(latest_value),
+        latest_value=_flatten_full(latest_value),
         source_session_index=latest_idx,
         source_simulated_date=latest_date,
         change_history=change_history,
+        change_history_full=change_history_full,
         section_pointer=SLOT_SECTION_POINTERS_KO.get(key),
     )
 

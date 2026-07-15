@@ -115,7 +115,7 @@ def _generate_and_save_charts(
 
     # Chart 1: scale totals + CTRS + sentiment + slot-fill, multi-panel.
     result = generate_trend_plot(
-        data_points, patient_name=output.vp_id, title=f"F4 Longitudinal Trend — {output.vp_id}"
+        data_points, patient_name=output.vp_id, title=f"F4 종단 추이 — {output.vp_id}"
     )
     if result is not None:
         p = out_dir / f"{prefix}_temporal_scales_ctrs_sentiment.png"
@@ -130,7 +130,7 @@ def _generate_and_save_charts(
     ]
     if ctrs_only:
         ctrs_result = generate_trend_plot(
-            ctrs_only, patient_name=output.vp_id, title=f"F4 CTRS/Risk Zoom — {output.vp_id}"
+            ctrs_only, patient_name=output.vp_id, title=f"F4 위기단계(CTRS) 확대 — {output.vp_id}"
         )
         if ctrs_result is not None:
             p = out_dir / f"{prefix}_temporal_ctrs_zoom.png"
