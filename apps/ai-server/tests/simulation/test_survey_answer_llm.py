@@ -167,7 +167,7 @@ class TestSurveyAnswerLLMAnswerFlow:
 
 class TestExp021FactorialGoldenPrompts:
     """REV-040 (2)/Issue 1's three REQUIRED golden prompt tests, gating
-    `docs/ai/exp021_factorial_design.md` implementation. Item text/anchors
+    `_archive/plans/exp021_factorial_design.md` implementation. Item text/anchors
     are always read directly from `get_item_bank`/`get_item_bank_v0` — never
     hand-retyped (§3 of the design; CVR-016 Finding 3 transcription-fidelity
     discipline).

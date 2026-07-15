@@ -1,6 +1,6 @@
 """EXP-021 factorial cell driver — HARNESS ONLY, never `src/`.
 
-`docs/ai/exp021_factorial_design.md` (brainstorm), `discussion.md` REV-040
+`_archive/plans/exp021_factorial_design.md` (brainstorm), `discussion.md` REV-040
 (critic pre-registration; per-role conditions at REV-040 (6) developer row —
 implemented here). Isolates which of PHQ-9's three v0->v1 bundled changes
 (item text, response-anchor presence, instruction/timeframe presence) drives
@@ -134,7 +134,7 @@ CODE_REF = (
     "apps/ai-server/tests/simulation/factorial_driver.py::run_cell "
     "(tests.simulation.survey_answer_llm.SurveyAnswerLLM, src.f3.administer_survey)"
 )
-DESIGN_REF = "docs/ai/exp021_factorial_design.md; discussion.md REV-040"
+DESIGN_REF = "_archive/plans/exp021_factorial_design.md; discussion.md REV-040"
 
 
 @dataclass(frozen=True)
@@ -219,7 +219,7 @@ def build_cell_item_bank_entry(cell: int) -> ItemBankEntry:
         scale_name="PHQ-9",
         version=f"exp021-{cell_label(cell)}",
         provenance=(
-            f"EXP-021 factorial hybrid cell {cell}, per docs/ai/exp021_factorial_design.md "
+            f"EXP-021 factorial hybrid cell {cell}, per _archive/plans/exp021_factorial_design.md "
             "as amended by discussion.md REV-040 -- item text and anchors sourced verbatim "
             "from the production item bank accessors, never hand-retyped"
         ),

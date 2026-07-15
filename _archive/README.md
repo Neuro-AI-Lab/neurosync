@@ -1,8 +1,9 @@
 # `_archive/` — pre-validation-program development history
 
-**Status:** W1 wave 1 complete (2026-07-11) — `simulation_results/` populated. `plans/`,
-`reports/`, `legacy_code/`, `agent_memory/`, `root_docs_snapshot/` remain scaffold-only
-(deferred to W6-end per `PLAN-2026-W28-Q` W0 status (c)).
+**Status:** W1 wave 1 complete (2026-07-11) — `simulation_results/` populated. Stage F wave 2
+complete (2026-07-15, `CLEAN-2026-07-15`) — `plans/`, `reports/`, `legacy_code/` populated;
+`simulation_results/` extended with the pre-`EXP-025` accumulation. `agent_memory/`,
+`root_docs_snapshot/` remain scaffold-only (still deferred, per `ADR-023` Phase 2 timing).
 
 ## What this is
 
@@ -18,19 +19,18 @@ to how F1/F2 were built or previously tested (`docs/ai/validation_plan_f1f2_cont
 
 | Path | Intended content |
 |:--|:--|
-| `plans/` | Superseded planning docs / PLAN entries not needed by validators |
-| `reports/` | Prior DR/REPORT-style development reports |
-| `simulation_results/` | **Populated 2026-07-11.** Legacy `docs/ai/simulation_results/` artifacts + old `experiments/EXP-*` runs. See manifest below. |
-| `legacy_code/` | Old/unused source code superseded by the current F1/F2 implementation — scaffold only, deferred to W6-end |
+| `plans/` | Superseded planning/design/proposal docs — **populated 2026-07-15 (wave 2)**. Pre-existing: `PRD_task1.md`, `prompt_redesign_v3.md`, `vp_validation_scenarios.md`. Added wave 2: see manifest below. |
+| `reports/` | Prior review-scratch / PR-description / DR-style development reports — **populated 2026-07-15 (wave 2)**. Pre-existing: `docs_ai_backups/`, `papers_notes/`, `pr_description_f1_stt_ocr.md`, `pr_description_map_api.md`. Added wave 2: see manifest below. |
+| `simulation_results/` | **Populated 2026-07-11 (wave 1)**, extended 2026-07-15 (wave 2). Legacy `docs/ai/simulation_results/` artifacts + old `experiments/EXP-*` runs. See manifests below. |
+| `legacy_code/` | Old/unused source code + one-off analysis scripts superseded by the current F1/F2 implementation — **populated 2026-07-15 (wave 2)** with `analysis_scripts/` (new subfolder, one-off DATASET/EXP audit scripts); `ai-server_backup/` pre-existing (scaffold from wave 1) |
 | `agent_memory/` | Quarantined `.claude/agent-memory/*` (Phase 2 only — memoryless validation specialists) — scaffold only |
-| `root_docs_snapshot/` | Pre-reset snapshot of `result.md`/`discussion.md`/`error.md` taken at the `VER-00X` version transition — scaffold only |
-| `plans/`, `reports/` | Superseded planning/report docs — scaffold only, deferred to W6-end per `PLAN-2026-W28-Q` W0 status (c) |
+| `root_docs_snapshot/` | Pre-reset snapshot of `result.md`/`discussion.md`/`error.md` taken at the `VER-00X` version transition — populated at each version transition (see `ver003/` and the 2026-07-11 dated files) |
 
-`plans/`, `reports/`, `legacy_code/`, `agent_memory/`, `root_docs_snapshot/` currently hold
-only a `.gitkeep` placeholder each. `simulation_results/` is populated (this wave). Remaining
-content moves land at the `ADR-023` Phase 2 boundary (agent-memory quarantine, root-docs
-snapshot) and the W6-end prior-plans/reports/legacy-code sweep, per
-`docs/ai/workflow_checklist_f1f2.md`.
+`agent_memory/` remains scaffold-only (`.gitkeep` placeholder) — still deferred to the
+`ADR-023` Phase 2 boundary (agent-memory quarantine is a blind-validation-arming action, not a
+routine cleanup). `plans/`, `reports/`, `legacy_code/`, `simulation_results/`,
+`root_docs_snapshot/` are now populated across wave 1 (2026-07-11) and wave 2 (2026-07-15,
+Stage F of the F1-F5 total-validation program, `CLEAN-2026-07-15`).
 
 ## Manifest — `simulation_results/` (wave 1, 2026-07-11)
 
@@ -64,6 +64,49 @@ still point at the old fixture paths (not patched here; out of scope for fileman
 `docs/ai/simulation_results/` and `experiments/` root directories remain present (empty of
 legacy content) as the landing zone for new F1/F2 validation-battery artifacts and new
 experiment-tracker runs respectively — each carries a short README/is otherwise empty.
+
+## Manifest — Stage F wave 2 (2026-07-15, `CLEAN-2026-07-15`)
+
+**Source:** `analysis/`, `docs/ai/*.md`, `docs/ai/simulation_results/` (all git-tracked, moved
+via `git mv`, git-detected renames).
+**Destination:** `_archive/legacy_code/analysis_scripts/`, `_archive/plans/`,
+`_archive/reports/`, `_archive/simulation_results/<VP>/` and `_archive/simulation_results/safety_matrix/`.
+**Authority:** Stage F of the F1-F5 total-validation program
+(`docs/ai/f1f5_total_validation_plan.md`), user directive (archive old md/json/py files
+unnecessary to F1-F5 functional operation), scan-and-approve two-step: candidate list at
+`docs/ai/stage_f_archive_candidates.md`, user-approved with 4 md files (BUG-036/037 3-fix-cycle
+scoring reference, live-verification still carried-forward open in `.claude/state/handoff.json`)
+and 2 md files (`audit_c_korean_research.md`/`who5_sourcing_retry2.md`, load-bearing for the
+living `item_bank_v1_sources.md`) explicitly held back from this wave.
+
+**Classification method:** py — import-graph liveness check (nothing imports these 4 outside
+their own already-archived one-off purpose); md — cross-reference against the current living-doc
+set (`PRD_task1_v2.md`, `checklist_task1.md`, `workflow_*_f1f2.md`, `item_bank_v1_sources.md`,
+`discussion.md`/`result.md`/`error.md`/`version.md`, `.claude/state/handoff.json`), narrative
+pointer citation (safe) vs. structural dependency citation (held); json — filename-timestamp
+bucketing against `EXP-025`'s logged wall-clock window (`result.md` EXP-025, 2026-07-15
+15:46-17:22 KST) — files stamped `_20260715_*` are the current battery, kept in place; earlier
+stamps predate `EXP-025` and are this wave's json/artifact candidates.
+
+| Subtree | Files moved | Notes |
+|:--|--:|:--|
+| `legacy_code/analysis_scripts/` (new) | 4 | `aud_ontology_load_verification.py`, `canary_zero_hit_verification.py`, `rag_corpus_leakage_audit.py` (DATASET-005/006 one-off W6/W7A re-verification scripts, findings condensed into `version.md`'s `DATASET-003-ext`/`DATASET-004-ext`/`DATASET-006`), `w7b_golden_scoring.py` (W7b blind-scorer worksheet, headline MET-3 17/22-top1/18/22-top3 already reported in `result.md`/`workflow_results_f1f2.md`). `analysis/threshold_n_met8_w1_20260711.py` explicitly excluded — still cited by `apps/ai-server/src/rag_trigger.py:100` and `docs/ai/validation_plan_f1f2_continuous.md:412` |
+| `plans/` (added) | 4 | `fix_proposal_bug030.md`, `fix_design_bug030_iter2.md` (BUG-030 iteration-1/2 design, both superseded/landed — `d68c8a2`/`266eea1`), `phr_integration_plan.md` (pre-implementation plan for the now-merged PHR feature, `06faa30`..`f4fd234`), `exp021_factorial_design.md` (`ISS-F2V-028` factorial design, ruled inconclusive, raw data in `experiments/EXP-021/`) |
+| `reports/` (added) | 4 | `critic_scratch_rev032_bug030iter2.md`, `critic_scratch_rev033_exp018.md` (BUG-030 review scratch, iteration-1/2, absorbed into `workflow_results_f1f2.md`), `pr_description_phr_and_medication.md`, `pr_description_phr_integration.md` (PR-description docs for the already-merged PHR feature, zero external references from any living index doc) |
+| `simulation_results/VP-001/` (extended) | 175 | Pre-`EXP-025` accumulation since wave 1 (2026-07-11 through 2026-07-13): W2 dialogue-v3 regression, BUG-030/035/036/037 fix-cycle artifacts, F3/F4/F5 quick-dev live runs |
+| `simulation_results/VP-002/` (extended) | 52 | Same window/shape |
+| `simulation_results/VP-003/` (extended) | 158 | Same window/shape |
+| `simulation_results/VP-004/` (extended) | 66 | Same window/shape |
+| `simulation_results/VP-010/` (new) | 22 | W6 persona-introduction through pre-`EXP-025` runs (VP-010 didn't exist at wave 1) |
+| `simulation_results/VP-011/` (new) | 16 | Same, W6 introduction |
+| `simulation_results/VP-012/` (new) | 41 | Same, W6 introduction |
+| `simulation_results/safety_matrix/` (extended) | 94 | Full subtree — no `EXP-025`-era (`_20260715_*`) file exists in `safety_matrix/`, so this is a complete, not partial, sweep of that subtree; source dir removed after empty |
+| **Total** | **624** | |
+
+`docs/ai/simulation_results/` retains exactly the `EXP-025` current artifact set post-move: 49
+(VP-001) + 39 (VP-002) + 47 (VP-003) + 39 (VP-004) + 39 (VP-010) + 39 (VP-011) + 39 (VP-012) = 291
+files, `README.md` unchanged, `safety_matrix/` directory removed (emptied, no current-battery
+content exists in that subtree).
 
 ## Access control
 
