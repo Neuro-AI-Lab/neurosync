@@ -2,13 +2,15 @@
 
 No live DB/LLM anywhere in this file (mirrors `test_f2_pipeline.py`'s C-4
 mock-based constraint) — this only proves the module imports cleanly, the
-stage registry is correctly shaped (F1/F2/F3 real, F4-F6 explicit logged
-skip stubs), the chain runner's skip/halt-on-fail semantics work end to end
-on synthetic stages, the CLI parses as documented, and the DSN-masking
-helper never leaks a password. The live F1->F2->F3 chain run is out of
-scope here (experiment-tracker's job, behind the mandatory gates). F3's own
-stage behavior (`run_f3_stage`, ledger `"f3"` sub-object, session chaining)
-is covered in `tests/test_continuous_test_f3.py`.
+stage registry is correctly shaped (F1-F5 real, F6 an explicit logged skip
+stub), the chain runner's skip/halt-on-fail semantics work end to end on
+synthetic stages, the CLI parses as documented, and the DSN-masking helper
+never leaks a password. The live F1->F2->F3 chain run is out of scope here
+(experiment-tracker's job, behind the mandatory gates). F3's own stage
+behavior (`run_f3_stage`, ledger `"f3"` sub-object, session chaining) is
+covered in `tests/test_continuous_test_f3.py`; F5's own stage behavior
+(`run_f5_stage`, `--f5-from-artifacts` replay CLI) is covered in
+`tests/test_continuous_test_f5.py`.
 """
 
 from __future__ import annotations
@@ -21,22 +23,22 @@ import src.continuous_test as ct
 
 
 class TestStageRegistryShape:
-    def test_f1_through_f4_are_implemented(self) -> None:
+    def test_f1_through_f5_are_implemented(self) -> None:
         """F4 flips to implemented once `src/f4.py` ships (`PLAN-2026-W29-D`,
-        `ADR-036`) — the exact extension seam `STAGE_REGISTRY`'s own
+        `ADR-036`); F5 flips once `src/f5.py` ships (`PLAN-2026-W29-E`,
+        `ADR-037`) — the exact extension seam `STAGE_REGISTRY`'s own
         docstring describes."""
         by_name = {s.name: s for s in ct.STAGE_REGISTRY}
-        for name in ("F1", "F2", "F3", "F4"):
+        for name in ("F1", "F2", "F3", "F4", "F5"):
             assert by_name[name].implemented is True
             assert callable(by_name[name].run)
 
-    def test_f5_f6_are_explicit_logged_skip_stubs(self) -> None:
+    def test_f6_is_an_explicit_logged_skip_stub(self) -> None:
         by_name = {s.name: s for s in ct.STAGE_REGISTRY}
-        for name in ("F5", "F6"):
-            stage = by_name[name]
-            assert stage.implemented is False
-            assert stage.run is None
-            assert stage.note, f"{name} must carry a non-empty explanatory note (never silent)"
+        stage = by_name["F6"]
+        assert stage.implemented is False
+        assert stage.run is None
+        assert stage.note, "F6 must carry a non-empty explanatory note (never silent)"
 
     def test_registry_order_is_f1_through_f6(self) -> None:
         assert [s.name for s in ct.STAGE_REGISTRY] == ["F1", "F2", "F3", "F4", "F5", "F6"]

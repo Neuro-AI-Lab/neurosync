@@ -37,6 +37,7 @@
 | v2.11 | 2026-07-13 | **Item bank v1 로드 완료 (`PLAN-2026-W29-A`):** PHQ-9(Pfizer-primary)/GAD-7/PHQ-4(파생)/AUDIT-C 4개 척도가 연구 기반 출처 검증(brainstorm `item_bank_v1_sources.md`, clinical-validator content-fidelity gate `CVR-016` adequate-with-conditions → 5개 binding condition 전건 `CVR-017`§4에서 종결)을 거쳐 sourced-verbatim·appendix-audited 상태로 실장(WHO-5는 저장소 전역 원문 부재로 0/5 unpopulated 유지, exhaustive 재시도 로그 보유, 허구생성 0 원칙 준수). anchor·timeframe 문구가 시뮬레이터 응답-LLM 프롬프트 경로에 배선되고, forced-questionnaire 하네스 모드(`--force-questionnaire`, `administration_mode` 구조적 필드, `ADR-033`(6) — natural-chain/F2-linkage 증거와 별개의 evidence class로 제한, 프로덕션 `f3.py`/`f2.py` 동작 무변경)와 PHQ-9 문항9 결정론적 safety-pathway 소비자-seam 배선(코드 검증만, 라이브 미검증)이 추가됐다. AUDIT-C `threshold_caveat` 및 GAD-7 동등 caveat 필드(`CVR-017` binding condition 1 / `REV-039` correction D)가 실장·qa 검증됐다. **행동적 충실도(behavioral fidelity) 상태 — `CVR-017` binding condition 2에 따라 명시:** 문항 원문 sourcing 정확도 개선이 시뮬레이터 응답-LLM의 페르소나 충실도 개선을 의미하지 않는다 — `EXP-020` 실측에서 PHQ-9 세션당 총점 18/20(v0 13/15, 문서치 7), GAD-7 총점 17/중증(문서치 ~8/경증)으로 v0보다 문서치에서 더 멀어졌다(PHQ-9 9개 항목 중 5개 더 이탈/4개 동률/0개 근접). 이 whole-instrument 과다-인정(over-endorsement) 발견은 **열려있고(open) 완화되지 않았으며**, 메커니즘은 미검증(`REV-039`)이다 — v1 콘텐츠를 인용하는 어떤 향후 보고서도 이를 동반 공시해야 한다. item-8(정신운동 지연/초조)은 완전 anchor 문구 하에서도 동일 크기(+2)로 재현되어 "이 인스턴스(들)에서 아티팩트 지속"으로 판정(n=2, VP-001-only, bundled-change) — "resolved"/"fixed" 문구 금지. 별도 프로세스 사고 `BUG-038`(qa의 `git checkout --` 오류로 미커밋 `src/f3.py` 전체 소실, critical)은 byte-faithful 복원 + qa 재게이트 **GATE:PASS**(1415 passed/2 skipped, 정확 일치)로 종결 — 검토 대상 코드 자체의 결함이 아니다. 근거: `discussion.md` PLAN-2026-W29-A, CVR-016, ADR-033, REV-038, CVR-017, REV-039; `result.md` EXP-020; `error.md` BUG-038 |
 | v2.12 | 2026-07-13 | **`PLAN-2026-W29-B` 완료 (§4.1 갱신):** AUDIT-C Korean-primary 컷오프(male/unknown≥6·female≥5, Lee JH et al. 2018 KNHANES) 채택, 국제 컷오프(Bush et al. 1998, 4/3)는 non-action-driving metadata로 보존; 문항 원문은 sourced-verbatim 별지 제15호의3서식 소주-트랙(AUDIT-C v2)으로 이동; WHO-5 gap은 26회 재시도(retry-2) 후에도 재확인; `ISS-F2V-028` 요인분해(EXP-021, 10회 투여, Tier-1)는 "no dominant factor/inconclusive" 판정, 어떤 fix도 licensed되지 않음(`CVR-019` ∥ `REV-042` 독립 수렴); EXP-022 라이브 재검증에서 AUDIT-C v2 척도-천장 응답([4,4,4]=12/12, F3 검증사상 최초) 신규 관찰 — over-endorsement 패턴이 3번째·구조적으로 다른 척도로 확산 확인, 메커니즘은 미검증. `BUG-039`/`BUG-040` 해결. 근거: `discussion.md` PLAN-2026-W29-B, CVR-018, ADR-034, REV-040, REV-041, CVR-019, REV-042; `result.md` EXP-021, EXP-022; `error.md` BUG-039(resolved)/BUG-040(resolved) |
 | v2.13 | 2026-07-13 | **F4 quick development 완료 (§5 갱신, `PLAN-2026-W29-D`):** 종단 N-세션 분석 엔진(`src/f4.py`, commit `75472ee`) 구현 완료 — F1(slot/CTRS/crisis/probe/sentiment)+F2(domain/disease-similarity trend)+F3(item/total/band) 세션별 데이터를 VP당 1회 종단 분석으로 통합, aggregation basis/combination rule을 코드에서 사전공시(Criterion-0/0b). `REV-044`(critic) 사전-구현 검토 non-blocking-with-conditions → `CVR-020`(clinical-validator) adequate-with-conditions → `ADR-036`이 전 조건 dispositioned, 구현 licensed. qa **GATE:PASS**(suite 1669 passed/2 skipped; `BUG-041`/`BUG-042` mutation-coverage gap 발견·동일 세션 해결). `EXP-023`(VP-001×VP-003, 11세션×2, 22/22 세션 cell 완료, 0 실패) 약식 검증 — `CVR-021` 콘텐츠 pass → `REV-045`(post-evidence) evidence-sound-with-conditions(사전등록 8개 기준 전건 PASS) → `CVR-022`(post-evidence 임상 검토) adequate-with-conditions(binding condition 3건: VP-003 S8 사건의 S9 비지속성 공시, VP-001 item-9/CTRS 동일세션 불일치 공시, F3 계열 완전성의 급성도-반비례 성질 공시). 신규 전용 체크리스트: `docs/ai/f4_checklist.md`(`checklist_task1.md`의 T1-F4-* ID 시퀀스 승계, DEV-006/VER-007부터). 근거: `discussion.md` PLAN-2026-W29-D, ADR-036, REV-044, REV-045, CVR-020, CVR-021, CVR-022; `result.md` EXP-023; `error.md` BUG-041(resolved)/BUG-042(resolved) |
+| v2.14 | 2026-07-14 | **F5 quick development 완료 (§6 갱신, `PLAN-2026-W29-E`):** 결정론적 15-section 임상 hand-off report 엔진(`src/f5.py`, zero-LLM, zero file-I/O) 구현 완료 — F1(12 slots)+F2(domain/AI-predicted-disease)+F3(scale_scores)+F4(temporal.json) 산출물을 정적(Part A, A0-A8)+종단(Part B, B1-B5) 구조로 조립, md+PDF(임베드 한국어 CID→TrueType 폰트)+FHIR R4 document Bundle 3-포맷 파일 export(in-process, no server). `REV-046`(non-blocking-with-conditions)+`CVR-023`(adequate-with-conditions) 사전-구현 게이트 → `ADR-037`(내러티브 경로(A8) 이번 미션 DESCOPED, A3 종단 위험 신호 서브섹션 신설, A6 tie-handling, A0 disclaimer, A7 약물 메모 채택; PDF lib reportlab·FHIR shape 확정) → 구현(commit `9514798`/`0771534`/`8717382`/`50dd255`) → qa GATE:PASS(suite 1817 passed/2 skipped, F5 전용 테스트 148건). `EXP-024`(약식 functional validation, VP-001+VP-003, replay-from-`EXP-023`, zero LLM calls) r1(6/7 체크 PASS)→r2(`BUG-043`/checks 5c·7 수정 후 7/7 PASS)→r3(`BUG-044` 폰트 임베딩+4개 disclosure 수정 후 9/9 체크 PASS, 최종 판정 기준). `REV-047`(post-evidence, evidence-sound-with-corrections, 사전등록 9개 기준 전건 PASS + r3 addendum) + `CVR-024`(adequate-with-conditions, r3 addendum: "materially strengthened, no residual blocking item") 병행 검토, 3-검증 side-by-side 원칙 유지. `VAL-016`(F5 A7/A6 "정보 없음"이 F2 스키마검증 드롭과 진성 부재를 구분 못함, `BUG-031` 계열, open) 신규 파일링 — disclosure-only 완화만 licensed, 근본원인 수정은 이번 미션 범위 밖. 내러티브 웨이브(A8)는 v3 프롬프트 재설계+신규 REV/CVR 통과 전까지 전면 미착수 상태로 잔존(`T1-F5-DEV-017`). 근거: `discussion.md` PLAN-2026-W29-E, REV-046, CVR-023, ADR-037, REV-047, CVR-024, ADR-038; `result.md` EXP-024; `error.md` BUG-043(resolved)/BUG-044(resolved)/VAL-016(open) |
 
 ### 0.3 v1 대비 핵심 변경 요약
 
@@ -551,6 +552,15 @@ PLAN-2026-W29-D, REV-044, CVR-020, ADR-036, CVR-021, REV-045, CVR-022; `result.m
 
 ## 6. 기능 1-5 (F5): Handoff Report 생성
 
+### 6.0 기존 구현 (synthetic-input) — v2.0 원문, 보존
+
+> **주의(2026-07-14 추가, §6.1 신설과 함께):** 아래 서술은 `HandoffGeneratorAgent`(`agents/handoff_generator.py`,
+> v2 프롬프트, LLM 기반 12-section 독립 리포트) + `EvidenceVerifierAgent`의 기존 라이브 파이프라인
+> (`routes/handoff.py`, 합성/단일 세션 입력 기반 검증)을 가리키며, §6.1이 서술하는 신규 결정론적 F5 엔진
+> (`src/f5.py`, `PLAN-2026-W29-E`)과는 **다른, 별도의 코드 경로**다 — v2 프롬프트는 §6.1의 F5 엔진에서
+> 호출되지 않는다(`ADR-037` Decision 1, 내러티브 경로 DESCOPED). 양자는 병존하며, §6.1은 아래 §6.0을
+> 대체하지 않는다. 원문은 그대로 보존한다.
+
 **상태: 구현 완료. 4VP handoff 생성 + EvidenceVerifier 검증 통과 (합성/단일 세션 입력 기반). 12-section 완전성 자동 검증 및 evidence citation coverage 테스트 통과.**
 
 as-built 반영 사항:
@@ -562,6 +572,114 @@ as-built 반영 사항:
 - Handoff 위험도 = 세션 내 최대 심각도 (risk cap 수정), scale_scores + risk_events 인계 시 데이터 손실 수정 (2026-07 초 merge).
 
 **Phase 2 핵심**: 실제 F1 세션 → (F3 설문) → (F4 종단) → F5 handoff의 **전체 체인 E2E** 검증. Section 9(종단 변화)가 실데이터로 채워지는지, Section 12 evidence가 실제 대화 원문으로 추적되는지 확인 (§9.5).
+
+### 6.1 F5 quick development — as-built (`PLAN-2026-W29-E`, 2026-07-14)
+
+**상태: 구현 완료 (`PLAN-2026-W29-E`, single continuous mission — research → plan/checklist →
+dual 사전-구현 게이트 → 구현 → qa 게이트 → 약식 검증(`EXP-024` r1→r2→r3) → post-evidence dual 검토
+→ 문서 정리; user 착수 지시로 8-dispatch 체크포인트 룰 supersede). 결정론적(zero-LLM) 15-section
+임상 hand-off report 엔진 — 내러티브 섹션(A8)은 이번 미션 DESCOPED.**
+
+**아키텍처:**
+- `src/f5.py` — 순수 엔진(zero-LLM, zero file-I/O). F1(`conversation.json`)+F2(`domain_inference.json`,
+  `ai_predicted_disease`)+F3(`survey.json`)+F4(`temporal.json`) 아티팩트를 정적(Part A: A0 헤더/disclaimer,
+  A1 주호소, A2 현병력, A3 위험/안전+종단 위험 신호, A4 정신상태(부분), A5 시행 설문, A6 AI 예상질환,
+  A7 권장 진료과, A8 내러티브(비활성)) + 종단(Part B: B1 추세 판정, B2 CTRS 추이, B3 이벤트 타임라인,
+  B4 불일치 플래그, B5 차트) 구조로 조립. 하네스 파일(conversation/domain_inference/survey/temporal.json,
+  ledger)을 직접 열지 않음(`REV-044` Criterion 6 규율 승계 — 인용 오류는 `REV-046` Issue 6로
+  `REV-022`→`REV-044` Criterion 6 정정).
+- `src/schemas/handoff_report.py` — `extra="forbid"`, `is_diagnostic: Literal[False]` 타입 고정,
+  `SlotData`/`HandoffInput`/`DomainCandidate`/`LongitudinalAnalysisOutput`와 상호 import 없는 standalone 계보.
+- `src/services/f5_report.py` — md/PDF(reportlab)/FHIR R4 export. PDF는 최초 reportlab 내장
+  non-embedded CID 폰트(`HYSMyeongJo-Medium`/`HYGothic-Medium`)로 시작했으나, `BUG-044`(비-embedded
+  폰트가 렌더러에 따라 `·`/`⚠` 및 광범위 한글 dropout을 유발) 확인 후 SHA256-pinned 임베디드 subsetted
+  Noto Sans/Serif CJK KR TrueType 폰트(`apps/ai-server/assets/fonts/{NotoSansKR,NotoSerifKR}-Subset.ttf`,
+  자산 누락/불일치 시 fail-loud)로 교체(`ADR-038`, commit `50dd255`).
+- `apps/ai-server/src/continuous_test.py --f5-from-artifacts <ARTIFACTS_DIR> --out <OUT_DIR>` — 신규
+  세션 실행 없이 EXISTING `EXP-023` 아티팩트를 재생(replay)하는 CLI. `STAGE_REGISTRY`의 F5 stub이
+  `implemented=True`로 전환.
+- 내러티브 섹션(A8): **이번 미션 DESCOPED**(`ADR-037` Decision 1) — feature flag 하드코딩 `False`,
+  `narrative_enabled=True` 설정 시 `f5.py`가 `ValueError`를 raise(코드 레벨 하드 가드, 컨벤션이 아님).
+  `HandoffGeneratorAgent`/`EvidenceVerifierAgent` 호출 0건, `EXP-024`는 zero LLM calls로 실행. A8은
+  md/PDF/FHIR 전 포맷에서 "AI 종합 소견 미생성 (narrative disabled)" 명시적 마커(FHIR은 섹션 자체
+  생략 + disclaimer div에 A8-omission note, `ADR-038` Decision 2(d))로 렌더.
+
+**게이트 이력:**
+- 사전-구현: `REV-046`(critic, non-blocking-with-conditions — 핵심 소견: `handoff_generator` v2의
+  미변경 시스템 프롬프트가 "짧은 synthesis"가 아니라 완전 독립 12-section 리포트를 강제해 A8이 hard
+  red line #1과 충돌) + `CVR-023`(clinical-validator, adequate-with-conditions — 동일 근본 원인을
+  임상 해석 렌즈로 재확인, A3 Part-A 단일세션 스코핑이 `CVR-022` condition 2를 두 `EXP-024` VP 모두에
+  대해 구조적으로 전달 불가함을 신규 발견) → `ADR-037`(orchestrator, 내러티브 DESCOPED + A3/A6/A0/A7
+  amendment 채택 + PDF lib(reportlab)·FHIR shape 확정, 구현 licensed).
+- 구현: commit `9514798`(엔진+스키마+services+harness, F5 테스트 95건) → `0771534`(`BUG-043` — A3
+  `safety_referral`-only flagging mutation-survivor, 회귀 테스트만 추가·프로덕션 코드 무결함) →
+  `8717382`(`EXP-024` r1의 check 5c 캐비트-배치 FAIL/check 7 차트-마커 편차 수정) → `50dd255`
+  (`BUG-044` 폰트 임베딩 수정 + A6 `reason_summary`/A7 `VAL-016` 공시/exact-ceiling `ISS-F2V-028`
+  캐비트/FHIR A8-omission note 4건 disclosure 번들, `ADR-038`). qa GATE:PASS 매 커밋(최종 suite
+  **1817 passed / 2 skipped**, F5 전용 테스트 148건).
+
+**`EXP-024` 약식 functional validation(2 VPs, replay-from-`EXP-023`, deterministic-only, zero LLM calls):**
+- r1: md+PDF+FHIR 3-포맷 생성 exit 0, 7개 사전등록 체크 중 6 PASS, 1 FAIL(check 5c — A3 종단
+  위험 테이블에 섹션-로컬 비-검증 캐비트 누락)+1 deviation(check 7 — B5 차트 부재 시 per-chart 명시
+  마커 없음, 전체-부재일 때만 fallback 발동).
+- r2(commit `8717382` 반영): 7/7 PASS. r1-vs-r2 diff 독립 재확인 — disclaimer/caveat/marker 텍스트만
+  변경, 계산값(PHQ-9/CTRS/similarity_score/LOINC/resource count) 전건 무변경.
+- r3(commit `50dd255` 반영, **최종**): 원 7개 + 신규 2개(폰트 임베딩 check 8, disclosure-presence
+  check 9) = 9/9 PASS. `pdffonts` 직접 호출로 emb=yes 확인, 자체 시각/래스터 검사(pages 1-2, 양 VP)로
+  이전 tofu-boxed `·`/`⚠` 포함 완전 legibility 확인.
+
+**qa 재계산(step 9):** ~350+개 수치를 원본 아티팩트와 독립 대조, **0 불일치, 0 orphan 인용** 확인.
+
+**post-evidence 이중 검토:**
+- `REV-047`(critic): evidence-sound-with-corrections — 사전등록 9개 기준 전건 PASS(2건 caveat 동반:
+  Criterion 4 PDF legibility는 r1/r2에 대해 PASS-with-finding, Criterion 6는 FHIR A8-omission 문구
+  self-flagged pre-registration gap). 신규 소견: `VAL-016`(A7 "정보 없음"이 F2 스키마검증 드롭 vs
+  진성 부재를 구분 못함, `BUG-031` 계열, major, open) + PDF Unicode 글리프-커버리지 갭(→ qa `BUG-044`
+  파일링 routing). r3 closure addendum: Criterion 4 clean PASS로 승격(r1/r2에는 소급 미적용), wording
+  row 7 superseded, `REV-047` 상태 CLOSED.
+- `CVR-024`(clinical-validator): adequate-with-conditions — `CVR-023`+`CVR-022` 6개 binding condition
+  전건 CLOSED as-implemented(실제 생성 콘텐츠 대비 재확인); 1건 blocking-scoped(PDF 전면 한글
+  dropout, `REV-047`의 협소한 2-글리프 소견과 divergence — 멀티-렌더러 재현 요청) + 3건 major(A6
+  empty-for-VP-003 원인 미공시, `VAL-016` 재확인+제2 메커니즘, VP-003 27/27 ceiling 캐비트 미근접) +
+  2건 minor. r3 closure addendum: condition 1(PDF 렌더링) **CLOSED**(qa 멀티-렌더러 GATE:PASS +
+  `REV-047` addendum 4번째 경로 + 본 addendum 자체 독립 시각 검사 3중 확인); condition 2-3
+  NARROWED(잔여: r1/r2 인용 + near-ceiling 스코어); 신규 minor 소견(A6 `reason_summary`가 VP-003
+  최고-급성도 리포트에서 미번역 영어 파이프라인 용어로 렌더). 종합: "**materially strengthened, no
+  residual blocking-severity item**"(r3 artifact 한정, r2에 대한 원 verdict는 무변경 유지).
+
+**qa `BUG-044` 멀티-렌더러 판정(폰트 픽스 licensing의 근거):** poppler-default(본 호스트, Noto CJK
+설치됨) vs poppler-no-CJK-fontconfig vs Ghostscript 9.55 3개 config 테스트 — 2/3가 `CVR-024`
+Finding 1의 "전면 한글 dropout"을 서로 다른 메커니즘으로 재현(비-embedded predefined CID 폰트가
+근본 원인). 폰트 임베딩 수정(`50dd255`) 후 no-CJK-fontconfig config를 포함한 3/3 config 전건
+재검증 PASS. `mutool`은 본 호스트 미설치로 수정 전후 모두 미검증 잔존(경미, `BUG-044` Status
+잔여 스코프로 명시).
+
+**바인딩 워딩(`REV-047` 8행 wording table + r3 addendum, `CVR-024` binding condition 2-3):**
+"검증 완료"/"validated"/"FHIR-conformant" 사용 금지 — "약식 functional validation, 2 VPs,
+replay-from-`EXP-023`, deterministic-only"로만 서술. FHIR은 "이 프로젝트 자체의
+`validate_fhir_bundle` 구조 검증 통과"로만 서술(HL7 IG conformance 주장 금지). PDF legibility
+주장은 실제 테스트된 3개 렌더러 config(poppler-default/poppler-no-CJK/Ghostscript 9.55) +
+critic의 4번째 시각-검사 경로로만 범위를 한정하며, `mutool`은 미검증으로 명시; r1/r2 PDF는
+폰트-픽스 이전의 historical tofu 아티팩트로 남는다(소급 적용 금지). 설문 수치는
+non-validated-administration caveat 동반 필수. `similarity_score`는 확률이 아니다.
+
+**Open carries (이번 미션 완료 후에도 미결/게이트 유지):**
+- `VAL-016`(open, major) — F5 A7/A6의 "정보 없음"이 F2 상류 스키마-검증 드롭과 진성 부재를 구분
+  못하는 fidelity 갭. 이번 미션은 disclosure-only 완화(A7 `VAL-016` 문구, A6 `reason_summary` 노출)만
+  licensed — `BUG-031`(F2 atomic Pydantic 검증 → per-item salvage) 근본원인 수정은 licensed되지
+  않음, 여전히 open.
+- 내러티브 웨이브(`T1-F5-DEV-017`) — v2 프롬프트의 강제 12-section 템플릿이 hard red line #1과
+  충돌하는 근본 원인을 해소하는 v3 프롬프트 재설계 + 신규 REV/CVR 통과 전까지 전면 gated, 착수 0건.
+- `CVR-024` recommendation 5(A6 age/sex-mismatched RAG 후보 face-validity flag, `VAL-014` 확장) —
+  deferred, `ADR-038` Decision 3.
+- `CVR-024` addendum recommendation 7-9 — A6 `reason_summary` 한글 현지화(현재 VP-003 최고-급성도
+  리포트에서 영어 파이프라인 용어 그대로 렌더), near-ceiling(비-정확천장) `ISS-F2V-028` 캐비트
+  커버리지 확장(현재는 `total_score==max_score` 정확 천장만 구현), `mutool` 래스터 테스트(저비용
+  후속, condition 1 종결 요건 아님).
+
+근거: `discussion.md` PLAN-2026-W29-E, REV-046, CVR-023, ADR-037, REV-047, CVR-024, ADR-038;
+`result.md` EXP-024; `error.md` BUG-043(resolved)/BUG-044(resolved)/VAL-016(open);
+`docs/ai/f5_quick_dev_plan.md`, `docs/ai/f5_checklist.md`.
 
 ---
 

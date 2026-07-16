@@ -356,11 +356,14 @@ src/f4.py (NEW, zero LLM calls)               continuous_test.py F4 stage (NEW)
   analyze_longitudinal_series(                   run_f4_stage(ctx) / a standalone
     LongitudinalSeriesInput                       CLI entry (mirrors run_f1/f2/f3_stage):
   ) -> LongitudinalAnalysisOutput                  1. read <VP>_session_ledger.json
-        │  - NEVER reads the ledger file             (harness artifact, REV-022 rule
-        │  - NEVER reads a conversation.json/         — production never touches it)
-        │    domain_inference.json/survey.json       2. FOR EACH entry: resolve
-        │    path itself — the harness has              conversation_path/
-        │    already resolved+loaded them               domain_inference_path pointers,
+        │  - NEVER reads the ledger file             (harness artifact, REV-044
+        │  - NEVER reads a conversation.json/         Criterion 6 rule, corrected from
+        │    domain_inference.json/survey.json         mis-cited REV-022 per REV-046
+        │    path itself — the harness has              Issue 6 / ADR-037 — production
+        │    already resolved+loaded them               never touches it)
+        │                                             2. FOR EACH entry: resolve
+        │                                                conversation_path/
+        │                                                domain_inference_path pointers,
         │  - pure function over the explicit            open those JSON files, pull the
         │    dataclass the harness built                 dims from §3's table
         │  - 100% deterministic rule-based           3. build one SessionRecord per
@@ -373,6 +376,11 @@ src/f4.py (NEW, zero LLM calls)               continuous_test.py F4 stage (NEW)
     -> <vp_id>_<ts>_temporal_report.md            7. print PASS/WARN report, same
     -> PNG charts (§5)                                convention as F1-F3 stages
 ```
+
+**Correction note:** the ledger-isolation citation above was corrected per `REV-046` Issue 6 /
+`ADR-037` (2026-07-14) — the rule's actual originating authority is `REV-044` Criterion 6 (confirmed
+in `f4.py`'s own docstring); `REV-022` was an unrelated RAG trigger-policy entry, mis-cited here and
+propagated unchanged into `f5_quick_dev_plan.md` before both were fixed.
 
 ### 4.1 `SessionRecord` — the harness→production contract
 
