@@ -2,7 +2,10 @@
 
 **Status:** W1 wave 1 complete (2026-07-11) — `simulation_results/` populated. Stage F wave 2
 complete (2026-07-15, `CLEAN-2026-07-15`) — `plans/`, `reports/`, `legacy_code/` populated;
-`simulation_results/` extended with the pre-`EXP-025` accumulation. `agent_memory/`,
+`simulation_results/` extended with the pre-`EXP-025` accumulation. Wave 3 complete
+(2026-07-16, `CLEAN-2026-07-16`) — `legacy_code/devtools/` (new subfolder) +
+`reports/stale_test_output/` (new subfolder) populated; one `plans/` addition
+(`stage_f_archive_candidates.md`, itself now historical). `agent_memory/`,
 `root_docs_snapshot/` remain scaffold-only (still deferred, per `ADR-023` Phase 2 timing).
 
 ## What this is
@@ -107,6 +110,59 @@ stamps predate `EXP-025` and are this wave's json/artifact candidates.
 (VP-001) + 39 (VP-002) + 47 (VP-003) + 39 (VP-004) + 39 (VP-010) + 39 (VP-011) + 39 (VP-012) = 291
 files, `README.md` unchanged, `safety_matrix/` directory removed (emptied, no current-battery
 content exists in that subtree).
+
+## Manifest — wave 3 (2026-07-16, `CLEAN-2026-07-16`)
+
+**Source:** `apps/ai-server/tests/{smoke_ocr_upstage.py,smoke_stt_skt.py,verify_stt_to_f1.py,
+repro/test_bug_024.py,output/*.png}`, `docs/ai/stage_f_archive_candidates.md` (all git-tracked,
+moved via `git mv`).
+**Destination:** `_archive/legacy_code/devtools/` (new subfolder), `_archive/reports/stale_test_output/`
+(new subfolder), `_archive/plans/`.
+**Authority:** user directive (WAVE-3 strict archive sweep) — "docs/ai 와 docs/experiments,
+apps/ai-server 에서 F1-F5 전체 동작중 사용하지 않는 파일들은 모두 아카이빙 해야한다."
+**Criterion:** operational necessity — reachable from the F1-F5 entrypoint import graph, or
+exercised by a CI-collected test, or structurally cited (by exact path/section number) from a
+currently-open or held living doc.
+
+| Subtree | Moved | Reason |
+|:--|--:|:--|
+| `legacy_code/devtools/` (new) | 4 | `smoke_ocr_upstage.py`, `smoke_stt_skt.py`, `verify_stt_to_f1.py` — standalone vendor-API manual devtools, 0 pytest collection each (`def test_\|class Test` grep confirms 0/0/0), 0 imports from any kept module, invoked only by hand against live credentials. `tests/repro/test_bug_024.py` moved together with `smoke_stt_skt.py` — its only purpose is a source-level regression check against that file (`_SCRIPT_PATH` read); moving one without the other would break the test. `_SCRIPT_PATH`'s `parents[1]` was corrected to `parents[0]` for the new flat layout (path-only fix, zero logic change). |
+| `reports/stale_test_output/` (new) | 6 | `tests/output/{vp002_longterm,vp002_snapshot,vp002_trend,vp004_3visit_trend,vp004_longterm,vp004_trend}.png` — git-tracked debug chart images, last touched 2026-07-06 (pre-`EXP-025`), zero references from any current test or code (current `test_trend_plotter.py`/`test_f4_report.py` write to `tmp_path` fixtures, not this directory). |
+| `plans/` (added) | 1 | `stage_f_archive_candidates.md` — wave-2's own scan-candidate list, now a closed historical artifact of a completed sweep; zero references from any living surface post-move (verified). |
+
+**Held back after verification (checked, NOT moved — evidence found of live operational necessity):**
+
+| File | Why held |
+|:--|:--|
+| `apps/ai-server/src/rag_chat.py` | Brief's own candidate list flagged this as "archive if unreachable/standalone demo," but `docs/dev-environment.md` (never-move, onboarding doc) names it in present tense as one of exactly two direct-DB-access call sites in the current architecture ("`retrieve_domain_chunks`... 와 `src/rag_chat.py`의 `retrieve_grounding()` 호출이 각각 `get_sessionmaker()`로 직접 DB 세션을 연다"); `src/main.py`'s own docstring cites it the same way. Initially moved, then reverted after this check. |
+| `docs/ai/f5_charting_research.md` | Brief's candidate list flagged this as absorbed research background, but `docs/ai/f5_checklist.md` (never-move) has 3 currently-**open** (`[ ]`) checklist rows (T1-F5-DEV-014, T1-F5-DOC-003, T1-F5-DOC-004) pointing at specific unresolved sections (§1f, §3b) of this file, and `docs/ai/f5_quick_dev_plan.md` (never-move, structurally cited by section number in live code) traces its own §2.2 design directly to this file's subsections. Initially moved, then reverted after this check. |
+| `docs/ai/{f3,f4,f5}_quick_dev_plan.md` | Brief listed these as "completed-mission plan docs" to archive. Verification found dozens of *structural* (not narrative) citations by section number in currently-live production code and tests — `src/f3.py`, `src/f4.py`, `src/f5.py`, `src/services/{f4_report,f5_report,trend_plotter}.py`, `src/schemas/{survey_result,longitudinal,handoff_report}.py`, `src/agents/handoff_generator.py`, `src/continuous_test.py`, `src/f1.py`, `src/f2.py`, and ~10 test files all cite specific `§N` sections as their design spec. Per this project's own wave-2 classification method ("narrative pointer citation safe vs. structural dependency citation held"), these are held. |
+| `docs/ai/f1f5_total_validation_plan.md` | Brief suggested archiving with a report pointer-line. `discussion.md`'s currently **open** `REV-002` (critic, status: open) cites this plan's §3/§5/§7 by section as the authoritative pass/fail criteria source it is actively adjudicating against — archiving mid-review would break an open review's evidentiary basis. Held. |
+| `experiments/EXP-014` through `EXP-024` (11 dirs) | Brief suggested archiving everything older than EXP-025/026. Verification found `docs/ai/workflow_results_f1f2.md` and `docs/ai/workflow_discussion_f1f2.md` (both never-move, the project's living evidence log) cite exact `experiments/EXP-0NN/runs/...` subpaths for **every one** of EXP-014 through EXP-023 as their evidence trail (several rows still "never merged"/open findings); `.claude/state/handoff.json` additionally cites `experiments/EXP-024/runs/{vp001,vp003}_r{1,2,3}/` as live evidence for the currently-open `VAL-016`. None of EXP-014..024 were moved. |
+| `apps/ai-server/src/data/build_efficacy_cache.py` | Zero imports, zero pytest collection — meets the mechanical bar, but it is the live regeneration script for `hira_efficacy_cache.json`, a data file actively consumed by `src/agents/patient_history.py` (kept, operational). Not a one-off analysis script; a reusable maintenance tool for a still-used cache. Flagged for the user rather than moved (uncertain — see filemanager RESULT). |
+| `apps/ai-server/scripts/build_korean_fonts.py` | Zero pytest collection and not imported, but `src/services/f5_report.py` cites it by name in three places (docstring + two runtime error messages) as the regeneration procedure for the Korean font assets F5's PDF renderer loads at runtime. Load-bearing operational tooling — kept. |
+| `apps/ai-server/src/eval/grounding_audit.py` | Only referenced by its own test file, but that test (`tests/test_grounding_audit.py`) is a real, currently-passing regression suite for a production audit tool (T1-F1-VER-014) tied to a real historical fabrication incident (2026-07-03). Operational QA tooling, not a dead script — kept. |
+| `docs/ai/PRD_task1.md`, `docs/ai/vp_validation_scenarios.md`, `docs/ai/prompt_redesign_v3.md` | Brief listed these as candidates; verification found they were already moved to `_archive/plans/` in wave 2 (`CLEAN-2026-07-15`). No action needed — `docs/ai/golden_labels_f1f2.md:17` still cites `docs/ai/PRD_task1.md:474` by path, a **pre-existing dangling reference from wave 2**, not introduced by this wave; out of this wave's scope to fix (flagged for the user/writer). |
+
+**Pointer-fixed (living surfaces, 1 file):** `docs/ai/workflow_discussion_f1f2.md` — 2 historical
+(resolved-bug, past-tense) mentions of `tests/smoke_stt_skt.py` / `tests/repro/test_bug_024.py`
+annotated with their new `_archive/legacy_code/devtools/` location (comment-text only, zero
+narrative-meaning change).
+
+**Not evaluated (out of this wave's named scope):** `docs/experiments` — does not exist as a
+directory anywhere in the repo (verified via `find`); user's phrasing likely referred to the
+existing `docs/ai/simulation_results/` (in scope, checked, current `EXP-025` set left untouched)
+or the repo-root `experiments/` (in scope, checked, see EXP-014..024 held-back entry above).
+
+### Verification (this sweep)
+
+| Check | Result |
+|:--|:--|
+| `pytest --collect-only -q` | 2117 tests collected, 0 errors (down from 2119 pre-sweep — exactly the 2 tests in the relocated `test_bug_024.py`) |
+| `pytest -q` (full suite) | **2115 passed, 2 skipped**, 92.83s |
+| `ruff check .` | All checks passed |
+| `python -c "import src.main"` | OK |
+| Reference grep (every moved-file basename, living surfaces only) | 0 residual hits after the 1-file pointer-fix pass; `rag_chat.py`/`f5_charting_research.md` reverted after their held-back references surfaced |
 
 ## Access control
 

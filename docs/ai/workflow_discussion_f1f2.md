@@ -144,11 +144,11 @@ Copy this block for each issue found; do not leave placeholder content — every
 
 **Found:** W1 (qa, exposed by the fixture/archive relocation commit `f478719`)
 
-**Issue:** `tests/smoke_stt_skt.py`'s results-save step writes to a per-VP subdirectory under `docs/ai/simulation_results/` with no prior `mkdir(parents=True, exist_ok=True)` call. Before W1's archive move, that directory happened to already exist (created incidentally by other tooling), masking the gap; after the move it no longer pre-exists by default, so a standalone run of the script now crashes with `FileNotFoundError` at the save step. Manual devtool only — not part of `uv run pytest`/CI collection; no safety/clinical-data-handling impact.
+**Issue:** `tests/smoke_stt_skt.py` (wave-3 archive, `CLEAN-2026-07-16`: moved to `_archive/legacy_code/devtools/smoke_stt_skt.py`)'s results-save step writes to a per-VP subdirectory under `docs/ai/simulation_results/` with no prior `mkdir(parents=True, exist_ok=True)` call. Before W1's archive move, that directory happened to already exist (created incidentally by other tooling), masking the gap; after the move it no longer pre-exists by default, so a standalone run of the script now crashes with `FileNotFoundError` at the save step. Manual devtool only — not part of `uv run pytest`/CI collection; no safety/clinical-data-handling impact.
 
 **Evidence:** `error.md` `BUG-024` (filed 2026-07-11, qa, minor, open).
 
-**Solution:** Applied — `vp_dir.mkdir(parents=True, exist_ok=True)` added immediately before the results write, mirroring `f1.py`'s own `save_f1_result` convention (`f1.py:1590`). Fixed in commit `d666a2c`; verified in the W2 qa gate (`error.md` `BUG-024` resolution: `tests/repro/test_bug_024.py` 2/2 passed, part of the default `887 passed, 2 skipped` suite count at that gate).
+**Solution:** Applied — `vp_dir.mkdir(parents=True, exist_ok=True)` added immediately before the results write, mirroring `f1.py`'s own `save_f1_result` convention (`f1.py:1590`). Fixed in commit `d666a2c`; verified in the W2 qa gate (`error.md` `BUG-024` resolution: `tests/repro/test_bug_024.py` 2/2 passed, part of the default `887 passed, 2 skipped` suite count at that gate; wave-3 archive `CLEAN-2026-07-16` moved this regression test, together with `smoke_stt_skt.py`, to `_archive/legacy_code/devtools/` — no longer CI-collected, historical record only).
 
 **Status:** resolved
 
