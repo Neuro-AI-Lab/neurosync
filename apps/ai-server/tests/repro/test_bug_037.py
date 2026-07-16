@@ -1,6 +1,6 @@
 """BUG-037 regression tests — DialogueAgent output-isolation guard.
 
-Design: `docs/ai/fix_design_exhaustion_bug037.md` §2. Filed: `error.md`
+Design: `_archive/plans/fix_design_exhaustion_bug037.md` §2. Filed: `error.md`
 BUG-037 (root cause: `f1.py` Step 1b composes `risk_assessment` clinical-
 note text BEFORE the Step 3 dialogue call; `_build_slot_context` renders it
 into the SAME turn's prompt; the model echoed it verbatim — all 3 pre-
@@ -225,7 +225,7 @@ class TestBug037ShapeBlockedAndRegenerated:
 
 
 class TestBug037BudgetExhaustionShipsNeutralFallback:
-    """`docs/ai/fix_design_exhaustion_bug037.md` §2 hard requirement: this
+    """`_archive/plans/fix_design_exhaustion_bug037.md` §2 hard requirement: this
     check must NOT fall through shipping the violating text on budget
     exhaustion — a minimal neutral continuation ships instead."""
 

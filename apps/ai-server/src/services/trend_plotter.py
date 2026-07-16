@@ -45,7 +45,7 @@ class TrendDataPoint:
     ctrs: int | None = None
     sentiment: float | None = None
     label: str = ""                                    # e.g. "Visit 1", "F/U 3"
-    # F4 quick-dev (`docs/ai/f4_quick_dev_plan.md` §5.2 chart 5, wave 5):
+    # F4 quick-dev (`_archive/plans/f4_quick_dev_plan.md` §5.2 chart 5, wave 5):
     # 0..12 count of `QUESTIONABLE_SLOT_KEYS` filled this session. Smallest-
     # footprint extension — reuses `_draw_panel`/zones/axis code unchanged,
     # same shape as the `sentiment` panel above (`zones=[]`, fixed y-range).
@@ -542,7 +542,7 @@ def _find_nearest_x(dates, target, x_vals):
     return x_vals[idx]
 
 
-# ── F4 multi-series trend charts (`docs/ai/f4_quick_dev_plan.md` §5.2
+# ── F4 multi-series trend charts (`_archive/plans/f4_quick_dev_plan.md` §5.2
 #    charts 3-4, wave 5) ────────────────────────────────────────────────
 #
 # Disease-similarity (chart 3) / domain-confidence (chart 4) are

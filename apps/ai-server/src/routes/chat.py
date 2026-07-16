@@ -106,6 +106,12 @@ async def respond(
         )
 
     # ── Step 3: Handle handoff ready — no more dialogue needed ──────
+    # REV-001 Issue 1 (critic): `orch_result.handoff_ready` now reflects
+    # whether `handoff_report` was actually produced (orchestrator.py fix,
+    # same REV-001 entry) — this branch can no longer be entered with a
+    # None report. `handoff_report` is threaded onto the wire via
+    # DialogueOutput's new field, closing the structural wire-contract gap
+    # REV-001 identified (the field did not exist at all before this fix).
     if orch_result.handoff_ready:
         latency_ms = (time.perf_counter() - start) * 1000
         return DialogueOutput(
@@ -120,6 +126,7 @@ async def respond(
             all_slots=dict(body.filled_slots),
             session_state=orch_result.session_state.model_dump(),
             handoff_ready=True,
+            handoff_report=orch_result.handoff_report,
         )
 
     # ── Step 4: DialogueAgent (proper agent with slot tracking + repetition prevention) ──

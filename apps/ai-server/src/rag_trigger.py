@@ -9,7 +9,7 @@ default A):
     illness`` (``STAGE1_QUERY_SLOTS`` — the SAME two slots ``f2.py``'s
     pre-existing default query composition already used) are insufficient
     — combined ``len()`` < ``SLOT_INSUFFICIENCY_THRESHOLD_N`` chars, or both
-    falsy (``docs/ai/validation_plan_f1f2_continuous.md`` §3 Policy-A row,
+    falsy (``_archive/plans/validation_plan_f1f2_continuous.md`` §3 Policy-A row,
     Appendix A). Fallback queries are drawn from conversation turns
     EXCLUDING Safety-Probe/SI-screen-adjacent turns (``probe_events``-tagged
     turns).
@@ -40,12 +40,14 @@ finding 3d).
 Residual exposure, disclosed (not closed by this module — critic
 adjudicates redesign-vs-disclosure at the W4 gate, per this dispatch's
 brief): the risk lexicon (``src.eval.f2_grounding._RISK_PHRASES``) is a
-20-stem-family taxonomy (37 literal entries; REV-024 corrected the earlier
-"15-stem" undercount — ``tests/test_f2_grounding.py::
-test_risk_lexicon_stem_family_count_is_20_not_15`` pins the mechanical
-count) with this project's own documented paraphrase-coverage-gap history
-(BUG-014/VAL-009) — a query whose risk content is worded outside every
-stem's paraphrase family is not caught by this filter. This module
+30-stem-family taxonomy (48 literal entries as of the VAL-010/VAL-015
+expansion, docs/ai/lexicon_expansion_val010.md; REV-024 corrected the
+earlier "15-stem" undercount to 20/37, since expanded again — ``tests/
+test_f2_grounding.py::test_risk_lexicon_stem_family_count_is_30_not_20``
+pins the mechanical count) with this project's own documented paraphrase-
+coverage-gap history (BUG-014/VAL-009/VAL-015) — a query whose risk content
+is worded outside every stem's paraphrase family is not caught by this
+filter. This module
 closes the "which channel is filtered" gap REV-022 found (cc/HPI content
 now IS filtered, for both arms, at one place); it does not, and cannot by
 construction, close the separate "is the lexicon's coverage complete"
@@ -63,7 +65,7 @@ from src.eval.f2_grounding import _RISK_PHRASES, _contains_any
 from src.grounding import RISK_SLOT_KEY
 from src.schemas.domain_inference import UtteranceTurn
 
-# Appendix A (docs/ai/validation_plan_f1f2_continuous.md), data's W1 finding
+# Appendix A (_archive/plans/validation_plan_f1f2_continuous.md), data's W1 finding
 # (discussion.md PLAN-2026-W28-Q status append "threshold N, COMPLETE"),
 # orchestrator-adopted: N=75 chars, distinct-12 p10, Python len() semantics
 # (REV-022 §2's own fallback method — no genuinely insufficient historical

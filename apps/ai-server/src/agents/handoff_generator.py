@@ -27,7 +27,7 @@ _PROMPT_AGENT_NAME = "handoff_generator"
 # independently rather than sharing one version constant.
 _PROMPT_VERSION = "v2"
 
-# F5 hand-off report Task 2 (`docs/ai/f5_quick_dev_plan.md` follow-on,
+# F5 hand-off report Task 2 (`_archive/plans/f5_quick_dev_plan.md` follow-on,
 # handoff_generator v3): a SEPARATE pin, used ONLY by `generate_narrative`
 # below. v3's prompt (`docs/ai/prompts/handoff_generator/v3.system.md`)
 # writes ONLY a brief clinician-facing A8 narrative from F5's own

@@ -1,5 +1,5 @@
 """Tests for `tests/simulation/scenario_pack.py` — F4 quick-dev scenario
-packs (`docs/ai/f4_quick_dev_plan.md` §2.3/§2.4/§2.5, `PLAN-2026-W29-D`,
+packs (`_archive/plans/f4_quick_dev_plan.md` §2.3/§2.4/§2.5, `PLAN-2026-W29-D`,
 `ADR-036`). Pure/offline — no LLM/DB call anywhere in this file.
 """
 

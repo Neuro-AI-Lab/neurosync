@@ -1,0 +1,133 @@
+# EXP-020 — Item bank v1-unlocked live re-validation (PLAN-2026-W29-A step 5)
+# Written before launch, per experiment-reproducibility skill.
+
+mission: PLAN-2026-W29-A (discussion.md) step 5, gated by ADR-033/REV-038/CVR-016
+linked: [PLAN-2026-W29-A, ADR-033, REV-038, CVR-016, CVR-015, REV-037, ADR-032, VAL-014, DATASET-003]
+hyp: "none — F3-v1 administration-engine + item-8 recheck functional validation, not a HYP-linked capability experiment"
+
+code_under_test:
+  branch: feat/f1f2-program-w29
+  git_head_at_launch: 1730bb4908d313da4a73f7d025d89ed44b8c6e30
+  head_commit_datetime: "2026-07-12T21:19:12+09:00"
+  no_code_edits_this_run: true
+  working_tree_state: >
+    Uncommitted (developer's item-bank-v1 implementation, PLAN-2026-W29-A step 3; not yet
+    checkpointed by filemanager — not blocking per HANDOFF/REV-038, which reviews this exact
+    working-tree state pre-implementation and REV-038's own Method section confirms it read the
+    same uncommitted files): modified apps/ai-server/src/continuous_test.py,
+    apps/ai-server/src/f3.py, apps/ai-server/src/schemas/survey_result.py,
+    apps/ai-server/src/scoring/item_bank.py, apps/ai-server/src/scoring/survey_scorer.py,
+    apps/ai-server/tests/simulation/survey_answer_llm.py,
+    apps/ai-server/tests/simulation/test_survey_answer_llm.py,
+    apps/ai-server/tests/test_continuous_test_f3.py, apps/ai-server/tests/test_f3.py,
+    apps/ai-server/tests/test_item_bank.py; untracked docs/ai/item_bank_v1_sources.md.
+    `git stash list` empty (verified before launch).
+  item_bank_version_under_test: "v1 (src/scoring/item_bank.py ITEM_BANK — PHQ-9/GAD-7/AUDIT-C
+    populated, PHQ-4 populated-but-unreachable, WHO-5 unpopulated). v0 retained unchanged,
+    independently addressable via get_item_bank_v0 for EXP-019 interpretability."
+  qa_gate: "GATE:PASS per HANDOFF — CI mirror 1408 passed/2 skipped, byte-fidelity independently
+    verified, bands byte-frozen, forced-mode ledger collision SAFE (append-only
+    _append_ledger_entry, natural-then-forced both records survive), item-9 safety pathway
+    code-verified via _route_phq9_safety_pathway -> OrchestratorAgent.score_and_check_safety
+    (deterministic, zero LLM)."
+
+gates:
+  critic_review: >
+    REV-038 non-blocking-with-conditions (6 major incl. 1 blocking-scoped on Cell B, 3 minor).
+    Cell B's blocking-scoped condition (Resolution 1: ledger-collision risk) LIFTED by qa's
+    SAFE verdict per HANDOFF. Resolution items 6/8/9 (administration_mode field, N/A marking
+    for forced-cell selection-correctness, v1-text isolation grep) folded into developer/qa
+    scope per REV-038 and independently re-verified in this run's own machine checks below.
+    No open blocking REV in discussion.md at launch time.
+  qa_gate: "GATE:PASS (HANDOFF) -- CI mirror 1408+2, mutation-checked, pins exact"
+  dataset: "DATASET-003 (VP-001/VP-003/VP-012 golden-domain-label personas, APPROVED REV-026) --
+    Cells A/B use VP-001, Cell C uses VP-012; both DATASET-003 personas"
+  experiment_gate_hook: "command (python -m src.continuous_test) does not match the hook's
+    EXP_LAUNCH regex (run.sh/evaluate.sh/models/*.py only) -- non-triggering, no GATE_OVERRIDE
+    needed, same precedent as EXP-014/016/017/018/019"
+
+prompt_pins_verified_at_launch (recomputed via sha256sum, this session, before any launch):
+  safety_classifier_v2_sha256: "3e9ca6b44ba3373f70c068758a2e1ae860f3c58483394a85fed9e13a90b3390c"   # matches AVC-17 pin / EXP-019, UNCHANGED
+  dialogue_v4_sha256: "f93e995f68e3a3bc88ddd5ce1f6b01ef8feb5e5663bda46ce4958ae8e6317144"   # matches AVC-17 pin / EXP-019, UNCHANGED
+  both_pins_match: true
+  note: "F3-v1 requires no dialogue/safety prompt change (item_bank.py/f3.py/schemas/continuous_test.py only) -- confirmed by this pin match and by git status (no docs/ai/prompts/** entries in the modified-file list above)."
+
+env_discipline:
+  lg_k_exaone_api_key: "PRESENT (name-only check, grep -c '^LG_K_EXAONE_API_KEY=' apps/ai-server/.env -> 1; value never read/printed)"
+  lg_k_exaone_endpoint_id: "PRESENT (name-only check -> 1; value never read/printed)"
+  upstage_api_key: "PRESENT (name-only check -> 1; value never read/printed)"
+  db_preflight: "DB_OK reachable (postgresql+asyncpg://neurosync:***@223.194.33.26:28881/neurosync), verified via src.continuous_test._db_preflight() before launch, this session"
+
+dataset_persona_reverify:
+  method: "git status --short confirms zero modifications to docs/ai/personas/** since DATASET-003
+    approval; md5sum recorded below as this run's reference hash (no prior logged hash exists to
+    diff against for these 2 files specifically, so this is the baseline for future re-verification,
+    matching AVC-17's pin-recording discipline)."
+  VP-001_first_visit_mild.md_md5: "4534a96a1e913ee2bb85cab0926ae2f6"
+  VP-012_first_visit_alcohol.md_md5: "179a4f9ec9ef5a71e5b5bc446409a997"
+
+model:
+  primary_vendor: upstage
+  chat_model_id_expected: "solar-pro3-260323 (dialogue v4/safety v2/clinical_slot/sentiment/domain_inference) -- re-verified per-artifact at report time"
+  secondary_vendor: lg_k_exaone   # PatientLLM (F1) + SurveyAnswerLLM (F3), friendli.ai, temperature 0.7
+
+hardware: CPU-only orchestration host; inference via Upstage hosted API + Friendli K-EXAONE
+
+cells:
+  - id: cellA_vp001_natural
+    persona: VP-001
+    cmd: "cd apps/ai-server && .venv/bin/python -m src.continuous_test --persona VP-001 --sessions 2 --answer-mode llm"
+    purpose: >
+      Natural F1->F2->F3 chain, n=2 sessions (REV-038 Resolution 7 pre-registration for the
+      item-8 decision rule). Full-chain sanity on v1 content; item-8 recheck (REV-038 SS1 binding
+      rule); v1-vs-v0 three-column per-item table (v0 EXP-019 session-1 vs v1 Cell A vs
+      documented, REV-038 SS3); item-9 safety-pathway routing exercised at the consumer seam
+      whenever outcome=administered+PHQ-9 (deterministic, regardless of documented item-9=0).
+    administration_mode_expected: natural
+  - id: cellB_vp001_forced_gad7
+    persona: VP-001
+    cmd: >
+      cd apps/ai-server && .venv/bin/python -m src.continuous_test --persona VP-001
+      --start-from-conversation <Cell-A-session-1-conversation.json, resolved after Cell A completes>
+      --force-questionnaire GAD-7 --answer-mode llm
+    purpose: >
+      Forced GAD-7 administration engine exercise (REV-038 evidence-class row 3:
+      F3-administration-engine-only, never F2-linkage/selection evidence). Reuses Cell A
+      session-1's F1 conversation.json (F1 stage skip); F2 re-runs fresh on that conversation
+      (no F2-output-reuse path exists in the harness -- confirmed by code read, continuous_test.py
+      run_f2_stage always re-executes). Descriptive-only reporting (raw total + qualitative
+      severity-band note); no per-item +/-1 check (no per-item GAD-7 ground truth exists in
+      either persona file, REV-038 Issue 4); no invented total pass/fail band.
+    administration_mode_expected: forced
+    depends_on: cellA_vp001_natural (F1 artifact reuse only)
+  - id: cellC_vp012_forced_auditc
+    persona: VP-012
+    cmd: "cd apps/ai-server && .venv/bin/python -m src.continuous_test --persona VP-012 --force-questionnaire AUDIT-C --answer-mode llm"
+    purpose: >
+      Fresh natural F1/F2 chain then forced F3 AUDIT-C administration (never exercised live in
+      EXP-019 -- VP-012 resolved to PHQ-9 via the VAL-014 near-tie). Documented expectations
+      (descriptive comparison, not pass/fail): items 4/3/4, total ~11, hazardous band. Item 2
+      soju-vs-Western-unit translation confound (REV-038 SS3, CVR-016 Finding 8) flagged as a
+      live candidate cause if item 2 deviates. threshold_caveat presence verified (REV-038
+      wording row 4).
+    administration_mode_expected: forced
+
+machine_checks_planned:
+  - "every administered response in [response_min, response_max]"
+  - "totals independently recomputed by tracker (sum of raw responses) vs artifact total_score"
+  - "severity band independently recomputed from survey_scorer.py's own published bands vs artifact severity"
+  - "session-ledger completeness -- BOTH VP-001 records (natural Cell-A PHQ-9 + forced Cell-B GAD-7) survive as distinct list entries (append-only _append_ledger_entry, qa-verified SAFE)"
+  - "administration_mode field == natural on Cell A artifacts, == forced on Cell B/C artifacts"
+  - "selection-correctness check ('recommended_questionnaire matches CLASSIFICATION_TO_SCALE[...]') marked N/A (forced) for Cell B/C, PASS/FAIL only meaningful for Cell A"
+  - "HPI-isolation grep rebuilt from the SHIPPED v1 text_ko strings read from item_bank.py at run time (get_item_bank), never v0's strings (REV-038 Resolution 9)"
+  - "dataset/persona hash re-verified (see dataset_persona_reverify above)"
+
+wording_discipline_binding: >
+  REV-038 SS4 interim MAY/MUST-NOT table (extends ADR-032(2)) + REV-038 SS1's item-8 decision
+  rule are binding verbatim on this entry's reporting. F3-v1 results are "administration
+  evidence on sourced-verbatim v1 content", never "validated instrument results", never a
+  clinical-severity claim about the persona, never "item-8 resolved" (n<=2, VP-001-only,
+  bundled-change qualifier). Item-9 safety pathway: MAY say the deterministic wiring was
+  exercised at the consumer seam whenever administered+PHQ-9 fires; MUST NOT say "the item-9
+  safety pathway was validated" -- no cell has a documented-positive item 9 (both VP-001/VP-012
+  document item 9 = 0); disclosed explicitly per HANDOFF known issue / REV-038 Resolution 2.

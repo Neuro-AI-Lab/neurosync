@@ -1,6 +1,6 @@
 """`src.f3` — F2-driven questionnaire administration (production engine).
 
-`docs/ai/f3_quick_dev_plan.md`, ADR-031/ADR-032, T1-F3-VER-007..013. No live
+`_archive/plans/f3_quick_dev_plan.md`, ADR-031/ADR-032, T1-F3-VER-007..013. No live
 LLM/DB anywhere in this file — `answer_fn` is always a plain local coroutine.
 """
 

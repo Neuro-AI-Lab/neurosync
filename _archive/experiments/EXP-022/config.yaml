@@ -1,0 +1,137 @@
+# EXP-022 — VP-012 forced AUDIT-C v2 (soju-track, Korean-primary cutoffs) re-verification
+# Written before launch, per experiment-reproducibility skill.
+
+mission: PLAN-2026-W29-B (discussion.md), CVR-018 conditions 5-6, ADR-034 decisions 1-2/5-6
+linked: [CVR-018, ADR-034, REV-041, REV-039, REV-038, CVR-016, CVR-017, ADR-033, EXP-020, DATASET-003]
+hyp: "none — F3 AUDIT-C-v2-administration-engine re-verification against re-derived persona
+  ground truth (VP-012_first_visit_alcohol.md Section 9), not a HYP-linked capability experiment."
+
+code_under_test:
+  branch: feat/f2-continuation-w28h
+  git_head_at_launch: ac6e1f33a99737ed373db13fc3138d1aa07a1452
+  head_commit_datetime: "2026-07-13T14:21:01+09:00"
+  audit_c_v2_implementation_commit: 99c2f45   # feat(f3): AUDIT-C v2 Korean-localization
+  no_code_edits_this_run: true
+  working_tree_state: >
+    apps/ai-server/src/** unmodified relative to HEAD (git status confirms 0 modified files
+    under apps/ai-server/src/). Working-tree deltas present are all documentation/test-repro
+    only: docs/ai/audit_c_korean_research.md (M, pre-existing, unrelated to this run),
+    docs/ai/personas/VP-012_first_visit_alcohol.md (M — Section 9 derivation note, the ground
+    truth this run's report cites; read directly, not committed), apps/ai-server/tests/repro/
+    test_bug_039.py + test_bug_040.py (untracked, BUG-039/040 minimal repros, not exercised by
+    this run's launch command).
+  qa_gate: "qa GATE:PASS on 99c2f45 per HANDOFF (byte-fidelity 8/8, thresholds
+    boundary-verified, suite 1505/2) — cited as an established precondition per this dispatch's
+    brief; not independently re-run by experiment-tracker (out of role scope, mirrors EXP-020/021
+    precedent of citing the qa record rather than re-executing the CI mirror)."
+
+gates:
+  critic_review: >
+    REV-041 (discussion.md) non-blocking-with-conditions — 3 major (1 blocking-scoped on
+    --answer-mode expected for VP-012/AUDIT-C only, N/A to this run since --answer-mode llm is
+    used), 2 minor. Its per-item/total/confound-framing decision rules, forced-mode discipline,
+    prompt-content disclosures, and binding MAY/MUST-NOT wording table (Section 6) govern this
+    run's report verbatim. No open blocking REV in discussion.md at launch time.
+  qa_gate: "GATE:PASS on 99c2f45 per HANDOFF — cited, not re-run this dispatch"
+  dataset: "DATASET-003 (VP-012 golden-domain-label persona, APPROVED REV-026)"
+  experiment_gate_hook: "command (python -m src.continuous_test) does not match the hook's
+    EXP_LAUNCH regex (run.sh/evaluate.sh/models/*.py only) -- non-triggering, no GATE_OVERRIDE
+    needed, same precedent as EXP-014/016/017/018/019/020/021"
+
+prompt_pins_verified_at_launch (recomputed via sha256sum, this session, before launch):
+  safety_classifier_v2_sha256: "3e9ca6b44ba3373f70c068758a2e1ae860f3c58483394a85fed9e13a90b3390c"   # matches EXP-020/021, UNCHANGED
+  dialogue_v4_sha256: "f93e995f68e3a3bc88ddd5ce1f6b01ef8feb5e5663bda46ce4958ae8e6317144"   # matches EXP-020/021, UNCHANGED
+  both_pins_match: true
+  note: "AUDIT-C v2 requires no dialogue/safety prompt change (item_bank.py/f3.py/schemas/
+    survey_scorer.py/continuous_test.py/survey_answer_llm.py only) -- confirmed by this pin
+    match and by git status (no docs/ai/prompts/** entries in the modified-file list)."
+
+env_discipline:
+  lg_k_exaone_api_key: "PRESENT (name-only check, grep -c '^LG_K_EXAONE_API_KEY=' apps/ai-server/.env -> 1; value never read/printed)"
+  lg_k_exaone_endpoint_id: "PRESENT (name-only check -> 1; value never read/printed)"
+  upstage_api_key: "PRESENT (name-only check -> 1; value never read/printed)"
+  db_preflight: "reachable (postgresql+asyncpg://neurosync:***@223.194.33.26:28881/neurosync), verified via src.continuous_test._db_preflight() before launch, this session"
+
+dataset_persona_reverify:
+  method: "md5sum recorded below as this run's reference hash. Differs from EXP-020's recorded
+    179a4f9ec9ef5a71e5b5bc446409a997 BY DESIGN — the delta is CVR-018/ADR-034/REV-041's own
+    directed Section-9 derivation-note append (data agent, 2026-07-13), the ground truth this
+    run's report is required to cite. No other content in the persona doc changed (Section 9 is
+    append-only per its own header; Section 3's original table is left unedited with a
+    supersession pointer)."
+  VP-012_first_visit_alcohol.md_md5: "32b2ee6b58475ec09caba8d25adf4cd0"
+
+model:
+  primary_vendor: upstage
+  chat_model_id_expected: "solar-pro3-260323 (dialogue v4/safety v2/clinical_slot/sentiment/domain_inference) -- re-verified per-artifact at report time"
+  secondary_vendor: lg_k_exaone   # PatientLLM (F1) + SurveyAnswerLLM (F3), friendli.ai, temperature 0.7
+
+hardware: CPU-only orchestration host; inference via Upstage hosted API + Friendli K-EXAONE
+
+run:
+  id: vp012_forced_auditc_v2
+  persona: VP-012
+  cmd: "cd apps/ai-server && .venv/bin/python -m src.continuous_test --persona VP-012 --force-questionnaire AUDIT-C --answer-mode llm"
+  answer_mode_explicit: "llm (REV-041 Resolution 1 pre-registration — the only licensed mode
+    for this cell; --answer-mode expected is stale/blocking-scoped, NOT used)"
+  purpose: >
+    Single re-verification administration (REV-041 Section 5 cell budget, matching EXP-020 Cell
+    C precedent): fresh VP-012 F1->F2->F3(forced AUDIT-C v2) chain under the newly-adopted
+    soju-track item text + Korean-primary cutoffs (male>=6/female>=5, ADR-034 decision 1) and
+    international-cutoff metadata (Bush et al. 1998, male/unknown>=4/female>=3, non-action-driving).
+    Ground truth: VP-012_first_visit_alcohol.md Section 9 re-derived vector [4, 1, 3 (range 2-4)],
+    point-estimate total 8 (range 7-9) — NOT Section 3's superseded [4,3,4]=11.
+  administration_mode_expected: forced
+
+ground_truth_reference:
+  source: "VP-012_first_visit_alcohol.md Section 9 (data, 2026-07-13), superseding Section 3
+    per CVR-018 condition 5-6 / ADR-034 decision 5"
+  item_1_frequency: {value: 4, band_criterion: "REV-041 (1): {3,4} (+/-1, ceiling-clamped)"}
+  item_2_usual_quantity_soju_track: {value: 1, band_criterion: "REV-041 (1): {0,1,2} (+/-1)"}
+  item_3_binge_frequency: {value: 3, range: [2, 4], band_criterion: "REV-041 (1): {2,3,4} (the
+    disclosed range itself, NOT range+/-1 — item-3 range-as-band ruling)"}
+  total_point_estimate: 8
+  total_range: [7, 9]
+
+decision_rules_binding: >
+  REV-041 (discussion.md, Sections 1-2, 4, 6) is binding verbatim on this run's report: the
+  item-3 range-as-band ruling; the total-score/band-outcome licensed-wording table; the
+  reporting-separation rule (per-item verdicts / total-range match / clinical band-crossing
+  outcome are three distinct claims, never conflated); the item-2 confound-resolution framing
+  table (n=1-qualified, three licensed patterns only); the forced-mode discipline (ADR-033(6),
+  selection-correctness = N/A (forced)); the prompt-content disclosures (item 2's secondary
+  "기타 술" track is never rendered — BUG-039; patient_sex never wired into the F3 harness path
+  — numerically inert for VP-012 but must be disclosed); and the Section 6 MAY/MUST-NOT wording
+  table (9 rows) in full.
+
+machine_checks_planned:
+  - "every administered response in [response_min, response_max]"
+  - "total independently recomputed by tracker (sum of raw responses) vs artifact total_score"
+  - "severity band independently recomputed from survey_scorer.py's own published Korean-primary
+    thresholds (male/unknown>=6, female>=5) vs artifact severity"
+  - "audit_c_international_threshold metadata block present verbatim (Bush et al. 1998,
+    male/unknown>=4/female>=3) incl. crossed_international_threshold, cross-checked against the
+    raw total"
+  - "administration_mode == forced; threshold_caveat non-null and content-checked against
+    ADR-034 decision 1/CVR-018 Q4's five content requirements"
+  - "selection-correctness check marked N/A (forced), per ADR-033(6)"
+  - "session-ledger append-safety -- BOTH prior VP-012 records (EXP-019 natural PHQ-9-mapped,
+    EXP-020 Cell C forced AUDIT-C v1) survive as distinct entries alongside the new one appended
+    by this run"
+  - "HPI-isolation grep rebuilt from the SHIPPED v2 item text_ko/anchor strings read from
+    item_bank.py at run time (get_item_bank), never a hand-transcribed string list"
+  - "dataset/persona hash re-verified (see dataset_persona_reverify above)"
+
+disclosures_required_in_report:
+  - "BUG-039 (major, open): item 2's administered prompt renders ONLY the primary soju track --
+    the secondary 기타 술 track + conversion note are populated in item_bank.py but never read
+    by build_item_prompt. VP-012 is soju-native so this is unlikely to bias direction, but the
+    item's own text promises 'the two tracks below' and only one is shown."
+  - "patient_sex non-wiring (REV-041 Issue 2): continuous_test.py's F3 stage never passes
+    patient_sex into run_f3_administration (always defaults 'unknown'). Numerically inert for
+    VP-012 (male groups with 'unknown', both -> threshold 6) but this run does NOT exercise or
+    validate the sex-conditional branch of the Korean-primary threshold."
+  - "Ground-truth supersession: Section 3's original table (total 11) is superseded by Section
+    9's re-derivation (total 8, range 7-9) per CVR-018 Finding 5's convention-mismatch finding.
+    This run's report MUST NOT cite Section 3 as current ground truth, and MUST NOT frame this
+    run as confirming the old total-11 table."

@@ -149,6 +149,28 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", description="Logging level")
     debug: bool = Field(default=False, description="Enable debug mode")
 
+    # ── LLM adapters (REV-001 Issue 5, critic, `discussion.md`) ─────────
+    # `openai.AsyncOpenAI`'s SDK default is a 10-minute client timeout — a
+    # hung call on the safety-classification path can stall a live session
+    # for up to 10 minutes before `routing.fallback_policy`'s circuit
+    # breaker/fallback ever engages (a timeout raises `openai.APITimeoutError`,
+    # already classified `is_transient` there — this setting only shortens
+    # WHEN that classification fires, it changes no fallback/circuit-breaker
+    # logic). Applied identically to all three OpenAI-SDK-shaped adapters
+    # (`ak_llm.py`/`solar_pro3.py`/`k_exaone.py`) via one shared setting so
+    # they can never silently drift to different values.
+    llm_client_timeout_s: float = Field(
+        default=60.0,
+        description=(
+            "Client-side request timeout (seconds) for all three OpenAI-SDK "
+            "LLM adapters (SKT A.X, Upstage Solar Pro3, LG K-EXAONE). "
+            "Overrides the openai SDK's 10-minute default — a hung call on "
+            "the safety-critical path must not stall a live session for "
+            "that long before the existing fallback/circuit-breaker path "
+            "(routing.fallback_policy) engages."
+        ),
+    )
+
     def resolve_registry_path(self) -> Path:
         """Return the resolved path to the model registry YAML."""
         if self.model_registry_path:

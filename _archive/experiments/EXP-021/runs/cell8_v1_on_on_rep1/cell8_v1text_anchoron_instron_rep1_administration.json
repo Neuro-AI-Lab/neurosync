@@ -1,0 +1,42 @@
+{
+  "cell": 8,
+  "cell_label": "cell8_v1text_anchoron_instron",
+  "factors": {
+    "text_source": "v1",
+    "anchor": "on",
+    "instruction": "on"
+  },
+  "replicate_index": 1,
+  "persona_id": "VP-001",
+  "scale_name": "PHQ-9",
+  "model": "depmkuykpfon9lg",
+  "temperature": 0.7,
+  "responses": [
+    2,
+    2,
+    3,
+    3,
+    2,
+    2,
+    3,
+    2,
+    0
+  ],
+  "total_score": 19,
+  "max_score": 27,
+  "severity": "moderately_severe",
+  "band_index": 3,
+  "critical_item_positive": false,
+  "critical_items": [],
+  "clamped_items": [],
+  "item_bank_version": "exp021-cell8_v1text_anchoron_instron",
+  "item_bank_provenance": "EXP-021 factorial hybrid cell 8, per docs/ai/exp021_factorial_design.md as amended by discussion.md REV-040 -- item text and anchors sourced verbatim from the production item bank accessors, never hand-retyped",
+  "administration_mode": "exp021-factorial-bypass",
+  "safety_pathway_exercised": false,
+  "safety_pathway_disclosure": "This bypass-mode administration calls src.f3.administer_survey directly, never f3.run_f3_administration/src.continuous_test.run_f3_stage -- the deterministic item-9 safety-pathway routing (src.continuous_test._route_phq9_safety_pathway) is NOT invoked for any EXP-021 cell (REV-040 Issue 3/(4)). critical_item_positive/critical_items above ARE still computed correctly by score_survey regardless of caller.",
+  "artifact_schema_note": "This artifact is NOT SurveyResultOutput-shaped / survey.json-shaped -- bypass mode never calls f3.run_f3_administration, the function that builds that schema (REV-040 (4)/Resolution 5).",
+  "hpi_isolation_check": "N/A -- bypass mode generates no F1/F2 artifacts, so the HPI-isolation Mechanical Check every prior F3 battery (EXP-019/EXP-020) ran does not apply here (REV-040 (4)/Resolution 6).",
+  "code_ref": "apps/ai-server/tests/simulation/factorial_driver.py::run_cell (tests.simulation.survey_answer_llm.SurveyAnswerLLM, src.f3.administer_survey)",
+  "design_ref": "docs/ai/exp021_factorial_design.md; discussion.md REV-040",
+  "timestamp": "2026-07-13T14:40:28.900940"
+}

@@ -1,6 +1,6 @@
 """`tests.simulation.survey_answer_llm` — F3 answer_fn adapters.
 
-`docs/ai/f3_quick_dev_plan.md` §7. No live LLM calls anywhere in this file —
+`_archive/plans/f3_quick_dev_plan.md` §7. No live LLM calls anywhere in this file —
 `SurveyAnswerLLM._ask` is monkeypatched (mirrors this module's own retry/
 clamp contract without a real K-EXAONE call). `expected_answer_fn` is
 exercised against the REAL repo persona files (VP-001/VP-003/VP-012) — zero

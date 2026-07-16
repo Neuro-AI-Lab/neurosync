@@ -647,6 +647,8 @@ def _build_artifact(
     rag_trigger: dict[str, Any] | None = None,
     scenario_pack_id: str | None = None,
     arc_mode: str | None = None,
+    crisis_triggered: bool = False,
+    session_ctrs: int | None = None,
 ) -> dict[str, Any]:
     """Build the F2 artifact dict.
 
@@ -679,13 +681,23 @@ def _build_artifact(
     above. ``None`` only for pre-W4 artifacts/tests; ``_run()`` always
     supplies a real value.
 
-    ``scenario_pack_id``/``arc_mode`` (`docs/ai/f4_quick_dev_plan.md` §2.7,
+    ``scenario_pack_id``/``arc_mode`` (`_archive/plans/f4_quick_dev_plan.md` §2.7,
     `REV-044` Issue 4 / `ADR-036` item 3): reprojected straight from the
     upstream F1 ``conversation.json``'s own top-level fields (``_run()``
     reads ``data.get("scenario_pack_id")``/``data.get("arc_mode")``, never
     re-derived/guessed here) — a scripted session self-identifies in THIS
     artifact class too, not only via harness-only ledger cross-reference.
     ``None``/absent for every natural (non-scripted) F1 input.
+
+    ``crisis_triggered``/``session_ctrs`` (`discussion.md` CVR-028 Finding 1 /
+    F3 safety-net questionnaire path): reprojected verbatim from
+    ``DomainInferenceInput.crisis_triggered``/``.session_ctrs`` — the SAME
+    values Stage 2 already received as risk-context-only input (never used
+    as domain-confidence evidence, prompt absolute rule 2). SIBLING top-level
+    keys, additive; ``False``/``None`` defaults only for pre-CVR-028-fix
+    artifacts/tests. This is what lets ``src.f3.resolve_effective_scale``
+    apply a crisis/low-CTRS safety-net default without any new F1/F2 I/O —
+    the F2 artifact is the only input ``src.f3`` ever reads.
     """
     return {
         "session_id": session_id,
@@ -741,6 +753,9 @@ def _build_artifact(
         # keys, additive, `None` for every pre-F4/natural artifact.
         "scenario_pack_id": scenario_pack_id,
         "arc_mode": arc_mode,
+        # CVR-028 Finding 1 safety-net wiring — see docstring above.
+        "crisis_triggered": crisis_triggered,
+        "session_ctrs": session_ctrs,
     }
 
 
@@ -881,20 +896,25 @@ def _build_report(artifact: dict[str, Any]) -> str:
         "",
     ])
 
-    # BUG-019: only rendered when a parse/schema failure actually occurred
-    # this run — keeps the report unchanged for the (common) clean-success
-    # case, matching this module's own "additive, honest-on-failure-only"
-    # convention already used elsewhere (e.g. filter_summary's eliminated-
-    # domains section above).
-    if artifact.get("raw_response") is not None:
+    # BUG-019/BUG-031: only rendered when a parse/schema failure OR a
+    # BUG-031 per-candidate salvage actually occurred this run — keeps the
+    # report unchanged for the (common) clean-success case, matching this
+    # module's own "additive, honest-on-failure-only" convention already
+    # used elsewhere (e.g. filter_summary's eliminated-domains section
+    # above). BUG-031 extension: `validation_errors` can now be non-None on
+    # a SUCCESS output too (partial salvage — >=1 candidate survived), in
+    # which case `raw_response` stays None (only set on total failure) —
+    # the `or` clause below makes sure the dropped-candidate detail still
+    # reaches the human-readable report, not only the raw JSON artifact.
+    if artifact.get("raw_response") is not None or artifact.get("validation_errors"):
         lines.extend([
-            "## LLM failure diagnostics (BUG-019)",
+            "## LLM failure diagnostics (BUG-019/BUG-031)",
             "",
             f"- validation_errors: {artifact.get('validation_errors')}",
             "- raw_response:",
             "",
             "```",
-            str(artifact["raw_response"]),
+            str(artifact.get("raw_response")),
             "```",
             "",
         ])
@@ -1098,6 +1118,10 @@ async def _run(args: argparse.Namespace) -> None:
         # the F1 conversation.json `data` dict, never re-derived.
         scenario_pack_id=data.get("scenario_pack_id"),
         arc_mode=data.get("arc_mode"),
+        # CVR-028 Finding 1 — reprojected from `inp` (the same
+        # DomainInferenceInput Stage 2 already received), not re-derived.
+        crisis_triggered=inp.crisis_triggered,
+        session_ctrs=inp.session_ctrs,
     )
 
     out_dir = Path(args.out) if args.out else None

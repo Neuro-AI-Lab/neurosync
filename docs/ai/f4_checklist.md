@@ -8,7 +8,7 @@
 > **ID 시퀀스:** `T1-F4-{TYPE}-{SEQ}`, `checklist_task1.md`의 전역 시퀀스를 승계한다. 레거시 최대치는
 > `DEV-005`, `VER-006`(grep으로 재확인, 2026-07-13, `docs/ai/checklist_task1.md` L109-116/L198-200) —
 > 이 문서의 신규 항목은 `DEV-006`부터, `VER-007`부터 이어 붙인다. 재사용 금지.
-> **기준 문서:** `discussion.md` `PLAN-2026-W29-D`(미션 계획), `docs/ai/f4_quick_dev_plan.md`(설계),
+> **기준 문서:** `discussion.md` `PLAN-2026-W29-D`(미션 계획), `_archive/plans/f4_quick_dev_plan.md`(설계),
 > `result.md` `EXP-023`(약식 검증). 모든 상태 근거는 이 세 문서 + `error.md`의 링크된 엔트리로 추적된다.
 > **Created:** 2026-07-13 | **Author:** writer, on orchestrator dispatch (`PLAN-2026-W29-D` step 11).
 
@@ -45,7 +45,7 @@ crisis-triggered와 일치)을 F4의 종단 능력을 서술하는 모든 향후
 
 | ID | Type | 항목 | 상태 | 선행 조건/비고 |
 |---|---|---|---|---|
-| T1-F4-DOC-001 | DOC | F4 quick-dev 설계 문서(`docs/ai/f4_quick_dev_plan.md`, `PLAN-2026-W29-D` step 1) — F1(slot/CTRS/crisis/probe/sentiment)+F2(domain/disease-similarity trend)+F3(item/total/band) 세션 데이터 통합 종단 분석 설계, arc 프로토콜(VP-001/VP-003 11세션×~6개월), 스키마, production/harness 분리, wave plan | [x] | `REV-044`(critic) non-blocking-with-conditions(4 major — 2건 Wave-1 aggregation-basis blocking-scoped/Issue 1-2, 2건 disclosure/Issue 3-4; 사전등록 Criteria 0/0b/1-6 + MAY/MUST-NOT wording table 제정) → `CVR-020`(clinical-validator) adequate-with-conditions(1건 blocking-scoped: VP-003 care-connection 서사 부재/Finding 1, 7 major, 4 minor, 4 binding condition) → `ADR-036`(orchestrator)이 전 조건 dispositioned, 구현 licensed. 근거: `discussion.md` PLAN-2026-W29-D, REV-044, CVR-020, ADR-036 |
+| T1-F4-DOC-001 | DOC | F4 quick-dev 설계 문서(`_archive/plans/f4_quick_dev_plan.md`, `PLAN-2026-W29-D` step 1) — F1(slot/CTRS/crisis/probe/sentiment)+F2(domain/disease-similarity trend)+F3(item/total/band) 세션 데이터 통합 종단 분석 설계, arc 프로토콜(VP-001/VP-003 11세션×~6개월), 스키마, production/harness 분리, wave plan | [x] | `REV-044`(critic) non-blocking-with-conditions(4 major — 2건 Wave-1 aggregation-basis blocking-scoped/Issue 1-2, 2건 disclosure/Issue 3-4; 사전등록 Criteria 0/0b/1-6 + MAY/MUST-NOT wording table 제정) → `CVR-020`(clinical-validator) adequate-with-conditions(1건 blocking-scoped: VP-003 care-connection 서사 부재/Finding 1, 7 major, 4 minor, 4 binding condition) → `ADR-036`(orchestrator)이 전 조건 dispositioned, 구현 licensed. 근거: `discussion.md` PLAN-2026-W29-D, REV-044, CVR-020, ADR-036 |
 
 ## 구현 (Implementation)
 

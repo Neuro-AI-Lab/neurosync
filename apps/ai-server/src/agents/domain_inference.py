@@ -22,9 +22,11 @@ from pydantic import ValidationError
 
 from src.adapters.base import ChatMessage, LLMAdapter
 from src.agents.base import AgentInput, BaseAgent
+from src.agents.clinical_slot import ALL_SLOT_KEYS
 from src.prompts.loader import PromptLoader
 from src.routing.model_router import ModelRouter
 from src.schemas.domain_inference import (
+    DomainCandidate,
     DomainInferenceInput,
     DomainInferenceLLMResponse,
     DomainInferenceOutput,
@@ -141,10 +143,28 @@ def _build_user_content(inp: DomainInferenceInput) -> str:
 # must not mask a genuinely malformed model output.
 _SOURCE_TYPE_TABLE_ORIGIN_RE = re.compile(r"^(?:case_card|qa)(?::\d+)?$")
 
+# BUG-045 (qa Stage-D finding, VP-004 EXP-025 artifacts; documented as an
+# out-of-scope trigger in BUG-031's own root-cause writeup, "chief_complaint"/
+# "history_of_present_illness" observed live): the model sometimes echoes a
+# CLINICAL SLOT NAME (`src.agents.clinical_slot.ALL_SLOT_KEYS`, the 12
+# standard slots) into `evidence[].source_type` instead of the required
+# `"rag_chunk"/"utterance"/"ocr_document"`. Every offending value observed is
+# slot-content-derived — the evidence item is quoting/citing patient
+# utterance content that happens to have been classified under that slot —
+# so the correct coercion target is `"utterance"`, NOT `"rag_chunk"` (this is
+# a DIFFERENT collision shape from BUG-019's DB-table-origin collision, and
+# must not share that coercion's target value). NARROW BY DESIGN, same
+# discipline as `_SOURCE_TYPE_TABLE_ORIGIN_RE`: matches only an exact slot
+# key from the standard 12, optionally suffixed ":<digits>" (a copied
+# source_id/turn id) — anything else still fails validation honestly.
+_SOURCE_TYPE_SLOT_NAME_RE = re.compile(
+    r"^(?:" + "|".join(re.escape(k) for k in ALL_SLOT_KEYS) + r")(?::\d+)?$"
+)
+
 
 def _normalize_source_type_collision(data: Any) -> Any:
-    """Coerce a known table-origin value in ``evidence[].source_type`` to
-    ``"rag_chunk"`` (BUG-019), in place, before Pydantic ever validates it.
+    """Coerce known collision values in ``evidence[].source_type`` to the
+    correct enum value, in place, before Pydantic ever validates it.
 
     Must run on the raw parsed JSON dict, before ``DomainInferenceLLMResponse.
     model_validate(data)`` — ``DomainEvidence.source_type`` is a Pydantic
@@ -154,13 +174,20 @@ def _normalize_source_type_collision(data: Any) -> Any:
     ``src.eval.f2_grounding`` because ``source_id`` is an unconstrained
     ``str`` there and the collision is only discovered post-parse).
 
-    Only mutates a ``source_type`` value matching the known collision shape
-    (``_SOURCE_TYPE_TABLE_ORIGIN_RE``) — a value that does not match (e.g.
-    already-valid ``"rag_chunk"``/``"utterance"``, or genuinely malformed
-    output such as ``"garbage"``) is left untouched, so validation still
-    fails honestly on real defects. Tolerates a non-dict/non-list shape at
-    any level (returns *data* unchanged for that branch) — malformed
-    structure is Pydantic's job to reject, not this function's.
+    Two known, narrowly-scoped collision shapes, checked in order (mutually
+    exclusive by construction — a value cannot match both a DB table name and
+    a clinical slot key):
+    1. ``_SOURCE_TYPE_TABLE_ORIGIN_RE`` (BUG-019) -> ``"rag_chunk"``.
+    2. ``_SOURCE_TYPE_SLOT_NAME_RE`` (BUG-045) -> ``"utterance"``.
+
+    A value matching neither (e.g. already-valid ``"rag_chunk"``/
+    ``"utterance"``/``"ocr_document"``, or genuinely malformed output such as
+    ``"garbage"``) is left untouched, so validation still fails honestly on
+    real defects — per-candidate salvage (BUG-031) keeps every OTHER
+    candidate alive even when one evidence item's `source_type` still fails
+    here. Tolerates a non-dict/non-list shape at any level (returns *data*
+    unchanged for that branch) — malformed structure is Pydantic's job to
+    reject, not this function's.
     """
     if not isinstance(data, dict):
         return data
@@ -177,9 +204,9 @@ def _normalize_source_type_collision(data: Any) -> Any:
             if not isinstance(evidence, dict):
                 continue
             source_type = evidence.get("source_type")
-            if isinstance(source_type, str) and _SOURCE_TYPE_TABLE_ORIGIN_RE.match(
-                source_type
-            ):
+            if not isinstance(source_type, str):
+                continue
+            if _SOURCE_TYPE_TABLE_ORIGIN_RE.match(source_type):
                 logger.info(
                     "DomainInference BUG-019 coercion: evidence.source_type "
                     "%r -> 'rag_chunk' (known DB table-origin collision, "
@@ -187,6 +214,14 @@ def _normalize_source_type_collision(data: Any) -> Any:
                     source_type, evidence.get("source_id"),
                 )
                 evidence["source_type"] = "rag_chunk"
+            elif _SOURCE_TYPE_SLOT_NAME_RE.match(source_type):
+                logger.info(
+                    "DomainInference BUG-045 coercion: evidence.source_type "
+                    "%r -> 'utterance' (known clinical-slot-name collision, "
+                    "source_id=%r)",
+                    source_type, evidence.get("source_id"),
+                )
+                evidence["source_type"] = "utterance"
     return data
 
 
@@ -241,6 +276,31 @@ class DomainInferenceAgent(BaseAgent):
         contract on a GENUINE validation failure — only the known collision
         shape is corrected; anything else still raises `ValidationError`
         and is reported exactly as before.
+
+        BUG-031 fix (per-candidate validation): the ORIGINAL atomic
+        `DomainInferenceLLMResponse.model_validate(data)` call fails the
+        WHOLE response when even one `domain_candidates[i]` field is
+        malformed (e.g. an out-of-enum `domain` literal, a malformed
+        `evidence[].source_type`) — every other, perfectly valid candidate
+        in the same response was silently discarded along with it (EXP-025,
+        10/72 sessions, 32 field errors, `domain_candidates` degraded to
+        `[]` every time even though most of those responses had >=1 valid
+        candidate). This method now tries the atomic validation FIRST (the
+        common case, zero behavior change on a clean response); only on a
+        `ValidationError` does it fall back to a per-candidate salvage pass
+        — `DomainCandidate.model_validate()` on each raw `domain_candidates`
+        item individually, keeping every candidate that validates and
+        dropping (with its own error, tagged by index, appended to
+        `validation_errors`) only the ones that don't. If at least one
+        candidate survives, the salvaged list is substituted back in and the
+        FULL response is re-validated once more (still catches a genuinely
+        malformed `department_candidates`/`summary`/etc. — the salvage is
+        scoped to `domain_candidates` only, per BUG-031's two observed
+        trigger classes, not a blanket tolerance for any malformed field
+        anywhere in the response). If nothing survives (0 candidates valid,
+        or `domain_candidates` itself isn't a list), this degrades to the
+        exact pre-fix atomic-failure behavior — `parsed=None`, same
+        `validation_errors` shape as before.
         """
         try:
             data = json.loads(content)
@@ -254,11 +314,81 @@ class DomainInferenceAgent(BaseAgent):
         try:
             return DomainInferenceLLMResponse.model_validate(data), "", None
         except ValidationError as exc:
-            return (
-                None,
-                f"LLM response schema validation failure: {exc.error_count()} error(s)",
-                [dict(e) for e in exc.errors()],
+            atomic_errors = [dict(e) for e in exc.errors()]
+            atomic_reason = (
+                f"LLM response schema validation failure: {exc.error_count()} error(s)"
             )
+
+            salvaged, dropped = DomainInferenceAgent._salvage_domain_candidates(data)
+            if not salvaged:
+                # Nothing to salvage from (domain_candidates absent/not a
+                # list/all malformed) — identical to pre-fix behavior.
+                return None, atomic_reason, atomic_errors
+
+            data_salvaged = dict(data)
+            data_salvaged["domain_candidates"] = [c.model_dump() for c in salvaged]
+            try:
+                parsed = DomainInferenceLLMResponse.model_validate(data_salvaged)
+            except ValidationError as exc2:
+                # A field OUTSIDE domain_candidates is also malformed — this
+                # method only salvages the domain_candidates class of defect
+                # BUG-031 identified; report the full picture (both the
+                # per-candidate drops and the still-fatal outer error) and
+                # degrade exactly as before.
+                return (
+                    None,
+                    f"LLM response schema validation failure (per-candidate salvage "
+                    f"recovered {len(salvaged)}/{len(salvaged) + len(dropped)} "
+                    f"domain_candidates, but {exc2.error_count()} error(s) remain "
+                    "outside domain_candidates)",
+                    dropped + [dict(e) for e in exc2.errors()],
+                )
+
+            reason = (
+                f"LLM response schema validation partial recovery: "
+                f"{len(dropped)} domain_candidates[] item(s) dropped "
+                f"(BUG-031 per-candidate salvage), {len(salvaged)} retained"
+            )
+            return parsed, reason, dropped or None
+
+    @staticmethod
+    def _salvage_domain_candidates(
+        data: Any,
+    ) -> tuple[list[DomainCandidate], list[dict[str, Any]]]:
+        """BUG-031: validate each raw `domain_candidates[i]` item
+        individually against `DomainCandidate`, instead of trusting the
+        atomic `DomainInferenceLLMResponse` validation's all-or-nothing
+        verdict. Returns `(salvaged_candidates, dropped_errors)` —
+        `dropped_errors` is `Pydantic.ValidationError.errors()` dict output
+        per failed item, each tagged with its original list index
+        (`domain_candidates_index`) so the artifact/logs can point at
+        exactly which candidate was lost and why.
+
+        Defensive against a malformed `data`/`domain_candidates` shape
+        (non-dict `data`, missing/non-list `domain_candidates`) — returns
+        `([], [])` rather than raising; the caller treats an empty salvage
+        list the same as "nothing to salvage from".
+        """
+        if not isinstance(data, dict):
+            return [], []
+        raw_candidates = data.get("domain_candidates")
+        if not isinstance(raw_candidates, list):
+            return [], []
+
+        salvaged: list[DomainCandidate] = []
+        dropped: list[dict[str, Any]] = []
+        for i, raw_candidate in enumerate(raw_candidates):
+            try:
+                salvaged.append(DomainCandidate.model_validate(raw_candidate))
+            except ValidationError as exc:
+                for e in exc.errors():
+                    dropped.append({**dict(e), "domain_candidates_index": i})
+                logger.warning(
+                    "DomainInference BUG-031 per-candidate salvage: dropping "
+                    "domain_candidates[%d] (%d field error(s)): %s",
+                    i, exc.error_count(), exc,
+                )
+        return salvaged, dropped
 
     async def _call(
         self,
@@ -427,11 +557,16 @@ class DomainInferenceAgent(BaseAgent):
             "DomainInference call ok — model=%s, finish_reason=%s, usage=%s",
             model_used, finish_reason, usage,
         )
+        # BUG-031: `reason`/`validation_errors` are non-empty here exactly
+        # when `_parse` took the per-candidate salvage path (a partial
+        # recovery, still a "success" in that >=1 valid candidate ships) —
+        # threaded onto the artifact so a salvage event is visible on the
+        # SUCCESS output too, not only on the total-failure branch above.
         return DomainInferenceOutput(
             model_used=model_used,
             prompt_version=PROMPT_VERSION,
             latency_ms=latency_ms,
-            reason_summary="domain/department candidates generated",
+            reason_summary=reason or "domain/department candidates generated",
             domain_candidates=parsed.domain_candidates,
             department_candidates=parsed.department_candidates,
             summary=parsed.summary,
@@ -439,5 +574,6 @@ class DomainInferenceAgent(BaseAgent):
             additional_questions=parsed.additional_questions,
             finish_reason=finish_reason,
             usage=usage,
+            validation_errors=validation_errors,
             prompts_degraded=prompts_degraded,
         )

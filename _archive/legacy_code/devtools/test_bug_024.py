@@ -1,8 +1,17 @@
-"""BUG-024 fix verification: `tests/smoke_stt_skt.py`'s results-save step
+"""BUG-024 fix verification: `smoke_stt_skt.py`'s results-save step
 must create its own per-VP output directory on demand.
 
-`tests/smoke_stt_skt.py` is a standalone manual devtool (0 pytest collection
-hits, confirmed — `grep -n "def test_\\|class Test" tests/smoke_stt_skt.py`),
+**Wave-3 archive note (`CLEAN-2026-07-16`):** both this file and
+`smoke_stt_skt.py` were moved together, git-tracked, from
+`apps/ai-server/tests/{repro/test_bug_024.py,smoke_stt_skt.py}` to this
+flat `_archive/legacy_code/devtools/` directory (0 pytest collection under
+either the old or new location; kept as a historical record of the fix,
+no longer CI-gated). `_SCRIPT_PATH` below was updated from
+`parents[1]` to `parents[0]` to match the new flat layout (both files
+now sit directly in `devtools/`, not `tests/repro/` + `tests/`).
+
+`smoke_stt_skt.py` was a standalone manual devtool (0 pytest collection
+hits, confirmed — `grep -n "def test_\\|class Test" smoke_stt_skt.py`),
 invoked directly by a developer against live SKT STT credentials, so this
 repro cannot (and per BUG-024's own charter should not) drive `main()`
 end-to-end. It instead verifies, at the source level, that the fix — a
@@ -20,7 +29,7 @@ import re
 from pathlib import Path
 
 _SCRIPT_PATH = (
-    Path(__file__).resolve().parents[1] / "smoke_stt_skt.py"
+    Path(__file__).resolve().parents[0] / "smoke_stt_skt.py"
 )
 
 

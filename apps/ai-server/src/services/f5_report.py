@@ -1,6 +1,6 @@
 """F5 report writer — `save_f5_result` + markdown/PDF/FHIR exporters.
 
-`docs/ai/f5_quick_dev_plan.md` §5. Deliberately kept OUT of `src/f5.py` (the
+`_archive/plans/f5_quick_dev_plan.md` §5. Deliberately kept OUT of `src/f5.py` (the
 pure, zero-file-I/O assembly engine) so a whole-file grep for `open(`/file-
 I/O in `src/f5.py` returns 0 hits with zero ambiguity (REV-044 Criterion 6,
 `ADR-037` Decision 6 citation fix) — this module is the ONE place F5's OWN
@@ -455,6 +455,18 @@ def _key_concerns(
         concerns.append("최근 설문 만점(과대추정 가능성)")
     if lon.crisis_f3_gaps:
         concerns.append(f"위기 고조 세션 중 설문 미시행 {len(lon.crisis_f3_gaps)}건")
+    # CVR-028 Finding 7 (minor-major, VP-002): the SBAR headline must never
+    # read "특이 우려 사항 없음" while B1's own 종단추세 section (three
+    # paragraphs later in the same report) computes `overall_direction=
+    # worsened` — a time-pressed clinician reading only the headline would
+    # get a directly contradicted, falsely reassuring signal. Fires
+    # whenever F4's own `overall_direction` (never recomputed here, only
+    # juxtaposed) is "worsened" — an honest pointer to the body section,
+    # not a re-diagnosis of WHY it is worsened (that reasoning, including
+    # any dimension-vote tie-break nuance, lives in B1's own
+    # `overall_direction_sensitivity_note`).
+    if lon.overall_direction == "worsened":
+        concerns.append("추세 판정 혼재 — 본문 종단 추세 참조")
     return concerns or ["특이 우려 사항 없음"]
 
 
@@ -543,6 +555,85 @@ def _risk_table_rows(
         score = f"{sig.total_score}/{sig.max_score}" if sig.total_score is not None else "-"
         rows.append((str(sig.session_index), sig.simulated_date, score, item9, verdict))
     return rows
+
+
+def _absent_session_rows(
+    a3: RiskSafetySection, lon: LongitudinalAnalysisOutput
+) -> list[tuple[str, str, str, str, str]]:
+    """Renderer polish (F5 conductor-output review, VP-004): the risk table
+    only ever carried FLAGGED (item-9-positive/`safety_referral`) sessions
+    (`longitudinal_risk_signals`), so any session without a flagged signal
+    vanished from the visible sequence with no trace (e.g. session 6 absent
+    between 5 and 7) -- indistinguishable from a data gap to a reader.
+    Every session index F1 ever scored a CTRS for (`lon.ctrs_series`, always
+    populated once per session regardless of F3) that is NOT already a row
+    in `risk_rows` gets an explicit placeholder row here instead, silence
+    never being an acceptable rendering. The reason is derived only from
+    data this module already has in hand -- an administered-but-unflagged
+    scale (`lon.scale_series`, e.g. a session where GAD-7 ran instead of
+    PHQ-9 and so has no item-9 concept at all) or a same-session crisis
+    trigger -- never invented; falls back to "미시행" when neither applies.
+    """
+    shown = {sig.session_index for sig in a3.longitudinal_risk_signals}
+    admin_by_session: dict[int, tuple[str | None, int | None, int | None]] = {}
+    for points in lon.scale_series.values():
+        for p in points:
+            if p.administered:
+                admin_by_session.setdefault(
+                    p.session_index, (p.scale_name, p.total_score, p.max_score)
+                )
+    rows: list[tuple[str, str, str, str, str]] = []
+    for point in lon.ctrs_series:
+        if point.session_index in shown:
+            continue
+        admin = admin_by_session.get(point.session_index)
+        if admin is not None:
+            scale_name, _total, _max = admin
+            reason = f"설문 시행({scale_name or '척도명 미상'}) — 항목9 위험 신호 없음"
+        elif point.crisis_triggered:
+            reason = "위기 조기종료"
+        else:
+            reason = "미시행"
+        rows.append((str(point.session_index), point.simulated_date, "미시행", "-", reason))
+    return rows
+
+
+def _full_risk_table_rows(
+    a3: RiskSafetySection, lon: LongitudinalAnalysisOutput, appendix: _AppendixCollector
+) -> list[tuple[str, str, str, str, str]]:
+    """`_risk_table_rows` (flagged sessions) merged with `_absent_session_rows`
+    (every remaining ledger session), sorted back into session order -- the
+    table renders every session once, never a silent gap."""
+    combined = _risk_table_rows(a3, appendix) + _absent_session_rows(a3, lon)
+    return sorted(combined, key=lambda row: int(row[0]))
+
+
+def _ceiling_caveat_summary(a3: RiskSafetySection) -> str | None:
+    """CVR-028 near-ceiling caveat coverage (`ADR-038` Decision 2c) previously
+    repeated the identical `CEILING_SCORE_CAVEAT_KO` sentence once per
+    affected session as N near-identical blockquote/paragraph lines --
+    consolidated here into ONE line naming every affected session and its
+    score range, the per-row "· 만점" table-cell marker is untouched (still
+    written by `_risk_table_rows`)."""
+    affected = [sig for sig in a3.longitudinal_risk_signals if sig.ceiling_caveat]
+    if not affected:
+        return None
+    session_str = "·".join(str(sig.session_index) for sig in affected)
+    scores = [sig.total_score for sig in affected if sig.total_score is not None]
+    max_scores = [sig.max_score for sig in affected if sig.max_score is not None]
+    if scores and max_scores:
+        lo, hi = min(scores), max(scores)
+        top = max(max_scores)
+        if lo == hi:
+            range_label = "만점" if lo == top else f"근접({lo}/{top})"
+        elif hi == top:
+            range_label = f"만점/근접({lo}-{hi}/{top})"
+        else:
+            range_label = f"근접({lo}-{hi}/{top})"
+    else:
+        range_label = "만점/근접"
+    caveat_text = affected[0].ceiling_caveat
+    return f"[세션 {session_str} — {range_label}] {caveat_text}"
 
 
 def _mse_lines(a4: MentalStatusSection) -> list[str]:
@@ -804,20 +895,18 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         ]
         lines += [
             f"| {sid} | {date} | {score} | {item9} | {verdict} |"
-            for sid, date, score, item9, verdict in risk_rows
+            for sid, date, score, item9, verdict in _full_risk_table_rows(a3, lon, appendix)
         ]
-        # ADR-038 Decision 2c: full ceiling caveat text rendered adjacent to
-        # the table (never dropped to the "· 만점" table abbreviation alone).
-        ceiling_lines = [
-            f"> [{sig.session_index}회차, {sig.total_score}/{sig.max_score}] {sig.ceiling_caveat}"
-            for sig in a3.longitudinal_risk_signals
-            if sig.ceiling_caveat
-        ]
-        if ceiling_lines:
-            ceiling_shown_in_a3 = True
+        # ADR-038 Decision 2c / renderer polish (VP-004 review): full
+        # ceiling caveat text still rendered adjacent to the table (never
+        # dropped to the "· 만점" table abbreviation alone), now as ONE
+        # consolidated line naming every affected session instead of one
+        # near-identical line per session.
+        ceiling_summary = _ceiling_caveat_summary(a3)
         lines.append("")
-        lines += ceiling_lines
-        if ceiling_lines:
+        if ceiling_summary:
+            ceiling_shown_in_a3 = True
+            lines.append(f"> {ceiling_summary}")
             lines.append("")
     else:
         lines += ["해당 없음 — 전체 세션 중 item-9 양성/안전 의뢰 이력이 없습니다.", ""]
@@ -1326,20 +1415,18 @@ def build_pdf_report(
     ceiling_shown_in_a3 = False
     if risk_rows:
         story.append(P(NON_VALIDATED_ADMINISTRATION_CAVEAT_KO, "warn"))
-        rows = [["세션", "일자", "점수", "9번 문항", "판정"]] + [list(r) for r in risk_rows]
+        rows = [["세션", "일자", "점수", "9번 문항", "판정"]] + [
+            list(r) for r in _full_risk_table_rows(a3, lon, appendix)
+        ]
         story.append(_table(rows))
-        # ADR-038 Decision 2c: full ceiling caveat text rendered adjacent to
-        # the table (never dropped to the "· 만점" table abbreviation alone).
-        for sig in a3.longitudinal_risk_signals:
-            if sig.ceiling_caveat:
-                ceiling_shown_in_a3 = True
-                story.append(
-                    P(
-                        f"[{sig.session_index}회차, {sig.total_score}/{sig.max_score}] "
-                        f"{sig.ceiling_caveat}",
-                        "warn",
-                    )
-                )
+        # ADR-038 Decision 2c / renderer polish (VP-004 review): full
+        # ceiling caveat text still rendered adjacent to the table (never
+        # dropped to the "· 만점" table abbreviation alone), now as ONE
+        # consolidated line naming every affected session.
+        ceiling_summary = _ceiling_caveat_summary(a3)
+        if ceiling_summary:
+            ceiling_shown_in_a3 = True
+            story.append(P(ceiling_summary, "warn"))
     else:
         story.append(P("해당 없음 — item-9 양성/안전 의뢰 이력 없음", "body"))
     if a3.staleness_pointer.total_score is not None:

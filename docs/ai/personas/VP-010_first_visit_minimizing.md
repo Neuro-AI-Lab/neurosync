@@ -2,7 +2,7 @@
 
 > Virtual Patient persona for testing psychiatric pre-consultation AI system.
 > Classification: First visit, mild-moderate severity, minimizing reporting style, non-crisis
-> Authored per `docs/ai/validation_plan_f1f2_continuous.md` v1.2 §9 (VP-010 row) — SC-12.
+> Authored per `_archive/plans/validation_plan_f1f2_continuous.md` v1.2 §9 (VP-010 row) — SC-12.
 > Crisis-forward: **Excluded** (disclosed program-level limitation; see §8).
 
 ---

@@ -1,7 +1,7 @@
 # `docs/ai/simulation_results/`
 
 This directory is the landing zone for **new** F1/F2 continuous-scenario validation
-battery artifacts (`docs/ai/validation_plan_f1f2_continuous.md` §12).
+battery artifacts (`_archive/plans/validation_plan_f1f2_continuous.md` §12).
 
 Pre-`PLAN-2026-W28-Q` simulation results (VP-001..004 run history, safety_matrix,
 retro_audit_20260703, backups, nearby_smoke, EXP-012 consolidated analyses, etc.) were

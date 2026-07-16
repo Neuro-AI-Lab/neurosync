@@ -1,6 +1,6 @@
 """`src.injection_protocol` — STT/OCR arbitrary-turn injection composer.
 
-PLAN-2026-W28-Q W3 (`docs/ai/validation_plan_f1f2_continuous.md` §3
+PLAN-2026-W28-Q W3 (`_archive/plans/validation_plan_f1f2_continuous.md` §3
 "STT/OCR arbitrary-turn injection" row, §6 AVC-15). Deterministic,
 mocked-adapter coverage only — no vendor/model calls (the live 2-call
 composer proof lives in `tests/smoke_injection_composer.py`, run manually,

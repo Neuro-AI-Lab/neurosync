@@ -1,6 +1,6 @@
 """Schemas for the F3 survey-administration production artifact.
 
-`docs/ai/f3_quick_dev_plan.md` §4. Standalone by design, same discipline as
+`_archive/plans/f3_quick_dev_plan.md` §4. Standalone by design, same discipline as
 `src.schemas.ai_predicted_disease` (REV-013 §3 lineage): this module shares
 NO base class, field, or inheritance relationship with `SlotData`/
 `HandoffInput`/`HandoffOutput` (`src/schemas/handoff.py`) — it must never
@@ -166,13 +166,25 @@ class SurveyResultOutput(BaseModel):
             "never a trigger. Always false for outcome != 'administered'."
         ),
     )
-    administration_mode: Literal["natural", "forced"] = Field(
+    administration_mode: Literal["natural", "forced", "safety_net", "si_supplement"] = Field(
         default="natural",
         description=(
             "'natural': F2's own recommended_questionnaire drove this administration. "
             "'forced': a harness-only --force-questionnaire override at the F2->F3 "
             "stage boundary (PLAN-2026-W29-A step 6, ADR-033 decision 6) — F3-administration "
-            "evidence only, never natural-chain (F2-linkage) evidence."
+            "evidence only, never natural-chain (F2-linkage) evidence. "
+            "'safety_net': F2 produced NO recommended_questionnaire this session AND the "
+            "session was high-acuity (crisis_triggered=True or session_ctrs<=3) — "
+            "src.f3.resolve_effective_scale defaulted to PHQ-9 independent of F2's "
+            "recommendation path (CVR-028 Finding 1, clinical-blocking fix). Distinct "
+            "provenance from 'natural' by construction — a downstream reader can always "
+            "tell F2-driven from safety-net-driven administration. "
+            "'si_supplement' (CVR-030 remediation): a crisis_triggered session whose "
+            "'natural' administration was a REAL, non-PHQ-9 F2 recommendation additionally "
+            "got the standalone item-9-equivalent SI check (src.f3.administer_si_supplement) "
+            "— always its own separate record (own _si_supplement.json/.md file, "
+            "scale_name='PHQ-9', responses=[item9_value], score_result=None; never merged "
+            "into the session's main 'natural' survey.json)."
         ),
     )
     threshold_caveat: str | None = Field(
@@ -207,7 +219,7 @@ class SurveyResultOutput(BaseModel):
         default=None,
         description="The caller-requested answer_fn mode, recorded verbatim regardless of outcome.",
     )
-    # F4 quick-dev provenance (`docs/ai/f4_quick_dev_plan.md` §2.7, `REV-044`
+    # F4 quick-dev provenance (`_archive/plans/f4_quick_dev_plan.md` §2.7, `REV-044`
     # Issue 4 / `ADR-036` item 3): reprojected verbatim from the upstream F2
     # `domain_inference.json` artifact's own top-level fields
     # (`src.f3.run_f3_administration` reads `artifact.get("scenario_pack_id")`

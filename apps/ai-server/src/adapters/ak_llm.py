@@ -36,9 +36,12 @@ class AkLlmAdapter(LLMAdapter):
 
     def __init__(self, settings: Settings, max_concurrent: int = _DEFAULT_MAX_CONCURRENT) -> None:
         self._settings = settings
+        # REV-001 Issue 5: explicit client timeout, no longer the openai
+        # SDK's 10-minute default — see `Settings.llm_client_timeout_s`.
         self._client = openai.AsyncOpenAI(
             api_key=settings.skt_a_x_api_key,
             base_url=settings.skt_a_x_rest_base_url.rstrip("/") + "/v1",
+            timeout=settings.llm_client_timeout_s,
         )
         self._default_model = settings.skt_a_x_llm_model
         self._semaphore = asyncio.Semaphore(max_concurrent)

@@ -1,6 +1,6 @@
 """F3 simulator score-selection modes — HARNESS ONLY, never `src/`.
 
-`docs/ai/f3_quick_dev_plan.md` §7, `PLAN-2026-W29-A` step 3. Builds the
+`_archive/plans/f3_quick_dev_plan.md` §7, `PLAN-2026-W29-A` step 3. Builds the
 `answer_fn` seam `src.f3.administer_survey`/`run_f3_administration` expects:
 ``Callable[[ScaleItem], Awaitable[int]]``. `src/f3.py` imports nothing from
 this module (or any other module under `tests/`) — the harness

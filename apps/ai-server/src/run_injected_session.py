@@ -1,6 +1,6 @@
 """run_injected_session.py — protocol runner: F1Pipeline + injection schedule.
 
-`docs/ai/validation_plan_f1f2_continuous.md` §3 "STT/OCR arbitrary-turn
+`_archive/plans/validation_plan_f1f2_continuous.md` §3 "STT/OCR arbitrary-turn
 injection" row + §6 canary design (SC-13 persona-independence canary,
 SC-15 prompt-echo probe). Part of the EXTERNAL verification-protocol layer
 (`injection_protocol.py`/`continuous_test.py` lineage), not production code

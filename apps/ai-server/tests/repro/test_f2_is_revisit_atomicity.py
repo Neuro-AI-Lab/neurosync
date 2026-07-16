@@ -1,5 +1,5 @@
 """REV-023 ruling 4 (binding atomicity constraint) + qa detection procedure
-#6 (`docs/ai/validation_plan_f1f2_continuous.md` §6): greeting-coupling
+#6 (`_archive/plans/validation_plan_f1f2_continuous.md` §6): greeting-coupling
 regression.
 
 `f2.py`'s `_infer_is_first_visit` used to substring-match F1's hardcoded

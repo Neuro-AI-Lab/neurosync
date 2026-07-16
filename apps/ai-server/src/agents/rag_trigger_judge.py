@@ -1,6 +1,6 @@
 """RagTriggerJudge agent — Policy-B LLM-judged RAG trigger (F2, PLAN-2026-W28-Q W4).
 
-`docs/ai/validation_plan_f1f2_continuous.md` §3 Policy-B row: a single small
+`_archive/plans/validation_plan_f1f2_continuous.md` §3 Policy-B row: a single small
 LLM call, inserted before `run_stage1()` (`src.rag_trigger.decide_policy_b`
 is the call site), that decides whether F2's Stage-1 retrieval should fire
 this run and, if so, composes the query text to search with. Output is

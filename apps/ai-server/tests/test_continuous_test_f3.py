@@ -1,4 +1,4 @@
-"""`src.continuous_test`'s F3 stage — `docs/ai/f3_quick_dev_plan.md` §6,
+"""`src.continuous_test`'s F3 stage — `_archive/plans/f3_quick_dev_plan.md` §6,
 ADR-032. No live LLM/DB anywhere in this file: `run_f3_stage` is exercised
 against a synthetic `domain_inference.json` artifact with `--answer-mode
 expected` (deterministic, reads a real repo persona file, zero LLM), and
@@ -23,6 +23,8 @@ def _write_domain_inference_artifact(
     *,
     persona_id: str = "VP-001",
     recommended_questionnaire: str | None = "PHQ-9",
+    crisis_triggered: bool = False,
+    session_ctrs: int | None = None,
 ) -> Path:
     persona_dir = tmp_path / persona_id
     persona_dir.mkdir(parents=True, exist_ok=True)
@@ -39,6 +41,9 @@ def _write_domain_inference_artifact(
                     "recommended_questionnaire": recommended_questionnaire,
                     "recommendation_caveat": None,
                 },
+                # CVR-028 Finding 1 safety-net wiring.
+                "crisis_triggered": crisis_triggered,
+                "session_ctrs": session_ctrs,
             },
             ensure_ascii=False,
         ),
@@ -123,6 +128,154 @@ class TestRunF3StageNoQuestionnaireIndicated:
         assert ctx.f3_scale_scores_path is None
 
 
+class TestRunF3StageSafetyNetCvr028:
+    """CVR-028 Finding 1 at the harness (F2->F3 chain) consumption seam —
+    proves the same `f3.resolve_effective_scale` seam `run_f3_administration`
+    uses is also what `run_f3_stage`'s own pre-computation (needed to build
+    `answer_fn` before the F3 call) resolves against, so the two never
+    disagree about which outcome/scale this session gets."""
+
+    @pytest.mark.asyncio
+    async def test_crisis_session_no_f2_recommendation_administers_phq9(
+        self, tmp_path: Path
+    ) -> None:
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-001", recommended_questionnaire=None,
+            crisis_triggered=True,
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-001", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert "outcome=administered" in result.detail
+        assert "scale=PHQ-9" in result.detail
+        assert "administration_mode=safety_net" in result.detail
+        assert ctx.f3_survey_path is not None
+        saved = json.loads(ctx.f3_survey_path.read_text(encoding="utf-8"))
+        assert saved["administration_mode"] == "safety_net"
+
+    @pytest.mark.asyncio
+    async def test_low_ctrs_session_no_f2_recommendation_administers_phq9(
+        self, tmp_path: Path
+    ) -> None:
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-001", recommended_questionnaire=None,
+            session_ctrs=1,
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-001", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert "administration_mode=safety_net" in result.detail
+
+    @pytest.mark.asyncio
+    async def test_non_crisis_session_no_f2_recommendation_unaffected(
+        self, tmp_path: Path
+    ) -> None:
+        """No regression to the pre-existing, still-legitimate
+        no_questionnaire_indicated outcome for a genuinely low-acuity,
+        no-recommendation session."""
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-001", recommended_questionnaire=None,
+            crisis_triggered=False, session_ctrs=5,
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-001", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert "outcome=no_questionnaire_indicated" in result.detail
+        assert "administration_mode=natural" in result.detail
+
+
+class TestRunF3StageSiSupplementCvr030:
+    """CVR-030 remediation at the harness (F2->F3 chain) consumption seam
+    — crisis_triggered + a REAL non-PHQ-9 F2 recommendation (VP-012's own
+    documented AUDIT-C table) additionally administers the standalone SI
+    supplement, using VP-012's own documented PHQ-9 item 9 score (0, per
+    `docs/ai/personas/VP-012_first_visit_alcohol.md`)."""
+
+    @pytest.mark.asyncio
+    async def test_crisis_audit_c_administers_si_supplement(self, tmp_path: Path) -> None:
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-012", recommended_questionnaire="AUDIT-C",
+            crisis_triggered=True,
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-012", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert "scale=AUDIT-C" in result.detail
+        assert "si_supplement_needed=True" in result.detail
+        assert "si_supplement_administered=True" in result.detail
+        assert ctx.f3_si_supplement_pathway is not None
+        # VP-012's documented item 9 score is 0 -> not critical.
+        assert ctx.f3_si_supplement_pathway["safety_triggered"] is False
+        assert "si_supplement_json" in result.artifacts
+        assert result.artifacts["si_supplement_json"].exists()
+
+    @pytest.mark.asyncio
+    async def test_not_crisis_triggered_no_supplement_in_ledger(self, tmp_path: Path) -> None:
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-012", recommended_questionnaire="AUDIT-C",
+            crisis_triggered=False,
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-012", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        result = await ct.run_f3_stage(ctx)
+        assert result.status == "pass"
+        assert "si_supplement_needed" not in result.detail
+        assert ctx.f3_si_supplement_pathway is None
+        assert "si_supplement_json" not in result.artifacts
+
+    @pytest.mark.asyncio
+    async def test_ledger_subobject_carries_si_supplement_pathway(self, tmp_path: Path) -> None:
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-012", recommended_questionnaire="AUDIT-C",
+            crisis_triggered=True,
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-012", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        await ct.run_f3_stage(ctx)
+        sub = ct._build_f3_ledger_subobject(ctx)
+        assert sub is not None
+        assert sub["si_supplement_pathway"] is not None
+        assert sub["si_supplement_pathway"]["safety_triggered"] is False
+
+    @pytest.mark.asyncio
+    async def test_ledger_subobject_null_when_not_needed(self, tmp_path: Path) -> None:
+        artifact_path = _write_domain_inference_artifact(
+            tmp_path, persona_id="VP-012", recommended_questionnaire="AUDIT-C",
+            crisis_triggered=False,
+        )
+        ctx = ct.ChainContext(
+            persona_id="VP-012", max_turns=1, k=1, out_dir=tmp_path,
+            scale_scores_path=None, domain_inference_path=artifact_path,
+            answer_mode="expected",
+        )
+        await ct.run_f3_stage(ctx)
+        sub = ct._build_f3_ledger_subobject(ctx)
+        assert sub is not None
+        assert sub["si_supplement_pathway"] is None
+
+
 class TestRunF3StageLLMModeConstructsSurveyAnswerLLM:
     @pytest.mark.asyncio
     async def test_llm_mode_builds_survey_answer_llm_from_real_persona(
@@ -198,6 +351,7 @@ class TestBuildF3LedgerSubobject:
             "scale_scores_path",
         }
         expected_keys |= {"scenario_pack_id", "arc_mode"}  # F4 quick-dev provenance, ADR-036 item 3
+        expected_keys |= {"si_supplement_pathway"}  # CVR-030 remediation
         assert set(sub.keys()) == expected_keys
         assert sub["outcome"] == "administered"
         assert sub["scale_name"] == "PHQ-9"

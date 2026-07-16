@@ -150,6 +150,49 @@ _RISK_PHRASES: tuple[str, ...] = (
     "죽는게낫",
     "차라리 죽",
     "차라리죽",
+    # VAL-015 (docs/ai/workflow_discussion_f1f2.md ISS-F2V-019; EXP-016
+    # finding 43, SC-5 VP-003 session2 live artifact
+    # `_archive/simulation_results/VP-003/VP-003_20260711_222853_
+    # domain_inference.json` `retrieval_meta.queries`: "...살기 싫어요."):
+    # grammatically distinct "hate/dislike living" construction (나 + 기
+    # nominalizer + 싫다) from the 4 already-covered stems VAL-015
+    # confirmed do NOT match it (살고 싶지 않/죽고 싶/사라지고 싶/짐이 되) —
+    # verified no shared substring with any of them, and disjoint from
+    # `_PANIC_IDIOM_PHRASES` (no idiom stem contains "살").
+    "살기 싫",
+    "살기싫",
+    # VAL-015: the Korean-only lexicon does not catch English-language
+    # risk-worded content — real, structural exposure via Policy-B's
+    # judge-composed retrieval queries (EXP-016 findings 27/31/34,
+    # verbatim `retrieval_meta.queries` text re-extracted from
+    # `_archive/simulation_results/VP-003/VP-003_20260711_220220_domain_
+    # inference.json` / `..._220541_...json`: "...passive suicidal
+    # ideation..." / "persistent thoughts of death..."). Matching is
+    # case-insensitive (`_contains_any` casefolds both sides below);
+    # Hangul is unaffected by casefold so existing Korean stems are
+    # unchanged. "thoughts of death" is deliberately narrower than a bare
+    # "death" stem to avoid unrelated clinical narrative (e.g. "history
+    # of death in the family"); checked disjoint from this project's
+    # English panic-fear-of-dying phrasing, which uses "going to die"/
+    # "feared I would die" (event-fear) rather than "thoughts of death"
+    # (ideation-about-death-as-outcome) — see
+    # test_english_panic_fear_quote_not_risk_lexicon_rejected.
+    "suicidal ideation",
+    "thoughts of death",
+    # Remaining minimal English SI class (want to die / don't want to
+    # live / kill myself / end my life / self-harm) — brief-directed
+    # (docs/ai/lexicon_expansion_val010.md §2b), not independently
+    # observed verbatim in EXP-016/EXP-026 evidence, but each is the
+    # direct English analogue of an already-covered Korean stem (죽고
+    # 싶/살고 싶지 않/자해) so the exposure class is the same, just
+    # untested in this project's own live English-query corpus to date.
+    "want to die",
+    "don't want to live",
+    "do not want to live",
+    "kill myself",
+    "end my life",
+    "self-harm",
+    "self harm",
 )
 
 # ISS-046 exception (SM-07a precedent): panic-attack fear-of-dying idioms
@@ -214,9 +257,17 @@ def _normalize_rag_chunk_source_id(source_id: str) -> str:
 
 
 def _contains_any(text: str, phrases: tuple[str, ...]) -> list[str]:
-    """Phrases (space-insensitive) actually present in *text*, in list order."""
-    collapsed = text.replace(" ", "")
-    return [p for p in phrases if p.replace(" ", "") in collapsed]
+    """Phrases (space- and case-insensitive) actually present in *text*, in
+    list order.
+
+    VAL-015 (docs/ai/lexicon_expansion_val010.md §2b): case-folding added
+    to catch English-stem casing variants (e.g. a judge-composed query
+    capitalizing "Suicidal Ideation" at a sentence start). `.casefold()` is
+    a no-op on Hangul, so existing Korean-only matching behavior is
+    unchanged.
+    """
+    collapsed = text.replace(" ", "").casefold()
+    return [p for p in phrases if p.replace(" ", "").casefold() in collapsed]
 
 
 def is_panic_idiom_evidence(quote: str) -> bool:
