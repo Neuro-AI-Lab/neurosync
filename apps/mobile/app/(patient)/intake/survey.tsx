@@ -16,12 +16,14 @@ import { APIException, QuestionnaireType, submitQuestionnaire } from "../../../l
 import { FALLBACK_SURVEY } from "../../../lib/domain";
 import { SURVEYS } from "../../../lib/surveys";
 import { useAuth } from "../../../state/auth";
+import { useRecords } from "../../../state/records";
 import { useSession } from "../../../state/session";
 
 export default function SurveyScreen() {
   const params = useLocalSearchParams<{ instrument?: string }>();
   const accessToken = useAuth((s) => s.accessToken);
   const sessionId = useSession((s) => s.sessionId);
+  const addRecord = useRecords((s) => s.addFromResult);
   const [submitting, setSubmitting] = useState(false);
 
   // 알 수 없는/누락된 instrument는 폴백 문진으로 — 라우팅은 항상 성공 (FR-039).
@@ -35,7 +37,9 @@ export default function SurveyScreen() {
     if (!accessToken || !sessionId) return;
     setSubmitting(true);
     try {
-      await submitQuestionnaire(accessToken, sessionId, def.id, answers);
+      const result = await submitQuestionnaire(accessToken, sessionId, def.id, answers);
+      // 기록·리포트 화면(FR-045/046)용 로컬 이력 — 세션 리셋과 무관하게 유지.
+      addRecord(result, def.id);
       router.push("/(patient)/intake/submit");
     } catch (e) {
       const code = e instanceof APIException ? e.body.code : "NETWORK";

@@ -9,7 +9,7 @@
 
 import { Tabs } from "expo-router";
 
-import { Gear, Home, Hospital } from "../../../lib/icons";
+import { Gear, Home, Hospital, Records } from "../../../lib/icons";
 import { colors } from "../../../lib/tokens";
 
 export default function TabsLayout() {
@@ -32,6 +32,13 @@ export default function TabsLayout() {
         options={{
           title: "홈",
           tabBarIcon: ({ color }) => <Home size={22} color={color} strokeWidth={1.7} />,
+        }}
+      />
+      <Tabs.Screen
+        name="records"
+        options={{
+          title: "기록",
+          tabBarIcon: ({ color }) => <Records size={22} color={color} strokeWidth={1.7} />,
         }}
       />
       <Tabs.Screen
