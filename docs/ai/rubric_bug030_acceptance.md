@@ -1,7 +1,7 @@
 # BUG-030 acceptance rubric — dialogue empathy-phrase repetition fix
 
 **Status:** PRE-REGISTERED, 2026-07-12, by clinical-validator, **before** the BUG-030 fix
-(`docs/ai/fix_proposal_bug030.md`) has been implemented. Authored blind to any post-fix output —
+(`_archive/plans/fix_proposal_bug030.md`) has been implemented. Authored blind to any post-fix output —
 no fix code, prompt file, or re-run artifact exists at authoring time. Binding on the later CVR
 that scores the post-fix re-validation runs: that CVR must apply every dimension below and may
 not narrow, reword, or drop a dimension after seeing results (same discipline this program already
@@ -14,7 +14,7 @@ SC-5 item-V FAIL (badgering) at W8. Fix direction (user-fixed): delete the hardc
 menu in `apps/ai-server/src/agents/dialogue.py` `_build_slot_context` (lines 438–464) and the
 3-example list in `docs/ai/prompts/dialogue/v3.system.md` rule 2; replace with a principle-level
 "generate natural empathy matched to content/register" instruction in a new `v4.system.md`. Full
-diagnosis and proposed diff: `docs/ai/fix_proposal_bug030.md`.
+diagnosis and proposed diff: `_archive/plans/fix_proposal_bug030.md`.
 
 **Applies to.** Any post-fix session artifact generated under the dialogue prompt version that
 supersedes v3 (v4, or whatever version the AVC-17 pin table in the fix proposal names) — the
@@ -414,7 +414,7 @@ not report a single pass/fail verdict for "the empathy fix."
 **Status.** Appended, not a rewrite. §1's turn-pairing convention is corrected below for turn index
 `N ≥ 1` (10.2); the original §1 text is left in place above for audit trail but is **superseded**
 for scoring purposes by 10.2's rule wherever the two conflict. Written pre-implementation of
-`docs/ai/fix_design_bug030_iter2.md` — this addendum is blind to any iteration-2 output (none
+`_archive/plans/fix_design_bug030_iter2.md` — this addendum is blind to any iteration-2 output (none
 exists yet); its calibration source is the SAME pre-registered "worked evidence" class the base
 rubric already used (already-observed pre-iteration-2 artifacts: `VP-003_20260712_095027`,
 `VP-003_20260712_094812`, `VP-010_20260712_094946`), not iteration-2 results. Binding on the CVR

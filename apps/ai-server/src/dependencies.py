@@ -6,6 +6,7 @@ import functools
 import logging
 
 from src.adapters.ak_llm import AkLlmAdapter
+from src.adapters.hira_drug_efficacy import HiraDrugEfficacyAdapter
 from src.adapters.hira_hospital import HiraHospitalAdapter
 from src.adapters.hira_madm_dtl import HiraMadmDtlAdapter
 from src.adapters.hira_pharmacy import HiraPharmacyAdapter
@@ -120,6 +121,18 @@ def get_hira_madm_dtl_adapter() -> HiraMadmDtlAdapter | None:
     if not settings.hira_service_key:
         return None
     return HiraMadmDtlAdapter(settings)
+
+
+def get_hira_drug_efficacy_adapter() -> HiraDrugEfficacyAdapter | None:
+    """HIRA 의약품성분약효정보 어댑터 (optional). HIRA_SERVICE_KEY 없으면 None.
+
+    PHR 약효분류 캐시 miss 시 실시간 조회에 사용. 승인 미완/네트워크 실패는
+    어댑터 내부에서 흡수하고 None을 반환한다 (캐시/UNKNOWN fallback 유지).
+    """
+    settings = get_settings()
+    if not settings.hira_service_key:
+        return None
+    return HiraDrugEfficacyAdapter(settings)
 
 
 @functools.lru_cache(maxsize=1)

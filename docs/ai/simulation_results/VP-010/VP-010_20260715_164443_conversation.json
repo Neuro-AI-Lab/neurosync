@@ -1,0 +1,1052 @@
+{
+  "session_id": "f1_VP-010_followup",
+  "persona_id": "VP-010",
+  "persona_name": "강태민",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "지난번 상담 이후 수면 상태는 개선되지 않고 여전히 잠들기 힘들고 새벽에 자주 깨는 증상이 지속되고 있으며, 별다른 호전 없이 그때그때 버티는 느낌"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\""
+    },
+    {
+      "key": "substance_use_history",
+      "value": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음"
+    },
+    {
+      "key": "personal_social_history",
+      "value": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가"
+    },
+    {
+      "key": "family_history",
+      "value": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+    },
+    {
+      "key": "medical_history",
+      "value": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "지난번에 말씀드렸던 것처럼 여전히 잠들기 힘들고 새벽에 자주 깨는 건 비슷해요. \n딱히 더 나아지거나 한 건 없고, 그냥 그때그때 버티는 느낌이랄까요?",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 지난번에 이어서 다시 뵙게 되어 반갑습니다. 오늘은 지난번 상담 이후로 수면 상태는 어떻게 달라졌는지 편하게 말씀해 주시겠어요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 힘들고 새벽에 자주 깨는 수면 문제",
+        "history_of_present_illness": "지난번 상담 이후 수면 상태는 개선되지 않고 여전히 잠들기 힘들고 새벽에 자주 깨는 증상이 지속되고 있으며, 별다른 호전 없이 그때그때 버티는 느낌"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 힘들고 새벽에 자주 깨는 수면 문제",
+        "history_of_present_illness": "지난번 상담 이후 수면 상태는 개선되지 않고 여전히 잠들기 힘들고 새벽에 자주 깨는 증상이 지속되고 있으며, 별다른 호전 없이 그때그때 버티는 느낌",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 7490.603187121451,
+      "timestamp": "2026-07-15T16:42:54.013515",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "지난번에 말씀드렸던 것처럼 여전히 잠들기 힘들고 새벽에 자주 깨는 건 비슷해요.  \n딱히 더 나아지거나 한 건 없고, 그냥 그때그때 버티는 느낌이랄까요?",
+        "normalized": "지난번에 말씀드렸던 것처럼 여전히 잠들기 힘들고 새벽에 자주 깨는 건 비슷해요. \n딱히 더 나아지거나 한 건 없고, 그냥 그때그때 버티는 느낌이랄까요?",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1259.6417120657861,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "지난번에 말씀드렸던 것처럼 여전히 잠들기 힘들고 새벽에 자주 깨는 건 비슷해요. 딱히 더 나아지거나 한 건 없고, 그냥 그때그때 버티는 느낌이랄까요?",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "지난번에 말씀드렸던 것처럼 여전히 잠들기 힘들고 새벽에 자주 깨는 건 비슷해요. \n딱히 더 나아지거나 한 건 없고, 그냥 그때그때 버티는 느낌이랄까요?",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠들기 어렵고 새벽에 자주 깨는 증상이 크게 달라지지 않아 힘드셨겠어요. 지난번 상담 이후에도 수면 문제가 지속되셨다니, 마음이 많이 지치셨을 것 같습니다. 혹시 최근 들어 정신건강의학과 진료를 받아보신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속",
+        "history_of_present_illness": "지난번 상담 이후 수면 상태는 개선되지 않고 여전히 잠들기 힘들고 새벽에 자주 깨는 증상이 지속되고 있으며, 별다른 호전 없이 그때그때 버티는 느낌",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4391.2337818183005,
+      "timestamp": "2026-07-15T16:42:58.404774",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "지난번에 말씀드렸던 것처럼 여전히 잠들기 힘들고 새벽에 자주 깨는 건 비슷해요.  \n딱히 더 나아지거나 한 건 없고, 그냥 그때그때 버티는 느낌이랄까요?",
+        "normalized": "지난번에 말씀드렸던 것처럼 여전히 잠들기 힘들고 새벽에 자주 깨는 건 비슷해요. \n딱히 더 나아지거나 한 건 없고, 그냥 그때그때 버티는 느낌이랄까요?",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1259.6417120657861,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "잠들기 힘들고 새벽에 자주 깨는 건 비슷해요. 딱히 더 나아지거나 한 건 없고, 그냥 그때그때 버티는 느낌이랄까요?",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "아니요, 아직 정신과나 병원 가본 적 없어요.  \n그냥 한번 점검해보려고 앱을 써보는 정도예요.  \n큰 문제는 아닐 거라고 생각하긴 하는데... 그래도 좀 그렇긴 해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "아직 정신과나 병원을 가보신 적이 없으시다고요. 큰 문제는 아닐 거라고 생각하시지만, 그래도 마음이 불편하고 힘드신 상황이시군요. 혹시 이전에 정신건강의학과 진료를 받아보신 적이 있으신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속",
+        "history_of_present_illness": "지난번 상담 이후 수면 상태는 개선되지 않고 여전히 잠들기 힘들고 새벽에 자주 깨는 증상이 지속되고 있으며, 별다른 호전 없이 그때그때 버티는 느낌",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4123.4665010124445,
+      "timestamp": "2026-07-15T16:43:07.406329",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 아직 정신과나 병원 가본 적 없어요.  \n그냥 한번 점검해보려고 앱을 써보는 정도예요.  \n큰 문제는 아닐 거라고 생각하긴 하는데... 그래도 좀 그렇긴 해요.",
+        "normalized": "아니요, 아직 정신과나 병원 가본 적 없어요.  \n그냥 한번 점검해보려고 앱을 써보는 정도예요.  \n큰 문제는 아닐 거라고 생각하긴 하는데... 그래도 좀 그렇긴 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1693.1814313866198,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "큰 문제는 아닐 거라고 생각하긴 하는데... 그래도 좀 그렇긴 해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "아니요, 정신과 이력은 전혀 없어요. 이번에 처음 이런 앱을 써보는 거라서요. 뭔가 점검 차원에서요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "정신과 진료나 심리상담을 받아보신 적이 전혀 없으시다고요. 처음 이런 앱을 써보시면서 점검 차원에서 이야기를 나누고 계신다니, 마음이 많이 조심스러우셨을 것 같아요. 혹시 이전에 진단받은 병명이나 진료 기록이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속",
+        "history_of_present_illness": "지난번 상담 이후 수면 상태는 개선되지 않고 여전히 잠들기 힘들고 새벽에 자주 깨는 증상이 지속되고 있으며, 별다른 호전 없이 그때그때 버티는 느낌",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4526.6686589457095,
+      "timestamp": "2026-07-15T16:43:15.917106",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 정신과 이력은 전혀 없어요.  \n이번에 처음 이런 앱을 써보는 거라서요.  \n뭔가 점검 차원에서요.",
+        "normalized": "아니요, 정신과 이력은 전혀 없어요. 이번에 처음 이런 앱을 써보는 거라서요. 뭔가 점검 차원에서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1128.555356990546,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 정신과 이력은 전혀 없어요. 이번에 처음 이런 앱을 써보는 거라서요. 뭔가 점검 차원에서요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "아니요, 진단받은 병명도 없고, 진료 기록도 없어요.  \n그냥 요즘 기분이 가라앉는 날이 좀 있는데, 그게 얼마나 심한지는 잘 모르겠어요.  \n사실... 거의 매일 그런 것 같아요. 그냥 티 안 내려고 했어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "기분이 가라앉는 날이 좀 있는데, 그게 얼마나 심한지는 잘 모르겠어요",
+        "거의 매일 그런 것 같아요"
+      ],
+      "agent_response": "진단받은 병명도 없고 진료 기록도 없으시다고요. 거의 매일 기분이 가라앉는 느낌이 드시는데, 그때그때 티 안 내려고 하셨다니 마음이 많이 무거우셨을 것 같아요. 혹시 이전에 정신건강의학과 진료를 받아보신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속",
+        "history_of_present_illness": "지난번 상담 이후 수면 상태는 개선되지 않고 여전히 잠들기 힘들고 새벽에 자주 깨는 증상이 지속되고 있으며, 별다른 호전 없이 그때그때 버티는 느낌",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4898.456054739654,
+      "timestamp": "2026-07-15T16:43:28.584085",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 진단받은 병명도 없고, 진료 기록도 없어요.  \n그냥 요즘 기분이 가라앉는 날이 좀 있는데, 그게 얼마나 심한지는 잘 모르겠어요.  \n사실... 거의 매일 그런 것 같아요. 그냥 티 안 내려고 했어요.",
+        "normalized": "아니요, 진단받은 병명도 없고, 진료 기록도 없어요.  \n그냥 요즘 기분이 가라앉는 날이 좀 있는데, 그게 얼마나 심한지는 잘 모르겠어요.  \n사실... 거의 매일 그런 것 같아요. 그냥 티 안 내려고 했어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2275.0226939097047,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.8
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "진단받은 병명도 없고, 진료 기록도 없어요. 그냥 요즘 기분이 가라앉는 날이 좀 있는데, 그게 얼마나 심한지는 잘 모르겠어요. 사실... 거의 매일 그런 것 같아요. 그냥 티 안 내려고 했어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "아니요, 정신과 이력은 전혀 없어요. 이번에 처음 이런 앱을 써보는 거라서요. 뭔가 점검 차원에서요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "기분이 가라앉는 날이 좀 있는데",
+        "거의 매일 그런 것 같아요"
+      ],
+      "agent_response": "아, 이번 기회에 처음 정신건강의학과 진료를 받아보시려는 거군요. 혹시 이전에 다른 병원에서 정신건강 관련 진료를 받아보신 적이 있으신가요? 그때 어떤 진료를 받으셨고, 어떤 기록이 남아 있나요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속",
+        "history_of_present_illness": "지난번 상담 이후 수면 상태는 개선되지 않고 여전히 잠들기 힘들고 새벽에 자주 깨는 증상이 지속되고 있으며, 별다른 호전 없이 그때그때 버티는 느낌",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6525.96261491999,
+      "timestamp": "2026-07-15T16:43:39.036977",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 정신과 이력은 전혀 없어요.  \n이번에 처음 이런 앱을 써보는 거라서요.  \n뭔가 점검 차원에서요.",
+        "normalized": "아니요, 정신과 이력은 전혀 없어요. 이번에 처음 이런 앱을 써보는 거라서요. 뭔가 점검 차원에서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1062.4413243494928,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 정신과 이력은 전혀 없어요. 이번에 처음 이런 앱을 써보는 거라서요. 뭔가 점검 차원에서요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1145.7343949005008,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "아니요, 진단받은 병명도 없고, 진료 기록도 전혀 없어요.  \n그냥 요즘 기분이 가라앉는 날이 좀 있는데, 그게 얼마나 심한지는 잘 모르겠어요.  \n사실... 거의 매일 그런 것 같아요. 그냥 티 안 내려고 했어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "기분이 가라앉는 날이 좀 있는데",
+        "거의 매일 그런 것 같아요"
+      ],
+      "agent_response": "진단받은 병명도 없고 진료 기록도 전혀 없으시다고요. 거의 매일 기분이 가라앉는 느낌이 드시는데, 그때그때 티 안 내려고 하셨다니 마음이 많이 무거우셨을 것 같아요. 혹시 이전에 정신건강의학과 진료를 받아보신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속",
+        "history_of_present_illness": "지난번 상담 이후 수면 상태는 개선되지 않고 여전히 잠들기 힘들고 새벽에 자주 깨는 증상이 지속되고 있으며, 별다른 호전 없이 그때그때 버티는 느낌",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5301.176502369344,
+      "timestamp": "2026-07-15T16:43:51.028652",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 진단받은 병명도 없고, 진료 기록도 전혀 없어요.  \n그냥 요즘 기분이 가라앉는 날이 좀 있는데, 그게 얼마나 심한지는 잘 모르겠어요.  \n사실... 거의 매일 그런 것 같아요. 그냥 티 안 내려고 했어요.",
+        "normalized": "아니요, 진단받은 병명도 없고, 진료 기록도 전혀 없어요.  \n그냥 요즘 기분이 가라앉는 날이 좀 있는데, 그게 얼마나 심한지는 잘 모르겠어요.  \n사실... 거의 매일 그런 것 같아요. 그냥 티 안 내려고 했어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3226.5977850183845,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.8
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "거의 매일 그런 것 같아요. 그냥 티 안 내려고 했어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 정신과 이력은 전혀 없어요. 이번에 처음 이런 앱을 써보는 거라서요. 뭔가 점검 차원에서요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "기분이 가라앉는 날이 좀 있는데",
+        "거의 매일 그런 것 같아요"
+      ],
+      "agent_response": "정신과 진료나 심리상담을 받아보신 적이 전혀 없으시다고요. 처음 이런 앱을 써보시면서 점검 차원에서 이야기를 나누고 계신다니, 마음이 많이 조심스러우셨을 것 같아요. 혹시 이전에 다른 병원에서 정신건강 관련 진료를 받아보신 적이 있으신가요? 그때 어떤 진료를 받으셨고, 어떤 기록이 남아 있나요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속",
+        "history_of_present_illness": "지난번 상담 이후 수면 상태는 개선되지 않고 여전히 잠들기 힘들고 새벽에 자주 깨는 증상이 지속되고 있으며, 별다른 호전 없이 그때그때 버티는 느낌",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 8211.371588055044,
+      "timestamp": "2026-07-15T16:44:03.627834",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 정신과 이력은 전혀 없어요.  \n이번에 처음 이런 앱을 써보는 거라서요.  \n뭔가 점검 차원에서요.",
+        "normalized": "아니요, 정신과 이력은 전혀 없어요. 이번에 처음 이런 앱을 써보는 거라서요. 뭔가 점검 차원에서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1313.3816816844046,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 정신과 이력은 전혀 없어요. 이번에 처음 이런 앱을 써보는 거라서요. 뭔가 점검 차원에서요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2782.2998026385903,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요, 진단받은 병명도 없고, 진료 기록도 없어요.  \n그냥 요즘 기분이 가라앉는 날이 좀 있는데...  \n사실 거의 매일 그런 것 같아요.  \n이전에도 비슷한 적이 있었는데, 그때는 그냥 스트레스 받는 줄 알았지, 병이라고 생각하진 않았어요.  \n지금은 그때보다 더 자주 그런 느낌이 들어요.  \n근데 여전히 병원에 갈 정도는 아닌 것 같아서요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "진단받은 병명도 없고 진료 기록도 전혀 없으시다고요. 지난번에도 비슷한 기분이 지속되셨지만, 그때는 스트레스 때문이라고 생각하셨고 지금은 더 자주 그런 느낌이 드신다니, 마음을 많이 들여다보셨다는 게 느껴집니다. 혹시 이전에 정신건강의학과 진료를 받아보신 적이 있으신가요? 그때 어떤 진료를 받으셨고, 어떤 기록이 남아 있나요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속",
+        "history_of_present_illness": "지난번 상담 이후 수면 상태는 개선되지 않고 여전히 잠들기 힘들고 새벽에 자주 깨는 증상이 지속되고 있으며, 별다른 호전 없이 그때그때 버티는 느낌",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6399.438058026135,
+      "timestamp": "2026-07-15T16:44:16.826149",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 진단받은 병명도 없고, 진료 기록도 없어요.  \n그냥 요즘 기분이 가라앉는 날이 좀 있는데...  \n사실 거의 매일 그런 것 같아요.  \n이전에도 비슷한 적이 있었는데, 그때는 그냥 스트레스 받는 줄 알았지, 병이라고 생각하진 않았어요.  \n지금은 그때보다 더 자주 그런 느낌이 들어요.  \n근데 여전히 병원에 갈 정도는 아닌 것 같아서요.",
+        "normalized": "아니요, 진단받은 병명도 없고, 진료 기록도 없어요.  \n그냥 요즘 기분이 가라앉는 날이 좀 있는데...  \n사실 거의 매일 그런 것 같아요.  \n이전에도 비슷한 적이 있었는데, 그때는 그냥 스트레스 받는 줄 알았지, 병이라고 생각하진 않았어요.  \n지금은 그때보다 더 자주 그런 느낌이 들어요.  \n근데 여전히 병원에 갈 정도는 아닌 것 같아서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2863.7564186938107,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.8
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "진단받은 병명도 없고, 진료 기록도 없어요. 그냥 요즘 기분이 가라앉는 날이 좀 있는데... 사실 거의 매일 그런 것 같아요. 이전에도 비슷한 적이 있었는데, 그때는 그냥 스트레스 받는 줄 알았지, 병이라고 생각하진 않았어요. 지금은 그때보다 더 자주 그런 느낌이 들어요. 근데 여전히 병원에 갈 정도는 아닌 것 같아서요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1255.8848168700933,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 정신과 이력은 전혀 없어요. 이번에 처음 이런 앱을 써보는 거라서요. 뭔가 점검 차원에서요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "정신과 진료나 상담을 받아보신 적이 전혀 없으시다고요. 처음 이런 앱을 통해 점검을 해보시려는 마음이 느껴집니다. 혹시 이전에 다른 병원에서 정신건강 관련 진료를 받아보신 적이 있으신가요? 그때 어떤 진료를 받으셨고, 담당 의사나 기록이 남아 있다면 알려주시겠어요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속",
+        "history_of_present_illness": "지난번 상담 이후 수면 상태는 개선되지 않고 여전히 잠들기 힘들고 새벽에 자주 깨는 증상이 지속되고 있으며, 별다른 호전 없이 그때그때 버티는 느낌",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6462.132264859974,
+      "timestamp": "2026-07-15T16:44:27.676547",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 정신과 이력은 전혀 없어요.  \n이번에 처음 이런 앱을 써보는 거라서요.  \n뭔가 점검 차원에서요.",
+        "normalized": "아니요, 정신과 이력은 전혀 없어요. 이번에 처음 이런 앱을 써보는 거라서요. 뭔가 점검 차원에서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1243.9689468592405,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "정신과 이력은 전혀 없어요. 이번에 처음 이런 앱을 써보는 거라서요. 뭔가 점검 차원에서요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1607.152298092842,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 진단받은 병명도 없고, 진료 기록도 없어요.  \n그냥 요즘 기분이 가라앉는 날이 좀 있는데...  \n사실 거의 매일 그런 것 같아요.  \n이전에도 비슷한 적이 있었는데, 그때는 그냥 스트레스 받는 줄 알았지, 병이라고 생각하진 않았어요.  \n지금은 그때보다 더 자주 그런 느낌이 들어요.  \n근데 여전히 병원에 갈 정도는 아닌 것 같아서요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "진단받은 병명도 없고 진료 기록도 전혀 없으시다고요. 지난번에도 비슷한 기분이 지속되셨지만, 그때는 스트레스 때문이라고 생각하셨고 지금은 더 자주 그런 느낌이 드신다니, 마음을 많이 들여다보셨다는 게 느껴집니다. 혹시 이전에 정신건강의학과 진료를 받아보신 적이 있으신가요? 그때 어떤 진료를 받으셨고, 담당 의사나 기록이 남아 있다면 알려주시겠어요?",
+      "slot_updates": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠들기 어렵고 새벽에 자주 깨는 수면 문제 지속",
+        "history_of_present_illness": "지난번 상담 이후 수면 상태는 개선되지 않고 여전히 잠들기 힘들고 새벽에 자주 깨는 증상이 지속되고 있으며, 별다른 호전 없이 그때그때 버티는 느낌",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5206.0123430565,
+      "timestamp": "2026-07-15T16:44:39.074666",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 진단받은 병명도 없고, 진료 기록도 없어요.  \n그냥 요즘 기분이 가라앉는 날이 좀 있는데...  \n사실 거의 매일 그런 것 같아요.  \n이전에도 비슷한 적이 있었는데, 그때는 그냥 스트레스 받는 줄 알았지, 병이라고 생각하진 않았어요.  \n지금은 그때보다 더 자주 그런 느낌이 들어요.  \n근데 여전히 병원에 갈 정도는 아닌 것 같아서요.",
+        "normalized": "아니요, 진단받은 병명도 없고, 진료 기록도 없어요.  \n그냥 요즘 기분이 가라앉는 날이 좀 있는데...  \n사실 거의 매일 그런 것 같아요.  \n이전에도 비슷한 적이 있었는데, 그때는 그냥 스트레스 받는 줄 알았지, 병이라고 생각하진 않았어요.  \n지금은 그때보다 더 자주 그런 느낌이 들어요.  \n근데 여전히 병원에 갈 정도는 아닌 것 같아서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2038.003338035196,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "진단받은 병명도 없고, 진료 기록도 없어요. 그냥 요즘 기분이 가라앉는 날이 좀 있는데... 사실 거의 매일 그런 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-15T16:42:46.522847",
+  "ended_at": "2026-07-15T16:44:43.012053",
+  "grounded_coverage": 0.875,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5636,
+  "patient_lng": 127.0369,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.11465372517704964,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.39,
+      "anxiety": 0.28,
+      "neutral": 0.22,
+      "despair": 0.11
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.6
+      },
+      {
+        "turn": 1,
+        "polarity": -0.65
+      },
+      {
+        "turn": 2,
+        "polarity": -0.65
+      },
+      {
+        "turn": 3,
+        "polarity": 0.0
+      },
+      {
+        "turn": 4,
+        "polarity": -0.7
+      },
+      {
+        "turn": 5,
+        "polarity": 0.0
+      },
+      {
+        "turn": 6,
+        "polarity": -0.7
+      },
+      {
+        "turn": 7,
+        "polarity": 0.0
+      },
+      {
+        "turn": 8,
+        "polarity": -0.7
+      },
+      {
+        "turn": 9,
+        "polarity": 0.0
+      },
+      {
+        "turn": 10,
+        "polarity": -0.6
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 7회 반복",
+      "anxiety 표현 5회 반복",
+      "neutral 표현 4회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      }
+    ]
+  },
+  "phr_summary": {},
+  "prompts_degraded": false,
+  "session_index": 6,
+  "simulated_date": "2026-09-02",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- chief_complaint: 잠들기 어렵고 새벽에 자주 깨며, 수면 시간 4-5시간 후 재수면 어려움\n- history_of_present_illness: 잠들기 어려움, 새벽 자주 깨는 수면 문제 지속, 가슴 두근거림 및 숨 막힘 증상(누워 있을 때, 승진 생각 시 악화), 에너지 저하, 식욕 감소, 체중 감소, 게임 및 운동 의욕 감소, 친구 약속 취소 반복\n- substance_use_history: 주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음\n- personal_social_history: 친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가\n- family_history: 어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음\n- medical_history: 속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상\n\n[이전 세션 요약 — 미수집 정보]\npast_psychiatric_history",
+  "carried_slot_provenance": {
+    "substance_use_history": "carried_from_session_5",
+    "personal_social_history": "carried_from_session_5",
+    "medical_history": "carried_from_session_5",
+    "family_history": "carried_from_session_5",
+    "risk_assessment": "carried_from_session_5"
+  },
+  "scenario_pack_id": "VP-010_stable_minimizing_slow_disclosure_s06",
+  "arc_mode": "stable_minimizing_slow_disclosure"
+}

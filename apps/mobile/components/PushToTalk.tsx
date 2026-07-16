@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { APIException, transcribeAudio } from "../lib/api";
-import { colors, fontSize, radius, spacing } from "../lib/tokens";
+import { Mic, Stop } from "../lib/icons";
+import { colors } from "../lib/tokens";
 
 /**
  * Push-to-Talk mic (FR-033/035/037). Tap to start, tap to stop → transcribe.
@@ -170,12 +171,15 @@ export function PushToTalk({ token, sessionId, disabled, onTranscript, onNotice 
     else if (status === "recording") void stopAndTranscribe();
   };
 
+  const recording = status === "recording";
+
   return (
     <View>
-      {status === "recording" ? (
-        <View style={styles.banner}>
+      {recording ? (
+        <View style={styles.pill}>
           <View style={styles.dot} />
-          <Text style={styles.bannerText}>{fmt(elapsed)} · 다시 누르면 인식</Text>
+          <Text style={styles.timer}>{fmt(elapsed)}</Text>
+          <Text style={styles.pillLabel}>듣고 있어요 · 다시 누르면 인식</Text>
           <Pressable onPress={() => void cancel()} hitSlop={8} accessibilityRole="button">
             <Text style={styles.cancel}>취소</Text>
           </Pressable>
@@ -186,17 +190,19 @@ export function PushToTalk({ token, sessionId, disabled, onTranscript, onNotice 
         onPress={onPress}
         disabled={disabled || status === "processing" || !token || !sessionId}
         accessibilityRole="button"
-        accessibilityLabel={status === "recording" ? "녹음 정지 및 인식" : "음성 입력 시작"}
+        accessibilityLabel={recording ? "녹음 정지 및 인식" : "음성 입력 시작"}
         style={({ pressed }) => [
           styles.mic,
-          status === "recording" && styles.micActive,
+          recording && styles.micActive,
           { opacity: disabled || status === "processing" ? 0.4 : pressed ? 0.7 : 1 },
         ]}
       >
         {status === "processing" ? (
-          <ActivityIndicator size="small" color={colors.textSecondary} />
+          <ActivityIndicator size="small" color={colors.muted} />
+        ) : recording ? (
+          <Stop size={15} color="#FFFFFF" />
         ) : (
-          <Text style={styles.micIcon}>{status === "recording" ? "■" : "🎤"}</Text>
+          <Mic size={17} color={colors.ink} />
         )}
       </Pressable>
     </View>
@@ -205,32 +211,38 @@ export function PushToTalk({ token, sessionId, disabled, onTranscript, onNotice 
 
 const styles = StyleSheet.create({
   mic: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surfaceElevated,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.fill,
   },
-  micActive: { backgroundColor: "#FEF2F2", borderColor: colors.stateDanger },
-  micIcon: { fontSize: fontSize.bodyLg },
-  banner: {
+  micActive: { backgroundColor: colors.danger },
+  pill: {
     position: "absolute",
     bottom: "100%",
     right: 0,
-    marginBottom: spacing.xs,
+    marginBottom: 8,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.lg,
-    backgroundColor: colors.textPrimary,
-    minWidth: 200,
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderRadius: 14,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.dangerLine,
+    width: 260,
+    // lift it above the input bar
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
   },
-  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.stateDanger },
-  bannerText: { flex: 1, color: "#FFFFFF", fontSize: fontSize.body },
-  cancel: { color: "#FCA5A5", fontSize: fontSize.body, fontWeight: "600" },
+  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.danger },
+  timer: { fontSize: 14, color: colors.ink, fontWeight: "500", fontVariant: ["tabular-nums"] },
+  pillLabel: { flex: 1, color: colors.muted, fontSize: 11.5 },
+  cancel: { color: colors.danger, fontSize: 12.5, fontWeight: "600" },
 });

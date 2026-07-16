@@ -478,6 +478,13 @@ class TestCliScenarioPackFlag:
         with pytest.raises(SystemExit):
             ct.build_arg_parser().parse_args(["--scenario-pack", "VP-999"])
 
+    def test_all_registry_vps_accepted(self) -> None:
+        from tests.simulation.scenario_pack import _SCENARIO_PACKS
+
+        for vp_id in sorted(_SCENARIO_PACKS):
+            args = ct.build_arg_parser().parse_args(["--scenario-pack", vp_id])
+            assert args.scenario_pack == vp_id
+
     def test_no_f4_flag_default_false(self) -> None:
         args = ct.build_arg_parser().parse_args([])
         assert args.no_f4 is False

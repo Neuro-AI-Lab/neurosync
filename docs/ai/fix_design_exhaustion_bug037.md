@@ -4,7 +4,7 @@
 budget-exhaustion path redesign for the near-dup guard (**design only — not implemented**, awaits
 `CVR-013`/`REV-034` review and `ADR-030` ratification). Fix 3 = BUG-037 (output-isolation guard).
 Fix 1 and Fix 3 are implemented; this note is the developer deliverable required alongside them
-(`docs/ai/fix_design_bug030_iter2.md` §1–§8 remains the base guard design — this note documents
+(`_archive/plans/fix_design_bug030_iter2.md` §1–§8 remains the base guard design — this note documents
 only what changed/was added on top of it).
 
 **Pins untouched:** dialogue v4 (`f93e995f68e3a3bc88ddd5ce1f6b01ef8feb5e5663bda46ce4958ae8e6317144`),
@@ -204,7 +204,7 @@ constant, never the leak. Known, disclosed, out-of-scope residual: the pre-exist
 exception branch (`dialogue.py`, unrelated to budget exhaustion — a network/parse failure mid-
 retry) ships the last successfully-parsed candidate regardless of violation type, matching the
 established `fall_through` telemetry-invariant precedent already documented for that branch in
-`docs/ai/fix_design_bug030_iter2.md` §9; this mission's "on exhaustion" requirement is scoped to
+`_archive/plans/fix_design_bug030_iter2.md` §9; this mission's "on exhaustion" requirement is scoped to
 the budget-exhausted branch specifically, not this separate, much rarer failure mode.
 
 **Retry hint.** `_build_retry_hint` (`dialogue.py:729`) gained an `output_isolation` branch: for

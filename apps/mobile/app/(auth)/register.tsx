@@ -1,17 +1,28 @@
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
 import { APIException } from "../../lib/api";
-import { colors, fontSize, spacing } from "../../lib/tokens";
+import { Check, ChevronRight } from "../../lib/icons";
+import { colors } from "../../lib/tokens";
 import { useAuth } from "../../state/auth";
 
 /**
- * Single-screen register — screen-spec §S-03 compresses 3 steps into one for
- * the Phase 1a demo. Production version restores the stepper.
+ * Single-screen register — screen-spec §S-03 compresses profile + consent into
+ * one for the Phase 1a demo. Consent is presented as the iOS "전체 동의" box over
+ * a grouped checkbox list (필수 / 선택), matching the design mock.
  */
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
@@ -30,13 +41,21 @@ export default function RegisterScreen() {
   const [privacy, setPrivacy] = useState(false);
   const [sensitive, setSensitive] = useState(false);
   // PRD §4.5.2 + FR-026 — risk_notification is OPT-IN per PIPA doctrine.
-  // Default = false; toggling off is itself a consent decision.
   const [riskNotification, setRiskNotification] = useState(false);
   // FR-034 — voice (STT) is sensitive (biometric); separate opt-in, default off.
   const [voiceConsent, setVoiceConsent] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const allOn = tos && privacy && sensitive && riskNotification && voiceConsent;
+  const setAll = (v: boolean) => {
+    setTos(v);
+    setPrivacy(v);
+    setSensitive(v);
+    setRiskNotification(v);
+    setVoiceConsent(v);
+  };
 
   const isFilled = (s: string) => s.trim().length > 0;
   const canSubmit =
@@ -65,7 +84,7 @@ export default function RegisterScreen() {
         emergencyContact: emergency.trim(),
         consents: { tos, privacy, sensitive, riskNotification, voice: voiceConsent },
       });
-      router.replace("/(patient)/home");
+      router.replace("/(patient)/(tabs)/home");
     } catch (e) {
       if (e instanceof APIException) {
         const c = e.body.code;
@@ -73,7 +92,6 @@ export default function RegisterScreen() {
         else if (c === "EMAIL_EXISTS") setError("이미 가입된 이메일이에요");
         else if (c === "CONSENT_REQUIRED") setError("필수 동의를 확인해 주세요");
         else if (c === "INVALID_INPUT") setError("입력 내용을 다시 확인해 주세요");
-        // PRD §4.5.2: 서버 응답 message는 잠재 PII 포함 가능 — 코드만 노출
         else setError(`잠시 후 다시 시도해 주세요 (코드: ${c})`);
       } else {
         Alert.alert("연결 오류", "인터넷 연결이 불안정해요");
@@ -91,119 +109,197 @@ export default function RegisterScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
-          { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.lg },
+          { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 },
         ]}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>회원가입</Text>
+        <View style={styles.head}>
+          <Text style={styles.title}>회원가입</Text>
+          <Text style={styles.sub}>민감한 의료 정보를 다루기에 항목을 나눴어요.</Text>
+        </View>
 
-        <Input label="이메일" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-        <Input label="비밀번호 (12자 이상)" value={password} onChangeText={setPassword} secureTextEntry />
+        <Input label="이메일" placeholder="you@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+        <Input label="비밀번호 (12자 이상)" placeholder="••••••••••" value={password} onChangeText={setPassword} secureTextEntry />
         <Input label="이름" value={name} onChangeText={setName} />
-        <Input label="출생연도 (예: 1995)" value={birthYear} onChangeText={setBirthYear} keyboardType="number-pad" />
-        <Input label="연락처 (010-...)" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-        <Input label="비상 연락처 (010-...)" value={emergency} onChangeText={setEmergency} keyboardType="phone-pad" />
+        <Input label="출생연도" placeholder="예: 1995" value={birthYear} onChangeText={setBirthYear} keyboardType="number-pad" />
+        <Input label="연락처" placeholder="010-0000-0000" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+        <Input label="비상 연락처" placeholder="010-0000-0000" value={emergency} onChangeText={setEmergency} keyboardType="phone-pad" />
         <Input label="거주 지역" value={region} onChangeText={setRegion} />
 
-        <Text style={styles.sectionLabel}>성별</Text>
-        <View style={styles.row}>
-          {(["female", "male", "other"] as const).map((g) => (
-            <Pressable
-              key={g}
-              onPress={() => setGender(g)}
-              style={[styles.chip, gender === g && styles.chipActive]}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: gender === g }}
-            >
-              <Text style={[styles.chipText, gender === g && styles.chipTextActive]}>
-                {g === "female" ? "여성" : g === "male" ? "남성" : "그 외"}
-              </Text>
-            </Pressable>
-          ))}
+        <View style={styles.genderWrap}>
+          <Text style={styles.fieldLabel}>성별</Text>
+          <View style={styles.chipRow}>
+            {(["female", "male", "other"] as const).map((g) => {
+              const on = gender === g;
+              return (
+                <Pressable
+                  key={g}
+                  onPress={() => setGender(g)}
+                  style={[styles.chip, on && styles.chipOn]}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: on }}
+                >
+                  <Text style={[styles.chipText, on && styles.chipTextOn]}>
+                    {g === "female" ? "여성" : g === "male" ? "남성" : "그 외"}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
 
-        <Text style={styles.sectionLabel}>동의</Text>
-        <Toggle label="[필수] 서비스 이용약관" value={tos} onChange={setTos} />
-        <Toggle label="[필수] 개인정보 처리방침" value={privacy} onChange={setPrivacy} />
-        <Toggle label="[필수] 민감정보(의료) 수집" value={sensitive} onChange={setSensitive} />
-        <Toggle
-          label="[선택] 위험 신호 감지 시 비상 연락처에 안내 (옵트아웃 시 본인에게만 표시)"
-          value={riskNotification}
-          onChange={setRiskNotification}
-        />
-        <Toggle
-          label="[선택] 음성 입력(STT) 사용 — 음성은 민감정보로 별도 동의 (설정에서 변경 가능)"
-          value={voiceConsent}
-          onChange={setVoiceConsent}
-        />
+        {/* Consent — 전체 동의 + grouped checkbox list */}
+        <Text style={styles.sectionLabel}>약관 동의</Text>
+        <Pressable
+          style={styles.agreeAll}
+          onPress={() => setAll(!allOn)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: allOn }}
+        >
+          <Checkbox on={allOn} size={26} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.agreeAllTitle}>전체 동의합니다</Text>
+            <Text style={styles.agreeAllSub}>필수·선택 항목을 모두 포함해요</Text>
+          </View>
+        </Pressable>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        <View style={styles.clist}>
+          <ConsentRow label="서비스 이용약관" required on={tos} onToggle={() => setTos(!tos)} />
+          <ConsentRow label="개인정보 처리방침" required on={privacy} onToggle={() => setPrivacy(!privacy)} />
+          <ConsentRow label="민감정보(의료) 수집·이용" required on={sensitive} onToggle={() => setSensitive(!sensitive)} />
+          <ConsentRow label="위험 감지 시 비상 연락" on={riskNotification} onToggle={() => setRiskNotification(!riskNotification)} />
+          <ConsentRow label="음성 입력(STT) 사용" on={voiceConsent} onToggle={() => setVoiceConsent(!voiceConsent)} />
+        </View>
 
-        <Button label="가입 완료" onPress={onSubmit} loading={submitting} disabled={!canSubmit} />
+        {error ? (
+          <View style={styles.errBox}>
+            <Text style={styles.errText}>{error}</Text>
+          </View>
+        ) : null}
 
-        <View style={styles.footer}>
+        <View style={{ height: 4 }} />
+        <Button label="동의하고 계속" onPress={onSubmit} loading={submitting} disabled={!canSubmit} />
+
+        <Pressable
+          style={styles.footer}
+          onPress={() => (router.canGoBack() ? router.back() : router.replace("/(auth)/login"))}
+          accessibilityRole="button"
+        >
           <Text style={styles.footerText}>이미 회원이신가요? </Text>
-          <Link href="/(auth)/login" style={styles.link}>
-            로그인
-          </Link>
-        </View>
+          <Text style={styles.footerLink}>로그인</Text>
+        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+function Checkbox({ on, size = 24 }: { on: boolean; size?: number }) {
+  return (
+    <View
+      style={[
+        styles.check,
+        { width: size, height: size, borderRadius: size / 2 },
+        on && styles.checkOn,
+      ]}
+    >
+      {on ? <Check size={size - 10} color={colors.onInk} /> : null}
+    </View>
+  );
+}
+
+function ConsentRow({
+  label,
+  required,
+  on,
+  onToggle,
+}: {
+  label: string;
+  required?: boolean;
+  on: boolean;
+  onToggle: () => void;
+}) {
   return (
     <Pressable
-      onPress={() => onChange(!value)}
+      style={styles.citem}
+      onPress={onToggle}
       accessibilityRole="checkbox"
-      accessibilityState={{ checked: value }}
-      style={styles.toggle}
+      accessibilityState={{ checked: on }}
     >
-      <Text style={[styles.toggleBox, value && styles.toggleBoxOn]}>{value ? "✓" : ""}</Text>
-      <Text style={styles.toggleLabel}>{label}</Text>
+      <Checkbox on={on} />
+      <Text style={styles.citemLabel} numberOfLines={1}>
+        {label}
+      </Text>
+      <Text style={[styles.citemTag, required && styles.citemTagReq]}>
+        {required ? "필수" : "선택"}
+      </Text>
+      <ChevronRight size={13} color={colors.faint} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: spacing.lg, gap: spacing.md },
-  title: { fontSize: fontSize.display, fontWeight: "600", color: colors.textPrimary, marginBottom: spacing.sm },
-  sectionLabel: { fontSize: fontSize.body, fontWeight: "500", color: colors.textPrimary, marginTop: spacing.md },
-  row: { flexDirection: "row", gap: spacing.sm },
+  scroll: { paddingHorizontal: 20, gap: 12 },
+  head: { marginBottom: 4, gap: 4 },
+  title: { fontSize: 24, fontWeight: "700", color: colors.ink, letterSpacing: -0.6 },
+  sub: { fontSize: 13, color: colors.muted },
+  fieldLabel: { fontSize: 12.5, fontWeight: "500", color: colors.muted, paddingLeft: 2 },
+  genderWrap: { gap: 6 },
+  chipRow: { flexDirection: "row", gap: 8 },
   chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    flex: 1,
+    height: 44,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 999,
-  },
-  chipActive: { backgroundColor: colors.textPrimary, borderColor: colors.textPrimary },
-  chipText: { fontSize: fontSize.body, color: colors.textPrimary },
-  chipTextActive: { color: colors.surface, fontWeight: "600" },
-  toggle: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: spacing.xs },
-  toggleBox: {
-    width: 24,
-    height: 24,
-    textAlign: "center",
-    lineHeight: 24,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: colors.border,
-    color: colors.surface,
+    borderColor: colors.lineStrong,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: colors.surface,
-    overflow: "hidden",
   },
-  toggleBoxOn: { backgroundColor: colors.textPrimary, borderColor: colors.textPrimary, color: colors.surface },
-  toggleLabel: { fontSize: fontSize.body, color: colors.textPrimary, flex: 1 },
-  error: {
-    fontSize: fontSize.body,
-    color: colors.stateDanger,
-    backgroundColor: "#FEF2F2",
-    padding: spacing.sm,
-    borderRadius: 8,
+  chipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
+  chipText: { fontSize: 14, color: colors.ink },
+  chipTextOn: { color: colors.onInk, fontWeight: "600" },
+  sectionLabel: { fontSize: 12.5, fontWeight: "600", color: colors.muted, marginTop: 12, paddingLeft: 2 },
+  agreeAll: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 13,
+    padding: 15,
+    borderWidth: 1.5,
+    borderColor: colors.ink,
+    borderRadius: 14,
   },
-  footer: { flexDirection: "row", justifyContent: "center", marginTop: spacing.md },
-  footerText: { fontSize: fontSize.body, color: colors.textSecondary },
-  link: { fontSize: fontSize.body, color: colors.stateInfo, fontWeight: "600" },
+  agreeAllTitle: { fontSize: 15, fontWeight: "600", color: colors.ink },
+  agreeAllSub: { fontSize: 11.5, color: colors.muted, marginTop: 2 },
+  clist: { paddingHorizontal: 4 },
+  citem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 11,
+    height: 50,
+    paddingHorizontal: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.sep,
+  },
+  citemLabel: { flex: 1, fontSize: 14, color: colors.ink },
+  citemTag: { fontSize: 11, color: colors.muted },
+  citemTagReq: { color: colors.ink2, fontWeight: "500" },
+  check: {
+    borderWidth: 2,
+    borderColor: colors.lineStrong,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface,
+  },
+  checkOn: { backgroundColor: colors.ink, borderColor: colors.ink },
+  errBox: {
+    backgroundColor: colors.dangerSoft,
+    borderWidth: 1,
+    borderColor: colors.dangerLine,
+    borderRadius: 12,
+    padding: 12,
+  },
+  errText: { fontSize: 13, color: colors.dangerInk },
+  footer: { flexDirection: "row", justifyContent: "center", marginTop: 10 },
+  footerText: { fontSize: 14, color: colors.muted },
+  footerLink: { fontSize: 14, color: colors.ink, fontWeight: "600" },
 });

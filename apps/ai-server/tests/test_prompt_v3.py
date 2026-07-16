@@ -343,7 +343,7 @@ class TestDialogueV3File:
 
 
 class TestDialogueV4File:
-    """BUG-030 / ADR-028 (`docs/ai/fix_proposal_bug030.md`): dialogue v4 —
+    """BUG-030 / ADR-028 (`_archive/plans/fix_proposal_bug030.md`): dialogue v4 —
     empathy-phrase repetition fix. Rule 2's 3 canned example phrases are
     removed and replaced with a principle-level natural-generation
     instruction; every other v3 structural constraint is carried forward

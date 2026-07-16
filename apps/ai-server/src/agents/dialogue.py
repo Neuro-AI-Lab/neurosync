@@ -51,7 +51,7 @@ _ALL_SLOTS = [
 _SLOT_COVERAGE_THRESHOLD = 0.7
 _MAX_HISTORY_TURNS = 8
 
-# BUG-030 iter-2 / BUG-035 (2026-07-12, `docs/ai/fix_design_bug030_iter2.md`,
+# BUG-030 iter-2 / BUG-035 (2026-07-12, `_archive/plans/fix_design_bug030_iter2.md`,
 # ADR-029): unified check-and-retry guard constants.
 _MAX_REGENERATION_ATTEMPTS = 2          # design §3 — max 3 LLM calls/turn
 _NEAR_DUP_JACCARD_THRESHOLD = 0.5       # rubric_bug030_acceptance.md §1
@@ -153,7 +153,7 @@ _DEGRADE_MARKER_CLAUSES: frozenset[str] = frozenset(
     (_fallback_leading_clause(),) + _EMPATHY_DEGRADE_POOL
 )
 
-# BUG-030 / ADR-028 (2026-07-12, `docs/ai/fix_proposal_bug030.md`): v4 —
+# BUG-030 / ADR-028 (2026-07-12, `_archive/plans/fix_proposal_bug030.md`): v4 —
 # empathy-phrase repetition fix. The static prompt's rule-2 example phrases
 # and the runtime `_build_slot_context` `alternatives` re-recommendation
 # menu are both removed (channels (a)/(b) of the diagnosis); replaced with a
@@ -257,8 +257,14 @@ class DialogueAgent(BaseAgent):
                     "직접 위기 상담을 하지 말고, 따뜻하게 경청하세요.]"
                 )
 
-        # 4. Build messages — slot context(지시) → safety → base prompt
+        # 4. Build messages — PHR history(사전 인지) → slot context(지시)
+        #                    → base prompt → safety
         full_system = ""
+        # 환자 PHR 요약이 있으면 dialogue system prompt 맨 앞에 삽입해
+        # LLM이 대화 시작 전부터 병력·복약을 인지한 상태로 응답하게 한다.
+        history_ctx = (inp.patient_history_context or "").strip()
+        if history_ctx:
+            full_system += history_ctx + "\n\n---\n\n"
         if slot_context:
             full_system += slot_context + "\n\n---\n\n"
         full_system += system_prompt
@@ -322,7 +328,7 @@ class DialogueAgent(BaseAgent):
 
         # 7. Output-isolation / repetition / near-duplicate / empathy-presence
         # guard. (BUG-030 iter-2, BUG-035, BUG-037,
-        # `docs/ai/fix_design_bug030_iter2.md` §1,
+        # `_archive/plans/fix_design_bug030_iter2.md` §1,
         # `docs/ai/fix_design_exhaustion_bug037.md` §2, ADR-029,
         # PLAN-2026-W28-U.) Single bounded check-and-retry loop: on each
         # candidate, evaluate output-isolation (clinical-note leak /
@@ -597,7 +603,7 @@ class DialogueAgent(BaseAgent):
         return target
 
     # ── BUG-030 iter-2 / BUG-035 guard primitives ──────────────────────
-    # (`docs/ai/fix_design_bug030_iter2.md` §1/§4/§5, ADR-029)
+    # (`_archive/plans/fix_design_bug030_iter2.md` §1/§4/§5, ADR-029)
 
     @staticmethod
     def _extract_leading_clause(text: str) -> str:

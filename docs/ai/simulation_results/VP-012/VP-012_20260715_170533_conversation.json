@@ -1,0 +1,483 @@
+{
+  "session_id": "f1_VP-012_followup",
+  "persona_id": "VP-012",
+  "persona_name": "정우식",
+  "total_turns": 3,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "history_of_present_illness",
+      "value": "간 수치 문제로 술 줄이려 했으나 식당 일로 인한 스트레스로 술이 다시 늘어나기 시작함. 집사람과 술로 인한 다툼 발생 후 마음이 무거워짐"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없습니다. 술을 줄이고 싶은 마음은 있지만, 삶 자체를 포기하고 싶은 마음은 전혀 없어요.\""
+    },
+    {
+      "key": "chief_complaint",
+      "value": "간 수치가 걱정되어 술을 줄이려고 했으나 식당 일로 인한 스트레스로 다시 술이 조금씩 늘어나고 있음"
+    },
+    {
+      "key": "medical_history",
+      "value": "건강검진에서 간 수치 상승 결과"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가"
+    },
+    {
+      "key": "past_psychiatric_history",
+      "value": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라 술 없이는 감정을 다스리기 힘들 때가 많음"
+    },
+    {
+      "key": "family_history",
+      "value": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음"
+    },
+    {
+      "key": "personal_social_history",
+      "value": "지인 모임에 예전처럼 자주 나가지 못하고 식당 일로 인해 정신없는 날이 많으며, 배우자와는 자주 다퉈서 혼자 버티는 상황임"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "네, 반갑습니다. 지난번에 말씀드린 대로 간 수치가 걱정돼서 줄이려고 했지만, 식당 일하다 보면 스트레스에 또 술이 자동으로 손이 가네요. 얼마 전에 집사람과 술 때문에 다퉈서 더 마음이 무거웠어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술 때문에 다퉈서 더 마음이 무거웠어요"
+      ],
+      "agent_response": "안녕하세요, 지난번에 이어서 다시 뵙게 되어 반갑습니다. 지난 상담 때 간 수치 때문에 술을 줄이려고 하셨지만, 식당 일로 인한 스트레스가 다시 조금씩 술이 늘어나게 된 것 같아 걱정이 되셨을 텐데, 오늘은 그 마음이 어떻게 변했는지 편하게 이야기해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "간 수치 걱정으로 술 줄이려 했으나 식당 일로 인한 스트레스로 술이 다시 늘어나고, 집사람과 술로 인한 다툼으로 마음이 무거움",
+        "history_of_present_illness": "간 수치 문제로 술 줄이려 했으나 식당 일로 인한 스트레스로 술이 다시 늘어나기 시작함. 집사람과 술로 인한 다툼 발생 후 마음이 무거워짐"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "간 수치 문제로 술 줄이려 했으나 식당 일로 인한 스트레스로 술이 다시 늘어나기 시작함. 집사람과 술로 인한 다툼 발생 후 마음이 무거워짐",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 술을 줄이고 싶은 거예요.\"",
+        "chief_complaint": "간 수치 걱정으로 술 줄이려 했으나 식당 일로 인한 스트레스로 술이 다시 늘어나고, 집사람과 술로 인한 다툼으로 마음이 무거움",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라 술 없이는 감정을 다스리기 힘들 때가 많음",
+        "family_history": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음",
+        "personal_social_history": "지인 모임에 예전처럼 자주 나가지 못하고 식당 일로 인해 정신없는 날이 많으며, 배우자와는 자주 다퉈서 혼자 버티는 상황임"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 9669.331192038953,
+      "timestamp": "2026-07-15T17:05:01.230283",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 1.0,
+      "normalizer_meta": {
+        "original": "네, 반갑습니다. 지난번에 말씀드린 대로 간 수치가 걱정돼서 줄이려고 했지만, 식당 일하다 보면 스트레스에 또 술이 자동으로 손이 가네요. 얼마 전에 집사람과 술 때문에 다퉈서 더 마음이 무거웠어요.",
+        "normalized": "네, 반갑습니다. 지난번에 말씀드린 대로 간 수치가 걱정돼서 줄이려고 했지만, 식당 일하다 보면 스트레스에 또 술이 자동으로 손이 가네요. 얼마 전에 집사람과 술 때문에 다퉈서 더 마음이 무거웠어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1908.8047109544277,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anger",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "집사람과 술 때문에 다퉈서 더 마음이 무거웠어요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "네, 반갑습니다. 지난번에 말씀드린 대로 간 수치가 걱정돼서 줄이려고 했지만, 식당 일하다 보면 스트레스에 또 술이 자동으로 손이 가네요. 얼마 전에 집사람과 술 때문에 다퉈서 더 마음이 무거웠어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술 때문에 다퉈서 더 마음이 무거웠어요"
+      ],
+      "agent_response": "집사람과의 다툼까지 겹쳐 마음이 정말 무거우셨을 텐데, 그 감정을 혼자 감당하기 힘드셨을 것 같아요. 혹시 최근에 스스로를 해치고 싶다는 생각이 들거나, 죽고 싶다는 마음이 스쳐 지나간 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "간 수치가 걱정되어 술을 줄이려고 했으나 식당 일로 인한 스트레스로 다시 술이 늘어나고 집사람과 술 때문에 다툰 상황"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "간 수치 문제로 술 줄이려 했으나 식당 일로 인한 스트레스로 술이 다시 늘어나기 시작함. 집사람과 술로 인한 다툼 발생 후 마음이 무거워짐",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 그냥 술을 줄이고 싶은 거예요.\"",
+        "chief_complaint": "간 수치가 걱정되어 술을 줄이려고 했으나 식당 일로 인한 스트레스로 다시 술이 늘어나고 집사람과 술 때문에 다툰 상황",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라 술 없이는 감정을 다스리기 힘들 때가 많음",
+        "family_history": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음",
+        "personal_social_history": "지인 모임에 예전처럼 자주 나가지 못하고 식당 일로 인해 정신없는 날이 많으며, 배우자와는 자주 다퉈서 혼자 버티는 상황임"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 7194.2613939754665,
+      "timestamp": "2026-07-15T17:05:08.424568",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "past_psychiatric_history": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 1.0,
+      "normalizer_meta": {
+        "original": "네, 반갑습니다. 지난번에 말씀드린 대로 간 수치가 걱정돼서 줄이려고 했지만, 식당 일하다 보면 스트레스에 또 술이 자동으로 손이 가네요. 얼마 전에 집사람과 술 때문에 다퉈서 더 마음이 무거웠어요.",
+        "normalized": "네, 반갑습니다. 지난번에 말씀드린 대로 간 수치가 걱정돼서 줄이려고 했지만, 식당 일하다 보면 스트레스에 또 술이 자동으로 손이 가네요. 얼마 전에 집사람과 술 때문에 다퉈서 더 마음이 무거웠어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1908.8047109544277,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.8
+          },
+          {
+            "label": "anger",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "집사람과 술 때문에 다퉈서 더 마음이 무거웠어요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "presence_missing"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1173.50464919582,
+      "dialogue_crisis_adjacent": true,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "아니요, 그런 생각은 전혀 없습니다. 술을 줄이고 싶은 마음은 있지만, 삶 자체를 포기하고 싶은 마음은 전혀 없어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "despair",
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [
+        "포기하고 싶"
+      ],
+      "agent_response": "지난번에 말씀드린 대로 간 수치가 걱정돼서 줄이려고 했지만, 식당 일하다 보면 스트레스에 또 술이 자동으로 손이 가네요. 얼마 전에 집사람과 술 때문에 다퉈서 더 마음이 무거웠어요.",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없습니다. 술을 줄이고 싶은 마음은 있지만, 삶 자체를 포기하고 싶은 마음은 전혀 없어요.\"",
+        "chief_complaint": "간 수치가 걱정되어 술을 줄이려고 했으나 식당 일로 인한 스트레스로 다시 술이 조금씩 늘어나고 있음"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "간 수치 문제로 술 줄이려 했으나 식당 일로 인한 스트레스로 술이 다시 늘어나기 시작함. 집사람과 술로 인한 다툼 발생 후 마음이 무거워짐",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없습니다. 술을 줄이고 싶은 마음은 있지만, 삶 자체를 포기하고 싶은 마음은 전혀 없어요.\"",
+        "chief_complaint": "간 수치가 걱정되어 술을 줄이려고 했으나 식당 일로 인한 스트레스로 다시 술이 조금씩 늘어나고 있음",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라 술 없이는 감정을 다스리기 힘들 때가 많음",
+        "family_history": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음",
+        "personal_social_history": "지인 모임에 예전처럼 자주 나가지 못하고 식당 일로 인해 정신없는 날이 많으며, 배우자와는 자주 다퉈서 혼자 버티는 상황임"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5522.356637753546,
+      "timestamp": "2026-07-15T17:05:18.263101",
+      "targeted_slot": null,
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "past_psychiatric_history": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 1.0,
+      "normalizer_meta": {
+        "original": "아니요, 그런 생각은 전혀 없습니다. 술을 줄이고 싶은 마음은 있지만, 삶 자체를 포기하고 싶은 마음은 전혀 없어요.",
+        "normalized": "아니요, 그런 생각은 전혀 없습니다. 술을 줄이고 싶은 마음은 있지만, 삶 자체를 포기하고 싶은 마음은 전혀 없어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1235.253611113876,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "집사람과 술 때문에 다퉈서 더 마음이 무거웠어요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "네, 알겠습니다. 간 수치가 걱정돼서 줄이려고 했지만, 식당 일하다 보면 스트레스에 또 술이 자동으로 손이 가네요. 얼마 전에 집사람과 술 때문에 다퉈서 더 마음이 무거웠어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "요즘 술 생각이 날 때마다 스트레스가 더 심해지는 것 같아 많이 힘드셨겠어요. 혹시 그런 순간들에 스스로를 해치고 싶다는 생각이 떠오르거나, 죽고 싶다는 마음이 스쳐 지나간 적이 있으신가요? 틀린 부분이나 빠진 내용이 있으면 말씀해 주세요.",
+      "slot_updates": {
+        "chief_complaint": "간 수치가 걱정되어 술을 줄이려고 했으나 식당 일로 인한 스트레스로 다시 술이 조금씩 늘어나고 있음"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "간 수치 문제로 술 줄이려 했으나 식당 일로 인한 스트레스로 술이 다시 늘어나기 시작함. 집사람과 술로 인한 다툼 발생 후 마음이 무거워짐",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없습니다. 술을 줄이고 싶은 마음은 있지만, 삶 자체를 포기하고 싶은 마음은 전혀 없어요.\"",
+        "chief_complaint": "간 수치가 걱정되어 술을 줄이려고 했으나 식당 일로 인한 스트레스로 다시 술이 조금씩 늘어나고 있음",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라 술 없이는 감정을 다스리기 힘들 때가 많음",
+        "family_history": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음",
+        "personal_social_history": "지인 모임에 예전처럼 자주 나가지 못하고 식당 일로 인해 정신없는 날이 많으며, 배우자와는 자주 다퉈서 혼자 버티는 상황임"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 7531.632192898542,
+      "timestamp": "2026-07-15T17:05:31.375593",
+      "targeted_slot": null,
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "past_psychiatric_history": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 1.0,
+      "normalizer_meta": {
+        "original": "네, 알겠습니다. 간 수치가 걱정돼서 줄이려고 했지만, 식당 일하다 보면 스트레스에 또 술이 자동으로 손이 가네요. 얼마 전에 집사람과 술 때문에 다퉈서 더 마음이 무거웠어요.",
+        "normalized": "네, 알겠습니다. 간 수치가 걱정돼서 줄이려고 했지만, 식당 일하다 보면 스트레스에 또 술이 자동으로 손이 가네요. 얼마 전에 집사람과 술 때문에 다퉈서 더 마음이 무거웠어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1802.8410538099706,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "간 수치가 걱정돼서 줄이려고 했지만, 식당 일하다 보면 스트레스에 또 술이 자동으로 손이 가네요. 얼마 전에 집사람과 술 때문에 다퉈서 더 마음이 무거웠어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1461.1146617680788,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-15T17:04:51.560912",
+  "ended_at": "2026-07-15T17:05:33.890529",
+  "grounded_coverage": 1.0,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 1,
+      "forced": true
+    },
+    {
+      "type": "si_screen_result",
+      "turn": 2,
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없습니다. 술을 줄이고 싶은 마음은 있지만, 삶 자체를 포기하고 싶은 마음은 전혀 없어요.\""
+    }
+  ],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.6395,
+  "patient_lng": 127.0255,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.07514236494898796,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.44,
+      "anxiety": 0.33,
+      "anger": 0.22
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.65
+      },
+      {
+        "turn": 1,
+        "polarity": -0.75
+      },
+      {
+        "turn": 2,
+        "polarity": -0.6
+      },
+      {
+        "turn": 3,
+        "polarity": -0.65
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 4회 반복",
+      "anxiety 표현 3회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "sadness",
+          "anger"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "anger",
+          "anxiety"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      }
+    ]
+  },
+  "phr_summary": {},
+  "prompts_degraded": false,
+  "session_index": 4,
+  "simulated_date": "2026-08-05",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- history_of_present_illness: 8-10년 전부터 거의 매일 소주 한 병 이상 마시기 시작, 최근 2-3년 새 한 병 반으로 양이 증가, 스트레스 받을 때마다 술 생각이 먼저 나고 한 번 마시기 시작하면 멈추기 어려움\n- chief_complaint: 간 수치가 걱정되어 술을 줄여야겠다고 생각했으나, 식당 일로 인한 스트레스로 다시 술이 조금씩 늘어나고 있음\n- medical_history: 건강검진에서 간 수치 상승 결과\n- substance_use_history: 15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가\n- past_psychiatric_history: 중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라 술 없이는 감정을 다스리기 힘들 때가 많음\n- family_history: 가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음\n- personal_social_history: 지인 모임에 예전처럼 자주 나가지 못하고 식당 일로 인해 정신없는 날이 많으며, 배우자와는 자주 다퉈서 혼자 버티는 상황임\n\n[이전 세션 요약 — 미수집 정보]\n(없음)",
+  "carried_slot_provenance": {
+    "past_psychiatric_history": "carried_from_session_3",
+    "personal_social_history": "carried_from_session_3",
+    "substance_use_history": "carried_from_session_3",
+    "medical_history": "carried_from_session_3",
+    "family_history": "carried_from_session_3"
+  },
+  "scenario_pack_id": "VP-012_aud_escalation_contemplation_s04",
+  "arc_mode": "aud_escalation_contemplation"
+}

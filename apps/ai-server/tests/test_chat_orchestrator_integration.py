@@ -39,7 +39,7 @@ def _make_crisis_orch_result(session_id: str = "s1") -> OrchestratorTurnResult:
     return OrchestratorTurnResult(
         session_id=session_id,
         current_stage=SessionStage.crisis_flow,
-        assistant_response="자살예방상담전화 1393으로 연락해 주세요.",
+        assistant_response="자살예방상담전화 109로 연락해 주세요.",
         safety_status=SafetyStatus(
             ctrs_level=CTRSLevel.HIGH_RISK,
             risk_level=RiskLevel.high,
@@ -135,7 +135,7 @@ class TestChatOrchestratorFlow:
     def test_crisis_result_has_response(self):
         result = _make_crisis_orch_result()
         assert result.crisis_triggered is True
-        assert "1393" in result.assistant_response
+        assert "109" in result.assistant_response
         assert result.requires_human_review is True
 
     def test_handoff_result_signals_ready(self):

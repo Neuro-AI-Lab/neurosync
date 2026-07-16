@@ -3,8 +3,8 @@
  *
  * Shown only on first-ever launch (index.tsx routes here when
  * seenOnboarding === false). Skip or finishing the last step persists the flag
- * and replaces to /login. Monotone per screen-spec §0.8 — grayscale + the
- * danger accent reserved for the safety step.
+ * and replaces to /login. Monochrome — calm concentric mark, ink type; the
+ * danger accent appears only on the safety step's hotline dots.
  */
 
 import { router } from "expo-router";
@@ -22,11 +22,12 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "../../components/Button";
-import { colors, fontSize, radius, spacing } from "../../lib/tokens";
+import { ArrowRight, ConcentricMark } from "../../lib/icons";
+import { colors } from "../../lib/tokens";
 import { useAuth } from "../../state/auth";
 
 type Step = {
-  glyph: string;
+  key: string;
   headline: string;
   sub: string;
   bullets?: string[];
@@ -35,26 +36,26 @@ type Step = {
 
 const STEPS: Step[] = [
   {
-    glyph: "🗓️",
-    headline: "초진 대기 6개월,\n변화가 기록되지 않습니다.",
-    sub: "본 앱은 진료 전 사전 문진을 AI와 함께 준비하도록 돕습니다.",
+    key: "wait",
+    headline: "진료 전,\n마음을 차분히\n정리해요",
+    sub: "대화하듯 증상을 남기면, 의료진이 5분 안에 읽는 리포트로 정리해 드려요.",
   },
   {
-    glyph: "⏱️",
-    headline: "40분 진료, 20분은\n과거력 청취에 소진됩니다.",
-    sub: "미리 정리해 두면 의사가 핵심을 빠르게 파악합니다.",
+    key: "time",
+    headline: "40분 진료,\n핵심에 더 오래\n머무를 수 있게",
+    sub: "미리 정리해 두면 과거력 청취 시간이 줄고, 의사가 핵심을 빠르게 파악해요.",
   },
   {
-    glyph: "🆘",
-    headline: "위기 순간에는\n즉시 연결됩니다.",
+    key: "safety",
+    headline: "위기의 순간에는\n즉시 연결돼요",
     sub: "언제든 도움을 받을 수 있어요.",
     bullets: ["자살예방 상담전화 1393", "응급의료 119", "정신건강 상담 1577-0199"],
     danger: true,
   },
   {
-    glyph: "🩺",
-    headline: "본 앱은 진단·치료를\n제공하지 않습니다.",
-    sub: "AI는 환자의 정보를 구조화하고 요약합니다. 최종 판단은 의료진이 합니다.",
+    key: "scope",
+    headline: "진단·치료는\n의료진의 몫이에요",
+    sub: "AI는 환자의 정보를 구조화하고 요약할 뿐, 최종 판단은 의료진이 합니다.",
   },
 ];
 
@@ -70,9 +71,8 @@ export default function OnboardingScreen() {
 
   const finish = async () => {
     await completeOnboarding();
-    // Re-viewed from Settings while logged in → return to the app, not login.
     if (authStatus === "authenticated") {
-      router.replace("/(patient)/home");
+      router.replace("/(patient)/(tabs)/home");
     } else {
       router.replace("/(auth)/login");
     }
@@ -114,15 +114,9 @@ export default function OnboardingScreen() {
         style={{ flex: 1 }}
       >
         {STEPS.map((step) => (
-          <View key={step.headline} style={[styles.page, { width }]}>
-            <View
-              style={[
-                styles.illustration,
-                step.danger && { borderColor: colors.stateDanger, borderWidth: 1 },
-              ]}
-              accessibilityElementsHidden
-            >
-              <Text style={styles.glyph}>{step.glyph}</Text>
+          <View key={step.key} style={[styles.page, { width }]}>
+            <View style={styles.mark} accessibilityElementsHidden>
+              <ConcentricMark size={76} />
             </View>
             <Text style={styles.headline}>{step.headline}</Text>
             <Text style={styles.sub}>{step.sub}</Text>
@@ -142,15 +136,16 @@ export default function OnboardingScreen() {
 
       <View style={styles.dots} accessibilityRole="progressbar">
         {STEPS.map((_, i) => (
-          <View
-            key={i}
-            style={[styles.dot, i === index ? styles.dotActive : styles.dotIdle]}
-          />
+          <View key={i} style={[styles.dot, i === index ? styles.dotActive : styles.dotIdle]} />
         ))}
       </View>
 
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
-        <Button label={isLast ? "시작하기" : "다음"} onPress={onNext} />
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+        <Button
+          label={isLast ? "시작하기" : "다음"}
+          onPress={onNext}
+          trailing={<ArrowRight size={16} color={colors.onInk} />}
+        />
       </View>
     </View>
   );
@@ -163,57 +158,44 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 20,
   },
-  skip: { fontSize: fontSize.body, color: colors.textSecondary, fontWeight: "500" },
+  skip: { fontSize: 14.5, color: colors.muted, fontWeight: "500" },
   page: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: spacing.xl,
-    gap: spacing.lg,
+    paddingHorizontal: 36,
   },
-  illustration: {
-    width: 180,
-    height: 180,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surfaceElevated,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: spacing.md,
-  },
-  glyph: { fontSize: 72 },
+  mark: { marginBottom: 28 },
   headline: {
-    fontSize: fontSize.display,
+    fontSize: 27,
     fontWeight: "700",
-    color: colors.textPrimary,
+    color: colors.ink,
     textAlign: "center",
-    lineHeight: 36,
-    letterSpacing: -0.5,
+    lineHeight: 33,
+    letterSpacing: -0.8,
   },
   sub: {
-    fontSize: fontSize.bodyLg,
-    color: colors.textSecondary,
+    fontSize: 14,
+    color: colors.muted,
     textAlign: "center",
-    lineHeight: 24,
+    lineHeight: 21,
+    marginTop: 14,
+    maxWidth: 260,
   },
-  bullets: { gap: spacing.sm, marginTop: spacing.xs },
-  bulletRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  bulletDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.stateDanger,
-  },
-  bulletText: { fontSize: fontSize.body, color: colors.textPrimary, fontWeight: "500" },
+  bullets: { gap: 8, marginTop: 22, alignSelf: "stretch", paddingHorizontal: 20 },
+  bulletRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  bulletDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.danger },
+  bulletText: { fontSize: 14, color: colors.ink2, fontWeight: "500" },
   dots: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: spacing.sm,
-    paddingVertical: spacing.lg,
+    gap: 6,
+    paddingVertical: 20,
   },
-  dot: { height: 8, borderRadius: 4 },
-  dotActive: { width: 24, backgroundColor: colors.textPrimary },
-  dotIdle: { width: 8, backgroundColor: colors.border },
-  footer: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
+  dot: { height: 4, borderRadius: 9 },
+  dotActive: { width: 22, backgroundColor: colors.ink },
+  dotIdle: { width: 4, backgroundColor: colors.lineStrong },
+  footer: { paddingHorizontal: 20, paddingTop: 4 },
 });

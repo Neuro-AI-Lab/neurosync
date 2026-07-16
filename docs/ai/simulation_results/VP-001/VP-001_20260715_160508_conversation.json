@@ -1,0 +1,1060 @@
+{
+  "session_id": "f1_VP-001_followup",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "잠도 잘 못 자고 집중이 잘 안 되는 날이 가끔 있음"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "지난 주말 친구와의 근교 방문으로 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 발생함"
+    },
+    {
+      "key": "family_history",
+      "value": "어머니는 가끔 잠 못 주무심"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "커피 대신 차 위주로 마심"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+    },
+    {
+      "key": "personal_social_history",
+      "value": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요. 네, 어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.\n\n오늘은 특별히 궁금한 건 없고… 그냥 요즘 다시 집중이 잘 안 되는 날이 가끔 있어서, 이게 괜찮은 건지 궁금해서요. 잠도 잘 못 자니까 더 그런 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 지난번에 이어서 상담을 이어가시는 걸 보니 마음이 한결 편안해지셨을 것 같아요. 오늘은 어떤 부분이 궁금하신가요?",
+      "slot_updates": {
+        "chief_complaint": "집중이 잘 안 되는 날이 가끔 있고, 잠도 잘 못 자는 것",
+        "history_of_present_illness": "지난 주말에 친구와 근교 다녀온 후 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 있고 수면 문제로 인해 더 악화되는 느낌"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "집중이 잘 안 되는 날이 가끔 있고, 잠도 잘 못 자는 것",
+        "history_of_present_illness": "지난 주말에 친구와 근교 다녀온 후 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 있고 수면 문제로 인해 더 악화되는 느낌",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 10622.148448135704,
+      "timestamp": "2026-07-15T16:02:49.319805",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "안녕하세요. 네, 어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.  \n\n오늘은 특별히 궁금한 건 없고… 그냥 요즘 다시 집중이 잘 안 되는 날이 가끔 있어서, 이게 괜찮은 건지 궁금해서요. 잠도 잘 못 자니까 더 그런 것 같아요.",
+        "normalized": "안녕하세요. 네, 어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.\n\n오늘은 특별히 궁금한 건 없고… 그냥 요즘 다시 집중이 잘 안 되는 날이 가끔 있어서, 이게 괜찮은 건지 궁금해서요. 잠도 잘 못 자니까 더 그런 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2192.2100307419896,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.2,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.6
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "지난 주말에 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요. 네, 어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.\n\n오늘은 특별히 궁금한 건 없고… 그냥 요즘 다시 집중이 잘 안 되는 날이 가끔 있어서, 이게 괜찮은 건지 궁금해서요. 잠도 잘 못 자니까 더 그런 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "집중이 잘 안 되는 날이 가끔",
+        "잠도 잘 못 자니까"
+      ],
+      "agent_response": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 다시 생기셔서 많이 힘드셨겠어요. 혹시 과거에 정신건강 관련 진단을 받으신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "집중이 잘 안 되는 날이 가끔 있음",
+        "history_of_present_illness": "지난 주말 친구와의 근교 나들이로 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 발생하고 잠도 잘 못 자는 상태"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "집중이 잘 안 되는 날이 가끔 있음",
+        "history_of_present_illness": "지난 주말 친구와의 근교 나들이로 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 발생하고 잠도 잘 못 자는 상태",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4838.4338221512735,
+      "timestamp": "2026-07-15T16:02:54.158265",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "안녕하세요. 네, 어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.  \n\n오늘은 특별히 궁금한 건 없고… 그냥 요즘 다시 집중이 잘 안 되는 날이 가끔 있어서, 이게 괜찮은 건지 궁금해서요. 잠도 잘 못 자니까 더 그런 것 같아요.",
+        "normalized": "안녕하세요. 네, 어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.\n\n오늘은 특별히 궁금한 건 없고… 그냥 요즘 다시 집중이 잘 안 되는 날이 가끔 있어서, 이게 괜찮은 건지 궁금해서요. 잠도 잘 못 자니까 더 그런 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2192.2100307419896,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.55,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 다시 생기셔서 많이 힘드셨겠어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "음… 글쎄요. 그런 건 딱히 없었어요. 정신과를 가본 적도 없고, 딱히 진단받은 기억도 없어요. 그냥 요즘처럼 스트레스 받을 때면 이런 상태가 반복되긴 해요. 다시 집중이 안 되는 날이 생기면, 마치 뇌가 잠시 멈춘 것처럼 느껴져서 더 답답하더라고요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요. 혹시 과거에 정신건강의학과 진료를 받으신 경험이 있으신가요? 아니면 심리상담을 받아보신 적이 있으신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "잠도 잘 못 자고 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난 주말 친구랑 근교 다녀온 후 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 생기고 잠도 잘 못 자는 상태"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠도 잘 못 자고 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난 주말 친구랑 근교 다녀온 후 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 생기고 잠도 잘 못 자는 상태",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6089.950128924102,
+      "timestamp": "2026-07-15T16:03:06.736963",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "음… 글쎄요. 그런 건 딱히 없었어요. 정신과를 가본 적도 없고, 딱히 진단받은 기억도 없어요. 그냥 요즘처럼 스트레스 받을 때면 이런 상태가 반복되긴 해요.  \n\n다시 집중이 안 되는 날이 생기면, 마치 뇌가 잠시 멈춘 것처럼 느껴져서 더 답답하더라고요.",
+        "normalized": "음… 글쎄요. 그런 건 딱히 없었어요. 정신과를 가본 적도 없고, 딱히 진단받은 기억도 없어요. 그냥 요즘처럼 스트레스 받을 때면 이런 상태가 반복되긴 해요. 다시 집중이 안 되는 날이 생기면, 마치 뇌가 잠시 멈춘 것처럼 느껴져서 더 답답하더라고요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1856.3872431404889,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          },
+          {
+            "label": "despair",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "다시 집중이 안 되는 날이 생기면, 마치 뇌가 잠시 멈춘 것처럼 느껴져서 더 답답하더라고요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1369.6827148087323,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 다시 생기셔서 많이 힘드셨겠어요",
+          "count": 1
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "아, 그런 건 처음이에요. 병원에 가본 적도 없고, 상담 같은 건 더더욱요. 그냥 요즘처럼 스트레스 많을 땐 이런 게 반복되긴 하는데, 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요. 과거에 정신건강의학과를 방문하신 적이 있으신가요? 혹은 심리상담을 받아보신 적이 있으신지도 궁금해요. 병원 진료나 상담 경험이 없으셨다면, 혹시 과거에 진단받은 신체질환이 있으셨는지 여쭤볼게요.",
+      "slot_updates": {
+        "chief_complaint": "잠도 잘 못 자고 집중이 잘 안 되는 날이 가끔 생김"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠도 잘 못 자고 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난 주말 친구랑 근교 다녀온 후 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 생기고 잠도 잘 못 자는 상태",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6974.5780769735575,
+      "timestamp": "2026-07-15T16:03:21.947097",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아, 그런 건 처음이에요. 병원에 가본 적도 없고, 상담 같은 건 더더욱요. 그냥 요즘처럼 스트레스 많을 땐 이런 게 반복되긴 하는데, 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+        "normalized": "아, 그런 건 처음이에요. 병원에 가본 적도 없고, 상담 같은 건 더더욱요. 그냥 요즘처럼 스트레스 많을 땐 이런 게 반복되긴 하는데, 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3443.12990270555,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2409.230667166412,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "아, 그런 건 딱히 없었어요. 병원에 가본 적도 없고, 심리상담 같은 건 더더욱요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요. 혹시 과거에 진단받은 신체질환이 있으셨는지 여쭤볼게요.",
+      "slot_updates": {
+        "chief_complaint": "잠도 잘 못 자고 집중이 잘 안 되는 날이 가끔 있음",
+        "history_of_present_illness": "지난 주말 친구와의 근교 나들이로 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 발생함. 불면과 가슴 답답함은 개선되었으나 피로로 인한 집중력 저하가 재발"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠도 잘 못 자고 집중이 잘 안 되는 날이 가끔 있음",
+        "history_of_present_illness": "지난 주말 친구와의 근교 나들이로 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 발생함. 불면과 가슴 답답함은 개선되었으나 피로로 인한 집중력 저하가 재발",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5666.891643311828,
+      "timestamp": "2026-07-15T16:03:35.140786",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아, 그런 건 딱히 없었어요. 병원에 가본 적도 없고, 심리상담 같은 건 더더욱요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.",
+        "normalized": "아, 그런 건 딱히 없었어요. 병원에 가본 적도 없고, 심리상담 같은 건 더더욱요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2332.0775027386844,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "아, 그런 건 딱히 없었어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요. 근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요. 어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요. 과거에 정신건강의학과 진료를 받으신 적이 있으신가요? 아니면 과거에 진단받은 신체질환이 있으셨는지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 가끔 있음",
+        "history_of_present_illness": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 가끔 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 가끔 있음",
+        "history_of_present_illness": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 가끔 있음",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6967.890001833439,
+      "timestamp": "2026-07-15T16:03:49.119149",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아, 그런 건 딱히 없었어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+        "normalized": "아, 그런 건 딱히 없었어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요. 근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요. 어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2493.073847144842,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.35,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요. 과거에 정신건강의학과 진료를 받으신 적이 있으신가요? 아니면 과거에 진단받은 신체질환이 있으셨는지 궁금해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2529.9430834129453,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "아, 그런 건 딱히 없었어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요. 혹시 과거에 정신건강의학과 진료를 받으신 적이 있으신가요? 아니면 과거에 진단받은 신체질환이 있으셨는지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 가끔 있음",
+        "history_of_present_illness": "지난 주말 친구와의 근교 나들이로 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 생김"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 가끔 있음",
+        "history_of_present_illness": "지난 주말 친구와의 근교 나들이로 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 생김",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6104.396033100784,
+      "timestamp": "2026-07-15T16:04:03.747267",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아, 그런 건 딱히 없었어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+        "normalized": "아, 그런 건 딱히 없었어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3525.3391889855266,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요. 혹시 과거에 정신건강의학과 진료를 받으신 적이 있으신가요? 아니면 과거에 진단받은 신체질환이 있으셨는지 궁금해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 987.1010472998023,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "아, 그런 건 없어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요. 근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요. 어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요. 혹시 과거에 정신건강의학과 진료를 받으신 경험이 있으신가요? 아니면 과거에 진단받은 신체질환이 있으셨는지 여쭤볼게요.",
+      "slot_updates": {
+        "chief_complaint": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 가끔 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 가끔 있음",
+        "history_of_present_illness": "지난 주말 친구와의 근교 나들이로 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 생김",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6607.479317579418,
+      "timestamp": "2026-07-15T16:04:17.714181",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아, 그런 건 없어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+        "normalized": "아, 그런 건 없어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요. 근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요. 어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2614.4918110221624,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.2,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          },
+          {
+            "label": "hope",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요. 혹시 과거에 정신건강의학과 진료를 받으신 경험이 있으신가요? 아니면 과거에 진단받은 신체질환이 있으셨는지 여쭤볼게요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1761.722075752914,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 8,
+      "patient_message": "아, 그런 건 없어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요. 과거 정신건강의학과 진료를 받아보신 적이 있으신가요? 아니면 과거에 진단받은 신체질환이 있으셨는지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 가끔 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 가끔 있음",
+        "history_of_present_illness": "지난 주말 친구와의 근교 나들이로 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 생김",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6483.528649900109,
+      "timestamp": "2026-07-15T16:04:32.480996",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아, 그런 건 없어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+        "normalized": "아, 그런 건 없어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 좀 다녀왔는데, 그게 도움이 됐는지 모르겠지만 그래도 마음이 좀 가벼워졌어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3481.6466090269387,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.35,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요. 과거 정신건강의학과 진료를 받아보신 적이 있으신가요? 아니면 과거에 진단받은 신체질환이 있으셨는지 궁금해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1579.0038206614554,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "아, 그런 건 없어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 다녀왔는데, 마음이 좀 가벼워졌어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요. 혹시 과거에 정신건강의학과 진료를 받아보신 적이 있으신가요? 아니면 과거에 진단받은 신체질환이 있으셨는지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복됨",
+        "history_of_present_illness": "지난 주말 친구와의 근교 나들이로 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 발생함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복됨",
+        "history_of_present_illness": "지난 주말 친구와의 근교 나들이로 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 발생함",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5035.620647016913,
+      "timestamp": "2026-07-15T16:04:45.468956",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아, 그런 건 없어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 다녀왔는데, 마음이 좀 가벼워졌어요.",
+        "normalized": "아, 그런 건 없어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 다녀왔는데, 마음이 좀 가벼워졌어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3583.7811050005257,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.3,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요. 혹시 과거에 정신건강의학과 진료를 받아보신 적이 있으신가요? 아니면 과거에 진단받은 신체질환이 있으셨는지 궁금해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 10,
+      "patient_message": "아, 그런 건 없어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 다녀왔는데, 마음이 좀 가벼워졌어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요. 과거에 정신건강의학과 진료를 받아보신 적이 있으신가요? 아니면 과거에 진단받은 신체질환이 있으셨는지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "잠도 잘 못 자고 집중이 잘 안 되는 날이 가끔 있음",
+        "history_of_present_illness": "지난 주말 친구와의 근교 방문으로 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 발생함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠도 잘 못 자고 집중이 잘 안 되는 날이 가끔 있음",
+        "history_of_present_illness": "지난 주말 친구와의 근교 방문으로 마음이 가벼워졌으나, 최근 다시 집중이 잘 안 되는 날이 가끔 발생함",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6033.651079051197,
+      "timestamp": "2026-07-15T16:04:59.693451",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아, 그런 건 없어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 다녀왔는데, 마음이 좀 가벼워졌어요.",
+        "normalized": "아, 그런 건 없어요. 병원에 가본 적도 없고, 진단받은 기억도 없어요.  \n\n근데 요즘은 다시 집중이 안 되는 날이 가끔 있어서… 이게 괜찮은 건지 잘 모르겠어요.  \n\n어제는 좀 괜찮았던 것 같아요. 지난 주말에는 친구랑 근교에 다녀왔는데, 마음이 좀 가벼워졌어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3672.526295296848,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.3,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "잠도 잘 못 주무시고 집중이 잘 안 되는 날이 반복되면 정말 답답하시겠어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1204.93897004053,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-15T16:02:38.697562",
+  "ended_at": "2026-07-15T16:05:08.996338",
+  "grounded_coverage": 0.75,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5807,
+  "patient_lng": 126.8898,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.11167163029313087,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.46,
+      "anxiety": 0.42,
+      "relief": 0.04,
+      "despair": 0.04,
+      "hope": 0.04
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": 0.2
+      },
+      {
+        "turn": 1,
+        "polarity": -0.55
+      },
+      {
+        "turn": 2,
+        "polarity": -0.75
+      },
+      {
+        "turn": 3,
+        "polarity": -0.4
+      },
+      {
+        "turn": 4,
+        "polarity": -0.4
+      },
+      {
+        "turn": 5,
+        "polarity": -0.35
+      },
+      {
+        "turn": 6,
+        "polarity": -0.4
+      },
+      {
+        "turn": 7,
+        "polarity": -0.2
+      },
+      {
+        "turn": 8,
+        "polarity": -0.35
+      },
+      {
+        "turn": 9,
+        "polarity": -0.3
+      },
+      {
+        "turn": 10,
+        "polarity": -0.3
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 11회 반복",
+      "anxiety 표현 10회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "relief",
+          "sadness"
+        ],
+        "polarity": 0.2
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.55
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "sadness",
+          "anxiety",
+          "despair"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.35
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "anxiety",
+          "sadness",
+          "hope"
+        ],
+        "polarity": -0.2
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.35
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.3
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.3
+      }
+    ]
+  },
+  "phr_summary": {},
+  "prompts_degraded": false,
+  "session_index": 8,
+  "simulated_date": "2026-10-14",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- chief_complaint: 불면이나 가슴 답답함은 나아졌으나, 최근 피로로 인해 집중이 잘 안 되는 날이 가끔 생김\n- history_of_present_illness: 지난번 불면과 가슴 답답함이 개선되었으나, 최근 피로로 인해 집중이 잘 안 되는 증상이 재발\n- family_history: 어머니는 가끔 잠 못 주무심\n- substance_use_history: 커피 대신 차 위주로 마심\n- personal_social_history: 회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소\n\n[이전 세션 요약 — 미수집 정보]\npast_psychiatric_history, medical_history",
+  "carried_slot_provenance": {
+    "personal_social_history": "carried_from_session_7",
+    "substance_use_history": "carried_from_session_7",
+    "risk_assessment": "carried_from_session_7",
+    "family_history": "carried_from_session_7"
+  },
+  "scenario_pack_id": "VP-001_improvement_plateau_s08",
+  "arc_mode": "improvement_plateau"
+}

@@ -1,0 +1,990 @@
+{
+  "session_id": "f1_VP-001_followup",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "잠이 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반"
+    },
+    {
+      "key": "family_history",
+      "value": "어머니는 가끔 잠 못 주무심"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "커피 대신 차 위주로 마심"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+    },
+    {
+      "key": "personal_social_history",
+      "value": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "네, 안녕하세요.  \n지난 상담 이후로는 프로젝트 데드라인이 지나서인지, 잠은 조금 나아졌어요.  \n잠들기까지 시간도 예전보다는 덜 걸리고, 새벽에 깨는 횟수도 줄어들었어요.  \n근데 여전히 아침에 개운하지 않고, 낮에 가끔 멍해지는 건 비슷해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 지난번에 이어서 다시 뵙게 되어 반갑습니다. 지난번에는 잠 못 드는 문제로 낮에도 집중이 어렵고 실수가 늘어나 속상하다고 말씀하셨는데, 오늘은 그 이후로 상태가 어떻게 달라졌는지 편하게 이야기해 주실 수 있을까요?",
+      "slot_updates": {
+        "history_of_present_illness": "프로젝트 데드라인 이후로 잠들기 시간이 덜 걸리고 새벽 깨는 횟수가 줄어들었으나, 아침에 개운하지 않고 낮에 가끔 멍해지는 증상은 지속됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠 못 자는 문제로 인해 낮에도 집중이 어렵고 실수가 늘어나 속상함",
+        "history_of_present_illness": "프로젝트 데드라인 이후로 잠들기 시간이 덜 걸리고 새벽 깨는 횟수가 줄어들었으나, 아침에 개운하지 않고 낮에 가끔 멍해지는 증상은 지속됨",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 33713.31380493939,
+      "timestamp": "2026-07-15T15:49:28.684074",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "네, 안녕하세요.  \n지난 상담 이후로는 프로젝트 데드라인이 지나서인지, 잠은 조금 나아졌어요.  \n잠들기까지 시간도 예전보다는 덜 걸리고, 새벽에 깨는 횟수도 줄어들었어요.  \n근데 여전히 아침에 개운하지 않고, 낮에 가끔 멍해지는 건 비슷해요.",
+        "normalized": "네, 안녕하세요.  \n지난 상담 이후로는 프로젝트 데드라인이 지나서인지, 잠은 조금 나아졌어요.  \n잠들기까지 시간도 예전보다는 덜 걸리고, 새벽에 깨는 횟수도 줄어들었어요.  \n근데 여전히 아침에 개운하지 않고, 낮에 가끔 멍해지는 건 비슷해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 27633.551720995456,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.2,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "잠은 조금 나아졌어요. 잠들기까지 시간도 예전보다는 덜 걸리고, 새벽에 깨는 횟수도 줄어들었어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "네, 안녕하세요.  \n지난 상담 이후로는 프로젝트 데드라인이 지나서인지, 잠은 조금 나아졌어요.  \n잠들기까지 시간도 예전보다는 덜 걸리고, 새벽에 깨는 횟수도 줄어들었어요.  \n근데 여전히 아침에 개운하지 않고, 낮에 가끔 멍해지는 건 비슷해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 조금 나아져서 다행이네요. 그런데 아침에 개운하지 않고 낮에 멍해지는 증상은 여전히 남아 있어 힘드실 것 같아요. 혹시 최근에 진단받은 신체 질환이 있거나, 기존에 처방받은 약 외에 새로 복용 중인 약이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠은 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨",
+        "history_of_present_illness": "프로젝트 데드라인 이후 잠들기 시간이 단축되고 새벽 깨는 횟수가 감소했으나, 아침에 개운하지 않고 낮에 멍해지는 증상은 지속됨"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠은 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨",
+        "history_of_present_illness": "프로젝트 데드라인 이후 잠들기 시간이 단축되고 새벽 깨는 횟수가 감소했으나, 아침에 개운하지 않고 낮에 멍해지는 증상은 지속됨",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4835.860664956272,
+      "timestamp": "2026-07-15T15:49:33.519958",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "네, 안녕하세요.  \n지난 상담 이후로는 프로젝트 데드라인이 지나서인지, 잠은 조금 나아졌어요.  \n잠들기까지 시간도 예전보다는 덜 걸리고, 새벽에 깨는 횟수도 줄어들었어요.  \n근데 여전히 아침에 개운하지 않고, 낮에 가끔 멍해지는 건 비슷해요.",
+        "normalized": "네, 안녕하세요.  \n지난 상담 이후로는 프로젝트 데드라인이 지나서인지, 잠은 조금 나아졌어요.  \n잠들기까지 시간도 예전보다는 덜 걸리고, 새벽에 깨는 횟수도 줄어들었어요.  \n근데 여전히 아침에 개운하지 않고, 낮에 가끔 멍해지는 건 비슷해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 27633.551720995456,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.2,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "잠은 조금 나아졌어요. 잠들기까지 시간도 예전보다는 덜 걸리고, 새벽에 깨는 횟수도 줄어들었어요. 근데 여전히 아침에 개운하지 않고, 낮에 가끔 멍해지는 건 비슷해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "아니요, 특별히 진단받은 병은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 조금 나아져서 다행이네요. 그런데 아침에 개운하지 않고 낮에 멍해지는 증상은 여전히 남아 있어 힘드실 것 같아요. 혹시 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 주변에 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠은 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨",
+        "history_of_present_illness": "프로젝트 데드라인 이후 잠들기 전 조마조마함과 새벽 깨는 횟수가 감소했으나, 아침에 개운하지 않고 낮에 멍해지는 증상은 변함없이 지속됨",
+        "substance_use_history": "커피 대신 따뜻한 차를 자주 마심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠은 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨",
+        "history_of_present_illness": "프로젝트 데드라인 이후 잠들기 전 조마조마함과 새벽 깨는 횟수가 감소했으나, 아침에 개운하지 않고 낮에 멍해지는 증상은 변함없이 지속됨",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 따뜻한 차를 자주 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4541.3718349300325,
+      "timestamp": "2026-07-15T15:49:43.326723",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "family_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아니요, 특별히 진단받은 병은 없어요.  \n처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요.  \n다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "normalized": "아니요, 특별히 진단받은 병은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1123.9959578961134,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 특별히 진단받은 병은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "네, 회사 동료 중 몇 명이랑은 자주 이야기해요.  \n어머니랑도 주 2회 정도 통화하고요.  \n근데 퇴근 후엔 그냥 아무것도 하고 싶지 않아서, 요즘은 연락도 잘 안 하게 되는 것 같아요.  \n그래도 혼자 있긴 해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 조금 나아져서 다행이네요. 그런데 아침에 개운하지 않고 낮에 멍해지는 증상은 여전히 남아 있어 힘드실 것 같아요. 혹시 최근에 진단을 받았거나, 기존에 처방받은 약 외에 새로 복용 중인 약이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠은 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨",
+        "history_of_present_illness": "프로젝트 데드라인 이후 잠들기 전 조마조마함 감소, 새벽 깨는 횟수 감소, 그러나 아침 개운하지 않음과 낮 멍해짐은 지속됨",
+        "personal_social_history": "퇴근 후 무기력감으로 연락 감소, 혼자 있는 시간 증가, 회사 동료와 주 2회 어머니와 통화",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 따뜻한 차를 자주 마심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠은 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨",
+        "history_of_present_illness": "프로젝트 데드라인 이후 잠들기 전 조마조마함 감소, 새벽 깨는 횟수 감소, 그러나 아침 개운하지 않음과 낮 멍해짐은 지속됨",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 따뜻한 차를 자주 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "퇴근 후 무기력감으로 연락 감소, 혼자 있는 시간 증가, 회사 동료와 주 2회 어머니와 통화"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4805.138122290373,
+      "timestamp": "2026-07-15T15:49:55.836661",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "네, 회사 동료 중 몇 명이랑은 자주 이야기해요.  \n어머니랑도 주 2회 정도 통화하고요.  \n근데 퇴근 후엔 그냥 아무것도 하고 싶지 않아서, 요즘은 연락도 잘 안 하게 되는 것 같아요.  \n그래도 혼자 있긴 해요.",
+        "normalized": "네, 회사 동료 중 몇 명이랑은 자주 이야기해요.  \n어머니랑도 주 2회 정도 통화하고요.  \n근데 퇴근 후엔 그냥 아무것도 하고 싶지 않아서, 요즘은 연락도 잘 안 하게 되는 것 같아요.  \n그래도 혼자 있긴 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2434.273315127939,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "근데 퇴근 후엔 그냥 아무것도 하고 싶지 않아서, 요즘은 연락도 잘 안 하게 되는 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "아니요, 특별히 진단받은 병은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 조금 나아져서 다행이네요. 그런데 아침에 개운하지 않고 낮에 멍해지는 증상은 여전히 남아 있어 힘드실 것 같아요. 혹시 최근에 정신건강의학과 진료를 받았거나, 심리상담을 진행 중이신가요?",
+      "slot_updates": {
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반",
+        "personal_social_history": "퇴근 후엔 아무것도 하고 싶지 않아서 연락도 잘 안 하게 되는 편, 혼자 있음",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠은 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "퇴근 후엔 아무것도 하고 싶지 않아서 연락도 잘 안 하게 되는 편, 혼자 있음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5820.94252994284,
+      "timestamp": "2026-07-15T15:50:07.091090",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 특별히 진단받은 병은 없어요.  \n처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요.  \n다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "normalized": "아니요, 특별히 진단받은 병은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1582.21870707348,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 특별히 진단받은 병은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 조금 나아져서 다행이네요. 그런데 아침에 개운하지 않고 낮에 멍해지는 증상은 여전히 남아 있어 힘드실 것 같아요. 혹시 과거에 정신건강의학과 진료를 받은 적이 있거나, 심리상담을 받아보신 적이 있으신가요?",
+      "slot_updates": {
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠은 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "퇴근 후엔 아무것도 하고 싶지 않아서 연락도 잘 안 하게 되는 편, 혼자 있음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5227.179157081991,
+      "timestamp": "2026-07-15T15:50:17.145004",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 정신과를 방문한 적은 없어요.  \n처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요.  \n다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "normalized": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1038.860249798745,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "아침에 개운하지 않고 낮에 멍해지는 증상"
+      ],
+      "agent_response": "이렇게 솔직하게 이야기해 주셔서 감사합니다. 잠이 조금 나아져서 다행이네요. 그런데 아침에 개운하지 않고 낮에 멍해지는 증상은 여전히 남아 있어 힘드실 것 같아요. 혹시 과거에 정신건강의학과 진료를 받은 적이 있거나, 심리상담을 받아보신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "잠이 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨",
+        "history_of_present_illness": "프로젝트 데드라인 이후 잠들기 전 조마조마함 감소, 새벽 깨는 횟수 감소, 아침 개운함 개선 없음, 낮에 멍해지는 증상 지속, 아침 거르기 및 식사량 감소, 어깨와 목 뻐근함 및 가끔 가슴 답답함 동반",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 따뜻한 차 주로 마심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨",
+        "history_of_present_illness": "프로젝트 데드라인 이후 잠들기 전 조마조마함 감소, 새벽 깨는 횟수 감소, 아침 개운함 개선 없음, 낮에 멍해지는 증상 지속, 아침 거르기 및 식사량 감소, 어깨와 목 뻐근함 및 가끔 가슴 답답함 동반",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 따뜻한 차 주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6978.417674079537,
+      "timestamp": "2026-07-15T15:50:29.488445",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 정신과를 방문한 적은 없어요.  \n처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요.  \n다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "normalized": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1689.0467070043087,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "exact_repeat",
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2060.360338073224,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": "exact_repeat",
+      "dialogue_exhaustion_degrade_phrase": "이렇게 솔직하게 이야기해 주셔서 감사합니다"
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 조금 나아져서 다행이네요. 그런데 아침에 개운하지 않고 낮에 멍해지는 증상은 여전히 남아 있어 힘드실 것 같아요. 혹시 과거에 정신건강의학과 진료를 받은 적이 있거나, 심리상담을 받아보신 적이 있으신가요? 오늘 말씀드린 내용 중 틀린 부분이나 빠진 내용이 있으면 말씀해 주세요.",
+      "slot_updates": {
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5770.875231828541,
+      "timestamp": "2026-07-15T15:50:39.816280",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 정신과를 방문한 적은 없어요.  \n처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요.  \n다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "normalized": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1231.3204072415829,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보조제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1609.7311582416296,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보충제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 조금 나아져서 다행이네요. 그런데 아침에 개운하지 않고 낮에 멍해지는 증상은 여전히 남아 있어 힘드실 것 같아요. 혹시 과거에 정신건강의학과 진료를 받은 적이 있거나, 심리상담을 받아보신 적이 있으신가요? 오늘 말씀드린 내용 중 틀린 부분이나 빠진 부분이 있으면 말씀해 주세요.",
+      "slot_updates": {
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5443.886941298842,
+      "timestamp": "2026-07-15T15:50:50.541270",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 정신과를 방문한 적은 없어요.  \n처방받은 약도 없고, 평소 먹던 건강보충제 같은 것도 딱히 없어요.  \n다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "normalized": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보충제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1492.9349422454834,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보충제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1506.1670690774918,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보충제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 조금 나아져서 다행이네요. 그런데 아침에 개운하지 않고 낮에 멍해지는 증상은 여전히 남아 있어 힘드실 것 같아요. 과거에 정신건강의학과 진료를 받은 적이 있거나, 심리상담을 받아보신 적이 있으신가요?",
+      "slot_updates": {
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 7385.99807722494,
+      "timestamp": "2026-07-15T15:51:02.434687",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 정신과를 방문한 적은 없어요.  \n처방받은 약도 없고, 평소 먹던 건강보충제 같은 것도 딱히 없어요.  \n다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "normalized": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보충제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1155.5518242530525,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보충제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2210.460064932704,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보충제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "잠이 조금 나아져서 다행이네요. 그런데 아침에 개운하지 않고 낮에 멍해지는 증상은 여전히 남아 있어 힘드실 것 같아요. 혹시 과거에 정신건강의학과 진료를 받은 적이 있거나, 심리상담을 받아보신 적이 있으신가요? 아니면 다른 궁금한 점이 있으신가요?",
+      "slot_updates": {
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠이 조금 나아졌으나 아침에 개운하지 않고 낮에 멍해지는 증상이 지속됨",
+        "history_of_present_illness": "회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5513.7866218574345,
+      "timestamp": "2026-07-15T15:51:12.465742",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 정신과를 방문한 적은 없어요.  \n처방받은 약도 없고, 평소 먹던 건강보충제 같은 것도 딱히 없어요.  \n다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "normalized": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보충제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1304.3249594047666,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 정신과를 방문한 적은 없어요. 처방받은 약도 없고, 평소 먹던 건강보충제 같은 것도 딱히 없어요. 다만 요즘은 커피 대신 따뜻한 차를 자주 마시는 편이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1267.7267640829086,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-15T15:48:54.970709",
+  "ended_at": "2026-07-15T15:51:17.567943",
+  "grounded_coverage": 0.75,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5807,
+  "patient_lng": 126.8898,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.12191198766231537,
+    "reason_summary": "Session sentiment: ['neutral', 'sadness'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "neutral",
+      "sadness"
+    ],
+    "emotion_distribution": {
+      "neutral": 0.67,
+      "sadness": 0.2,
+      "relief": 0.07,
+      "despair": 0.07
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": 0.2
+      },
+      {
+        "turn": 1,
+        "polarity": -0.2
+      },
+      {
+        "turn": 2,
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "polarity": -0.65
+      },
+      {
+        "turn": 4,
+        "polarity": 0.0
+      },
+      {
+        "turn": 5,
+        "polarity": 0.0
+      },
+      {
+        "turn": 6,
+        "polarity": 0.0
+      },
+      {
+        "turn": 7,
+        "polarity": 0.0
+      },
+      {
+        "turn": 8,
+        "polarity": 0.0
+      },
+      {
+        "turn": 9,
+        "polarity": 0.0
+      },
+      {
+        "turn": 10,
+        "polarity": 0.0
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "neutral 표현 10회 반복",
+      "sadness 표현 3회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "relief",
+          "sadness"
+        ],
+        "polarity": 0.2
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.2
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "sadness",
+          "despair",
+          "neutral"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      }
+    ]
+  },
+  "phr_summary": {},
+  "prompts_degraded": false,
+  "session_index": 2,
+  "simulated_date": "2026-07-22",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- chief_complaint: 잠 못 자는 문제로 인해 낮에도 집중이 어렵고 실수가 늘어나 속상함\n- history_of_present_illness: 회사에서 대규모 프로젝트 진행 시작 후 잠들기 전부터 마음이 조마조마해지고, 새벽 2-3회 깨며 아침에 개운하지 않음. 낮에 집중이 잘 안 되고 실수가 늘어나 속상함. 아침을 자주 거르고 식사량이 줄어 체력이 떨어지며 운동도 예전처럼 못함. 어깨와 목 뻐근함, 가끔 가슴 답답함 동반\n- family_history: 어머니는 가끔 잠 못 주무심\n- substance_use_history: 커피 대신 차 위주로 마심\n\n[이전 세션 요약 — 미수집 정보]\npast_psychiatric_history, medical_history, personal_social_history",
+  "carried_slot_provenance": {
+    "risk_assessment": "carried_from_session_1"
+  },
+  "scenario_pack_id": "VP-001_improvement_plateau_s02",
+  "arc_mode": "improvement_plateau"
+}

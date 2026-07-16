@@ -1,0 +1,736 @@
+{
+  "session_id": "f1_VP-004_audio_phr",
+  "persona_id": "VP-004",
+  "persona_name": "최하은",
+  "total_turns": 3,
+  "crisis_triggered": true,
+  "crisis_turn": 3,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "약을 먹는 데도 전혀 나아지지 않고 오히려 더 나빠진 것 같으며, 갑작스러운 심장 두근거림과 숨쉬기 어려움으로 죽을 것 같은 공포감과 그 생각에 대한 지속적인 불안"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "약을 복용 중임에도 증상이 개선되지 않고 악화되는 느낌, 감정에서 벗어날 수 있는지에 대한 우려"
+    }
+  ],
+  "slot_coverage": 0.4,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "약을 먹는 데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고 진짜 이 감정에서 벗어날 수 있을까요?",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "약을 먹는 데도 전혀 나아지지 않아요",
+        "오히려 더 나빠진 것 같고",
+        "진짜 이 감정에서 벗어날 수 있을까요"
+      ],
+      "agent_response": "안녕하세요! 저는 정신건강 사전문진을 도와드리는 AI 상담 도우미입니다. 실제 의사 선생님과의 대화가 아니니, 너무 긴장하지 마시고 편하게 느끼시는 그대로 말씀해 주시면 됩니다.\n\n지금부터 대화를 시작하겠습니다. 오늘 가장 도움받고 싶은 문제나 증상은 무엇인가요?",
+      "slot_updates": {
+        "chief_complaint": "약을 먹는 데도 전혀 나아지지 않고 오히려 더 나빠진 것 같으며, 이 감정에서 벗어날 수 있는지 묻는 주호소",
+        "history_of_present_illness": "약을 복용 중임에도 증상이 개선되지 않고 악화되는 양상, 감정에서 벗어날 수 있는지에 대한 절망감 표현"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "약을 먹는 데도 전혀 나아지지 않고 오히려 더 나빠진 것 같으며, 이 감정에서 벗어날 수 있는지 묻는 주호소",
+        "history_of_present_illness": "약을 복용 중임에도 증상이 개선되지 않고 악화되는 양상, 감정에서 벗어날 수 있는지에 대한 절망감 표현"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4504.546427167952,
+      "timestamp": "2026-07-13T16:49:37.709288",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "약을 먹는 데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고 진짜 이 감정에서 벗어날 수 있을까요?",
+        "normalized": "약을 먹는 데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고 진짜 이 감정에서 벗어날 수 있을까요?",
+        "input_type": "stt_transcript",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1230.1946110092103,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "약을 먹는 데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고 진짜 이 감정에서 벗어날 수 있을까요?",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "약을 먹는 데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고 진짜 이 감정에서 벗어날 수 있을까요?",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "약을 먹는 데도 전혀 나아지지 않아요",
+        "오히려 더 나빠진 것 같고",
+        "진짜 이 감정에서 벗어날 수 있을까요"
+      ],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 현재 정신건강의학과 진료를 받고 계신가요? 아니면 다른 심리상담 서비스를 이용 중이신가요?",
+      "slot_updates": {
+        "chief_complaint": "약을 먹는 데도 전혀 나아지지 않고 오히려 더 나빠진 것 같으며, 이 감정에서 벗어날 수 있는지 묻는 주호소",
+        "history_of_present_illness": "약을 복용 중임에도 증상이 개선되지 않고 악화되는 느낌, 감정에서 벗어날 수 있는지에 대한 우려"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "약을 먹는 데도 전혀 나아지지 않고 오히려 더 나빠진 것 같으며, 이 감정에서 벗어날 수 있는지 묻는 주호소",
+        "history_of_present_illness": "약을 복용 중임에도 증상이 개선되지 않고 악화되는 느낌, 감정에서 벗어날 수 있는지에 대한 우려"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 2967.149536125362,
+      "timestamp": "2026-07-13T16:49:40.676473",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "약을 먹는 데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고 진짜 이 감정에서 벗어날 수 있을까요?",
+        "normalized": "약을 먹는 데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고 진짜 이 감정에서 벗어날 수 있을까요?",
+        "input_type": "stt_transcript",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1230.1946110092103,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "약을 먹는 데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고 진짜 이 감정에서 벗어날 수 있을까요?",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low"
+    },
+    {
+      "turn": 2,
+      "patient_message": "아니요 근데 그런 생각이 자꾸 들어요 갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "safety_flagged": [
+        "죽을",
+        "죽을 것 같아요",
+        "하루 종일 그 생각만 맴돌아요"
+      ],
+      "agent_response": "그런 상황이 반복되면 정말 두렵고 힘드실 것 같아요. 최근에 그런 증상이 얼마나 자주, 얼마나 오래 지속되는지 말씀해 주실 수 있나요?",
+      "slot_updates": {
+        "chief_complaint": "약을 먹는 데도 전혀 나아지지 않고 오히려 더 나빠진 것 같으며, 갑작스러운 심장 두근거림과 숨쉬기 어려움으로 죽을 것 같은 공포감과 그 생각에 대한 지속적인 불안"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "약을 먹는 데도 전혀 나아지지 않고 오히려 더 나빠진 것 같으며, 갑작스러운 심장 두근거림과 숨쉬기 어려움으로 죽을 것 같은 공포감과 그 생각에 대한 지속적인 불안",
+        "history_of_present_illness": "약을 복용 중임에도 증상이 개선되지 않고 악화되는 느낌, 감정에서 벗어날 수 있는지에 대한 우려"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3067.007320933044,
+      "timestamp": "2026-07-13T16:49:48.546872",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아니요 근데 그런 생각이 자꾸 들어요 갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요.",
+        "normalized": "아니요 근데 그런 생각이 자꾸 들어요 갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요.",
+        "input_type": "stt_transcript",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2941.590851638466,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.9
+          },
+          {
+            "label": "fear",
+            "intensity": 0.8
+          }
+        ],
+        "evidence_phrase": "갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium"
+    },
+    {
+      "turn": 3,
+      "patient_message": "그런 계획은 가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요. 근데 한 적은 없어요.",
+      "safety_ctrs": 3,
+      "safety_risk": "medium",
+      "safety_crisis": true,
+      "safety_categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "safety_flagged": [
+        "죽을 것 같아요",
+        "하루 종일 그 생각만 맴돌아요"
+      ],
+      "agent_response": "지금 많이 힘드시군요. 당신의 이야기를 듣고 있습니다. 자살예방상담전화 109, 응급전화 119로 연락해 주세요.\n\n📍 가까운 정신건강의학과:\n1. 이화여자대학교의과대학부속서울병원 (1.4km) · ☎ 1522-7000\n2. 가족사랑정신과의원 (1.4km) · ☎ 02-3663-5956\n3. 마음과정신건강의학과의원 (1.4km) · ☎ 02-2697-8575",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "약을 먹는 데도 전혀 나아지지 않고 오히려 더 나빠진 것 같으며, 갑작스러운 심장 두근거림과 숨쉬기 어려움으로 죽을 것 같은 공포감과 그 생각에 대한 지속적인 불안",
+        "history_of_present_illness": "약을 복용 중임에도 증상이 개선되지 않고 악화되는 느낌, 감정에서 벗어날 수 있는지에 대한 우려"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5438.20227496326,
+      "timestamp": "2026-07-13T16:49:56.944198",
+      "targeted_slot": null,
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "그런 계획은 가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요. 근데 한 적은 없어요.",
+        "normalized": "그런 계획은 가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요. 근데 한 적은 없어요.",
+        "input_type": "stt_transcript",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 893.1048512458801,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "그런 계획은 가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요. 근데 한 적은 없어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 3,
+      "dialogue_safety_risk": "medium"
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-13T16:49:30.149958",
+  "ended_at": "2026-07-13T16:49:59.697883",
+  "grounded_coverage": 0.25,
+  "risk_floor": 3,
+  "probe_events": [
+    {
+      "type": "trigger",
+      "turn": 2,
+      "ctrs": 3,
+      "categories": [
+        "suicidal_ideation",
+        "distress"
+      ],
+      "utterance": "아니요 근데 그런 생각이 자꾸 들어요 갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요."
+    },
+    {
+      "type": "escalation",
+      "turn": 3,
+      "stage": "frequency",
+      "reason": "plan/means disclosure (lexical check)",
+      "utterance": "그런 계획은 가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요. 근데 한 적은 없어요."
+    }
+  ],
+  "session_ctrs": 3,
+  "nearby_psychiatric": [
+    {
+      "rank": 1,
+      "name": "이화여자대학교의과대학부속서울병원",
+      "distance_km": 1.359,
+      "phone": "1522-7000",
+      "address": "서울특별시 강서구 공항대로 260, 이화의대부속서울병원 (마곡동)",
+      "type_name": "종합병원",
+      "lat": 37.5572629,
+      "lng": 126.8362668
+    },
+    {
+      "rank": 2,
+      "name": "가족사랑정신과의원",
+      "distance_km": 1.361,
+      "phone": "02-3663-5956",
+      "address": "서울특별시 강서구 양천로 461, 5층 (가양동)",
+      "type_name": "의원",
+      "lat": 37.5630495,
+      "lng": 126.8522408
+    },
+    {
+      "rank": 3,
+      "name": "마음과정신건강의학과의원",
+      "distance_km": 1.367,
+      "phone": "02-2697-8575",
+      "address": "서울특별시 강서구 화곡로 161, 3층 303호 (화곡동, 대성빌딩)",
+      "type_name": "의원",
+      "lat": 37.5418323,
+      "lng": 126.8391664
+    }
+  ],
+  "patient_lat": 37.551,
+  "patient_lng": 126.8495,
+  "ocr_documents": [],
+  "stt_transcripts": [
+    {
+      "model_used": "A.X_STT_note_batch",
+      "prompt_version": "v1",
+      "latency_ms": 1030.224525835365,
+      "reason_summary": "batch transcribed: 1 segment(s), 58 chars",
+      "session_id": "f1_VP-004_audio_phr",
+      "patient_id": "VP-004",
+      "text": "약을 먹는 데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고 진짜 이 감정에서 벗어날 수 있을까요?",
+      "segments": [
+        {
+          "text": "약을 먹는 데도 전혀 나아지지 않아요. 오히려 더 나빠진 것 같고 진짜 이 감정에서 벗어날 수 있을까요?",
+          "start_ms": 0,
+          "end_ms": 9,
+          "speaker": null
+        }
+      ],
+      "confidence": null,
+      "mode": "batch",
+      "vendor": "skt-ak-stt",
+      "audio_duration_ms": 9,
+      "audio_retention_expires_at": "2026-07-15T07:49:31.180296+00:00",
+      "user_confirmed": false,
+      "timestamp": "2026-07-13T16:49:31.180320"
+    },
+    {
+      "model_used": "A.X_STT_note_batch",
+      "prompt_version": "v1",
+      "latency_ms": 1092.4912430346012,
+      "reason_summary": "batch transcribed: 1 segment(s), 87 chars",
+      "session_id": "f1_VP-004_audio_phr",
+      "patient_id": "VP-004",
+      "text": "아니요 근데 그런 생각이 자꾸 들어요 갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요.",
+      "segments": [
+        {
+          "text": "아니요 근데 그런 생각이 자꾸 들어요 갑자기 심장이 뛰고 숨이 안 쉬어지면 진짜 죽을 것 같아요 그런데 또 그런 게 올까 봐 하루 종일 그 생각만 맴돌아요.",
+          "start_ms": 0,
+          "end_ms": 14,
+          "speaker": null
+        }
+      ],
+      "confidence": null,
+      "mode": "batch",
+      "vendor": "skt-ak-stt",
+      "audio_duration_ms": 14,
+      "audio_retention_expires_at": "2026-07-15T07:49:32.273146+00:00",
+      "user_confirmed": false,
+      "timestamp": "2026-07-13T16:49:32.273163"
+    },
+    {
+      "model_used": "A.X_STT_note_batch",
+      "prompt_version": "v1",
+      "latency_ms": 922.0154802314937,
+      "reason_summary": "batch transcribed: 1 segment(s), 49 chars",
+      "session_id": "f1_VP-004_audio_phr",
+      "patient_id": "VP-004",
+      "text": "그런 계획은 가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요. 근데 한 적은 없어요.",
+      "segments": [
+        {
+          "text": "그런 계획은 가끔 아프면 이 느낌이 좀 멈출까 싶을 때가 있어요. 근데 한 적은 없어요.",
+          "start_ms": 0,
+          "end_ms": 8,
+          "speaker": null
+        }
+      ],
+      "confidence": null,
+      "mode": "batch",
+      "vendor": "skt-ak-stt",
+      "audio_duration_ms": 8,
+      "audio_retention_expires_at": "2026-07-15T07:49:33.195343+00:00",
+      "user_confirmed": false,
+      "timestamp": "2026-07-13T16:49:33.195363"
+    }
+  ],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.11057918891310692,
+    "reason_summary": "Session sentiment: ['despair', 'anxiety'], strength=strong",
+    "dominant_emotions": [
+      "despair",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "despair": 0.38,
+      "anxiety": 0.38,
+      "sadness": 0.12,
+      "fear": 0.12
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.85
+      },
+      {
+        "turn": 1,
+        "polarity": -0.85
+      },
+      {
+        "turn": 2,
+        "polarity": -0.75
+      },
+      {
+        "turn": 3,
+        "polarity": -0.65
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "despair 표현 3회 반복",
+      "anxiety 표현 3회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "despair",
+          "sadness"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "anxiety",
+          "fear"
+        ],
+        "polarity": -0.75
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      }
+    ]
+  },
+  "phr_summary": {
+    "model_used": "",
+    "prompt_version": "",
+    "latency_ms": 8.720439858734608,
+    "reason_summary": "parsed 2 bundle(s), 6 meds (6 psychotropic), 9 visits",
+    "patient": {
+      "mhid": "20530004",
+      "name_hash": "123875f59e98a2f5",
+      "rn_masked": "9612345******"
+    },
+    "medications": [
+      {
+        "dispensed_at": "2026-04-15",
+        "pharmacy": "가양마음약국",
+        "pharmacy_address": "서울특별시 강서구 화곡로",
+        "kd_code": "649900070",
+        "hira_ingredient_code": "244401ATB",
+        "product_name": "졸로푸트정50mg (서트랄린)",
+        "ingredient_name": "sertraline",
+        "days_supply": 14,
+        "daily_frequency": 1,
+        "dose_per_take": 1.0,
+        "dose_form_text": "1정 1회/일 14일",
+        "psychotropic_class": "SSRI"
+      },
+      {
+        "dispensed_at": "2026-05-01",
+        "pharmacy": "가양마음약국",
+        "pharmacy_address": "서울특별시 강서구 화곡로",
+        "kd_code": "659900280",
+        "hira_ingredient_code": "245801ATB",
+        "product_name": "렉사프로정10mg (에스시탈로프람)",
+        "ingredient_name": "escitalopram",
+        "days_supply": 21,
+        "daily_frequency": 1,
+        "dose_per_take": 1.0,
+        "dose_form_text": "1정 1회/일 21일",
+        "psychotropic_class": "SSRI"
+      },
+      {
+        "dispensed_at": "2026-05-20",
+        "pharmacy": "가양마음약국",
+        "pharmacy_address": "서울특별시 강서구 화곡로",
+        "kd_code": "659900290",
+        "hira_ingredient_code": "245801ATB",
+        "product_name": "렉사프로정20mg (에스시탈로프람)",
+        "ingredient_name": "escitalopram",
+        "days_supply": 28,
+        "daily_frequency": 1,
+        "dose_per_take": 1.0,
+        "dose_form_text": "1정 1회/일 28일",
+        "psychotropic_class": "SSRI"
+      },
+      {
+        "dispensed_at": "2026-05-20",
+        "pharmacy": "가양마음약국",
+        "pharmacy_address": "서울특별시 강서구 화곡로",
+        "kd_code": "641800110",
+        "hira_ingredient_code": "196501ATB",
+        "product_name": "자낙스정0.25mg (알프라졸람)",
+        "ingredient_name": "alprazolam",
+        "days_supply": 14,
+        "daily_frequency": 0,
+        "dose_per_take": 1.0,
+        "dose_form_text": "0.25mg PRN 공황 발작 시 14일 분량",
+        "psychotropic_class": "BENZO"
+      },
+      {
+        "dispensed_at": "2026-06-17",
+        "pharmacy": "가양마음약국",
+        "pharmacy_address": "서울특별시 강서구 화곡로",
+        "kd_code": "659900290",
+        "hira_ingredient_code": "245801ATB",
+        "product_name": "렉사프로정20mg (에스시탈로프람)",
+        "ingredient_name": "escitalopram",
+        "days_supply": 28,
+        "daily_frequency": 1,
+        "dose_per_take": 1.0,
+        "dose_form_text": "1정 1회/일 28일",
+        "psychotropic_class": "SSRI"
+      },
+      {
+        "dispensed_at": "2026-06-17",
+        "pharmacy": "가양마음약국",
+        "pharmacy_address": "서울특별시 강서구 화곡로",
+        "kd_code": "641800110",
+        "hira_ingredient_code": "196501ATB",
+        "product_name": "자낙스정0.25mg (알프라졸람)",
+        "ingredient_name": "alprazolam",
+        "days_supply": 14,
+        "daily_frequency": 0,
+        "dose_per_take": 1.0,
+        "dose_form_text": "0.25mg PRN 공황 발작 시 14일 분량",
+        "psychotropic_class": "BENZO"
+      }
+    ],
+    "visits": [
+      {
+        "visited_at": "2026-04-15",
+        "facility_name": "가양마음약국",
+        "facility_kind": "pharmacy",
+        "facility_address": "서울특별시 강서구 화곡로",
+        "claim_type": "pharmacy",
+        "total_cost": "12000",
+        "diagnosis_codes": []
+      },
+      {
+        "visited_at": "2026-04-15",
+        "facility_name": "마음의지도정신건강의학과의원",
+        "facility_kind": "medical",
+        "facility_address": "서울특별시 강서구 화곡로",
+        "claim_type": "professional",
+        "total_cost": "25000",
+        "diagnosis_codes": []
+      },
+      {
+        "visited_at": "2026-05-01",
+        "facility_name": "가양마음약국",
+        "facility_kind": "pharmacy",
+        "facility_address": "서울특별시 강서구 화곡로",
+        "claim_type": "pharmacy",
+        "total_cost": "12000",
+        "diagnosis_codes": []
+      },
+      {
+        "visited_at": "2026-05-01",
+        "facility_name": "마음의지도정신건강의학과의원",
+        "facility_kind": "medical",
+        "facility_address": "서울특별시 강서구 화곡로",
+        "claim_type": "professional",
+        "total_cost": "20000",
+        "diagnosis_codes": []
+      },
+      {
+        "visited_at": "2026-05-20",
+        "facility_name": "가양마음약국",
+        "facility_kind": "pharmacy",
+        "facility_address": "서울특별시 강서구 화곡로",
+        "claim_type": "pharmacy",
+        "total_cost": "15500",
+        "diagnosis_codes": []
+      },
+      {
+        "visited_at": "2026-05-20",
+        "facility_name": "마음의지도정신건강의학과의원",
+        "facility_kind": "medical",
+        "facility_address": "서울특별시 강서구 화곡로",
+        "claim_type": "professional",
+        "total_cost": "20000",
+        "diagnosis_codes": []
+      },
+      {
+        "visited_at": "2026-06-15",
+        "facility_name": "이화여자대학교의과대학부속서울병원",
+        "facility_kind": "medical",
+        "facility_address": "서울특별시 강서구 공항대로",
+        "claim_type": "professional",
+        "total_cost": "85000",
+        "diagnosis_codes": []
+      },
+      {
+        "visited_at": "2026-06-17",
+        "facility_name": "가양마음약국",
+        "facility_kind": "pharmacy",
+        "facility_address": "서울특별시 강서구 화곡로",
+        "claim_type": "pharmacy",
+        "total_cost": "15500",
+        "diagnosis_codes": []
+      },
+      {
+        "visited_at": "2026-06-17",
+        "facility_name": "마음의지도정신건강의학과의원",
+        "facility_kind": "medical",
+        "facility_address": "서울특별시 강서구 화곡로",
+        "claim_type": "professional",
+        "total_cost": "20000",
+        "diagnosis_codes": []
+      }
+    ],
+    "psychotropic_medications": [
+      {
+        "dispensed_at": "2026-04-15",
+        "pharmacy": "가양마음약국",
+        "pharmacy_address": "서울특별시 강서구 화곡로",
+        "kd_code": "649900070",
+        "hira_ingredient_code": "244401ATB",
+        "product_name": "졸로푸트정50mg (서트랄린)",
+        "ingredient_name": "sertraline",
+        "days_supply": 14,
+        "daily_frequency": 1,
+        "dose_per_take": 1.0,
+        "dose_form_text": "1정 1회/일 14일",
+        "psychotropic_class": "SSRI"
+      },
+      {
+        "dispensed_at": "2026-05-01",
+        "pharmacy": "가양마음약국",
+        "pharmacy_address": "서울특별시 강서구 화곡로",
+        "kd_code": "659900280",
+        "hira_ingredient_code": "245801ATB",
+        "product_name": "렉사프로정10mg (에스시탈로프람)",
+        "ingredient_name": "escitalopram",
+        "days_supply": 21,
+        "daily_frequency": 1,
+        "dose_per_take": 1.0,
+        "dose_form_text": "1정 1회/일 21일",
+        "psychotropic_class": "SSRI"
+      },
+      {
+        "dispensed_at": "2026-05-20",
+        "pharmacy": "가양마음약국",
+        "pharmacy_address": "서울특별시 강서구 화곡로",
+        "kd_code": "659900290",
+        "hira_ingredient_code": "245801ATB",
+        "product_name": "렉사프로정20mg (에스시탈로프람)",
+        "ingredient_name": "escitalopram",
+        "days_supply": 28,
+        "daily_frequency": 1,
+        "dose_per_take": 1.0,
+        "dose_form_text": "1정 1회/일 28일",
+        "psychotropic_class": "SSRI"
+      },
+      {
+        "dispensed_at": "2026-05-20",
+        "pharmacy": "가양마음약국",
+        "pharmacy_address": "서울특별시 강서구 화곡로",
+        "kd_code": "641800110",
+        "hira_ingredient_code": "196501ATB",
+        "product_name": "자낙스정0.25mg (알프라졸람)",
+        "ingredient_name": "alprazolam",
+        "days_supply": 14,
+        "daily_frequency": 0,
+        "dose_per_take": 1.0,
+        "dose_form_text": "0.25mg PRN 공황 발작 시 14일 분량",
+        "psychotropic_class": "BENZO"
+      },
+      {
+        "dispensed_at": "2026-06-17",
+        "pharmacy": "가양마음약국",
+        "pharmacy_address": "서울특별시 강서구 화곡로",
+        "kd_code": "659900290",
+        "hira_ingredient_code": "245801ATB",
+        "product_name": "렉사프로정20mg (에스시탈로프람)",
+        "ingredient_name": "escitalopram",
+        "days_supply": 28,
+        "daily_frequency": 1,
+        "dose_per_take": 1.0,
+        "dose_form_text": "1정 1회/일 28일",
+        "psychotropic_class": "SSRI"
+      },
+      {
+        "dispensed_at": "2026-06-17",
+        "pharmacy": "가양마음약국",
+        "pharmacy_address": "서울특별시 강서구 화곡로",
+        "kd_code": "641800110",
+        "hira_ingredient_code": "196501ATB",
+        "product_name": "자낙스정0.25mg (알프라졸람)",
+        "ingredient_name": "alprazolam",
+        "days_supply": 14,
+        "daily_frequency": 0,
+        "dose_per_take": 1.0,
+        "dose_form_text": "0.25mg PRN 공황 발작 시 14일 분량",
+        "psychotropic_class": "BENZO"
+      }
+    ],
+    "has_psychiatric_history": true,
+    "date_range": [
+      "2026-04-15",
+      "2026-06-17"
+    ],
+    "generated_at": "2026-07-13T07:49:33.204321",
+    "total_medication_events": 6,
+    "total_visits": 9,
+    "psychiatric_visit_count": 4
+  }
+}

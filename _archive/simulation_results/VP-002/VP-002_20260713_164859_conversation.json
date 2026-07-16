@@ -1,0 +1,502 @@
+{
+  "session_id": "f1_VP-002_phr",
+  "persona_id": "VP-002",
+  "persona_name": "이준호",
+  "total_turns": 4,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "수업 준비 어려움 및 수면 장애"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "수업 준비 어려움 및 수면 장애(잠들기 전 뒤척임) 있었으나, 최근 수면 개선(30분 내 잠들고 6~7시간 수면), 식사 정상화, 주말 외식 재개, 새로운 일 시작 시 집중력 저하 지속"
+    }
+  ],
+  "slot_coverage": 0.4,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요! 저는 정신건강 사전문진을 도와드리는 AI 상담 도우미입니다. 실제 의사 선생님과의 대화가 아니니, 너무 긴장하지 마시고 편하게 느끼시는 그대로 말씀해 주시면 됩니다.\n\n지금부터 대화를 시작하겠습니다. 오늘 가장 도움받고 싶은 문제나 증상은 무엇인가요?",
+      "slot_updates": {},
+      "cumulative_slots": {},
+      "slot_coverage": 0.0,
+      "latency_ms": 5214.022237341851,
+      "timestamp": "2026-07-13T16:48:29.427704",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.0,
+      "normalizer_meta": {
+        "original": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.",
+        "normalized": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 987.0295496657491,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": 0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.7
+          },
+          {
+            "label": "hope",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 상황이라면 정말 지치셨을 것 같아요. 증상이 언제부터 시작되었고, 최근 들어 좋아지는지 아니면 더 악화되고 있는지, 그리고 수면이나 식사, 대인관계 등 일상생활에서 어떤 부분이 가장 영향을 받고 있는지 말씀해 주실 수 있을까요?",
+      "slot_updates": {},
+      "cumulative_slots": {},
+      "slot_coverage": 0.0,
+      "latency_ms": 3547.8556528687477,
+      "timestamp": "2026-07-13T16:48:32.975595",
+      "targeted_slot": "history_of_present_illness",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.0,
+      "normalizer_meta": {
+        "original": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.",
+        "normalized": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 987.0295496657491,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": 0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.8
+          }
+        ],
+        "evidence_phrase": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low"
+    },
+    {
+      "turn": 2,
+      "patient_message": "처음엔 수업 준비도 힘들었고, 잠들기 전에 한참 뒤척였는데 요즘은 30분 안에 잠들고 6~7시간 자게 돼서 수면은 많이 나아졌어요. 식사는 거의 정상이고, 주말엔 아내와 외식도 다시 시작했어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "수면과 일상 생활이 개선되신 것 같아 다행이에요. 혹시 증상이 나아지면서 새롭게 느끼시는 어려움이나 걱정되는 부분이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "수업 준비 어려움 및 수면 장애",
+        "history_of_present_illness": "수업 준비 어려움과 잠들기 전 뒤척임 증상이 있었으나, 최근 수면이 개선되어 30분 내 잠들고 6~7시간 수면을 취함. 식사 및 대인관계(와이프와 외식)는 정상으로 회복됨."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "수업 준비 어려움 및 수면 장애",
+        "history_of_present_illness": "수업 준비 어려움과 잠들기 전 뒤척임 증상이 있었으나, 최근 수면이 개선되어 30분 내 잠들고 6~7시간 수면을 취함. 식사 및 대인관계(와이프와 외식)는 정상으로 회복됨."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3018.672817852348,
+      "timestamp": "2026-07-13T16:48:40.080239",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "처음엔 수업 준비도 힘들었고, 잠들기 전에 한참 뒤척였는데 요즘은 30분 안에 잠들고 6~7시간 자게 돼서 수면은 많이 나아졌어요. 식사는 거의 정상이고, 주말엔 아내와 외식도 다시 시작했어요.",
+        "normalized": "처음엔 수업 준비도 힘들었고, 잠들기 전에 한참 뒤척였는데 요즘은 30분 안에 잠들고 6~7시간 자게 돼서 수면은 많이 나아졌어요. 식사는 거의 정상이고, 주말엔 아내와 외식도 다시 시작했어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1319.5603317581117,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": 0.7,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.9
+          },
+          {
+            "label": "hope",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "수면은 많이 나아졌어요. 식사는 거의 정상이고, 주말엔 아내와 외식도 다시 시작했어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none"
+    },
+    {
+      "turn": 3,
+      "patient_message": "새로운 일을 시작하기가 아직 좀 버겁긴 해요. 수업 준비는 해도 새로운 걸 시작하면 집중이 잘 안 되고, 그래도 아내가 많이 도와줘서 힘을 얻고 있어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "새로운 일을 시작할 때 집중이 잘 안 되시는군요. 그럴 때 주변 사람들에게 도움을 요청하는 것이 부담스럽지 않으신가요? 혹시 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있는지 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "history_of_present_illness": "수업 준비 어려움, 수면 장애(잠들기 전 뒤척임) 있었으나 최근 수면 개선(30분 내 잠들고 6~7시간 수면), 식사 정상화, 주말 외식 재개, 새로운 일 시작 시 집중력 저하 및 버거운 느낌 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "수업 준비 어려움 및 수면 장애",
+        "history_of_present_illness": "수업 준비 어려움, 수면 장애(잠들기 전 뒤척임) 있었으나 최근 수면 개선(30분 내 잠들고 6~7시간 수면), 식사 정상화, 주말 외식 재개, 새로운 일 시작 시 집중력 저하 및 버거운 느낌 지속"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3533.1117110326886,
+      "timestamp": "2026-07-13T16:48:47.442967",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "새로운 일을 시작하기가 아직 좀 버겁긴 해요. 수업 준비는 해도 새로운 걸 시작하면 집중이 잘 안 되고, 그래도 아내가 많이 도와줘서 힘을 얻고 있어요.",
+        "normalized": "새로운 일을 시작하기가 아직 좀 버겁긴 해요. 수업 준비는 해도 새로운 걸 시작하면 집중이 잘 안 되고, 그래도 아내가 많이 도와줘서 힘을 얻고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1419.02310308069,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "새로운 일을 시작하기가 아직 좀 버겁긴 해요. 수업 준비는 해도 새로운 걸 시작하면 집중이 잘 안 되고",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low"
+    },
+    {
+      "turn": 4,
+      "patient_message": "아내가 옆에서 챙겨주고 응원해 주니까 큰 도움이 돼요. 동료 선생님 중에서도 가끔 점심 같이 하면서 이야기 나누는 게 부담스럽진 않아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "가족분들 중에 비슷한 어려움을 겪으셨던 분이 계신가요? 혹시 그런 경험이 있다면 어떤 점이 도움이 되셨는지 궁금해요.",
+      "slot_updates": {
+        "history_of_present_illness": "수업 준비 어려움 및 수면 장애(잠들기 전 뒤척임) 있었으나, 최근 수면 개선(30분 내 잠들고 6~7시간 수면), 식사 정상화, 주말 외식 재개, 새로운 일 시작 시 집중력 저하 지속"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "수업 준비 어려움 및 수면 장애",
+        "history_of_present_illness": "수업 준비 어려움 및 수면 장애(잠들기 전 뒤척임) 있었으나, 최근 수면 개선(30분 내 잠들고 6~7시간 수면), 식사 정상화, 주말 외식 재개, 새로운 일 시작 시 집중력 저하 지속"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3298.0931559577584,
+      "timestamp": "2026-07-13T16:48:54.831039",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "아내가 옆에서 챙겨주고 응원해 주니까 큰 도움이 돼요. 동료 선생님 중에서도 가끔 점심 같이 하면서 이야기 나누는 게 부담스럽진 않아요.",
+        "normalized": "아내가 옆에서 챙겨주고 응원해 주니까 큰 도움이 돼요. 동료 선생님 중에서도 가끔 점심 같이 하면서 이야기 나누는 게 부담스럽진 않아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1586.531971115619,
+        "changes": []
+      },
+      "sentiment": {
+        "polarity": 0.7,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.8
+          },
+          {
+            "label": "hope",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "아내가 옆에서 챙겨주고 응원해 주니까 큰 도움이 돼요. 동료 선생님 중에서도 가끔 점심 같이 하면서 이야기 나누는 게 부담스럽진 않아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none"
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-13T16:48:24.212919",
+  "ended_at": "2026-07-13T16:48:59.453724",
+  "grounded_coverage": 0.25,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.402,
+  "patient_lng": 127.1087,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.12526707723736763,
+    "reason_summary": "Session sentiment: ['relief', 'hope'], strength=moderate",
+    "dominant_emotions": [
+      "relief",
+      "hope"
+    ],
+    "emotion_distribution": {
+      "relief": 0.44,
+      "hope": 0.33,
+      "anxiety": 0.11,
+      "sadness": 0.11
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": 0.65
+      },
+      {
+        "turn": 1,
+        "polarity": 0.6
+      },
+      {
+        "turn": 2,
+        "polarity": 0.7
+      },
+      {
+        "turn": 3,
+        "polarity": -0.4
+      },
+      {
+        "turn": 4,
+        "polarity": 0.7
+      }
+    ],
+    "signal_strength": "moderate",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "relief 표현 4회 반복",
+      "hope 표현 3회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "relief",
+          "hope"
+        ],
+        "polarity": 0.65
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "relief"
+        ],
+        "polarity": 0.6
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "relief",
+          "hope"
+        ],
+        "polarity": 0.7
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "relief",
+          "hope"
+        ],
+        "polarity": 0.7
+      }
+    ]
+  },
+  "phr_summary": {
+    "model_used": "",
+    "prompt_version": "",
+    "latency_ms": 0.5410239100456238,
+    "reason_summary": "parsed 2 bundle(s), 2 meds (2 psychotropic), 4 visits",
+    "patient": {
+      "mhid": "20530002",
+      "name_hash": "01e5421a6cc168db",
+      "rn_masked": "9012345******"
+    },
+    "medications": [
+      {
+        "dispensed_at": "2026-05-07",
+        "pharmacy": "판교마음약국",
+        "pharmacy_address": "경기도 성남시 분당구 판교역로",
+        "kd_code": "659900280",
+        "hira_ingredient_code": "245801ATB",
+        "product_name": "렉사프로정10mg (에스시탈로프람)",
+        "ingredient_name": "escitalopram",
+        "days_supply": 28,
+        "daily_frequency": 1,
+        "dose_per_take": 1.0,
+        "dose_form_text": "1정 1회/일 아침 28일",
+        "psychotropic_class": "SSRI"
+      },
+      {
+        "dispensed_at": "2026-06-04",
+        "pharmacy": "판교마음약국",
+        "pharmacy_address": "경기도 성남시 분당구 판교역로",
+        "kd_code": "659900280",
+        "hira_ingredient_code": "245801ATB",
+        "product_name": "렉사프로정10mg (에스시탈로프람)",
+        "ingredient_name": "escitalopram",
+        "days_supply": 28,
+        "daily_frequency": 1,
+        "dose_per_take": 1.0,
+        "dose_form_text": "1정 1회/일 아침 28일",
+        "psychotropic_class": "SSRI"
+      }
+    ],
+    "visits": [
+      {
+        "visited_at": "2026-05-07",
+        "facility_name": "W정신건강의학과의원",
+        "facility_kind": "medical",
+        "facility_address": "경기도 성남시 분당구 판교역로",
+        "claim_type": "professional",
+        "total_cost": "22000",
+        "diagnosis_codes": []
+      },
+      {
+        "visited_at": "2026-05-07",
+        "facility_name": "판교마음약국",
+        "facility_kind": "pharmacy",
+        "facility_address": "경기도 성남시 분당구 판교역로",
+        "claim_type": "pharmacy",
+        "total_cost": "8500",
+        "diagnosis_codes": []
+      },
+      {
+        "visited_at": "2026-06-04",
+        "facility_name": "W정신건강의학과의원",
+        "facility_kind": "medical",
+        "facility_address": "경기도 성남시 분당구 판교역로",
+        "claim_type": "professional",
+        "total_cost": "18000",
+        "diagnosis_codes": []
+      },
+      {
+        "visited_at": "2026-06-04",
+        "facility_name": "판교마음약국",
+        "facility_kind": "pharmacy",
+        "facility_address": "경기도 성남시 분당구 판교역로",
+        "claim_type": "pharmacy",
+        "total_cost": "8500",
+        "diagnosis_codes": []
+      }
+    ],
+    "psychotropic_medications": [
+      {
+        "dispensed_at": "2026-05-07",
+        "pharmacy": "판교마음약국",
+        "pharmacy_address": "경기도 성남시 분당구 판교역로",
+        "kd_code": "659900280",
+        "hira_ingredient_code": "245801ATB",
+        "product_name": "렉사프로정10mg (에스시탈로프람)",
+        "ingredient_name": "escitalopram",
+        "days_supply": 28,
+        "daily_frequency": 1,
+        "dose_per_take": 1.0,
+        "dose_form_text": "1정 1회/일 아침 28일",
+        "psychotropic_class": "SSRI"
+      },
+      {
+        "dispensed_at": "2026-06-04",
+        "pharmacy": "판교마음약국",
+        "pharmacy_address": "경기도 성남시 분당구 판교역로",
+        "kd_code": "659900280",
+        "hira_ingredient_code": "245801ATB",
+        "product_name": "렉사프로정10mg (에스시탈로프람)",
+        "ingredient_name": "escitalopram",
+        "days_supply": 28,
+        "daily_frequency": 1,
+        "dose_per_take": 1.0,
+        "dose_form_text": "1정 1회/일 아침 28일",
+        "psychotropic_class": "SSRI"
+      }
+    ],
+    "has_psychiatric_history": true,
+    "date_range": [
+      "2026-05-07",
+      "2026-06-04"
+    ],
+    "generated_at": "2026-07-13T07:48:24.213489",
+    "total_medication_events": 2,
+    "total_visits": 4,
+    "psychiatric_visit_count": 2
+  }
+}

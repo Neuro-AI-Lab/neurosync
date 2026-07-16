@@ -1,0 +1,1054 @@
+{
+  "session_id": "f1_VP-010_followup",
+  "persona_id": "VP-010",
+  "persona_name": "강태민",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "피곤하고 잠들기 어려운 증상이 지속되고 있으며, 재워도 한두 시간은 뒤척이는 증상이 있음. 예전보다는 조금 나아졌는지 여전히 비슷한 상태임"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\""
+    },
+    {
+      "key": "substance_use_history",
+      "value": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음"
+    },
+    {
+      "key": "personal_social_history",
+      "value": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가"
+    },
+    {
+      "key": "family_history",
+      "value": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+    },
+    {
+      "key": "medical_history",
+      "value": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "네, 피곤하고 잠들기 어려운 건 여전해요.  \n재워도 한두 시간은 뒤척이는 것 같아요.  \n근데 예전보다는 좀 나아졌는지, 여전히 비슷해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 지난번에 이어서 편안하게 이야기 나눠볼까요? 오늘은 피곤하고 잠들기 어려운 증상이 어떻게 변했는지 편하게 말씀해 주세요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간 뒤척임",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간 뒤척이는 상태"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간 뒤척임",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간 뒤척이는 상태",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 9512.402181979269,
+      "timestamp": "2026-07-15T16:52:21.497527",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "네, 피곤하고 잠들기 어려운 건 여전해요.  \n재워도 한두 시간은 뒤척이는 것 같아요.  \n근데 예전보다는 좀 나아졌는지, 여전히 비슷해요.",
+        "normalized": "네, 피곤하고 잠들기 어려운 건 여전해요.  \n재워도 한두 시간은 뒤척이는 것 같아요.  \n근데 예전보다는 좀 나아졌는지, 여전히 비슷해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3292.2809929586947,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.2,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "피곤하고 잠들기 어려운 건 여전해요. 재워도 한두 시간은 뒤척이는 것 같아요. 근데 예전보다는 좀 나아졌는지, 여전히 비슷해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "네, 피곤하고 잠들기 어려운 건 여전해요.  \n재워도 한두 시간은 뒤척이는 것 같아요.  \n근데 예전보다는 좀 나아졌는지, 여전히 비슷해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "피곤하고 잠들기 어려운 증상이 여전하시다니 마음이 무겁겠어요. 지난번 상담에서 정신건강의학과 진료나 심리상담 경험이 있는지 여쭤보지 못했는데, 이번에 편하게 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3821.367699187249,
+      "timestamp": "2026-07-15T16:52:25.318920",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "네, 피곤하고 잠들기 어려운 건 여전해요.  \n재워도 한두 시간은 뒤척이는 것 같아요.  \n근데 예전보다는 좀 나아졌는지, 여전히 비슷해요.",
+        "normalized": "네, 피곤하고 잠들기 어려운 건 여전해요.  \n재워도 한두 시간은 뒤척이는 것 같아요.  \n근데 예전보다는 좀 나아졌는지, 여전히 비슷해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3292.2809929586947,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "피곤하고 잠들기 어려운 건 여전해요. 재워도 한두 시간은 뒤척이는 것 같아요. 근데 예전보다는 좀 나아졌는지, 여전히 비슷해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "아닙니다, 아직 정신과나 심리상담은 받아본 적 없어요.  \n이 앱이 첫 질문이라 좀 어색하긴 한데, 큰 문제는 아닌 것 같아서요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "정신과나 심리상담을 받아본 적이 없으시다니, 처음이라 어색하신 게 당연할 수 있어요. 혹시 이전에 다른 병원에서 정신건강 관련 진료를 받으신 적이 있는지, 또는 진단받은 병명이 있는지 편하게 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4333.462005946785,
+      "timestamp": "2026-07-15T16:52:54.326413",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아닙니다, 아직 정신과나 심리상담은 받아본 적 없어요.  \n이 앱이 첫 질문이라 좀 어색하긴 한데, 큰 문제는 아닌 것 같아서요.",
+        "normalized": "아닙니다, 아직 정신과나 심리상담은 받아본 적 없어요.  \n이 앱이 첫 질문이라 좀 어색하긴 한데, 큰 문제는 아닌 것 같아서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 20904.872534796596,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "아직 정신과나 심리상담은 받아본 적 없어요. 이 앱이 첫 질문이라 좀 어색하긴 한데, 큰 문제는 아닌 것 같아서요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "아니요, 그런 건 전혀 없어요. 진단받은 적도 없고, 병원에 간 적도 없고… 그냥 이 앱이 첫 질문이라 좀 어색하긴 한데, 큰 문제는 아닌 것 같아서요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "정신과나 심리상담을 받아본 적이 없으시다고 하셨는데, 혹시 과거 다른 곳에서 정신건강 관련 진료를 권유받은 적은 있으신가요? 아니면 스스로 진단을 고민해보신 적이 있다면 알려주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4365.216000936925,
+      "timestamp": "2026-07-15T16:53:04.126290",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 전혀 없어요.  \n진단받은 적도 없고, 병원에 간 적도 없고… 그냥 이 앱이 첫 질문이라 좀 어색하긴 한데, 큰 문제는 아닌 것 같아서요.",
+        "normalized": "아니요, 그런 건 전혀 없어요. 진단받은 적도 없고, 병원에 간 적도 없고… 그냥 이 앱이 첫 질문이라 좀 어색하긴 한데, 큰 문제는 아닌 것 같아서요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1600.9411248378456,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 건 전혀 없어요. 진단받은 적도 없고, 병원에 간 적도 없고… 그냥 이 앱이 첫 질문이라 좀 어색하긴 한데, 큰 문제는 아닌 것 같아서요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 896.6710749082267,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "글쎄요… 딱히 그런 권유를 받은 적은 없어요. 의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요. 그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요. 근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가라앉는 기분",
+        "매일 그런 기분"
+      ],
+      "agent_response": "매일 가라앉는 기분이 자주 드신다니 마음이 무겁겠어요. 혹시 이전에 다른 병원에서 정신건강 관련 진료를 권유받은 적은 있으신가요? 아니면 스스로 진단을 고민해보신 적이 있다면 알려주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4130.532050970942,
+      "timestamp": "2026-07-15T16:53:13.977477",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "글쎄요… 딱히 그런 권유를 받은 적은 없어요.  \n의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요.  \n그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요.  \n근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "normalized": "글쎄요… 딱히 그런 권유를 받은 적은 없어요. 의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요. 그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요. 근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1588.1024589762092,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.8
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요. 근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "아니요, 받은 적도 없고 고민한 적도 없어요. 의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요. 그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요. 근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가라앉는 기분",
+        "매일 그런 기분"
+      ],
+      "agent_response": "정신과나 심리상담을 받아본 적이 없으시다고 하셨는데, 혹시 과거에 다른 병원에서 정신건강 관련 진료를 권유받은 적은 있으신가요? 아니면 스스로 진단을 고민해보신 적이 있다면 알려주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음. 예전보다는 좀 나아졌는지, 여전히 비슷함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음. 예전보다는 좀 나아졌는지, 여전히 비슷함",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5656.406128313392,
+      "timestamp": "2026-07-15T16:53:26.024956",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 받은 적도 없고 고민한 적도 없어요.  \n의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요.  \n그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요.  \n근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "normalized": "아니요, 받은 적도 없고 고민한 적도 없어요. 의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요. 그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요. 근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2276.0788910090923,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.8,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.9
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "그냥 티 안 내려고 했어요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "아니요, 받은 적도 없고 고민한 적도 없어요. 의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요. 그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요. 근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가라앉는 기분",
+        "매일 그런 기분"
+      ],
+      "agent_response": "정신과나 심리상담을 받아보신 적이 없으시다고 하셨는데, 혹시 이전에 다른 병원에서 정신건강 관련 진료를 권유받은 적은 있으신가요? 아니면 스스로 진단을 고민해보신 적이 있다면 알려주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있으며, 재워도 한두 시간은 뒤척이는 것 같음. 예전보다는 좀 나아졌는지, 여전히 비슷한 상태임"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있으며, 재워도 한두 시간은 뒤척이는 것 같음. 예전보다는 좀 나아졌는지, 여전히 비슷한 상태임",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5563.952567055821,
+      "timestamp": "2026-07-15T16:53:37.568431",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 받은 적도 없고 고민한 적도 없어요.  \n의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요.  \n그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요.  \n근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "normalized": "아니요, 받은 적도 없고 고민한 적도 없어요. 의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요. 그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요. 근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1704.9339432269335,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요. 근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1267.946852836758,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 받은 적도 없고 고민한 적도 없어요.  \n의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요.  \n그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요.  ্঄… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가라앉는 기분",
+        "매일 그런 기분"
+      ],
+      "agent_response": "정신과나 심리상담을 받아본 적이 없으시다고 하셨는데, 혹시 이전에 다른 병원에서 정신건강 관련 진료를 권유받은 적은 있으신가요? 아니면 스스로 진단을 고민해보신 적이 있다면 알려주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 상태",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있으며, 재워도 한두 시간은 뒤척이는 상태. 예전보다는 조금 나아졌는지 여전히 비슷한 상태"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 상태",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있으며, 재워도 한두 시간은 뒤척이는 상태. 예전보다는 조금 나아졌는지 여전히 비슷한 상태",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5066.429924685508,
+      "timestamp": "2026-07-15T16:53:49.936359",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 받은 적도 없고 고민한 적도 없어요.  \n의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요.  \n그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요.  ্঄… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "normalized": "아니요, 받은 적도 없고 고민한 적도 없어요.  \n의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요.  \n그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요.  ্঄… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2875.17412006855,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요.  ্঄… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요, 받은 적도 없고 고민한 적도 없어요. 의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요. 그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요. 근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가라앉는 기분",
+        "거의 매일 그런 기분"
+      ],
+      "agent_response": "정신과나 심리상담을 받아보신 적이 없으시다고 하셨는데, 혹시 이전에 다른 곳에서 정신건강 관련 진료를 권유받은 적은 있으신가요? 아니면 스스로 진단을 고민해보신 적이 있다면 알려주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있으며, 재워도 한두 시간은 뒤척이는 상태. 예전보다는 조금 나아졌는지 여전히 비슷한 상태",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 8751.444614958018,
+      "timestamp": "2026-07-15T16:54:05.404509",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 받은 적도 없고 고민한 적도 없어요.  \n의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요.  \n그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요.  \n근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "normalized": "아니요, 받은 적도 없고 고민한 적도 없어요. 의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요. 그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요. 근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2393.7491020187736,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.68,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요. 근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2531.7578315734863,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 받은 적도 없고 고민한 적도 없어요.  \n의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요.  \n그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요.   pelejog",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "이렇게 솔직하게 이야기해 주셔서 감사합니다. 정신과나 심리상담을 받아본 적이 없으시다고 하셨는데, 혹시 과거에 다른 병원에서 정신건강 관련 진료를 권유받은 적은 있으신가요? 아니면 스스로 진단을 고민해보신 적이 있다면 알려주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있으며, 재워도 한두 시간은 뒤척이는 상태. 예전보다는 조금 나아졌는지 여전히 비슷한 상태",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 12216.658123768866,
+      "timestamp": "2026-07-15T16:54:23.843336",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 받은 적도 없고 고민한 적도 없어요.  \n의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요.  \n그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요.   pelejog",
+        "normalized": "아니요, 받은 적도 없고 고민한 적도 없어요.  \n의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요.  \n그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요.   pelejog",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2063.72391898185,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "exact_repeat",
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2332.6358404010534,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": "exact_repeat",
+      "dialogue_exhaustion_degrade_phrase": "이렇게 솔직하게 이야기해 주셔서 감사합니다"
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 받은 적도 없고 고민한 적도 없어요. 의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요. 그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요. 근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가라앉는 기분",
+        "거의 매일 그런 기분"
+      ],
+      "agent_response": "정신과나 심리상담을 받아보신 적이 없으시다고 하셨는데, 혹시 과거에 다른 병원에서 정신건강 관련 진료를 권유받은 적은 있으신가요? 아니면 스스로 진단을 고민해보신 적이 있다면 알려주시면 도움이 될 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있으며, 재워도 한두 시간은 뒤척이는 증상이 있음. 예전보다는 조금 나아졌는지 여전히 비슷한 상태임"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전하며, 재워도 한두 시간은 뒤척이는 것 같음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있으며, 재워도 한두 시간은 뒤척이는 증상이 있음. 예전보다는 조금 나아졌는지 여전히 비슷한 상태임",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 7726.803882978857,
+      "timestamp": "2026-07-15T16:54:37.188670",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 받은 적도 없고 고민한 적도 없어요.  \n의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요.  \n그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요.  \n근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "normalized": "아니요, 받은 적도 없고 고민한 적도 없어요. 의사가 그런 말을 한 적도 없고, 본인도 딱히 진단을 고민해본 적은 없어요. 그냥 요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요. 근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1759.0243630111217,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "\"요즘 좀 가라앉는 기분이 자주 오긴 하는데, 심각한 건 아니라고 생각해요. 근데… 사실 거의 매일 그런 기분이 들어요. 그냥 티 안 내려고 했어요.\"",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1670.5325529910624,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-15T16:52:11.985076",
+  "ended_at": "2026-07-15T16:54:43.606072",
+  "grounded_coverage": 0.875,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5636,
+  "patient_lng": 127.0369,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.11914176866412163,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.45,
+      "anxiety": 0.4,
+      "neutral": 0.15
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.2
+      },
+      {
+        "turn": 1,
+        "polarity": -0.5
+      },
+      {
+        "turn": 2,
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "polarity": 0.0
+      },
+      {
+        "turn": 4,
+        "polarity": -0.7
+      },
+      {
+        "turn": 5,
+        "polarity": -0.8
+      },
+      {
+        "turn": 6,
+        "polarity": -0.6
+      },
+      {
+        "turn": 7,
+        "polarity": -0.65
+      },
+      {
+        "turn": 8,
+        "polarity": -0.68
+      },
+      {
+        "turn": 9,
+        "polarity": -0.6
+      },
+      {
+        "turn": 10,
+        "polarity": -0.6
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": true,
+    "shift_description": "대화 전반부 polarity -0.3 → 후반부 -0.7 (악화)",
+    "repeated_patterns": [
+      "sadness 표현 9회 반복",
+      "anxiety 표현 8회 반복",
+      "neutral 표현 3회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.2
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.8
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.68
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      }
+    ]
+  },
+  "phr_summary": {},
+  "prompts_degraded": false,
+  "session_index": 10,
+  "simulated_date": "2027-01-14",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- chief_complaint: 피곤하고 잠들기 어려운 증상이 지속되고 있음\n- history_of_present_illness: 피곤하고 잠들기 어려운 증상이 지속되고 있음\n- substance_use_history: 주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음\n- personal_social_history: 친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가\n- family_history: 어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음\n- medical_history: 속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상\n\n[이전 세션 요약 — 미수집 정보]\npast_psychiatric_history",
+  "carried_slot_provenance": {
+    "substance_use_history": "carried_from_session_9",
+    "personal_social_history": "carried_from_session_9",
+    "medical_history": "carried_from_session_9",
+    "family_history": "carried_from_session_9",
+    "risk_assessment": "carried_from_session_9"
+  },
+  "scenario_pack_id": "VP-010_stable_minimizing_slow_disclosure_s10",
+  "arc_mode": "stable_minimizing_slow_disclosure"
+}

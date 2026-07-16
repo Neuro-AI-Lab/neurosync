@@ -1,0 +1,1068 @@
+{
+  "session_id": "f1_VP-011_followup",
+  "persona_id": "VP-011",
+  "persona_name": "한소영",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "머리가 띵하게 찌릿하게 오는 두통과 속이 더부룩해서 밥을 거의 못 먹는 상태"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "두통(띵하고 찌릿하게 오는 통증)이 2주 전부터 지속되며, 신경과에서 뇌 MRI와 피 검사 모두 정상 소견이었으나 두통은 여전함. 소화 불편(속이 더부룩하고 밥 못 먹음)으로 인해 식사 거르는 날이 많으며, 피로로 인해 활동 감소(주말 등산 중단). 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 중"
+    },
+    {
+      "key": "family_history",
+      "value": "어머니 편두통, 아버지 위장 약함"
+    },
+    {
+      "key": "medical_history",
+      "value": "신경과의 뇌 MRI 및 피 검사 정상 소견"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 오히려 그런 생각을 하면 더 힘들어질 것 같아서 아예 멀리하려고 해요. 그냥 몸이 아프니까 기운도 없고, 아...\""
+    },
+    {
+      "key": "substance_use_history",
+      "value": "술 섭취 감소, 카페인 섭취 제한(아침 커피 한 잔), 수면제 미사용"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요. 사실 요즘처럼 머리가 띵하게 찌릿하게 오는 날에는 아무것도 하고 싶지 않고, 속이 더부룩해서 밥도 거의 못 먹는 날이에요. 신체적으로 계속 이런 상태라서 그런지, 마음까지 이상해진 건가 싶기도 한데… 그래도 저는 그냥 몸이 이상해서 그런 거지, 기분 문제라고는 생각 안 해요.  2주 전에도 신경과 다녀와서 뇌 MRI랑 피 검사 다 정상이라고 했는데, 그래도 두통은 여전해요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 지난번에 이어서 정신건강 사전문진을 도와드릴 준비가 되어 있습니다. 오늘은 어떤 마음으로 대화를 시작하고 싶으신가요?",
+      "slot_updates": {
+        "chief_complaint": "머리가 띵하게 찌릿하게 오는 두통과 속이 더부룩해서 밥을 거의 못 먹는 상태",
+        "medical_history": "신경과의 뇌 MRI 및 피 검사 정상 소견"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "머리가 띵하게 찌릿하게 오는 두통과 속이 더부룩해서 밥을 거의 못 먹는 상태",
+        "history_of_present_illness": "두통(띵하고 쥐어짜는 듯한 통증)이 3개월간 지속되며, 진통제를 여러 성분 바꿔 시도했으나 효과 없음. 두통이 없는 날에도 새벽 각성 및 수면 질 저하가 반복됨. 소화 불편(속 쓰림, 식욕 감소, 체중 3kg 감소)으로 인해 식사를 거르는 날이 많으며, 속이 더부룩하고 피로로 인해 활동 감소(주말 등산 중단). 신체 검사 및 혈액검사에서 특이 소견 없음. 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 필요.",
+        "family_history": "어머니 편두통, 아버지 위장 약함",
+        "medical_history": "신경과의 뇌 MRI 및 피 검사 정상 소견"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 10441.217569168657,
+      "timestamp": "2026-07-15T16:58:08.504733",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "안녕하세요. 사실 요즘처럼 머리가 띵하게 찌릿하게 오는 날에는 아무것도 하고 싶지 않고, 속이 더부룩해서 밥도 거의 못 먹는 날이에요. 신체적으로 계속 이런 상태라서 그런지, 마음까지 이상해진 건가 싶기도 한데… 그래도 저는 그냥 몸이 이상해서 그런 거지, 기분 문제라고는 생각 안 해요.  2주 전에도 신경과 다녀와서 뇌 MRI랑 피 검사 다 정상이라고 했는데, 그래도 두통은 여전해요.",
+        "normalized": "안녕하세요. 사실 요즘처럼 머리가 띵하게 찌릿하게 오는 날에는 아무것도 하고 싶지 않고, 속이 더부룩해서 밥도 거의 못 먹는 날이에요. 신체적으로 계속 이런 상태라서 그런지, 마음까지 이상해진 건가 싶기도 한데… 그래도 저는 그냥 몸이 이상해서 그런 거지, 기분 문제라고는 생각 안 해요.  2주 전에도 신경과 다녀와서 뇌 MRI랑 피 검사 다 정상이라고 했는데, 그래도 두통은 여전해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2988.586653955281,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "머리가 띵하게 찌릿하게 오는 날에는 아무것도 하고 싶지 않고, 속이 더부룩해서 밥도 거의 못 먹는 날이에요. 신체적으로 계속 이런 상태라서 그런지, 마음까지 이상해진 건가 싶기도 한데… 그래도 저는 그냥 몸이 이상해서 그런 거지, 기분 문제라고는 생각 안 해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요. 사실 요즘처럼 머리가 띵하게 찌릿하게 오는 날에는 아무것도 하고 싶지 않고, 속이 더부룩해서 밥도 거의 못 먹는 날이에요. 신체적으로 계속 이런 상태라서 그런지, 마음까지 이상해진 건가 싶기도 한데… 그래도 저는 그냥 몸이 이상해서 그런 거지, 기분 문제라고는 생각 안 해요.  2주 전에도 신경과 다녀와서 뇌 MRI랑 피 검사 다 정상이라고 했는데, 그래도 두통은 여전해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "몸이 계속 불편해서 마음도 지치셨을 텐데, 그런 상황에서 스스로를 탓하지 않고 잘 견뎌내고 계시네요. 혹시 이전에 정신건강의학과 진료를 받아보신 적이 있으신가요?",
+      "slot_updates": {
+        "history_of_present_illness": "두통(띵하고 찌릿하게 오는 통증)이 2주 전부터 지속되며, 신경과에서 뇌 MRI와 피 검사 모두 정상 소견이었으나 두통은 여전함. 소화 불편(속이 더부룩하고 밥 못 먹음)으로 인해 식사 거르는 날이 많으며, 피로로 인해 활동 감소(주말 등산 중단). 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 중"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "머리가 띵하게 찌릿하게 오는 두통과 속이 더부룩해서 밥을 거의 못 먹는 상태",
+        "history_of_present_illness": "두통(띵하고 찌릿하게 오는 통증)이 2주 전부터 지속되며, 신경과에서 뇌 MRI와 피 검사 모두 정상 소견이었으나 두통은 여전함. 소화 불편(속이 더부룩하고 밥 못 먹음)으로 인해 식사 거르는 날이 많으며, 피로로 인해 활동 감소(주말 등산 중단). 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 중",
+        "family_history": "어머니 편두통, 아버지 위장 약함",
+        "medical_history": "신경과의 뇌 MRI 및 피 검사 정상 소견"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4005.680247209966,
+      "timestamp": "2026-07-15T16:58:12.510436",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "안녕하세요. 사실 요즘처럼 머리가 띵하게 찌릿하게 오는 날에는 아무것도 하고 싶지 않고, 속이 더부룩해서 밥도 거의 못 먹는 날이에요. 신체적으로 계속 이런 상태라서 그런지, 마음까지 이상해진 건가 싶기도 한데… 그래도 저는 그냥 몸이 이상해서 그런 거지, 기분 문제라고는 생각 안 해요.  2주 전에도 신경과 다녀와서 뇌 MRI랑 피 검사 다 정상이라고 했는데, 그래도 두통은 여전해요.",
+        "normalized": "안녕하세요. 사실 요즘처럼 머리가 띵하게 찌릿하게 오는 날에는 아무것도 하고 싶지 않고, 속이 더부룩해서 밥도 거의 못 먹는 날이에요. 신체적으로 계속 이런 상태라서 그런지, 마음까지 이상해진 건가 싶기도 한데… 그래도 저는 그냥 몸이 이상해서 그런 거지, 기분 문제라고는 생각 안 해요.  2주 전에도 신경과 다녀와서 뇌 MRI랑 피 검사 다 정상이라고 했는데, 그래도 두통은 여전해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2988.586653955281,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "머리가 띵하게 찌릿하게 오는 날에는 아무것도 하고 싶지 않고, 속이 더부룩해서 밥도 거의 못 먹는 날이에요. 신체적으로 계속 이런 상태라서 그런지, 마음까지 이상해진 건가 싶기도 한데… 그래도 저는 그냥 몸이 이상해서 그런 거지, 기분 문제라고는 생각 안 해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "아니요, 정신과 진료는 한 번도 받아본 적 없어요. 그냥 몸이 자꾸 이상해서 내과, 신경과 이런 데만 다녀봤는데, 검사 결과는 다 정상이라고 하니 더 답답하죠. 마음 문제라기보다는 분명히 뭔가 신체적인 원인이 있을 거라고 믿고 있어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "신체적 원인을 찾고자 여러 병원을 다니셨는데 검사 결과가 모두 정상이라 답답하고 불안하셨겠어요. 오늘은 그런 상황 속에서 힘들어하시는 마음을 먼저 들어보고 싶어요. 혹시 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있으신가요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "머리가 띵하게 찌릿하게 오는 두통과 속이 더부룩해서 밥을 거의 못 먹는 상태",
+        "history_of_present_illness": "두통(띵하고 찌릿하게 오는 통증)이 2주 전부터 지속되며, 신경과에서 뇌 MRI와 피 검사 모두 정상 소견이었으나 두통은 여전함. 소화 불편(속이 더부룩하고 밥 못 먹음)으로 인해 식사 거르는 날이 많으며, 피로로 인해 활동 감소(주말 등산 중단). 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 중",
+        "family_history": "어머니 편두통, 아버지 위장 약함",
+        "medical_history": "신경과의 뇌 MRI 및 피 검사 정상 소견"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4849.71809387207,
+      "timestamp": "2026-07-15T16:58:22.757153",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "아니요, 정신과 진료는 한 번도 받아본 적 없어요. 그냥 몸이 자꾸 이상해서 내과, 신경과 이런 데만 다녀봤는데, 검사 결과는 다 정상이라고 하니 더 답답하죠. 마음 문제라기보다는 분명히 뭔가 신체적인 원인이 있을 거라고 믿고 있어요.",
+        "normalized": "아니요, 정신과 진료는 한 번도 받아본 적 없어요. 그냥 몸이 자꾸 이상해서 내과, 신경과 이런 데만 다녀봤는데, 검사 결과는 다 정상이라고 하니 더 답답하죠. 마음 문제라기보다는 분명히 뭔가 신체적인 원인이 있을 거라고 믿고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1260.8896628953516,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "검사 결과는 다 정상이라고 하니 더 답답하죠",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "near_dup_back_to_back"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 798.9183799363673,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "몸이 계속 불편해서 답답하고 힘드셨을 텐데, 그런 상황에서도 스스로를 탓하지 않고 잘 견뎌내고 계시네요",
+          "count": 1
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "네, 사실 남편하고는 대화가 자주 오가요. 근데 주로 \"오늘 두통 심해?\" 이런 식으로 몸 상태만 묻지, 제가 얼마나 힘든지 깊게 들어주는 건 아니에요. 친구들이랑도 예전처럼 자주 만나진 못하고… 그래도 정신적으로 힘들어하는 건 아니에요. 그냥 몸이 이상해서 그런지… 그런 거죠.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "몸이 계속 불편해서 마음도 지치셨을 텐데, 그런 상황에서 스스로를 탓하지 않고 잘 견뎌내고 계시네요. 오늘은 그런 상황 속에서 힘들어하시는 마음을 먼저 들어보고 싶어요. 혹시 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있으신가요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "머리가 띵하게 찌릿하게 오는 두통과 속이 더부룩해서 밥을 거의 못 먹는 상태",
+        "history_of_present_illness": "두통(띵하고 찌릿하게 오는 통증)이 2주 전부터 지속되며, 신경과에서 뇌 MRI와 피 검사 모두 정상 소견이었으나 두통은 여전함. 소화 불편(속이 더부룩하고 밥 못 먹음)으로 인해 식사 거르는 날이 많으며, 피로로 인해 활동 감소(주말 등산 중단). 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 중",
+        "family_history": "어머니 편두통, 아버지 위장 약함",
+        "medical_history": "신경과의 뇌 MRI 및 피 검사 정상 소견"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4855.014539789408,
+      "timestamp": "2026-07-15T16:58:33.329194",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "네, 사실 남편하고는 대화가 자주 오가요. 근데 주로 \"오늘 두통 심해?\" 이런 식으로 몸 상태만 묻지, 제가 얼마나 힘든지 깊게 들어주는 건 아니에요. 친구들이랑도 예전처럼 자주 만나진 못하고… 그래도 정신적으로 힘들어하는 건 아니에요. 그냥 몸이 이상해서 그런지… 그런 거죠.",
+        "normalized": "네, 사실 남편하고는 대화가 자주 오가요. 근데 주로 \"오늘 두통 심해?\" 이런 식으로 몸 상태만 묻지, 제가 얼마나 힘든지 깊게 들어주는 건 아니에요. 친구들이랑도 예전처럼 자주 만나진 못하고… 그래도 정신적으로 힘들어하는 건 아니에요. 그냥 몸이 이상해서 그런지… 그런 거죠.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1864.9443271569908,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.55,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "근데 주로 \"오늘 두통 심해?\" 이런 식으로 몸 상태만 묻지, 제가 얼마나 힘든지 깊게 들어주는 건 아니에요. 친구들이랑도 예전처럼 자주 만나진 못하고… 그래도 정신적으로 힘들어하는 건 아니에요. 그냥 몸이 이상해서 그런지… 그런 거죠.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "아니요, 딱히 그런 사람은 없어요. 다들 바쁘고, 제가 힘들다고 말하면 또 “몸이 안 좋으니까” 그 정도로만 생각하고 넘어가더라고요. 남편도 걱정은 해주시는데, 뭔가 더 깊이 이야기하긴 어색하고… 그래서 그냥 몸 상태만 계속 말하게 되는 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "힘든 상황을 혼자서 감당하고 계시니 정말 외로우셨겠어요. 혹시 최근에 스스로를 해치거나 죽고 싶다는 생각을 해보신 적이 있으신가요? 그런 생각이 들 때는 어떻게 지내시는지도 궁금해요.",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "머리가 띵하게 찌릿하게 오는 두통과 속이 더부룩해서 밥을 거의 못 먹는 상태",
+        "history_of_present_illness": "두통(띵하고 찌릿하게 오는 통증)이 2주 전부터 지속되며, 신경과에서 뇌 MRI와 피 검사 모두 정상 소견이었으나 두통은 여전함. 소화 불편(속이 더부룩하고 밥 못 먹음)으로 인해 식사 거르는 날이 많으며, 피로로 인해 활동 감소(주말 등산 중단). 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 중",
+        "family_history": "어머니 편두통, 아버지 위장 약함",
+        "medical_history": "신경과의 뇌 MRI 및 피 검사 정상 소견"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 5323.095205705613,
+      "timestamp": "2026-07-15T16:58:44.547261",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.5,
+      "normalizer_meta": {
+        "original": "아니요, 딱히 그런 사람은 없어요. 다들 바쁘고, 제가 힘들다고 말하면 또 “몸이 안 좋으니까” 그 정도로만 생각하고 넘어가더라고요. 남편도 걱정은 해주시는데, 뭔가 더 깊이 이야기하긴 어색하고… 그래서 그냥 몸 상태만 계속 말하게 되는 것 같아요.",
+        "normalized": "아니요, 딱히 그런 사람은 없어요. 다들 바쁘고, 제가 힘들다고 말하면 또 “몸이 안 좋으니까” 그 정도로만 생각하고 넘어가더라고요. 남편도 걱정은 해주시는데, 뭔가 더 깊이 이야기하긴 어색하고… 그래서 그냥 몸 상태만 계속 말하게 되는 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1668.4931297786534,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.3
+          }
+        ],
+        "evidence_phrase": "다들 바쁘고, 제가 힘들다고 말하면 또 “몸이 안 좋으니까” 그 정도로만 생각하고 넘어가더라고요. 남편도 걱정은 해주시는데, 뭔가 더 깊이 이야기하긴 어색하고… 그래서 그냥 몸 상태만 계속 말하게 되는 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1259.308333043009,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "몸이 계속 불편해서 마음도 지치셨을 텐데, 그런 상황에서 스스로를 탓하지 않고 잘 견뎌내고 계시네요",
+          "count": 2
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "아니요, 그런 생각은 전혀 없어요. 오히려 그런 생각을 하면 더 힘들어질 것 같아서 아예 멀리하려고 해요. 그냥 몸이 아프니까 기운도 없고, 아무것도 하고 싶지 않은 날이 많은데… 그런 날은 그냥 침대에서 누워있거나, 아이들 챙기는 것만으로도 벅차요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "정신건강의학과 진료를 받아보신 적이 있으신가요? 아니면 심리상담을 따로 받고 계신가요?",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 오히려 그런 생각을 하면 더 힘들어질 것 같아서 아예 멀리하려고 해요. 그냥 몸이 아프니까 기운도 없고, 아...\""
+      },
+      "cumulative_slots": {
+        "chief_complaint": "머리가 띵하게 찌릿하게 오는 두통과 속이 더부룩해서 밥을 거의 못 먹는 상태",
+        "history_of_present_illness": "두통(띵하고 찌릿하게 오는 통증)이 2주 전부터 지속되며, 신경과에서 뇌 MRI와 피 검사 모두 정상 소견이었으나 두통은 여전함. 소화 불편(속이 더부룩하고 밥 못 먹음)으로 인해 식사 거르는 날이 많으며, 피로로 인해 활동 감소(주말 등산 중단). 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 중",
+        "family_history": "어머니 편두통, 아버지 위장 약함",
+        "medical_history": "신경과의 뇌 MRI 및 피 검사 정상 소견",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 오히려 그런 생각을 하면 더 힘들어질 것 같아서 아예 멀리하려고 해요. 그냥 몸이 아프니까 기운도 없고, 아...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6084.3814220279455,
+      "timestamp": "2026-07-15T16:58:56.846591",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아니요, 그런 생각은 전혀 없어요. 오히려 그런 생각을 하면 더 힘들어질 것 같아서 아예 멀리하려고 해요. 그냥 몸이 아프니까 기운도 없고, 아무것도 하고 싶지 않은 날이 많은데… 그런 날은 그냥 침대에서 누워있거나, 아이들 챙기는 것만으로도 벅차요.",
+        "normalized": "아니요, 그런 생각은 전혀 없어요. 오히려 그런 생각을 하면 더 힘들어질 것 같아서 아예 멀리하려고 해요. 그냥 몸이 아프니까 기운도 없고, 아무것도 하고 싶지 않은 날이 많은데… 그런 날은 그냥 침대에서 누워있거나, 아이들 챙기는 것만으로도 벅차요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1975.0210498459637,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "그냥 몸이 아프니까 기운도 없고, 아무것도 하고 싶지 않은 날이 많은데… 그런 날은 그냥 침대에서 누워있거나, 아이들 챙기는 것만으로도 벅차요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 963.2355631329119,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "session_cap",
+          "family": "몸이 계속 불편해서 마음도 지치셨을 텐데, 그런 상황에서 스스로를 탓하지 않고 잘 견뎌내고 계시네요",
+          "count": 2
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "정신과는 한 번도 가본 적 없어요. 심리상담도 처음이에요. 그냥 몸이 이상 싶어서 내과, 신경과 이런 데만 다녀봤는데, 검사마다 정상이래요. \"검사마다 정상이래요\" 하면서 답답한데, 정신적인 문제라고는 생각 안 해요. 오히려 그런 말 들으면 더 속이 쓰리고, 머리도 더 띵해지는 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "검사마다 정상이래요",
+        "속이 쓰리고",
+        "머리도 더 띵해지는 것 같아요"
+      ],
+      "agent_response": "신체적 원인을 찾고자 여러 병원을 다니셨는데 검사 결과가 모두 정상이라 답답하고 불안하셨겠어요. 오늘은 그런 답답함과 함께 힘겹게 지내시는 마음을 먼저 들어보고 싶어요. 혹시 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있으신가요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "머리가 띵하게 찌릿하게 오는 두통과 속이 더부룩해서 밥을 거의 못 먹는 상태",
+        "history_of_present_illness": "두통(띵하고 찌릿하게 오는 통증)이 2주 전부터 지속되며, 신경과에서 뇌 MRI와 피 검사 모두 정상 소견이었으나 두통은 여전함. 소화 불편(속이 더부룩하고 밥 못 먹음)으로 인해 식사 거르는 날이 많으며, 피로로 인해 활동 감소(주말 등산 중단). 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 중",
+        "family_history": "어머니 편두통, 아버지 위장 약함",
+        "medical_history": "신경과의 뇌 MRI 및 피 검사 정상 소견",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 오히려 그런 생각을 하면 더 힘들어질 것 같아서 아예 멀리하려고 해요. 그냥 몸이 아프니까 기운도 없고, 아...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6879.946277011186,
+      "timestamp": "2026-07-15T16:59:10.592016",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "정신과는 한 번도 가본 적 없어요. 심리상담도 처음이에요. 그냥 몸이 이상 싶어서 내과, 신경과 이런 데만 다녀봤는데, 검사마다 정상이래요. \"검사마다 정상이래요\" 하면서 답답한데, 정신적인 문제라고는 생각 안 해요. 오히려 그런 말 들으면 더 속이 쓰리고, 머리도 더 띵해지는 것 같아요.",
+        "normalized": "정신과는 한 번도 가본 적 없어요. 심리상담도 처음이에요. 그냥 몸이 이상 싶어서 내과, 신경과 이런 데만 다녀봤는데, 검사마다 정상이래요. \"검사마다 정상이래요\" 하면서 답답한데, 정신적인 문제라고는 생각 안 해요. 오히려 그런 말 들으면 더 속이 쓰리고, 머리도 더 띵해지는 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1820.8161210641265,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "\"검사마다 정상이래요\" 하면서 답답한데, 오히려 그런 말 들으면 더 속이 쓰리고, 머리도 더 띵해지는 것 같아요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "near_dup_session_cap"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2682.435213588178,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "session_cap",
+          "family": "몸이 계속 불편해서 마음도 지치셨을 텐데, 그런 상황에서 스스로를 탓하지 않고 잘 견뎌내고 계시네요",
+          "count": 2
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 딱히 그런 사람은 없어요. 다들 바쁘고, 제가 힘들다고 말하면 또 “몸이 안 좋으니까” 그 정도로만 생각하고 넘어가더라고요. 남편도 걱정은 해주시는데, 뭔가 더 깊이 이야기하긴 어색하고… 그래서 그냥 몸 상태만 계속 말하게 되는 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "지난번에 여쭤보지 못했는데, 최근 술이나 카페인, 수면제 같은 것들을 사용하시면서 두통이나 속 불편함이 더 심해지지는 않으셨나요? 그런 것들이 몸에 영향을 줄 수 있어 궁금해서요.",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "머리가 띵하게 찌릿하게 오는 두통과 속이 더부룩해서 밥을 거의 못 먹는 상태",
+        "history_of_present_illness": "두통(띵하고 찌릿하게 오는 통증)이 2주 전부터 지속되며, 신경과에서 뇌 MRI와 피 검사 모두 정상 소견이었으나 두통은 여전함. 소화 불편(속이 더부룩하고 밥 못 먹음)으로 인해 식사 거르는 날이 많으며, 피로로 인해 활동 감소(주말 등산 중단). 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 중",
+        "family_history": "어머니 편두통, 아버지 위장 약함",
+        "medical_history": "신경과의 뇌 MRI 및 피 검사 정상 소견",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 오히려 그런 생각을 하면 더 힘들어질 것 같아서 아예 멀리하려고 해요. 그냥 몸이 아프니까 기운도 없고, 아...\""
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5576.016787905246,
+      "timestamp": "2026-07-15T16:59:21.610014",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "아니요, 딱히 그런 사람은 없어요. 다들 바쁘고, 제가 힘들다고 말하면 또 “몸이 안 좋으니까” 그 정도로만 생각하고 넘어가더라고요. 남편도 걱정은 해주시는데, 뭔가 더 깊이 이야기하긴 어색하고… 그래서 그냥 몸 상태만 계속 말하게 되는 것 같아요.",
+        "normalized": "아니요, 딱히 그런 사람은 없어요. 다들 바쁘고, 제가 힘들다고 말하면 또 “몸이 안 좋으니까” 그 정도로만 생각하고 넘어가더라고요. 남편도 걱정은 해주시는데, 뭔가 더 깊이 이야기하긴 어색하고… 그래서 그냥 몸 상태만 계속 말하게 되는 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1886.0825053416193,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.68,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "다들 바쁘고, 제가 힘들다고 말하면 또 “몸이 안 좋으니까” 그 정도로만 생각하고 넘어가더라고요. 남편도 걱정은 해주시는데, 뭔가 더 깊이 이야기하긴 어색하고… 그래서 그냥 몸 상태만 계속 말하게 되는 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1154.7626652754843,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 8,
+      "patient_message": "글쎄요, 술은 예전보다 많이 줄였어요. 카페인은 아침에 커피 한 잔은 마시는데, 더 마시면 속이 쓰려서 못 먹겠더라고요. 수면제는 아직 안 먹어봤어요. 그냥 몸이 이상해서 그런지… 잠도 자주 깨고, 피곤해서 계속 눕고 싶어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "지난번에 여쭤보지 못했는데, 혹시 과거에 정신건강의학과 진료를 받아보신 적이 있으신가요? 아니면 심리상담을 따로 받으신 기억이 있으신가요?",
+      "slot_updates": {
+        "substance_use_history": "술 섭취 감소, 카페인 섭취 제한(아침 커피 1잔), 수면제 미사용"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "머리가 띵하게 찌릿하게 오는 두통과 속이 더부룩해서 밥을 거의 못 먹는 상태",
+        "history_of_present_illness": "두통(띵하고 찌릿하게 오는 통증)이 2주 전부터 지속되며, 신경과에서 뇌 MRI와 피 검사 모두 정상 소견이었으나 두통은 여전함. 소화 불편(속이 더부룩하고 밥 못 먹음)으로 인해 식사 거르는 날이 많으며, 피로로 인해 활동 감소(주말 등산 중단). 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 중",
+        "family_history": "어머니 편두통, 아버지 위장 약함",
+        "medical_history": "신경과의 뇌 MRI 및 피 검사 정상 소견",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 오히려 그런 생각을 하면 더 힘들어질 것 같아서 아예 멀리하려고 해요. 그냥 몸이 아프니까 기운도 없고, 아...\"",
+        "substance_use_history": "술 섭취 감소, 카페인 섭취 제한(아침 커피 1잔), 수면제 미사용"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5749.821316916496,
+      "timestamp": "2026-07-15T16:59:32.803959",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "글쎄요, 술은 예전보다 많이 줄였어요. 카페인은 아침에 커피 한 잔은 마시는데, 더 마시면 속이 쓰려서 못 먹겠더라고요. 수면제는 아직 안 먹어봤어요. 그냥 몸이 이상해서 그런지… 잠도 자주 깨고, 피곤해서 계속 눕고 싶어요.",
+        "normalized": "글쎄요, 술은 예전보다 많이 줄였어요. 카페인은 아침에 커피 한 잔은 마시는데, 더 마시면 속이 쓰려서 못 먹겠더라고요. 수면제는 아직 안 먹어봤어요. 그냥 몸이 이상해서 그런지… 잠도 자주 깨고, 피곤해서 계속 눕고 싶어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1588.6812102980912,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "despair",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "잠도 자주 깨고, 피곤해서 계속 눕고 싶어요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 870.8343058824539,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 정신과 진료는 한 번도 받아본 적 없어요. 심리상담도 처음이에요. 그냥 몸이 이상해서 내과, 신경과 이런 데만 다녀봤는데, 검사 결과는 다 정상이라고 하니 더 답답하죠. 마음 문제라기보다는 분명히 뭔가 신체적인 원인이 있을 거라고 믿고 있어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "이렇게 솔직하게 이야기해 주셔서 감사합니다. 오늘은 그런 답답함과 함께 힘겹게 지내시는 마음을 먼저 들어보고 싶어요. 혹시 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있으신가요?",
+      "slot_updates": {
+        "substance_use_history": "술 섭취 감소, 카페인 섭취 제한(아침 커피 한 잔), 수면제 미사용"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "머리가 띵하게 찌릿하게 오는 두통과 속이 더부룩해서 밥을 거의 못 먹는 상태",
+        "history_of_present_illness": "두통(띵하고 찌릿하게 오는 통증)이 2주 전부터 지속되며, 신경과에서 뇌 MRI와 피 검사 모두 정상 소견이었으나 두통은 여전함. 소화 불편(속이 더부룩하고 밥 못 먹음)으로 인해 식사 거르는 날이 많으며, 피로로 인해 활동 감소(주말 등산 중단). 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 중",
+        "family_history": "어머니 편두통, 아버지 위장 약함",
+        "medical_history": "신경과의 뇌 MRI 및 피 검사 정상 소견",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 오히려 그런 생각을 하면 더 힘들어질 것 같아서 아예 멀리하려고 해요. 그냥 몸이 아프니까 기운도 없고, 아...\"",
+        "substance_use_history": "술 섭취 감소, 카페인 섭취 제한(아침 커피 한 잔), 수면제 미사용"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 8309.584803879261,
+      "timestamp": "2026-07-15T16:59:47.312038",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 정신과 진료는 한 번도 받아본 적 없어요. 심리상담도 처음이에요. 그냥 몸이 이상해서 내과, 신경과 이런 데만 다녀봤는데, 검사 결과는 다 정상이라고 하니 더 답답하죠. 마음 문제라기보다는 분명히 뭔가 신체적인 원인이 있을 거라고 믿고 있어요.",
+        "normalized": "아니요, 정신과 진료는 한 번도 받아본 적 없어요. 심리상담도 처음이에요. 그냥 몸이 이상해서 내과, 신경과 이런 데만 다녀봤는데, 검사 결과는 다 정상이라고 하니 더 답답하죠. 마음 문제라기보다는 분명히 뭔가 신체적인 원인이 있을 거라고 믿고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1930.424249265343,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "검사 결과는 다 정상이라고 하니 더 답답하죠. 마음 문제라기보다는 분명히 뭔가 신체적인 원인이 있을 거라고 믿고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "near_dup_session_cap",
+        "exact_repeat",
+        "near_dup_session_cap"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2601.0572724044323,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "session_cap",
+          "family": "몸이 계속 불편해서 마음도 지치셨을 텐데, 그런 상황에서 스스로를 탓하지 않고 잘 견뎌내고 계시네요",
+          "count": 2
+        },
+        {
+          "reason": "session_cap",
+          "family": "몸이 계속 불편해서 마음도 지치셨을 텐데, 그런 상황에서 스스로를 탓하지 않고 잘 견뎌내고 계시네요",
+          "count": 2
+        }
+      ],
+      "dialogue_exhaustion_degrade": "near_dup_session_cap",
+      "dialogue_exhaustion_degrade_phrase": "이렇게 솔직하게 이야기해 주셔서 감사합니다"
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 딱히 그런 사람은 없어요. 다들 바쁘고, 제가 힘들다고 말하면 또 “몸이 안 좋으니까” 그 정도로만 생각하고 넘어가더라고요. 남편도 걱정은 해주시는데, 뭔가 더 깊이 이야기하긴 어색하고… 그래서 그냥 몸 상태만 계속 말하게 되는 것 같아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "지난번에 여쭤보지 못했는데, 과거에 정신건강의학과 진료를 받아보신 적이 있으신가요? 아니면 심리상담을 따로 받으신 기억이 있으신가요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "머리가 띵하게 찌릿하게 오는 두통과 속이 더부룩해서 밥을 거의 못 먹는 상태",
+        "history_of_present_illness": "두통(띵하고 찌릿하게 오는 통증)이 2주 전부터 지속되며, 신경과에서 뇌 MRI와 피 검사 모두 정상 소견이었으나 두통은 여전함. 소화 불편(속이 더부룩하고 밥 못 먹음)으로 인해 식사 거르는 날이 많으며, 피로로 인해 활동 감소(주말 등산 중단). 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 중",
+        "family_history": "어머니 편두통, 아버지 위장 약함",
+        "medical_history": "신경과의 뇌 MRI 및 피 검사 정상 소견",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 오히려 그런 생각을 하면 더 힘들어질 것 같아서 아예 멀리하려고 해요. 그냥 몸이 아프니까 기운도 없고, 아...\"",
+        "substance_use_history": "술 섭취 감소, 카페인 섭취 제한(아침 커피 한 잔), 수면제 미사용"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6349.825867917389,
+      "timestamp": "2026-07-15T16:59:59.175353",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 딱히 그런 사람은 없어요. 다들 바쁘고, 제가 힘들다고 말하면 또 “몸이 안 좋으니까” 그 정도로만 생각하고 넘어가더라고요. 남편도 걱정은 해주시는데, 뭔가 더 깊이 이야기하긴 어색하고… 그래서 그냥 몸 상태만 계속 말하게 되는 것 같아요.",
+        "normalized": "아니요, 딱히 그런 사람은 없어요. 다들 바쁘고, 제가 힘들다고 말하면 또 “몸이 안 좋으니까” 그 정도로만 생각하고 넘어가더라고요. 남편도 걱정은 해주시는데, 뭔가 더 깊이 이야기하긴 어색하고… 그래서 그냥 몸 상태만 계속 말하게 되는 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1361.2482021562755,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "다들 바쁘고, 제가 힘들다고 말하면 또 “몸이 안 좋으니까” 그 정도로만 생각하고 넘어가더라고요. 남편도 걱정은 해주시는데, 뭔가 더 깊이 이야기하긴 어색하고… 그래서 그냥 몸 상태만 계속 말하게 되는 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 958.6685169488192,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-15T16:57:58.063439",
+  "ended_at": "2026-07-15T17:00:06.910303",
+  "grounded_coverage": 0.75,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 4,
+      "forced": false
+    },
+    {
+      "type": "si_screen_result",
+      "turn": 5,
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 오히려 그런 생각을 하면 더 힘들어질 것 같아서 아예 멀리하려고 해요. 그냥 몸이 아프니까 기운도 없고, 아...\""
+    }
+  ],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.6018,
+  "patient_lng": 126.929,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.11936202645301819,
+    "reason_summary": "Session sentiment: ['sadness', 'despair'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "despair"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.46,
+      "despair": 0.25,
+      "anxiety": 0.21,
+      "neutral": 0.08
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.6
+      },
+      {
+        "turn": 1,
+        "polarity": -0.65
+      },
+      {
+        "turn": 2,
+        "polarity": -0.7
+      },
+      {
+        "turn": 3,
+        "polarity": -0.55
+      },
+      {
+        "turn": 4,
+        "polarity": -0.6
+      },
+      {
+        "turn": 5,
+        "polarity": -0.65
+      },
+      {
+        "turn": 6,
+        "polarity": -0.7
+      },
+      {
+        "turn": 7,
+        "polarity": -0.68
+      },
+      {
+        "turn": 8,
+        "polarity": -0.5
+      },
+      {
+        "turn": 9,
+        "polarity": -0.65
+      },
+      {
+        "turn": 10,
+        "polarity": -0.6
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 11회 반복",
+      "despair 표현 6회 반복",
+      "anxiety 표현 5회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.55
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "sadness",
+          "despair",
+          "neutral"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.68
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "sadness",
+          "despair",
+          "neutral"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.6
+      }
+    ]
+  },
+  "phr_summary": {},
+  "prompts_degraded": false,
+  "session_index": 3,
+  "simulated_date": "2026-07-29",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- chief_complaint: 두통, 소화 불편, 피로, 새벽 각성\n- history_of_present_illness: 두통(띵하고 쥐어짜는 듯한 통증)이 3개월간 지속되며, 진통제를 여러 성분 바꿔 시도했으나 효과 없음. 두통이 없는 날에도 새벽 각성 및 수면 질 저하가 반복됨. 소화 불편(속 쓰림, 식욕 감소, 체중 3kg 감소)으로 인해 식사를 거르는 날이 많으며, 속이 더부룩하고 피로로 인해 활동 감소(주말 등산 중단). 신체 검사 및 혈액검사에서 특이 소견 없음. 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 필요.\n- family_history: 어머니 편두통, 아버지 위장 약함\n\n[이전 세션 요약 — 미수집 정보]\npast_psychiatric_history, medical_history, personal_social_history, substance_use_history, risk_assessment",
+  "carried_slot_provenance": {
+    "family_history": "carried_from_session_2"
+  },
+  "scenario_pack_id": "VP-011_somatic_persistent_late_mood_disclosure_s03",
+  "arc_mode": "somatic_persistent_late_mood_disclosure"
+}

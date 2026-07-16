@@ -1,0 +1,491 @@
+{
+  "session_id": "f1_VP-002_followup",
+  "persona_id": "VP-002",
+  "persona_name": "이준호",
+  "total_turns": 3,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "personal_social_history",
+      "value": "아내가 약 챙겨주고 산책 함께 해줌"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "약 복용 6주 경과 후 우울한 기분 감소, 주말 기분 개선, 아내의 약 챙김과 산책으로 도움"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 오히려 요즘 아내와 산책 나가거나 동료랑 점심 먹을 때 기분이 조금씩 풀리는 게 느껴지니까 그런 생각은 전혀...\""
+    },
+    {
+      "key": "chief_complaint",
+      "value": "새 학기 시작으로 인한 업무 몰림으로 약 복용 깜빡, 피로와 의욕 저하, 새로운 시작에 대한 막막함"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "술은 거의 안 마시고 에시탈로프람 매일 아침 복용, 가끔 깜빡함"
+    },
+    {
+      "key": "medical_history",
+      "value": "아내는 고혈압이 있어서 약 드시고 계시고, 부모님은 당뇨 있으셔서 자주 챙기시는 편임"
+    },
+    {
+      "key": "family_history",
+      "value": "아내는 고혈압이 있어서 약 드시고 계시고, 부모님은 당뇨 있으셔서 자주 챙기시는 편임"
+    },
+    {
+      "key": "past_psychiatric_history",
+      "value": "6주 전에 정신건강의학과를 처음 방문하여 경도 우울 진단을 받고 약을 시작함"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요. 약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.  \n기분은 예전보다 확실히 나아졌어요. 우울한 기분도 가끔은 있지만, 예전처럼 자주 오진 않고 주말엔 더 괜찮아요.  \n아내가 약 챙겨주고 산책도 같이 해줘서 도움이 많이 되고 있어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 지난번에 이어서 상담을 이어가려고 해요. 오늘은 어떤 기분으로 시작하셨는지 편하게 말씀해 주실 수 있나요?",
+      "slot_updates": {
+        "history_of_present_illness": "약 복용 6주 경과, 우울한 기분 감소, 예전보다 덜 자주 발생, 주말에는 더 괜찮음",
+        "personal_social_history": "아내가 약 챙겨주고 산책 함께 해줌"
+      },
+      "cumulative_slots": {
+        "personal_social_history": "아내가 약 챙겨주고 산책 함께 해줌",
+        "history_of_present_illness": "약 복용 6주 경과, 우울한 기분 감소, 예전보다 덜 자주 발생, 주말에는 더 괜찮음",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없습니다. 아내가 요즘 제 상태를 잘 살펴줘서 그런지, 외출도 하고 산책도 하면서 조금씩 다시 움직이고 있어요. 그래...\"",
+        "chief_complaint": "새 학기 시작으로 인한 업무 몰림으로 약 복용 깜빡, 피로와 의욕 저하, 새로운 시작에 대한 막막함",
+        "substance_use_history": "술은 거의 안 마시고 에시탈로프람 매일 아침 복용, 가끔 깜빡함",
+        "medical_history": "아내는 고혈압이 있어서 약 드시고 계시고, 부모님은 당뇨 있으셔서 자주 챙기시는 편임",
+        "family_history": "아내는 고혈압이 있어서 약 드시고 계시고, 부모님은 당뇨 있으셔서 자주 챙기시는 편임",
+        "past_psychiatric_history": "6주 전에 정신건강의학과를 처음 방문하여 경도 우울 진단을 받고 약을 시작함"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 11056.96740699932,
+      "timestamp": "2026-07-15T16:03:43.834080",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 1.0,
+      "normalizer_meta": {
+        "original": "안녕하세요. 약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.  \n기분은 예전보다 확실히 나아졌어요. 우울한 기분도 가끔은 있지만, 예전처럼 자주 오진 않고 주말엔 더 괜찮아요.  \n아내가 약 챙겨주고 산책도 같이 해줘서 도움이 많이 되고 있어요.",
+        "normalized": "안녕하세요. 약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.  \n기분은 예전보다 확실히 나아졌어요. 우울한 기분도 가끔은 있지만, 예전처럼 자주 오진 않고 주말엔 더 괜찮아요.  \n아내가 약 챙겨주고 산책도 같이 해줘서 도움이 많이 되고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3631.6835982725024,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.9
+          },
+          {
+            "label": "hope",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요. 기분은 예전보다 확실히 나아졌어요. 우울한 기분도 가끔은 있지만, 예전처럼 자주 오진 않고 주말엔 더 괜찮아요. 아내가 약 챙겨주고 산책도 같이 해줘서 도움이 많이 되고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요. 약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.  \n기분은 예전보다 확실히 나아졌어요. 우울한 기분도 가끔은 있지만, 예전처럼 자주 오진 않고 주말엔 더 괜찮아요.  \n아내가 약 챙겨주고 산책도 같이 해줘서 도움이 많이 되고 있어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "이렇게 솔직하게 이야기해 주셔서 감사합니다. 지난번보다 기분이 한결 나아져서 정말 다행이에요. 최근에 스스로를 해치고 싶다거나 죽고 싶다는 생각이 든 적이 있는지 한 가지만 여쭤볼게요.",
+      "slot_updates": {
+        "history_of_present_illness": "약 복용 6주 경과 후 우울한 기분 감소, 주말 기분 개선, 아내의 약 챙김과 산책으로 도움"
+      },
+      "cumulative_slots": {
+        "personal_social_history": "아내가 약 챙겨주고 산책 함께 해줌",
+        "history_of_present_illness": "약 복용 6주 경과 후 우울한 기분 감소, 주말 기분 개선, 아내의 약 챙김과 산책으로 도움",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없습니다. 아내가 요즘 제 상태를 잘 살펴줘서 그런지, 외출도 하고 산책도 하면서 조금씩 다시 움직이고 있어요. 그래...\"",
+        "chief_complaint": "새 학기 시작으로 인한 업무 몰림으로 약 복용 깜빡, 피로와 의욕 저하, 새로운 시작에 대한 막막함",
+        "substance_use_history": "술은 거의 안 마시고 에시탈로프람 매일 아침 복용, 가끔 깜빡함",
+        "medical_history": "아내는 고혈압이 있어서 약 드시고 계시고, 부모님은 당뇨 있으셔서 자주 챙기시는 편임",
+        "family_history": "아내는 고혈압이 있어서 약 드시고 계시고, 부모님은 당뇨 있으셔서 자주 챙기시는 편임",
+        "past_psychiatric_history": "6주 전에 정신건강의학과를 처음 방문하여 경도 우울 진단을 받고 약을 시작함"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 7207.988130860031,
+      "timestamp": "2026-07-15T16:03:51.042092",
+      "targeted_slot": "risk_assessment",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "past_psychiatric_history": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 1.0,
+      "normalizer_meta": {
+        "original": "안녕하세요. 약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.  \n기분은 예전보다 확실히 나아졌어요. 우울한 기분도 가끔은 있지만, 예전처럼 자주 오진 않고 주말엔 더 괜찮아요.  \n아내가 약 챙겨주고 산책도 같이 해줘서 도움이 많이 되고 있어요.",
+        "normalized": "안녕하세요. 약 먹은 지 6주 됐는데, 좀 나아진 것 같아서 확인 받으러 왔어요.  \n기분은 예전보다 확실히 나아졌어요. 우울한 기분도 가끔은 있지만, 예전처럼 자주 오진 않고 주말엔 더 괜찮아요.  \n아내가 약 챙겨주고 산책도 같이 해줘서 도움이 많이 되고 있어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3631.6835982725024,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.9
+          },
+          {
+            "label": "hope",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "기분은 예전보다 확실히 나아졌어요. 우울한 기분도 가끔은 있지만, 예전처럼 자주 오진 않고 주말엔 더 괜찮아요. 아내가 약 챙겨주고 산책도 같이 해줘서 도움이 많이 되고 있어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "presence_missing",
+        "presence_missing",
+        "presence_missing"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1806.2985059805214,
+      "dialogue_crisis_adjacent": true,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": "presence_missing",
+      "dialogue_exhaustion_degrade_phrase": "이렇게 솔직하게 이야기해 주셔서 감사합니다"
+    },
+    {
+      "turn": 2,
+      "patient_message": "아니요, 그런 생각은 전혀 없어요. 오히려 요즘 아내와 산책 나가거나 동료랑 점심 먹을 때 기분이 조금씩 풀리는 게 느껴지니까 그런 생각은 전혀 들지 않아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "아내와 산책하거나 동료와 점심을 함께하며 기분이 조금씩 나아지는 걸 느끼신다니 정말 다행이에요. 혹시 최근에 약을 깜빡한 적이 있거나, 새로운 시작에 대한 막막함이 다시 찾아온 적은 없는지 한 가지만 더 여쭤볼게요.",
+      "slot_updates": {
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 오히려 요즘 아내와 산책 나가거나 동료랑 점심 먹을 때 기분이 조금씩 풀리는 게 느껴지니까 그런 생각은 전혀...\""
+      },
+      "cumulative_slots": {
+        "personal_social_history": "아내가 약 챙겨주고 산책 함께 해줌",
+        "history_of_present_illness": "약 복용 6주 경과 후 우울한 기분 감소, 주말 기분 개선, 아내의 약 챙김과 산책으로 도움",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 오히려 요즘 아내와 산책 나가거나 동료랑 점심 먹을 때 기분이 조금씩 풀리는 게 느껴지니까 그런 생각은 전혀...\"",
+        "chief_complaint": "새 학기 시작으로 인한 업무 몰림으로 약 복용 깜빡, 피로와 의욕 저하, 새로운 시작에 대한 막막함",
+        "substance_use_history": "술은 거의 안 마시고 에시탈로프람 매일 아침 복용, 가끔 깜빡함",
+        "medical_history": "아내는 고혈압이 있어서 약 드시고 계시고, 부모님은 당뇨 있으셔서 자주 챙기시는 편임",
+        "family_history": "아내는 고혈압이 있어서 약 드시고 계시고, 부모님은 당뇨 있으셔서 자주 챙기시는 편임",
+        "past_psychiatric_history": "6주 전에 정신건강의학과를 처음 방문하여 경도 우울 진단을 받고 약을 시작함"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5816.455207299441,
+      "timestamp": "2026-07-15T16:04:02.678247",
+      "targeted_slot": null,
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "past_psychiatric_history": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 1.0,
+      "normalizer_meta": {
+        "original": "아니요, 그런 생각은 전혀 없어요. 오히려 요즘 아내와 산책 나가거나 동료랑 점심 먹을 때 기분이 조금씩 풀리는 게 느껴지니까 그런 생각은 전혀 들지 않아요.",
+        "normalized": "아니요, 그런 생각은 전혀 없어요. 오히려 요즘 아내와 산책 나가거나 동료랑 점심 먹을 때 기분이 조금씩 풀리는 게 느껴지니까 그런 생각은 전혀 들지 않아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1448.6211421899498,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "hope",
+            "intensity": 0.7
+          },
+          {
+            "label": "relief",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "아내와 산책 나가거나 동료랑 점심 먹을 때 기분이 조금씩 풀리는 게 느껴지니까",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "가끔 깜빡할 때가 있는데, 요즘은 아내가 아침부터 챙겨줘서 다시 잘 챙겨 먹고 있어요. 새로운 수업 준비는 하고 있는데, 예전처럼 완전히 힘들진 않아요. 아내가 옆에서 있어 주니까 막막한 감정도 덜한 것 같아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "아내와 함께 아침부터 약을 챙기며 일상을 이어가고, 새로운 시작에 대한 막막함도 조금씩 덜어지시는 걸 보니 정말 다행이에요. 혹시 최근에 잠을 잘 주무셨는지, 아니면 피로감이 다시 느껴진 적은 없는지 한 가지만 더 여쭤볼게요.",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "personal_social_history": "아내가 약 챙겨주고 산책 함께 해줌",
+        "history_of_present_illness": "약 복용 6주 경과 후 우울한 기분 감소, 주말 기분 개선, 아내의 약 챙김과 산책으로 도움",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 오히려 요즘 아내와 산책 나가거나 동료랑 점심 먹을 때 기분이 조금씩 풀리는 게 느껴지니까 그런 생각은 전혀...\"",
+        "chief_complaint": "새 학기 시작으로 인한 업무 몰림으로 약 복용 깜빡, 피로와 의욕 저하, 새로운 시작에 대한 막막함",
+        "substance_use_history": "술은 거의 안 마시고 에시탈로프람 매일 아침 복용, 가끔 깜빡함",
+        "medical_history": "아내는 고혈압이 있어서 약 드시고 계시고, 부모님은 당뇨 있으셔서 자주 챙기시는 편임",
+        "family_history": "아내는 고혈압이 있어서 약 드시고 계시고, 부모님은 당뇨 있으셔서 자주 챙기시는 편임",
+        "past_psychiatric_history": "6주 전에 정신건강의학과를 처음 방문하여 경도 우울 진단을 받고 약을 시작함"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6967.080331873149,
+      "timestamp": "2026-07-15T16:04:16.133280",
+      "targeted_slot": null,
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "past_psychiatric_history": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 1.0,
+      "normalizer_meta": {
+        "original": "가끔 깜빡할 때가 있는데, 요즘은 아내가 아침부터 챙겨줘서 다시 잘 챙겨 먹고 있어요.  \n새로운 수업 준비는 하고 있는데, 예전처럼 완전히 힘들진 않아요.  \n아내가 옆에서 있어 주니까 막막한 감정도 덜한 것 같아요.",
+        "normalized": "가끔 깜빡할 때가 있는데, 요즘은 아내가 아침부터 챙겨줘서 다시 잘 챙겨 먹고 있어요. 새로운 수업 준비는 하고 있는데, 예전처럼 완전히 힘들진 않아요. 아내가 옆에서 있어 주니까 막막한 감정도 덜한 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2113.7212179601192,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.9
+          },
+          {
+            "label": "hope",
+            "intensity": 0.7
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "아내가 아침부터 챙겨줘서 다시 잘 챙겨 먹고 있어요. 아내가 옆에서 있어 주니까 막막한 감정도 덜한 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-15T16:03:32.776600",
+  "ended_at": "2026-07-15T16:04:18.986870",
+  "grounded_coverage": 1.0,
+  "risk_floor": null,
+  "probe_events": [
+    {
+      "type": "si_screen",
+      "turn": 1,
+      "forced": true
+    },
+    {
+      "type": "si_screen_result",
+      "turn": 2,
+      "risk_assessment_written": true,
+      "risk_assessment": "자살/자해 사고 탐색 질문에 부인 — 환자 발화: \"아니요, 그런 생각은 전혀 없어요. 오히려 요즘 아내와 산책 나가거나 동료랑 점심 먹을 때 기분이 조금씩 풀리는 게 느껴지니까 그런 생각은 전혀...\""
+    }
+  ],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.402,
+  "patient_lng": 127.1087,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.07374119013547897,
+    "reason_summary": "Session sentiment: ['relief', 'hope'], strength=mild",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "relief",
+      "hope"
+    ],
+    "emotion_distribution": {
+      "relief": 0.36,
+      "hope": 0.36,
+      "sadness": 0.18,
+      "neutral": 0.09
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": 0.6
+      },
+      {
+        "turn": 1,
+        "polarity": 0.65
+      },
+      {
+        "turn": 2,
+        "polarity": 0.65
+      },
+      {
+        "turn": 3,
+        "polarity": 0.6
+      }
+    ],
+    "signal_strength": "mild",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "relief 표현 4회 반복",
+      "hope 표현 4회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "relief",
+          "hope",
+          "sadness"
+        ],
+        "polarity": 0.6
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "relief",
+          "hope",
+          "sadness"
+        ],
+        "polarity": 0.65
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "hope",
+          "relief"
+        ],
+        "polarity": 0.65
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "relief",
+          "hope",
+          "neutral"
+        ],
+        "polarity": 0.6
+      }
+    ]
+  },
+  "phr_summary": {},
+  "prompts_degraded": false,
+  "session_index": 8,
+  "simulated_date": "2026-10-14",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- personal_social_history: 새 학기 시작으로 업무 몰림\n- history_of_present_illness: 잠은 예전보다 잘 자는 편이나, 새 학기 시작으로 인한 업무 몰림으로 약 복용 깜빡, 피로와 의욕 저하, 가끔 우울감 있으나 횟수는 감소, 아내의 약 복용 챙김과 산책 및 대화로 기분 개선\n- chief_complaint: 새 학기 시작으로 인한 업무 몰림으로 약 복용 깜빡, 피로와 의욕 저하, 새로운 시작에 대한 막막함\n- substance_use_history: 술은 거의 안 마시고 에시탈로프람 매일 아침 복용, 가끔 깜빡함\n- medical_history: 아내는 고혈압이 있어서 약 드시고 계시고, 부모님은 당뇨 있으셔서 자주 챙기시는 편임\n- family_history: 아내는 고혈압이 있어서 약 드시고 계시고, 부모님은 당뇨 있으셔서 자주 챙기시는 편임\n- past_psychiatric_history: 6주 전에 정신건강의학과를 처음 방문하여 경도 우울 진단을 받고 약을 시작함\n\n[이전 세션 요약 — 미수집 정보]\n(없음)",
+  "carried_slot_provenance": {
+    "family_history": "carried_from_session_7",
+    "chief_complaint": "carried_from_session_7",
+    "past_psychiatric_history": "carried_from_session_7",
+    "substance_use_history": "carried_from_session_7",
+    "medical_history": "carried_from_session_7"
+  },
+  "scenario_pack_id": "VP-002_treatment_response_setback_s08",
+  "arc_mode": "treatment_response_setback"
+}

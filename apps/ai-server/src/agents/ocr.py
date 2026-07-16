@@ -73,8 +73,41 @@ _MED_DOSAGE_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+# ── 처방전 특화 패턴 (document_type == "prescription" 시 사용) ────────
+# 예: "아세트아미노펜정500mg / 643700350" · KDCode는 9자리 숫자.
+_RX_DRUG_KD_PATTERN = re.compile(
+    r"([가-힣][^\n|<>/]{1,80}?)\s*/\s*(\d{9})"
+)
+
+# 처방전 표 row: `<drug>/<KDCode> | ... | 1회분 | 1일횟수 | 일수 |`
+# OCR이 같은 약물을 여러 셀에 반복 출력하므로, KDCode의 마지막 occurrence 이후에
+# 나타나는 `| 값 | 값 | 정수 |` 패턴을 dose·frequency·days_supply로 매핑.
+_RX_DOSE_ROW_TAIL = re.compile(
+    r"\|\s*(?P<dose>[^|]{1,20}?)\s*\|\s*(?P<freq>[^|]{1,20}?)\s*[\|\s]+\s*"
+    r"(?P<days>\d{1,3})\s*(?:\||$)"
+)
+
+# 처방전 표에서 "환자 → 성 명 → <name>" 셀 시퀀스 추출.
+# Markdown pipe(`|`) 및 HTML(`<td>`) 두 형식 모두 지원. "처방 의료인의 성명"은
+# `환자` 컨텍스트가 앞서 있어야 하는 lookbehind 제약으로 자동 제외.
+_RX_MD_PATIENT_NAME = re.compile(
+    r"\|\s*환자\s*\|\s*성\s*명\s*\|\s*([가-힣]{2,4})\s*\|"
+)
+_RX_HTML_PATIENT_NAME = re.compile(
+    r"환자.*?성\s*명\s*</td>\s*<td[^>]*>\s*([가-힣]{2,4})\s*</td>",
+    re.DOTALL,
+)
+
+# OCR 셀 스크램블(셀 순서 뒤섞임)로 성명 셀에 폼 라벨이 들어오는 케이스 방어.
+# 실제 환자명이 아닌 처방전 폼 문구를 성명으로 오인하는 것을 차단.
+_RX_NAME_BLACKLIST: set[str] = {
+    "처방", "의료", "성명", "환자", "면허", "발급", "번호", "기관",
+    "명칭", "전화", "팩스", "우편", "비공개", "질병", "정보",
+}
+
 # Common Korean patient info fields.
 # Support both freeform ("성명: 김서연") and table-cell ("| 성명 | 김서연 |") forms.
+# 처방전 문서는 별도 _RX_HTML_PATIENT_NAME 사용 (이건 진단서 등에 안전한 폴백).
 _NAME_PATTERN = re.compile(
     r"(?:환자\s*)?성명\s*(?:[:：]|\|)\s*([가-힣]{2,4})"
 )
@@ -138,8 +171,8 @@ class OCRAgent(BaseAgent):
             else self._detect_document_type(raw_text)
         )
 
-        # 3. Extract clinical summary
-        summary = self._build_summary(raw_text, raw_markdown, blocks)
+        # 3. Extract clinical summary (doc_type별 파싱 전략 분기)
+        summary = self._build_summary(raw_text, raw_markdown, blocks, doc_type)
 
         # 4. Collect low-confidence items per 4-tier gate (spec §Confidence Threshold)
         low_conf: list[LowConfidenceItem] = []
@@ -284,7 +317,11 @@ class OCRAgent(BaseAgent):
     # ── Clinical summary aggregation ────────────────────────────────
 
     def _build_summary(
-        self, raw_text: str, raw_markdown: str, blocks: list[OCRBlock]
+        self,
+        raw_text: str,
+        raw_markdown: str,
+        blocks: list[OCRBlock],
+        doc_type: DocumentType = "unknown",
     ) -> ExtractedSummary:
         summary = ExtractedSummary()
 
@@ -331,26 +368,75 @@ class OCRAgent(BaseAgent):
         if dept_match:
             summary.department = dept_match.group(0)
 
-        # Medications
+        # Medications — 문서 유형별 파서 분기
         seen_meds: set[str] = set()
-        for m in _MED_DOSAGE_PATTERN.finditer(raw_text):
-            name = m.group(1).strip()
-            dose = m.group(2).strip()
-            # Filter out common false positives (numeric-heavy)
-            if len(name) < 2 or name.isdigit():
-                continue
-            key = f"{name}|{dose}"
-            if key in seen_meds:
-                continue
-            seen_meds.add(key)
-            summary.medications.append(
-                Medication(name=name, dose=dose, confidence=0.75)
-            )
+        if doc_type == "prescription":
+            # 처방전 표 형식 "약물명 / KDCode" 우선. 이 형식은 정확도 높음.
+            # 부산물(예: "일반용지 70g")는 KDCode가 없어 자동 배제.
+            # KDCode의 마지막 occurrence 뒤에서 dose/freq/days 셀 시퀀스를 추출.
+            last_pos_by_kd: dict[str, tuple[str, int, int]] = {}
+            for m in _RX_DRUG_KD_PATTERN.finditer(raw_text):
+                name = m.group(1).strip().rstrip("|·, \t")
+                kd_code = m.group(2).strip()
+                if len(name) < 3:
+                    continue
+                # 마지막 위치 갱신 (같은 약이 여러 셀에 반복되면 뒷 셀 활용)
+                last_pos_by_kd[kd_code] = (name, m.start(), m.end())
 
-        # Patient basics
-        name_m = _NAME_PATTERN.search(raw_text)
-        if name_m:
-            summary.patient_name = name_m.group(1)
+            for kd_code, (name, _start, end) in last_pos_by_kd.items():
+                # KDCode 마지막 나타난 위치 다음 200자에서 dose/freq/days 시도
+                tail = raw_text[end : end + 200]
+                dose_str: str | None = None
+                freq_str: str | None = None
+                days_str: str | None = None
+                row_m = _RX_DOSE_ROW_TAIL.search(tail)
+                if row_m:
+                    dose_str = row_m.group("dose").strip() or None
+                    freq_str = row_m.group("freq").strip() or None
+                    days_str = row_m.group("days").strip() or None
+                # dose_form + freq를 결합해 "1정 · 3회/일 · 3일치" 형태 노출
+                freq_repr = None
+                if freq_str and days_str:
+                    freq_repr = f"{freq_str}/일 · {days_str}일치"
+                elif freq_str:
+                    freq_repr = freq_str
+                summary.medications.append(
+                    Medication(
+                        name=name,
+                        dose=dose_str,
+                        frequency=freq_repr,
+                        confidence=0.85,
+                    )
+                )
+                seen_meds.add(kd_code)
+        else:
+            # 진단서·상담기록 등: 기존 dose 패턴 유지
+            for m in _MED_DOSAGE_PATTERN.finditer(raw_text):
+                name = m.group(1).strip()
+                dose = m.group(2).strip()
+                if len(name) < 2 or name.isdigit():
+                    continue
+                key = f"{name}|{dose}"
+                if key in seen_meds:
+                    continue
+                seen_meds.add(key)
+                summary.medications.append(
+                    Medication(name=name, dose=dose, confidence=0.75)
+                )
+
+        # Patient basics — 처방전은 표 셀 시퀀스에서 "환자 → 성 명 → <name>"만 취해
+        # "처방 의료인의 성명" 오탐 회피. Markdown/HTML 두 형식 모두 지원.
+        # OCR 셀 스크램블로 폼 라벨이 들어온 케이스는 blacklist로 차단.
+        if doc_type == "prescription":
+            for pat in (_RX_MD_PATIENT_NAME, _RX_HTML_PATIENT_NAME):
+                m = pat.search(raw_text)
+                if m and m.group(1) not in _RX_NAME_BLACKLIST:
+                    summary.patient_name = m.group(1)
+                    break
+        if not summary.patient_name:
+            name_m = _NAME_PATTERN.search(raw_text)
+            if name_m and name_m.group(1) not in _RX_NAME_BLACKLIST:
+                summary.patient_name = name_m.group(1)
         age_m = _AGE_PATTERN.search(raw_text)
         if age_m:
             summary.patient_age = f"만 {age_m.group(1)}세"

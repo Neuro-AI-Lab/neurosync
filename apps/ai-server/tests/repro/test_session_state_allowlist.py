@@ -18,7 +18,7 @@ space `src.f1.F1Pipeline` uses is small and fully enumerable:
 Union across both call sites is exactly the 6 keys pinned below.
 
 **2026-07-12 update (BUG-030 iter-2 / BUG-035, ADR-029 Decision 3,
-`docs/ai/fix_design_bug030_iter2.md` §8/§1 `_is_crisis_adjacent_turn`).**
+`_archive/plans/fix_design_bug030_iter2.md` §8/§1 `_is_crisis_adjacent_turn`).**
 `probe_just_concluded` added to the round-robin branch's construction site:
 threads `f1.py`'s own already-computed `probe_just_concluded` local
 (Step 1b — set when the safety-probe state machine's "deescalate" outcome

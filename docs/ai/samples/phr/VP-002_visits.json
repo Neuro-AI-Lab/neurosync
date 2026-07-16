@@ -1,0 +1,484 @@
+{
+  "publicData": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "10000000",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+          ]
+        },
+        "identifier": [
+          {
+            "type": {
+              "coding": [
+                {
+                  "system": "http://myhealthway.go.kr(가칭)",
+                  "code": "MHID"
+                }
+              ]
+            },
+            "system": "미정",
+            "value": "20530002"
+          },
+          {
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                  "code": "NNKOR"
+                }
+              ]
+            },
+            "system": "http://mois.go.kr/rnn",
+            "value": "9012345******"
+          }
+        ],
+        "name": [
+          {
+            "text": "이준호"
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "ExplanationOfBenefit",
+        "id": "v002-1",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicExplanationOfBenefit"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "리소스식별자(미정)",
+            "value": "v002-1"
+          }
+        ],
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "v002-1-org",
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "미정",
+                    "code": "미정",
+                    "display": "병의원"
+                  }
+                ],
+                "text": "병의원"
+              }
+            ],
+            "name": "W정신건강의학과의원",
+            "address": [
+              {
+                "text": "경기도 성남시 분당구 판교역로"
+              }
+            ]
+          }
+        ],
+        "status": "active",
+        "type": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+              "code": "professional",
+              "display": "professional"
+            }
+          ]
+        },
+        "use": "claim",
+        "patient": {
+          "reference": "Patient/10000000",
+          "resource": {
+            "resourceType": "Patient",
+            "id": "10000000",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+              ]
+            },
+            "identifier": [
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://myhealthway.go.kr(가칭)",
+                      "code": "MHID"
+                    }
+                  ]
+                },
+                "system": "미정",
+                "value": "20530002"
+              },
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                      "code": "NNKOR"
+                    }
+                  ]
+                },
+                "system": "http://mois.go.kr/rnn",
+                "value": "9012345******"
+              }
+            ],
+            "name": [
+              {
+                "text": "이준호"
+              }
+            ]
+          }
+        },
+        "billablePeriod": {
+          "start": "2026-05-07"
+        },
+        "provider": {
+          "reference": "Organization/v002-1-org"
+        },
+        "outcome": "complete",
+        "total": {
+          "value": 22000,
+          "currency": "KRW"
+        },
+        "diagnosis": []
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "ExplanationOfBenefit",
+        "id": "v002-2",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicExplanationOfBenefit"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "리소스식별자(미정)",
+            "value": "v002-2"
+          }
+        ],
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "v002-2-org",
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "미정",
+                    "code": "미정",
+                    "display": "약국"
+                  }
+                ],
+                "text": "약국"
+              }
+            ],
+            "name": "판교마음약국",
+            "address": [
+              {
+                "text": "경기도 성남시 분당구 판교역로"
+              }
+            ]
+          }
+        ],
+        "status": "active",
+        "type": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+              "code": "pharmacy",
+              "display": "pharmacy"
+            }
+          ]
+        },
+        "use": "claim",
+        "patient": {
+          "reference": "Patient/10000000",
+          "resource": {
+            "resourceType": "Patient",
+            "id": "10000000",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+              ]
+            },
+            "identifier": [
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://myhealthway.go.kr(가칭)",
+                      "code": "MHID"
+                    }
+                  ]
+                },
+                "system": "미정",
+                "value": "20530002"
+              },
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                      "code": "NNKOR"
+                    }
+                  ]
+                },
+                "system": "http://mois.go.kr/rnn",
+                "value": "9012345******"
+              }
+            ],
+            "name": [
+              {
+                "text": "이준호"
+              }
+            ]
+          }
+        },
+        "billablePeriod": {
+          "start": "2026-05-07"
+        },
+        "provider": {
+          "reference": "Organization/v002-2-org"
+        },
+        "outcome": "complete",
+        "total": {
+          "value": 8500,
+          "currency": "KRW"
+        },
+        "diagnosis": []
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "ExplanationOfBenefit",
+        "id": "v002-3",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicExplanationOfBenefit"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "리소스식별자(미정)",
+            "value": "v002-3"
+          }
+        ],
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "v002-3-org",
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "미정",
+                    "code": "미정",
+                    "display": "병의원"
+                  }
+                ],
+                "text": "병의원"
+              }
+            ],
+            "name": "W정신건강의학과의원",
+            "address": [
+              {
+                "text": "경기도 성남시 분당구 판교역로"
+              }
+            ]
+          }
+        ],
+        "status": "active",
+        "type": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+              "code": "professional",
+              "display": "professional"
+            }
+          ]
+        },
+        "use": "claim",
+        "patient": {
+          "reference": "Patient/10000000",
+          "resource": {
+            "resourceType": "Patient",
+            "id": "10000000",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+              ]
+            },
+            "identifier": [
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://myhealthway.go.kr(가칭)",
+                      "code": "MHID"
+                    }
+                  ]
+                },
+                "system": "미정",
+                "value": "20530002"
+              },
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                      "code": "NNKOR"
+                    }
+                  ]
+                },
+                "system": "http://mois.go.kr/rnn",
+                "value": "9012345******"
+              }
+            ],
+            "name": [
+              {
+                "text": "이준호"
+              }
+            ]
+          }
+        },
+        "billablePeriod": {
+          "start": "2026-06-04"
+        },
+        "provider": {
+          "reference": "Organization/v002-3-org"
+        },
+        "outcome": "complete",
+        "total": {
+          "value": 18000,
+          "currency": "KRW"
+        },
+        "diagnosis": []
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "ExplanationOfBenefit",
+        "id": "v002-4",
+        "meta": {
+          "profile": [
+            "https://simplifier.net/myhealthway/StructureDefinition/PublicExplanationOfBenefit"
+          ]
+        },
+        "identifier": [
+          {
+            "system": "리소스식별자(미정)",
+            "value": "v002-4"
+          }
+        ],
+        "contained": [
+          {
+            "resourceType": "Organization",
+            "id": "v002-4-org",
+            "type": [
+              {
+                "coding": [
+                  {
+                    "system": "미정",
+                    "code": "미정",
+                    "display": "약국"
+                  }
+                ],
+                "text": "약국"
+              }
+            ],
+            "name": "판교마음약국",
+            "address": [
+              {
+                "text": "경기도 성남시 분당구 판교역로"
+              }
+            ]
+          }
+        ],
+        "status": "active",
+        "type": {
+          "coding": [
+            {
+              "system": "http://terminology.hl7.org/CodeSystem/claim-type",
+              "code": "pharmacy",
+              "display": "pharmacy"
+            }
+          ]
+        },
+        "use": "claim",
+        "patient": {
+          "reference": "Patient/10000000",
+          "resource": {
+            "resourceType": "Patient",
+            "id": "10000000",
+            "meta": {
+              "profile": [
+                "https://simplifier.net/myhealthway/StructureDefinition/PublicPatient"
+              ]
+            },
+            "identifier": [
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://myhealthway.go.kr(가칭)",
+                      "code": "MHID"
+                    }
+                  ]
+                },
+                "system": "미정",
+                "value": "20530002"
+              },
+              {
+                "type": {
+                  "coding": [
+                    {
+                      "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                      "code": "NNKOR"
+                    }
+                  ]
+                },
+                "system": "http://mois.go.kr/rnn",
+                "value": "9012345******"
+              }
+            ],
+            "name": [
+              {
+                "text": "이준호"
+              }
+            ]
+          }
+        },
+        "billablePeriod": {
+          "start": "2026-06-04"
+        },
+        "provider": {
+          "reference": "Organization/v002-4-org"
+        },
+        "outcome": "complete",
+        "total": {
+          "value": 8500,
+          "currency": "KRW"
+        },
+        "diagnosis": []
+      }
+    }
+  ],
+  "medicalData": [],
+  "healthData": {
+    "stepCount": [],
+    "stepDistance": [],
+    "energyBurned": [],
+    "sleep": [],
+    "bloodGlucose": [],
+    "weight": [],
+    "bloodPressure": []
+  }
+}

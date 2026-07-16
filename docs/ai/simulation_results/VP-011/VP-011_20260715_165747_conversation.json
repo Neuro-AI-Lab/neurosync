@@ -1,0 +1,992 @@
+{
+  "session_id": "f1_VP-011_followup",
+  "persona_id": "VP-011",
+  "persona_name": "한소영",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "두통, 소화 불편, 피로, 새벽 각성"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "두통(띵하고 쥐어짜는 듯한 통증)이 3개월간 지속되며, 진통제를 여러 성분 바꿔 시도했으나 효과 없음. 두통이 없는 날에도 새벽 각성 및 수면 질 저하가 반복됨. 소화 불편(속 쓰림, 식욕 감소, 체중 3kg 감소)으로 인해 식사를 거르는 날이 많으며, 속이 더부룩하고 피로로 인해 활동 감소(주말 등산 중단). 신체 검사 및 혈액검사에서 특이 소견 없음. 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 필요."
+    },
+    {
+      "key": "family_history",
+      "value": "어머니 편두통, 아버지 위장 약함"
+    }
+  ],
+  "slot_coverage": 0.4,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요. 오늘도 여전히 두통이 자주 오는데, 이번엔 약을 바꿔봤는데도 별로 안 나아서 좀 답답하네요. 어제는 새벽에 깼는데 두통은 없었는데도 속이 더부룩하고 눈 뜨기가 힘들었어요.  \n\n소화도 안 되고 입맛도 없어서 식사도 거르는 날이 많아요.  tite.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 지난번에 이어서 다시 뵙게 되어 반갑습니다. 오늘은 어떤 점이 궁금하신가요?",
+      "slot_updates": {
+        "chief_complaint": "두통",
+        "history_of_present_illness": "두통 자주 발생, 약 변경 후에도 호전 없음, 어제 새벽 두통 없이 속 더부룩함 및 눈 뜨기 어려움, 소화 불량 및 식욕 부진으로 식사 거르는 날 많음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "두통",
+        "history_of_present_illness": "두통 자주 발생, 약 변경 후에도 호전 없음, 어제 새벽 두통 없이 속 더부룩함 및 눈 뜨기 어려움, 소화 불량 및 식욕 부진으로 식사 거르는 날 많음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 19546.23093875125,
+      "timestamp": "2026-07-15T16:54:49.076333",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "안녕하세요. 오늘도 여전히 두통이 자주 오는데, 이번엔 약을 바꿔봤는데도 별로 안 나아서 좀 답답하네요. 어제는 새벽에 깼는데 두통은 없었는데도 속이 더부룩하고 눈 뜨기가 힘들었어요.  \n\n소화도 안 되고 입맛도 없어서 식사도 거르는 날이 많아요.  tite.",
+        "normalized": "안녕하세요. 오늘도 여전히 두통이 자주 오는데, 이번엔 약을 바꿔봤는데도 별로 안 나아서 좀 답답하네요. 어제는 새벽에 깼는데 두통은 없었는데도 속이 더부룩하고 눈 뜨기가 힘들었어요.  \n\n소화도 안 되고 입맛도 없어서 식사도 거르는 날이 많아요.  tite.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 12304.64216414839,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "두통도 자주 오고, 약을 바꿔봤는데도 안 나아서 답답하고, 소화도 안 되고 입맛도 없어서 식사도 거르는 날이 많아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요. 오늘도 여전히 두통이 자주 오는데, 이번엔 약을 바꿔봤는데도 별로 안 나아서 좀 답답하네요. 어제는 새벽에 깼는데 두통은 없었는데도 속이 더부룩하고 눈 뜨기가 힘들었어요.  \n\n소화도 안 되고 입맛도 없어서 식사도 거르는 날이 많아요.  tite.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "두통과 소화 불편으로 많이 힘드셨겠어요. 지난번에 여쭤보지 못했는데, 현재 정신건강의학과 진료를 받고 계신지, 혹은 심리상담을 받으신 적이 있는지 알려주실 수 있을까요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "두통",
+        "history_of_present_illness": "두통 자주 발생, 약 변경 후에도 호전 없음, 어제 새벽 두통 없이 속 더부룩함 및 눈 뜨기 어려움, 소화 불량 및 식욕 부진으로 식사 거르는 날 많음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4349.117978941649,
+      "timestamp": "2026-07-15T16:54:53.425476",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "안녕하세요. 오늘도 여전히 두통이 자주 오는데, 이번엔 약을 바꿔봤는데도 별로 안 나아서 좀 답답하네요. 어제는 새벽에 깼는데 두통은 없었는데도 속이 더부룩하고 눈 뜨기가 힘들었어요.  \n\n소화도 안 되고 입맛도 없어서 식사도 거르는 날이 많아요.  tite.",
+        "normalized": "안녕하세요. 오늘도 여전히 두통이 자주 오는데, 이번엔 약을 바꿔봤는데도 별로 안 나아서 좀 답답하네요. 어제는 새벽에 깼는데 두통은 없었는데도 속이 더부룩하고 눈 뜨기가 힘들었어요.  \n\n소화도 안 되고 입맛도 없어서 식사도 거르는 날이 많아요.  tite.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 12304.64216414839,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "두통과 소화 불편으로 많이 힘드셨겠어요. 지난번에 여쭤보지 못했는데, 현재 정신건강의학과 진료를 받고 계신지, 혹은 심리상담을 받으신 적이 있는지 알려주실 수 있을까요?",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "정신건강의학과나 심리상담은 한 번도 받아본 적 없어요. 내과에서 검사 다 해봤는데 이상 없다고 했고, 그냥 몸이 좀 이상해서 그런 거지, 정신적인 문제라고는 생각 안 해봤어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "신체적인 원인을 찾으셨는데도 증상이 계속되니 답답하고 혼란스러우실 것 같아요. 혹시 기존에 복용 중인 약이 있다면 어떤 것들이 있는지, 그리고 최근에 새로 시작하거나 중단하신 약이 있는지 알려주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "두통, 소화 불편, 피로"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "두통, 소화 불편, 피로",
+        "history_of_present_illness": "두통 자주 발생, 약 변경 후에도 호전 없음, 어제 새벽 두통 없이 속 더부룩함 및 눈 뜨기 어려움, 소화 불량 및 식욕 부진으로 식사 거르는 날 많음"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3972.5248012691736,
+      "timestamp": "2026-07-15T16:55:02.203793",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "정신건강의학과나 심리상담은 한 번도 받아본 적 없어요. 내과에서 검사 다 해봤는데 이상 없다고 했고, 그냥 몸이 좀 이상해서 그런 거지, 정신적인 문제라고는 생각 안 해봤어요.",
+        "normalized": "정신건강의학과나 심리상담은 한 번도 받아본 적 없어요. 내과에서 검사 다 해봤는데 이상 없다고 했고, 그냥 몸이 좀 이상해서 그런 거지, 정신적인 문제라고는 생각 안 해봤어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 962.5544645823538,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "정신건강의학과나 심리상담은 한 번도 받아본 적 없어요. 내과에서 검사 다 해봤는데 이상 없다고 했고, 그냥 몸이 좀 이상해서 그런 거지, 정신적인 문제라고는 생각 안 해봤어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "두통 때문에 진통제를 여러 가지 시도해봤는데, 이번엔 전에 먹던 것 말고 다른 성분으로 바꿔봤지만 큰 차이가 없네요. 병원에서 처방받은 건 진통제랑 위장약 정도였고, 특별히 새로 시작한 건 없지만… 그래도 계속 속이 더부룩하고 피로해서 뭘 먹어도 잘 안 들어가요. 의사 선생님도 혈액검사나 위내시경은 이상 없다고만 하셔서, 도대체 왜 이러는지 모르겠어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "신체적인 원인이 없는데도 증상이 계속되어 지치고 답답하실 것 같아요. 혹시 최근 스트레스를 받거나 감정적으로 힘들었던 상황이 있었는지, 혹은 반복되는 걱정이나 고민이 있었는지 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "두통, 소화 불편, 피로",
+        "history_of_present_illness": "두통(띵하고 쥐어짜는 듯한 통증)이 3개월간 지속되며, 진통제를 여러 성분 바꿔 시도했으나 효과 없음. 새벽 각성 및 수면 질 저하 동반. 소화 불편(속 쓰림, 식욕 감소, 체중 3kg 감소)으로 인해 식사 거르는 날 많음. 피로로 인한 집중력 저하 및 활동 감소(주말 등산 및 친구 만남 중단). 신체 검사 및 혈액검사에서 특이 소견 없음."
+      },
+      "cumulative_slots": {
+        "chief_complaint": "두통, 소화 불편, 피로",
+        "history_of_present_illness": "두통(띵하고 쥐어짜는 듯한 통증)이 3개월간 지속되며, 진통제를 여러 성분 바꿔 시도했으나 효과 없음. 새벽 각성 및 수면 질 저하 동반. 소화 불편(속 쓰림, 식욕 감소, 체중 3kg 감소)으로 인해 식사 거르는 날 많음. 피로로 인한 집중력 저하 및 활동 감소(주말 등산 및 친구 만남 중단). 신체 검사 및 혈액검사에서 특이 소견 없음."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 8247.013482730836,
+      "timestamp": "2026-07-15T16:55:18.637344",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "두통 때문에 진통제를 여러 가지 시도해봤는데, 이번엔 전에 먹던 것 말고 다른 성분으로 바꿔봤지만 큰 차이가 없네요. 병원에서 처방받은 건 진통제랑 위장약 정도였고, 특별히 새로 시작한 건 없지만… 그래도 계속 속이 더부룩하고 피로해서 뭘 먹어도 잘 안 들어가요.  \n\n의사 선생님도 혈액검사나 위내시경은 이상 없다고만 하셔서, 도대체 왜 이러는지 모르겠어요.",
+        "normalized": "두통 때문에 진통제를 여러 가지 시도해봤는데, 이번엔 전에 먹던 것 말고 다른 성분으로 바꿔봤지만 큰 차이가 없네요. 병원에서 처방받은 건 진통제랑 위장약 정도였고, 특별히 새로 시작한 건 없지만… 그래도 계속 속이 더부룩하고 피로해서 뭘 먹어도 잘 안 들어가요. 의사 선생님도 혈액검사나 위내시경은 이상 없다고만 하셔서, 도대체 왜 이러는지 모르겠어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2850.9042328223586,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          },
+          {
+            "label": "despair",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "의사 선생님도 혈액검사나 위내시경은 이상 없다고만 하셔서, 도대체 왜 이러는지 모르겠어요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "near_dup_back_to_back"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2954.621308017522,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "신체적인 원인을 찾으셨는데도 증상이 계속되니 답답하고 혼란스러우실 것 같아요",
+          "count": 1
+        },
+        {
+          "reason": "back_to_back",
+          "family": "신체적인 원인을 찾으셨는데도 증상이 계속되니 답답하고 혼란스러우실 것 같아요",
+          "count": 1
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "스트레스요? 그런 건 없어요. 몸이 아프니까 그런 거지, 감정적으로 힘든 건 전혀 없습니다.  \n\n근데 생각해보니… 예전에 주말마다 다니던 등산을 3개월째 안 가고 있어요. 특별히 싫다기보다는 그냥… 귀찮다는 느낌이 강해서요.  \n\n그리고 두통이 없는 날에도 새벽에 자주 깨는 것 같아요. 어제만 해도 두통은 없었는데 속이 더부룩해서 잠에서 깼거든요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "두통",
+        "속 더부룩",
+        "새벽 깨는 증상"
+      ],
+      "agent_response": "가족분들 중에 비슷한 어려움을 겪으셨던 분이 계신지 여쭤봐도 될까요?",
+      "slot_updates": {
+        "chief_complaint": "두통, 소화 불편, 피로"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "두통, 소화 불편, 피로",
+        "history_of_present_illness": "두통(띵하고 쥐어짜는 듯한 통증)이 3개월간 지속되며, 진통제를 여러 성분 바꿔 시도했으나 효과 없음. 새벽 각성 및 수면 질 저하 동반. 소화 불편(속 쓰림, 식욕 감소, 체중 3kg 감소)으로 인해 식사 거르는 날 많음. 피로로 인한 집중력 저하 및 활동 감소(주말 등산 및 친구 만남 중단). 신체 검사 및 혈액검사에서 특이 소견 없음."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 4420.595106203109,
+      "timestamp": "2026-07-15T16:55:30.654525",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "스트레스요? 그런 건 없어요. 몸이 아프니까 그런 거지, 감정적으로 힘든 건 전혀 없습니다.  \n\n근데 생각해보니… 예전에 주말마다 다니던 등산을 3개월째 안 가고 있어요. 특별히 싫다기보다는 그냥… 귀찮다는 느낌이 강해서요.  \n\n그리고 두통이 없는 날에도 새벽에 자주 깨는 것 같아요. 어제만 해도 두통은 없었는데 속이 더부룩해서 잠에서 깼거든요.",
+        "normalized": "스트레스요? 그런 건 없어요. 몸이 아프니까 그런 거지, 감정적으로 힘든 건 전혀 없습니다.  \n\n근데 생각해보니… 예전에 주말마다 다니던 등산을 3개월째 안 가고 있어요. 특별히 싫다기보다는 그냥… 귀찮다는 느낌이 강해서요.  \n\n그리고 두통이 없는 날에도 새벽에 자주 깨는 것 같아요. 어제만 해도 두통은 없었는데 속이 더부룩해서 잠에서 깼거든요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2855.8822427876294,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "스트레스요? 그런 건 없어요. 몸이 아프니까 그런 거지, 감정적으로 힘든 건 전혀 없습니다.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "가족 중에 두통이나 소화 문제로 고생하신 분들은 계세요. 어머니는 편두통이 계셨고, 아버지는 위장이 약하셔서 자주 병원을 다니셨죠. 그런데 저는 그런 가족력보다는 지금 제 몸 상태가 문제라고 생각해요.  \n\n근데 요즘은 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "등산 중단",
+        "피로감",
+        "소화 문제"
+      ],
+      "agent_response": "가족 중에 비슷한 어려움을 겪으셨던 분이 계신지 여쭤봐도 될까요?",
+      "slot_updates": {
+        "chief_complaint": "두통, 소화 불편, 피로"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "두통, 소화 불편, 피로",
+        "history_of_present_illness": "두통(띵하고 쥐어짜는 듯한 통증)이 3개월간 지속되며, 진통제를 여러 성분 바꿔 시도했으나 효과 없음. 새벽 각성 및 수면 질 저하 동반. 소화 불편(속 쓰림, 식욕 감소, 체중 3kg 감소)으로 인해 식사 거르는 날 많음. 피로로 인한 집중력 저하 및 활동 감소(주말 등산 및 친구 만남 중단). 신체 검사 및 혈액검사에서 특이 소견 없음."
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 3949.815043248236,
+      "timestamp": "2026-07-15T16:55:42.323807",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.25,
+      "normalizer_meta": {
+        "original": "가족 중에 두통이나 소화 문제로 고생하신 분들은 계세요. 어머니는 편두통이 계셨고, 아버지는 위장이 약하셔서 자주 병원을 다니셨죠. 그런데 저는 그런 가족력보다는 지금 제 몸 상태가 문제라고 생각해요.  \n\n근데 요즘은 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.",
+        "normalized": "가족 중에 두통이나 소화 문제로 고생하신 분들은 계세요. 어머니는 편두통이 계셨고, 아버지는 위장이 약하셔서 자주 병원을 다니셨죠. 그런데 저는 그런 가족력보다는 지금 제 몸 상태가 문제라고 생각해요.  \n\n근데 요즘은 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2945.0840828940272,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "가족 중에 두통이나 소화 문제로 고생하신 분들은 계세요. 어머니는 편두통이 계셨고, 아버지는 위장이 약하셔서 자주 병원을 다니셨죠. 그런데 저는 그런 가족력보다는 지금 제 몸 상태가 문제라고 생각해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "네, 어머니께 편두통이 있으셨고, 아버지는 위장이 약해서 자주 병원 다니셨어요. 그런데 저는 그런 가족력보다는 지금 제 몸 상태가 문제라고 생각해요. 근데 요즘은 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "{\"assistant_response\": \"\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n",
+      "slot_updates": {
+        "chief_complaint": "두통, 소화 불편, 피로",
+        "family_history": "어머니 편두통, 아버지 위장약 복용"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "두통, 소화 불편, 피로",
+        "history_of_present_illness": "두통(띵하고 쥐어짜는 듯한 통증)이 3개월간 지속되며, 진통제를 여러 성분 바꿔 시도했으나 효과 없음. 새벽 각성 및 수면 질 저하 동반. 소화 불편(속 쓰림, 식욕 감소, 체중 3kg 감소)으로 인해 식사 거르는 날 많음. 피로로 인한 집중력 저하 및 활동 감소(주말 등산 및 친구 만남 중단). 신체 검사 및 혈액검사에서 특이 소견 없음.",
+        "family_history": "어머니 편두통, 아버지 위장약 복용"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 16969.23818392679,
+      "timestamp": "2026-07-15T16:56:05.111064",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "네, 어머니께 편두통이 있으셨고, 아버지는 위장이 약해서 자주 병원 다니셨어요. 그런데 저는 그런 가족력보다는 지금 제 몸 상태가 문제라고 생각해요.  \n\n근데 요즘은 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.",
+        "normalized": "네, 어머니께 편두통이 있으셨고, 아버지는 위장이 약해서 자주 병원 다니셨어요. 그런데 저는 그런 가족력보다는 지금 제 몸 상태가 문제라고 생각해요. 근데 요즘은 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1493.9506947994232,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "요즘 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 4950.828719884157,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "신체적인 원인이 명확하지 않은데도 증상이 계속되니 답답하실 것 같아요.  \n어머니께 편두통이 있으셨고, 아버지는 위장이 약하셔서 자주 병원을 다니셨어요. 그런데 저는 그런 가족력보다는 지금 제 몸 상태가 문제라고 생각해요.  \n근데 요즘은 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "이렇게 솔직하게 이야기해 주셔서 감사합니다. 지난번에 여쭤보지 못했는데, 혹시 과거에 정신건강의학과나 심리상담을 받아보신 적이 있는지 알려주시면 좋을 것 같습니다.",
+      "slot_updates": {
+        "chief_complaint": "두통, 소화 불편, 피로",
+        "family_history": "어머니 편두통, 아버지 위장 약함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "두통, 소화 불편, 피로",
+        "history_of_present_illness": "두통(띵하고 쥐어짜는 듯한 통증)이 3개월간 지속되며, 진통제를 여러 성분 바꿔 시도했으나 효과 없음. 새벽 각성 및 수면 질 저하 동반. 소화 불편(속 쓰림, 식욕 감소, 체중 3kg 감소)으로 인해 식사 거르는 날 많음. 피로로 인한 집중력 저하 및 활동 감소(주말 등산 및 친구 만남 중단). 신체 검사 및 혈액검사에서 특이 소견 없음.",
+        "family_history": "어머니 편두통, 아버지 위장 약함"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 11890.576928853989,
+      "timestamp": "2026-07-15T16:56:24.691618",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "신체적인 원인이 명확하지 않은데도 증상이 계속되니 답답하실 것 같아요.  \n\n어머니께 편두통이 있으셨고, 아버지는 위장이 약하셔서 자주 병원을 다니셨어요. 그런데 저는 그런 가족력보다는 지금 제 몸 상태가 문제라고 생각해요.  \n\n근데 요즘은 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.",
+        "normalized": "신체적인 원인이 명확하지 않은데도 증상이 계속되니 답답하실 것 같아요.  \n어머니께 편두통이 있으셨고, 아버지는 위장이 약하셔서 자주 병원을 다니셨어요. 그런데 저는 그런 가족력보다는 지금 제 몸 상태가 문제라고 생각해요.  \n근데 요즘은 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2693.865613080561,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.55,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "신체적인 원인이 명확하지 않은데도 증상이 계속되니 답답하실 것 같아요. 근데 요즘은 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "near_dup_back_to_back",
+        "exact_repeat",
+        "near_dup_back_to_back"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 7098.798953928053,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "신체적인 원인이 없는데도 증상이 계속되어 지치고 답답하실 것 같아요",
+          "count": 1
+        },
+        {
+          "reason": "back_to_back",
+          "family": "신체적인 원인이 명확하지 않은데도 증상이 계속되니 답답하실 것 같아요",
+          "count": 1
+        }
+      ],
+      "dialogue_exhaustion_degrade": "near_dup_back_to_back",
+      "dialogue_exhaustion_degrade_phrase": "이렇게 솔직하게 이야기해 주셔서 감사합니다"
+    },
+    {
+      "turn": 8,
+      "patient_message": "정신건강의학과나 심리상담은 한 번도 받아본 적 없어요. 그냥 몸이 아파서 그런 거지, 정신적인 문제라고는 생각 안 해봤어요. 근데 생각해보니… 예전에 주말에 등산 갈 때 기분이 좀 나아지고 활기찼는데, 요즘은 그걸 하려고 해도 귀찮고 금방 지치네요. 그리고 통증이 없는 날에도 새벽에 깨는 건 마찬가지예요. 어제만 해도 두통은 없었는데 속이 더부룩해서 잠에서 깼거든요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "쉽게 지치고",
+        "귀찮고",
+        "잠에서 깼어요"
+      ],
+      "agent_response": "어머니의 편두통, 아버지의 위장 약함이 가족력으로 있으셨군요. 그런 유전적인 요인이 현재 증상에 영향을 줄 수도 있을 것 같아 걱정이 되실 수 있어요. 오늘 새벽에 속이 더부룩한 상태에서 깨셨다고 하셨는데, 그 당시 어떤 상황이었는지 조금 더 자세히 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "두통, 소화 불편, 피로",
+        "family_history": "어머니 편두통, 아버지 위장약 복용"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "두통, 소화 불편, 피로",
+        "history_of_present_illness": "두통(띵하고 쥐어짜는 듯한 통증)이 3개월간 지속되며, 진통제를 여러 성분 바꿔 시도했으나 효과 없음. 새벽 각성 및 수면 질 저하 동반. 소화 불편(속 쓰림, 식욕 감소, 체중 3kg 감소)으로 인해 식사 거르는 날 많음. 피로로 인한 집중력 저하 및 활동 감소(주말 등산 및 친구 만남 중단). 신체 검사 및 혈액검사에서 특이 소견 없음.",
+        "family_history": "어머니 편두통, 아버지 위장약 복용"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 6011.367460247129,
+      "timestamp": "2026-07-15T16:56:38.504962",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "정신건강의학과나 심리상담은 한 번도 받아본 적 없어요. 그냥 몸이 아파서 그런 거지, 정신적인 문제라고는 생각 안 해봤어요.  \n\n근데 생각해보니… 예전에 주말에 등산 갈 때 기분이 좀 나아지고 활기찼는데, 요즘은 그걸 하려고 해도 귀찮고 금방 지치네요.  \n\n그리고 통증이 없는 날에도 새벽에 깨는 건 마찬가지예요. 어제만 해도 두통은 없었는데 속이 더부룩해서 잠에서 깼거든요.",
+        "normalized": "정신건강의학과나 심리상담은 한 번도 받아본 적 없어요. 그냥 몸이 아파서 그런 거지, 정신적인 문제라고는 생각 안 해봤어요. 근데 생각해보니… 예전에 주말에 등산 갈 때 기분이 좀 나아지고 활기찼는데, 요즘은 그걸 하려고 해도 귀찮고 금방 지치네요. 그리고 통증이 없는 날에도 새벽에 깨는 건 마찬가지예요. 어제만 해도 두통은 없었는데 속이 더부룩해서 잠에서 깼거든요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2555.988905020058,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "정신건강의학과나 심리상담은 한 번도 받아본 적 없어요. 그냥 몸이 아파서 그런 거지, 정신적인 문제라고는 생각 안 해봤어요. 근데 생각해보니… 예전에 주말에 등산 갈 때 기분이 좀 나아지고 활기찼는데, 요즘은 그걸 하려고 해도 귀찮고 금방 지치네요. 그리고 통증이 없는 날에도 새벽에 깨는 건 마찬가지예요. 어제만 해도 두통은 없었는데 속이 더부룩해서 잠에서 깼거든요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "near_dup_back_to_back"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1298.7138908356428,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "신체적인 원인이 없는데도 증상이 계속되어 지치고 답답하실 것 같아요",
+          "count": 1
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "네, 어머니께 편두통이 있으셨고, 아버지는 위장이 약하셔서 자주 병원을 다니셨어요. 그런데 저는 그런 가족력보다는 지금 제 몸 상태가 문제라고 생각해요.  \n\n근데 요즘은 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.  \n\n그리고 통증이 없는 날에도 새벽에 깨는 건 마찬가지예요. 어제만 해도 두통은 없었는데 속이 더부룩해서 잠에서 깼거든요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "신체적인 원인이 없는데도 증상이 계속되어 지치고 답답하실 것 같아요. 지난번에 여쭤보지 못했는데, 혹시 최근에 스트레스를 받거나 감정적으로 힘들었던 상황이 있었는지, 혹은 반복되는 걱정이나 고민이 있었는지 말씀해 주실 수 있을까요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "두통, 소화 불편, 피로",
+        "history_of_present_illness": "두통(띵하고 쥐어짜는 듯한 통증)이 3개월간 지속되며, 진통제를 여러 성분 바꿔 시도했으나 효과 없음. 새벽 각성 및 수면 질 저하 동반. 소화 불편(속 쓰림, 식욕 감소, 체중 3kg 감소)으로 인해 식사 거르는 날 많음. 피로로 인한 집중력 저하 및 활동 감소(주말 등산 및 친구 만남 중단). 신체 검사 및 혈액검사에서 특이 소견 없음.",
+        "family_history": "어머니 편두통, 아버지 위장약 복용"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 22268.57544435188,
+      "timestamp": "2026-07-15T16:57:21.953008",
+      "targeted_slot": "substance_use_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "네, 어머니께 편두통이 있으셨고, 아버지는 위장이 약하셔서 자주 병원을 다니셨어요. 그런데 저는 그런 가족력보다는 지금 제 몸 상태가 문제라고 생각해요.  \n\n근데 요즘은 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.  \n\n그리고 통증이 없는 날에도 새벽에 깨는 건 마찬가지예요. 어제만 해도 두통은 없었는데 속이 더부룩해서 잠에서 깼거든요.",
+        "normalized": "네, 어머니께 편두통이 있으셨고, 아버지는 위장이 약하셔서 자주 병원을 다니셨어요. 그런데 저는 그런 가족력보다는 지금 제 몸 상태가 문제라고 생각해요.  \n\n근데 요즘은 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.  \n\n그리고 통증이 없는 날에도 새벽에 깨는 건 마찬가지예요. 어제만 해도 두통은 없었는데 속이 더부룩해서 잠에서 깼거든요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 15591.218758840114,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "\"요즘 뭘 해도 쉽게 지치고, 예전에 좋아하던 등산도 3개월째 안 가고 있어요. 특별히 싫어진 건 아닌데… 그냥 시작하기가 귀찮고, 막상 나서도 금방 피곤해서 금방 돌아오게 돼요.\"",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 10,
+      "patient_message": "스트레스요? 그런 건 없어요. 몸이 아프니까 그런 거지, 감정적으로 힘든 건 전혀 없습니다.  \n\n근데 생각해보니… 예전에 주말에 다니던 등산을 3개월째 안 가고 있어요. 특별히 싫다기보다는 그냥… 귀찮다는 느낌이 강해서요.  \n\n그리고 두통이 없는 날에도 새벽에 깨는 것 같아요. 어제만 해도 두통은 없었는데 속이 더부룩해서 잠에서 깼거든요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "{\n  \"assistant_response\": \"\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n\\n",
+      "slot_updates": {
+        "chief_complaint": "두통, 소화 불편, 피로, 새벽 각성",
+        "history_of_present_illness": "두통(띵하고 쥐어짜는 듯한 통증)이 3개월간 지속되며, 진통제를 여러 성분 바꿔 시도했으나 효과 없음. 두통이 없는 날에도 새벽 각성 및 수면 질 저하가 반복됨. 소화 불편(속 쓰림, 식욕 감소, 체중 3kg 감소)으로 인해 식사를 거르는 날이 많으며, 속이 더부룩하고 피로로 인해 활동 감소(주말 등산 중단). 신체 검사 및 혈액검사에서 특이 소견 없음. 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 필요.",
+        "family_history": "어머니 편두통, 아버지 위장 약함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "두통, 소화 불편, 피로, 새벽 각성",
+        "history_of_present_illness": "두통(띵하고 쥐어짜는 듯한 통증)이 3개월간 지속되며, 진통제를 여러 성분 바꿔 시도했으나 효과 없음. 두통이 없는 날에도 새벽 각성 및 수면 질 저하가 반복됨. 소화 불편(속 쓰림, 식욕 감소, 체중 3kg 감소)으로 인해 식사를 거르는 날이 많으며, 속이 더부룩하고 피로로 인해 활동 감소(주말 등산 중단). 신체 검사 및 혈액검사에서 특이 소견 없음. 환자는 신체적 원인을 의심하나 정신적 요인과의 연관성도 고려 필요.",
+        "family_history": "어머니 편두통, 아버지 위장 약함"
+      },
+      "slot_coverage": 0.4,
+      "latency_ms": 9048.600997310132,
+      "timestamp": "2026-07-15T16:57:39.874196",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.375,
+      "normalizer_meta": {
+        "original": "스트레스요? 그런 건 없어요. 몸이 아프니까 그런 거지, 감정적으로 힘든 건 전혀 없습니다.  \n\n근데 생각해보니… 예전에 주말에 다니던 등산을 3개월째 안 가고 있어요. 특별히 싫다기보다는 그냥… 귀찮다는 느낌이 강해서요.  \n\n그리고 두통이 없는 날에도 새벽에 깨는 것 같아요. 어제만 해도 두통은 없었는데 속이 더부룩해서 잠에서 깼거든요.",
+        "normalized": "스트레스요? 그런 건 없어요. 몸이 아프니까 그런 거지, 감정적으로 힘든 건 전혀 없습니다.  \n\n근데 생각해보니… 예전에 주말에 다니던 등산을 3개월째 안 가고 있어요. 특별히 싫다기보다는 그냥… 귀찮다는 느낌이 강해서요.  \n\n그리고 두통이 없는 날에도 새벽에 깨는 것 같아요. 어제만 해도 두통은 없었는데 속이 더부룩해서 잠에서 깼거든요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 4206.566598266363,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.3,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "스트레스요? 그런 건 없어요. 몸이 아프니까 그런 거지, 감정적으로 힘든 건 전혀 없습니다.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-15T16:54:29.530053",
+  "ended_at": "2026-07-15T16:57:47.607082",
+  "grounded_coverage": 0.375,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.6018,
+  "patient_lng": 126.929,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.12916186824440956,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.43,
+      "anxiety": 0.3,
+      "despair": 0.17,
+      "neutral": 0.09
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.6
+      },
+      {
+        "turn": 1,
+        "polarity": -0.65
+      },
+      {
+        "turn": 2,
+        "polarity": -0.6
+      },
+      {
+        "turn": 3,
+        "polarity": -0.6
+      },
+      {
+        "turn": 4,
+        "polarity": 0.0
+      },
+      {
+        "turn": 5,
+        "polarity": -0.5
+      },
+      {
+        "turn": 6,
+        "polarity": -0.4
+      },
+      {
+        "turn": 7,
+        "polarity": -0.55
+      },
+      {
+        "turn": 8,
+        "polarity": -0.6
+      },
+      {
+        "turn": 9,
+        "polarity": -0.65
+      },
+      {
+        "turn": 10,
+        "polarity": -0.3
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 10회 반복",
+      "anxiety 표현 7회 반복",
+      "despair 표현 4회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "sadness",
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "anxiety",
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.55
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.3
+      }
+    ]
+  },
+  "phr_summary": {},
+  "prompts_degraded": false,
+  "session_index": 2,
+  "simulated_date": "2026-07-22",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- chief_complaint: 매일 지속되는 두통과 소화 불편, 피로\n- history_of_present_illness: 3개월간 지속되는 두통(띵하고 쥐어짜는 듯한 통증), 소화 불편(속 쓰림, 식욕 감소, 체중 3kg 감소), 피로로 인한 집중력 저하 및 활동 감소(주말 등산 및 친구 만남 중단). 새벽 각성 및 수면 질 저하 동반. 신체 검사 및 혈액검사에서 특이 소견 없음. 환자는 신체적 원인을 의심하나, 정신적 요인과의 연관성도 고려 필요.\n\n[이전 세션 요약 — 미수집 정보]\npast_psychiatric_history, medical_history, personal_social_history, family_history, substance_use_history, risk_assessment",
+  "carried_slot_provenance": {},
+  "scenario_pack_id": "VP-011_somatic_persistent_late_mood_disclosure_s02",
+  "arc_mode": "somatic_persistent_late_mood_disclosure"
+}
