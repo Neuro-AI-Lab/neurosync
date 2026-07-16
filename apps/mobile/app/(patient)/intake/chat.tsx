@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   KeyboardAvoidingView,
@@ -18,6 +19,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MessageBubble } from "../../../components/MessageBubble";
 import { NavBar } from "../../../components/NavBar";
 import { PushToTalk } from "../../../components/PushToTalk";
+import { RiskConfirmModal } from "../../../components/RiskConfirm";
+import { inferTopSurvey } from "../../../lib/domain";
 import { ArrowUp } from "../../../lib/icons";
 import { SafetyLevel, SessionChatClient, WSEvent, WSStatus } from "../../../lib/ws";
 import { colors } from "../../../lib/tokens";
@@ -42,6 +45,9 @@ export default function ChatScreen() {
   const [draft, setDraft] = useState("");
   const [status, setStatus] = useState<WSStatus>("idle");
   const [mediumBanner, setMediumBanner] = useState<string | null>(null);
+  // v3 FR-042 — 강제 전환 대신 확인 창. FR-041 — 도메인 추정 '분석 중' 상태.
+  const [riskConfirm, setRiskConfirm] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const clientRef = useRef<SessionChatClient | null>(null);
   const listRef = useRef<FlatList<LocalMessage>>(null);
 
@@ -70,9 +76,10 @@ export default function ChatScreen() {
         const { level } = event.payload;
         setRisk(event.payload);
         if (level === "high" || level === "critical") {
-          // PRD §A 보수적 탐지 — 강한 햅틱 + 응급 전환.
+          // v3 FR-042 — 강제 전환 금지. 강한 햅틱 + 확인 창(모달)에서
+          // [도움 받기] 선택 시에만 /emergency 진입.
           void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          router.push("/(patient)/emergency");
+          setRiskConfirm(true);
         } else if (level === "medium") {
           // 인라인 배너만 (Screen Spec §S-05 medium 정책)
           setMediumBanner("안전 확인이 필요해요. 도움이 필요하면 알려주세요.");
@@ -111,6 +118,22 @@ export default function ChatScreen() {
   // PRD §5.5 flow — surface the questionnaire step once intake is ~70% done.
   const progressPct = Math.round(progress * 100);
   const questionnaireReady = progress >= 0.7;
+
+  // v3 FR-039/041 — 대화 종료 → '분석 중' → top1 문진 1종으로 바로 진입.
+  // 추정 결과(도구 ID)는 라우팅에만 쓰고 화면·상태에 남기지 않는다 (NFR v3-2).
+  const goSurvey = async () => {
+    if (analyzing) return;
+    setAnalyzing(true);
+    try {
+      const instrument = await inferTopSurvey(initialAccessToken, sessionId);
+      router.push({
+        pathname: "/(patient)/intake/survey",
+        params: { instrument },
+      });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
 
   const onSend = () => {
     const content = draft.trim();
@@ -161,10 +184,11 @@ export default function ChatScreen() {
         liveDot={status === "open"}
         right={
           <Pressable
-            onPress={() => router.push("/(patient)/intake/phq9")}
+            onPress={() => void goSurvey()}
             accessibilityRole="button"
             accessibilityLabel="표준 문진으로 이동"
             hitSlop={8}
+            disabled={analyzing}
           >
             <Text style={[styles.navAct, questionnaireReady && styles.navActReady]}>설문</Text>
           </Pressable>
@@ -245,6 +269,25 @@ export default function ChatScreen() {
           <ArrowUp size={17} color={colors.onInk} />
         </Pressable>
       </View>
+
+      {/* v3 FR-042 — 위험 확인 창 (모달). 명시적 선택 후에만 응급 진입. */}
+      <RiskConfirmModal
+        visible={riskConfirm}
+        onHelp={() => {
+          setRiskConfirm(false);
+          router.push("/(patient)/emergency");
+        }}
+        onDismiss={() => setRiskConfirm(false)}
+      />
+
+      {/* v3 FR-041 — '분석 중' 로딩 (상한은 inferTopSurvey가 보장). */}
+      {analyzing ? (
+        <View style={styles.analyzing} accessibilityLiveRegion="polite">
+          <ActivityIndicator size="large" color={colors.ink} />
+          <Text style={styles.analyzingTitle}>이야기를 정리하고 있어요</Text>
+          <Text style={styles.analyzingSub}>곧 알맞은 문진으로 이어드릴게요</Text>
+        </View>
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
@@ -321,4 +364,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  analyzing: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255,255,255,0.96)",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  analyzingTitle: {
+    marginTop: 12,
+    fontSize: 18,
+    fontWeight: "700",
+    color: colors.ink,
+    letterSpacing: -0.4,
+  },
+  analyzingSub: { fontSize: 13, color: colors.muted },
 });
