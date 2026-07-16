@@ -36,34 +36,53 @@ class TestLlmClientTimeoutSetting:
 class TestAdapterClientTimeoutWired:
     """Every adapter's `openai.AsyncOpenAI` client carries the configured
     timeout — never the SDK's 10-minute default (600s connect/read/write
-    pool `Timeout` object)."""
+    pool `Timeout` object).
 
-    def test_ak_llm_client_has_explicit_timeout(self) -> None:
-        settings = Settings(skt_a_x_api_key="k", llm_client_timeout_s=42.0)
+    CI-environment discipline (PR #67 CI failure fix): these tests must be
+    credential-independent. Keys are injected via monkeypatch.setenv (env
+    always wins over .env in pydantic-settings), NEVER via constructor
+    kwargs — `skt_a_x_api_key=` as a kwarg is silently ignored because the
+    field resolves through validation_alias, which masked this locally
+    where .env supplied the value.
+    """
+
+    @staticmethod
+    def _dummy_keys(monkeypatch) -> None:
+        monkeypatch.setenv("SKT_A_X_API_KEY", "test-dummy-key")
+        monkeypatch.setenv("UPSTAGE_API_KEY", "test-dummy-key")
+        monkeypatch.setenv("LG_K_EXAONE_API_KEY", "test-dummy-key")
+
+    def test_ak_llm_client_has_explicit_timeout(self, monkeypatch) -> None:
+        self._dummy_keys(monkeypatch)
+        settings = Settings(llm_client_timeout_s=42.0)
         adapter = AkLlmAdapter(settings)
         assert adapter._client.timeout == 42.0
 
-    def test_solar_pro3_client_has_explicit_timeout(self) -> None:
-        settings = Settings(upstage_api_key="k", llm_client_timeout_s=42.0)
+    def test_solar_pro3_client_has_explicit_timeout(self, monkeypatch) -> None:
+        self._dummy_keys(monkeypatch)
+        settings = Settings(llm_client_timeout_s=42.0)
         adapter = SolarPro3Adapter(settings)
         assert adapter._client.timeout == 42.0
 
-    def test_k_exaone_client_has_explicit_timeout(self) -> None:
-        settings = Settings(lg_k_exaone_api_key="k", llm_client_timeout_s=42.0)
+    def test_k_exaone_client_has_explicit_timeout(self, monkeypatch) -> None:
+        self._dummy_keys(monkeypatch)
+        settings = Settings(llm_client_timeout_s=42.0)
         adapter = KExaoneAdapter(settings)
         assert adapter._client.timeout == 42.0
 
-    def test_all_three_adapters_default_to_the_same_60s(self) -> None:
+    def test_all_three_adapters_default_to_the_same_60s(self, monkeypatch) -> None:
+        self._dummy_keys(monkeypatch)
         settings = Settings()
         assert AkLlmAdapter(settings)._client.timeout == 60.0
         assert SolarPro3Adapter(settings)._client.timeout == 60.0
         assert KExaoneAdapter(settings)._client.timeout == 60.0
 
-    def test_timeout_is_never_the_sdk_10_minute_default(self) -> None:
+    def test_timeout_is_never_the_sdk_10_minute_default(self, monkeypatch) -> None:
         """The openai SDK's own untouched default is a 600s-family
         `httpx.Timeout` object, not a bare float — asserting our adapters
         carry a plain float instead is itself proof `timeout=` was passed
         explicitly (an unset `timeout` on AsyncOpenAI never resolves to a
         bare float)."""
-        settings = Settings(skt_a_x_api_key="k")
+        self._dummy_keys(monkeypatch)
+        settings = Settings()
         assert isinstance(AkLlmAdapter(settings)._client.timeout, float)
