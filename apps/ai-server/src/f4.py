@@ -1,6 +1,6 @@
 """F4 — longitudinal (between-session) state-change analysis (production engine).
 
-`docs/ai/f4_quick_dev_plan.md` §4/§6.1, `PLAN-2026-W29-D`, `ADR-036`. This
+`_archive/plans/f4_quick_dev_plan.md` §4/§6.1, `PLAN-2026-W29-D`, `ADR-036`. This
 module is architected exactly like `f1.py`/`f2.py`/`f3.py`: a standalone
 module invocable by the F1->F2->F3->F4 chaining validation harness — never
 a route, never wired into `orchestrator.py`.

@@ -1,6 +1,6 @@
 """`src.run_injected_session` — protocol runner: F1Pipeline + injection schedule.
 
-`docs/ai/validation_plan_f1f2_continuous.md` §3 STT/OCR row + §6 canary
+`_archive/plans/validation_plan_f1f2_continuous.md` §3 STT/OCR row + §6 canary
 design (SC-13/SC-15 execution vehicle). Deterministic, mocked-LLM coverage
 only: `tests.f1_testkit`'s stub `F1Pipeline` + an injected stub base
 `patient_input_fn` — zero vendor/model calls, zero live credentials.

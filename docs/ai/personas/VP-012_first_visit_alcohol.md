@@ -2,7 +2,7 @@
 
 > Virtual Patient persona for testing psychiatric pre-consultation AI system.
 > Classification: First visit, chronic alcohol use disorder (stated presenting concern), SI-negative
-> Authored per `docs/ai/validation_plan_f1f2_continuous.md` v1.2 §9 (VP-012 row) — SC-12.
+> Authored per `_archive/plans/validation_plan_f1f2_continuous.md` v1.2 §9 (VP-012 row) — SC-12.
 > Crisis-forward: **Excluded** (disclosed program-level limitation; see §8).
 
 ---
@@ -255,7 +255,7 @@
 ## 9. AUDIT-C v2 (soju-track) expected-score derivation note | 2026-07-13 | data
 
 **Purpose:** re-derives §3's AUDIT-C expected-score table against the adopted soju-track item
-text (`docs/ai/audit_c_korean_research.md` §3.2), per `discussion.md` CVR-018 condition 5 /
+text (`_archive/reports/audit_c_korean_research.md` §3.2), per `discussion.md` CVR-018 condition 5 /
 ADR-034 decision 5. Resolves CVR-018 Finding 5 (the 7g-vs-14g standard-drink convention question)
 explicitly. **Append-only:** §3's original table is unedited above; this section supersedes it
 for AUDIT-C v2 (soju-track) administrations only. The persona's clinical narrative (§2, §5, §6) is
@@ -305,7 +305,7 @@ drinks" figure was convention-mismatched, and against which convention (if any) 
 was correct. Recomputing explicitly:
 
 **Soju bottle pure-alcohol content** (parameters "약 360mL, 알코올 도수 16-17%,"
-`docs/ai/audit_c_korean_research.md` §4; ethanol density ≈0.789 g/mL, standard physical constant):
+`_archive/reports/audit_c_korean_research.md` §4; ethanol density ≈0.789 g/mL, standard physical constant):
 - 16% ABV: 360 mL × 0.16 × 0.789 g/mL ≈ 45.4 g
 - 17% ABV: 360 mL × 0.17 × 0.789 g/mL ≈ 48.3 g
 - Midpoint 16.5% ABV: 360 × 0.165 × 0.789 ≈ **46.9 g ≈ 47 g** pure alcohol per bottle.

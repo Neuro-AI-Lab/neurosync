@@ -6,7 +6,7 @@ ground-truth diagnostic labels (`class`, `phq9_score`, `gad7_score`,
 `flag_suicidal`) into `retrieve_grounding()`'s `my_past` payload. No live
 production caller reaches it today, but no schema-level guard prevents a
 future wiring into a clinical agent's input. This file IS that guard —
-`docs/ai/validation_plan_f1f2_continuous.md` §3's "BUG-022 mitigating guard
+`_archive/plans/validation_plan_f1f2_continuous.md` §3's "BUG-022 mitigating guard
 timing" paragraph and §6's "qa detection procedure" step 2 both require it to
 run as a STANDING REGRESSION GATE from W1 through W6 (REV-023 ruling 6, Issue
 9) — every `uv run pytest`, not first executed at W7's audit-only run.

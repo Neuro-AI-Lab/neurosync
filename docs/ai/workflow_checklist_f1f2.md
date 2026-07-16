@@ -1,5 +1,10 @@
 # F1–F2 continuous-scenario validation — workflow checklist
 
+> **Wave-4 archive note (2026-07-16):** the program plan doc (`docs/ai/validation_plan_f1f2_continuous.md`)
+> and other superseded planning/review docs cited by name below are now at `_archive/plans/` /
+> `_archive/reports/` (`version.md` CLEAN-2026-07-16); `EXP-014`..`EXP-024` artifacts moved to
+> `_archive/experiments/`. Historical citations below are not individually rewritten (append-only
+> record) — see `_archive/README.md` wave-4 manifest.
 > **Purpose:** essence-only, at-a-glance status of the whole program — every plan-finalization step and every execution wave, one row each, with its owning gate(s) and status. Populated from `docs/ai/validation_plan_f1f2_continuous.md` v1.2.
 > **Status symbols:** ☑ done (with evidence in the plan doc or `discussion.md`) · ☐ not done (pending or not yet started).
 > **Companion docs:** the plan doc (full detail) and `docs/ai/workflow_results_f1f2.md` (per-workflow results log, appended as waves complete).

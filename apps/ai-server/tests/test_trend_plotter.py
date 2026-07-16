@@ -204,7 +204,7 @@ class TestBackwardCompatibility:
         assert len(b64) > 100
 
 
-# ── F4 quick-dev extensions (`docs/ai/f4_quick_dev_plan.md` §5.2, wave 5) ──
+# ── F4 quick-dev extensions (`_archive/plans/f4_quick_dev_plan.md` §5.2, wave 5) ──
 
 
 class TestSlotFillPanel:

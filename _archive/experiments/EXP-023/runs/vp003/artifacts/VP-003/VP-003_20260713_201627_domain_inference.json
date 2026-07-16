@@ -1,0 +1,168 @@
+{
+  "session_id": "f1_VP-003_followup",
+  "persona_id": "VP-003",
+  "repro": {
+    "git_head": "75472eee31ba9c8a335a0e75f9d0d5acc75b3569",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260713_201623_conversation.json",
+    "input_sha256": "55ebd7b782218cf933668d456cefc572c3800211e6b69a80160aedc9878b1f20",
+    "mode": "llm_only",
+    "latency_ms": 3756.0,
+    "generated_at": "2026-07-13T20:16:27.172365",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 1833,
+      "completion_tokens": 500,
+      "total_tokens": 2333
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "depression",
+      "confidence": 0.35,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_2",
+          "quote": "형이 있다는 게 도움이 된다는 기분이 들긴 해요. 근데 그게 다는 아니죠."
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "자살 사고와 살고 싶지 않다는 생각이 지속되며, 우울증 척도 점수가 27점으로 중증 우울증이 의심됩니다. 가족과의 관계 부담, 알코올 의존, 사회적 고립이 동반되어 정신건강의학과 진료가 필요합니다.",
+      "domain_ref": "depression"
+    }
+  ],
+  "summary": "환자는 매일 지속되는 살고 싶지 않다는 생각과 자살 사고, 중증 우울증 척도 점수(PHQ-9 27점)를 보이며, 알코올 의존과 사회적 고립, 가족과의 관계 부담이 동반됩니다. 이전 세션에서 정신과 진료 경험이 없고, 현재 재진 상태입니다.",
+  "retrieval_meta": {
+    "mode": "llm_only",
+    "chunks_returned": 0,
+    "chunk_ids": [],
+    "queries": null
+  },
+  "chunk_texts": {},
+  "utterances": {
+    "turn_0": "...글쎄요. 여전히 그냥 힘들어요. 살고 싶지 않다는 생각은 여전한데, 형이 어제 와서 좀 덜 외로웠어요. 그래도 그게 다는 아닌 것 같아요.",
+    "turn_1": "...글쎄요. 여전히 그냥 힘들어요. 살고 싶지 않다는 생각은 여전한데, 형이 어제 와서 좀 덜 외로웠어요. 그래도 그게 다는 아닌 것 같아요.",
+    "turn_2": "...생각이 잘 안 나요.  그냥, 가끔은 형이 있다는 게 도움이 된다는 기분이 들긴 해요.  근데 그게 다는 아니죠.",
+    "turn_3": "...어떻게까지는... 생각 안 했어요.  그냥 사라지고 싶은 거예요.  생각이 너무 많아서, 뭘 해야 할지도 몰라요.",
+    "turn_4": "아니요, 정신과 가 본 적도 없고... 처음이에요. 도움이 되나요? 뭘 해도 안 될 것 같아서... 형이 짐이 될까 봐 연락도 안 해요. 술 안 마시면 못 버티고, 그냥... 사라지고 싶어요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 1,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 4
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "살고 싶지 않다는 생각이 여전한데, 형이 어제 와서 좀 덜 외로웠어요. 그래도 그게 다는 아닌 것 같아요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살고 싶지 않, 살고싶지않) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "살고 싶지 않다는 생각이 여전한데, 형이 어제 와서 좀 덜 외로웠어요. 그래도 그게 다는 아닌 것 같아요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살고 싶지 않, 살고싶지않) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "형이 있다는 게 도움이 된다는 기분이 들긴 해요. 근데 그게 다는 아니죠.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_3",
+        "quote": "어떻게까지는... 생각 안 했어요. 그냥 사라지고 싶은 거예요. 생각이 너무 많아서, 뭘 해야 할지도 몰라요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_4",
+        "quote": "아니요, 정신과 가 본 적도 없고... 처음이에요. 도움이 되나요? 뭘 해도 안 될 것 같아서... 형이 짐이 될까 봐 연락도 안 해요. 술 안 마시면 못 버티고, 그냥... 사라지고 싶어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 1,
+    "candidates_after": 1,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 4,
+    "evidence_stripped_risk_lexicon": 4
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "구체적인 자살 계획이 있는지 확인해 주세요.",
+    "알코올 사용량과 금단 증상에 대한 구체적인 정보를 알려주세요.",
+    "가족과의 관계 개선을 위한 지원이나 상담 경험이 있는지 확인해 주세요."
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 3755.956970155239,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 1833,
+    "completion_tokens": 500,
+    "total_tokens": 2333
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [],
+    "mode": "experimental_unpopulated",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "Stage 1 ran in llm_only mode (no RAG chunks retrieved this run) — the AI-disease container has no chunk-derived evidence to populate from",
+    "recommended_questionnaire": null,
+    "recommendation_caveat": null
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 0,
+    "rag_chunk_qa": 0,
+    "rag_chunk_other": 0,
+    "utterance": 1,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "A",
+    "retrieve": false,
+    "queries": [],
+    "dropped_queries": [
+      "살고 싶지 않다는 생각이 매일 지속됨",
+      "살고 싶지 않다는 생각이 매일 지속되며, 구체적인 계획이나 생각은 없음",
+      "...글쎄요. 여전히 그냥 힘들어요. 살고 싶지 않다는 생각은 여전한데, 형이 어제 와서 좀 덜 외로웠어요. 그래도 그게 다는 아닌 것 같아요.",
+      "아니요, 정신과 가 본 적도 없고... 처음이에요. 도움이 되나요? 뭘 해도 안 될 것 같아서... 형이 짐이 될까 봐 연락도 안 해요. 술 안 마시면 못 버티고, 그냥... 사라지고 싶어요."
+    ],
+    "trigger_reason": "insufficient_fallback_used_no_usable_queries",
+    "fallback_used": true,
+    "judge_output": null
+  },
+  "scenario_pack_id": "VP-003_relapse_after_partial_improvement_s10",
+  "arc_mode": "relapse_after_partial_improvement"
+}

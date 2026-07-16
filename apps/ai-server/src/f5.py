@@ -1,6 +1,6 @@
 """F5 — clinical hand-off report assembly (production engine).
 
-`docs/ai/f5_quick_dev_plan.md` §2/§4, `PLAN-2026-W29-E`, `ADR-037`. This
+`_archive/plans/f5_quick_dev_plan.md` §2/§4, `PLAN-2026-W29-E`, `ADR-037`. This
 module is architected exactly like `f1.py`/`f2.py`/`f3.py`/`f4.py`: a
 standalone module invocable by a harness that has already assembled every
 input from F1-F4 artifacts — never a route, never wired into

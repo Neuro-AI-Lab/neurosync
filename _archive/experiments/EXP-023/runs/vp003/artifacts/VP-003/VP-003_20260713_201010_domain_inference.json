@@ -1,0 +1,143 @@
+{
+  "session_id": "f1_VP-003_followup",
+  "persona_id": "VP-003",
+  "repro": {
+    "git_head": "75472eee31ba9c8a335a0e75f9d0d5acc75b3569",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260713_201005_conversation.json",
+    "input_sha256": "1f8a46f97757c8dbd4a748c0f69486dce66d27dda7f3c5cfe63cafdc716d3c6a",
+    "mode": "llm_only",
+    "latency_ms": 2543.8,
+    "generated_at": "2026-07-13T20:10:10.182362",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 1658,
+      "completion_tokens": 322,
+      "total_tokens": 1980
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "실업급여 종료로 인한 막막함과 살고 싶지 않다는 생각이 지속되며, 하루 종일 죽고 싶다는 생각이 반복됨",
+      "domain_ref": "depression"
+    }
+  ],
+  "summary": "실업급여 종료로 인한 막막함과 살고 싶지 않다는 생각이 지속되며, 하루 종일 죽고 싶다는 생각이 반복됨. 자살/자해 사고는 구체적 계획 없이 '사라지고 싶다', '죽으면 편할 것 같다'는 표현으로 나타남.",
+  "retrieval_meta": {
+    "mode": "llm_only",
+    "chunks_returned": 0,
+    "chunk_ids": [],
+    "queries": null
+  },
+  "chunk_texts": {},
+  "utterances": {
+    "turn_0": "아니요... 반갑진 않아요.  \n다시 실업급여 끝났어요.  \n이제 어떻게 살아야 할지 모르겠어요.  \n사라지고 싶은 생각이... 더 자주 들어요.",
+    "turn_1": "아니요... 반갑진 않아요.  \n다시 실업급여 끝났어요.  \n이제 어떻게 살아야 할지 모르겠어요.  \n사라지고 싶은 생각이... 더 자주 들어요.",
+    "turn_2": "하루 종일 그런 생각이에요.  \n깨어 있는 시간이 다 그런 생각뿐이에요.  \n사라지고 싶다, 죽으면 편할 것 같다...  \n마치 터널 끝도 안 보여요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 0,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 3
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "사라지고 싶은 생각이... 더 자주 들어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_1",
+        "quote": "사라지고 싶은 생각이... 더 자주 들어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "하루 종일 그런 생각이에요. 깨어 있는 시간이 다 그런 생각뿐이에요. 사라지고 싶다, 죽으면 편할 것 같다...",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶, 죽으면 편할, 죽으면편할) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 1,
+    "candidates_after": 0,
+    "candidates_eliminated": 1,
+    "eliminated_domains": [
+      "depression"
+    ],
+    "evidence_stripped": 3,
+    "evidence_stripped_risk_lexicon": 3
+  },
+  "orphan_departments": [
+    {
+      "department": "정신건강의학과",
+      "reason": "실업급여 종료로 인한 막막함과 살고 싶지 않다는 생각이 지속되며, 하루 종일 죽고 싶다는 생각이 반복됨",
+      "domain_ref": "depression"
+    }
+  ],
+  "additional_questions": [
+    "구체적인 자살 계획이 있는지",
+    "과거 정신과 치료 경험이 있는지",
+    "가족 중 정신과 질환 이력이 있는지"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 2543.831436894834,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 1658,
+    "completion_tokens": 322,
+    "total_tokens": 1980
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [],
+    "mode": "experimental_unpopulated",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "Stage 1 ran in llm_only mode (no RAG chunks retrieved this run) — the AI-disease container has no chunk-derived evidence to populate from",
+    "recommended_questionnaire": null,
+    "recommendation_caveat": null
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 0,
+    "rag_chunk_qa": 0,
+    "rag_chunk_other": 0,
+    "utterance": 0,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "A",
+    "retrieve": false,
+    "queries": [],
+    "dropped_queries": [
+      "실업급여 종료로 인한 막막함과 살고 싶지 않다는 생각이 지속됨",
+      "실업급여 종료에 대한 막막함과 살고 싶지 않다는 생각이 아침부터 지속됨",
+      "아니요... 반갑진 않아요.  \n다시 실업급여 끝났어요.  \n이제 어떻게 살아야 할지 모르겠어요.  \n사라지고 싶은 생각이... 더 자주 들어요.",
+      "하루 종일 그런 생각이에요.  \n깨어 있는 시간이 다 그런 생각뿐이에요.  \n사라지고 싶다, 죽으면 편할 것 같다...  \n마치 터널 끝도 안 보여요."
+    ],
+    "trigger_reason": "insufficient_fallback_used_no_usable_queries",
+    "fallback_used": true,
+    "judge_output": null
+  },
+  "scenario_pack_id": "VP-003_relapse_after_partial_improvement_s06",
+  "arc_mode": "relapse_after_partial_improvement"
+}

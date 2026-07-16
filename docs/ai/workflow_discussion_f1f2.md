@@ -1,5 +1,10 @@
 # F1–F2 continuous-scenario validation — issues and solutions log
 
+> **Wave-4 archive note (2026-07-16):** `EXP-014`..`EXP-024` artifact paths referenced below now
+> live under `_archive/experiments/` (filesystem move, `version.md` CLEAN-2026-07-16); `EXP-025`,
+> `EXP-026`, `EXP-027` remain live in `experiments/`. Individual historical path citations below
+> are not rewritten (append-only record, out of this wave's scope) — see `_archive/README.md`
+> wave-4 manifest for current locations of any doc named below that predates this wave.
 > **Purpose:** one entry per issue encountered during program execution, paired with its solution. Issues anticipated by `PLAN-2026-W28-P` answer #7 — "new issues are expected to surface during validation," disclosed as an expected outcome of the F1-wide review framing, not a plan defect (`docs/ai/validation_plan_f1f2_continuous.md` §1, §3, §9 answer #7) — land here first, as an `ISS-F2V-NNN` row, before being formally filed as a `BUG-`/`VAL-`/`CVR-`/`REV-` entry in the appropriate root doc and cross-referenced back.
 > **Monitoring surface:** this doc is part of the user's primary monitoring surface (plan §2 invariant 6) and SURVIVES the blind-state reset (plan §7 survival whitelist) — a scope extended to this doc by the user's 2026-07-11 mid-execution directive (`discussion.md` `PLAN-2026-W28-Q`, "Status (2026-07-11, mid-execution user directive — folded immediately)": same directive-6 monitoring-doc category as the other two docs).
 > **ID scheme:** `ISS-F2V-NNN`, numbered from `ISS-F2V-001`, its own namespace — distinct from the codebase's pre-existing inline `ISS-NNN` comment tags (e.g. `ISS-026`, `ISS-043` in `apps/ai-server/src/` and `apps/ai-server/tests/`), which track code-level regression fixes and are not part of this program's doc-ID space.

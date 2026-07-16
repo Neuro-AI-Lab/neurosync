@@ -1,6 +1,6 @@
 """`tests.simulation.patient_llm.load_persona` — ID-glob vs. explicit-path seam.
 
-`docs/ai/validation_plan_f1f2_continuous.md` §6 canary design: audit-only
+`_archive/plans/validation_plan_f1f2_continuous.md` §6 canary design: audit-only
 persona copies live under `docs/ai/personas/_canary_audit/`, provably
 disjoint from `PERSONAS_DIR.glob(f"{persona_id}_*.md")` (non-recursive), so
 the normal ID-glob path never loads them. This seam lets a caller (the

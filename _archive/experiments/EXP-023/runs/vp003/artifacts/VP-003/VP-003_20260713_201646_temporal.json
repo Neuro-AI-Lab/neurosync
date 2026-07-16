@@ -1,0 +1,526 @@
+{
+  "vp_id": "VP-003",
+  "arc_mode": "relapse_after_partial_improvement",
+  "n_sessions": 11,
+  "session_span_days": 183,
+  "slot_fill_series": [
+    {
+      "session_index": 1,
+      "simulated_date": "2026-07-13",
+      "filled_count": 4,
+      "total_questionable": 8,
+      "newly_filled": [],
+      "newly_missing": [],
+      "mental_status_exam_observed": false
+    },
+    {
+      "session_index": 2,
+      "simulated_date": "2026-07-20",
+      "filled_count": 4,
+      "total_questionable": 8,
+      "newly_filled": [],
+      "newly_missing": [],
+      "mental_status_exam_observed": false
+    },
+    {
+      "session_index": 3,
+      "simulated_date": "2026-07-27",
+      "filled_count": 4,
+      "total_questionable": 8,
+      "newly_filled": [],
+      "newly_missing": [],
+      "mental_status_exam_observed": false
+    },
+    {
+      "session_index": 4,
+      "simulated_date": "2026-08-03",
+      "filled_count": 5,
+      "total_questionable": 8,
+      "newly_filled": [
+        "medical_history"
+      ],
+      "newly_missing": [],
+      "mental_status_exam_observed": false
+    },
+    {
+      "session_index": 5,
+      "simulated_date": "2026-08-17",
+      "filled_count": 5,
+      "total_questionable": 8,
+      "newly_filled": [],
+      "newly_missing": [],
+      "mental_status_exam_observed": false
+    },
+    {
+      "session_index": 6,
+      "simulated_date": "2026-08-31",
+      "filled_count": 5,
+      "total_questionable": 8,
+      "newly_filled": [],
+      "newly_missing": [],
+      "mental_status_exam_observed": false
+    },
+    {
+      "session_index": 7,
+      "simulated_date": "2026-09-14",
+      "filled_count": 6,
+      "total_questionable": 8,
+      "newly_filled": [
+        "substance_use_history"
+      ],
+      "newly_missing": [],
+      "mental_status_exam_observed": false
+    },
+    {
+      "session_index": 8,
+      "simulated_date": "2026-10-12",
+      "filled_count": 6,
+      "total_questionable": 8,
+      "newly_filled": [],
+      "newly_missing": [],
+      "mental_status_exam_observed": false
+    },
+    {
+      "session_index": 9,
+      "simulated_date": "2026-11-12",
+      "filled_count": 7,
+      "total_questionable": 8,
+      "newly_filled": [
+        "personal_social_history"
+      ],
+      "newly_missing": [],
+      "mental_status_exam_observed": false
+    },
+    {
+      "session_index": 10,
+      "simulated_date": "2026-12-12",
+      "filled_count": 7,
+      "total_questionable": 8,
+      "newly_filled": [],
+      "newly_missing": [],
+      "mental_status_exam_observed": false
+    },
+    {
+      "session_index": 11,
+      "simulated_date": "2027-01-12",
+      "filled_count": 7,
+      "total_questionable": 8,
+      "newly_filled": [],
+      "newly_missing": [],
+      "mental_status_exam_observed": false
+    }
+  ],
+  "scale_series": {
+    "PHQ-9": [
+      {
+        "session_index": 9,
+        "simulated_date": "2026-11-12",
+        "scale_name": "PHQ-9",
+        "administered": true,
+        "total_score": 27,
+        "max_score": 27,
+        "severity": "severe",
+        "critical_item_positive": true,
+        "subscale_scores": {}
+      }
+    ]
+  },
+  "ctrs_series": [
+    {
+      "session_index": 1,
+      "simulated_date": "2026-07-13",
+      "session_ctrs": 3,
+      "crisis_triggered": false,
+      "probe_event_count": 6,
+      "risk_floor": 3
+    },
+    {
+      "session_index": 2,
+      "simulated_date": "2026-07-20",
+      "session_ctrs": 2,
+      "crisis_triggered": true,
+      "probe_event_count": 1,
+      "risk_floor": 3
+    },
+    {
+      "session_index": 3,
+      "simulated_date": "2026-07-27",
+      "session_ctrs": 2,
+      "crisis_triggered": true,
+      "probe_event_count": 2,
+      "risk_floor": 3
+    },
+    {
+      "session_index": 4,
+      "simulated_date": "2026-08-03",
+      "session_ctrs": 3,
+      "crisis_triggered": false,
+      "probe_event_count": 6,
+      "risk_floor": 3
+    },
+    {
+      "session_index": 5,
+      "simulated_date": "2026-08-17",
+      "session_ctrs": 2,
+      "crisis_triggered": true,
+      "probe_event_count": 1,
+      "risk_floor": 3
+    },
+    {
+      "session_index": 6,
+      "simulated_date": "2026-08-31",
+      "session_ctrs": 2,
+      "crisis_triggered": true,
+      "probe_event_count": 1,
+      "risk_floor": 3
+    },
+    {
+      "session_index": 7,
+      "simulated_date": "2026-09-14",
+      "session_ctrs": 3,
+      "crisis_triggered": false,
+      "probe_event_count": 6,
+      "risk_floor": 3
+    },
+    {
+      "session_index": 8,
+      "simulated_date": "2026-10-12",
+      "session_ctrs": 2,
+      "crisis_triggered": true,
+      "probe_event_count": 6,
+      "risk_floor": 3
+    },
+    {
+      "session_index": 9,
+      "simulated_date": "2026-11-12",
+      "session_ctrs": 3,
+      "crisis_triggered": false,
+      "probe_event_count": 6,
+      "risk_floor": 3
+    },
+    {
+      "session_index": 10,
+      "simulated_date": "2026-12-12",
+      "session_ctrs": 2,
+      "crisis_triggered": true,
+      "probe_event_count": 3,
+      "risk_floor": 3
+    },
+    {
+      "session_index": 11,
+      "simulated_date": "2027-01-12",
+      "session_ctrs": 2,
+      "crisis_triggered": true,
+      "probe_event_count": 1,
+      "risk_floor": 3
+    }
+  ],
+  "sentiment_series": [
+    {
+      "session_index": 1,
+      "simulated_date": "2026-07-13",
+      "mean_polarity": -0.868181818181818,
+      "dominant_emotions": [
+        "despair",
+        "sadness"
+      ],
+      "source": "mode_a_derived",
+      "risk_signal_count": 10,
+      "signal_strength": "strong",
+      "emotional_shift_detected": false
+    },
+    {
+      "session_index": 2,
+      "simulated_date": "2026-07-20",
+      "mean_polarity": -0.85,
+      "dominant_emotions": [
+        "despair",
+        "anxiety"
+      ],
+      "source": "mode_a_derived",
+      "risk_signal_count": 3,
+      "signal_strength": "strong",
+      "emotional_shift_detected": false
+    },
+    {
+      "session_index": 3,
+      "simulated_date": "2026-07-27",
+      "mean_polarity": -0.8875,
+      "dominant_emotions": [
+        "despair",
+        "sadness"
+      ],
+      "source": "mode_a_derived",
+      "risk_signal_count": 4,
+      "signal_strength": "strong",
+      "emotional_shift_detected": false
+    },
+    {
+      "session_index": 4,
+      "simulated_date": "2026-08-03",
+      "mean_polarity": -0.859090909090909,
+      "dominant_emotions": [
+        "despair",
+        "sadness"
+      ],
+      "source": "mode_a_derived",
+      "risk_signal_count": 8,
+      "signal_strength": "strong",
+      "emotional_shift_detected": false
+    },
+    {
+      "session_index": 5,
+      "simulated_date": "2026-08-17",
+      "mean_polarity": -0.85,
+      "dominant_emotions": [
+        "despair",
+        "anxiety"
+      ],
+      "source": "mode_a_derived",
+      "risk_signal_count": 3,
+      "signal_strength": "strong",
+      "emotional_shift_detected": false
+    },
+    {
+      "session_index": 6,
+      "simulated_date": "2026-08-31",
+      "mean_polarity": -0.8666666666666667,
+      "dominant_emotions": [
+        "despair",
+        "sadness"
+      ],
+      "source": "mode_a_derived",
+      "risk_signal_count": 3,
+      "signal_strength": "strong",
+      "emotional_shift_detected": false
+    },
+    {
+      "session_index": 7,
+      "simulated_date": "2026-09-14",
+      "mean_polarity": -0.8090909090909091,
+      "dominant_emotions": [
+        "despair",
+        "sadness"
+      ],
+      "source": "mode_a_derived",
+      "risk_signal_count": 9,
+      "signal_strength": "strong",
+      "emotional_shift_detected": false
+    },
+    {
+      "session_index": 8,
+      "simulated_date": "2026-10-12",
+      "mean_polarity": -0.8374999999999999,
+      "dominant_emotions": [
+        "despair",
+        "sadness"
+      ],
+      "source": "mode_a_derived",
+      "risk_signal_count": 8,
+      "signal_strength": "strong",
+      "emotional_shift_detected": false
+    },
+    {
+      "session_index": 9,
+      "simulated_date": "2026-11-12",
+      "mean_polarity": -0.8136363636363637,
+      "dominant_emotions": [
+        "despair",
+        "sadness"
+      ],
+      "source": "mode_a_derived",
+      "risk_signal_count": 8,
+      "signal_strength": "strong",
+      "emotional_shift_detected": false
+    },
+    {
+      "session_index": 10,
+      "simulated_date": "2026-12-12",
+      "mean_polarity": -0.6799999999999999,
+      "dominant_emotions": [
+        "despair",
+        "sadness"
+      ],
+      "source": "mode_a_derived",
+      "risk_signal_count": 4,
+      "signal_strength": "strong",
+      "emotional_shift_detected": false
+    },
+    {
+      "session_index": 11,
+      "simulated_date": "2027-01-12",
+      "mean_polarity": -0.7666666666666666,
+      "dominant_emotions": [
+        "despair",
+        "sadness"
+      ],
+      "source": "mode_a_derived",
+      "risk_signal_count": 3,
+      "signal_strength": "strong",
+      "emotional_shift_detected": false
+    }
+  ],
+  "disease_candidate_series": [
+    {
+      "session_index": 9,
+      "simulated_date": "2026-11-12",
+      "disease": "우울 삽화(우울증)",
+      "similarity_score": 0.391,
+      "rank": 1
+    },
+    {
+      "session_index": 9,
+      "simulated_date": "2026-11-12",
+      "disease": "양극성 정동장애(조울증)",
+      "similarity_score": 0.391,
+      "rank": 2
+    },
+    {
+      "session_index": 9,
+      "simulated_date": "2026-11-12",
+      "disease": "계절성 정동장애",
+      "similarity_score": 0.349,
+      "rank": 3
+    },
+    {
+      "session_index": 9,
+      "simulated_date": "2026-11-12",
+      "disease": "월경전 불쾌장애",
+      "similarity_score": 0.349,
+      "rank": 4
+    },
+    {
+      "session_index": 9,
+      "simulated_date": "2026-11-12",
+      "disease": "공황발작 징후",
+      "similarity_score": 0.347,
+      "rank": 5
+    }
+  ],
+  "domain_candidate_series": [
+    {
+      "session_index": 1,
+      "simulated_date": "2026-07-13",
+      "domain": "depression",
+      "confidence": 0.35
+    },
+    {
+      "session_index": 1,
+      "simulated_date": "2026-07-13",
+      "domain": "anxiety",
+      "confidence": 0.25
+    },
+    {
+      "session_index": 4,
+      "simulated_date": "2026-08-03",
+      "domain": "depression",
+      "confidence": 0.35
+    },
+    {
+      "session_index": 7,
+      "simulated_date": "2026-09-14",
+      "domain": "depression",
+      "confidence": 0.35
+    },
+    {
+      "session_index": 7,
+      "simulated_date": "2026-09-14",
+      "domain": "alcohol",
+      "confidence": 0.3
+    },
+    {
+      "session_index": 9,
+      "simulated_date": "2026-11-12",
+      "domain": "depression",
+      "confidence": 0.7
+    },
+    {
+      "session_index": 9,
+      "simulated_date": "2026-11-12",
+      "domain": "anxiety",
+      "confidence": 0.5
+    },
+    {
+      "session_index": 10,
+      "simulated_date": "2026-12-12",
+      "domain": "depression",
+      "confidence": 0.35
+    }
+  ],
+  "trend_verdicts": [
+    {
+      "dimension": "phq9_total",
+      "direction": "unknown",
+      "basis": "first_vs_last_delta+slope_sign+band_transition (non-naive-pairwise, ADR-036 item 1)",
+      "n_comparable_points": 1,
+      "evidence": []
+    },
+    {
+      "dimension": "session_ctrs",
+      "direction": "worsened",
+      "basis": "first_vs_last_delta+slope_sign (non-naive-pairwise, ADR-036 item 1)",
+      "n_comparable_points": 11,
+      "evidence": [
+        "session_ctrs: first-vs-last delta session 1->11: 3 -> 2 (-1)",
+        "session_ctrs: linear slope across 11 comparable session(s): -0.02727/session",
+        "session_ctrs: crisis_triggered at session(s) [2, 3, 5, 6, 8, 10, 11]",
+        "session_ctrs: minimum CTRS reached across the series: 2",
+        "supplementary (pairwise reuse, temporal_summary._compare_ctrs, session 1->2): worsened",
+        "supplementary (pairwise reuse, temporal_summary._compare_ctrs, session 2->3): unchanged",
+        "supplementary (pairwise reuse, temporal_summary._compare_ctrs, session 3->4): improved",
+        "supplementary (pairwise reuse, temporal_summary._compare_ctrs, session 4->5): worsened",
+        "supplementary (pairwise reuse, temporal_summary._compare_ctrs, session 5->6): unchanged",
+        "supplementary (pairwise reuse, temporal_summary._compare_ctrs, session 6->7): improved",
+        "supplementary (pairwise reuse, temporal_summary._compare_ctrs, session 7->8): worsened",
+        "supplementary (pairwise reuse, temporal_summary._compare_ctrs, session 8->9): improved",
+        "supplementary (pairwise reuse, temporal_summary._compare_ctrs, session 9->10): worsened",
+        "supplementary (pairwise reuse, temporal_summary._compare_ctrs, session 10->11): unchanged"
+      ]
+    },
+    {
+      "dimension": "sentiment",
+      "direction": "improved",
+      "basis": "first_vs_last_delta+slope_sign (non-naive-pairwise, ADR-036 item 1)",
+      "n_comparable_points": 11,
+      "evidence": [
+        "sentiment: first-vs-last delta session 1->11: -0.868182 -> -0.766667 (+0.102)",
+        "sentiment: linear slope across 11 comparable session(s): +0.01358/session",
+        "supplementary (pairwise reuse, temporal_summary._compare_sentiment, session 1->2): unchanged",
+        "supplementary (pairwise reuse, temporal_summary._compare_sentiment, session 2->3): unchanged",
+        "supplementary (pairwise reuse, temporal_summary._compare_sentiment, session 3->4): unchanged",
+        "supplementary (pairwise reuse, temporal_summary._compare_sentiment, session 4->5): unchanged",
+        "supplementary (pairwise reuse, temporal_summary._compare_sentiment, session 5->6): unchanged",
+        "supplementary (pairwise reuse, temporal_summary._compare_sentiment, session 6->7): unchanged",
+        "supplementary (pairwise reuse, temporal_summary._compare_sentiment, session 7->8): unchanged",
+        "supplementary (pairwise reuse, temporal_summary._compare_sentiment, session 8->9): unchanged",
+        "supplementary (pairwise reuse, temporal_summary._compare_sentiment, session 9->10): unchanged",
+        "supplementary (pairwise reuse, temporal_summary._compare_sentiment, session 10->11): unchanged"
+      ]
+    },
+    {
+      "dimension": "slot_fill_count",
+      "direction": "improved",
+      "basis": "first_vs_last_delta+slope_sign",
+      "n_comparable_points": 11,
+      "evidence": [
+        "slot_fill_count: first-vs-last delta session 1->11: 4 -> 7 (+3)",
+        "slot_fill_count: linear slope across 11 comparable session(s): +0.3545/session"
+      ]
+    }
+  ],
+  "overall_direction": "worsened",
+  "course_shape": "unknown",
+  "concordance_flag": "discordant",
+  "crisis_f3_gaps": [
+    "session 2 (2026-07-20): risk-elevated (crisis_triggered=True, session_ctrs=2) but NO scale was administered this session — F3 gap at a clinically high-value point (CVR-020 Finding 4 / binding condition 3)",
+    "session 3 (2026-07-27): risk-elevated (crisis_triggered=True, session_ctrs=2) but NO scale was administered this session — F3 gap at a clinically high-value point (CVR-020 Finding 4 / binding condition 3)",
+    "session 5 (2026-08-17): risk-elevated (crisis_triggered=True, session_ctrs=2) but NO scale was administered this session — F3 gap at a clinically high-value point (CVR-020 Finding 4 / binding condition 3)",
+    "session 6 (2026-08-31): risk-elevated (crisis_triggered=True, session_ctrs=2) but NO scale was administered this session — F3 gap at a clinically high-value point (CVR-020 Finding 4 / binding condition 3)",
+    "session 8 (2026-10-12): risk-elevated (crisis_triggered=True, session_ctrs=2) but NO scale was administered this session — F3 gap at a clinically high-value point (CVR-020 Finding 4 / binding condition 3)",
+    "session 10 (2026-12-12): risk-elevated (crisis_triggered=True, session_ctrs=2) but NO scale was administered this session — F3 gap at a clinically high-value point (CVR-020 Finding 4 / binding condition 3)",
+    "session 11 (2027-01-12): risk-elevated (crisis_triggered=True, session_ctrs=2) but NO scale was administered this session — F3 gap at a clinically high-value point (CVR-020 Finding 4 / binding condition 3)"
+  ],
+  "is_diagnostic": false,
+  "disclaimer": "이 결과는 여러 세션에 걸친 F1/F2/F3 기록의 값 변화를 규칙 기반(rule-based)으로 계산한 종단 분석 요약이며, 의학적 진단이 아닙니다(is_diagnostic=false). disease_candidate_series/domain_candidate_series의 similarity_score/confidence는 RAG 유사도 신호일 뿐 확률·가능성이 아니며, 그 위에서 계산된 추세(trend) 역시 원 신호가 노이즈가 많으면 추세도 노이즈가 많습니다 (VAL-014, 미해결 — 이 산출물은 F2 후보의 임상 타당성을 검증하지 않습니다). scale_series의 심각도(severity) 구간 판정은 F3의 비-공식 대화형 설문 진행 방식에 따른 캐비어트(threshold_caveat)를 그대로 승계하며, 동일 척도가 전 세션에서 체계적으로 과대추정(over-endorsement, ISS-F2V-028)되었을 가능성은 이 결과에서 별도로 보정되지 않습니다. 이 결과에 evidence로 인용되지 않은 값은 어떤 세션/필드에 대해서도 임의로 추정하지 않습니다(evidence-필수). 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+  "generated_at": "2026-07-13T20:16:46.360074"
+}

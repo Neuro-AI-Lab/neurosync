@@ -1,5 +1,5 @@
 """`src.continuous_test`'s F4 stage + scenario-pack threading —
-`docs/ai/f4_quick_dev_plan.md`, `PLAN-2026-W29-D`, `ADR-036`. No live
+`_archive/plans/f4_quick_dev_plan.md`, `PLAN-2026-W29-D`, `ADR-036`. No live
 LLM/DB anywhere in this file: F1 is monkeypatched (mirrors
 `tests/test_continuous_test_f3.py`'s existing convention), F2/F3 are
 stubbed trivially since this file's focus is F4 assembly + scenario-pack

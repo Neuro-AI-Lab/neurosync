@@ -1,0 +1,144 @@
+# EXP-023 — F4 quick-dev 약식 validation battery: VP-001 + VP-003, 11 scripted
+# sessions each, F1->F2->F3->F4 chained (PLAN-2026-W29-D step 7).
+# Written before launch, per experiment-reproducibility skill.
+
+mission: PLAN-2026-W29-D (discussion.md) step 7, gated by REV-044/CVR-020/CVR-021/ADR-036
+linked: [PLAN-2026-W29-D, REV-044, CVR-020, CVR-021, ADR-036, DATASET-002, DATASET-003, DATASET-006]
+hyp: "none — F4 longitudinal-analysis-engine + scenario-harness functional (약식) validation,
+  not a HYP-linked capability experiment (REV-044 circularity ruling: pipeline-capability +
+  arithmetic-correctness demonstration, never independent change-detection sensitivity/specificity)"
+
+code_under_test:
+  branch: feat/f4-longitudinal
+  git_head_at_launch: 75472eee31ba9c8a335a0e75f9d0d5acc75b3569
+  no_code_edits_this_run: true
+  working_tree_state: "clean at launch except 2 qa repro test files intentionally left
+    uncommitted per HANDOFF (tests/repro/test_bug_041.py, test_bug_042.py) -- not touched"
+  qa_gate: "GATE:PASS on 75472ee per HANDOFF (suite 1669 passed/2 skipped after qa's own
+    regression additions for BUG-041/BUG-042, both resolved same session, no live incorrect
+    behavior found in either)"
+  f4_stage_registered: "STAGE_REGISTRY Stage('F4', True, run_f4_stage) confirmed live,
+    continuous_test.py:1013"
+  prompt_pins_verified_at_launch (recomputed via sha256sum, this session, before any launch):
+    safety_classifier_v2_sha256: "3e9ca6b44ba3373f70c068758a2e1ae860f3c58483394a85fed9e13a90b3390c"
+    dialogue_v4_sha256: "f93e995f68e3a3bc88ddd5ce1f6b01ef8feb5e5663bda46ce4958ae8e6317144"
+    both_match_EXP-020_precedent: true
+    mission_diff_check: "git diff --stat 634ad6a..75472ee -- docs/ai/prompts/ -> empty, 0 hits
+      -- confirms PLAN-2026-W29-D's binding 'no dialogue-prompt change' constraint held"
+
+gates:
+  critic_review: "REV-044 non-blocking-with-conditions (4 major: 2 blocking-scoped on Wave 1
+    aggregation basis/combination rule [ADOPTED per ADR-036 item 1], 2 disclosure items
+    [ACCEPTED/THREADED per ADR-036 items 2-3]; pre-registered Criteria 0/0b/1-6 + MAY/MUST-NOT
+    wording table binding on this EXP entry. No open blocking REV in discussion.md at launch."
+  clinical_review: "CVR-020 adequate-with-conditions (1 blocking-scoped on VP-003 arc content,
+    RESOLVED BY SCRIPTING per ADR-036 item 5) -> CVR-021 (post-scripting content pass, both packs
+    at commit 75472ee) adequate-with-conditions, live battery CLEARLY CLEARED to run. CVR-021's
+    1 major (S8 care-connection capability-attribution risk) is report-scoped, binding on this
+    entry's Notes/wording, not execution-blocking."
+  qa_gate: "GATE:PASS (HANDOFF) -- CI mirror 1669+2, BUG-041/BUG-042 (mutation-coverage gaps in
+    _first_last_slope_trend / _SEVERITY_BAND_RANK) resolved same session, no live incorrect
+    behavior found"
+  dataset: "DATASET-002/003/006 active (ADR-036 item 10: no new data dispatch -- scenario packs
+    are harness fixtures content-gated by CVR-021, not a new DATASET card)"
+  experiment_gate_hook: "python -m src.continuous_test does not match the hook's EXP_LAUNCH regex
+    (run.sh/evaluate.sh/models/*.py only) -- non-triggering, no GATE_OVERRIDE needed, same
+    precedent as EXP-014/016/017/018/019/020/021/022"
+
+env_discipline:
+  lg_k_exaone_api_key: "PRESENT (name-only check, grep -c '^LG_K_EXAONE_API_KEY=' .env -> 1;
+    value never read/printed)"
+  upstage_api_key: "PRESENT (name-only check -> 1; value never read/printed)"
+  skt_a_x_api_key: "PRESENT (name-only check -> 1; value never read/printed) -- not expected to
+    be load-bearing for this battery (PHQ-9-only arcs, no AUDIT-C/SKT-routed scale)"
+  python_version: "3.12.13 (.venv)"
+  uv_version: "0.10.9"
+
+hardware: "CPU-only orchestration host (128 cores, 125GiB RAM; 3x RTX 3090 present but unused --
+  inference is 100% remote API: Upstage-hosted (solar-pro3-260323, dialogue/safety/clinical_slot/
+  sentiment/domain_inference) + Friendli K-EXAONE (PatientLLM F1 + SurveyAnswerLLM F3)."
+
+scenario_packs:
+  method: "confirmed by direct import: tests.simulation.scenario_pack.VP_001_IMPROVEMENT_PLATEAU
+    (len=11) / VP_003_RELAPSE_AFTER_PARTIAL_IMPROVEMENT (len=11), both session_index 1..11,
+    day_offset [0,7,14,21,35,49,63,91,122,152,183] matching design doc §2.3 exactly."
+  vp001_s1_baseline_check: "symptom_targets['PHQ-9']=='~7' at session 1 (scenario_pack.py:198) --
+    confirms ADR-036 item 6 / CVR-021 condition-2 closure (over-triage-artifact ~13 NOT used)."
+  vp003_s8_care_connection_event: "present, scenario_pack.py:265-266/289-291 (ADR-036 item 5 /
+    CVR-021 condition-1 closure) -- report-scoped caveat binding per CVR-021 Finding 1, see
+    result.md Notes."
+
+ledger_isolation_deviation (READ FIRST -- material pre-run finding, not anticipated by any prior
+    gate):
+  finding: "docs/ai/simulation_results/VP-001/VP-001_session_ledger.json pre-existing at launch:
+    9 entries (from EXP-016/017/018/019/020-CellA, all session_index in {1,2}, none carrying
+    scenario_pack_id). VP-003_session_ledger.json: 7 entries (EXP-016/017/018/019), same shape.
+    run_f4_stage/_run_f4_analysis (continuous_test.py:950-996) reads and consumes the FULL
+    ledger file for a persona_id with NO filtering by scenario_pack_id -- confirmed by reading
+    _build_session_record (continuous_test.py:881-947): the only exclusion criterion is a
+    missing/unreadable conversation_path, which none of the 9/7 legacy entries have. Left as
+    default (no --out), F4's post-loop stage would silently blend all 9/7 legacy entries
+    (unrelated batteries: SC-13/14/15 canaries, BUG-030 fix validation, forced-GAD-7 engine
+    exercises, etc.) with the new 11 scripted sessions into one n=16-20 series, sorted by
+    session_index -- duplicate session_index values (multiple legacy entries at index 1/2) would
+    make records[0]/records[-1] (the Criterion-0 first-vs-last basis ADR-036 item 1 mandates)
+    resolve to an ARBITRARY legacy entry, not the scripted S1 baseline, and would silently violate
+    REV-044 wording-table row 5 ('single-batch n=1 arc per VP') by misreporting n_sessions. This
+    is a genuine gap in PLAN-2026-W29-D's design (not caught by REV-044/CVR-020/CVR-021/ADR-036,
+    all of which read the ledger-entry CONSTRUCTION code but not this cross-invocation
+    accumulation semantic) -- qa's step-8 raw-field recompute (§7.2) would not catch it either,
+    since it would recompute from the SAME contaminated ledger and trivially match."
+  resolution_chosen: "--out override pointing F2/F3/F4/ledger output at
+    experiments/EXP-023/runs/<vp>/artifacts/ (isolated, fresh, per-arc) for BOTH arcs. Verified by
+    reading code: f1._run_simulation (src/f1.py:2260) takes NO out_dir parameter and always saves
+    conversation.json under the fixed src.f1.OUTPUT_DIR (docs/ai/simulation_results/<VP>/) --
+    unaffected by --out, harmless (timestamp-unique filenames, no ledger-style aggregation risk,
+    and _find_latest_f1_conversation always glob-sorts to the newest file regardless of
+    pre-existing pollution). F2 (f2.py:968 save_f2_result), F3 (f3.py:443 save_f3_result), F4
+    (f4_report.py:34 save_f4_result), and the ledger (_ledger_path, continuous_test.py:155-160)
+    ALL respect out_dir -- confirmed by reading each. Result: a genuinely clean, 11-entry-only
+    ledger and F4 series per VP, fully within experiment-tracker's own write authority
+    (experiments/EXP-023/), zero code edits."
+  deviation_from_design_doc: "design doc §5.1/§5.2 states F4 outputs land in
+    docs/ai/simulation_results/<VP>/ ('same dir as every other F1-F3 artifact... no new
+    directory'). This run deviates: F4's temporal.json/_temporal_report.md/PNGs, plus this
+    battery's own F2/F3 artifacts, land under experiments/EXP-023/runs/<vp>/artifacts/<VP>/
+    instead. F1's conversation.json/report.md still land in the shared docs/ai/simulation_results/
+    <VP>/ per the unavoidable OUTPUT_DIR hardcoding. Flagged prominently for critic (REV, step 9)
+    and developer: recommend a future scenario-pack-scoped ledger filter or --fresh-ledger flag in
+    src/continuous_test.py so a clean run does not require this out-of-band directory override."
+  not_a_fix: "no src/ file was read-modified-written; this is a pre-run CLI-flag choice within
+    experiment-tracker's own experiments/ write authority, not a code fix to the F4 mission."
+
+execution:
+  order: "SEQUENTIAL, VP-001 first, VP-003 second (API-limit safety per brief)"
+  vp001_cmd: >
+    cd apps/ai-server && .venv/bin/python -m src.continuous_test --persona VP-001
+    --scenario-pack VP-001 --answer-mode llm
+    --out /home/neuroai/users/dhkim/aichampion/neurosync/experiments/EXP-023/runs/vp001/artifacts
+  vp003_cmd: >
+    cd apps/ai-server && .venv/bin/python -m src.continuous_test --persona VP-003
+    --scenario-pack VP-003 --answer-mode llm
+    --out /home/neuroai/users/dhkim/aichampion/neurosync/experiments/EXP-023/runs/vp003/artifacts
+  failure_policy: "pre-registered: one same-session retry (fresh process, same pack+session index,
+    both attempts disclosed) on an individual session failure; a second failure of the same
+    session, or >=3 total session failures in the battery, PAUSES the battery -> status partial,
+    no code edits/workarounds."
+  budget_estimate: "[ESTIMATE, design doc §7.3] ~84 LLM calls/cell x 22 cells worst case = up to
+    1848 calls; ~136s/cell x 22 ~= ~50 min wall-clock generation, F4 analysis itself seconds
+    (zero-LLM)."
+
+wording_discipline_binding: >
+  REV-044's MAY/MUST-NOT wording table (6 rows) is binding verbatim on this entry's Results/Key
+  findings. In particular: MAY say F4 correctly computed the shipped direction verdicts given the
+  actual raw scores this battery produced (once qa's step-8 recompute confirms it) and that the
+  pipeline demonstrated end-to-end capability to track a scripted narrative into a directionally
+  congruent trajectory; MUST NOT say F4 "detects"/"validates" clinical state change in general, or
+  that this battery tested sensitivity/specificity, or that the scripted arcs are independent
+  ground truth. similarity_score is a TREND over noisy inputs (VAL-014 inherited), never a
+  probability. CVR-021's binding condition on the VP-003 S8 event: MUST NOT characterize it as
+  validating a guardian-liaison-recommendation capability (none exists in apps/ai-server/src, 0
+  grep hits for 보호자) -- MAY describe it only as patient-initiated narrative loosely motivated by
+  the system's actual crisis-response output (hotline referral + protective-factors probe). No
+  stable/no-net-change arc was scripted this mission (REV-044 Issue 3/ADR-036 item 2, accepted) --
+  MUST NOT claim F4's stable-patient false-positive behavior was tested.

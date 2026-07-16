@@ -1,4 +1,4 @@
-"""F4 quick-dev provenance threading tests — `docs/ai/f4_quick_dev_plan.md`
+"""F4 quick-dev provenance threading tests — `_archive/plans/f4_quick_dev_plan.md`
 §2.6/§2.7, `PLAN-2026-W29-D`, `ADR-036` item 3.
 
 Covers: F1 (`_apply_scenario_guideline`/`_apply_scenario_provenance` +

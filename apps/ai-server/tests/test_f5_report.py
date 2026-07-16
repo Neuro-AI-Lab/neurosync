@@ -1,5 +1,5 @@
 """Tests for `src/services/f5_report.py` — markdown/PDF/FHIR exporters +
-`save_f5_result`. `docs/ai/f5_quick_dev_plan.md` §5, §7.2 machine checks
+`save_f5_result`. `_archive/plans/f5_quick_dev_plan.md` §5, §7.2 machine checks
 (a)/(d) (section completeness, PDF render sanity).
 
 Readability redesign (this mission — clinician-first hand-off, <2-min read):

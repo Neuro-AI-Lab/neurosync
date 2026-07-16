@@ -1,7 +1,7 @@
 """BUG-039 regression tests — AUDIT-C v2 item 2's secondary ("기타 술")
 track is now rendered into the LLM-facing prompt.
 
-Filed: `error.md` BUG-039. `docs/ai/audit_c_korean_research.md` §3.2 /
+Filed: `error.md` BUG-039. `_archive/reports/audit_c_korean_research.md` §3.2 /
 `CVR-018` Q2(c) / `ADR-034` decision 2: the sourced [별지 제15호의3서식]
 form bifurcates AUDIT-C item 2 into a native 소주-bottle track and a
 glasses-based "기타 술" (other-drinks) track with its own explicit
@@ -19,7 +19,7 @@ values already sit on the same 0-4 point scale (each label carries its own
 point value, e.g. "1병 이하(1점)" / "3~4잔(1점)" both = 1 point), so no
 parsing/scoring change was needed. `item_bank.py` also gained a new sourced
 `ScaleItem.primary_track_label` field ("소주 트랙", verbatim from
-`docs/ai/audit_c_korean_research.md` §3.2's own table row) so the primary
+`_archive/reports/audit_c_korean_research.md` §3.2's own table row) so the primary
 track can be labeled without inventing new Korean text in the harness.
 
 This file used to lock in the CURRENT (defective) behavior as a regression

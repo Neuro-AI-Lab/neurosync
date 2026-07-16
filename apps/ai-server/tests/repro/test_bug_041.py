@@ -4,7 +4,7 @@ NO test in the full suite that would fail if the slope's sign were
 inverted.
 
 Filed: `error.md` BUG-041 (qa mutation check, `PLAN-2026-W29-D` step 6,
-`ADR-036` item 1). `docs/ai/f4_quick_dev_plan.md`'s own Criterion 0 names
+`ADR-036` item 1). `_archive/plans/f4_quick_dev_plan.md`'s own Criterion 0 names
 "first-vs-last delta + slope sign" as the disclosed basis for
 `scale_series`/`session_ctrs`/`sentiment` `TrendVerdict`s
 (`_first_last_slope_trend`'s own docstring, `src/f4.py:161-181`) — the

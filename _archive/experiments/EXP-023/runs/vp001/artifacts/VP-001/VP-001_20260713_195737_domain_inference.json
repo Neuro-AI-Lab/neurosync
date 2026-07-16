@@ -1,0 +1,291 @@
+{
+  "session_id": "f1_VP-001_followup",
+  "persona_id": "VP-001",
+  "repro": {
+    "git_head": "75472eee31ba9c8a335a0e75f9d0d5acc75b3569",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-001/VP-001_20260713_195720_conversation.json",
+    "input_sha256": "64527b70fee001fcfd504d7e6491730680bb9d5ed86a64f087a8cc6c093cb00f",
+    "mode": "rag",
+    "latency_ms": 8226.9,
+    "generated_at": "2026-07-13T19:57:30.655982",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 3981,
+      "completion_tokens": 774,
+      "total_tokens": 4755
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "anxiety",
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:623",
+          "quote": "내담자는 상담 초기에 불안에 대한 고통감이 9점으로 매우 높았으며, 층간 소음으로 인해 어깨와 목의 긴장, 수면 부족을 호소했다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:165",
+          "quote": "내담자는 상담 중에 가족 문제와 관련된 불안과 답답함을 느끼고 있다고 했다. 특히 가족의 기대에 부응하지 못할 것에 대한 불안이 크다고 하며, 이러한 불안은 일상생활에서 집중력 저하와 피로감, 수면문제로 이어지고 있다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:911",
+          "quote": "이 환자는 과도한 업무 스트레스로 인해 불안 장애가 발생했을 가능성이 높다."
+        }
+      ],
+      "recommended_surveys": [
+        "GAD-7"
+      ]
+    },
+    {
+      "domain": "sleep",
+      "confidence": 0.4,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:623",
+          "quote": "내담자는 상담을 통해 불안감이 2~3점으로 감소했으며, 수면의 질도 개선되었다고 보고했다."
+        },
+        {
+          "source_type": "rag_chunk",
+          "source_id": "qa:1262",
+          "quote": "이 환자는 1년 전 퇴직한 뒤 낮잠을 1~2시간씩 자게 되었으며, 밤에는 잠들기까지 1~2시간을 뒤척이다가 잠에 들고, 2~3시간 내로 다시 깬다고 한다."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_0",
+          "quote": "어제는 잠을 설친 날이 있었는데, 그래도 나머지는 괜찮았어요."
+        }
+      ],
+      "recommended_surveys": [
+        "PSQI"
+      ]
+    },
+    {
+      "domain": "depression",
+      "confidence": 0.3,
+      "evidence": [
+        {
+          "source_type": "rag_chunk",
+          "source_id": "case_card:1045",
+          "quote": "내담자는 수면 패턴의 불규칙성과 피로감을 호소하고 있다. 밤 근무 후에도 낮에 잠을 자고 밤에 깨어 있는 생활 패턴이 지속되고 있으며, 이는 일상 생활에 지장을 주고 있다."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_10",
+          "quote": "어머니랑은 주 2회 통화해서 위로는 받고 있지만, 혼자 감당하는 기분이 들어서 그런지 마음이 더 무거워질 때도 있어요."
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "불안, 수면 문제, 피로감 등의 증상이 복합적으로 나타나며, 인지행동치료(CBT)와 같은 심리치료가 효과적일 것으로 판단됨",
+      "domain_ref": "anxiety"
+    }
+  ],
+  "summary": "환자는 업무 스트레스와 관련된 불안 증상(가슴 답답함, 어깨·목 뻐근함, 집중력 저하)과 수면 문제(잠들기 어려움, 수면 패턴 불규칙)를 호소하고 있으며, 피로감과 우울감 또한 동반되고 있습니다. 불안 증상이 주된 문제로 보이며, 수면 위생 관리와 인지행동치료가 도움이 될 수 있습니다.",
+  "retrieval_meta": {
+    "mode": "rag",
+    "chunks_returned": 9,
+    "chunk_ids": [
+      "case_card:623",
+      "case_card:165",
+      "case_card:382",
+      "qa:911",
+      "qa:1262",
+      "qa:1304",
+      "case_card:1045",
+      "qa:532",
+      "qa:1393"
+    ],
+    "queries": [
+      "가슴 답답함, 어깨·목 뻐근함, 수면 문제",
+      "프로젝트 마감 시 긴장 및 수면 장애, 목·어깨 뻐근함 발생. 현재는 여행 후 기분 개선되었으나 잠들기 전 머릿속 복잡함으로 1시간 정도 뒤척임. 가슴 답답함과 목 뻐근함은 주 2-3회, 큰 일 있을 때 발생. 스트레스가 완전히 사라지지 않고 회복이 느린 느낌"
+    ]
+  },
+  "chunk_texts": {
+    "case_card:623": "내담자는 상담 초기에 불안에 대한 고통감이 9점으로 매우 높았으며, 층간 소음으로 인해 어깨와 목의 긴장, 수면 부족을 호소했다. 그러나 상담을 통해 불안감이 2~3점으로 감소했으며, 수면의 질도 개선되었다고 보고했다. 내담자는 자신이 항상 부족하다는 생각을 가지고 있었으나, 상담을 통해 이러한 생각이 불합리적임을 인식하게 되었다.  내담자는 학창 시절에 공부를 하지 않았던 것에 대한 후회와 부족함을 느끼며, 다른 사람들의 시선을 의식하고 자신을 비판적으로 바라보는 경향이 있었다. 또한, 부모님과 어른들로부터 부정적인 시선을 받았던 경험이 현재의 불안과 연결되어 있는 것으로 보인다.",
+    "case_card:165": "내담자는 상담 중에 가족 문제와 관련된 불안과 답답함을 느끼고 있다고 했다. 특히 가족의 기대에 부응하지 못할 것에 대한 불안이 크다고 하며, 이러한 불안은 일상생활에서 집중력 저하와 피로감, 수면문제로 이어지고 있다. 내담자는 불안한 상황에서 가슴이 뛰고 심해지면 죽을 것 같은 극단적인 불안을 경험한다고도 언급했다.  내담자는 가족의 기대와 경제적 부담에 대한 압박을 느끼고 있으며, 가족 내의 갈등과 경제적 문제로 인해 스트레스를 받고 있다. 특히 가족의 기대에 부응하지 못할 것에 대한 불안이 크며, 이러한 불안은 가족 내의 구조적 문제와 경제적 어려움에서 기인한 것으로 보인다. 내담자는 가족의 기대와 경제적 부담을 해결할 수 없다는 생각에 답답함을 느끼고 있다.",
+    "case_card:382": "내담자는 수면 문제를 겪고 있으며, 자다가 자주 깨고 잠들기가 어렵다고 보고했다. 또한 집중력 저하와 쉽게 피로감을 느끼는 증상도 나타났다. 내담자는 불안하거나 초조해서 가만히 있기 어렵다고 하며, 실수에 대한 사후 반추로 인해 고통감을 느끼고 있다고 설명했다. 이러한 증상들은 내담자가 현재 겪고 있는 불안과 관련이 있을 수 있다.  내담자는 최근 수술을 받고 회복 중인 상황에서 느끼는 불안이 있으며, 이로 인해 통증과 수면 장애가 발생하고 있다. 또한 내담자는 미래에 대한 불안함을 느끼고 있으며, 이는 직업적 불안과 관련이 있다. 내담자는 주변 사람들과의 사회적 상호작용을 회피하는 경향이 있으며, 이는 불안의 증상을 악화시킬 수 있는 요인으로 작용할 수 있다.",
+    "qa:911": "Q: 30세 남성이 최근 직장에서의 과도한 업무로 인해 지속적인 불안감과 수면 부족을 호소하며 병원을 방문하였다. 환자는 두통과 가슴 두근거림을 겪고 있으며, 이러한 증상으로 인해 일상 생활에 어려움을 겪고 있다. 이 환자에게 적절한 초기 치료 접근 방법은 무엇인가?\nA: 이 환자는 과도한 업무 스트레스로 인해 불안 장애가 발생했을 가능성이 높다. 초기 치료로는 먼저 환자와의 면담을 통해 스트레스 요인을 파악하고, 불안 증상과 관련된 신체적, 심리적 상태를 평가한다. 이후 심리치료로 인지행동치료(CBT)를 시행하여 환자가 스트레스를 관리하고 부정적인 사고 패턴을 교정할 수 있도록 돕는다. 필요에 따라 단기적으로 항불안제나 항우울제를 사용하여 증상을 완화할 수 있다. 또한, 환자에게 수면 위생 관리와 스트레스 완화 기법(예: 명상, 규칙적인 운동)을 교육하여 일상 생활의 질을 향상시키는 것이 중요하다.",
+    "qa:1262": "Q: 61세 남자가 6개월 전부터 잠을 잘 못 잔다고 병원에 왔다. 환자는 1년 전 퇴직한 뒤 낮잠을 1~2시간씩 자게 되었으며, 밤에는 잠들기까지 1~2시간을 뒤척이다가 잠에 들고, 2~3시간 내로 다시 깬다고 한다. 잠에서 깬 뒤 다시 잠들기 어려워 침대에 누워있다가 기상한다고 한다. 환자의 혈압은 120/75mmHg, 맥박은 90회/분, 호흡은 20회/분이며, 키는 175cm, 몸무게는 70kg이다. 이 환자에게 적합한 치료는 무엇인가?  \n1) 노출과 반응방지  \n2) 바이오피드백  \n3) 광치료  \n4) 지속기도양압  \n5) 수면제한\nA: 5) 수면제한",
+    "qa:1304": "Q: 50세 남자가 낮 동안 졸음을 참을 수 없다며 병원에 왔다. 환자는 밤 10시에 침대에 누워 아침 8시에 침대 밖으로 나오지만, 총 10차례 가량 깨기를 반복하며 아침에도 개운하지 않은 느낌이라고 한다. 신체검사에서 키 180cm, 체중 100kg으로 확인되었다. 수면다원검사 결과, 총수면시간 4시간 30분, 수면 잠복기 10분, 무호흡-저호흡 지수 19회/시간이었다. 이 환자에게 가장 적절한 치료는 무엇인가?  \n1) 메틸페니데이트  \n2) 경두개자기자극술  \n3) 지속기도양압  \n4) 광치료  \n5) 모다피닐\nA: 3) 지속기도양압",
+    "case_card:1045": "내담자는 수면 패턴의 불규칙성과 피로감을 호소하고 있다. 밤 근무 후에도 낮에 잠을 자고 밤에 깨어 있는 생활 패턴이 지속되고 있으며, 이는 일상 생활에 지장을 주고 있다. 또한, 내담자는 자신의 삶이 단순하고 반복적이라고 느끼며, 특별한 흥미나 목표가 없다고 언급했다. 이러한 생활 패턴과 감정 상태는 우울의 주요 증상으로 분류될 수 있다. 내담자는 사람들과의 눈 맞춤을 어려워하며, 이는 사회적 상호작용에서 불편함을 초래하고 있다.  내담자는 주로 업무와 관련된 스트레스를 경험하고 있으며, 이는 환자와의 상호작용에서 발생하는 리스크에 대한 걱정으로 나타난다. 또한, 내담자는 자신의 선택에 대한 확신이 부족하며, 이는 삶의 방향성에 대한 불안으로 이어질 수 있다. 사회적 관계에서는 친구들과의 만남이 드물고, 주로 일과 관련된 대화에 집중되어 있어 사회적 지지망이 약화될 위험이 있다.",
+    "qa:532": "Q: 29세 남성이 직장에서의 실수로 인해 극심한 불안과 자책감을 느끼며 병원을 찾았다. 그는 최근 새로운 프로젝트를 맡았으나, 작은 실수에도 불구하고 전체 프로젝트가 실패할 것이라는 비관적인 생각을 하고 있다. 이로 인해 불면증, 두통, 가슴 두근거림 등의 신체 증상이 나타나고 있다. 환자는 과거에도 비슷한 증상이 있었으며, 자신이 하는 모든 것이 불완전하다는 지속적인 두려움을 가지고 있다. 이 환자가 앓고 있는 질환의 이름과 주요 치료 방법을 설명하시오.\nA: 이 환자는 일반화된 불안장애(Generalized Anxiety Disorder, GAD)를 앓고 있는 것으로 보인다. 일반화된 불안장애는 과도한 걱정과 불안이 지속적으로 나타나는 상태로, 신체적 증상(불면증, 두통, 가슴 두근거림 등)과 함께 나타날 수 있다. 주요 치료 방법으로는 인지행동치료(Cognitive Behavioral Therapy, CBT)와 약물치료가 있다. 인지행동치료는 환자가 비현실적이고 부정적인 사고 패턴을 인식하고 이를 수정하도록 돕는 심리치료 방법이다. 약물치료로는 선택적 세로토닌 재흡수 억제제(SSRIs)와 같은 항우울제가 주로 사용된다.",
+    "qa:1393": "Q: 45세 남성이 최근 스트레스와 불안감으로 인해 수면 장애를 호소하며 병원에 방문하였다. 그는 최근 직장에서의 업무 부담이 증가하면서 긴장성 두통도 자주 발생한다고 한다. 이 환자에게 적절한 비약물적 치료법을 추천하시오.\nA: 이 환자에게는 스트레스와 불안감, 수면 장애 및 긴장성 두통을 완화하기 위해 인지행동치료(Cognitive Behavioral Therapy, CBT)를 추천할 수 있다. 인지행동치료는 스트레스와 불안을 관리하는 데 효과적이며, 수면 위생 교육과 함께 진행될 경우 수면의 질을 개선하는 데 도움을 줄 수 있다. 또한, 긴장성 두통 완화를 위해 이완 요법(예: 점진적 근육 이완법)과 명상 또는 심호흡 훈련을 병행하는 것도 효과적이다. 이러한 비약물적 치료법은 환자의 전반적인 정신적, 신체적 건강을 증진시키는 데 기여할 수 있다."
+  },
+  "utterances": {
+    "turn_0": "안녕하세요, 오늘은 좀 피곤한데요. 어제는 잠을 설친 날이 있었는데, 그래도 나머지는 괜찮았어요. 요즘은 그래도 전보다는 좀 안정적인 편인 것 같아요.",
+    "turn_1": "안녕하세요, 오늘은 좀 피곤한데요. 어제는 잠을 설친 날이 있었는데, 그래도 나머지는 괜찮았어요. 요즘은 그래도 전보다는 좀 안정적인 편인 것 같아요.",
+    "turn_2": "가슴이 답답할 때가 가끔 있는데, 특히 회사에서 마음이 조급할 때 그런 것 같아요. 어깨랑 목도 뻐근하고, 퇴근하면 그냥 아무것도 하고 싶지 않아서 운동도 잘 안 하게 돼요.",
+    "turn_3": "음... 글쎄요. 사실 요즘 프로젝트 마무리 단계라서 그런지, 작은 실수 하나도 마음에 오래 남아요. 그게 쌓이니까 가슴이 답답하고, 어깨도 점점 뻣뻣해지는 것 같아요. 퇴근하면 그냥 아무것도 하고 싶지 않아서 하루 종일 누워 있는 경우도 생기고… 운동은 거의 안 하고 있어요.",
+    "turn_4": "집중이 안 되니까 회사에서 실수가 늘고, 선임한테 지적도 받아서 더 스트레스를 받아요. 그게 밤에 누울 때까지 이어져서 잠도 잘 못 자고… 악순환이 반복되는 느낌이에요.  전에는 동료들이랑 점심 먹으면서 스트레스 이야기라도 했는데, 요즘은 그런 시간도 잘 안 나서 혼자 감당하는 기분이 들어요.  그래도 어머니랑은 주 2회 통화해서 위로는 받고 있어요.",
+    "turn_5": "처음이에요. 병원에 가본 적도 없고, 이런 증상도 처음 느껴보는 것 같아요. 사실 프로젝트 마감이 다가오면서부터 조금씩 시작된 것 같아요. 그때는 여행도 다녀오고 기분이 좀 나아졌는데, 다시 프로젝트가 몰아쳐서 그런지 요즘 다시 비슷한 느낌이에요. 그래도 어머니랑 통화하면서 위로는 받고 있어서, 완전히 혼자인 건 아니에요.",
+    "turn_6": "그때는 긴장이 심해서 그런지, 밤에 자 일어나면 머릿속이 시끄러웠어요. 목이랑 어깨도 뻐근하고, 가슴도 답답하고… 여행 다녀오고 나서는 조금 나아졌는데, 다시 프로젝트가 쌓이니까 또 비슷한 기분이 들어요.  ্ঈ",
+    "turn_7": "음... 글쎄요. 그때는 긴장이 심해서 그런지, 밤에 자 일어나면 머릿속이 시끄러웠어요. 목이랑 어깨도 뻐근하고, 가슴도 답답하고… 여행 다녀오고 나서는 조금 나아졌는데, 다시 프로젝트가 쌓이니까 또 비슷한 기분이 들어요.",
+    "turn_8": "그때는 긴장이 심해서 그런지, 밤에 자 일어나면 머릿속이 시끄러웠어요. 목이랑 어깨도 뻐근하고, 가슴도 답답하고… 여행 다녀오고 나서는 조금 나아졌는데, 다시 프로젝트가 쌓이니까 또 비슷한 기분이 들어요.",
+    "turn_9": "프로젝트 마감이 다가올수록 머릿속이 복잡해지고, 막상 일을 시작하면 집중이 잘 안 돼서 실수도 늘어서 더 긴장하게 돼요. 그런 날들이 반복되다 보니 몸도 마음도 무거워지는 것 같아요. 가족 중에 정신과 치료를 받은 분은 없어요. 어머니도 비슷한 스트레스는 있으셨겠지만, 병원에 가신 적은 없어요. 그래도 어머니랑 통화하면 마음이 좀 가벼워지긴 해요.",
+    "turn_10": "네, 맞아요. 요즘은 실수 하나에도 계속 신경이 쓰이고, 그게 밤에 잠 못 드는 이유가 되는 것 같아요. 퇴근 후에도 아무것도 하고 싶지 않은 기분이 자주 들어서, 운동도 거의 안 하고 있어요. 어머니랑은 주 2회 통화해서 위로는 받고 있지만, 혼자 감당하는 기분이 들어서 그런지 마음이 더 무거워질 때도 있어요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 8,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 0
+    },
+    "verdicts": [
+      {
+        "domain": "anxiety",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:623",
+        "quote": "내담자는 상담 초기에 불안에 대한 고통감이 9점으로 매우 높았으며, 층간 소음으로 인해 어깨와 목의 긴장, 수면 부족을 호소했다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:165",
+        "quote": "내담자는 상담 중에 가족 문제와 관련된 불안과 답답함을 느끼고 있다고 했다. 특히 가족의 기대에 부응하지 못할 것에 대한 불안이 크다고 하며, 이러한 불안은 일상생활에서 집중력 저하와 피로감, 수면문제로 이어지고 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "anxiety",
+        "source_type": "rag_chunk",
+        "source_id": "qa:911",
+        "quote": "이 환자는 과도한 업무 스트레스로 인해 불안 장애가 발생했을 가능성이 높다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:623",
+        "quote": "내담자는 상담을 통해 불안감이 2~3점으로 감소했으며, 수면의 질도 개선되었다고 보고했다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "rag_chunk",
+        "source_id": "qa:1262",
+        "quote": "이 환자는 1년 전 퇴직한 뒤 낮잠을 1~2시간씩 자게 되었으며, 밤에는 잠들기까지 1~2시간을 뒤척이다가 잠에 들고, 2~3시간 내로 다시 깬다고 한다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "sleep",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "어제는 잠을 설친 날이 있었는데, 그래도 나머지는 괜찮았어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "rag_chunk",
+        "source_id": "case_card:1045",
+        "quote": "내담자는 수면 패턴의 불규칙성과 피로감을 호소하고 있다. 밤 근무 후에도 낮에 잠을 자고 밤에 깨어 있는 생활 패턴이 지속되고 있으며, 이는 일상 생활에 지장을 주고 있다.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved rag_chunk text"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_10",
+        "quote": "어머니랑은 주 2회 통화해서 위로는 받고 있지만, 혼자 감당하는 기분이 들어서 그런지 마음이 더 무거워질 때도 있어요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 3,
+    "candidates_after": 3,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 0,
+    "evidence_stripped_risk_lexicon": 0
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "수면 위생 개선을 위해 어떤 노력을 해보셨나요?",
+    "불안 증상이 업무 외 다른 상황에서도 나타나나요?",
+    "집중력 저하로 인해 일상생활에 어떤 영향을 받고 계신가요?"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 8226.892724167556,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 3981,
+    "completion_tokens": 774,
+    "total_tokens": 4755
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [
+      {
+        "disease": "월경전 불쾌장애",
+        "similarity_score": 0.455,
+        "source_id": "qa:532",
+        "quote": "...전체 프로젝트가 실패할 것이라는 비관적인 생각을 하고 있다. 이로 인해 불면증, 두통, 가슴 두근거림 등의 신체 증상이 나타나고 있다. 환자는 과거..."
+      },
+      {
+        "disease": "범불안장애",
+        "similarity_score": 0.455,
+        "source_id": "qa:532",
+        "quote": "...전체 프로젝트가 실패할 것이라는 비관적인 생각을 하고 있다. 이로 인해 불면증, 두통, 가슴 두근거림 등의 신체 증상이 나타나고 있다. 환자는 과거..."
+      },
+      {
+        "disease": "계절성 정동장애",
+        "similarity_score": 0.445,
+        "source_id": "qa:1393",
+        "quote": "Q: 45세 남성이 최근 스트레스와 불안감으로 인해 수면 장애를 호소하며 병원에 방문하였다. 그는 최근 직장에서..."
+      }
+    ],
+    "mode": "rag_live",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "3 disease candidate(s) derived from 9 retrieved chunk(s) via symptom-keyword match (path1, ADR-020). similarity_score is a RAG cosine-similarity signal between the retrieved chunk and the Stage-1 query — NOT a patient-to-disease similarity, and NOT a calibrated probability (two-hop proxy, RES-001 §2 step 9 / ADR-020 condition 3).",
+    "recommended_questionnaire": "PHQ-9",
+    "recommendation_caveat": "PHQ-9 screens depressive-symptom burden only, does not screen manic/hypomanic symptoms — bipolar-spectrum presentations need clinician follow-up regardless of score."
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 4,
+    "rag_chunk_qa": 2,
+    "rag_chunk_other": 0,
+    "utterance": 2,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "A",
+    "retrieve": true,
+    "queries": [
+      "가슴 답답함, 어깨·목 뻐근함, 수면 문제",
+      "프로젝트 마감 시 긴장 및 수면 장애, 목·어깨 뻐근함 발생. 현재는 여행 후 기분 개선되었으나 잠들기 전 머릿속 복잡함으로 1시간 정도 뒤척임. 가슴 답답함과 목 뻐근함은 주 2-3회, 큰 일 있을 때 발생. 스트레스가 완전히 사라지지 않고 회복이 느린 느낌"
+    ],
+    "dropped_queries": [],
+    "trigger_reason": "sufficient_no_fallback_retrieve",
+    "fallback_used": false,
+    "judge_output": null
+  },
+  "scenario_pack_id": "VP-001_improvement_plateau_s09",
+  "arc_mode": "improvement_plateau"
+}

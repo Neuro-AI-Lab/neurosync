@@ -1,6 +1,6 @@
 """Unit tests for `src/f5.py` — the F5 hand-off report assembly engine.
 
-`docs/ai/f5_quick_dev_plan.md`, `PLAN-2026-W29-E`, `ADR-037`. No live LLM/DB
+`_archive/plans/f5_quick_dev_plan.md`, `PLAN-2026-W29-E`, `ADR-037`. No live LLM/DB
 call anywhere in this file (`f5.py` itself is zero-LLM by construction;
 these tests build synthetic `HandoffReportInput`s directly — no F1-F4
 pipeline is ever invoked). Fixture shapes are modeled on the real

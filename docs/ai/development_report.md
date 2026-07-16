@@ -1,5 +1,13 @@
 # Development Report — Task 1 (append-only)
 
+> **Wave-4 archive note (2026-07-16):** several plan/research/scratch docs cited by name in
+> entries below (`f3/f4/f5_quick_dev_plan.md`, `validation_plan_f1f2_continuous.md`,
+> `f1f5_total_validation_plan.md`, `f5_charting_research.md`, `rubric_bug030_acceptance.md`,
+> `fix_design_exhaustion_bug037.md`, `cv_scratch_cvr013.md`, `critic_scratch_rev034_fixcycle.md`,
+> `audit_c_korean_research.md`, `who5_sourcing_retry2.md`) are now at `_archive/plans/` /
+> `_archive/reports/` (`version.md` CLEAN-2026-07-16). Per this doc's own append-only discipline,
+> individual historical citations below are not rewritten — see `_archive/README.md` wave-4
+> manifest for current locations.
 > **용도**: 개발·검증·감사 작업의 append-only 보고서. 새 작업 세션마다 `DR-NNN` 엔트리를 아래에 추가한다 (기존 엔트리 수정 금지, 상태 변경은 새 엔트리로).
 > **엔트리 형식**: `## DR-NNN | YYYY-MM-DD | 제목` + 구조화 섹션 + `---` 종결.
 > **관련 문서**: `PRD_task1_v2.md`(기준 스펙), `checklist_task1.md`(항목 상태), `docs/ai/backups/`(v1 문서·이슈 이력 ISS-001~018).

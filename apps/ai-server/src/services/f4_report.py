@@ -1,6 +1,6 @@
 """F4 report writer — `save_f4_result` + markdown report + chart orchestration.
 
-`docs/ai/f4_quick_dev_plan.md` §5. Deliberately kept OUT of `src/f4.py` (the
+`_archive/plans/f4_quick_dev_plan.md` §5. Deliberately kept OUT of `src/f4.py` (the
 pure, zero-file-I/O analysis engine) so a whole-file grep for `open(`/file-
 I/O in `src/f4.py` returns 0 hits with zero ambiguity (REV-044 Criterion 6,
 `ADR-036`) — this module is the ONE place F4's OWN output artifacts

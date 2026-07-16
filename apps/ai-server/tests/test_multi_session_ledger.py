@@ -171,7 +171,7 @@ class TestCliSessionsFlag:
 
 
 class TestProductionNeverReadsLedger:
-    """AVC-03 (`docs/ai/validation_plan_f1f2_continuous.md` §6) / REV-022
+    """AVC-03 (`_archive/plans/validation_plan_f1f2_continuous.md` §6) / REV-022
     standing rule: no production module (f1.py, f2.py, f3.py) references the
     session ledger."""
 

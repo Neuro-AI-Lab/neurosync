@@ -5,8 +5,12 @@ complete (2026-07-15, `CLEAN-2026-07-15`) — `plans/`, `reports/`, `legacy_code
 `simulation_results/` extended with the pre-`EXP-025` accumulation. Wave 3 complete
 (2026-07-16, `CLEAN-2026-07-16`) — `legacy_code/devtools/` (new subfolder) +
 `reports/stale_test_output/` (new subfolder) populated; one `plans/` addition
-(`stage_f_archive_candidates.md`, itself now historical). `agent_memory/`,
-`root_docs_snapshot/` remain scaffold-only (still deferred, per `ADR-023` Phase 2 timing).
+(`stage_f_archive_candidates.md`, itself now historical). Wave 4 complete (2026-07-16,
+`CLEAN-2026-07-16` wave-4 entry) — 6 more `plans/` + 6 more `reports/` (12 docs, wave-3
+citation-keeps-alive rulings overridden per user directive, all citing living surfaces
+pointer-rewritten) + `experiments/` (new top-level subfolder, `EXP-014`..`EXP-024`, 544
+files). `docs/ai` top-level `.md` count now 15. `agent_memory/`, `root_docs_snapshot/`
+remain scaffold-only (still deferred, per `ADR-023` Phase 2 timing).
 
 ## What this is
 
@@ -22,10 +26,11 @@ to how F1/F2 were built or previously tested (`docs/ai/validation_plan_f1f2_cont
 
 | Path | Intended content |
 |:--|:--|
-| `plans/` | Superseded planning/design/proposal docs — **populated 2026-07-15 (wave 2)**. Pre-existing: `PRD_task1.md`, `prompt_redesign_v3.md`, `vp_validation_scenarios.md`. Added wave 2: see manifest below. |
-| `reports/` | Prior review-scratch / PR-description / DR-style development reports — **populated 2026-07-15 (wave 2)**. Pre-existing: `docs_ai_backups/`, `papers_notes/`, `pr_description_f1_stt_ocr.md`, `pr_description_map_api.md`. Added wave 2: see manifest below. |
+| `plans/` | Superseded planning/design/proposal docs — **populated 2026-07-15 (wave 2)**, extended 2026-07-16 (wave 3: 1 file) and 2026-07-16 (wave 4: 6 files). Pre-existing: `PRD_task1.md`, `prompt_redesign_v3.md`, `vp_validation_scenarios.md`. See manifests below. |
+| `reports/` | Prior review-scratch / PR-description / DR-style development reports — **populated 2026-07-15 (wave 2)**, extended 2026-07-16 (wave 3: `stale_test_output/`) and 2026-07-16 (wave 4: 6 files). Pre-existing: `docs_ai_backups/`, `papers_notes/`, `pr_description_f1_stt_ocr.md`, `pr_description_map_api.md`. See manifests below. |
 | `simulation_results/` | **Populated 2026-07-11 (wave 1)**, extended 2026-07-15 (wave 2). Legacy `docs/ai/simulation_results/` artifacts + old `experiments/EXP-*` runs. See manifests below. |
-| `legacy_code/` | Old/unused source code + one-off analysis scripts superseded by the current F1/F2 implementation — **populated 2026-07-15 (wave 2)** with `analysis_scripts/` (new subfolder, one-off DATASET/EXP audit scripts); `ai-server_backup/` pre-existing (scaffold from wave 1) |
+| `legacy_code/` | Old/unused source code + one-off analysis scripts superseded by the current F1/F2 implementation — **populated 2026-07-15 (wave 2)** with `analysis_scripts/` (new subfolder, one-off DATASET/EXP audit scripts); `ai-server_backup/` pre-existing (scaffold from wave 1); `devtools/` added wave 3 |
+| `experiments/` | Old `experiments/EXP-NNN` run directories superseded by the current battery — **new subfolder, populated 2026-07-16 (wave 4)**: `EXP-014`..`EXP-024` (11 dirs, 544 files); `experiments/` at repo root now retains only `EXP-025`/`026`/`027` |
 | `agent_memory/` | Quarantined `.claude/agent-memory/*` (Phase 2 only — memoryless validation specialists) — scaffold only |
 | `root_docs_snapshot/` | Pre-reset snapshot of `result.md`/`discussion.md`/`error.md` taken at the `VER-00X` version transition — populated at each version transition (see `ver003/` and the 2026-07-11 dated files) |
 
@@ -154,7 +159,7 @@ directory anywhere in the repo (verified via `find`); user's phrasing likely ref
 existing `docs/ai/simulation_results/` (in scope, checked, current `EXP-025` set left untouched)
 or the repo-root `experiments/` (in scope, checked, see EXP-014..024 held-back entry above).
 
-### Verification (this sweep)
+### Verification (wave 3)
 
 | Check | Result |
 |:--|:--|
@@ -163,6 +168,79 @@ or the repo-root `experiments/` (in scope, checked, see EXP-014..024 held-back e
 | `ruff check .` | All checks passed |
 | `python -c "import src.main"` | OK |
 | Reference grep (every moved-file basename, living surfaces only) | 0 residual hits after the 1-file pointer-fix pass; `rag_chat.py`/`f5_charting_research.md` reverted after their held-back references surfaced |
+
+## Manifest — wave 4 (2026-07-16, `CLEAN-2026-07-16` wave-4 entry)
+
+**Trigger:** user directive (WAVE-4 AGGRESSIVE SWEEP) — "지금 너무나 많은 누적 md file, json file들이
+있다. 가장 최근에 F1-F5 구현 및 검증에 사용하지 않은 old version들은 다 archiving 해야한다." **This directive
+explicitly overrides the wave-3 citation-keeps-alive rulings**: docs held back in wave 3 for being
+cited by a living surface are archived here regardless, with every citation rewritten to the new
+archive-path pointer (comment/doc-text only; one path-constant fix, see below, is the sole
+exception and is itself zero-logic).
+
+**Source:** `docs/ai/*.md` (12 files, git-tracked, moved via `git mv`), `experiments/EXP-014`..`EXP-024`
+(gitignored, plain filesystem `mv`).
+**Destination:** `_archive/plans/`, `_archive/reports/`, `_archive/experiments/`.
+
+| Subtree | Moved | Reason |
+|:--|--:|:--|
+| `plans/` (added, 6) | `f3_quick_dev_plan.md`, `f4_quick_dev_plan.md`, `f5_quick_dev_plan.md` (features shipped, `ADR-031`/`ADR-036`/`ADR-037` all implemented and merged), `validation_plan_f1f2_continuous.md` (superseded by the F1–F5 total-validation program), `f1f5_total_validation_plan.md` (superseded by `f1f5_total_validation_report.md`, stages A-E complete), `fix_design_exhaustion_bug037.md` (Fix 1/2/3 design doc, code-complete — BUG-036/037 live-verification still open but this is the design record, not the verification evidence itself) |
+| `reports/` (added, 6) | `f5_charting_research.md` (research absorbed into the shipped F5 renderer), `rubric_bug030_acceptance.md`, `cv_scratch_cvr013.md`, `critic_scratch_rev034_fixcycle.md` (BUG-030/036/037 fix-cycle scoring/review scratch — offline-gated, code-complete), `audit_c_korean_research.md`, `who5_sourcing_retry2.md` (AUDIT-C/WHO-5 sourcing research, content already condensed into the living `item_bank_v1_sources.md`) |
+| `experiments/` (added, 11 dirs / 544 files) | `EXP-014`..`EXP-024` — superseded by the `EXP-025`/`026`/`027` post-archive validation battery; `experiments/` now retains exactly `EXP-025`/`026`/`027` |
+
+**Pointer-rewrite pass (67 living files, 164 citation-string substitutions, zero logic changes
+except one path-constant):**
+
+| Surface class | Files | Notes |
+|:--|--:|:--|
+| `apps/ai-server/src/**`, `apps/ai-server/tests/**` (.py) | 50 | Comment/docstring `docs/ai/<file>.md` citations rewritten to `_archive/{plans,reports}/<file>.md`. `tests/test_item_bank.py`'s `_AUDIT_C_RESEARCH_NOTE_PATH` constant (a real `Path(__file__)`-joined runtime read, not a comment — the test byte-verifies `item_bank.py` against this file's content) was separately hand-edited from `"docs"/"ai"/"audit_c_korean_research.md"` to `"_archive"/"reports"/"audit_c_korean_research.md"` — path-only, same pattern as wave-3's `_SCRIPT_PATH` fix, zero logic change, verified by the full suite still passing at 2118+2. |
+| `docs/ai/{PRD_task1_v2,checklist_task1,f4_checklist,f5_checklist,f1f5_total_validation_report,item_bank_v1_sources}.md` | 6 | Living index/spec/checklist docs — every citation rewritten. `item_bank_v1_sources.md` alone carried 28 of the 164 substitutions (its AUDIT-C provenance narrative cites `audit_c_korean_research.md` by `§`-section throughout). `f1f5_total_validation_report.md` additionally got a one-line "(plan archived at ...)" pointer per the brief, since `discussion.md` `REV-002` cites the plan's §3/§5/§7 as its adjudication-criteria source. |
+| `docs/ai/personas/{VP-010,VP-011,VP-012}*.md` + `_canary_audit/` copies | 6 | Persona-authoring provenance line ("Authored per `validation_plan_f1f2_continuous.md` v1.2 §9") rewritten in both the live persona and its canary-audit snapshot (the latter is itself live-loaded at runtime by `run_injected_session.py --persona`, not a static historical copy). |
+| `docs/ai/prompts/dialogue/{v3,v4}.system.md` | 2 | Living prompt-version-history notes, rewritten. |
+| `docs/ai/simulation_results/README.md` | 1 | Rewritten. |
+
+**Left as-is (append-only historical logs — one header/pointer note added instead of rewriting
+every embedded citation, consistent with the project's existing convention for `EXP-0NN`
+path references):** `docs/ai/workflow_results_f1f2.md` (30 citations untouched, 1 new header
+note), `docs/ai/workflow_discussion_f1f2.md` (10 untouched, 1 new header note),
+`docs/ai/workflow_checklist_f1f2.md` (11 untouched, 1 new header note, not explicitly requested
+by the brief but added for consistency/traceability), `docs/ai/development_report.md` (11
+untouched, 1 new header note, same reasoning — this doc is self-labeled "append-only" in its own
+header), `docs/ai/simulation_results/VP-012/VP-012_20260715_171159_temporal_report.md` (1
+untouched — a dated experiment artifact, out of scope).
+
+**KEEP, verified against the brief (not moved, with reason):**
+
+| File | Reason |
+|:--|:--|
+| `docs/ai/psychotropic_classification.md` | Runtime-referenced — `src/data/psychotropic_classification.py`, `src/schemas/phr.py`, `src/agents/patient_history.py`, `src/adapters/hira_drug_efficacy.py`, `tests/test_phr_reader.py` all cite it structurally, not narratively. |
+| `docs/ai/agent_collaboration_f1f5.md`, `docs/ai/orchestration_review_evidence.md` | Produced by and cited within the current (kept) `f1f5_total_validation_plan.md`/`f1f5_total_validation_report.md` pair — living cross-references, not archive candidates. |
+| `docs/ai/lexicon_expansion_val010.md` | Current safety-filter provenance, authored this cycle (`REV-003`), used in the most recent validation — passes the "most recent" criterion explicitly. |
+| `docs/ai/{golden_labels_f1f2,PRD_task1_v2,checklist_task1,item_bank_v1_sources,development_report,workflow_checklist_f1f2,workflow_discussion_f1f2,workflow_results_f1f2,f4_checklist,f5_checklist,f1f5_total_validation_report}.md` | Living index/spec/checklist/append-only-log surfaces per the brief's KEEP list, re-verified still current. |
+
+**BUG-036/BUG-037 scoring-reference note (brief's error.md instruction — deviation, see below):**
+the brief asked for a status line on `error.md`'s BUG-036/BUG-037 entries pointing at the new
+archive paths for `rubric_bug030_acceptance.md`/`fix_design_exhaustion_bug037.md`/
+`cv_scratch_cvr013.md`/`critic_scratch_rev034_fixcycle.md`. `error.md` (current version) does not
+contain BUG-036/BUG-037 entries — they were archived into a prior `version.md` `VER-NNN`
+transition; the only live carry-forward pointer is `.claude/state/handoff.json`'s open-items list
+("BUG-036/037 live 검증"). **filemanager does not have write authority over `error.md`** (owned by
+qa/critic per `CLAUDE.md`) even under this user directive, so no edit was made there — this note
+here, plus the `version.md` CLEAN-2026-07-16 wave-4 entry, is the retrievable pointer for whichever
+agent (qa/critic) next reopens BUG-036/037 live-verification and needs to append that status line
+to `error.md` itself. New location of the 4 scoring-reference docs: `_archive/reports/{rubric_bug030_acceptance,cv_scratch_cvr013,critic_scratch_rev034_fixcycle}.md`,
+`_archive/plans/fix_design_exhaustion_bug037.md`.
+
+### Verification (wave 4)
+
+| Check | Result |
+|:--|:--|
+| `pytest --collect-only -q` | 2120 tests collected, 0 errors (unchanged from pre-sweep — comment/path-only edits, no test added/removed) |
+| `pytest -q` (full suite) | **2118 passed, 2 skipped**, 91.21s — identical to the pre-sweep baseline |
+| `ruff check src/ tests/` | All checks passed |
+| `python -c "import src.main"` | OK |
+| Reference grep (every one of the 12 moved-file basenames, across every `.md`/`.py` in the repo) | 0 residual hits outside `_archive/**` (archive-internal, expected) and the 5 explicitly-scoped append-only logs listed above (each now carrying a wave-4 pointer note) |
+| `docs/ai` top-level `.md` count | 15 (target ≈15 per the brief's KEEP list, exact match) |
 
 ## Access control
 

@@ -1,6 +1,6 @@
 """avc12_instrumentation.py — AVC-12 activation-rate instrumentation.
 
-PLAN-2026-W28-Q W3 (`docs/ai/validation_plan_f1f2_continuous.md` §6 AVC-12,
+PLAN-2026-W28-Q W3 (`_archive/plans/validation_plan_f1f2_continuous.md` §6 AVC-12,
 §3 "STT/OCR arbitrary-turn injection" plan row: "AVC-12 instrumentation is
 installed in W3 and checked in W8"). AVC-12 targets a specific failure
 mode: a corrective/generative code path that is verified to exist and pass

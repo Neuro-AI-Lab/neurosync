@@ -9,7 +9,7 @@ default A):
     illness`` (``STAGE1_QUERY_SLOTS`` — the SAME two slots ``f2.py``'s
     pre-existing default query composition already used) are insufficient
     — combined ``len()`` < ``SLOT_INSUFFICIENCY_THRESHOLD_N`` chars, or both
-    falsy (``docs/ai/validation_plan_f1f2_continuous.md`` §3 Policy-A row,
+    falsy (``_archive/plans/validation_plan_f1f2_continuous.md`` §3 Policy-A row,
     Appendix A). Fallback queries are drawn from conversation turns
     EXCLUDING Safety-Probe/SI-screen-adjacent turns (``probe_events``-tagged
     turns).
@@ -65,7 +65,7 @@ from src.eval.f2_grounding import _RISK_PHRASES, _contains_any
 from src.grounding import RISK_SLOT_KEY
 from src.schemas.domain_inference import UtteranceTurn
 
-# Appendix A (docs/ai/validation_plan_f1f2_continuous.md), data's W1 finding
+# Appendix A (_archive/plans/validation_plan_f1f2_continuous.md), data's W1 finding
 # (discussion.md PLAN-2026-W28-Q status append "threshold N, COMPLETE"),
 # orchestrator-adopted: N=75 chars, distinct-12 p10, Python len() semantics
 # (REV-022 §2's own fallback method — no genuinely insufficient historical

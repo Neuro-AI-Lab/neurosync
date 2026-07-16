@@ -1,6 +1,6 @@
 """Schemas for the F3 survey-administration production artifact.
 
-`docs/ai/f3_quick_dev_plan.md` §4. Standalone by design, same discipline as
+`_archive/plans/f3_quick_dev_plan.md` §4. Standalone by design, same discipline as
 `src.schemas.ai_predicted_disease` (REV-013 §3 lineage): this module shares
 NO base class, field, or inheritance relationship with `SlotData`/
 `HandoffInput`/`HandoffOutput` (`src/schemas/handoff.py`) — it must never
@@ -219,7 +219,7 @@ class SurveyResultOutput(BaseModel):
         default=None,
         description="The caller-requested answer_fn mode, recorded verbatim regardless of outcome.",
     )
-    # F4 quick-dev provenance (`docs/ai/f4_quick_dev_plan.md` §2.7, `REV-044`
+    # F4 quick-dev provenance (`_archive/plans/f4_quick_dev_plan.md` §2.7, `REV-044`
     # Issue 4 / `ADR-036` item 3): reprojected verbatim from the upstream F2
     # `domain_inference.json` artifact's own top-level fields
     # (`src.f3.run_f3_administration` reads `artifact.get("scenario_pack_id")`

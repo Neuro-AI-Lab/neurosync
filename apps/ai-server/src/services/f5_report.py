@@ -1,6 +1,6 @@
 """F5 report writer — `save_f5_result` + markdown/PDF/FHIR exporters.
 
-`docs/ai/f5_quick_dev_plan.md` §5. Deliberately kept OUT of `src/f5.py` (the
+`_archive/plans/f5_quick_dev_plan.md` §5. Deliberately kept OUT of `src/f5.py` (the
 pure, zero-file-I/O assembly engine) so a whole-file grep for `open(`/file-
 I/O in `src/f5.py` returns 0 hits with zero ambiguity (REV-044 Criterion 6,
 `ADR-037` Decision 6 citation fix) — this module is the ONE place F5's OWN

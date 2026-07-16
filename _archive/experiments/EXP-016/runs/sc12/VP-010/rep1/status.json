@@ -1,0 +1,1 @@
+{"exp_id":"EXP-016/runs/sc12/VP-010/rep1","state":"completed","pid":1138587,"started_at":"2026-07-11T21:40:15+09:00","last_heartbeat":"2026-07-11T21:42:27+09:00","exit_code":0,"log":"experiments/EXP-016/runs/sc12/VP-010/rep1/run.log","cmd":"bash experiments/EXP-016/sc12_chain.sh VP-010"}

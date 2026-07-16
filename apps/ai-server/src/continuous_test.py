@@ -142,7 +142,7 @@ def _ms(t0: float) -> float:
 # ── Per-VP session ledger — HARNESS ARTIFACT ONLY ──────────────────────
 #
 # PLAN-2026-W28-Q W2 (plan §3 "Multi-session + question induction" row,
-# `docs/ai/validation_plan_f1f2_continuous.md`): an append-only per-VP
+# `_archive/plans/validation_plan_f1f2_continuous.md`): an append-only per-VP
 # record of session ordinal, simulated date, final/missing slots, and repro
 # metadata, for this harness's OWN multi-session bookkeeping.
 #
@@ -784,7 +784,7 @@ async def run_multi_session_chain(
     `run_chain`'s own halt-on-fail discipline) — sessions already completed
     keep their StageResults and ledger entries.
 
-    `scenario_pack` (`docs/ai/f4_quick_dev_plan.md` §2/§9 wave 4,
+    `scenario_pack` (`_archive/plans/f4_quick_dev_plan.md` §2/§9 wave 4,
     `PLAN-2026-W29-D`): an optional ordered tuple of
     `tests.simulation.scenario_pack.ScenarioSession` — when supplied, its
     length MUST equal `n_sessions` (raises `ValueError` otherwise, fail-fast
@@ -1103,7 +1103,7 @@ async def run_f4_stage(ctx: ChainContext) -> StageResult:
     return await _run_f4_analysis(ctx.persona_id, ctx.out_dir)
 
 
-# ── F5 stage (`docs/ai/f5_quick_dev_plan.md`, PLAN-2026-W29-E, ADR-037) ──
+# ── F5 stage (`_archive/plans/f5_quick_dev_plan.md`, PLAN-2026-W29-E, ADR-037) ──
 #
 # `src.f5.assemble_handoff_report` is a PURE, ZERO-file-I/O function (its
 # own module docstring, REV-044 Criterion 6) — reading the session ledger
@@ -1425,7 +1425,7 @@ def _run_f5_report(
         all_sessions=all_sessions,
         # Narrative (A8) stays OFF in this harness path — re-enabling it
         # here is a future-mission decision (a fresh REV/CVR gate, per
-        # `docs/ai/f5_quick_dev_plan.md` §4.4's own stated policy), not
+        # `_archive/plans/f5_quick_dev_plan.md` §4.4's own stated policy), not
         # this change's scope. `HandoffGeneratorAgent.generate_narrative`
         # + `f5_report.build_narrative_input_text` exist and are tested
         # standalone; no caller in this harness invokes them yet.

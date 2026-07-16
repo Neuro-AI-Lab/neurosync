@@ -2,7 +2,7 @@
 defeats session-cap and back-to-back counting whenever an intervening
 clause separates repeats (the A-B-A shape).
 
-Design/fix: `docs/ai/fix_design_exhaustion_bug037.md` §2 (developer amends
+Design/fix: `_archive/plans/fix_design_exhaustion_bug037.md` §2 (developer amends
 `_archive/plans/fix_design_bug030_iter2.md`'s guard, PLAN-2026-W28-U). Filed:
 `error.md` BUG-036.
 

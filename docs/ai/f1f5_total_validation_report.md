@@ -1,6 +1,9 @@
 # F1–F5 total-validation program — final report
 
-> **Scope:** stages A–E of the F1–F5 total-validation program (`docs/ai/f1f5_total_validation_plan.md`).
+> **Scope:** stages A–E of the F1–F5 total-validation program (plan archived at
+> `_archive/plans/f1f5_total_validation_plan.md`, wave-4, `version.md` CLEAN-2026-07-16;
+> `discussion.md` REV-002 cites the plan's §3/§5/§7 as its adjudication-criteria source — this
+> report is the living successor surface).
 > **Sources:** `result.md` EXP-025 + `docs/ai/workflow_results_f1f2.md` `[exp-025]` closeout (raw
 > 7-VP evidence); `discussion.md` REV-001 (orchestration-quality adjudication), REV-002
 > (Stage-D authoritative evidence review), CVR-027 (arc-gate), CVR-028 (Stage-D clinical

@@ -1,6 +1,6 @@
 """Schemas for the F5 clinical hand-off report (static + longitudinal).
 
-`docs/ai/f5_quick_dev_plan.md` §2/§4.2, `PLAN-2026-W29-E`, `ADR-037`.
+`_archive/plans/f5_quick_dev_plan.md` §2/§4.2, `PLAN-2026-W29-E`, `ADR-037`.
 Standalone by design, same discipline as `schemas.ai_predicted_disease` /
 `schemas.survey_result` / `schemas.longitudinal` (REV-013 §3 lineage / this
 design's own §6.1 hard red lines): this module shares NO base class, field,

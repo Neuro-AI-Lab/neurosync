@@ -1,5 +1,5 @@
 """`src.continuous_test`'s F5 stage + standalone replay CLI —
-`docs/ai/f5_quick_dev_plan.md`, `PLAN-2026-W29-E`, `ADR-037`. No live
+`_archive/plans/f5_quick_dev_plan.md`, `PLAN-2026-W29-E`, `ADR-037`. No live
 LLM/HTTP/DB anywhere in this file: every fixture is a synthetic ledger +
 F1-F4 artifact set written directly under `tmp_path` (this file has zero
 runtime dependency on `experiments/` or `docs/ai/simulation_results/` —

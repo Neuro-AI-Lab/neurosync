@@ -1,0 +1,1 @@
+{"exp_id":"EXP-020/runs/cellA_vp001_natural","state":"completed","pid":1851159,"started_at":"2026-07-13T11:42:59+09:00","last_heartbeat":"2026-07-13T11:46:26+09:00","exit_code":0,"log":"experiments/EXP-020/runs/cellA_vp001_natural/run.log","cmd":"bash -c cd apps/ai-server && .venv/bin/python -m src.continuous_test --persona VP-001 --sessions 2 --answer-mode llm"}

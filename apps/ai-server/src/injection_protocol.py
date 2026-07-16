@@ -1,6 +1,6 @@
 """injection_protocol.py — STT/OCR arbitrary-turn injection composer.
 
-PLAN-2026-W28-Q W3 (`docs/ai/validation_plan_f1f2_continuous.md` §3
+PLAN-2026-W28-Q W3 (`_archive/plans/validation_plan_f1f2_continuous.md` §3
 "STT/OCR arbitrary-turn injection" row, §5 AVC-15 cross-cutting check,
 §6 AVC-15). Part of the EXTERNAL verification-protocol layer
 (`continuous_test.py` lineage), not production code — invariant 1
@@ -48,7 +48,7 @@ would (the same `patient_input_fn` seam, the same `InputNormalizer` pass),
 F2 will legitimately tag any evidence citing it `source_type="utterance"` —
 NOT `"ocr_document"`. That is CORRECT behavior for this injection mode, not
 a provenance loss: the `ocr_document` `EvidenceSourceType` value (W1,
-`docs/ai/validation_plan_f1f2_continuous.md` §3 row 1) is reserved for
+`_archive/plans/validation_plan_f1f2_continuous.md` §3 row 1) is reserved for
 F1's SEPARATE, pre-existing `ocr_documents=` session-start document-
 attachment parameter (`f1.py: F1Pipeline.run_session(ocr_documents=...)`),
 which this module does NOT touch or replace.

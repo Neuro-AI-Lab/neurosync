@@ -1,6 +1,6 @@
 """F4 quick-dev longitudinal scenario packs — harness/tests territory ONLY.
 
-`docs/ai/f4_quick_dev_plan.md` §2.3/§2.4/§2.5, `PLAN-2026-W29-D`, `ADR-036`.
+`_archive/plans/f4_quick_dev_plan.md` §2.3/§2.4/§2.5, `PLAN-2026-W29-D`, `ADR-036`.
 This module owns the 11-session arc CONTENT (state descriptors,
 inter-session events, reveal guidance, day-offset schedule) for VP-001
 (`improvement_plateau`) and VP-003 (`relapse_after_partial_improvement`) —

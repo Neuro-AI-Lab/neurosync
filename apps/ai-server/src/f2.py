@@ -681,7 +681,7 @@ def _build_artifact(
     above. ``None`` only for pre-W4 artifacts/tests; ``_run()`` always
     supplies a real value.
 
-    ``scenario_pack_id``/``arc_mode`` (`docs/ai/f4_quick_dev_plan.md` §2.7,
+    ``scenario_pack_id``/``arc_mode`` (`_archive/plans/f4_quick_dev_plan.md` §2.7,
     `REV-044` Issue 4 / `ADR-036` item 3): reprojected straight from the
     upstream F1 ``conversation.json``'s own top-level fields (``_run()``
     reads ``data.get("scenario_pack_id")``/``data.get("arc_mode")``, never

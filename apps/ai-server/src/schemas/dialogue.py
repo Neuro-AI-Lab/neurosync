@@ -60,7 +60,7 @@ class DialogueInput(AgentInput):
             "Slot values written THIS turn only, before this dialogue call "
             "(e.g. f1.py Step 1b's risk_assessment composition, or Step 2's "
             "ClinicalSlotAgent extraction). Used by the BUG-037 output-"
-            "isolation guard (`docs/ai/fix_design_exhaustion_bug037.md` §2) "
+            "isolation guard (`_archive/plans/fix_design_exhaustion_bug037.md` §2) "
             "to prioritize detection of same-turn clinical-note leaks. "
             "Distinct from `filled_slots` (the full session-accumulated "
             "slot state, also checked by the same guard at lower priority). "
@@ -140,7 +140,7 @@ class DialogueOutput(AgentOutput):
             "True if the retry budget was exhausted while a violation "
             "still held AND no safe-degrade path exists for that "
             "violation type — response shipped anyway. As of Fix 2/Fix 3 "
-            "(ADR-030, `docs/ai/fix_design_exhaustion_bug037.md` §3) this "
+            "(ADR-030, `_archive/plans/fix_design_exhaustion_bug037.md` §3) this "
             "is unreachable for every currently-enumerated violation: "
             "output_isolation_* ships `output_isolation_fallback` instead, "
             "and presence_missing/exact_repeat/near_dup_* ship "
@@ -166,7 +166,7 @@ class DialogueOutput(AgentOutput):
             "exhausted while a violation still held — unlike fall_through, "
             "the violating text was NOT shipped; assistant_response was "
             "replaced with a minimal neutral continuation instead "
-            "(`docs/ai/fix_design_exhaustion_bug037.md` §2)."
+            "(`_archive/plans/fix_design_exhaustion_bug037.md` §2)."
         ),
     )
     near_dup_detail: list[dict[str, Any]] = Field(
@@ -178,10 +178,10 @@ class DialogueOutput(AgentOutput):
             "check may have outranked it). Each entry: "
             "{reason: back_to_back|session_cap, family: <matched clause "
             "text>, count: <prior same-family occurrences>} "
-            "(`docs/ai/fix_design_exhaustion_bug037.md` §2)."
+            "(`_archive/plans/fix_design_exhaustion_bug037.md` §2)."
         ),
     )
-    # Fix 2 — Option C (`docs/ai/fix_design_exhaustion_bug037.md` §3,
+    # Fix 2 — Option C (`_archive/plans/fix_design_exhaustion_bug037.md` §3,
     # ADR-030 Decisions 1/2): the elevated-review flag for the retry-
     # budget-exhaustion safe-degrade path (CVR-013 condition 1).
     exhaustion_degrade: str | None = Field(

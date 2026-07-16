@@ -1,0 +1,65 @@
+# EXP-014 r2 — post-fix FULL SM-01..08b safety-matrix regression, per ADR-025.
+# Re-run of the identical 11-scenario matrix from config.yaml (r1), on the commit
+# where developer's SM-06/dialogue-v3 fix (BUG-025) has landed and passed its own
+# qa gate. Written before launch, per experiment-reproducibility skill.
+# Supersedes nothing in config.yaml (r1) — this is an additional sibling run under
+# the same EXP-014, r2 section, per ADR-025 / HANDOFF instruction ("not a new EXP entry").
+
+mission: PLAN-2026-W28-Q (discussion.md) — wave W2 closure, ADR-025 post-fix re-run
+adr_binding_condition: "ADR-025 — after the SM-06 fix lands and passes its qa gate, the FULL SM-01..08b bundle re-runs (~11 calls). Rationale: a partial re-run of only SM-06 would treat the remaining 9 r1 passes as valid for a system that no longer exists (dialogue.py + dialogue v3 prompt both changed under the fix). W2 closure gates on this r2 bundle being clean; SM-08b's pre-existing gap (BUG-026) does not block, documented known-fail."
+
+code_under_test:
+  branch: feat/f1f2-program-w29
+  git_head: 4be9818be4402c70c73df0998bced2cfb8a5be21
+  git_parent: d666a2c2a138cb48dd31b3f2197d346cf0585aeb   # = r1's HEAD; sole diff is the BUG-025 fix commit
+  diff_scope: "3 files per commit 4be9818: apps/ai-server/src/agents/dialogue.py (+20/-6), apps/ai-server/tests/repro/test_bug_025.py (new), docs/ai/prompts/dialogue/v3.system.md (+41/-26). f1.py repetition guard untouched (git diff d666a2c..4be9818 -- apps/ai-server/src/f1.py empty, re-verified this launch)."
+  no_code_edits: true
+
+gates:
+  hyp: "none — validation/measurement task, matches r1/EXP-002/003/005..013 convention (no HYP-NNN)"
+  critic_review: "REV-023 NON-BLOCKING (severity line starts 'major', not 'blocking' — hook-structurally non-blocking; re-confirmed this launch, status still 'open' but non-blocking per its own verdict paragraph, unchanged since r1)"
+  qa_gate: "GATE:PASS at 4be9818 (error.md BUG-025 status update, 2026-07-11): CI-mirror 892 passed/2 skipped (both pre-existing test_bug_014 artifact-absence skips); dual-mechanism fix verified (prompt condensation + retry-hint slot-list fix); repetition guard diff empty; test_bug_025.py 5/5 + 26/26 total spot-run green. Verbatim: 'GATE:PASS -- 4be9818 cleared to launch the ADR-025 sm_regression_r2 re-run.'"
+  dataset: "DATASET-003 (VP-001~VP-004, discussion.md) — cited per r1/EXP-002/003/013 convention; SM-01..08b are deterministic ScriptedPatient fixtures, no persona-file reads (unchanged from r1, code path not touched by the fix)"
+  experiment_gate_hook: "command `python -m src.safety_matrix` / `bash -c \"...python -m src.safety_matrix...\"` does not match EXP_LAUNCH regex (run.sh/evaluate.sh/models/*.py only) — non-triggering, confirmed by hook source read this launch; no GATE_OVERRIDE needed/used"
+  archive_gate_hook: "DISARMED (.claude/state/blind_active absent, confirmed this launch) — Phase 1 (W0-W6), expected"
+
+prompt_pins_verified_at_launch:
+  safety_classifier_v2_sha256: "3e9ca6b44ba3373f70c068758a2e1ae860f3c58483394a85fed9e13a90b3390c"   # UNCHANGED from r1/HANDOFF, re-verified via sha256sum this launch
+  dialogue_v3_sha256: "d8870e5dda81dffde9099a2e606e9656b7aeb8f897dbdd41f25705efbdc84325"   # NEW pin post-fix, supersedes r1's 2440f29b...; re-verified via sha256sum this launch, matches HANDOFF exactly
+  dialogue_v2_untouched: "byte-identical since r1 (git diff d666a2c..4be9818 -- docs/ai/prompts/dialogue/v2.system.md empty, per qa BUG-025 status update)"
+  clinical_slot_v3_sha256: "10458b2c0cf24249a5057bd65d8c10b20aee9dcb535167eb94b4c4436ab7c742"   # unchanged since r1, re-verified via sha256sum this launch, not an active W2 change
+  persona_file_hashes: "N/A — unchanged rationale from r1 (safety_matrix.py's ScriptedPatient scenarios never read PERSONA_DIR/persona.md)"
+
+env_discipline:
+  hira_kakao_keys: "ABSENT — grep -iE '^(HIRA|KAKAO)' apps/ai-server/.env -> 0 matches, exit 1 (confirmed this launch, per ADR-024)"
+  upstage_api_key: "SET (non-empty, name-only check, value never printed)"
+  blind_active_flag: "ABSENT (.claude/state/blind_active), confirmed this launch"
+
+model:
+  primary_vendor: upstage
+  chat_model: solar-pro3
+  base_url: https://api.upstage.ai/v1
+  secondary_vendor: lg_k_exaone   # not used by ScriptedPatient path
+
+hardware: CPU-only orchestration host; inference via Upstage hosted API
+
+sm_matrix:
+  command_template: "cd apps/ai-server && .venv/bin/python -m src.safety_matrix --scenario {SM-ID}"
+  scenarios: [SM-01, SM-02, SM-03, SM-04a, SM-04b, SM-05, SM-06, SM-07a, SM-07b, SM-08a, SM-08b]
+  n_per_scenario: 1
+  output_location: "docs/ai/simulation_results/safety_matrix/ (canonical) — mirrored into experiments/EXP-014/runs/sm_regression_r2/<cell>/artifacts/"
+  pass_criteria_source: "each scenario's own encoded `expectations` list in tests/simulation/scenarios/SM-*.json, evaluated by safety_matrix.py's evaluate_expectations()"
+  baseline_for_reference: "r1 (this EXP-014, d666a2c, 9/11 pass) is the direct comparison point; EXP-002/EXP-013 remain the deeper historical baselines"
+  budget: "11 of 159 total program calls (ADR-025 disclosed deviation: +11 above the pre-registered ceiling, new projection approx 170-173)"
+
+expected_outcomes_stated_before_launch:
+  sm_06: "MUST pass — this is the fix's live proof. If it fails again, that is iteration 2 of the verification loop: report verbatim, do NOT bisect further without orchestrator routing (per HANDOFF)."
+  sm_08b: "Expected non-pass — BUG-026 pre-existing (v2/ADR-010-rule-5 calibration gap, predates W2 entirely). Record as known-fail (BUG-026), byte-compare against r1/EXP-013 artifacts to confirm same mechanism, not a new regression."
+  other_9_cells: "Expected to remain PASS (unchanged code paths, dialogue v3 prompt content condensed not removed). Any newly-failing cell vs r1 triggers the Appendix B / REV-023 Issue 7 bisection protocol, <=5 contingency calls remaining of the original 6 (1 used in r1)."
+
+evidence_source_type_scope: "EXCLUDED from this regression — F2-side, orthogonal (plan §5); safety_matrix.py exercises F1 only"
+
+wording_discipline: "no 인증/certified/passed-beyond-this-matrix claims; this regression does NOT re-validate safety_classifier itself (pinned v2, unchanged this wave); maximal claim licensed = 'SM-01..08b regression clean at 4be9818 with SM-08b known-fail (BUG-026) disclosed'"
+
+no_pushes_no_commits: true
+no_code_edits_to_src: true

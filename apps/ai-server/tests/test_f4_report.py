@@ -1,5 +1,5 @@
 """Tests for `src/services/f4_report.py` — `save_f4_result` + markdown
-report + chart orchestration. `docs/ai/f4_quick_dev_plan.md` §5.
+report + chart orchestration. `_archive/plans/f4_quick_dev_plan.md` §5.
 """
 
 from __future__ import annotations

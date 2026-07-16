@@ -1,4 +1,4 @@
-"""`src.continuous_test`'s F3 stage — `docs/ai/f3_quick_dev_plan.md` §6,
+"""`src.continuous_test`'s F3 stage — `_archive/plans/f3_quick_dev_plan.md` §6,
 ADR-032. No live LLM/DB anywhere in this file: `run_f3_stage` is exercised
 against a synthetic `domain_inference.json` artifact with `--answer-mode
 expected` (deterministic, reads a real repo persona file, zero LLM), and

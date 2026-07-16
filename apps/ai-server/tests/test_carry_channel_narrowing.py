@@ -1,4 +1,4 @@
-"""AVC-02 support test (`docs/ai/validation_plan_f1f2_continuous.md` §6,
+"""AVC-02 support test (`_archive/plans/validation_plan_f1f2_continuous.md` §6,
 qa detection procedure #5): "the carry channel contains only
 final_slots/missing_slots-shaped content, never raw risk_assessment prose."
 

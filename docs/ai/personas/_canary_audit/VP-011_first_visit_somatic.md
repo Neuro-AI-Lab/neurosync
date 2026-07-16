@@ -2,7 +2,7 @@
 
 > Virtual Patient persona for testing psychiatric pre-consultation AI system.
 > Classification: First visit, somatic-masks-mood presentation, moderate depression (underlying diagnosis)
-> Authored per `docs/ai/validation_plan_f1f2_continuous.md` v1.2 §9 (VP-011 row) — SC-12.
+> Authored per `_archive/plans/validation_plan_f1f2_continuous.md` v1.2 §9 (VP-011 row) — SC-12.
 > Crisis-forward: **Excluded** (disclosed program-level limitation; see §8).
 > No multi-session run is scheduled for this persona (SC-12 dialogue-only) — see §8 for the reveal-partition exemption this implies.
 

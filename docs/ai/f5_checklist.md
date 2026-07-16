@@ -9,8 +9,8 @@
 > 최대치는 `DEV-007`, `VER-008`(직접 확인, 2026-07-14, `docs/ai/checklist_task1.md` L127-137) —
 > 이 문서의 신규 `DEV` 항목은 `DEV-008`부터, 신규 `VER` 항목은 `VER-009`부터 이어 붙인다.
 > `DOC` 타입은 레거시 F5 섹션에 선례가 없어(grep 0건) `DOC-001`부터 신규 시작한다. 재사용 금지.
-> **기준 문서:** `docs/ai/f5_charting_research.md`(brainstorm, 연구 노트), `docs/ai/f5_quick_dev_plan.md`
-> (writer, 이 미션의 설계 문서), `docs/ai/f4_quick_dev_plan.md`/`docs/ai/f4_checklist.md`(구조적
+> **기준 문서:** `_archive/reports/f5_charting_research.md`(brainstorm, 연구 노트), `_archive/plans/f5_quick_dev_plan.md`
+> (writer, 이 미션의 설계 문서), `_archive/plans/f4_quick_dev_plan.md`/`docs/ai/f4_checklist.md`(구조적
 > 선례). 모든 상태 근거는 이 문서 + `discussion.md`/`error.md`의 링크된 엔트리로 추적된다.
 > **Created:** 2026-07-14 | **Author:** writer, on orchestrator dispatch.
 
@@ -33,7 +33,7 @@ F5는 `EXP-023`(F4 배터리)의 VP-001/VP-003 산출물을 재사용하여 리�
 동일세션 CTRS 비상승 공시, F3 완전성-급성도 반비례 명시), `CVR-021`의 S8 능력-귀속 caveat,
 `REV-039`의 F3 v1 최종 MAY/MUST-NOT 표(척도 "검증됨" 서술 금지, item fidelity≠behavioral
 fidelity, GAD-7 threshold_caveat 비대칭 공시). 상세: `discussion.md` REV-045, CVR-022, CVR-021,
-REV-039; 본 문서 companion `docs/ai/f5_quick_dev_plan.md` §6이 이 규칙들을 F5 섹션별로 재정리한다.
+REV-039; 본 문서 companion `_archive/plans/f5_quick_dev_plan.md` §6이 이 규칙들을 F5 섹션별로 재정리한다.
 F5 자체의 설계/구현에 대한 REV/CVR/ADR은 아직 제정되지 않았다 — 본 문서의 구현·검증 행은 그
 게이트가 실제로 통과하기 전까지 `[x]`로 표기하지 않는다.
 
@@ -55,8 +55,8 @@ addendum으로 갱신. 아래 표의 `[x]` 행은 이 전체 체인을 근거로
 
 | ID | Type | 항목 | 상태 | 선행 조건/비고 |
 |---|---|---|---|---|
-| T1-F5-DOC-001 | DOC | F5 charting-convention/FHIR R4 연구 노트(`docs/ai/f5_charting_research.md`, brainstorm, 485줄) — SOAP/intake/SBAR/MSE 텍스트-도출가능성 분석, 정신과 triage, 한국 임상 맥락, FHIR R4 리소스·LOINC 매핑(VERIFIED/UNVERIFIED 태그 보존) | [x] | 파일 존재 확인(직접 열람, 2026-07-14). Open items(미해결, 명시적으로 disclosed): Media 리소스(FHIR 차트 첨부) 미연구, CTRS 검증 LOINC 코드 없음, 의료법 시행규칙 제14조 항목 목록 미확보. 근거: `docs/ai/f5_charting_research.md` 전체 |
-| T1-F5-DOC-002 | DOC | F5 quick-dev 설계 문서(`docs/ai/f5_quick_dev_plan.md`, writer, 이 미션) — §2 섹션별 데이터소스 매핑표, §3 charting-convention grounding, §4 아키텍처(production/harness 분리 + 12→17 SlotData 매핑), §5 export 사양(markdown/PDF/FHIR + FHIR 매핑표), §6 바인딩 워딩+red line, §7 `EXP-024` 약식 검증 설계, §8 gap, §9 wave plan | [x] | 파일 존재 확인(직접 작성, 2026-07-14). **Review-gate 통과 완료:** `REV-046`(non-blocking-with-conditions) + `CVR-023`(adequate-with-conditions) → `ADR-037`(2026-07-14, 구현 licensed) — F4의 `PLAN-2026-W29-D`(REV-044→CVR-020→ADR-036)와 동일 게이트 순서. **`ADR-037`에 따라 계획 문서 amended:** A8 내러티브 경로 이번 미션 descope(Decision 1), A3 종단 위험 신호 서브섹션 신설(Decision 2), A6 tie-handling(Decision 3), A0 disclaimer 추가(Decision 4), A7 약물 메모(Decision 5), REV-022→REV-044 Criterion 6 인용 수정(Decision 6) — 계획 문서 자체의 §0/self-check amendment record 참조. 근거: `docs/ai/f5_quick_dev_plan.md` 전체, `discussion.md` `ADR-037` |
+| T1-F5-DOC-001 | DOC | F5 charting-convention/FHIR R4 연구 노트(`_archive/reports/f5_charting_research.md`, brainstorm, 485줄) — SOAP/intake/SBAR/MSE 텍스트-도출가능성 분석, 정신과 triage, 한국 임상 맥락, FHIR R4 리소스·LOINC 매핑(VERIFIED/UNVERIFIED 태그 보존) | [x] | 파일 존재 확인(직접 열람, 2026-07-14). Open items(미해결, 명시적으로 disclosed): Media 리소스(FHIR 차트 첨부) 미연구, CTRS 검증 LOINC 코드 없음, 의료법 시행규칙 제14조 항목 목록 미확보. 근거: `_archive/reports/f5_charting_research.md` 전체 |
+| T1-F5-DOC-002 | DOC | F5 quick-dev 설계 문서(`_archive/plans/f5_quick_dev_plan.md`, writer, 이 미션) — §2 섹션별 데이터소스 매핑표, §3 charting-convention grounding, §4 아키텍처(production/harness 분리 + 12→17 SlotData 매핑), §5 export 사양(markdown/PDF/FHIR + FHIR 매핑표), §6 바인딩 워딩+red line, §7 `EXP-024` 약식 검증 설계, §8 gap, §9 wave plan | [x] | 파일 존재 확인(직접 작성, 2026-07-14). **Review-gate 통과 완료:** `REV-046`(non-blocking-with-conditions) + `CVR-023`(adequate-with-conditions) → `ADR-037`(2026-07-14, 구현 licensed) — F4의 `PLAN-2026-W29-D`(REV-044→CVR-020→ADR-036)와 동일 게이트 순서. **`ADR-037`에 따라 계획 문서 amended:** A8 내러티브 경로 이번 미션 descope(Decision 1), A3 종단 위험 신호 서브섹션 신설(Decision 2), A6 tie-handling(Decision 3), A0 disclaimer 추가(Decision 4), A7 약물 메모(Decision 5), REV-022→REV-044 Criterion 6 인용 수정(Decision 6) — 계획 문서 자체의 §0/self-check amendment record 참조. 근거: `_archive/plans/f5_quick_dev_plan.md` 전체, `discussion.md` `ADR-037` |
 
 ## 구현 (Implementation — 전 항목 review-gate 통과 전 착수 금지)
 
@@ -101,7 +101,7 @@ addendum으로 갱신. 아래 표의 `[x]` 행은 이 전체 체인을 근거로
 
 ---
 
-**Linked:** `docs/ai/f5_charting_research.md`, `docs/ai/f5_quick_dev_plan.md`; 레거시 F5 항목(이 미션
+**Linked:** `_archive/reports/f5_charting_research.md`, `_archive/plans/f5_quick_dev_plan.md`; 레거시 F5 항목(이 미션
 으로 변경되지 않음): `docs/ai/checklist_task1.md` `T1-F5-DEV-001~007` / `VER-001~008`. F4 선례:
 `docs/ai/f4_checklist.md`, `discussion.md` PLAN-2026-W29-D/REV-044/CVR-020/ADR-036/CVR-021/REV-045/
 CVR-022. F5 설계 review-gate(2026-07-14): `discussion.md` `REV-046`/`CVR-023`/`ADR-037`. F5

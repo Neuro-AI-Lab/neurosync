@@ -1,0 +1,235 @@
+{
+  "session_id": "f1_VP-003_followup",
+  "persona_id": "VP-003",
+  "repro": {
+    "git_head": "75472eee31ba9c8a335a0e75f9d0d5acc75b3569",
+    "model_used": "solar-pro3-260323",
+    "prompt_version": "v2",
+    "input_file": "/home/neuroai/users/dhkim/aichampion/neurosync/docs/ai/simulation_results/VP-003/VP-003_20260713_201145_conversation.json",
+    "input_sha256": "108114c5cf7ac74077ac02efea5926100848dcea9811d25c1e3000b469873097",
+    "mode": "llm_only",
+    "latency_ms": 4411.8,
+    "generated_at": "2026-07-13T20:11:50.045547",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 1950,
+      "completion_tokens": 590,
+      "total_tokens": 2540
+    },
+    "raw_response": null,
+    "validation_errors": null
+  },
+  "domain_candidates": [
+    {
+      "domain": "depression",
+      "confidence": 0.35,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_6",
+          "quote": "고맙긴 한데... 뭘 해도 안 될 것 같아요. 계속 이렇게 있을 거 같고. 그냥... 그만하고 싶은데."
+        }
+      ],
+      "recommended_surveys": [
+        "PHQ-9"
+      ]
+    },
+    {
+      "domain": "alcohol",
+      "confidence": 0.3,
+      "evidence": [
+        {
+          "source_type": "utterance",
+          "source_id": "turn_4",
+          "quote": "안 마시면 못 버티겠더라고요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_5",
+          "quote": "안 마시면 못 버티겠더라고요.."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_7",
+          "quote": "안 마시면 못 버티겠더라고요."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_8",
+          "quote": "안 마시면 못 버티겠더라고요.."
+        },
+        {
+          "source_type": "utterance",
+          "source_id": "turn_9",
+          "quote": "술은 매일 마셔요. 안 마시면 못 버텨요."
+        }
+      ],
+      "recommended_surveys": [
+        "AUDIT"
+      ]
+    }
+  ],
+  "department_candidates": [
+    {
+      "department": "정신건강의학과",
+      "reason": "우울감, 무기력, 자살 사고, 알코올 의존 증상이 복합적으로 나타남",
+      "domain_ref": "depression"
+    },
+    {
+      "department": "정신건강의학과",
+      "reason": "알코올 의존 및 금단 증상",
+      "domain_ref": "alcohol"
+    }
+  ],
+  "summary": "환자는 지속적인 우울감, 무기력, 자살 사고, 알코올 의존 증상을 호소하고 있으며, 이전 세션에서도 유사한 증상이 보고된 바 있습니다.",
+  "retrieval_meta": {
+    "mode": "llm_only",
+    "chunks_returned": 0,
+    "chunk_ids": [],
+    "queries": null
+  },
+  "chunk_texts": {},
+  "utterances": {
+    "turn_0": "그냥... 또 막막해요. 아무것도 안 하고 싶고, 사라지고 싶은 생각만 들어요.",
+    "turn_1": "그냥... 또 막막해요. 아무것도 안 하고 싶고, 사라지고 싶은 생각만 들어요.",
+    "turn_2": "...매일요.  하루 종일 그런 생각만 맴돌아요.  살아서 뭐 하나 싶고... 그냥 없어지면 편할 것 같아요.",
+    "turn_3": "...생각은 해봤어요.  \n어떻게까지는... 생각 안 했어요.  \n그냥 사라지고 싶은 거예요.  \n구체적으로는... 몰라요.  \n없어지면 편할 것 같아서.",
+    "turn_4": "아니요... 가본 적 없어요. 처음이에요. 도움이 될지는... 몰라요. ... 안 마시면 못 버티겠더라고요.",
+    "turn_5": "아니요... 가본 적 없어요. 처음이에요. 도움이 될지는... 몰라요. ... 안 마시면 못 버티겠더라고요..",
+    "turn_6": "... 고맙긴 한데... 뭘 해도 안 될 것 같아요. 계속 이렇게 있을 거 같고. 그냥... 그만하고 싶은데.",
+    "turn_7": "아니요... 가본 적 없어요. 처음이에요. 도움이 될지는... 몰라요. ... 안 마시면 못 버티겠더라고요.",
+    "turn_8": "아니요... 가본 적 없어요. 처음이에요. 도움이 될지는... 몰라요. ... 안 마시면 못 버티겠더라고요..",
+    "turn_9": "술은 매일 마셔요. 안 마시면 못 버텨요. 잠도 잘 안 오고... 깨어나면 그냥 천장만 봐요. ... 진통제 같은 건 몰라요. 필요 없으니까.",
+    "turn_10": "...형은 있어요. 근데 연락 안 해요. 짐이 되기 싫어서. 다른 사람은... 다 끊겼고. ... 혹시 제게 도움을 준다는 게... 진짜 될 거 같아요? 모르겠어요."
+  },
+  "whitelist_audit": {
+    "counts": {
+      "accepted": 6,
+      "rejected_unknown_source": 0,
+      "rejected_quote_mismatch": 0,
+      "rejected_unknown_source_type": 0,
+      "rejected_risk_lexicon": 2
+    },
+    "verdicts": [
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_0",
+        "quote": "그냥... 또 막막해요. 아무것도 안 하고 싶고, 사라지고 싶은 생각만 들어요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (사라지고 싶, 사라지고싶) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_2",
+        "quote": "하루 종일 그런 생각만 맴돌아요. 살아서 뭐 하나 싶고... 그냥 없어지면 편할 것 같아요.",
+        "verdict": "rejected_risk_lexicon",
+        "reason": "quote contains risk-class expression(s) (살아서 뭐하, 살아서뭐하) — suicidal-ideation/self-harm/death-directed content is never domain-confidence evidence (prompt rule 2, code-enforced per ADR-014); cite a non-risk symptom or 징후 instead"
+      },
+      {
+        "domain": "depression",
+        "source_type": "utterance",
+        "source_id": "turn_6",
+        "quote": "고맙긴 한데... 뭘 해도 안 될 것 같아요. 계속 이렇게 있을 거 같고. 그냥... 그만하고 싶은데.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "utterance",
+        "source_id": "turn_4",
+        "quote": "안 마시면 못 버티겠더라고요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "utterance",
+        "source_id": "turn_5",
+        "quote": "안 마시면 못 버티겠더라고요..",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "utterance",
+        "source_id": "turn_7",
+        "quote": "안 마시면 못 버티겠더라고요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "utterance",
+        "source_id": "turn_8",
+        "quote": "안 마시면 못 버티겠더라고요..",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      },
+      {
+        "domain": "alcohol",
+        "source_type": "utterance",
+        "source_id": "turn_9",
+        "quote": "술은 매일 마셔요. 안 마시면 못 버텨요.",
+        "verdict": "accepted",
+        "reason": "quote lexically matches the retrieved utterance text"
+      }
+    ]
+  },
+  "filter_summary": {
+    "candidates_before": 2,
+    "candidates_after": 2,
+    "candidates_eliminated": 0,
+    "eliminated_domains": [],
+    "evidence_stripped": 2,
+    "evidence_stripped_risk_lexicon": 2
+  },
+  "orphan_departments": [],
+  "additional_questions": [
+    "자살 사고나 자해 계획에 대한 구체적인 생각이 있는지",
+    "최근 알코올 섭취량과 금단 증상에 대한 구체적인 정보",
+    "일상 생활 기능(수면, 식사, 대인관계 등)에 대한 구체적인 변화"
+  ],
+  "model_used": "solar-pro3-260323",
+  "prompt_version": "v2",
+  "latency_ms": 4411.836673039943,
+  "finish_reason": "stop",
+  "usage": {
+    "prompt_tokens": 1950,
+    "completion_tokens": 590,
+    "total_tokens": 2540
+  },
+  "raw_response": null,
+  "validation_errors": null,
+  "ai_predicted_disease": {
+    "candidates": [],
+    "mode": "experimental_unpopulated",
+    "is_diagnostic": false,
+    "disclaimer": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다.",
+    "reason_summary": "Stage 1 ran in llm_only mode (no RAG chunks retrieved this run) — the AI-disease container has no chunk-derived evidence to populate from",
+    "recommended_questionnaire": null,
+    "recommendation_caveat": null
+  },
+  "evidence_provenance_summary": {
+    "rag_chunk_case_card": 0,
+    "rag_chunk_qa": 0,
+    "rag_chunk_other": 0,
+    "utterance": 6,
+    "ocr_document": 0
+  },
+  "rag_trigger": {
+    "policy": "A",
+    "retrieve": false,
+    "queries": [],
+    "dropped_queries": [
+      "매일 술 없이는 하루를 버티기 어렵고, 천장만 보며 살고 싶지 않다는 생각이 지속됨",
+      "매일 술 없이는 하루를 버티기 어렵고, 천장만 보며 살고 싶지 않다는 생각이 하루 종일 지속됨"
+    ],
+    "trigger_reason": "sufficient_no_fallback_no_usable_queries",
+    "fallback_used": false,
+    "judge_output": null
+  },
+  "scenario_pack_id": "VP-003_relapse_after_partial_improvement_s07",
+  "arc_mode": "relapse_after_partial_improvement"
+}

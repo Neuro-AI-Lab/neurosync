@@ -1,6 +1,6 @@
 """F3 pipeline — F2-driven questionnaire administration (production engine).
 
-`docs/ai/f3_quick_dev_plan.md` §1/§3/§4/§5.1, ADR-031, ADR-032. This is a
+`_archive/plans/f3_quick_dev_plan.md` §1/§3/§4/§5.1, ADR-031, ADR-032. This is a
 SECOND, separate administration path from the pre-existing
 `OrchestratorAgent.plan_surveys`/`score_and_check_safety` planner
 (`src/agents/orchestrator.py:592,638`, live in the 11-state chat flow) —
@@ -407,7 +407,7 @@ async def administer_survey(
     item_bank: Mapping[ScaleName, ItemBankEntry] | None = None,
     patient_sex: str = "unknown",
 ) -> tuple[list[int], ScoreResult]:
-    """`docs/ai/f3_quick_dev_plan.md` §1: resolves the item bank entry for
+    """`_archive/plans/f3_quick_dev_plan.md` §1: resolves the item bank entry for
     `scale_name`, iterates its items in order calling
     ``response = await answer_fn(item)`` per item (the ONLY variability
     point), then scores via `score_survey` (REUSE, unmodified).
