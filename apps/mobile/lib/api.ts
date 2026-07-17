@@ -202,9 +202,11 @@ export async function createSession(token: string): Promise<SessionOut> {
   });
 }
 
-// ────────── Questionnaires (FR-006/007) ──────────
+// ────────── Questionnaires (FR-006/007 · v3 FR-040) ──────────
 
-export type QuestionnaireType = "PHQ9" | "GAD7";
+// v3 FR-040 — 문항 주입형 문진 4종. AUDITC/PHQ4의 서버 저장은
+// questionnaire_results type 확장(§6-D, 미결 #7) 배포 후 수용된다.
+export type QuestionnaireType = "PHQ9" | "GAD7" | "AUDITC" | "PHQ4";
 
 export type QuestionnaireResult = {
   id: string;

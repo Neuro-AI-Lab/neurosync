@@ -8,6 +8,7 @@ import { ArrowRight, Chat, ChevronRight, Doc } from "../../../lib/icons";
 import { APIException, createSession } from "../../../lib/api";
 import { colors } from "../../../lib/tokens";
 import { useAuth } from "../../../state/auth";
+import { STATUS_KO, useRecords } from "../../../state/records";
 import { useSession } from "../../../state/session";
 
 function greeting(): string {
@@ -29,6 +30,8 @@ export default function HomeScreen() {
   const user = useAuth((s) => s.user);
   const startSession = useSession((s) => s.start);
   const activeSessionId = useSession((s) => s.sessionId);
+  // v3 FR-045 — 지난 기록·리포트 통합 카드 (mock: 로컬 기록 스토어 기반).
+  const latestRecord = useRecords((s) => s.records[0]);
   const [starting, setStarting] = useState(false);
 
   const onStart = async () => {
@@ -101,6 +104,29 @@ export default function HomeScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.lastTitle}>진행 중인 사전 문진</Text>
               <Text style={styles.lastSub}>이어서 진행할 수 있어요</Text>
+            </View>
+            <ChevronRight size={15} color={colors.faint} />
+          </Pressable>
+        ) : null}
+
+        {latestRecord ? (
+          <Pressable
+            style={styles.lastRow}
+            accessibilityRole="button"
+            accessibilityLabel="지난 기록·리포트 보기"
+            onPress={() => router.push("/(patient)/(tabs)/records")}
+          >
+            <View style={styles.lastIco}>
+              <Doc size={17} color={colors.muted} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.lastTitle}>지난 리포트</Text>
+              <Text style={styles.lastSub}>
+                {(() => {
+                  const d = new Date(latestRecord.completedAt);
+                  return `${d.getMonth() + 1}월 ${d.getDate()}일 · ${STATUS_KO[latestRecord.status]}`;
+                })()}
+              </Text>
             </View>
             <ChevronRight size={15} color={colors.faint} />
           </Pressable>

@@ -17,8 +17,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../../../components/Button";
 import { Check } from "../../../lib/icons";
 import { APIException, getReportStatus, ReportPhase } from "../../../lib/api";
+import { SURVEYS } from "../../../lib/surveys";
 import { colors } from "../../../lib/tokens";
 import { useAuth } from "../../../state/auth";
+import { SEVERITY_KO, useRecords } from "../../../state/records";
 import { useSession } from "../../../state/session";
 
 const POLL_INTERVAL_MS = 3000;
@@ -42,6 +44,9 @@ export default function ReportStatusScreen() {
   const accessToken = useAuth((s) => s.accessToken);
   const storeSessionId = useSession((s) => s.sessionId);
   const resetSession = useSession((s) => s.reset);
+  // 방금 완료한 문진 — 완료 화면에 점수 카드로 표시 (v3 FR-046 가드레일:
+  // 표준 문진 점수는 환자 본인 응답 기반이라 노출 가능).
+  const latestRecord = useRecords((s) => s.records[0]);
 
   const sessionId = params.sessionId ?? storeSessionId ?? null;
   const estimatedSeconds = Number(params.estimatedSeconds) || 30;
@@ -103,7 +108,7 @@ export default function ReportStatusScreen() {
 
   const goHome = () => {
     resetSession();
-    // Clear the whole intake chain (chat → phq9 → gad7 → documents → report)
+    // Clear the whole intake chain (chat → survey → submit → report)
     // back to the tabs root so Back doesn't walk back into the questionnaire.
     if (router.canDismiss()) router.dismissAll();
     else router.replace("/(patient)/(tabs)/home");
@@ -124,10 +129,43 @@ export default function ReportStatusScreen() {
           <View style={styles.checkSquare}>
             <Check size={26} color={colors.onInk} strokeWidth={2.4} />
           </View>
-          <Text style={styles.title}>문진이 전달됐어요</Text>
-          <Text style={styles.body}>의료진이 진료 전에 내용을 확인해요.</Text>
-          <View style={{ height: 16, alignSelf: "stretch" }} />
-          <Button label="홈으로" onPress={goHome} />
+          <Text style={styles.title}>문진이 완료됐어요</Text>
+          <Text style={styles.body}>
+            리포트가 안전하게 보관됐어요.{"\n"}기록 탭에서 언제든 다시 볼 수 있어요.
+          </Text>
+
+          {latestRecord ? (
+            <View style={styles.scoreCard}>
+              <Text style={styles.scoreNum}>
+                {latestRecord.totalScore}
+                <Text style={styles.scoreMax}> /{latestRecord.maxScore}</Text>
+              </Text>
+              <Text style={styles.scoreLabel}>
+                {SURVEYS[latestRecord.instrument].toolLabel} ·{" "}
+                {SEVERITY_KO[latestRecord.severity] ?? latestRecord.severity}
+              </Text>
+            </View>
+          ) : null}
+
+          <View style={styles.readyActions}>
+            <Button label="홈으로" onPress={goHome} />
+            {latestRecord ? (
+              <Button
+                label="리포트 보기"
+                variant="ghost"
+                onPress={() => {
+                  // 인트레이크 체인을 정리한 뒤 상세로 — 뒤로가기가 설문으로
+                  // 되돌아가지 않도록 (goHome과 동일한 dismissAll 정책).
+                  resetSession();
+                  if (router.canDismiss()) router.dismissAll();
+                  router.push({
+                    pathname: "/(patient)/report/detail",
+                    params: { recordId: latestRecord.id },
+                  });
+                }}
+              />
+            ) : null}
+          </View>
         </View>
       ) : uiState === "failed" ? (
         <View style={styles.center}>
@@ -202,6 +240,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 6,
   },
+  scoreCard: {
+    alignSelf: "stretch",
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 14,
+    padding: 16,
+    marginTop: 10,
+  },
+  scoreNum: {
+    fontSize: 30,
+    fontWeight: "500",
+    color: colors.ink,
+    letterSpacing: -0.9,
+    fontVariant: ["tabular-nums"],
+  },
+  scoreMax: { fontSize: 13, color: colors.faint, fontWeight: "400" },
+  scoreLabel: { fontSize: 11.5, color: colors.muted, marginTop: 4 },
+  readyActions: { alignSelf: "stretch", gap: 8, marginTop: 12 },
   failSquare: { backgroundColor: colors.danger },
   failMark: { color: "#FFFFFF", fontSize: 30, fontWeight: "800", lineHeight: 34 },
   title: {
