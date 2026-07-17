@@ -17,15 +17,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../../../components/Button";
 import { NavBar } from "../../../components/NavBar";
 import { MOCK } from "../../../lib/config";
+import { SURVEYS } from "../../../lib/surveys";
 import { colors } from "../../../lib/tokens";
 import { SEVERITY_KO, STATUS_KO, useRecords } from "../../../state/records";
-
-const TOOL_LABEL: Record<string, string> = {
-  PHQ9: "PHQ-9",
-  GAD7: "GAD-7",
-  AUDITC: "AUDIT-C",
-  PHQ4: "PHQ-4",
-};
 
 export default function ReportDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -74,36 +68,50 @@ export default function ReportDetailScreen() {
             <Text style={styles.scoreMax}> /{record.maxScore}</Text>
           </Text>
           <Text style={styles.scoreLabel}>
-            {TOOL_LABEL[record.instrument]} · {SEVERITY_KO[record.severity] ?? record.severity}
+            {SURVEYS[record.instrument].toolLabel} ·{" "}
+            {SEVERITY_KO[record.severity] ?? record.severity}
           </Text>
         </View>
 
-        {/* Handoff 미니 프리뷰 (mock — 실데이터는 §6-A/B 배포 후) */}
-        <View style={styles.report}>
-          <View style={styles.reportHead}>
-            <Text style={styles.reportHeadTitle}>Handoff 리포트</Text>
-            <Text style={styles.reportHeadDate}>{dateLabel}</Text>
+        {/* Handoff 미니 프리뷰 — 예시 서사는 MOCK 전용. 실모드에서 실제 기록 위에
+            가짜 임상 텍스트가 렌더되면 안 된다 (§6-A/B 배포 후 실데이터 바인딩). */}
+        {MOCK ? (
+          <View style={styles.report}>
+            <View style={styles.reportHead}>
+              <Text style={styles.reportHeadTitle}>Handoff 리포트</Text>
+              <Text style={styles.reportHeadDate}>{dateLabel}</Text>
+            </View>
+            <View style={styles.rrow}>
+              <Text style={styles.rk}>주호소</Text>
+              <Text style={styles.rv}>한 달 넘게 지속되는 수면 곤란과 우울감</Text>
+            </View>
+            <View style={styles.rrow}>
+              <Text style={styles.rk}>수면 · 식욕 · 활동</Text>
+              <Text style={styles.rv}>입면까지 2~3시간, 식욕 저하, 활동량 감소</Text>
+            </View>
+            <View style={[styles.rrow, styles.rrowLast]}>
+              <Text style={styles.rk}>위험 신호</Text>
+              {record.riskFlag ? (
+                <View style={styles.flag}>
+                  <View style={styles.flagDot} />
+                  <Text style={styles.flagText}>수동적 부정 사고 · 낮음</Text>
+                </View>
+              ) : (
+                <Text style={styles.rv}>특이 소견 없음</Text>
+              )}
+            </View>
           </View>
-          <View style={styles.rrow}>
-            <Text style={styles.rk}>주호소</Text>
-            <Text style={styles.rv}>한 달 넘게 지속되는 수면 곤란과 우울감</Text>
+        ) : (
+          <View style={styles.report}>
+            <View style={styles.reportHead}>
+              <Text style={styles.reportHeadTitle}>Handoff 리포트</Text>
+              <Text style={styles.reportHeadDate}>{dateLabel}</Text>
+            </View>
+            <View style={[styles.rrow, styles.rrowLast]}>
+              <Text style={styles.rv}>리포트 본문은 정식 연동 후 여기에서 볼 수 있어요.</Text>
+            </View>
           </View>
-          <View style={styles.rrow}>
-            <Text style={styles.rk}>수면 · 식욕 · 활동</Text>
-            <Text style={styles.rv}>입면까지 2~3시간, 식욕 저하, 활동량 감소</Text>
-          </View>
-          <View style={[styles.rrow, styles.rrowLast]}>
-            <Text style={styles.rk}>위험 신호</Text>
-            {record.riskFlag ? (
-              <View style={styles.flag}>
-                <View style={styles.flagDot} />
-                <Text style={styles.flagText}>수동적 부정 사고 · 낮음</Text>
-              </View>
-            ) : (
-              <Text style={styles.rv}>특이 소견 없음</Text>
-            )}
-          </View>
-        </View>
+        )}
 
         <Text style={styles.fine}>
           본 리포트는 의료진 참고용이며, 진단이 아닙니다. 전달 전까지 의료진에게 공유되지 않아요.

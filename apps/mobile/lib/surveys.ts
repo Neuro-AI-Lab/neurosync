@@ -139,3 +139,12 @@ export const SURVEYS: Record<QuestionnaireType, SurveyDef> = {
   AUDITC,
   PHQ4,
 };
+
+/** 도구 총점 상한 — 문항 정의에서 파생 (별도 상수로 중복 관리하지 않는다). */
+export function surveyMaxScore(def: SurveyDef): number {
+  return def.items.reduce(
+    (sum, item) =>
+      sum + Math.max(...(item.options ?? def.defaultOptions).map((o) => o.value)),
+    0,
+  );
+}

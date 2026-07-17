@@ -47,8 +47,11 @@ export default function SubmitScreen() {
       <NavBar title="제출 확인" backLabel="이전" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>문진을 제출할까요?</Text>
+        {/* v3 FR-047 — 보관 모델: 제출 = 리포트 생성·보관. 전달은 기록 화면에서
+            환자가 직접 선택한다 (자동 전달 아님). */}
         <Text style={styles.body}>
-          제출하면 입력하신 내용은 의료진에게 전달되며, 이후에는 수정할 수 없어요.
+          제출하면 문진 내용은 더 이상 수정할 수 없어요. 리포트는 보관되며, 의료진
+          전달은 기록 화면에서 직접 선택할 수 있어요.
         </Text>
         <View style={styles.noticeCard}>
           <Text style={styles.noticeText}>{NOTICE}</Text>

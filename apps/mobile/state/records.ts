@@ -13,6 +13,7 @@ import { create } from "zustand";
 
 import { QuestionnaireResult, QuestionnaireType } from "../lib/api";
 import { MOCK } from "../lib/config";
+import { SURVEYS, surveyMaxScore } from "../lib/surveys";
 
 export type RecordStatus = "stored" | "delivered" | "reviewed";
 
@@ -27,13 +28,6 @@ export type IntakeRecord = {
   status: RecordStatus;
   /** 위험 신호 플래그 (mock — 실데이터는 risk_events 조인) */
   riskFlag?: boolean;
-};
-
-export const MAX_SCORE: Record<QuestionnaireType, number> = {
-  PHQ9: 27,
-  GAD7: 21,
-  AUDITC: 12,
-  PHQ4: 12,
 };
 
 export const SEVERITY_KO: Record<string, string> = {
@@ -109,10 +103,11 @@ export const useRecords = create<RecordsState>((set) => ({
       records: [
         {
           id: result.id,
-          completedAt: Date.now(),
+          // 서버 completedAt 우선 — 클라이언트 시계와의 불일치 방지.
+          completedAt: Date.parse(result.completedAt) || Date.now(),
           instrument,
           totalScore: result.totalScore,
-          maxScore: MAX_SCORE[instrument],
+          maxScore: surveyMaxScore(SURVEYS[instrument]),
           severity: result.severity,
           status: "stored" as const,
         },

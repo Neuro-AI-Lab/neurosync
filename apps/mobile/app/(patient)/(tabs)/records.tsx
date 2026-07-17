@@ -8,11 +8,12 @@
  */
 
 import { router } from "expo-router";
-import { SectionList, StyleSheet, Text, View } from "react-native";
-import { Pressable } from "react-native";
+import { useMemo } from "react";
+import { Pressable, SectionList, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ChevronRight } from "../../../lib/icons";
+import { SURVEYS } from "../../../lib/surveys";
 import { colors } from "../../../lib/tokens";
 import { IntakeRecord, SEVERITY_KO, STATUS_KO, useRecords } from "../../../state/records";
 
@@ -46,7 +47,7 @@ function badgeStyle(rec: IntakeRecord) {
 export default function RecordsScreen() {
   const insets = useSafeAreaInsets();
   const records = useRecords((s) => s.records);
-  const sections = groupByMonth(records);
+  const sections = useMemo(() => groupByMonth(records), [records]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
@@ -87,8 +88,7 @@ export default function RecordsScreen() {
                 </View>
                 <View style={styles.mid}>
                   <Text style={styles.midTitle} numberOfLines={1}>
-                    {item.instrument === "PHQ9" ? "PHQ-9" : item.instrument === "GAD7" ? "GAD-7" : item.instrument === "AUDITC" ? "AUDIT-C" : "PHQ-4"}{" "}
-                    {item.totalScore}
+                    {SURVEYS[item.instrument].toolLabel} {item.totalScore}
                     <Text style={styles.midMax}> /{item.maxScore}</Text>
                   </Text>
                   <Text style={styles.midSub}>

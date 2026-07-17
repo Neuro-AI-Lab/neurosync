@@ -122,13 +122,10 @@ export default function HomeScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.lastTitle}>지난 리포트</Text>
               <Text style={styles.lastSub}>
-                {new Date(latestRecord.completedAt).getMonth() + 1}월{" "}
-                {new Date(latestRecord.completedAt).getDate()}일 ·{" "}
-                {latestRecord.status === "reviewed"
-                  ? STATUS_KO.reviewed
-                  : latestRecord.status === "delivered"
-                    ? STATUS_KO.delivered
-                    : STATUS_KO.stored}
+                {(() => {
+                  const d = new Date(latestRecord.completedAt);
+                  return `${d.getMonth() + 1}월 ${d.getDate()}일 · ${STATUS_KO[latestRecord.status]}`;
+                })()}
               </Text>
             </View>
             <ChevronRight size={15} color={colors.faint} />

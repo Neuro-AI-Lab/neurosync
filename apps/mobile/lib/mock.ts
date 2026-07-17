@@ -52,26 +52,42 @@ export function classifyRisk(content: string): SafetyLevel {
   return "low";
 }
 
+// v3 FR-044 — 109 기준 (구 1393·1577-0199는 2024-01부터 통합).
 export const MOCK_HOTLINES = [
-  { name: "자살예방 상담전화", number: "1393" },
-  { name: "정신건강 상담전화", number: "1577-0199" },
+  { name: "자살예방 통합번호", number: "109" },
+  { name: "응급의료", number: "119" },
+  { name: "경찰", number: "112" },
 ];
 
 // ────────── REST mock ──────────
 
+// 도구별 중증도 밴드 (v3 FR-040 — 4종. switch 누락 시 TS가 잡도록 exhaustive).
 function severityFor(type: QuestionnaireType, score: number): string {
-  if (type === "PHQ9") {
-    if (score <= 4) return "minimal";
-    if (score <= 9) return "mild";
-    if (score <= 14) return "moderate";
-    if (score <= 19) return "moderately_severe";
-    return "severe";
+  switch (type) {
+    case "PHQ9":
+      if (score <= 4) return "minimal";
+      if (score <= 9) return "mild";
+      if (score <= 14) return "moderate";
+      if (score <= 19) return "moderately_severe";
+      return "severe";
+    case "GAD7":
+      if (score <= 4) return "minimal";
+      if (score <= 9) return "mild";
+      if (score <= 14) return "moderate";
+      return "severe";
+    case "AUDITC":
+      // KNHANES 절사점 근사 (0-12) — 정식 채점은 서버 /ai/survey/score.
+      if (score <= 3) return "minimal";
+      if (score <= 7) return "mild";
+      if (score <= 9) return "moderate";
+      return "severe";
+    case "PHQ4":
+      // 표준 밴드: 0-2 정상, 3-5 경도, 6-8 중등도, 9-12 중증.
+      if (score <= 2) return "minimal";
+      if (score <= 5) return "mild";
+      if (score <= 8) return "moderate";
+      return "severe";
   }
-  // GAD7
-  if (score <= 4) return "minimal";
-  if (score <= 9) return "mild";
-  if (score <= 14) return "moderate";
-  return "severe";
 }
 
 const delay = <T>(value: T, ms = 250): Promise<T> =>

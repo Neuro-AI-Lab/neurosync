@@ -17,17 +17,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../../../components/Button";
 import { Check } from "../../../lib/icons";
 import { APIException, getReportStatus, ReportPhase } from "../../../lib/api";
+import { SURVEYS } from "../../../lib/surveys";
 import { colors } from "../../../lib/tokens";
 import { useAuth } from "../../../state/auth";
 import { SEVERITY_KO, useRecords } from "../../../state/records";
 import { useSession } from "../../../state/session";
-
-const TOOL_LABEL: Record<string, string> = {
-  PHQ9: "PHQ-9",
-  GAD7: "GAD-7",
-  AUDITC: "AUDIT-C",
-  PHQ4: "PHQ-4",
-};
 
 const POLL_INTERVAL_MS = 3000;
 const POLL_CAP_MS = 60_000;
@@ -114,7 +108,7 @@ export default function ReportStatusScreen() {
 
   const goHome = () => {
     resetSession();
-    // Clear the whole intake chain (chat → phq9 → gad7 → documents → report)
+    // Clear the whole intake chain (chat → survey → submit → report)
     // back to the tabs root so Back doesn't walk back into the questionnaire.
     if (router.canDismiss()) router.dismissAll();
     else router.replace("/(patient)/(tabs)/home");
@@ -147,7 +141,7 @@ export default function ReportStatusScreen() {
                 <Text style={styles.scoreMax}> /{latestRecord.maxScore}</Text>
               </Text>
               <Text style={styles.scoreLabel}>
-                {TOOL_LABEL[latestRecord.instrument]} ·{" "}
+                {SURVEYS[latestRecord.instrument].toolLabel} ·{" "}
                 {SEVERITY_KO[latestRecord.severity] ?? latestRecord.severity}
               </Text>
             </View>

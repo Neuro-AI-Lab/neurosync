@@ -50,6 +50,15 @@ export default function ChatScreen() {
   const [analyzing, setAnalyzing] = useState(false);
   const clientRef = useRef<SessionChatClient | null>(null);
   const listRef = useRef<FlatList<LocalMessage>>(null);
+  // 분석 중 화면 이탈(Android back 등) 시 늦은 router.push를 막는다.
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!sessionId || !initialAccessToken) return;
@@ -126,12 +135,13 @@ export default function ChatScreen() {
     setAnalyzing(true);
     try {
       const instrument = await inferTopSurvey(initialAccessToken, sessionId);
+      if (!mountedRef.current) return; // 이탈 후 늦은 내비게이션 방지
       router.push({
         pathname: "/(patient)/intake/survey",
         params: { instrument },
       });
     } finally {
-      setAnalyzing(false);
+      if (mountedRef.current) setAnalyzing(false);
     }
   };
 

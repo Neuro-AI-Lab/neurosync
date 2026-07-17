@@ -54,9 +54,10 @@ export async function inferTopSurvey(
     return mockInfer();
   }
 
+  const controller = new AbortController();
+  // NFR(v3-3) 상한 — abort는 fetch뿐 아니라 body 읽기(res.json)도 중단시킨다.
+  const timer = setTimeout(() => controller.abort(), INFER_TIMEOUT_MS);
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), INFER_TIMEOUT_MS);
     // §6-A 프록시 경로(제안): POST /api/v1/sessions/:id/domain/infer
     // 프록시 계약 확정 시 lib/api.ts의 request()로 이관한다.
     const res = await fetch(`${API_BASE_URL}/api/v1/sessions/${sessionId}/domain/infer`, {
@@ -64,12 +65,13 @@ export async function inferTopSurvey(
       headers: { Authorization: `Bearer ${token}` },
       signal: controller.signal,
     });
-    clearTimeout(timer);
     if (!res.ok) return FALLBACK_SURVEY;
     const body = (await res.json()) as { top1?: string };
     // 저신뢰/후보 없음 → 서버가 top1을 비워 보냄 → 폴백.
     return (body.top1 && DOMAIN_TO_SURVEY[body.top1]) || FALLBACK_SURVEY;
   } catch {
     return FALLBACK_SURVEY;
+  } finally {
+    clearTimeout(timer);
   }
 }

@@ -13,6 +13,34 @@ import { useSession } from "../../state/session";
 
 type AloneStatus = "alone" | "with_someone";
 
+type Hotline = { name: string; number: string };
+
+// v3 FR-044 — 핫라인 109 기준 (구 1393·1577-0199는 2024-01부터 109로 통합).
+// 서버 payload가 109 기준으로 갱신될 때까지(미결 #5) 구번호를 정규화하고,
+// 항상 표준 3종(109/119/112)이 모두 노출되도록 합집합으로 병합한다 —
+// 위기 화면에서 번호가 사라지거나 폐지 번호가 보이는 일이 없어야 한다 (NFR v3-1).
+const LEGACY_TO_109: Record<string, true> = {
+  "1393": true,
+  "1577-0199": true,
+  "15770199": true,
+};
+const CANONICAL_HOTLINES: Hotline[] = [
+  { name: "자살예방 통합번호", number: "109" },
+  { name: "응급의료", number: "119" },
+  { name: "경찰", number: "112" },
+];
+
+export function mergeHotlines(serverHotlines: Hotline[] | undefined): Hotline[] {
+  const normalized = (serverHotlines ?? []).map((h) =>
+    LEGACY_TO_109[h.number.replace(/[^0-9-]/g, "")]
+      ? { name: "자살예방 통합번호", number: "109" }
+      : h,
+  );
+  // 서버 제공분 우선 + 표준 3종 보충, 번호 기준 중복 제거.
+  const merged = [...normalized, ...CANONICAL_HOTLINES];
+  return merged.filter((h, i) => merged.findIndex((x) => x.number === h.number) === i);
+}
+
 /**
  * Modal-presented emergency screen (PRD §5.5 Flow C client side).
  * - Hardware back is intercepted (Android).
@@ -47,24 +75,7 @@ export default function EmergencyScreen() {
     }
   };
 
-  // v3 FR-044 — 핫라인 109 기준 (구 1393·1577-0199는 2024-01부터 109로 통합).
-  // 서버 payload가 109 기준으로 갱신될 때까지(미결 #5) 구번호를 정규화한다 —
-  // 갱신 후에는 no-op. 위기 화면에 폐지 번호가 노출되는 일이 없도록 보장.
-  const LEGACY_TO_109: Record<string, true> = { "1393": true, "1577-0199": true, "15770199": true };
-  const CANONICAL_HOTLINES = [
-    { name: "자살예방 통합번호", number: "109" },
-    { name: "응급의료", number: "119" },
-    { name: "경찰", number: "112" },
-  ];
-  const normalized = (risk?.hotlines ?? CANONICAL_HOTLINES).map((h) =>
-    LEGACY_TO_109[h.number.replace(/[^0-9-]/g, "")]
-      ? { name: "자살예방 통합번호", number: "109" }
-      : h,
-  );
-  // 정규화로 생긴 중복(1393·1577-0199 → 109) 제거.
-  const hotlines = normalized.filter(
-    (h, i) => normalized.findIndex((x) => x.number === h.number) === i,
-  );
+  const hotlines = mergeHotlines(risk?.hotlines);
 
   useEffect(() => {
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
