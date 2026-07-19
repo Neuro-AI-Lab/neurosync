@@ -146,7 +146,7 @@ export default function SettingsScreen() {
         <Text style={styles.glabel}>앱</Text>
         <GList>
           <GRow first label="온보딩 다시 보기" onPress={() => router.push("/(auth)/onboarding")} />
-          <GRow label="안전 도움말 (1393 · 119)" onPress={() => router.push("/(patient)/emergency")} />
+          <GRow label="안전 도움말 (109 · 119)" onPress={() => router.push("/(patient)/emergency")} />
         </GList>
 
         <View style={{ height: 8 }} />

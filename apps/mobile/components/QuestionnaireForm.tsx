@@ -1,50 +1,52 @@
+/**
+ * 문항 주입형 공통 문진 폼 (v3 FR-040) — 한 문항 집중 방식.
+ *
+ * SurveyDef(문항·선택지·위험 문항 index)를 주입받아 PHQ-9/GAD-7/AUDIT-C/PHQ-4를
+ * 동일 컴포넌트로 렌더한다. 헤더에는 도구명만 표시하고(질환명 금지, v3 원칙 1),
+ * "AI 추정은 참고용" 고지를 서브텍스트로 둔다.
+ *
+ * FR-043: riskItemIndex 문항에 양성(>0) 응답 시 인라인 위험 확인 카드를 띄운다.
+ * 응답 값은 그대로 유지(점수 계산 보존), 설문은 중단되지 않는다.
+ * [도움 받기] → /emergency · [괜찮아요] → 다음 문항.
+ */
+
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { NavBar } from "./NavBar";
-import { Button } from "./Button";
+import { SurveyDef } from "../lib/surveys";
 import { colors } from "../lib/tokens";
-
-/** 0-3 Likert scale shared by PHQ-9 / GAD-7 (DSM standard). */
-export const LIKERT_OPTIONS = [
-  { value: 0, label: "전혀 아니다" },
-  { value: 1, label: "며칠 동안" },
-  { value: 2, label: "일주일 이상" },
-  { value: 3, label: "거의 매일" },
-] as const;
+import { Button } from "./Button";
+import { NavBar } from "./NavBar";
+import { RiskConfirmCard } from "./RiskConfirm";
 
 type Props = {
-  title: string;
-  instruction: string;
-  items: string[];
+  def: SurveyDef;
+  /** v3 FR-040 — 항상 '문진 1/1'. */
   progressLabel: string;
   submitLabel: string;
   submitting: boolean;
   onSubmit: (answers: number[]) => void;
 };
 
-/**
- * One-question-at-a-time standard-scale form (screen-spec §S-06). Focused single
- * item, big radio options, auto-saved locally as you go; advances via 다음 문항 and
- * submits the full array on the last item.
- */
 export function QuestionnaireForm({
-  title,
-  instruction,
-  items,
+  def,
   progressLabel,
   submitLabel,
   submitting,
   onSubmit,
 }: Props) {
+  const { items } = def;
   const [answers, setAnswers] = useState<(number | null)[]>(() => items.map(() => null));
   const [index, setIndex] = useState(0);
+  const [riskCard, setRiskCard] = useState(false);
 
   const answeredCount = useMemo(() => answers.filter((a) => a !== null).length, [answers]);
   const allAnswered = answeredCount === items.length;
   const isLast = index === items.length - 1;
-  const current = answers[index];
+  const current = answers[index] ?? null;
+  const item = items[index];
+  const options = item?.options ?? def.defaultOptions;
 
   const select = (value: number) => {
     setAnswers((prev) => {
@@ -52,11 +54,21 @@ export function QuestionnaireForm({
       next[index] = value;
       return next;
     });
+    // FR-043 — 위험 문항 양성 응답 시 확인 카드. 값은 이미 저장됨(중단 없음).
+    if (index === def.riskItemIndex) {
+      setRiskCard(value > 0);
+    }
   };
 
   const goPrev = () => {
+    setRiskCard(false);
     if (index > 0) setIndex(index - 1);
     else router.back();
+  };
+
+  const advance = () => {
+    setRiskCard(false);
+    if (!isLast) setIndex(index + 1);
   };
 
   const onPrimary = () => {
@@ -64,20 +76,24 @@ export function QuestionnaireForm({
       if (allAnswered) onSubmit(answers as number[]);
       return;
     }
-    if (current !== null) setIndex(index + 1);
+    if (current !== null) advance();
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
-      <NavBar title={title} backLabel={index > 0 ? "이전" : "그만"} onBack={goPrev} />
+      <NavBar title={def.toolLabel} backLabel={index > 0 ? "이전" : "그만"} onBack={goPrev} />
 
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
+        <Text style={styles.disclaimer}>AI 추정은 참고용이에요. 진단은 의료진이 합니다.</Text>
+
         <View style={styles.qtop}>
-          <Text style={styles.eyebrow}>{progressLabel}</Text>
+          <Text style={styles.eyebrow}>
+            {progressLabel} · {def.timeframe}
+          </Text>
           <Text style={styles.score}>
             {index + 1} / {items.length}
           </Text>
@@ -86,11 +102,11 @@ export function QuestionnaireForm({
           <View style={[styles.qfill, { width: `${((index + 1) / items.length) * 100}%` }]} />
         </View>
 
-        <Text style={styles.qq}>{instruction}</Text>
-        <Text style={styles.qt}>{items[index]}</Text>
+        <Text style={styles.qq}>{def.instruction}</Text>
+        <Text style={styles.qt}>{item?.text}</Text>
 
         <View style={styles.likert}>
-          {LIKERT_OPTIONS.map((opt) => {
+          {options.map((opt) => {
             const selected = current === opt.value;
             return (
               <Pressable
@@ -107,15 +123,32 @@ export function QuestionnaireForm({
             );
           })}
         </View>
+
+        {riskCard ? (
+          <View style={{ marginTop: 12 }}>
+            <RiskConfirmCard
+              onHelp={() => {
+                // 설문 상태는 스택에 유지 — 응급에서 [안전해요]로 복귀 가능.
+                setRiskCard(false);
+                router.push("/(patient)/emergency");
+              }}
+              onDismiss={advance}
+              dismissLabel={isLast ? "괜찮아요, 계속할게요" : "괜찮아요, 다음 문항으로"}
+            />
+          </View>
+        ) : null}
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button
-          label={isLast ? submitLabel : "다음 문항"}
-          onPress={onPrimary}
-          loading={submitting}
-          disabled={current === null || (isLast && !allAnswered)}
-        />
+        {/* 카드 노출 중에는 카드의 선택으로만 진행 (FR-043 확인 후 진행 원칙) */}
+        {!riskCard ? (
+          <Button
+            label={isLast ? submitLabel : "다음 문항"}
+            onPress={onPrimary}
+            loading={submitting}
+            disabled={current === null || (isLast && !allAnswered)}
+          />
+        ) : null}
         <Text style={styles.qcount}>답을 고르면 자동으로 저장돼요</Text>
       </View>
     </View>
@@ -124,6 +157,7 @@ export function QuestionnaireForm({
 
 const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 24, gap: 4 },
+  disclaimer: { fontSize: 11.5, color: colors.muted, marginBottom: 8 },
   qtop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   eyebrow: { fontSize: 12, color: colors.muted, fontWeight: "500" },
   score: { fontSize: 13, color: colors.ink, fontWeight: "500", fontVariant: ["tabular-nums"] },
@@ -172,7 +206,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.ink,
     borderWidth: 6,
   },
-  optLabel: { fontSize: 14.5, color: colors.ink },
+  optLabel: { fontSize: 14.5, color: colors.ink, flex: 1 },
   optLabelSel: { fontWeight: "600" },
   footer: {
     paddingHorizontal: 20,
