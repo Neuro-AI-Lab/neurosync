@@ -111,3 +111,18 @@ ai-prompts-reference
 # Experiment artifacts (per-run, gitignored per CLAUDE.md layout)
 /experiments/
 
+# Agent / tooling runtime state (per-run, local only)
+.active-agents
+.active-agents.lock
+.failure-tracker.jsonl
+
+# Local planning + PR drafts (CLAUDE.md tasks/ workflow — 로컬 전용)
+tasks/
+PR.md
+
+# Large source corpus — 986M 원본 데이터셋(전문의학·심리상담), 별도 보관. git 아님.
+/data/
+
+# LAN 배포 compose — 호스트/환경 특정, 별도 관리(비밀은 .env.local의 POSTGRES_PASSWORD)
+infra/deploy/docker-compose.lan.yml
+
