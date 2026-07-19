@@ -16,8 +16,27 @@ from pydantic import BaseModel, Field
 from src.agents.base import AgentInput, AgentOutput
 from src.schemas.handoff import ScaleScore
 
+# BUG-031 (8->9): "panic" added per EXP-025's live reproduction — the LLM
+# emitted `domain="panic"` for 5/10 VP-004 (`fluctuating_panic_recurrence`
+# arc) EXP-025 sessions, an out-of-enum `literal_error` under the original
+# 8-value enum (per-candidate salvage above now drops only that ONE
+# candidate instead of the whole response, but the LLM's own panic-naming
+# behavior is real and recurring, not a one-off — worth a native enum value
+# rather than perpetually salvaging it). `docs/ai/golden_labels_f1f2.md`'s
+# VP-004 golden label currently maps panic->anxiety with the explicit
+# rationale "the domain enum has no panic value" (line 29/43) — that
+# rationale is now stale; flagged for data/CVR review, not changed here
+# (golden labels are data-agent-owned, out of this fix's scope).
 DomainName = Literal[
-    "anxiety", "depression", "alcohol", "substance", "trauma", "sleep", "psychosis", "other"
+    "anxiety",
+    "depression",
+    "alcohol",
+    "substance",
+    "trauma",
+    "sleep",
+    "psychosis",
+    "other",
+    "panic",
 ]
 # PLAN-2026-W28-Q W1 (plan §3 row 1): "ocr_document" added for product
 # auditability — document-origin evidence (prescription/diagnosis PDFs) must

@@ -1,6 +1,6 @@
 """Tests for the F5 FHIR R4 document Bundle builder + structural validator.
 
-`docs/ai/f5_quick_dev_plan.md` §5.3, §7.2 check (c). Structural validity
+`_archive/plans/f5_quick_dev_plan.md` §5.3, §7.2 check (c). Structural validity
 only — NEVER an HL7 `$validate` conformance claim (D3, REV-046 MAY/MUST-NOT
 wording table row 2).
 """

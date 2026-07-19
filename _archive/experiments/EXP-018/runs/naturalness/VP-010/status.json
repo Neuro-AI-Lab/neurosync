@@ -1,0 +1,1 @@
+{"exp_id":"EXP-018/runs/naturalness/VP-010","state":"completed","pid":1396740,"started_at":"2026-07-12T14:16:07+09:00","last_heartbeat":"2026-07-12T14:17:29+09:00","exit_code":0,"log":"experiments/EXP-018/runs/naturalness/VP-010/run.log","cmd":"bash -c cd apps/ai-server && .venv/bin/python -m src.f1 --persona VP-010 --max-turns 10"}

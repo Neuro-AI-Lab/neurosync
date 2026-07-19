@@ -1,0 +1,1431 @@
+{
+  "resourceType": "Bundle",
+  "type": "document",
+  "timestamp": "2026-07-16T16:08:05.393021",
+  "identifier": {
+    "system": "urn:neurosync:f5-bundle-id",
+    "value": "VP-004-2026-07-16T16:08:05.393021"
+  },
+  "entry": [
+    {
+      "fullUrl": "urn:uuid:bc49d3b5-9238-42aa-b540-2a209e923ed8",
+      "resource": {
+        "resourceType": "Composition",
+        "id": "6c262a11-8749-4d84-99ce-5d44d6e401c8",
+        "status": "final",
+        "type": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "57143-0"
+            }
+          ],
+          "text": "Mental health referral note"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "date": "2026-07-16T16:08:05.393021",
+        "author": [
+          {
+            "display": "F5 자동 조합 엔진 (neurosync, is_diagnostic=false)"
+          }
+        ],
+        "title": "F5 정신건강 인계 요약 — VP-004",
+        "section": [
+          {
+            "title": "A1. 주호소 (Chief complaint)",
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "10154-3"
+                }
+              ],
+              "text": "chief complaint"
+            },
+            "text": {
+              "status": "generated",
+              "div": "<div xmlns='http://www.w3.org/1999/xhtml'>약을 바꿨는데도 여전히 아무것도 안 되고 오히려 더 나빠진 것 같으며, 번역 작업 마감 세 개를 놓쳤고 공황 발작에 대한 두려움이 있음</div>"
+            }
+          },
+          {
+            "title": "A2. 현병력 (HPI)",
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "10164-2"
+                }
+              ],
+              "text": "history of present illness"
+            },
+            "text": {
+              "status": "generated",
+              "div": "<div xmlns='http://www.w3.org/1999/xhtml'>약을 두 번이나 바꿨는데도 여전히 아무것도 안 되고 오히려 더 나빠졌으며, 번역은 손도 못 대고 마감 세 개를 놓쳤고 하루 종일 이유 없이 눈물이 멈추지 않는 상태</div>"
+            }
+          },
+          {
+            "title": "A1-A2 확장. 전체 세션 슬롯 요약 (12개 표준 슬롯)",
+            "code": {
+              "coding": [
+                {
+                  "system": "urn:neurosync:f5-local-codes",
+                  "code": "slot-overview"
+                }
+              ],
+              "text": "all-session canonical slot overview"
+            },
+            "text": {
+              "status": "generated",
+              "div": "<div xmlns='http://www.w3.org/1999/xhtml'>이 표의 값은 AI가 진행한 대화형 문진(F1)에서 환자가 자가보고한 내용이며, 임상의의 직접 평가나 검증된 척도 시행이 아닙니다. 진료 기본정보: 미수집 | 주호소: 약을 바꿨는데도 여전히 아무것도 안 되고 오히려 더 나빠진 것 같으며, 번역 작업 마감 세 개를 놓쳤고 공황 발작에 대한 두려움이 있음 [10회차/2027-01-15] (변화: S1: '아침에 눈 뜨기 힘들고 잠도 제대로 못 자며 악몽을 꾸는 상태' -> S4: '아침에 눈 뜨는 것부터 힘들고, 악몽이 떠올라 심장이 쿵쾅거리며, 번역 시작에 대한 불안과 손 떨림이 있음' -> S5: '약을 바꿨는데도 여전히 낫지 않아 힘들다고 호소' -> S6: '약을 두 번이나 바꿨는데도 여전히 아무것도 못 하고, 번역 작업 전혀 못 하며 마감 세 개를 놓침' -> S8: '번역을 전혀 할 수 없고 마감 세 개를 놓쳤으며 아무 일도 못 하고 이유 없이 눈물이 나는 상태' -> S10: '약을 바꿨는데도 여전히 아무것도 안 되고 오히려 더 나빠진 것 같으며, 번역 작업 마감 세 개를 놓쳤고 공황…') | 현병력: 약을 두 번이나 바꿨는데도 여전히 아무것도 안 되고 오히려 더 나빠졌으며, 번역은 손도 못 대고 마감 세 개를 놓쳤고 하루 종일 이유 없이 눈물이 멈추지 않는 상태 [9회차/2026-11-30] (변화: S1: '아침에 눈 뜨는 것이 힘들고 잠도 거의 못 자며 악몽을 꾸는 증상이 지속되고 있음' -> S4: '아침에 눈 뜨는 것부터 힘들었고, 악몽이 떠올라 심장이 쿵쾅거림. 어제 번역 한 줄도 못 했으며, 오늘은 3…' -> S5: '아침에 눈 뜨는 것부터 힘들고 악몽이 떠올라 심장이 쿵쾅거리며 번역 시작에 대한 불안과 손 떨림이 있음. 오…' -> S6: '하루에 한 번 이상 공황 발작에 대한 생각이 들며, 밤에 눈 감으면 심장이 쿵쾅거리고 숨이 안 쉬어질까 봐…' -> S7: '약을 두 번이나 바꿨는데도 여전히 아무것도 안 돼요. 오히려 더 나빠졌어요. 번역은 아예 손도 못 대고, 마…' -> S9: '약을 두 번이나 바꿨는데도 여전히 아무것도 안 되고 오히려 더 나빠졌으며, 번역은 손도 못 대고 마감 세 개…') | 정신과 과거력: 미수집 | 신체질환/신경학적 병력: 미수집 | 개인사/사회력: 미수집 | 가족력: 미수집 | 음주·흡연·물질사용: 미수집 | 정신상태검사: 미수집 | 위험평가: 자살사고 부인(탐색 완료) — 환자 발화: \"안녕하세요. 아니요, 상담은 안 하고 있어요. 저는 그냥... 약을 바꿔도 전혀 나아지지 않아서 너무 힘들어요. 번역은 거의 손도 못 대겠고, ...\"; 구체적 계획/의도 부인 — 환자 발화: \"네... 그래서 더 힘들어요. 약을 두 번이나 바꿨는데도, 전혀 나아지지 않더라고요. 오히려 더 나빠진 것 같아요. 번역은 아예 손도 못 대고,...\" [9회차/2026-11-30] (변화: S1: '자살사고 부인(탐색 완료) — 환자 발화: \"가끔 아프면 이 감정이 멈출까 싶을 때가 있어요. 근데… 한 적…' -> S3: '자살/자해 사고 표현 있음 — 환자 발화: \"아침에 눈 뜨는 게 너무 힘들어요. 잠도 3~4시간밖에 못 자고…' -> S4: '자살사고 부인(탐색 완료) — 환자 발화: \"어머니가 자꾸 전화하시는데… 안 받아요. 울고 있는 목소리 들으…' -> S6: '자살사고 부인(탐색 완료) — 환자 발화: \"아니요, 가족 중에 그런 분은 없어요. 어머니는 걱정하실까 봐…' -> S7: '자살사고 부인(탐색 완료) — 환자 발화: \"약을 두 번이나 바꿨는데도 여전히 아무것도 안 돼요. 오히려 더…' -> S9: '자살사고 부인(탐색 완료) — 환자 발화: \"안녕하세요. 아니요, 상담은 안 하고 있어요. 저는 그냥...…') | 평가/진단적 인상: 미수집 | 치료계획/치료내용: 미수집</div>"
+            }
+          },
+          {
+            "title": "A3. 위험/안전 평가",
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "84209-6"
+                }
+              ]
+            },
+            "text": {
+              "status": "generated",
+              "div": "<div xmlns='http://www.w3.org/1999/xhtml'>session_ctrs=2(high); safety_referral=True; [1] 일치 — 동일 세션 CTRS도 위험 상승(session_ctrs=2, crisis_triggered=True) 동일 척도가 전 세션에서 체계적으로 과대추정(over-endorsement, ISS-F2V-028)되었을 가능성은 이 결과에서 별도로 보정되지 않습니다.; [2] 일치 — 동일 세션 CTRS도 위험 상승(session_ctrs=2, crisis_triggered=True); [3] 일치 — 동일 세션 CTRS도 위험 상승(session_ctrs=2, crisis_triggered=True) 동일 척도가 전 세션에서 체계적으로 과대추정(over-endorsement, ISS-F2V-028)되었을 가능성은 이 결과에서 별도로 보정되지 않습니다.; [4] 일치 — 동일 세션 CTRS도 위험 상승(session_ctrs=2, crisis_triggered=True) 동일 척도가 전 세션에서 체계적으로 과대추정(over-endorsement, ISS-F2V-028)되었을 가능성은 이 결과에서 별도로 보정되지 않습니다.; [5] 불일치 — 동일 세션 CTRS 미상승(session_ctrs=4, crisis_triggered=False), 항목9 양성/safety_referral 신호가 F1 CTRS에 반영되지 않음 (CVR-022 binding condition 2) 동일 척도가 전 세션에서 체계적으로 과대추정(over-endorsement, ISS-F2V-028)되었을 가능성은 이 결과에서 별도로 보정되지 않습니다.; [7] 일치 — 동일 세션 CTRS도 위험 상승(session_ctrs=2, crisis_triggered=True) 동일 척도가 전 세션에서 체계적으로 과대추정(over-endorsement, ISS-F2V-028)되었을 가능성은 이 결과에서 별도로 보정되지 않습니다.; [8] 일치 — 동일 세션 CTRS도 위험 상승(session_ctrs=2, crisis_triggered=True) 동일 척도가 전 세션에서 체계적으로 과대추정(over-endorsement, ISS-F2V-028)되었을 가능성은 이 결과에서 별도로 보정되지 않습니다.; [9] 일치 — 동일 세션 CTRS도 위험 상승(session_ctrs=2, crisis_triggered=True) 동일 척도가 전 세션에서 체계적으로 과대추정(over-endorsement, ISS-F2V-028)되었을 가능성은 이 결과에서 별도로 보정되지 않습니다.; [10] 일치 — 동일 세션 CTRS도 위험 상승(session_ctrs=2, crisis_triggered=True)</div>"
+            },
+            "entry": [
+              {
+                "reference": "urn:uuid:c896dc8c-09ee-4c46-b15e-011a8a4681dc"
+              },
+              {
+                "reference": "urn:uuid:e31caccd-fa4d-452a-b7f3-feb7b24e6e59"
+              }
+            ]
+          },
+          {
+            "title": "A4. 정신상태 검사 (부분, MSE)",
+            "code": {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "10190-7"
+                }
+              ]
+            },
+            "text": {
+              "status": "generated",
+              "div": "<div xmlns='http://www.w3.org/1999/xhtml'>정보 없음</div>"
+            },
+            "entry": [
+              {
+                "reference": "urn:uuid:f738c1f7-4b31-4dca-8437-0ca075381568"
+              }
+            ]
+          },
+          {
+            "title": "A5. 시행된 설문",
+            "code": {
+              "coding": [
+                {
+                  "system": "urn:neurosync:f5-local-codes",
+                  "code": "questionnaires"
+                }
+              ],
+              "text": "administered questionnaires"
+            },
+            "text": {
+              "status": "generated",
+              "div": "<div xmlns='http://www.w3.org/1999/xhtml'>PHQ-9 25/27 (severe) — AI가 진행한 대화형 문진 결과이며, 검증된 임상 설문 시행이 아닙니다.</div>"
+            },
+            "entry": [
+              {
+                "reference": "urn:uuid:fa25b82c-1f8f-4c5b-8d34-222efaf602e7"
+              },
+              {
+                "reference": "urn:uuid:9fe1dcbf-6972-489d-afbb-6f4ba9a94975"
+              }
+            ]
+          },
+          {
+            "title": "A6. AI 예상질환 (비진단적 의사결정 지원)",
+            "code": {
+              "coding": [
+                {
+                  "system": "urn:neurosync:f5-local-codes",
+                  "code": "ai-predicted-disease-section"
+                }
+              ],
+              "text": "AI-predicted disease (non-diagnostic)"
+            },
+            "text": {
+              "status": "generated",
+              "div": "<div xmlns='http://www.w3.org/1999/xhtml'>NOT A DIAGNOSIS. 공동 1위 계절성 정동장애 (similarity=0.379); 공동 1위 범불안장애 (similarity=0.379); #3 월경전 불쾌장애 (similarity=0.374); 공동 4위 우울 삽화(우울증) (similarity=0.338); 공동 4위 소아·청소년 우울증 (similarity=0.338)</div>"
+            },
+            "entry": [
+              {
+                "reference": "urn:uuid:68e87ad9-c178-464a-a291-3f855ce94667"
+              }
+            ]
+          },
+          {
+            "title": "A7. 권장 진료과 / 설문",
+            "code": {
+              "coding": [
+                {
+                  "system": "urn:neurosync:f5-local-codes",
+                  "code": "department-recommendation"
+                }
+              ],
+              "text": "recommended department"
+            },
+            "text": {
+              "status": "generated",
+              "div": "<div xmlns='http://www.w3.org/1999/xhtml'>정신건강의학과: 불안 및 우울 증상, 공황 발작에 대한 두려움, 번역 작업 관련 스트레스, 약물 치료 실패 경험; 정신건강의학과: 지속적인 우울감, 무기력, 눈물, 약물 치료 반응 부족, PHQ-9 27점(중증). 약물 정보: 별도 구조화 항목 없음, HPI/병력 서술 포함 여부만 확인</div>"
+            },
+            "entry": [
+              {
+                "reference": "urn:uuid:79838e03-3926-496b-a1f5-fec0ffa1f6ce"
+              },
+              {
+                "reference": "urn:uuid:47382bd9-d488-4615-887e-8c55e18728b6"
+              }
+            ]
+          },
+          {
+            "title": "B1-B3. 종단 추세 / CTRS 추이 / 사건 타임라인",
+            "code": {
+              "coding": [
+                {
+                  "system": "urn:neurosync:f5-local-codes",
+                  "code": "longitudinal-trend"
+                }
+              ],
+              "text": "longitudinal trend"
+            },
+            "text": {
+              "status": "generated",
+              "div": "<div xmlns='http://www.w3.org/1999/xhtml'>overall_direction=worsened, course_shape=relapse_after_partial_improvement. overall_direction은 세션별 척도/CTRS/sentiment 방향의 다수결(worsened-priority)로 계산되며(src.f4::_overall_direction), sentiment 포함 여부에 따라 verdict가 달라질 수 있습니다(REV-045 row 2) — 세부 근거는 trend_verdicts의 evidence를 참고하십시오.</div>"
+            },
+            "entry": [
+              {
+                "reference": "urn:uuid:2db24287-a4d7-4a5b-9265-a330db69d88f"
+              },
+              {
+                "reference": "urn:uuid:287144d6-e4d8-4075-8776-6c75f2bbde5c"
+              },
+              {
+                "reference": "urn:uuid:ad22ea03-2d86-4c64-a751-e187d007c33c"
+              },
+              {
+                "reference": "urn:uuid:90d4ee16-d522-492b-a77f-9357d2c8ada9"
+              },
+              {
+                "reference": "urn:uuid:c59f9e57-0b04-4bcb-8fc5-e997c94b4a65"
+              },
+              {
+                "reference": "urn:uuid:e123a9a0-f016-4257-8573-6f17d4c88fea"
+              },
+              {
+                "reference": "urn:uuid:8ef3003d-f056-4227-b2ca-6e8d74427e13"
+              },
+              {
+                "reference": "urn:uuid:153fc9bd-627c-4a5c-b668-adb4ff6ba04d"
+              },
+              {
+                "reference": "urn:uuid:d27a9417-4339-45db-8f6d-1dba3d04db32"
+              },
+              {
+                "reference": "urn:uuid:fd1260b1-585a-4cdf-b7f1-9a0553ee4c4f"
+              },
+              {
+                "reference": "urn:uuid:c10b8f90-cc18-4a8f-9ae7-25518cadfe6a"
+              },
+              {
+                "reference": "urn:uuid:e81cc6ed-f1d6-4c90-bedf-9c79d6d32188"
+              },
+              {
+                "reference": "urn:uuid:86387a6a-9eaf-4fab-a94b-6207c0b78fe0"
+              },
+              {
+                "reference": "urn:uuid:eb066ff0-ce3c-4bd8-8343-d741b81103f6"
+              },
+              {
+                "reference": "urn:uuid:0e563a2d-391b-427f-b0fd-4a5940a1c175"
+              },
+              {
+                "reference": "urn:uuid:a57307ac-e76c-4459-9707-2bce7d32c26f"
+              },
+              {
+                "reference": "urn:uuid:a7b9d071-4a0a-4ebe-943c-6133f97bc731"
+              },
+              {
+                "reference": "urn:uuid:0a1b7abf-55f5-4f9a-a19e-e35c7147df4d"
+              },
+              {
+                "reference": "urn:uuid:ba023363-46ec-4442-8c81-b26a997e5602"
+              },
+              {
+                "reference": "urn:uuid:991f700d-c8e0-4059-afa1-f694c357477d"
+              }
+            ]
+          },
+          {
+            "title": "B4. 불일치 신호",
+            "code": {
+              "coding": [
+                {
+                  "system": "urn:neurosync:f5-local-codes",
+                  "code": "discordance-flag"
+                }
+              ],
+              "text": "trend concordance/discordance (local)"
+            },
+            "text": {
+              "status": "generated",
+              "div": "<div xmlns='http://www.w3.org/1999/xhtml'>trend concordance_flag=discordant (trend-level only, distinct from A3's same-session co-display)</div>"
+            }
+          },
+          {
+            "title": "면책 조항 (Disclaimer)",
+            "code": {
+              "text": "disclaimer"
+            },
+            "text": {
+              "status": "generated",
+              "div": "<div xmlns='http://www.w3.org/1999/xhtml'>이 F5 인계 요약 보고서는 F1-F4 산출물을 규칙 기반으로 조합한 문서이며 의학적 진단이 아닙니다(is_diagnostic=false). AI 예상질환(A6)의 similarity_score는 RAG 유사도 신호일 뿐 확률·가능성이 아니며(REV-013 §4), 이 문서 어디에 등장하든 시행된 설문(A3/A5/B1) 점수는 모두 검증된 임상 설문 시행이 아닌 AI 대화형 문진 결과입니다. 이 문서는 환자의 자가보고만으로 구성되며(보호자 등 제3자 진술 없음), AI가 자동 조합한 비공식 문서로 공식 의무기록이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다. A8(임상 종합 소견, 내러티브) 섹션은 이 FHIR 번들에 별도로 포함되지 않았습니다 — narrative_enabled=false로 이번 미션에서 비활성화되었습니다 (A8 omitted — narrative disabled this mission).</div>"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "VP-004",
+        "meta": {
+          "tag": [
+            {
+              "system": "urn:neurosync:simulation-flag",
+              "code": "simulated-patient"
+            }
+          ]
+        },
+        "identifier": [
+          {
+            "system": "urn:neurosync:vp-id",
+            "value": "VP-004"
+          }
+        ],
+        "name": [
+          {
+            "text": "최하은"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:e31caccd-fa4d-452a-b7f3-feb7b24e6e59",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "a2e6bd1a-e9fa-4e39-bdf6-35b6b794b2f5",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "urn:neurosync:f5-local-codes",
+              "code": "ctrs"
+            }
+          ],
+          "text": "Crisis Triage Rating Scale (session_ctrs, local)"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2027-01-15",
+        "valueInteger": 2,
+        "note": [
+          {
+            "text": "probe_event_count=1, risk_floor=3, crisis_triggered=True"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:c896dc8c-09ee-4c46-b15e-011a8a4681dc",
+      "resource": {
+        "resourceType": "RiskAssessment",
+        "id": "90abba5e-b575-4264-84ba-99953cc8c60e",
+        "status": "final",
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "basis": [
+          {
+            "reference": "urn:uuid:e31caccd-fa4d-452a-b7f3-feb7b24e6e59"
+          }
+        ],
+        "prediction": [
+          {
+            "qualitativeRisk": {
+              "text": "high"
+            },
+            "rationale": "자살사고 부인(탐색 완료) — 환자 발화: \"안녕하세요. 아니요, 상담은 안 하고 있어요. 저는 그냥... 약을 바꿔도 전혀 나아지지 않아서 너무 힘들어요. 번역은 거의 손도 못 대겠고, ...\"; 구체적 계획/의도 부인 — 환자 발화: \"네... 그래서 더 힘들어요. 약을 두 번이나 바꿨는데도, 전혀 나아지지 않더라고요. 오히려 더 나빠진 것 같아요. 번역은 아예 손도 못 대고,...\""
+          }
+        ],
+        "note": [
+          {
+            "text": "trend concordance_flag(F4)=discordant; staleness_pointer=당해 세션에 F3 문진이 시행되어 별도 최신성 안내가 필요하지 않습니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:f738c1f7-4b31-4dca-8437-0ca075381568",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "00ccbf7f-ba3b-4ee1-863e-4a43e7feb255",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "exam"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "10190-7"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "valueString": "정보 없음",
+        "note": [
+          {
+            "text": "PARTIAL / TEXT-ONLY MSE — 이 관찰은 완전한 임상 관찰 기반 MSE가 아니라 단일 텍스트 슬롯(텍스트 기반 정신상태 메모 — 비구조화)에서만 도출되었습니다. 5개 관찰-의존 영역은 평가 불가로 표시됩니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:fa25b82c-1f8f-4c5b-8d34-222efaf602e7",
+      "resource": {
+        "resourceType": "QuestionnaireResponse",
+        "id": "06c6d2ac-6bb4-4e88-a80c-6e8214246f2a",
+        "status": "completed",
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "authored": "2027-01-15",
+        "item": [
+          {
+            "linkId": "item_1",
+            "answer": [
+              {
+                "valueInteger": 3
+              }
+            ]
+          },
+          {
+            "linkId": "item_2",
+            "answer": [
+              {
+                "valueInteger": 3
+              }
+            ]
+          },
+          {
+            "linkId": "item_3",
+            "answer": [
+              {
+                "valueInteger": 3
+              }
+            ]
+          },
+          {
+            "linkId": "item_4",
+            "answer": [
+              {
+                "valueInteger": 3
+              }
+            ]
+          },
+          {
+            "linkId": "item_5",
+            "answer": [
+              {
+                "valueInteger": 3
+              }
+            ]
+          },
+          {
+            "linkId": "item_6",
+            "answer": [
+              {
+                "valueInteger": 3
+              }
+            ]
+          },
+          {
+            "linkId": "item_7",
+            "answer": [
+              {
+                "valueInteger": 3
+              }
+            ]
+          },
+          {
+            "linkId": "item_8",
+            "answer": [
+              {
+                "valueInteger": 3
+              }
+            ]
+          },
+          {
+            "linkId": "item_9",
+            "answer": [
+              {
+                "valueInteger": 1
+              }
+            ]
+          }
+        ],
+        "note": [
+          {
+            "text": "AI가 진행한 대화형 문진 결과이며, 검증된 임상 설문 시행이 아닙니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:9fe1dcbf-6972-489d-afbb-6f4ba9a94975",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "2235e5b9-dc23-41c5-8708-c6de2143f697",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "44261-6"
+            }
+          ],
+          "text": "PHQ-9 total"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2027-01-15",
+        "valueQuantity": {
+          "value": 25,
+          "unit": "score"
+        },
+        "note": [
+          {
+            "text": "AI가 진행한 대화형 문진 결과이며, 검증된 임상 설문 시행이 아닙니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:68e87ad9-c178-464a-a291-3f855ce94667",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "f9e1319f-6d15-46e2-9645-9c9ed09f9462",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "urn:neurosync:f5-local-codes",
+              "code": "ai-predicted-disease"
+            }
+          ],
+          "text": "AI-predicted disease candidates (non-diagnostic)"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "component": [
+          {
+            "code": {
+              "text": "계절성 정동장애"
+            },
+            "valueQuantity": {
+              "value": 0.379,
+              "unit": "similarity"
+            }
+          },
+          {
+            "code": {
+              "text": "범불안장애"
+            },
+            "valueQuantity": {
+              "value": 0.379,
+              "unit": "similarity"
+            }
+          },
+          {
+            "code": {
+              "text": "월경전 불쾌장애"
+            },
+            "valueQuantity": {
+              "value": 0.374,
+              "unit": "similarity"
+            }
+          },
+          {
+            "code": {
+              "text": "우울 삽화(우울증)"
+            },
+            "valueQuantity": {
+              "value": 0.338,
+              "unit": "similarity"
+            }
+          },
+          {
+            "code": {
+              "text": "소아·청소년 우울증"
+            },
+            "valueQuantity": {
+              "value": 0.338,
+              "unit": "similarity"
+            }
+          }
+        ],
+        "note": [
+          {
+            "text": "NOT A DIAGNOSIS, NOT A PROBABILITY — similarity_score only."
+          },
+          {
+            "text": "이 정보는 AI가 생성한 참고용 예상 질환 후보이며 의학적 진단이 아닙니다. 함께 제공되는 설문 추천(recommended_questionnaire) 역시 초기 상담(인테이크) 지원을 위한 척도 제안일 뿐, 진단적 판단이 아닙니다. 최종 진단과 치료 방향은 반드시 의료진의 판단에 따라 결정되어야 합니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:79838e03-3926-496b-a1f5-fec0ffa1f6ce",
+      "resource": {
+        "resourceType": "ServiceRequest",
+        "id": "054a0ea3-4420-479e-a607-57f8177c5e83",
+        "status": "active",
+        "intent": "proposal",
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "category": [
+          {
+            "text": "department-referral"
+          }
+        ],
+        "performer": [
+          {
+            "display": "정신건강의학과"
+          }
+        ],
+        "reasonCode": [
+          {
+            "text": "불안 및 우울 증상, 공황 발작에 대한 두려움, 번역 작업 관련 스트레스, 약물 치료 실패 경험"
+          }
+        ],
+        "reasonReference": [
+          {
+            "reference": "urn:uuid:68e87ad9-c178-464a-a291-3f855ce94667"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:47382bd9-d488-4615-887e-8c55e18728b6",
+      "resource": {
+        "resourceType": "ServiceRequest",
+        "id": "8d93707c-a9eb-40ff-9e91-422a99451839",
+        "status": "active",
+        "intent": "proposal",
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "category": [
+          {
+            "text": "department-referral"
+          }
+        ],
+        "performer": [
+          {
+            "display": "정신건강의학과"
+          }
+        ],
+        "reasonCode": [
+          {
+            "text": "지속적인 우울감, 무기력, 눈물, 약물 치료 반응 부족, PHQ-9 27점(중증)"
+          }
+        ],
+        "reasonReference": [
+          {
+            "reference": "urn:uuid:68e87ad9-c178-464a-a291-3f855ce94667"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:2db24287-a4d7-4a5b-9265-a330db69d88f",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "df0ffdf0-f72d-41d1-9e6a-2088c696625f",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "44261-6"
+            }
+          ],
+          "text": "PHQ-9 total"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-07-16",
+        "valueQuantity": {
+          "value": 26,
+          "unit": "score"
+        },
+        "note": [
+          {
+            "text": "AI가 진행한 대화형 문진 결과이며, 검증된 임상 설문 시행이 아닙니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:287144d6-e4d8-4075-8776-6c75f2bbde5c",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "32884624-ddbd-4316-a5a7-15f322c5971e",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "44261-6"
+            }
+          ],
+          "text": "PHQ-9 total"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-07-23",
+        "valueQuantity": {
+          "value": 25,
+          "unit": "score"
+        },
+        "note": [
+          {
+            "text": "AI가 진행한 대화형 문진 결과이며, 검증된 임상 설문 시행이 아닙니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:ad22ea03-2d86-4c64-a751-e187d007c33c",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "bb4cd690-bb37-425e-bf33-11baeff60a02",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "44261-6"
+            }
+          ],
+          "text": "PHQ-9 total"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-07-30",
+        "valueQuantity": {
+          "value": 26,
+          "unit": "score"
+        },
+        "note": [
+          {
+            "text": "AI가 진행한 대화형 문진 결과이며, 검증된 임상 설문 시행이 아닙니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:90d4ee16-d522-492b-a77f-9357d2c8ada9",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "ed70ad7f-18ee-4d10-9ea2-a5d6be0176ad",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "44261-6"
+            }
+          ],
+          "text": "PHQ-9 total"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-08-06",
+        "valueQuantity": {
+          "value": 27,
+          "unit": "score"
+        },
+        "note": [
+          {
+            "text": "AI가 진행한 대화형 문진 결과이며, 검증된 임상 설문 시행이 아닙니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:c59f9e57-0b04-4bcb-8fc5-e997c94b4a65",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "d2ea0009-7b78-4e36-9381-34bd0db822e0",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "44261-6"
+            }
+          ],
+          "text": "PHQ-9 total"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-08-20",
+        "valueQuantity": {
+          "value": 26,
+          "unit": "score"
+        },
+        "note": [
+          {
+            "text": "AI가 진행한 대화형 문진 결과이며, 검증된 임상 설문 시행이 아닙니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:e123a9a0-f016-4257-8573-6f17d4c88fea",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "ea6ee3bd-5a74-4b53-9edd-261c2e8b785e",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "44261-6"
+            }
+          ],
+          "text": "PHQ-9 total"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-09-17",
+        "valueQuantity": {
+          "value": 26,
+          "unit": "score"
+        },
+        "note": [
+          {
+            "text": "AI가 진행한 대화형 문진 결과이며, 검증된 임상 설문 시행이 아닙니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:8ef3003d-f056-4227-b2ca-6e8d74427e13",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "dea0001c-bebd-4c57-84f6-0645dc89f582",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "44261-6"
+            }
+          ],
+          "text": "PHQ-9 total"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-10-15",
+        "valueQuantity": {
+          "value": 26,
+          "unit": "score"
+        },
+        "note": [
+          {
+            "text": "AI가 진행한 대화형 문진 결과이며, 검증된 임상 설문 시행이 아닙니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:153fc9bd-627c-4a5c-b668-adb4ff6ba04d",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "cb34b651-95ba-4ab0-b8e8-35a7a159eced",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "44261-6"
+            }
+          ],
+          "text": "PHQ-9 total"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-11-30",
+        "valueQuantity": {
+          "value": 27,
+          "unit": "score"
+        },
+        "note": [
+          {
+            "text": "AI가 진행한 대화형 문진 결과이며, 검증된 임상 설문 시행이 아닙니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:d27a9417-4339-45db-8f6d-1dba3d04db32",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "bb760d6b-0338-4f86-851a-0a64fa0046ea",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "44261-6"
+            }
+          ],
+          "text": "PHQ-9 total"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2027-01-15",
+        "valueQuantity": {
+          "value": 25,
+          "unit": "score"
+        },
+        "note": [
+          {
+            "text": "AI가 진행한 대화형 문진 결과이며, 검증된 임상 설문 시행이 아닙니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:fd1260b1-585a-4cdf-b7f1-9a0553ee4c4f",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "b6dc3958-3d6d-4fdd-a93c-a873ba221b0e",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "70274-6"
+            }
+          ],
+          "text": "GAD-7 total"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-09-03",
+        "valueQuantity": {
+          "value": 21,
+          "unit": "score"
+        },
+        "note": [
+          {
+            "text": "AI가 진행한 대화형 문진 결과이며, 검증된 임상 설문 시행이 아닙니다."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:c10b8f90-cc18-4a8f-9ae7-25518cadfe6a",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "5eb34d79-6f51-4037-b790-71f9e6dea357",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "urn:neurosync:f5-local-codes",
+              "code": "ctrs"
+            }
+          ],
+          "text": "Crisis Triage Rating Scale (local)"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-07-16",
+        "valueInteger": 2
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:e81cc6ed-f1d6-4c90-bedf-9c79d6d32188",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "fae9e75d-70db-45c6-8ef5-9231e5aa760f",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "urn:neurosync:f5-local-codes",
+              "code": "ctrs"
+            }
+          ],
+          "text": "Crisis Triage Rating Scale (local)"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-07-23",
+        "valueInteger": 2
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:86387a6a-9eaf-4fab-a94b-6207c0b78fe0",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "bb5b0960-e991-42e0-9d88-28314083dedb",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "urn:neurosync:f5-local-codes",
+              "code": "ctrs"
+            }
+          ],
+          "text": "Crisis Triage Rating Scale (local)"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-07-30",
+        "valueInteger": 2
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:eb066ff0-ce3c-4bd8-8343-d741b81103f6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "f556fa7c-c9d6-4940-8f17-8d963ea64c43",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "urn:neurosync:f5-local-codes",
+              "code": "ctrs"
+            }
+          ],
+          "text": "Crisis Triage Rating Scale (local)"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-08-06",
+        "valueInteger": 2
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:0e563a2d-391b-427f-b0fd-4a5940a1c175",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "16dd2f65-02ad-4314-a49e-18f5dc705777",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "urn:neurosync:f5-local-codes",
+              "code": "ctrs"
+            }
+          ],
+          "text": "Crisis Triage Rating Scale (local)"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-08-20",
+        "valueInteger": 4
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:a57307ac-e76c-4459-9707-2bce7d32c26f",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "40c3790e-e03b-4c75-b93c-e37c32e8bd14",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "urn:neurosync:f5-local-codes",
+              "code": "ctrs"
+            }
+          ],
+          "text": "Crisis Triage Rating Scale (local)"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-09-03",
+        "valueInteger": 3
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:a7b9d071-4a0a-4ebe-943c-6133f97bc731",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "591a0874-edf2-4930-93b7-61ec12f97f19",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "urn:neurosync:f5-local-codes",
+              "code": "ctrs"
+            }
+          ],
+          "text": "Crisis Triage Rating Scale (local)"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-09-17",
+        "valueInteger": 2
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:0a1b7abf-55f5-4f9a-a19e-e35c7147df4d",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "6b845deb-3359-45a4-8d05-b5b80f55cc73",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "urn:neurosync:f5-local-codes",
+              "code": "ctrs"
+            }
+          ],
+          "text": "Crisis Triage Rating Scale (local)"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-10-15",
+        "valueInteger": 2
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:ba023363-46ec-4442-8c81-b26a997e5602",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "60eb7073-5af2-40d9-9dfd-6b22f508184b",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "urn:neurosync:f5-local-codes",
+              "code": "ctrs"
+            }
+          ],
+          "text": "Crisis Triage Rating Scale (local)"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2026-11-30",
+        "valueInteger": 2
+      }
+    },
+    {
+      "fullUrl": "urn:uuid:991f700d-c8e0-4059-afa1-f694c357477d",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "58744a8c-ffa0-4f5c-a30d-17241466e290",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "survey"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "urn:neurosync:f5-local-codes",
+              "code": "ctrs"
+            }
+          ],
+          "text": "Crisis Triage Rating Scale (local)"
+        },
+        "subject": {
+          "reference": "urn:uuid:ee5a315f-3841-481d-8b4b-739f5e3f853b"
+        },
+        "effectiveDateTime": "2027-01-15",
+        "valueInteger": 2
+      }
+    }
+  ]
+}

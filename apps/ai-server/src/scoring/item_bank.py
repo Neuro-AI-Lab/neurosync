@@ -40,7 +40,7 @@ shipped in this item bank; it remains documented as an alternate in
 제15호의3서식] 음주 생활습관 평가 도구 (Korea's official 보건복지부고시
 health-screening alcohol-lifestyle assessment form), items 1-3 — every
 `text_ko`/`response_anchors` string below is transcribed from
-`docs/ai/audit_c_korean_research.md` §3.2's own table row (copied, never
+`_archive/reports/audit_c_korean_research.md` §3.2's own table row (copied, never
 retyped); THAT file, not `item_bank_v1_sources.md`, is the canonical
 byte-fidelity source for AUDIT-C specifically (`CVR-018` binding condition
 8). `AUDIT_C_V2_PROVENANCE` carries the two-mirror cross-verification, the
@@ -115,7 +115,7 @@ class ScaleItem:
     Q2(c) / `ADR-034` decision 2, `BUG-039` fix). The sourced [별지
     제15호의3서식] form bifurcates item 2 into a native 소주-bottle track
     (`response_anchors`, the primary/administered-by-default track,
-    labeled "소주 트랙" verbatim in `docs/ai/audit_c_korean_research.md`
+    labeled "소주 트랙" verbatim in `_archive/reports/audit_c_korean_research.md`
     §3.2's own table row) and a glasses-based "기타 술" track with its own
     explicit beer/makgeolli/draft-beer unit-conversion table — adopted
     specifically because it structurally eliminates the Western/soju
@@ -433,7 +433,7 @@ _PHQ4_ITEMS_V1: tuple[ScaleItem, ...] = (
 # v1's SBIRT Oregon Korean AUDIT text (v1 remains documented as an
 # alternate in item_bank_v1_sources.md §5, not shipped here). Every
 # text_ko/response_anchors string below is copied verbatim from
-# docs/ai/audit_c_korean_research.md §3.2's own table row — CVR-018 binding
+# _archive/reports/audit_c_korean_research.md §3.2's own table row — CVR-018 binding
 # condition 8 / the qa byte-fidelity gate checks directly against THAT
 # file, not this module's own copy.
 
@@ -488,7 +488,7 @@ AUDIT_C_V2_PROVENANCE = (
     "form), items 1-3 (the AUDIT-C-equivalent subset). Cross-verified via two "
     "independent mirrors, both retrieved 2026-07-13: elandclinic.com "
     "'음주생활습관평가도구(검진자용).pdf' (mirror 1) and epower.hanilmed.net "
-    "'2021_생활습관포함서식.pdf' (mirror 2) -- docs/ai/audit_c_korean_research.md "
+    "'2021_생활습관포함서식.pdf' (mirror 2) -- _archive/reports/audit_c_korean_research.md "
     "§3.1/§3.2. Item 1 ships mirror 1's complete five-anchor set (incl. '전혀 안 "
     "마신다(0점)'); mirror 2 shows only four anchors for item 1, apparently missing "
     "the 0-anchor -- CVR-018 Q2(a) rules for mirror 1's complete set (universal AUDIT "
@@ -504,7 +504,7 @@ AUDIT_C_V2_PROVENANCE = (
     "way: byte-identity of this item wording to the Korean-population cutoff-validation "
     "studies underlying the adopted threshold (Lee JH et al. 2018 KNHANES, Kwon et al. "
     "2013) is UNCONFIRMED -- none of those studies reproduce their own item-text "
-    "appendix (docs/ai/audit_c_korean_research.md §3.4). Supersedes v1's SBIRT Oregon "
+    "appendix (_archive/reports/audit_c_korean_research.md §3.4). Supersedes v1's SBIRT Oregon "
     "Korean AUDIT text (ADR-034 decision 2) -- the v1 text remains documented as an "
     "alternate in item_bank_v1_sources.md §5, not shipped in this item bank as of v2."
 )
@@ -566,7 +566,7 @@ AUDIT_C_THRESHOLD_CAVEAT = (
     "validate AUDIT-C against a whole-AUDIT total score derived from the same 10-item "
     "instrument (AUDIT-C is items 1-3 of it) -- a same-instrument criterion-circularity "
     "limitation, disclosed here rather than smoothed over. "
-    "See docs/ai/audit_c_korean_research.md section 1 (study #9 Lee JH 2018, study #4 "
+    "See _archive/reports/audit_c_korean_research.md section 1 (study #9 Lee JH 2018, study #4 "
     "Kwon 2013) and CVR-018 Q1/Q4."
 )
 
@@ -617,7 +617,7 @@ ITEM_BANK: dict[ScaleName, ItemBankEntry] = {
     "WHO-5": _make_entry("WHO-5", (), WHO5_V1_PROVENANCE, "v1", None),
     # instruction_ko=None: unlike v1's SBIRT Oregon source, no standalone
     # instruction/framing sentence for the [별지 제15호의3서식] form is
-    # quoted verbatim anywhere in docs/ai/audit_c_korean_research.md's §3 —
+    # quoted verbatim anywhere in _archive/reports/audit_c_korean_research.md's §3 —
     # fabrication-0 means this ships absent, never invented (same
     # discipline as WHO-5's empty item list above).
     "AUDIT-C": _make_entry("AUDIT-C", _AUDIT_C_ITEMS_V2, AUDIT_C_V2_PROVENANCE, "v2", None),

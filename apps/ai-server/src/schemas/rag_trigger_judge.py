@@ -1,6 +1,6 @@
 """Schemas for the Policy-B RAG-trigger judge agent (F2, PLAN-2026-W28-Q W4).
 
-``docs/ai/validation_plan_f1f2_continuous.md`` §3 Policy-B row + §6 allowlist
+``_archive/plans/validation_plan_f1f2_continuous.md`` §3 Policy-B row + §6 allowlist
 table's "Policy-B judge (new)" row: licensed input is session transcript +
 slot state ONLY — persona paths and ``retrieve_grounding()`` are explicitly
 NOT licensed (mirrored, mechanically, by the BUG-022 guard test extension in

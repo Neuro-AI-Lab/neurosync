@@ -7,7 +7,7 @@ Layer 2 (도메인 매핑) 담당:
 - 정신과 약물 판정 (성분명 카탈로그)
 - Handoff/system prompt용 요약 문자열 생성
 
-설계 문서: docs/ai/phr_integration_plan.md
+설계 문서: _archive/plans/phr_integration_plan.md
 """
 
 from __future__ import annotations

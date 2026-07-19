@@ -59,31 +59,20 @@ def test_f1_crisis_response_uses_current_hotline() -> None:
     assert "119" in CRISIS_RESPONSE
 
 
-def test_orchestrator_emergency_message_missing_current_hotline() -> None:
-    """BUG-009: the production CTRS-1 (EMERGENCY) crisis message still only
-    references the deprecated "1393" number and omits "109" entirely."""
+def test_orchestrator_emergency_message_uses_current_hotline() -> None:
+    """BUG-009 (fixed): the production CTRS-1 (EMERGENCY) crisis message now
+    references the current "109" hotline and no longer the deprecated
+    "1393" number."""
     msg = _CRISIS_MESSAGES[CTRSLevel.EMERGENCY]
-    assert _DEPRECATED_HOTLINE in msg, (
-        "expected the pre-fix state (deprecated number present) -- if this "
-        "fails, BUG-009's EMERGENCY message may already be fixed"
-    )
-    assert _CURRENT_HOTLINE not in msg, (
-        "BUG-009 appears fixed for the EMERGENCY message: '109' is now "
-        "present. Update error.md and this test accordingly."
-    )
+    assert _CURRENT_HOTLINE in msg
+    assert _DEPRECATED_HOTLINE not in msg
 
 
-def test_orchestrator_high_risk_message_missing_current_hotline() -> None:
-    """BUG-009: the production CTRS-2 (HIGH_RISK) crisis message -- the
-    exact severity band SM-08b (ADR-010 rule 5) targets -- also only
-    references "1393", never "109", unlike f1.py's CRISIS_RESPONSE for the
-    same severity band."""
+def test_orchestrator_high_risk_message_uses_current_hotline() -> None:
+    """BUG-009 (fixed): the production CTRS-2 (HIGH_RISK) crisis message --
+    the exact severity band SM-08b (ADR-010 rule 5) targets -- now
+    references "109", matching f1.py's CRISIS_RESPONSE for the same
+    severity band, and no longer references the deprecated "1393" number."""
     msg = _CRISIS_MESSAGES[CTRSLevel.HIGH_RISK]
-    assert _DEPRECATED_HOTLINE in msg, (
-        "expected the pre-fix state (deprecated number present) -- if this "
-        "fails, BUG-009's HIGH_RISK message may already be fixed"
-    )
-    assert _CURRENT_HOTLINE not in msg, (
-        "BUG-009 appears fixed for the HIGH_RISK message: '109' is now "
-        "present. Update error.md and this test accordingly."
-    )
+    assert _CURRENT_HOTLINE in msg
+    assert _DEPRECATED_HOTLINE not in msg

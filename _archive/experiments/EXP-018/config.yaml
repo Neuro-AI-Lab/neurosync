@@ -1,0 +1,80 @@
+# EXP-018 — BUG-030 iteration-2 + BUG-035 companion post-implementation re-validation
+# Written before launch, per experiment-reproducibility skill.
+
+mission: PLAN-2026-W28-T (discussion.md) step 7, ratified ADR-029
+bug: BUG-030 (iteration-2), BUG-035 (companion) — error.md
+linked: [BUG-030, BUG-035, ADR-029, REV-032, CVR-011, DATASET-003, DATASET-006, EXP-017]
+hyp: "none — bugfix targeted re-validation, not a HYP-linked capability experiment"
+
+code_under_test:
+  branch: feat/f1f2-program-w29
+  git_head_at_launch: 266eea1ad9c3173c25d09b236a69d41cc83a39a8
+  code_commit: d68c8a2 (fix(f1) BUG-030 iter-2 empathy near-dup retry guard + BUG-035 presence check, ADR-029)
+  head_to_code_commit_diff: "git diff d68c8a2..266eea1 --stat -> 3 docs/ai/*.md files only (critic_scratch_rev032, fix_design_bug030_iter2, rubric_bug030_acceptance), 0 code files -> HEAD is docs-only ahead of the code commit, confirmed before launch"
+  no_code_edits_this_run: true
+  qa_gate: "GATE:PASS on d68c8a2 (suite 1161+2, mutation-checked) — per HANDOFF; independently spot-verified: tests/repro/test_bug_030_iter2.py exists, dialogue.py carries _MAX_REGENERATION_ATTEMPTS/_EMPATHY_MARKERS/_is_crisis_adjacent_turn/retry_count/retry_reasons/fall_through/crisis_adjacent, f1.py F1TurnLog carries dialogue_retry_count/dialogue_retry_reasons/dialogue_fall_through/dialogue_retry_latency_ms/dialogue_crisis_adjacent (grep-verified this session)"
+
+gates:
+  critic_review: "REV-032 non-blocking-with-conditions (4 major, 2 blocking-scoped on EXP-018 scoring validity, 1 minor) -- no entry with a literal '**Severity:** blocking' line in discussion.md; ADR-029 ratified reconciliation; pre-registered criteria A-E binding for this run's scoring"
+  cv_review: "CVR-011 adequate-with-conditions (10 findings, 0 blocking); rubric_bug030_acceptance.md SS10 addendum binding"
+  qa_gate: "GATE:PASS (HANDOFF) -- d68c8a2"
+  dataset: "DATASET-003 (VP-001/VP-003/VP-010 persona files, discussion.md, APPROVED REV-026) -- all 3 EXP-018 cells use only DATASET-003 personas; DATASET-006 (session-ledger + canary + reveal-partition) cited for the multi-session SC-5-style chain's ledger mechanism, not separately exercised"
+  experiment_gate_hook: "commands (python -m src.safety_matrix / src.f1 / src.continuous_test) do not match the hook's EXP_LAUNCH regex (run.sh/evaluate.sh/models/*.py only) -- non-triggering, no GATE_OVERRIDE needed, same precedent as EXP-014/016/017"
+  mechanical_gate_precheck: "error.md has 0 open critical BUG entries (BUG-030/BUG-035 both severity=major); discussion.md has 0 open REV entries with a literal Severity:blocking line; DATASET entries present -- gate would not have blocked this launch even without the hook's regex non-match"
+
+prompt_pins_verified_at_launch (recomputed via sha256sum, this session, before any launch):
+  safety_classifier_v2_sha256: "3e9ca6b44ba3373f70c068758a2e1ae860f3c58483394a85fed9e13a90b3390c"   # matches AVC-17 pin, UNCHANGED
+  dialogue_v4_sha256: "f93e995f68e3a3bc88ddd5ce1f6b01ef8feb5e5663bda46ce4958ae8e6317144"   # matches AVC-17 pin, UNCHANGED (iter-2 touches dialogue.py only, not the prompt file, per fix_design_bug030_iter2.md SS8)
+  dialogue_prompt_version_in_code: "v4 (apps/ai-server/src/agents/dialogue.py:91 PROMPT_VERSION = \"v4\", unchanged from EXP-017)"
+
+env_discipline:
+  hira_kakao_keys: "ABSENT -- grep -iE '^(HIRA|KAKAO)' apps/ai-server/.env -> 0 matches, exit 1 (ADR-024, values never read/printed)"
+  upstage_api_key: "SET (non-empty, name-only check)"
+
+model:
+  primary_vendor: upstage
+  chat_model_id_expected: "solar-pro3-260323 (EXP-014/016/017 conversation.json model field) -- this run's own artifacts re-verified against this value at report time, not assumed carried over"
+  secondary_vendor: lg_k_exaone   # PatientLLM
+
+hardware: CPU-only orchestration host; inference via Upstage hosted API + Friendli K-EXAONE (patient simulator)
+
+cells:
+  cell_1_sm_regression:
+    scope: "SM-01..08b, 11 scenarios, same shape as EXP-014/runs/sm_regression_r2 and EXP-017/runs/sm (criterion C)"
+    command_template: "cd apps/ai-server && .venv/bin/python -m src.safety_matrix --scenario {SM-ID}"
+    scenarios: [SM-01, SM-02, SM-03, SM-04a, SM-04b, SM-05, SM-06, SM-07a, SM-07b, SM-08a, SM-08b]
+    baseline_for_comparison: "experiments/EXP-014/runs/sm_regression_r2/<SM-ID>/{status.json,run.log} (r2) AND experiments/EXP-017/runs/sm/<SM-ID>/{status.json,run.log} (iter-1 post-fix)"
+    stop_rule: "if any cell that PASSED in r2/EXP-017 now FAILs -> finish the bundle, record it, STOP further cells, report to orchestrator (bisection per criterion C, guard diff first)"
+    output_location: "experiments/EXP-018/runs/sm/<SM-ID>/ + docs/ai/simulation_results/safety_matrix/"
+    budget: 11 pipeline-level calls
+
+  cell_2_naturalness_probe:
+    scope: "3 full F1 sessions, VP-001/VP-003/VP-010 -- same probe configuration as EXP-017 cell 2, for before/after (EXP-017 vs EXP-018) comparability"
+    mechanism: "cd apps/ai-server && .venv/bin/python -m src.f1 --persona <VP> --max-turns 10 (standalone, dialogue-only, no --followup-from). F1-only (no F2)."
+    rubric: "rubric SS1/SS2 (criterion A, punctuation-INCLUSIVE per REV-032 A.1, SAME-INDEX turn pairing per rubric SS10.2), Appendix D truncation, criterion D telemetry"
+    pre_fix_comparison_source: "EXP-017 result.md 'Results -- Cell 2' table (VP-001 7/10, VP-003 9/10, VP-010 6/10, all v4-pre-iter2)"
+    output_location: "experiments/EXP-018/runs/naturalness/<VP>/ + docs/ai/simulation_results/<VP>/"
+    budget: 3 pipeline-level calls
+
+  cell_3_sc5_reprobe:
+    scope: "SC-5-style crisis-adjacent chain, VP-003, 2 sessions, replicating EXP-016 SC-5 / EXP-017 cell-3 shape -- criterion B presence scoring"
+    mechanism: "cd apps/ai-server && .venv/bin/python -m src.continuous_test --persona VP-003 --sessions 2 --max-turns 10"
+    rubric: "rubric SS10.1 (crisis-adjacent qualifying-turn population, SAME-INDEX pairing SS10.2), SS4 general presence floor (descriptive), SS5a/5b (descriptive), criterion B.1-B.4"
+    pre_fix_comparison_source: "EXP-017 result.md 'Results -- Cell 3' (session1 double-probe-cycle reproduced; session2 crisis-terminated, not comparable, confound disclosed)"
+    output_location: "experiments/EXP-018/runs/sc5_reprobe/ + docs/ai/simulation_results/VP-003/"
+    budget: 4 pipeline-level calls (2 F1 + 2 F2)
+
+  cell_4_retry_telemetry_review:
+    scope: "no new model calls -- mechanical review of ALL cells' turn-level telemetry fields (dialogue_retry_count/dialogue_retry_reasons/dialogue_fall_through/dialogue_retry_latency_ms/dialogue_crisis_adjacent)"
+    computes: "retry rate, retry_reasons distribution, fall-through count (budget-exhaustion semantics per qa's cross-reference caveat), p95 per-turn latency delta vs EXP-017 same-cell artifacts, crisis-adjacent subset reported separately (CVR-011 condition 3), exact_repeat x denied-slot cross-tab (CVR-011 condition 4), criterion D invariant check on 100%% of turns, criterion E marker-hit distribution"
+    budget: 0 additional pipeline-level calls
+
+echo_watch:
+  tier_1: "STOP-THE-LINE -- bracket-delimited <...> placeholders or prompt-flagged never-copy scaffolding reaching shipped output. Any hit = halt."
+  tier_2: "rubric SS2 behavioral counts (ADR-028 Decision 3). Logged, not a halt."
+
+acceptance_criteria_binding: "REV-032 criteria A-E verbatim (discussion.md REV-032 entry) + rubric SS10 presence floor -- pre-registered, decision rule for the eventual REV-033/CVR-012 gate (not this role's verdict to render; this role reports PASS/FAIL per criterion per session, mechanically, never averaged into a composite per rubric SS9 non-merging discipline)"
+
+budget_total: "18 pipeline-level calls (11 + 3 + 4), within the ~15-20 model-call budget and the 20-call hard cap"
+out_of_scope: "code fixes; clinical/validity verdicts (CV/critic); root docs other than result.md; git operations; monitoring docs (writer's)"
+no_pushes_no_commits: true

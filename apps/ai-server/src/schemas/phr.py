@@ -4,7 +4,7 @@ Layer 1(myhealthway_reader의 dict 추출) → Layer 2(이 스키마의 Pydantic
 계약. 국내 마이헬스웨이 프로파일 원본 편차를 흡수한 후 F1 다른 계층이 안전하게
 사용할 수 있는 형태.
 
-설계 문서: docs/ai/phr_integration_plan.md
+설계 문서: _archive/plans/phr_integration_plan.md
 """
 
 from __future__ import annotations

@@ -1,5 +1,13 @@
 # Development Report — Task 1 (append-only)
 
+> **Wave-4 archive note (2026-07-16):** several plan/research/scratch docs cited by name in
+> entries below (`f3/f4/f5_quick_dev_plan.md`, `validation_plan_f1f2_continuous.md`,
+> `f1f5_total_validation_plan.md`, `f5_charting_research.md`, `rubric_bug030_acceptance.md`,
+> `fix_design_exhaustion_bug037.md`, `cv_scratch_cvr013.md`, `critic_scratch_rev034_fixcycle.md`,
+> `audit_c_korean_research.md`, `who5_sourcing_retry2.md`) are now at `_archive/plans/` /
+> `_archive/reports/` (`version.md` CLEAN-2026-07-16). Per this doc's own append-only discipline,
+> individual historical citations below are not rewritten — see `_archive/README.md` wave-4
+> manifest for current locations.
 > **용도**: 개발·검증·감사 작업의 append-only 보고서. 새 작업 세션마다 `DR-NNN` 엔트리를 아래에 추가한다 (기존 엔트리 수정 금지, 상태 변경은 새 엔트리로).
 > **엔트리 형식**: `## DR-NNN | YYYY-MM-DD | 제목` + 구조화 섹션 + `---` 종결.
 > **관련 문서**: `PRD_task1_v2.md`(기준 스펙), `checklist_task1.md`(항목 상태), `docs/ai/backups/`(v1 문서·이슈 이력 ISS-001~018).
@@ -1213,7 +1221,7 @@ Per the mission's own stop-rule (`CVR-010` F1 = clinical-blocking), **no iterati
 
 ### 1. Mission and directive
 
-User directive (verbatim, `discussion.md` `PLAN-2026-W28-T`): "문서 관리와 함께 버그 픽스 진행하라," ratifying the `STATE-2026-07-12` queued iteration-2 recommendation. `ADR-029` ratified the design (`docs/ai/fix_design_bug030_iter2.md`, reviewed by `REV-032`/`CVR-011`): a single bounded check-and-retry loop inside `DialogueAgent.run()` (max 2 regenerations, up to 3 LLM calls/turn) adding near-duplicate empathy-clause detection (token Jaccard≥0.5 OR NED≤0.3, punctuation-inclusive) and an empathy-presence check on crisis-adjacent turns (the `BUG-035` companion); `[:30]` truncation removed; marker set corrected (bare `겠` removed, `-군요` added); the de-escalation-concluding turn structurally guaranteed crisis-adjacent; on exhaustion, falls through and ships the last attempt (not yet a safe degrade — that arrives in `DR-017`).
+User directive (verbatim, `discussion.md` `PLAN-2026-W28-T`): "문서 관리와 함께 버그 픽스 진행하라," ratifying the `STATE-2026-07-12` queued iteration-2 recommendation. `ADR-029` ratified the design (`_archive/plans/fix_design_bug030_iter2.md`, reviewed by `REV-032`/`CVR-011`): a single bounded check-and-retry loop inside `DialogueAgent.run()` (max 2 regenerations, up to 3 LLM calls/turn) adding near-duplicate empathy-clause detection (token Jaccard≥0.5 OR NED≤0.3, punctuation-inclusive) and an empathy-presence check on crisis-adjacent turns (the `BUG-035` companion); `[:30]` truncation removed; marker set corrected (bare `겠` removed, `-군요` added); the de-escalation-concluding turn structurally guaranteed crisis-adjacent; on exhaustion, falls through and ships the last attempt (not yet a safe degrade — that arrives in `DR-017`).
 
 ### 2. Delivered and gated
 
@@ -1363,7 +1371,7 @@ Brainstorm ran a second, 26-attempt sourcing retry (`docs/ai/who5_sourcing_retry
 
 ### 4. Track 3 — `ISS-F2V-028` factorial decomposition
 
-Brainstorm designed a 2×2×2 factorial (`docs/ai/exp021_factorial_design.md`): item-text richness (v0/v1) × response-anchor presence × instruction/timeframe presence, VP-001, PHQ-9, bypassing F1/F2 via the pre-existing `item_bank` override seam on `src.f3.administer_survey`/`resolve_outcome`. Critic's pre-registration (`REV-040`): **non-blocking-with-conditions** (4 major — one blocking-scoped, 4 minor). Confirmed the override seam genuinely pre-existing (not newly built), identified a concrete silent-corruption risk in the proposed `instruction_ko_override` sentinel API (Cell 3/Cell 7's `F_instr=off` contrast could silently leak the live v1 instruction if the driver passes `scale_name` without also explicitly overriding), and amended the design's dominant-factor decision rule: no H1/H2/H3 or interaction-driven claim may be licensed from Tier-0-only data (8 administrations) — Tier 1 (≥10 administrations, both corners replicated) is the pre-registered minimum. Developer implemented the driver (`tests.simulation.factorial_driver`, commit `2351e07`) including the required Cell-3/Cell-7-shaped golden leak test.
+Brainstorm designed a 2×2×2 factorial (`_archive/plans/exp021_factorial_design.md`): item-text richness (v0/v1) × response-anchor presence × instruction/timeframe presence, VP-001, PHQ-9, bypassing F1/F2 via the pre-existing `item_bank` override seam on `src.f3.administer_survey`/`resolve_outcome`. Critic's pre-registration (`REV-040`): **non-blocking-with-conditions** (4 major — one blocking-scoped, 4 minor). Confirmed the override seam genuinely pre-existing (not newly built), identified a concrete silent-corruption risk in the proposed `instruction_ko_override` sentinel API (Cell 3/Cell 7's `F_instr=off` contrast could silently leak the live v1 instruction if the driver passes `scale_name` without also explicitly overriding), and amended the design's dominant-factor decision rule: no H1/H2/H3 or interaction-driven claim may be licensed from Tier-0-only data (8 administrations) — Tier 1 (≥10 administrations, both corners replicated) is the pre-registered minimum. Developer implemented the driver (`tests.simulation.factorial_driver`, commit `2351e07`) including the required Cell-3/Cell-7-shaped golden leak test.
 
 ### 5. Implementation and qa gates (three separate commits, three separate gates — closes `REV-042` Issue 1)
 
@@ -1401,7 +1409,7 @@ Two code defects the Track-1 gate found were fixed and independently re-gated: `
 
 `BUG-039` and `BUG-040` are both resolved (fixed and independently re-gated same mission). `ISS-F2V-028` (`docs/ai/workflow_discussion_f1f2.md`) receives a status update this doc-fold pass (narrowed-not-resolved, per `REV-042` §3). A new `ISS-F2V-029` is filed for `EXP-022`'s scale-ceiling finding — a distinct, non-poolable instance on a different instrument, not merged into `ISS-F2V-028`.
 
-**Linked:** `PLAN-2026-W29-B`, `CVR-018`, `ADR-034`, `REV-040`, `REV-041`, `CVR-019`, `REV-042`, `EXP-021`, `EXP-022`, `BUG-039`, `BUG-040`, `ISS-F2V-028`, `ISS-F2V-029`, `docs/ai/audit_c_korean_research.md`, `docs/ai/who5_sourcing_retry2.md`, `docs/ai/exp021_factorial_design.md`, `docs/ai/workflow_results_f1f2.md` `trustworthy-f3-decisions`.
+**Linked:** `PLAN-2026-W29-B`, `CVR-018`, `ADR-034`, `REV-040`, `REV-041`, `CVR-019`, `REV-042`, `EXP-021`, `EXP-022`, `BUG-039`, `BUG-040`, `ISS-F2V-028`, `ISS-F2V-029`, `docs/ai/audit_c_korean_research.md`, `docs/ai/who5_sourcing_retry2.md`, `_archive/plans/exp021_factorial_design.md`, `docs/ai/workflow_results_f1f2.md` `trustworthy-f3-decisions`.
 
 ---
 

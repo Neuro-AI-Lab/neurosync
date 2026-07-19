@@ -1,0 +1,1046 @@
+{
+  "session_id": "f1_VP-010_followup",
+  "persona_id": "VP-010",
+  "persona_name": "강태민",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "피곤하고 잠들기 어려운 증상이 지속되고 있음"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "피곤하고 잠들기 어려운 증상이 지속되고 있음"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\""
+    },
+    {
+      "key": "substance_use_history",
+      "value": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음"
+    },
+    {
+      "key": "personal_social_history",
+      "value": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가"
+    },
+    {
+      "key": "family_history",
+      "value": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음"
+    },
+    {
+      "key": "medical_history",
+      "value": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요, 네 반갑습니다.  \n별일 아니에요, 그냥 요즘도 피곤하고… 잠들기 좀 어려운 건 그때랑 비슷해요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 지난번에 이어서 다시 뵙게 되어 반갑습니다. 오늘도 편하게 이야기해 주시면 됩니다.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려움",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려움",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 8714.214495848864,
+      "timestamp": "2026-07-15T16:50:14.823056",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "안녕하세요, 네 반갑습니다.  \n별일 아니에요, 그냥 요즘도 피곤하고… 잠들기 좀 어려운 건 그때랑 비슷해요.",
+        "normalized": "안녕하세요, 네 반갑습니다.  \n별일 아니에요, 그냥 요즘도 피곤하고… 잠들기 좀 어려운 건 그때랑 비슷해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2936.8799361400306,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "별일 아니에요, 그냥 요즘도 피곤하고… 잠들기 좀 어려운 건 그때랑 비슷해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요, 네 반갑습니다.  \n별일 아니에요, 그냥 요즘도 피곤하고… 잠들기 좀 어려운 건 그때랑 비슷해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠들기 좀 어려운 건 그때랑 비슷해요"
+      ],
+      "agent_response": "피곤하고 잠들기 어려운 증상이 여전히 지속되고 계시다니, 많이 힘드셨겠어요. 지난번에 다루지 못한 정신건강의학과 진료나 심리상담 이력이 있으신지 여쭤봐도 될까요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려움",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5617.353339213878,
+      "timestamp": "2026-07-15T16:50:20.440436",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "안녕하세요, 네 반갑습니다.  \n별일 아니에요, 그냥 요즘도 피곤하고… 잠들기 좀 어려운 건 그때랑 비슷해요.",
+        "normalized": "안녕하세요, 네 반갑습니다.  \n별일 아니에요, 그냥 요즘도 피곤하고… 잠들기 좀 어려운 건 그때랑 비슷해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2936.8799361400306,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "별일 아니에요, 그냥 요즘도 피곤하고… 잠들기 좀 어려운 건 그때랑 비슷해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "아니요, 그런 건 전혀 없어요. 처음이라 잘 몰라서 그냥 앱으로 한번 점검해보는 거예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "처음으로 정신건강의학과 진료를 받으신 적이 없으시다니, 그런 상황에서 앱을 통해 점검을 시도하시는 거군요. 혹시 이전에 다른 병원에서 정신건강 관련 상담을 받아보신 적은 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전히 지속되고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전히 지속되고 있음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5203.68762081489,
+      "timestamp": "2026-07-15T16:50:30.010931",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 전혀 없어요.  \n처음이라 잘 몰라서 그냥 앱으로 한번 점검해보는 거예요.",
+        "normalized": "아니요, 그런 건 전혀 없어요. 처음이라 잘 몰라서 그냥 앱으로 한번 점검해보는 거예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1097.7312168106437,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 건 전혀 없어요. 처음이라 잘 몰라서 그냥 앱으로 한번 점검해보는 거예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "그런 건 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "피곤하고 잠들기 좀 어려운"
+      ],
+      "agent_response": "피곤하고 잠들기 어려운 증상이 계속되고 계신데, 아직 정신건강의학과 진료나 상담을 받아보신 적은 없으신가요? 혹시 이전에 다른 병원에서 정신건강 관련 진료를 받으신 적이 있으신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전히 지속되고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 여전히 지속되고 있음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5093.977318145335,
+      "timestamp": "2026-07-15T16:50:38.909044",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "그런 건 없었어요.  \n이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요.",
+        "normalized": "그런 건 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1128.5881618969142,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "그런 건 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "아니요, 그런 건 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "피곤하고 잠들기 어려운 증상이 지속되고 계신데, 아직 정신건강의학과 진료나 상담을 받아보신 적은 없으신가요? 혹시 이전에 다른 병원에서 정신건강 관련 진료를 받으신 적이 있으신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 지속되고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4682.509511243552,
+      "timestamp": "2026-07-15T16:50:48.266545",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 없었어요.  \n이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요.",
+        "normalized": "아니요, 그런 건 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1366.7817758396268,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.3,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 건 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "아니요, 그런 건 전혀 없었어요.  \n처음이라 잘 몰라서 그냥 앱으로 한번 점검해보는 거예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "피곤하고 잠들기 어려운 증상이 지속되고 계신데, 아직 정신건강의학과 진료를 받아보신 적이 없으신가요? 혹시 이전에 다른 병원에서 정신건강 관련 진료를 받으신 적이 있으신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 지속되고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5491.265386808664,
+      "timestamp": "2026-07-15T16:50:58.181356",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 전혀 없었어요.  \n처음이라 잘 몰라서 그냥 앱으로 한번 점검해보는 거예요.",
+        "normalized": "아니요, 그런 건 전혀 없었어요.  \n처음이라 잘 몰라서 그냥 앱으로 한번 점검해보는 거예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1448.6919133923948,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 건 전혀 없었어요. 처음이라 잘 몰라서 그냥 앱으로 한번 점검해보는 거예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 834.9397787824273,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "아니요, 그런 건 전혀 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요. 지금은 그냥 점검 차원에서 해보는 거예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "피곤하고 잠들기 어려운 증상이 계속되고 계신데, 아직 정신건강의학과 진료를 받아보신 적이 없으신가요? 혹시 이전에 다른 병원에서 정신건강 관련 진료를 받으신 적이 있으신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 지속되고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4740.203129127622,
+      "timestamp": "2026-07-15T16:51:07.567220",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 전혀 없었어요.  \n이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요.  \n지금은 그냥 점검 차원에서 해보는 거예요.",
+        "normalized": "아니요, 그런 건 전혀 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요. 지금은 그냥 점검 차원에서 해보는 거예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1419.1592568531632,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 건 전혀 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요. 지금은 그냥 점검 차원에서 해보는 거예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 그런 건 전혀 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요. 지금은 그냥 점검 차원에서 해보는 거예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "suicidal_ideation",
+        "self_harm",
+        "harm_to_others",
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "피곤하고 잠들기 어려운 증상이 지속되고 있는 상황에서 아직 정신건강의학과 진료를 받아보신 적이 없으신가요? 혹시 이전에 다른 병원에서 정신건강 관련 진료를 받으신 적이 있으신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 지속되고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6056.446603033692,
+      "timestamp": "2026-07-15T16:51:19.135768",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 전혀 없었어요.  \n이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요.  \n지금은 그냥 점검 차원에서 해보는 거예요.",
+        "normalized": "아니요, 그런 건 전혀 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요. 지금은 그냥 점검 차원에서 해보는 거예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1943.960971198976,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 건 전혀 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요. 지금은 그냥 점검 차원에서 해보는 거예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1114.2844636924565,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요, 그런 건 전혀 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요. 지금은 그냥 점검 차원에서 해보는 거예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "피곤하고 잠들기 어려운 증상이 지속되고 계신데, 이전에 다른 병원에서 정신건강 관련 진료를 받아보신 적은 있으신가요? 혹시 다른 정신과나 심리상담 기관에서 진단을 받거나 치료를 시도한 경험이 있으신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 지속되고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5409.247110132128,
+      "timestamp": "2026-07-15T16:51:29.126123",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 전혀 없었어요.  \n이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요.  \n지금은 그냥 점검 차원에서 해보는 거예요.",
+        "normalized": "아니요, 그런 건 전혀 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요. 지금은 그냥 점검 차원에서 해보는 거예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1383.4153371863067,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "\"피곤하고 잠들기 어려운 증상이 지속되고 계신데, 이전에 다른 병원에서 정신건강 관련 진료를 받아보신 적은 있으신가요? 혹시 다른 정신과나 심리상담 기관에서 진단을 받거나 치료를 시도한 경험이 있으신지 궁금해요.\"",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1067.2189160250127,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 그런 건 전혀 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요. 지금은 그냥 점검 차원에서 해보는 거예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "아직 정신건강의학과 진료나 심리상담을 받아보신 적이 없으신가요? 혹시 이전에 다른 병원에서 정신건강 관련 상담을 받으신 경험은 있으신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 지속되고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5731.074328068644,
+      "timestamp": "2026-07-15T16:51:39.809989",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 전혀 없었어요.  \n이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요.  \n지금은 그냥 점검 차원에서 해보는 거예요.",
+        "normalized": "아니요, 그런 건 전혀 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요. 지금은 그냥 점검 차원에서 해보는 거예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1810.0244267843664,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 건 전혀 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요. 지금은 그냥 점검 차원에서 해보는 거예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1001.7530717886984,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 그런 건 전혀 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요. 지금은 그냥 점검 차원에서 해보는 거예요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "피곤하고 잠들기 어려운 증상이 지속되고 계신데, 아직 정신건강의학과 진료를 받아보신 적은 없으신가요? 혹시 이전에 다른 병원에서 정신건강 관련 진료를 받으신 적이 있으신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 지속되고 있음"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "history_of_present_illness": "피곤하고 잠들기 어려운 증상이 지속되고 있음",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 건 전혀 없어요. 정신과 가본 적도 없고, 상담 같은 건 처음이에요. 근데 사실... 최근 한 달 동안 친구 약속을 일주일에 세 ...\"; 탐색 질문에 대한 환자 응답: \"음... 사실 거의 매일 그런 것 같아요. 약속을 취소할 때마다 “내가 뭘 잘못했나” 싶고, 미안한 마음도 들어요. 사실 요즘은 사람 만나는 것...\"",
+        "substance_use_history": "주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음",
+        "personal_social_history": "친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가",
+        "family_history": "어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음",
+        "medical_history": "속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6041.8247282505035,
+      "timestamp": "2026-07-15T16:51:51.412613",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "family_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)",
+        "substance_use_history": "ungrounded: negated value without polarity-consistent evidence (no negated patient statement supports it)"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 전혀 없었어요.  \n이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요.  \n지금은 그냥 점검 차원에서 해보는 거예요.",
+        "normalized": "아니요, 그런 건 전혀 없었어요. 이전에도 그냥 피곤하다고만 생각했지, 정신과나 상담은 생각해본 적 없었거든요. 지금은 그냥 점검 차원에서 해보는 거예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1771.9066147692502,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "피곤하고 잠들기 어려운 증상이 지속되고 계신데, 아직 정신건강의학과 진료를 받아보신 적은 없으신가요? 혹시 이전에 다른 병원에서 정신건강 관련 진료를 받으신 적이 있으신지 궁금해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1107.6098177582026,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-15T16:50:06.108292",
+  "ended_at": "2026-07-15T16:51:55.983374",
+  "grounded_coverage": 0.875,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5636,
+  "patient_lng": 127.0369,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.10900292545557022,
+    "reason_summary": "Session sentiment: ['sadness', 'neutral'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "neutral"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.39,
+      "neutral": 0.39,
+      "anxiety": 0.22
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.4
+      },
+      {
+        "turn": 1,
+        "polarity": -0.5
+      },
+      {
+        "turn": 2,
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "polarity": -0.5
+      },
+      {
+        "turn": 4,
+        "polarity": -0.3
+      },
+      {
+        "turn": 5,
+        "polarity": 0.0
+      },
+      {
+        "turn": 6,
+        "polarity": -0.4
+      },
+      {
+        "turn": 7,
+        "polarity": 0.0
+      },
+      {
+        "turn": 8,
+        "polarity": -0.4
+      },
+      {
+        "turn": 9,
+        "polarity": 0.0
+      },
+      {
+        "turn": 10,
+        "polarity": -0.6
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 7회 반복",
+      "neutral 표현 7회 반복",
+      "anxiety 표현 4회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.3
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "sadness",
+          "neutral"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      }
+    ]
+  },
+  "phr_summary": {},
+  "prompts_degraded": false,
+  "session_index": 9,
+  "simulated_date": "2026-11-29",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- chief_complaint: 잠들기 어렵고 새벽에 자주 깨는 수면 문제가 여전히 지속됨\n- history_of_present_illness: 잠들기 한 시간 반에서 두 시간 소요, 새벽에 자주 깨며 깊이 자지 못하는 느낌 지속\n- substance_use_history: 주 1~2회 맥주 1~2캔 정도, 카페인 아침 커피 한두 잔. 최근 밤에는 수면 방해로 거의 마시지 않음\n- personal_social_history: 친구 약속 일주일에 3회 정도 취소, 사람 만나는 것 부담, 약속 취소 시 미안함 및 부담감, 누워 있는 시간 증가\n- family_history: 어머니가 지방에 계심, 관계는 나쁘지 않으나 자주 연락하지 않음\n- medical_history: 속이 자주 쓰리고 밥 먹은 후 증상이 악화되는 위장 증상\n\n[이전 세션 요약 — 미수집 정보]\npast_psychiatric_history",
+  "carried_slot_provenance": {
+    "substance_use_history": "carried_from_session_8",
+    "personal_social_history": "carried_from_session_8",
+    "medical_history": "carried_from_session_8",
+    "family_history": "carried_from_session_8",
+    "risk_assessment": "carried_from_session_8"
+  },
+  "scenario_pack_id": "VP-010_stable_minimizing_slow_disclosure_s09",
+  "arc_mode": "stable_minimizing_slow_disclosure"
+}

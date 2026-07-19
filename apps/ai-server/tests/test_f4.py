@@ -1,6 +1,6 @@
 """Unit tests for `src/f4.py` — the F4 longitudinal analysis engine.
 
-`docs/ai/f4_quick_dev_plan.md`, `PLAN-2026-W29-D`, `ADR-036`. No live LLM/DB
+`_archive/plans/f4_quick_dev_plan.md`, `PLAN-2026-W29-D`, `ADR-036`. No live LLM/DB
 call anywhere in this file (f4.py itself is zero-LLM by construction; these
 tests build synthetic `SessionRecord`s directly — no F1/F2/F3 pipeline is
 ever invoked).

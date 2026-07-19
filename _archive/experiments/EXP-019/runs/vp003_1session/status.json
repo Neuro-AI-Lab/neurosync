@@ -1,0 +1,1 @@
+{"exp_id":"EXP-019/runs/vp003_1session","state":"completed","pid":1589003,"started_at":"2026-07-12T20:39:02+09:00","last_heartbeat":"2026-07-12T20:40:52+09:00","exit_code":0,"log":"experiments/EXP-019/runs/vp003_1session/run.log","cmd":"bash -c cd apps/ai-server && .venv/bin/python -m src.continuous_test --persona VP-003 --answer-mode llm"}

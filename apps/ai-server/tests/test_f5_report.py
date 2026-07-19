@@ -1,5 +1,5 @@
 """Tests for `src/services/f5_report.py` — markdown/PDF/FHIR exporters +
-`save_f5_result`. `docs/ai/f5_quick_dev_plan.md` §5, §7.2 machine checks
+`save_f5_result`. `_archive/plans/f5_quick_dev_plan.md` §5, §7.2 machine checks
 (a)/(d) (section completeness, PDF render sanity).
 
 Readability redesign (this mission — clinician-first hand-off, <2-min read):
@@ -852,6 +852,170 @@ class TestCeilingCaveatExporters:
         reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
         text = "".join(p.extract_text() for p in reader.pages)
         assert text.count("ISS-F2V-028") == 0
+
+
+# ── VP-004-shaped renderer polish: caveat consolidation + absent-session
+# rows (conductor output review of VP-004's EXP-027 handoff.md) ──────────
+
+
+def _vp004_shaped_report():
+    """Reproduces VP-004's (EXP-027) real 10-session risk-table shape: item-9
+    positive/near-ceiling PHQ-9 in sessions 1,3,4,5,7,8,9 (26-27/27), a
+    LOWER PHQ-9 in session 2/10 (not near-ceiling), and session 6 running a
+    DIFFERENT scale (GAD-7, no item-9 concept, never flagged) -- the exact
+    shape that previously produced 7 near-identical ceiling-caveat lines and
+    silently skipped session 6 in the risk table (5 -> 7)."""
+    session = SessionSnapshot(
+        session_id="f1_VP-004",
+        persona_id="VP-004",
+        persona_name="최하은",
+        session_index=10,
+        simulated_date="2027-01-15",
+        model="solar-pro3-260323",
+        final_slots={"risk_assessment": "자살사고 부인(탐색 완료)"},
+        session_ctrs=2,
+        crisis_triggered=True,
+        crisis_turn=3,
+        risk_floor=2,
+        probe_event_count=1,
+    )
+    near_ceiling_scores = {1: 26, 3: 26, 4: 27, 5: 26, 7: 26, 8: 26, 9: 27}
+    admins = []
+    ctrs_points = []
+    scale_series_phq9 = []
+    for idx in range(1, 11):
+        date = f"2026-{7 + (idx - 1) // 4:02d}-{(idx * 3) % 28 + 1:02d}"
+        ctrs_points.append(
+            CTRSSeriesPoint(session_index=idx, simulated_date=date, session_ctrs=3)
+        )
+        if idx == 6:
+            admins.append(
+                F3Administration(
+                    session_index=idx,
+                    simulated_date=date,
+                    outcome="administered",
+                    scale_name="GAD-7",
+                    responses=(3,) * 7,
+                    total_score=21,
+                    max_score=21,
+                    severity="severe",
+                    critical_item_positive=False,
+                    safety_referral=False,
+                )
+            )
+            continue
+        score = near_ceiling_scores.get(idx, 20)
+        admins.append(
+            F3Administration(
+                session_index=idx,
+                simulated_date=date,
+                outcome="administered",
+                scale_name="PHQ-9",
+                responses=(3,) * 9,
+                total_score=score,
+                max_score=27,
+                severity="severe",
+                critical_item_positive=idx in near_ceiling_scores,
+                safety_referral=idx in near_ceiling_scores,
+            )
+        )
+        scale_series_phq9.append(
+            ScaleSeriesPoint(
+                session_index=idx,
+                simulated_date=date,
+                scale_name="PHQ-9",
+                administered=True,
+                total_score=score,
+                max_score=27,
+                severity="severe",
+                critical_item_positive=idx in near_ceiling_scores,
+            )
+        )
+    session6_date = next(p.simulated_date for p in ctrs_points if p.session_index == 6)
+    longitudinal = LongitudinalAnalysisOutput(
+        vp_id="VP-004",
+        n_sessions=10,
+        ctrs_series=ctrs_points,
+        scale_series={
+            "PHQ-9": scale_series_phq9,
+            "GAD-7": [
+                ScaleSeriesPoint(
+                    session_index=6,
+                    simulated_date=session6_date,
+                    scale_name="GAD-7",
+                    administered=True,
+                    total_score=21,
+                    max_score=21,
+                    severity="severe",
+                    critical_item_positive=False,
+                )
+            ],
+        },
+        overall_direction="worsened",
+        concordance_flag="discordant",
+    )
+    current_f3 = next(a for a in admins if a.session_index == 10)
+    inp = HandoffReportInput(
+        vp_id="VP-004",
+        session=session,
+        current_session_f3=current_f3,
+        all_f3_administrations=tuple(admins),
+        domain_inference=DomainInferenceSnapshot(
+            ai_predicted_disease=AIPredictedDiseaseOutput(
+                candidates=[], mode="experimental_unpopulated"
+            )
+        ),
+        longitudinal=longitudinal,
+    )
+    return assemble_handoff_report(inp)
+
+
+class TestRiskTableRendererPolish:
+    def test_ceiling_caveat_consolidated_to_one_line(self) -> None:
+        """7 near-ceiling sessions (1,3,4,5,7,8,9) must produce exactly ONE
+        consolidated caveat line naming every affected session, not 7
+        near-identical repeated lines."""
+        from src.schemas.handoff_report import CEILING_SCORE_CAVEAT_KO
+
+        md = build_markdown_report(_vp004_shaped_report())
+        a3_section = md.split("## 위험/안전 평가")[1].split("## 주호소 및 현병력")[0]
+        assert a3_section.count("ISS-F2V-028") == 1
+        assert a3_section.count(CEILING_SCORE_CAVEAT_KO) == 1
+        consolidated_line = next(
+            line for line in a3_section.splitlines() if "ISS-F2V-028" in line
+        )
+        for idx in (1, 3, 4, 5, 7, 8, 9):
+            assert str(idx) in consolidated_line.split("]")[0], (
+                f"session {idx} missing from consolidated caveat line: {consolidated_line}"
+            )
+        # per-row "· 만점" table marker is untouched
+        assert a3_section.count("· 만점") == 7  # sessions 1,3,4,5,7,8 (26/27) + 9 (27/27)
+
+    def test_absent_session_rendered_as_explicit_row_not_silent_gap(self) -> None:
+        """Session 6 (administered GAD-7, never item-9-flagged) must appear
+        as its OWN table row, never a silent jump from 5 to 7."""
+        md = build_markdown_report(_vp004_shaped_report())
+        a3_section = md.split("## 위험/안전 평가")[1].split("## 주호소 및 현병력")[0]
+        table_lines = [
+            line
+            for line in a3_section.splitlines()
+            if line.startswith("| ") and not line.startswith("| 세션") and "---" not in line
+        ]
+        session_ids = [line.split("|")[1].strip() for line in table_lines]
+        assert session_ids == [str(i) for i in range(1, 11)], session_ids
+        row6 = next(line for line in table_lines if line.split("|")[1].strip() == "6")
+        cells = [c.strip() for c in row6.split("|")]
+        # | <blank> | 6 | date | score | item9 | verdict | <blank> |
+        assert cells[3] == "미시행"
+        assert cells[4] == "-"
+        assert "GAD-7" in cells[5]
+
+    def test_pdf_absent_session_row_present(self) -> None:
+        pdf_bytes = build_pdf_report(_vp004_shaped_report())
+        reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+        text = "".join(p.extract_text() for p in reader.pages)
+        assert "GAD-7" in text
+        assert text.count("ISS-F2V-028") == 1
 
 
 # ── All-session slot overview exporters (Task 1) ────────────────────────

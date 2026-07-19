@@ -1,0 +1,1035 @@
+{
+  "session_id": "f1_VP-001_followup",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "불면이나 가슴 답답함은 나아졌으나, 최근 피로로 인해 집중이 잘 안 되는 날이 가끔 생김"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "지난번 불면과 가슴 답답함이 개선되었으나, 최근 피로로 인해 집중이 잘 안 되는 증상이 재발"
+    },
+    {
+      "key": "family_history",
+      "value": "어머니는 가끔 잠 못 주무심"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "커피 대신 차 위주로 마심"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+    },
+    {
+      "key": "personal_social_history",
+      "value": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요! 음... 사실 지난번에 말씀드린 불면이나 가슴 답답함은 좀 나아진 편이에요. 요즘은 그 마일스톤도 잘 끝냈고, 동료들하고 대화도 나누다 보니 마음이 좀 가벼워진 느낌이에요. 그런데 요즘은 오히려 너무 피곤해서 그런지, 다시 집중이 잘 안 되는 날들이 가끔 생기긴 해요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요! 지난번에 이어서 상담을 이어가겠습니다. 오늘은 어떤 기분으로 지내고 계신가요?",
+      "slot_updates": {
+        "chief_complaint": "불면이나 가슴 답답함은 나아졌으나, 최근 피로로 인해 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난번 불면과 가슴 답답함이 개선되었으나, 최근 피로로 인해 집중이 잘 안 되는 증상이 재발"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "불면이나 가슴 답답함은 나아졌으나, 최근 피로로 인해 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난번 불면과 가슴 답답함이 개선되었으나, 최근 피로로 인해 집중이 잘 안 되는 증상이 재발",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 35712.92002312839,
+      "timestamp": "2026-07-15T16:00:13.815029",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "안녕하세요! 음... 사실 지난번에 말씀드린 불면이나 가슴 답답함은 좀 나아진 편이에요. 요즘은 그 마일스톤도 잘 끝냈고, 동료들하고 대화도 나누다 보니 마음이 좀 가벼워진 느낌이에요. 그런데 요즘은 오히려 너무 피곤해서 그런지, 다시 집중이 잘 안 되는 날들이 가끔 생기긴 해요.",
+        "normalized": "안녕하세요! 음... 사실 지난번에 말씀드린 불면이나 가슴 답답함은 좀 나아진 편이에요. 요즘은 그 마일스톤도 잘 끝냈고, 동료들하고 대화도 나누다 보니 마음이 좀 가벼워진 느낌이에요. 그런데 요즘은 오히려 너무 피곤해서 그런지, 다시 집중이 잘 안 되는 날들이 가끔 생기긴 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 27301.39460042119,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.2,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "지난번에 말씀드린 불면이나 가슴 답답함은 좀 나아진 편이에요. 요즘은 그 마일스톤도 잘 끝냈고, 동료들하고 대화도 나누다 보니 마음이 좀 가벼워진 느낌이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요! 음... 사실 지난번에 말씀드린 불면이나 가슴 답답함은 좀 나아진 편이에요. 요즘은 그 마일스톤도 잘 끝냈고, 동료들하고 대화도 나누다 보니 마음이 좀 가벼워진 느낌이에요. 그런데 요즘은 오히려 너무 피곤해서 그런지, 다시 집중이 잘 안 되는 날들이 가끔 생기긴 해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "피곤해서 집중이 잘 안 되는 날들이 가끔 생기긴 해요"
+      ],
+      "agent_response": "지난번에 불면과 가슴 답답함이 나아져서 다행이에요. 그런데 최근 피로 때문에 집중이 어려울 때가 있다고 하니, 그 점이 걱정되시겠어요.",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "불면이나 가슴 답답함은 나아졌으나, 최근 피로로 인해 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난번 불면과 가슴 답답함이 개선되었으나, 최근 피로로 인해 집중이 잘 안 되는 증상이 재발",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6131.24674372375,
+      "timestamp": "2026-07-15T16:00:19.946302",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "안녕하세요! 음... 사실 지난번에 말씀드린 불면이나 가슴 답답함은 좀 나아진 편이에요. 요즘은 그 마일스톤도 잘 끝냈고, 동료들하고 대화도 나누다 보니 마음이 좀 가벼워진 느낌이에요. 그런데 요즘은 오히려 너무 피곤해서 그런지, 다시 집중이 잘 안 되는 날들이 가끔 생기긴 해요.",
+        "normalized": "안녕하세요! 음... 사실 지난번에 말씀드린 불면이나 가슴 답답함은 좀 나아진 편이에요. 요즘은 그 마일스톤도 잘 끝냈고, 동료들하고 대화도 나누다 보니 마음이 좀 가벼워진 느낌이에요. 그런데 요즘은 오히려 너무 피곤해서 그런지, 다시 집중이 잘 안 되는 날들이 가끔 생기긴 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 27301.39460042119,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.2,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "relief",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.3
+          }
+        ],
+        "evidence_phrase": "지난번에 말씀드린 불면이나 가슴 답답함은 좀 나아진 편이에요. 요즘은 그 마일스톤도 잘 끝냈고, 동료들하고 대화도 나누다 보니 마음이 좀 가벼워진 느낌이에요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "네, 맞아요. 요즘은 그 정도로 피곤한 건 처음이라서, 이게 일시적인 건지, 아니면 뭔가 더 신경 써야 할 신호인지 잘 모르겠어요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "피로가 갑자기 심해져서 집중이 어려워진 점이 걱정되시겠어요. 혹시 과거에 정신건강의학과 진료를 받으신 적이 있으신가요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "불면이나 가슴 답답함은 나아졌으나, 최근 피로로 인해 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난번 불면과 가슴 답답함이 개선되었으나, 최근 피로로 인해 집중이 잘 안 되는 증상이 재발",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5663.8019150123,
+      "timestamp": "2026-07-15T16:00:32.647439",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "네, 맞아요.  \n요즘은 그 정도로 피곤한 건 처음이라서, 이게 일시적인 건지, 아니면 뭔가 더 신경 써야 할 신호인지 잘 모르겠어요.",
+        "normalized": "네, 맞아요. 요즘은 그 정도로 피곤한 건 처음이라서, 이게 일시적인 건지, 아니면 뭔가 더 신경 써야 할 신호인지 잘 모르겠어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1661.111019551754,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "피로가 갑자기 심해져서 집중이 어려워진 점이 걱정되시겠어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "아니요, 그런 적은 없어요. 정신과 간 적도 없고, 약도 먹어본 적 없거든요. 이번이 처음이라 제가 이 정도로 병원에 가야 할지도 잘 모르겠어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "정신과 진료를 받으신 적이 없으시다고 하니, 처음 겪는 상황이라 더 불안하실 것 같아요. 혹시 과거에 다른 신체 질환으로 진단받은 적이 있으신가요? 예를 들어, 갑상선 문제나 빈혈 같은 피로와 관련된 질환이요.",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "불면이나 가슴 답답함은 나아졌으나, 최근 피로로 인해 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난번 불면과 가슴 답답함이 개선되었으나, 최근 피로로 인해 집중이 잘 안 되는 증상이 재발",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5652.528576552868,
+      "timestamp": "2026-07-15T16:00:44.855188",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 적은 없어요.  \n정신과를 간 적도 없고, 약도 먹어본 적 없거든요.  \n이번이 처음이라 제가 이 정도로 병원에 가야 할지도 잘 모르겠어요.",
+        "normalized": "아니요, 그런 적은 없어요. 정신과 간 적도 없고, 약도 먹어본 적 없거든요. 이번이 처음이라 제가 이 정도로 병원에 가야 할지도 잘 모르겠어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2929.698701016605,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 적은 없어요. 정신과 간 적도 없고, 약도 먹어본 적 없거든요. 이번이 처음이라 제가 이 정도로 병원에 가야 할지도 잘 모르겠어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "음... 글쎄요. 그런 건 딱히 없었어요. 건강검진도 최근에 받긴 했는데, 특별한 건 없었어요. 다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "어머니께서 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 하시군요. 혹시 과거에 정신건강의학과 진료를 받으신 적이 있으신가요? 아니면 심리상담을 받아보신 적이 있으신가요?",
+      "slot_updates": {
+        "family_history": "어머니는 가끔 잠 못 주무심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "불면이나 가슴 답답함은 나아졌으나, 최근 피로로 인해 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난번 불면과 가슴 답답함이 개선되었으나, 최근 피로로 인해 집중이 잘 안 되는 증상이 재발",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5826.073264703155,
+      "timestamp": "2026-07-15T16:00:58.009886",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "음... 글쎄요.  \n그런 건 딱히 없었어요.  \n건강검진도 최근에 받긴 했는데, 특별한 건 없었어요.  \n다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "normalized": "음... 글쎄요. 그런 건 딱히 없었어요. 건강검진도 최근에 받긴 했는데, 특별한 건 없었어요. 다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2706.6058120690286,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.2,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "아니요, 그런 적은 없어요.  정신과를 간 적도 없고, 약도 먹어본 적 없거든요.  이번이 처음이라 제가 이 정도로 병원에 가야 할지도 잘 모르겠어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "정신과 진료를 받아보신 적이 없으시다고 하니, 처음 겪는 상황이라 더 불안하실 것 같아요. 혹시 과거에 갑상선이나 빈혈 같은 신체 질환으로 진단받은 적이 있으신가요? 아니면 최근 처방받은 약이나 새로 복용 중인 약이 있으신가요?",
+      "slot_updates": {
+        "family_history": "어머니는 가끔 잠 못 주무심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "불면이나 가슴 답답함은 나아졌으나, 최근 피로로 인해 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난번 불면과 가슴 답답함이 개선되었으나, 최근 피로로 인해 집중이 잘 안 되는 증상이 재발",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5785.648346878588,
+      "timestamp": "2026-07-15T16:01:14.962865",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 적은 없어요.  \n정신과를 간 적도 없고, 약도 먹어본 적 없거든요.  \n이번이 처음이라 제가 이 정도로 병원에 가야 할지도 잘 모르겠어요.",
+        "normalized": "아니요, 그런 적은 없어요.  정신과를 간 적도 없고, 약도 먹어본 적 없거든요.  이번이 처음이라 제가 이 정도로 병원에 가야 할지도 잘 모르겠어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 7309.408843051642,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.7,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 적은 없어요. 정신과를 간 적도 없고, 약도 먹어본 적 없거든요. 이번이 처음이라 제가 이 정도로 병원에 가야 할지도 잘 모르겠어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1073.3874421566725,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "음... 글쎄요. 그런 건 딱히 없었어요. 건강검진도 최근에 받긴 했는데, 특별한 건 없었어요. 다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "과거 정신건강의학과 진료를 받으신 적이 있으신가요? 아니면 심리상담을 받아보신 적이 있으신가요?",
+      "slot_updates": {
+        "family_history": "어머니는 가끔 잠 못 주무심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "불면이나 가슴 답답함은 나아졌으나, 최근 피로로 인해 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난번 불면과 가슴 답답함이 개선되었으나, 최근 피로로 인해 집중이 잘 안 되는 증상이 재발",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5782.719634938985,
+      "timestamp": "2026-07-15T16:01:27.002437",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "음... 글쎄요.  \n그런 건 딱히 없었어요.  \n건강검진도 최근에 받긴 했는데, 특별한 건 없었어요.  \n다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "normalized": "음... 글쎄요. 그런 건 딱히 없었어요. 건강검진도 최근에 받긴 했는데, 특별한 건 없었어요. 다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1858.2408921793103,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.2,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1018.7651966698468,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 그런 적은 없어요. 정신과를 간 적도 없고, 약도 먹어본 적 없거든요. 이번이 처음이라 제가 이 정도로 병원에 가야 할지도 잘 모르겠어요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "정신과 진료를 처음 접하시는 거라 마음이 많이 복잡하시겠어요. 혹시 과거에 갑상선이나 빈혈 같은 신체 질환으로 진단받은 경험이 있으신가요?",
+      "slot_updates": {
+        "family_history": "어머니는 가끔 잠 못 주무심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "불면이나 가슴 답답함은 나아졌으나, 최근 피로로 인해 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난번 불면과 가슴 답답함이 개선되었으나, 최근 피로로 인해 집중이 잘 안 되는 증상이 재발",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 7947.747536934912,
+      "timestamp": "2026-07-15T16:01:40.971495",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 적은 없어요.  \n정신과를 간 적도 없고, 약도 먹어본 적 없거든요.  \n이번이 처음이라 제가 이 정도로 병원에 가야 할지도 잘 모르겠어요.",
+        "normalized": "아니요, 그런 적은 없어요. 정신과를 간 적도 없고, 약도 먹어본 적 없거든요. 이번이 처음이라 제가 이 정도로 병원에 가야 할지도 잘 모르겠어요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2120.5964665859938,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.8,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 적은 없어요. 정신과를 간 적도 없고, 약도 먹어본 적 없거든요. 이번이 처음이라 제가 이 정도로 병원에 가야 할지도 잘 모르겠어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "near_dup_back_to_back"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2392.498976085335,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "정신과 진료를 받아보신 적이 없으시다고 하니, 처음 겪는 상황이라 더 불안하실 것 같아요",
+          "count": 2
+        },
+        {
+          "reason": "back_to_back",
+          "family": "정신과 진료를 받아보신 적이 없으시다고 하니, 처음 겪는 상황이라 더 불안하실 것 같아요",
+          "count": 2
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 8,
+      "patient_message": "음... 글쎄요. 그런 건 딱히 없었어요. 건강검진도 최근에 받긴 했는데, 특별한 건 없었어요. 다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "정신과 진료를 처음 받으시는 거라 마음이 많이 복잡하시겠어요. 혹시 과거에 갑상선이나 빈혈 같은 신체 질환으로 진단받은 적이 있으신가요?",
+      "slot_updates": {
+        "family_history": "어머니는 가끔 잠 못 주무심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "불면이나 가슴 답답함은 나아졌으나, 최근 피로로 인해 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난번 불면과 가슴 답답함이 개선되었으나, 최근 피로로 인해 집중이 잘 안 되는 증상이 재발",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5288.349839858711,
+      "timestamp": "2026-07-15T16:01:53.410688",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "음... 글쎄요.  \n그런 건 딱히 없었어요.  \n건강검진도 최근에 받긴 했는데, 특별한 건 없었어요.  \n다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "normalized": "음... 글쎄요. 그런 건 딱히 없었어요. 건강검진도 최근에 받긴 했는데, 특별한 건 없었어요. 다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2114.334694109857,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.8
+          }
+        ],
+        "evidence_phrase": "음... 글쎄요. 그런 건 딱히 없었어요. 건강검진도 최근에 받긴 했는데, 특별한 건 없었어요. 다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 그런 적은 없어요.  \n건강검진도 최근에 받긴 했는데, 특별한 건 없었어요.  \n다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "정신과 진료를 처음 접하시는 거라 마음이 많이 복잡하시겠어요. 혹시 과거에 갑상선이나 빈혈 같은 신체 질환으로 진단받은 경험이 있으신가요? 아니면 최근에 복용 중인 약이 있으신가요?",
+      "slot_updates": {
+        "family_history": "어머니는 가끔 잠 못 주무심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "불면이나 가슴 답답함은 나아졌으나, 최근 피로로 인해 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난번 불면과 가슴 답답함이 개선되었으나, 최근 피로로 인해 집중이 잘 안 되는 증상이 재발",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6761.454371735454,
+      "timestamp": "2026-07-15T16:02:07.188264",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 적은 없어요.  \n건강검진도 최근에 받긴 했는데, 특별한 건 없었어요.  \n다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "normalized": "아니요, 그런 적은 없어요.  \n건강검진도 최근에 받긴 했는데, 특별한 건 없었어요.  \n다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3000.8198618888855,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 적은 없어요. 건강검진도 최근에 받긴 했는데, 특별한 건 없었어요. 다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1295.1365667395294,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 그런 적은 없어요.  \n건강검진도 최근에 받긴 했는데, 특별한 건 없었어요.  \n다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "정신과 진료를 처음 접하시는 거라 마음이 많이 복잡하시겠어요. 혹시 과거에 다른 심리적 어려움을 겪은 적이 있으신가요? 예를 들어, 과거 우울증이나 불안장애 같은 진단을 받으신 적이 있으신가요?",
+      "slot_updates": {
+        "family_history": "어머니는 가끔 잠 못 주무심"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "불면이나 가슴 답답함은 나아졌으나, 최근 피로로 인해 집중이 잘 안 되는 날이 가끔 생김",
+        "history_of_present_illness": "지난번 불면과 가슴 답답함이 개선되었으나, 최근 피로로 인해 집중이 잘 안 되는 증상이 재발",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6718.2431682012975,
+      "timestamp": "2026-07-15T16:02:21.761052",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "chief_complaint": "ungrounded: no lexical evidence in patient utterances",
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 적은 없어요.  \n건강검진도 최근에 받긴 했는데, 특별한 건 없었어요.  \n다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "normalized": "아니요, 그런 적은 없어요.  \n건강검진도 최근에 받긴 했는데, 특별한 건 없었어요.  \n다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3867.1188708394766,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "아니요, 그런 적은 없어요. 건강검진도 최근에 받긴 했는데, 특별한 건 없었어요. 다만 어머니가 가끔 잠 못 주무신다고 하셔서, 혹시 유전적인 요인이 있을까 싶기도 해요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1407.2180911898613,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-15T15:59:38.102070",
+  "ended_at": "2026-07-15T16:02:27.107780",
+  "grounded_coverage": 0.75,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5807,
+  "patient_lng": 126.8898,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.11233193799853325,
+    "reason_summary": "Session sentiment: ['anxiety', 'sadness'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "anxiety",
+      "sadness"
+    ],
+    "emotion_distribution": {
+      "anxiety": 0.35,
+      "sadness": 0.3,
+      "neutral": 0.25,
+      "relief": 0.1
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": 0.2
+      },
+      {
+        "turn": 1,
+        "polarity": 0.2
+      },
+      {
+        "turn": 2,
+        "polarity": -0.65
+      },
+      {
+        "turn": 3,
+        "polarity": -0.65
+      },
+      {
+        "turn": 4,
+        "polarity": -0.2
+      },
+      {
+        "turn": 5,
+        "polarity": -0.7
+      },
+      {
+        "turn": 6,
+        "polarity": -0.2
+      },
+      {
+        "turn": 7,
+        "polarity": -0.8
+      },
+      {
+        "turn": 8,
+        "polarity": 0.0
+      },
+      {
+        "turn": 9,
+        "polarity": 0.0
+      },
+      {
+        "turn": 10,
+        "polarity": 0.0
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "anxiety 표현 7회 반복",
+      "sadness 표현 6회 반복",
+      "neutral 표현 5회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "relief",
+          "sadness"
+        ],
+        "polarity": 0.2
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "relief",
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": 0.2
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "anxiety",
+          "neutral"
+        ],
+        "polarity": -0.2
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.7
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "anxiety",
+          "neutral"
+        ],
+        "polarity": -0.2
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.8
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      }
+    ]
+  },
+  "phr_summary": {},
+  "prompts_degraded": false,
+  "session_index": 7,
+  "simulated_date": "2026-09-16",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- chief_complaint: 가슴 답답함과 어깨 뻐근함이 아침에 덜함\n- history_of_present_illness: 가슴 답답함과 어깨 뻐근함이 아침에 덜하며, 퇴근 후 소파에 눕는 대신 10분 정도 걸으려고 노력함. 피로로 인해 금방 눕고 싶을 때가 있으나 스트레칭과 따뜻한 샤워로 관리함\n- family_history: 어머니는 가끔 잠 못 주무심\n- substance_use_history: 커피 대신 차 위주로 마심\n- personal_social_history: 회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소\n\n[이전 세션 요약 — 미수집 정보]\npast_psychiatric_history, medical_history",
+  "carried_slot_provenance": {
+    "personal_social_history": "carried_from_session_6",
+    "substance_use_history": "carried_from_session_6",
+    "risk_assessment": "carried_from_session_6"
+  },
+  "scenario_pack_id": "VP-001_improvement_plateau_s07",
+  "arc_mode": "improvement_plateau"
+}

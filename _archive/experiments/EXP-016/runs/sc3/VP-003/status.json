@@ -1,0 +1,1 @@
+{"exp_id":"EXP-016/runs/sc3/VP-003","state":"completed","pid":1152487,"started_at":"2026-07-11T22:03:42+09:00","last_heartbeat":"2026-07-11T22:05:41+09:00","exit_code":0,"log":"experiments/EXP-016/runs/sc3/VP-003/run.log","cmd":"bash /home/neuroai/users/dhkim/aichampion/neurosync/experiments/EXP-016/sc3_chain.sh VP-003"}

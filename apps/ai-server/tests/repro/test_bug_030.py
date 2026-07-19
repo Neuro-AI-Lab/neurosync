@@ -1,4 +1,4 @@
-"""BUG-030 / ADR-028 (`docs/ai/fix_proposal_bug030.md`) — empathy-phrase
+"""BUG-030 / ADR-028 (`_archive/plans/fix_proposal_bug030.md`) — empathy-phrase
 repetition fix, regression tests.
 
 Diagnosis (fix_proposal_bug030.md, channels (a)/(b)): a hardcoded
@@ -87,7 +87,7 @@ class TestNegativeConstraintOnly:
         assert "이미 사용했으므로" not in ctx
 
     def test_long_prior_clause_rendered_uncapped(self) -> None:
-        """BUG-030 iter-2 (`docs/ai/fix_design_bug030_iter2.md` §1): the old
+        """BUG-030 iter-2 (`_archive/plans/fix_design_bug030_iter2.md` §1): the old
         inline extraction capped at `[:30]` — `fix_proposal_bug030.md`
         finding c-v flagged this as a latent under-match risk once a filter
         is compared against it (the near-dup guard, `test_bug_030_iter2.py`).

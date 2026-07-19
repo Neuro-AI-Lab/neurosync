@@ -1,6 +1,6 @@
 """F4 quick-dev longitudinal scenario packs — harness/tests territory ONLY.
 
-`docs/ai/f4_quick_dev_plan.md` §2.3/§2.4/§2.5, `PLAN-2026-W29-D`, `ADR-036`.
+`_archive/plans/f4_quick_dev_plan.md` §2.3/§2.4/§2.5, `PLAN-2026-W29-D`, `ADR-036`.
 This module owns the 11-session arc CONTENT (state descriptors,
 inter-session events, reveal guidance, day-offset schedule) for VP-001
 (`improvement_plateau`) and VP-003 (`relapse_after_partial_improvement`) —
@@ -71,6 +71,11 @@ class ScenarioSession:
 _ARC_MODE_TO_PERSONA: dict[str, str] = {
     "improvement_plateau": "VP-001",
     "relapse_after_partial_improvement": "VP-003",
+    "treatment_response_setback": "VP-002",
+    "fluctuating_panic_recurrence": "VP-004",
+    "stable_minimizing_slow_disclosure": "VP-010",
+    "somatic_persistent_late_mood_disclosure": "VP-011",
+    "aud_escalation_contemplation": "VP-012",
 }
 
 
@@ -333,9 +338,34 @@ VP_003_RELAPSE_AFTER_PARTIAL_IMPROVEMENT: tuple[ScenarioSession, ...] = _build_p
 )
 
 
+# Imported here (not at module top) to avoid a circular import: each of these 5 pack modules
+# does `from tests.simulation.scenario_pack import ScenarioSession`, which requires this module
+# to have already fully defined `ScenarioSession` (and populated `_ARC_MODE_TO_PERSONA` above)
+# before they load.
+from tests.simulation.scenario_packs.vp002_treatment_response_setback import (  # noqa: E402
+    VP_002_TREATMENT_RESPONSE_SETBACK,
+)
+from tests.simulation.scenario_packs.vp004_fluctuating_panic_recurrence import (  # noqa: E402
+    VP_004_FLUCTUATING_PANIC_RECURRENCE,
+)
+from tests.simulation.scenario_packs.vp010_stable_minimizing_slow_disclosure import (  # noqa: E402
+    VP_010_STABLE_MINIMIZING_SLOW_DISCLOSURE,
+)
+from tests.simulation.scenario_packs.vp011_somatic_persistent_late_mood_disclosure import (  # noqa: E402
+    VP_011_SOMATIC_PERSISTENT_LATE_MOOD_DISCLOSURE,
+)
+from tests.simulation.scenario_packs.vp012_aud_escalation_contemplation import (  # noqa: E402
+    VP_012_AUD_ESCALATION_CONTEMPLATION,
+)
+
 _SCENARIO_PACKS: dict[str, tuple[ScenarioSession, ...]] = {
     "VP-001": VP_001_IMPROVEMENT_PLATEAU,
     "VP-003": VP_003_RELAPSE_AFTER_PARTIAL_IMPROVEMENT,
+    "VP-002": VP_002_TREATMENT_RESPONSE_SETBACK,
+    "VP-004": VP_004_FLUCTUATING_PANIC_RECURRENCE,
+    "VP-010": VP_010_STABLE_MINIMIZING_SLOW_DISCLOSURE,
+    "VP-011": VP_011_SOMATIC_PERSISTENT_LATE_MOOD_DISCLOSURE,
+    "VP-012": VP_012_AUD_ESCALATION_CONTEMPLATION,
 }
 
 

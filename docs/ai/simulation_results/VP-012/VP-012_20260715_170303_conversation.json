@@ -1,0 +1,1132 @@
+{
+  "session_id": "f1_VP-012_followup",
+  "persona_id": "VP-012",
+  "persona_name": "정우식",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "history_of_present_illness",
+      "value": "건강검진에서 간 상태가 걱정된다고 언급"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 적은 없었어요. 정신과를 간 적도 없고, 상담 같은 것도 처음. 이 앱이 처음이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"15년 전 식당을 열고 나서부터 술을 마시기 시작했어요. 처음엔 하루 한두 잔이었는데, 시간이 지나면서 점점 양이 늘었어요. 특히 손님이 없거나...\""
+    },
+    {
+      "key": "chief_complaint",
+      "value": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움"
+    },
+    {
+      "key": "medical_history",
+      "value": "건강검진에서 간 수치 상승 결과"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가"
+    },
+    {
+      "key": "past_psychiatric_history",
+      "value": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라 술 없이는 감정을 다스리기 힘들 때가 많음"
+    },
+    {
+      "key": "family_history",
+      "value": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요. 지난번에 건강검진에서 간 상태가 걱정된다고 말씀드렸는데, 오늘은 그 외에 개인적인 상황을 이야기해 보려고요. 가족 관계나 과거에 겪었던 정신적인 어려움 같은 것들 말이에요. 사실 술이 문제긴 하지만, 그게 제 삶의 다른 부분에도 영향을 준 것 같아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "안녕하세요, 지난번에 이어서 상담을 시작하겠습니다. 지난번에 술과 관련된 이야기를 나누셨는데, 오늘은 그 외에 개인적인 상황이나 가족, 친구 관계, 그리고 과거에 겪었던 정신적인 어려움 등에 대해 편하게 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "건강검진에서 간 상태가 걱정됨",
+        "history_of_present_illness": "건강검진에서 간 상태가 걱정된다고 언급"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "건강검진에서 간 상태가 걱정된다고 언급",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 적은 없었어요. 정신과를 간 적도 없고, 상담 같은 것도 처음. 이 앱이 처음이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"15년 전 식당을 열고 나서부터 술을 마시기 시작했어요. 처음엔 하루 한두 잔이었는데, 시간이 지나면서 점점 양이 늘었어요. 특히 손님이 없거나...\"",
+        "chief_complaint": "건강검진에서 간 상태가 걱정됨",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 9994.540850166231,
+      "timestamp": "2026-07-15T17:00:13.472075",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "안녕하세요. 지난번에 건강검진에서 간 상태가 걱정된다고 말씀드렸는데, 오늘은 그 외에 개인적인 상황을 이야기해 보려고요.  \n가족 관계나 과거에 겪었던 정신적인 어려움 같은 것들 말이에요. 사실 술이 문제긴 하지만, 그게 제 삶의 다른 부분에도 영향을 준 것 같아요.",
+        "normalized": "안녕하세요. 지난번에 건강검진에서 간 상태가 걱정된다고 말씀드렸는데, 오늘은 그 외에 개인적인 상황을 이야기해 보려고요. 가족 관계나 과거에 겪었던 정신적인 어려움 같은 것들 말이에요. 사실 술이 문제긴 하지만, 그게 제 삶의 다른 부분에도 영향을 준 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2070.262322202325,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "가족 관계나 과거에 겪었던 정신적인 어려움 같은 것들 말이에요. 사실 술이 문제긴 하지만, 그게 제 삶의 다른 부분에도 영향을 준 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요. 지난번에 건강검진에서 간 상태가 걱정된다고 말씀드렸는데, 오늘은 그 외에 개인적인 상황을 이야기해 보려고요. 가족 관계나 과거에 겪었던 정신적인 어려움 같은 것들 말이에요. 사실 술이 문제긴 하지만, 그게 제 삶의 다른 부분에도 영향을 준 것 같아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "지난번에 술과 간 건강에 대해 이야기하셨는데, 오늘은 가족 관계와 과거 정신적 어려움까지 함께 말씀해 주셔서 감사합니다. 힘든 일이 있을 때 누구에게 의지하거나 도움을 요청하시는지 궁금해요.",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "history_of_present_illness": "건강검진에서 간 상태가 걱정된다고 언급",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 적은 없었어요. 정신과를 간 적도 없고, 상담 같은 것도 처음. 이 앱이 처음이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"15년 전 식당을 열고 나서부터 술을 마시기 시작했어요. 처음엔 하루 한두 잔이었는데, 시간이 지나면서 점점 양이 늘었어요. 특히 손님이 없거나...\"",
+        "chief_complaint": "건강검진에서 간 상태가 걱정됨",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6137.024505063891,
+      "timestamp": "2026-07-15T17:00:19.609125",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "안녕하세요. 지난번에 건강검진에서 간 상태가 걱정된다고 말씀드렸는데, 오늘은 그 외에 개인적인 상황을 이야기해 보려고요.  \n가족 관계나 과거에 겪었던 정신적인 어려움 같은 것들 말이에요. 사실 술이 문제긴 하지만, 그게 제 삶의 다른 부분에도 영향을 준 것 같아요.",
+        "normalized": "안녕하세요. 지난번에 건강검진에서 간 상태가 걱정된다고 말씀드렸는데, 오늘은 그 외에 개인적인 상황을 이야기해 보려고요. 가족 관계나 과거에 겪었던 정신적인 어려움 같은 것들 말이에요. 사실 술이 문제긴 하지만, 그게 제 삶의 다른 부분에도 영향을 준 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2070.262322202325,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "가족 관계나 과거에 겪었던 정신적인 어려움 같은 것들 말이에요. 사실 술이 문제긴 하지만, 그게 제 삶의 다른 부분에도 영향을 준 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "특별히 의지할 사람은 마땅히 없어요. 배우자하고는 술 때문에 자주 다투다 보니 더 이야기하기 어려워지고, 혼자 해결하려다 보니 결국 술을 찾게 되는 것 같아요. 그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "self_harm",
+        "distress"
+      ],
+      "safety_flagged": [
+        "자해"
+      ],
+      "agent_response": "혼자서 모든 걸 감당하려다 보니 술이 유일한 탈출구가 되어 버리셨군요. 그런 상황에서 가족과의 관계가 더 복잡해지면 정말 힘들 것 같아요. 혹시 가족분들 중에 비슷한 어려움을 겪으셨던 분이 계신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "건강검진에서 간 상태가 걱정된다고 언급",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 적은 없었어요. 정신과를 간 적도 없고, 상담 같은 것도 처음. 이 앱이 처음이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"15년 전 식당을 열고 나서부터 술을 마시기 시작했어요. 처음엔 하루 한두 잔이었는데, 시간이 지나면서 점점 양이 늘었어요. 특히 손님이 없거나...\"",
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5044.898686930537,
+      "timestamp": "2026-07-15T17:00:32.357640",
+      "targeted_slot": "family_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.625,
+      "normalizer_meta": {
+        "original": "특별히 의지할 사람은 마땅히 없어요.  \n배우자하고는 술 때문에 자주 다투다 보니 더 이야기하기 어려워지고, 혼자 해결하려다 보니 결국 술을 찾게 되는 것 같아요.  \n그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+        "normalized": "특별히 의지할 사람은 마땅히 없어요. 배우자하고는 술 때문에 자주 다투다 보니 더 이야기하기 어려워지고, 혼자 해결하려다 보니 결국 술을 찾게 되는 것 같아요. 그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1973.8768627867103,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.8
+          },
+          {
+            "label": "despair",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "특별히 의지할 사람은 마땅히 없어요. 배우자하고는 술 때문에 자주 다투다 보니 더 이야기하기 어려워지고, 혼자 해결하려다 보니 결국 술을 찾게 되는 것 같아요. 그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "가족 중엔 특별히 그런 분은 없었어요.  \n다만, 어릴 땐 아버지가 술을 자주 드셨고, 제가 중학교 때 한 번 크게 다투신 적이 있었는데, 그 기억이 가끔 떠올라요.  \n그게 제 음주 습관과 연결된 건지, 아니면 그냥 제 성격 탓인지 잘 모르겠지만, 술 없이는 감정을 다스리기 힘들 때가 많아요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "아버지와 다투셨던 기억이 술 없이는 감정을 다스리기 힘든 상황과 연결되어 있다는 말씀이군요. 그런 과거 경험이 현재의 음주 습관에 영향을 주고 있다는 걸 알고 계셨군요. 혹시 그때의 감정을 지금은 어떻게 다루고 계신지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라, 술 없이는 감정을 다스리기 힘들 때가 많음",
+        "family_history": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "건강검진에서 간 상태가 걱정된다고 언급",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 적은 없었어요. 정신과를 간 적도 없고, 상담 같은 것도 처음. 이 앱이 처음이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"15년 전 식당을 열고 나서부터 술을 마시기 시작했어요. 처음엔 하루 한두 잔이었는데, 시간이 지나면서 점점 양이 늘었어요. 특히 손님이 없거나...\"",
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라, 술 없이는 감정을 다스리기 힘들 때가 많음",
+        "family_history": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6134.299391880631,
+      "timestamp": "2026-07-15T17:00:48.328942",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "가족 중엔 특별히 그런 분은 없었어요.  \n다만, 어릴 땐 아버지가 술을 자주 드셨고, 제가 중학교 때 한 번 크게 다투신 적이 있었는데, 그 기억이 가끔 떠올라요.  \n그게 제 음주 습관과 연결된 건지, 아니면 그냥 제 성격 탓인지 잘 모르겠지만, 술 없이는 감정을 다스리기 힘들 때가 많아요.",
+        "normalized": "가족 중엔 특별히 그런 분은 없었어요.  \n다만, 어릴 땐 아버지가 술을 자주 드셨고, 제가 중학교 때 한 번 크게 다투신 적이 있었는데, 그 기억이 가끔 떠올라요.  \n그게 제 음주 습관과 연결된 건지, 아니면 그냥 제 성격 탓인지 잘 모르겠지만, 술 없이는 감정을 다스리기 힘들 때가 많아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3969.324495177716,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          },
+          {
+            "label": "despair",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "가족 중엔 특별히 그런 분은 없었어요. 다만, 어릴 땐 아버지가 술을 자주 드셨고, 제가 중학교 때 한 번 크게 다투신 적이 있었는데, 그 기억이 가끔 떠올라요. 그게 제 음주 습관과 연결된 건지, 아니면 그냥 제 성격 탓인지 잘 모르겠지만, 술 없이는 감정을 다스리기 힘들 때가 많아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "그 기억 때문에 술을 먹는 건 아니지만, 술 없이 감정을 견디는 게 여전히 힘들긴 해요.  \n그게 다 술 때문인 것 같아요. 예전 감정은 지금도 남아 있는 것 같고.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "술 없이는 감정을 견디기 힘들다는 말씀이군요. 그런 상황에서 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있는지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 남아 있으며, 술 없이는 감정을 다스리기 힘들어함"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "건강검진에서 간 상태가 걱정된다고 언급",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 적은 없었어요. 정신과를 간 적도 없고, 상담 같은 것도 처음. 이 앱이 처음이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"15년 전 식당을 열고 나서부터 술을 마시기 시작했어요. 처음엔 하루 한두 잔이었는데, 시간이 지나면서 점점 양이 늘었어요. 특히 손님이 없거나...\"",
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 남아 있으며, 술 없이는 감정을 다스리기 힘들어함",
+        "family_history": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5684.663875028491,
+      "timestamp": "2026-07-15T17:01:01.202132",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "그 기억 때문에 술을 먹는 건 아니지만, 술 없이 감정을 견디는 게 여전히 힘들긴 해요.  \n그게 다 술 때문인 것 같아요. 예전 감정은 지금도 남아 있는 것 같고.",
+        "normalized": "그 기억 때문에 술을 먹는 건 아니지만, 술 없이 감정을 견디는 게 여전히 힘들긴 해요.  \n그게 다 술 때문인 것 같아요. 예전 감정은 지금도 남아 있는 것 같고.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2626.021334435791,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "술 없이 감정을 견디는 게 여전히 힘들긴 해요. 그게 다 술 때문인 것 같아요. 예전 감정은 지금도 남아 있는 것 같고.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "특별히 의지할 사람은 마땅히 없어요. 배우자하고는 술 때문에 자주 다투다 보니 더 이야기하기 어려워지고, 혼자 해결하려다 보니 결국 술을 찾게 되는 것 같아요. 그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "self_harm",
+        "distress"
+      ],
+      "safety_flagged": [
+        "자해",
+        "술 때문에 자주 다투다",
+        "혼자 해결하려다 보니 결국 술을 찾게 되는 것 같아요",
+        "스트레스 받을 때마다 제일 먼저 술이 떠오르네요"
+      ],
+      "agent_response": "혼자서 모든 걸 감당하려다 보니 술이 유일한 탈출구가 되어 버리셨군요. 그런 상황에서 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있는지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라 술 없이는 감정을 다스리기 힘들 때가 많음"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "건강검진에서 간 상태가 걱정된다고 언급",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 적은 없었어요. 정신과를 간 적도 없고, 상담 같은 것도 처음. 이 앱이 처음이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"15년 전 식당을 열고 나서부터 술을 마시기 시작했어요. 처음엔 하루 한두 잔이었는데, 시간이 지나면서 점점 양이 늘었어요. 특히 손님이 없거나...\"",
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라 술 없이는 감정을 다스리기 힘들 때가 많음",
+        "family_history": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 8328.58743937686,
+      "timestamp": "2026-07-15T17:01:15.967107",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "특별히 의지할 사람은 마땅히 없어요.  \n배우자하고는 술 때문에 자주 다투다 보니 더 이야기하기 어려워지고, 혼자 해결하려다 보니 결국 술을 찾게 되는 것 같아요.  \n그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+        "normalized": "특별히 의지할 사람은 마땅히 없어요. 배우자하고는 술 때문에 자주 다투다 보니 더 이야기하기 어려워지고, 혼자 해결하려다 보니 결국 술을 찾게 되는 것 같아요. 그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2068.7775281257927,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.68,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "특별히 의지할 사람은 마땅히 없어요. 배우자하고는 술 때문에 자주 다투다 보니 더 이야기하기 어려워지고, 혼자 해결하려다 보니 결국 술을 찾게 되는 것 같아요. 그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "아니요, 딱히 없어요.  \n술이 끊이지 않는 이유도 그 때문인 것 같아요.  \n혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술 없이는 감정을 다스리기 힘들 때가 많아요",
+        "술 없이는 감정을 견디는 게 여전히 힘들긴 해요",
+        "술 없이는 감정을 감당하려다 보니 결국 술을 찾게 되는 거죠"
+      ],
+      "agent_response": "혼자서 감정을 감당하려다 보니 술로 위로하게 되는 상황이군요. 그런 상황에서 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있는지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "건강검진에서 간 상태가 걱정된다고 언급",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 적은 없었어요. 정신과를 간 적도 없고, 상담 같은 것도 처음. 이 앱이 처음이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"15년 전 식당을 열고 나서부터 술을 마시기 시작했어요. 처음엔 하루 한두 잔이었는데, 시간이 지나면서 점점 양이 늘었어요. 특히 손님이 없거나...\"",
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라 술 없이는 감정을 다스리기 힘들 때가 많음",
+        "family_history": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5594.637250993401,
+      "timestamp": "2026-07-15T17:01:28.969972",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 딱히 없어요.  \n술이 끊이지 않는 이유도 그 때문인 것 같아요.  \n혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.",
+        "normalized": "아니요, 딱히 없어요.  \n술이 끊이지 않는 이유도 그 때문인 것 같아요.  \n혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2836.108423769474,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "despair",
+            "intensity": 0.9
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 딱히 없어요.  \n술이 끊이지 않는 이유도 그 때문인 것 같아요.  \n혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.  \n그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠",
+        "스트레스 받을 때마다 제일 먼저 술이 떠오르네요"
+      ],
+      "agent_response": "힘든 상황에서 주변에 의지할 수 있는 사람이 없다는 건 정말 외로울 것 같아요. 혹시 그 외로움을 조금이라도 덜어줄 수 있는 다른 방법이나 활동을 찾아보신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "건강검진에서 간 상태가 걱정된다고 언급",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 적은 없었어요. 정신과를 간 적도 없고, 상담 같은 것도 처음. 이 앱이 처음이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"15년 전 식당을 열고 나서부터 술을 마시기 시작했어요. 처음엔 하루 한두 잔이었는데, 시간이 지나면서 점점 양이 늘었어요. 특히 손님이 없거나...\"",
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라 술 없이는 감정을 다스리기 힘들 때가 많음",
+        "family_history": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6559.6345299854875,
+      "timestamp": "2026-07-15T17:02:06.741442",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 딱히 없어요.  \n술이 끊이지 않는 이유도 그 때문인 것 같아요.  \n혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.  \n그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+        "normalized": "아니요, 딱히 없어요.  \n술이 끊이지 않는 이유도 그 때문인 것 같아요.  \n혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.  \n그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 26771.646914072335,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.85,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.9
+          },
+          {
+            "label": "despair",
+            "intensity": 0.8
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          }
+        ],
+        "evidence_phrase": "혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠. 그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+        "risk_signal": true
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1174.3297232314944,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "session_cap",
+          "family": "혼자서 모든 걸 감당하려다 보니 술이 유일한 탈출구가 되어 버리셨군요",
+          "count": 2
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요, 딱히 없어요.  \n술을 줄이려고 했지만 결국엔 다시 마시게 되더라고요.  \n그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠",
+        "습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요"
+      ],
+      "agent_response": "혼자서 감정을 감당하려다 보면 술이 마치 습관처럼 반복되는 상황이군요. 그런 패턴에서 벗어나려면 어떤 작은 변화라도 시도해 보신 적이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "건강검진에서 간 상태가 걱정된다고 언급",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 적은 없었어요. 정신과를 간 적도 없고, 상담 같은 것도 처음. 이 앱이 처음이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"15년 전 식당을 열고 나서부터 술을 마시기 시작했어요. 처음엔 하루 한두 잔이었는데, 시간이 지나면서 점점 양이 늘었어요. 특히 손님이 없거나...\"",
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라 술 없이는 감정을 다스리기 힘들 때가 많음",
+        "family_history": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 8546.433543786407,
+      "timestamp": "2026-07-15T17:02:22.323824",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 딱히 없어요.  \n술을 줄이려고 했지만 결국엔 다시 마시게 되더라고요.  \n그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+        "normalized": "아니요, 딱히 없어요.  \n술을 줄이려고 했지만 결국엔 다시 마시게 되더라고요.  \n그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2311.6385429166257,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "술을 줄이려고 했지만 결국엔 다시 마시게 되더라고요. 그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "near_dup_back_to_back"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2314.5164060406387,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "힘든 상황에서 주변에 의지할 수 있는 사람이 없다는 건 정말 외로울 것 같아요",
+          "count": 1
+        },
+        {
+          "reason": "back_to_back",
+          "family": "힘든 상황에서 주변에 의지할 수 있는 사람이 없다는 건 정말 외로울 것 같아요",
+          "count": 1
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 딱히 없어요.  \n술을 줄이려고 했지만 결국엔 다시 마시게 되더라고요.  \n그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.  \n그게 다 술 때문인 것 같아요.  \n혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술을 줄이려고 했지만 결국엔 다시 마시게 되더라고요",
+        "스트레스 받을 때마다 제일 먼저 술이 떠오르네요"
+      ],
+      "agent_response": "힘든 감정을 혼자서 감당하려다 보니 술이 늘 먼저 떠오르는 상황이군요. 그런 일상에서 조금이라도 위안이 되는 다른 방법이 있다면 시도해 보실 수 있으실 것 같아요.",
+      "slot_updates": {
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "건강검진에서 간 상태가 걱정된다고 언급",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 적은 없었어요. 정신과를 간 적도 없고, 상담 같은 것도 처음. 이 앱이 처음이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"15년 전 식당을 열고 나서부터 술을 마시기 시작했어요. 처음엔 하루 한두 잔이었는데, 시간이 지나면서 점점 양이 늘었어요. 특히 손님이 없거나...\"",
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라 술 없이는 감정을 다스리기 힘들 때가 많음",
+        "family_history": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 8162.61514602229,
+      "timestamp": "2026-07-15T17:02:38.174941",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 딱히 없어요.  \n술을 줄이려고 했지만 결국엔 다시 마시게 되더라고요.  \n그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.  \n그게 다 술 때문인 것 같아요.  \n혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.",
+        "normalized": "아니요, 딱히 없어요.  \n술을 줄이려고 했지만 결국엔 다시 마시게 되더라고요.  \n그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.  \n그게 다 술 때문인 것 같아요.  \n혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2799.2161102592945,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.7
+          },
+          {
+            "label": "despair",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "near_dup_back_to_back",
+        "near_dup_back_to_back"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2175.235706847161,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "혼자서 감정을 감당하려다 보면 술이 마치 습관처럼 반복되는 상황이군요",
+          "count": 2
+        },
+        {
+          "reason": "back_to_back",
+          "family": "혼자서 감정을 감당하려다 보니 술이 늘 먼저 떠오르는 상황이군요",
+          "count": 2
+        }
+      ],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 딱히 없어요.  \n술을 줄이려고 했지만 결국엔 다시 마시게 되더라고요.  \n그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.  \n그게 다 술 때문인 것 같아요.  \n혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "술을 줄이려고 했지만 결국엔 다시 마시게 되더라고요",
+        "스트레스 받을 때마다 제일 먼저 술이 떠오르네요",
+        "혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠"
+      ],
+      "agent_response": "이렇게 솔직하게 이야기해 주셔서 감사합니다. 그런 상황에서 힘들 때 연락하거나 도움을 요청할 수 있는 사람이 있는지 궁금해요.",
+      "slot_updates": {
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움"
+      },
+      "cumulative_slots": {
+        "history_of_present_illness": "건강검진에서 간 상태가 걱정된다고 언급",
+        "risk_assessment": "자살/자해 사고 표현 있음 — 환자 발화: \"아니요, 그런 적은 없었어요. 정신과를 간 적도 없고, 상담 같은 것도 처음. 이 앱이 처음이에요.\"; 구체적 계획/의도 부인 — 환자 발화: \"15년 전 식당을 열고 나서부터 술을 마시기 시작했어요. 처음엔 하루 한두 잔이었는데, 시간이 지나면서 점점 양이 늘었어요. 특히 손님이 없거나...\"",
+        "chief_complaint": "8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움",
+        "medical_history": "건강검진에서 간 수치 상승 결과",
+        "substance_use_history": "15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가",
+        "past_psychiatric_history": "중학교 때 아버지와 크게 다툰 기억이 가끔 떠올라 술 없이는 감정을 다스리기 힘들 때가 많음",
+        "family_history": "가족 중 특별히 그런 분은 없었으나, 어릴 때 아버지가 술을 자주 드셨고 중학교 때 한 번 크게 다투신 적이 있음"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 8848.277679178864,
+      "timestamp": "2026-07-15T17:02:55.916943",
+      "targeted_slot": "personal_social_history",
+      "slot_discards": {
+        "history_of_present_illness": "ungrounded: no lexical evidence in patient utterances",
+        "medical_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.875,
+      "normalizer_meta": {
+        "original": "아니요, 딱히 없어요.  \n술을 줄이려고 했지만 결국엔 다시 마시게 되더라고요.  \n그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.  \n그게 다 술 때문인 것 같아요.  \n혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.",
+        "normalized": "아니요, 딱히 없어요.  \n술을 줄이려고 했지만 결국엔 다시 마시게 되더라고요.  \n그게 습관처럼 되어 버렸는지, 스트레스 받을 때마다 제일 먼저 술이 떠오르네요.  \n그게 다 술 때문인 것 같아요.  \n혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 3234.459856990725,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.75,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.8
+          },
+          {
+            "label": "despair",
+            "intensity": 0.7
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.6
+          }
+        ],
+        "evidence_phrase": "혼자 감정을 감당하려다 보니 결국 술로 위로하게 되는 거죠.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "exact_repeat",
+        "near_dup_back_to_back"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1959.7608475014567,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [
+        {
+          "reason": "back_to_back",
+          "family": "힘든 감정을 혼자서 감당하려다 보니 술이 늘 먼저 떠오르는 상황이군요",
+          "count": 1
+        },
+        {
+          "reason": "back_to_back",
+          "family": "힘든 감정을 혼자서 감당하려다 보니 술이 늘 먼저 떠오르는 상황이군요",
+          "count": 1
+        }
+      ],
+      "dialogue_exhaustion_degrade": "near_dup_back_to_back",
+      "dialogue_exhaustion_degrade_phrase": "이렇게 솔직하게 이야기해 주셔서 감사합니다"
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-15T17:00:03.477466",
+  "ended_at": "2026-07-15T17:03:03.519190",
+  "grounded_coverage": 0.875,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.6395,
+  "patient_lng": 127.0255,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.1323716714978218,
+    "reason_summary": "Session sentiment: ['sadness', 'anxiety'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "sadness",
+      "anxiety"
+    ],
+    "emotion_distribution": {
+      "sadness": 0.38,
+      "anxiety": 0.34,
+      "despair": 0.28
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.65
+      },
+      {
+        "turn": 1,
+        "polarity": -0.65
+      },
+      {
+        "turn": 2,
+        "polarity": -0.85
+      },
+      {
+        "turn": 3,
+        "polarity": -0.65
+      },
+      {
+        "turn": 4,
+        "polarity": -0.65
+      },
+      {
+        "turn": 5,
+        "polarity": -0.68
+      },
+      {
+        "turn": 6,
+        "polarity": -0.85
+      },
+      {
+        "turn": 7,
+        "polarity": -0.85
+      },
+      {
+        "turn": 8,
+        "polarity": -0.65
+      },
+      {
+        "turn": 9,
+        "polarity": -0.6
+      },
+      {
+        "turn": 10,
+        "polarity": -0.75
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "sadness 표현 11회 반복",
+      "anxiety 표현 10회 반복",
+      "despair 표현 8회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "sadness",
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "sadness",
+          "anxiety",
+          "despair"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "sadness",
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.68
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "despair",
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "sadness",
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.85
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "sadness",
+          "despair"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "sadness",
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "sadness",
+          "despair",
+          "anxiety"
+        ],
+        "polarity": -0.75
+      }
+    ]
+  },
+  "phr_summary": {},
+  "prompts_degraded": false,
+  "session_index": 2,
+  "simulated_date": "2026-07-22",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- history_of_present_illness: 15년 전 식당 개업 후 음주 시작, 초기 하루 한두 잔에서 최근 2-3년 사이 한 병 반으로 증가, 손님 없거나 스트레스 시 음주 충동 심화, 아침 손 떨림 및 피로감 동반, 음주 중단 시 악순환 반복\n- chief_complaint: 8-10년 전부터 거의 매일 소주 한 병 이상 마시며, 최근 2-3년 새 양이 늘어나 한 병 반도 마시고, 스트레스 받을 때마다 술 생각이 먼저 나며 한 번 마시기 시작하면 멈추기 어려움\n- medical_history: 건강검진에서 간 수치 상승 결과\n- substance_use_history: 15년 전부터 매일 소주 한 병 이상, 최근 2-3년 사이 한 병 반으로 증가\n\n[이전 세션 요약 — 미수집 정보]\npast_psychiatric_history, personal_social_history, family_history",
+  "carried_slot_provenance": {
+    "risk_assessment": "carried_from_session_1",
+    "substance_use_history": "carried_from_session_1",
+    "medical_history": "carried_from_session_1"
+  },
+  "scenario_pack_id": "VP-012_aud_escalation_contemplation_s02",
+  "arc_mode": "aud_escalation_contemplation"
+}

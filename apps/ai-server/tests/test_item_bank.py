@@ -41,9 +41,10 @@ _SOURCES_NOTE_PATH = (
 
 # AUDIT-C v2's own canonical byte-fidelity source (CVR-018 binding condition
 # 8) — a SEPARATE file from item_bank_v1_sources.md, which only documents
-# v1's (now-superseded) SBIRT Oregon AUDIT-C text.
+# v1's (now-superseded) SBIRT Oregon AUDIT-C text. Archived wave-4 (docs/ai ->
+# _archive/reports, path-only, zero logic change) — see version.md CLEAN-2026-07-16 (wave-4).
 _AUDIT_C_RESEARCH_NOTE_PATH = (
-    Path(__file__).resolve().parents[3] / "docs" / "ai" / "audit_c_korean_research.md"
+    Path(__file__).resolve().parents[3] / "_archive" / "reports" / "audit_c_korean_research.md"
 )
 
 
@@ -241,7 +242,7 @@ class TestPHQ4V1Composition:
 class TestAuditCV2ByteFidelity:
     """AUDIT-C v2 (CVR-018 Q2 adopted / ADR-034 decision 2) — the [별지
     제15호의3서식] soju-track text. Canonical byte-fidelity source is
-    `docs/ai/audit_c_korean_research.md` §3.2 (CVR-018 binding condition
+    `_archive/reports/audit_c_korean_research.md` §3.2 (CVR-018 binding condition
     8), NOT `item_bank_v1_sources.md` (that file only documents v1's
     now-superseded SBIRT Oregon text)."""
 
@@ -289,7 +290,7 @@ class TestAuditCV2ByteFidelity:
     ) -> None:
         """BUG-039 fix: item 2's primary (소주) track needs its own sourced
         label so `build_item_prompt` can render both tracks distinguishably
-        — verbatim from `docs/ai/audit_c_korean_research.md` §3.2's own
+        — verbatim from `_archive/reports/audit_c_korean_research.md` §3.2's own
         bolded "소주 트랙" table-row label, never invented in the harness."""
         item2 = get_item_bank("AUDIT-C").items[1]
         assert item2.primary_track_label == "소주 트랙"
@@ -368,7 +369,7 @@ class TestAuditCV2ByteFidelity:
 class TestAuditCV2NoFabrication:
     """Fabrication-0 for AUDIT-C v2 specifically — every Korean string on
     every item/anchor (including the item-2 secondary track) must exist
-    verbatim in `docs/ai/audit_c_korean_research.md` (AUDIT-C's OWN
+    verbatim in `_archive/reports/audit_c_korean_research.md` (AUDIT-C's OWN
     canonical source, separate from item_bank_v1_sources.md)."""
 
     def test_every_item_text_exists_in_research_note(
@@ -483,7 +484,7 @@ class TestNoFabrication:
     appendix subset checked above item-by-item — a whole-note substring
     check across all 4 v1 scales). AUDIT-C is v2 as of this mission and is
     checked separately, against its own canonical source
-    (`TestAuditCV2NoFabrication` above, `docs/ai/audit_c_korean_research.md`
+    (`TestAuditCV2NoFabrication` above, `_archive/reports/audit_c_korean_research.md`
     — NOT `item_bank_v1_sources.md`, which only documents v1's now-
     superseded AUDIT-C text)."""
 

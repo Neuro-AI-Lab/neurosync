@@ -276,7 +276,7 @@ class F1Result:
     model: str = ""
     prompt_version: str = ""
     # Narrowed carry-channel content RECEIVED at session start (AVC-02,
-    # `docs/ai/validation_plan_f1f2_continuous.md` §6): final_slots +
+    # `_archive/plans/validation_plan_f1f2_continuous.md` §6): final_slots +
     # missing_slots only, never raw prose/risk_assessment narration. `None`
     # for a first-visit session. Persisted so F2 can read it — f2.py's
     # `prior_handoff` used to be hardcoded `None` ("not persisted in F1
@@ -287,7 +287,7 @@ class F1Result:
     # never re-grounded THIS session). slot_key -> "carried_from_session_N".
     # A slot re-grounded this session (even to identical text) is NOT here.
     carried_slot_provenance: dict[str, str] = field(default_factory=dict)
-    # F4 quick-dev provenance threading (`docs/ai/f4_quick_dev_plan.md` §2.6
+    # F4 quick-dev provenance threading (`_archive/plans/f4_quick_dev_plan.md` §2.6
     # option C / §2.7, `PLAN-2026-W29-D`, `ADR-036` item 3): additive,
     # `None`-default fields — a scripted-validation session self-identifies
     # via these two fields; `None`/absent for every natural (non-scripted)
@@ -537,7 +537,7 @@ def _legacy_essential_coverage(filled_slots: dict[str, str]) -> float:
 
 def _compose_carry_content(final_slots: dict[str, str], missing_slots: list[str]) -> str:
     """Narrowed ``--followup-from`` carry-channel payload (AVC-02,
-    `docs/ai/validation_plan_f1f2_continuous.md` §6, PLAN-2026-W28-Q W2).
+    `_archive/plans/validation_plan_f1f2_continuous.md` §6, PLAN-2026-W28-Q W2).
 
     ONLY ``final_slots`` (``risk_assessment`` excluded — every session
     re-grounds risk from scratch via the Safety Probe/SI-screen, never
@@ -659,6 +659,22 @@ class F1Pipeline:
         HIRA `dgsbjtCd=03` 필터로 반환되는 최근접 후보는 대형 종합병원인 경우가
         많아 응급실 대기·접근성 이슈가 있어, 실질적 방문 가능성이 높은
         차상위 후보들을 안내한다.
+
+        CVR-030 (minor-major) HIRA response enrichment, two additions to
+        the returned text block only (`records`/data contract unchanged):
+        (a) per-hospital ER/emergency-capacity disclosure — `Place.
+        emergency_available` is ALWAYS `None` for a `getHospBasisList`
+        result (verified against the adapter's own parsed fields and
+        `docs/ai/api/hira_kakao_map_api_usage_guide.md`'s 2026-07-10
+        real-response check: no `emyGrupCd`-class field exists in this
+        endpoint's response, only doctor-count counters) — this renders
+        the honest "응급실 여부 확인 필요" per hospital instead of silently
+        omitting the question a crisis-presenting patient would ask next,
+        never inventing an availability value the API does not provide.
+        (b) the crisis hotline (109/119) is repeated directly under this
+        block, additive to `CRISIS_RESPONSE`'s own hotline line above it —
+        a caller that surfaces/copies only this hospital block (e.g. a
+        scrolled view) must not lose the hotline reference.
         """
         if lat is None or lng is None:
             return "", []
@@ -692,7 +708,18 @@ class F1Pipeline:
         for i, pl in enumerate(chosen, 1):
             dist = f"{pl.distance_km:.1f}km" if pl.distance_km is not None else "-"
             phone = f" · ☎ {pl.phone}" if pl.phone else ""
-            lines.append(f"{i}. {pl.name} ({dist}){phone}")
+            # CVR-030 (a): honest per-hospital ER disclosure — `None` MUST
+            # NOT be silently dropped (spec §10) and MUST NOT be invented
+            # as available/unavailable; HIRA's basis-list endpoint simply
+            # does not carry this field.
+            er = (
+                " · 응급실 가능"
+                if pl.emergency_available is True
+                else " · 응급실 불가"
+                if pl.emergency_available is False
+                else " · 응급실 여부 확인 필요"
+            )
+            lines.append(f"{i}. {pl.name} ({dist}){phone}{er}")
             records.append({
                 "rank": i,
                 "name": pl.name,
@@ -702,7 +729,11 @@ class F1Pipeline:
                 "type_name": pl.type_name,
                 "lat": pl.lat,
                 "lng": pl.lng,
+                "emergency_available": pl.emergency_available,
             })
+        # CVR-030 (b): repeat the crisis hotline directly under the
+        # hospital block (additive to CRISIS_RESPONSE's own hotline line).
+        lines.append("☎ 자살예방상담전화 109, 응급전화 119 (24시간)")
         return "\n".join(lines), records
 
     def _get_ocr_agent(self) -> OCRAgent:
@@ -1741,7 +1772,7 @@ class F1Pipeline:
                         safety_result=safety_result_for_dialogue,
                         session_state=session_state,
                         patient_history_context=phr_context_for_dialogue,
-                        # BUG-037 (`docs/ai/fix_design_exhaustion_bug037.md`
+                        # BUG-037 (`_archive/plans/fix_design_exhaustion_bug037.md`
                         # §2): this turn's own slot writes (Step 1b risk_
                         # assessment + Step 2 extraction, both already
                         # applied above) — lets the output-isolation guard

@@ -138,9 +138,9 @@ class TestStageTransitions:
         assert result.current_stage == SessionStage.crisis_flow
         assert result.crisis_triggered is True
         assert result.requires_human_review is True
-        # TODO(T1-F1-DEV-020): hotline unification pending — current production
-        # crisis messages cite 1393; update when the hotline text is unified.
-        assert "1393" in result.assistant_response
+        # BUG-009 fixed: crisis messages now cite the current 109 hotline.
+        assert "109" in result.assistant_response
+        assert "1393" not in result.assistant_response
 
     @pytest.mark.asyncio
     async def test_emergency_crisis_message(self):
@@ -293,7 +293,14 @@ class TestSlotCoverage:
         result = await agent.process_turn(inp)
 
         assert result.current_stage == SessionStage.completed
-        assert result.handoff_ready is True
+        # REV-001 fix: `_make_orchestrator()` (`OrchestratorAgent.__new__`)
+        # wires no real `_handoff_agent`/`_verifier_agent`, so handoff
+        # generation raises and `handoff_report` stays None — `handoff_ready`
+        # now correctly reflects that (previously hardcoded True regardless
+        # of whether a report was ever produced; see `test_handoff_ready_...`
+        # tests below for the dedicated True/False-on-success/failure pair).
+        assert result.handoff_ready is False
+        assert result.handoff_report is None
 
     @pytest.mark.asyncio
     async def test_max_turns_forces_extraction(self):
@@ -311,7 +318,9 @@ class TestSlotCoverage:
         result = await agent.process_turn(inp)
 
         assert result.current_stage == SessionStage.completed
-        assert result.handoff_ready is True
+        # REV-001 fix — same rationale as test_high_coverage_triggers_extraction.
+        assert result.handoff_ready is False
+        assert result.handoff_report is None
 
 
 class TestSlotUpdates:

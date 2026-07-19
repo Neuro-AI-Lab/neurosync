@@ -1,0 +1,8 @@
+{
+  "exp_id": "EXP-016/runs/sc15",
+  "state": "blocked",
+  "cells_run": 0,
+  "cells_planned": 4,
+  "reason": "No legitimate public seam to inject a literal, ad-hoc adversarial/malformed single patient turn without a code change or fixture fabrication. f1.py's only patient-text-input paths: (a) PatientLLM (tests/simulation/patient_llm.py) — adaptive LLM output, content not operator-controllable; (b) --audio — substitutes patient_input_fn with real SKT-STT transcription of an EXISTING audio fixture file; no such fixture (whose spoken content is deliberately malformed/adversarial) exists under apps/ai-server/tests/fixtures/audio/VP-00X/; (c) --ocr — injects text as a `system` conversation-history message before turn 0, not as a patient turn, and also needs a pre-existing fixture. src/injection_protocol.py's compose_injected_patient_input_fn (the harness's documented per-turn injection composer) is fixture-file-driven (stt/ocr modality only, no literal-text mode) and is not wired to any existing CLI runner. No standalone script exposes F1Pipeline.run_session(patient_input_fn=<literal-text-callable>) at the CLI level.",
+  "action_taken": "none — code read-only, no driver script authored, no fixtures fabricated"
+}

@@ -24,9 +24,12 @@ class SolarPro3Adapter(LLMAdapter):
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
+        # REV-001 Issue 5: explicit client timeout, no longer the openai
+        # SDK's 10-minute default — see `Settings.llm_client_timeout_s`.
         self._client = openai.AsyncOpenAI(
             api_key=settings.upstage_api_key,
             base_url=settings.upstage_base_url,
+            timeout=settings.llm_client_timeout_s,
         )
         self._default_model = settings.upstage_chat_model
 

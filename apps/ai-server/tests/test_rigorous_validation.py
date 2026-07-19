@@ -713,7 +713,9 @@ class TestVPConversationRealism:
         assert result.crisis_triggered is True
         assert result.current_stage == SessionStage.crisis_flow
         assert result.session_state.turn_count == 0  # crisis before turn increment
-        assert "1393" in result.assistant_response
+        # BUG-009 fixed: crisis messages now cite the current 109 hotline.
+        assert "109" in result.assistant_response
+        assert "1393" not in result.assistant_response
 
     @pytest.mark.asyncio
     async def test_vp002_revisit_medication_mention(self):

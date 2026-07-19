@@ -51,7 +51,7 @@ _ALL_SLOTS = [
 _SLOT_COVERAGE_THRESHOLD = 0.7
 _MAX_HISTORY_TURNS = 8
 
-# BUG-030 iter-2 / BUG-035 (2026-07-12, `docs/ai/fix_design_bug030_iter2.md`,
+# BUG-030 iter-2 / BUG-035 (2026-07-12, `_archive/plans/fix_design_bug030_iter2.md`,
 # ADR-029): unified check-and-retry guard constants.
 _MAX_REGENERATION_ATTEMPTS = 2          # design §3 — max 3 LLM calls/turn
 _NEAR_DUP_JACCARD_THRESHOLD = 0.5       # rubric_bug030_acceptance.md §1
@@ -70,7 +70,7 @@ _EMPATHY_MARKERS = (
     "군요",
 )
 
-# BUG-037 (2026-07-12, `docs/ai/fix_design_exhaustion_bug037.md`, PLAN-2026-
+# BUG-037 (2026-07-12, `_archive/plans/fix_design_exhaustion_bug037.md`, PLAN-2026-
 # W28-U): output-isolation guard constants. `_MIN_OUTPUT_ISOLATION_LEN`
 # guards the containment/equality check against coincidental short-string
 # collisions (e.g. a trivial 2-3 char slot value, or a short "네"/"아니요"
@@ -85,7 +85,7 @@ _OUTPUT_ISOLATION_FALLBACK_RESPONSE = (
 
 
 # Fix 2 — retry-budget-exhaustion safe degrade, Option C (2026-07-12,
-# `docs/ai/fix_design_exhaustion_bug037.md` §3, ADR-030 Decisions 1/2).
+# `_archive/plans/fix_design_exhaustion_bug037.md` §3, ADR-030 Decisions 1/2).
 # `_leading_clause_boundary` is a module-level function (not a
 # `DialogueAgent` method) so it can be shared by `DialogueAgent.
 # _extract_leading_clause`/`_splice_point` AND by the degrade-marker-
@@ -153,7 +153,7 @@ _DEGRADE_MARKER_CLAUSES: frozenset[str] = frozenset(
     (_fallback_leading_clause(),) + _EMPATHY_DEGRADE_POOL
 )
 
-# BUG-030 / ADR-028 (2026-07-12, `docs/ai/fix_proposal_bug030.md`): v4 —
+# BUG-030 / ADR-028 (2026-07-12, `_archive/plans/fix_proposal_bug030.md`): v4 —
 # empathy-phrase repetition fix. The static prompt's rule-2 example phrases
 # and the runtime `_build_slot_context` `alternatives` re-recommendation
 # menu are both removed (channels (a)/(b) of the diagnosis); replaced with a
@@ -328,8 +328,8 @@ class DialogueAgent(BaseAgent):
 
         # 7. Output-isolation / repetition / near-duplicate / empathy-presence
         # guard. (BUG-030 iter-2, BUG-035, BUG-037,
-        # `docs/ai/fix_design_bug030_iter2.md` §1,
-        # `docs/ai/fix_design_exhaustion_bug037.md` §2, ADR-029,
+        # `_archive/plans/fix_design_bug030_iter2.md` §1,
+        # `_archive/plans/fix_design_exhaustion_bug037.md` §2, ADR-029,
         # PLAN-2026-W28-U.) Single bounded check-and-retry loop: on each
         # candidate, evaluate output-isolation (clinical-note leak /
         # patient echo), exact-repeat, near-duplicate empathy clause, and
@@ -360,7 +360,7 @@ class DialogueAgent(BaseAgent):
         retry_reasons: list[str] = []
         fall_through = False
         output_isolation_fallback = False
-        # Fix 2 (`docs/ai/fix_design_exhaustion_bug037.md` §3, ADR-030):
+        # Fix 2 (`_archive/plans/fix_design_exhaustion_bug037.md` §3, ADR-030):
         # set only on the retry-budget-exhaustion safe-degrade path.
         exhaustion_degrade: str | None = None
         exhaustion_degrade_phrase: str | None = None
@@ -603,7 +603,7 @@ class DialogueAgent(BaseAgent):
         return target
 
     # ── BUG-030 iter-2 / BUG-035 guard primitives ──────────────────────
-    # (`docs/ai/fix_design_bug030_iter2.md` §1/§4/§5, ADR-029)
+    # (`_archive/plans/fix_design_bug030_iter2.md` §1/§4/§5, ADR-029)
 
     @staticmethod
     def _extract_leading_clause(text: str) -> str:
@@ -626,7 +626,7 @@ class DialogueAgent(BaseAgent):
 
     @staticmethod
     def _splice_point(text: str) -> int | None:
-        """Fix 2 (`docs/ai/fix_design_exhaustion_bug037.md` §3): the same
+        """Fix 2 (`_archive/plans/fix_design_exhaustion_bug037.md` §3): the same
         clause boundary `_extract_leading_clause` locates, but returned as
         a raw index into the ORIGINAL (unstripped) `text` — so a caller can
         slice `text[end:]` and get a remainder that is byte-identical to
@@ -662,7 +662,7 @@ class DialogueAgent(BaseAgent):
         enforce rubric §2's session-wide <=2-uses / zero-back-to-back
         bar).
 
-        BUG-036 fix (2026-07-12, `docs/ai/fix_design_exhaustion_bug037.md`
+        BUG-036 fix (2026-07-12, `_archive/plans/fix_design_exhaustion_bug037.md`
         §2, PLAN-2026-W28-U): the prior version deduped by exact string
         (`if clause not in used: used.append(clause)`), which silently
         dropped every exact-repeat occurrence. That broke two things once
@@ -764,7 +764,7 @@ class DialogueAgent(BaseAgent):
         )
 
     # ── Fix 2 — retry-budget-exhaustion safe degrade primitives ────────
-    # (`docs/ai/fix_design_exhaustion_bug037.md` §3, ADR-030 Decisions 1/2)
+    # (`_archive/plans/fix_design_exhaustion_bug037.md` §3, ADR-030 Decisions 1/2)
 
     @staticmethod
     def _exclude_degrade_marker_clauses(clauses: list[str]) -> list[str]:
@@ -828,7 +828,7 @@ class DialogueAgent(BaseAgent):
         violation: str,
         conversation_history: list[dict[str, str]] | None,
     ) -> tuple[str, str]:
-        """Fix 2 — Option C (`docs/ai/fix_design_exhaustion_bug037.md`
+        """Fix 2 — Option C (`_archive/plans/fix_design_exhaustion_bug037.md`
         §3, ADR-030 Decisions 1/2). On retry-budget exhaustion with a
         still-held empathy-degradable violation, deterministically
         substitutes (`near_dup_*` / `exact_repeat`) or prepends
@@ -918,7 +918,7 @@ class DialogueAgent(BaseAgent):
         slot_updates_this_turn: dict[str, str] | None,
         patient_message: str,
     ) -> str | None:
-        """BUG-037 (`docs/ai/fix_design_exhaustion_bug037.md` §2,
+        """BUG-037 (`_archive/plans/fix_design_exhaustion_bug037.md` §2,
         PLAN-2026-W28-U): patient-facing `assistant_response` must never
         ship clinical-note-register text or a mechanical echo. Checks, in
         priority order:
@@ -1014,7 +1014,7 @@ class DialogueAgent(BaseAgent):
         """Dialogue v3 (a): autonomous turn-0 greeting context.
 
         session_state keys — ALL carry-channel-licensed (AVC-02,
-        `docs/ai/validation_plan_f1f2_continuous.md` §6):
+        `_archive/plans/validation_plan_f1f2_continuous.md` §6):
           - is_revisit: bool
           - carry_summary: str | None — F1Pipeline._summarize_prior_handoff's
             output, itself built ONLY from the narrowed final_slots+

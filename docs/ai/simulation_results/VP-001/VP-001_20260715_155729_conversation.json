@@ -1,0 +1,1028 @@
+{
+  "session_id": "f1_VP-001_followup",
+  "persona_id": "VP-001",
+  "persona_name": "김서연",
+  "total_turns": 10,
+  "crisis_triggered": false,
+  "crisis_turn": null,
+  "final_slots": [
+    {
+      "key": "chief_complaint",
+      "value": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐"
+    },
+    {
+      "key": "history_of_present_illness",
+      "value": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지며, 퇴근 후 소파에 눕는 습관이 심해짐. 피로가 남아 있고, 새 프로젝트 시작으로 긴장되는 느낌과 조마조마한 기분이 가끔 듦. 요가 수업으로 기분 전환되나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 것이 편해 자주 못함"
+    },
+    {
+      "key": "family_history",
+      "value": "어머니는 가끔 잠 못 주무심"
+    },
+    {
+      "key": "substance_use_history",
+      "value": "커피 대신 차 위주로 마심"
+    },
+    {
+      "key": "risk_assessment",
+      "value": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\""
+    },
+    {
+      "key": "personal_social_history",
+      "value": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+    }
+  ],
+  "slot_coverage": 0.6,
+  "turns": [
+    {
+      "turn": 0,
+      "patient_message": "안녕하세요. 네, 괜찮아요. 요즘도 여전히 잠은 잘 안 자고 있어요. 지난주보다는 조금 나아진 것 같기도 한데, 막상 아침에 일어나면 피로가 남아 있더라고요. 새 프로젝트가 시작되면서 다시 긴장되는 느낌도 있고, 뭔가 조마조마한 기분도 가끔 들어요. 그래도 예전처럼 심하진 않아서 스스로도 ‘그때만큼은 아니구나’ 하고 생각하긴 해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠은 잘 안 자고 있어요",
+        "아침에 일어나면 피로가 남아 있더라고요",
+        "새 프로젝트가 시작되면서 다시 긴장되는 느낌",
+        "조마조마한 기분"
+      ],
+      "agent_response": "안녕하세요, 지난번에 이어서 상담을 시작하겠습니다. 편하게 이야기해 주세요.",
+      "slot_updates": {
+        "chief_complaint": "잠은 잘 안 자고, 아침에 피로가 남아 있으며 새 프로젝트 시작으로 긴장되고 조마조마한 기분",
+        "history_of_present_illness": "잠은 잘 안 자고, 아침에 피로가 남아 있으며 새 프로젝트 시작으로 긴장되고 조마조마한 기분"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "잠은 잘 안 자고, 아침에 피로가 남아 있으며 새 프로젝트 시작으로 긴장되고 조마조마한 기분",
+        "history_of_present_illness": "잠은 잘 안 자고, 아침에 피로가 남아 있으며 새 프로젝트 시작으로 긴장되고 조마조마한 기분",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 8853.355235885829,
+      "timestamp": "2026-07-15T15:55:48.257718",
+      "targeted_slot": "chief_complaint",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "안녕하세요. 네, 괜찮아요. 요즘도 여전히 잠은 잘 안 자고 있어요. 지난주보다는 조금 나아진 것 같기도 한데, 막상 아침에 일어나면 피로가 남아 있더라고요. 새 프로젝트가 시작되면서 다시 긴장되는 느낌도 있고, 뭔가 조마조마한 기분도 가끔 들어요. 그래도 예전처럼 심하진 않아서 스스로도 ‘그때만큼은 아니구나’ 하고 생각하긴 해요.",
+        "normalized": "안녕하세요. 네, 괜찮아요. 요즘도 여전히 잠은 잘 안 자고 있어요. 지난주보다는 조금 나아진 것 같기도 한데, 막상 아침에 일어나면 피로가 남아 있더라고요. 새 프로젝트가 시작되면서 다시 긴장되는 느낌도 있고, 뭔가 조마조마한 기분도 가끔 들어요. 그래도 예전처럼 심하진 않아서 스스로도 ‘그때만큼은 아니구나’ 하고 생각하긴 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2061.308444943279,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.4,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "\"요즘도 여전히 잠은 잘 안 자고 있어요. 지난주보다는 조금 나아진 것 같기도 한데, 막상 아침에 일어나면 피로가 남아 있더라고요. 새 프로젝트가 시작되면서 다시 긴장되는 느낌도 있고, 뭔가 조마조마한 기분도 가끔 들어요. 그래도 예전처럼 심하진 않아서 스스로도 ‘그때만큼은 아니구나’ 하고 생각하긴 해요.\"",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": null,
+      "dialogue_safety_risk": null,
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 1,
+      "patient_message": "안녕하세요. 네, 괜찮아요. 요즘도 여전히 잠은 잘 안 자고 있어요. 지난주보다는 조금 나아진 것 같기도 한데, 막상 아침에 일어나면 피로가 남아 있더라고요. 새 프로젝트가 시작되면서 다시 긴장되는 느낌도 있고, 뭔가 조마조마한 기분도 가끔 들어요. 그래도 예전처럼 심하진 않아서 스스로도 ‘그때만큼은 아니구나’ 하고 생각하긴 해요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "잠은 잘 안 자고 있어요",
+        "아침에 일어나면 피로가 남아 있더라고요",
+        "새 프로젝트가 시작되면서 다시 긴장되는 느낌",
+        "조마조마한 기분"
+      ],
+      "agent_response": "잠이 잘 안 오고 아침에 피로가 남아 있는 게 여전히 힘들겠어요. 지난번에는 신체질환이나 복용 중인 약에 대해 여쭤보지 못했는데, 혹시 진단받은 질환이 있거나 현재 복용 중인 약이 있으신가요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "잠은 잘 안 자고, 아침에 피로가 남아 있으며 새 프로젝트 시작으로 긴장되고 조마조마한 기분",
+        "history_of_present_illness": "잠은 잘 안 자고, 아침에 피로가 남아 있으며 새 프로젝트 시작으로 긴장되고 조마조마한 기분",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5200.785095337778,
+      "timestamp": "2026-07-15T15:55:53.458527",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "안녕하세요. 네, 괜찮아요. 요즘도 여전히 잠은 잘 안 자고 있어요. 지난주보다는 조금 나아진 것 같기도 한데, 막상 아침에 일어나면 피로가 남아 있더라고요. 새 프로젝트가 시작되면서 다시 긴장되는 느낌도 있고, 뭔가 조마조마한 기분도 가끔 들어요. 그래도 예전처럼 심하진 않아서 스스로도 ‘그때만큼은 아니구나’ 하고 생각하긴 해요.",
+        "normalized": "안녕하세요. 네, 괜찮아요. 요즘도 여전히 잠은 잘 안 자고 있어요. 지난주보다는 조금 나아진 것 같기도 한데, 막상 아침에 일어나면 피로가 남아 있더라고요. 새 프로젝트가 시작되면서 다시 긴장되는 느낌도 있고, 뭔가 조마조마한 기분도 가끔 들어요. 그래도 예전처럼 심하진 않아서 스스로도 ‘그때만큼은 아니구나’ 하고 생각하긴 해요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 2061.308444943279,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "잠은 잘 안 자고 있어요. ... 새 프로젝트가 시작되면서 다시 긴장되는 느낌도 있고, 뭔가 조마조마한 기분도 가끔 들어요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 2,
+      "patient_message": "아, 그런 건 없어요. 건강검진에서 특별히 문제 있다고 한 적도 없고, 약도 먹고 있진 않아요. 그냥 요즘 생활 리듬이 좀 엉켜서 그런가 싶은 정도예요.",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "건강검진에서 특별한 문제가 없고 약도 복용하지 않으시니 다행이에요. 혹시 최근에 다른 신체 증상이나 불편한 점이 추가로 생기지는 않았나요?",
+      "slot_updates": {},
+      "cumulative_slots": {
+        "chief_complaint": "잠은 잘 안 자고, 아침에 피로가 남아 있으며 새 프로젝트 시작으로 긴장되고 조마조마한 기분",
+        "history_of_present_illness": "잠은 잘 안 자고, 아침에 피로가 남아 있으며 새 프로젝트 시작으로 긴장되고 조마조마한 기분",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 3453.200584743172,
+      "timestamp": "2026-07-15T15:56:01.955454",
+      "targeted_slot": "medical_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아, 그런 건 없어요. 건강검진에서 특별히 문제 있다고 한 적도 없고, 약도 먹고 있진 않아요. 그냥 요즘 생활 리듬이 좀 엉켜서 그런가 싶은 정도예요.",
+        "normalized": "아, 그런 건 없어요. 건강검진에서 특별히 문제 있다고 한 적도 없고, 약도 먹고 있진 않아요. 그냥 요즘 생활 리듬이 좀 엉켜서 그런가 싶은 정도예요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1492.22084088251,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": 0.0,
+        "arousal": "low",
+        "emotions": [
+          {
+            "label": "neutral",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "건강검진에서 특별히 문제 있다고 한 적도 없고, 약도 먹고 있진 않아요. 그냥 요즘 생활 리듬이 좀 엉켜서 그런가 싶은 정도예요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 4,
+      "dialogue_safety_risk": "low",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 3,
+      "patient_message": "음... 가슴 답답함은 요즘 아침에 더 자주 느껴져요. 어깨랑 목은 여전히 뻣뻣한데, 퇴근 후 소파에 눕는 습관이 좀 심해진 것 같아요. 그게 오히려 더 피곤함을 키우는 것 같기도 하고...",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고 퇴근 후 소파에 눕는 습관이 심해진 것 같아 걱정이 되겠어요. 혹시 최근에 진단받은 신체 질환이 있거나, 기존에 처방받으신 약 외에 새로 복용하기 시작한 약이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지며, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "아침에 가슴 답답함과 어깨 뻣뻣함이 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐. 피로가 남아 있고, 새 프로젝트 시작 후 긴장감과 조마조마한 기분이 가끔 나타남. 요가 수업으로 기분 전환되나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 것이 편해 자주 못함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지며, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "아침에 가슴 답답함과 어깨 뻣뻣함이 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐. 피로가 남아 있고, 새 프로젝트 시작 후 긴장감과 조마조마한 기분이 가끔 나타남. 요가 수업으로 기분 전환되나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 것이 편해 자주 못함",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5127.810455858707,
+      "timestamp": "2026-07-15T15:56:11.789291",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "음... 가슴 답답함은 요즘 아침에 더 자주 느껴져요. 어깨랑 목은 여전히 뻣뻣한데, 퇴근 후 소파에 눕는 습관이 좀 심해진 것 같아요. 그게 오히려 더 피곤함을 키우는 것 같기도 하고...",
+        "normalized": "음... 가슴 답답함은 요즘 아침에 더 자주 느껴져요. 어깨랑 목은 여전히 뻣뻣한데, 퇴근 후 소파에 눕는 습관이 좀 심해진 것 같아요. 그게 오히려 더 피곤함을 키우는 것 같기도 하고...",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1813.7251189909875,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "가슴 답답함은 요즘 아침에 더 자주 느껴져요. 어깨랑 목은 여전히 뻣뻣한데, 퇴근 후 소파에 눕는 습관이 좀 심해진 것 같아요. 그게 오히려 더 피곤함을 키우는 것 같기도 하고...",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 4,
+      "patient_message": "아니요, 그런 건 없어요. 딱히 진단받은 건 없고, 새로 먹기 시작한 약도 없어요. 그냥 생활이 좀 무질서해진 느낌이랄까...",
+      "safety_ctrs": 4,
+      "safety_risk": "low",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가슴 답답함",
+        "어깨와 목 뻣뻣함",
+        "소파에 눕는 습관"
+      ],
+      "agent_response": "생활이 무질서해진 느낌이 드시는군요. 혹시 과거에 정신건강의학과 진료를 받으신 적이 있거나, 진단받은 질환이 있으신가요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "아침에 가슴 답답함과 어깨 뻣뻣함이 더 자주 느껴지며, 퇴근 후 소파에 눕는 습관이 심해짐. 생활 리듬이 무질서해진 느낌"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "아침에 가슴 답답함과 어깨 뻣뻣함이 더 자주 느껴지며, 퇴근 후 소파에 눕는 습관이 심해짐. 생활 리듬이 무질서해진 느낌",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4642.326513770968,
+      "timestamp": "2026-07-15T15:56:21.681750",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {},
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 없어요. 딱히 진단받은 건 없고, 새로 먹기 시작한 약도 없어요. 그냥 생활이 좀 무질서해진 느낌이랄까...",
+        "normalized": "아니요, 그런 건 없어요. 딱히 진단받은 건 없고, 새로 먹기 시작한 약도 없어요. 그냥 생활이 좀 무질서해진 느낌이랄까...",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1417.3938040621579,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.5,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "sadness",
+            "intensity": 0.6
+          },
+          {
+            "label": "anxiety",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "생활이 좀 무질서해진 느낌이랄까",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 5,
+      "patient_message": "아니요, 그런 건 없어요. 정신과를 간 적도, 진단받은 적도 전혀 없어요. 그냥 요즘 좀 예민해진 것 같고, 스트레스를 잘 받는 것 같아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "정신과 진료나 심리상담을 받으신 적이 있으신가요? 혹시 과거에 진단받은 질환이 있다면 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "아침에 가슴 답답함과 어깨 뻣뻣함이 자주 느껴지며, 퇴근 후 소파에 눕는 습관이 심해짐. 피로가 남아 있고, 새 프로젝트 시작 후 긴장감과 조마조마한 기분이 가끔 듦. 요가 수업으로 기분 전환되나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 것이 편해 자주 못함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "아침에 가슴 답답함과 어깨 뻣뻣함이 자주 느껴지며, 퇴근 후 소파에 눕는 습관이 심해짐. 피로가 남아 있고, 새 프로젝트 시작 후 긴장감과 조마조마한 기분이 가끔 듦. 요가 수업으로 기분 전환되나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 것이 편해 자주 못함",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 4502.7279909700155,
+      "timestamp": "2026-07-15T15:56:31.162468",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 없어요. 정신과를 간 적도, 진단받은 적도 전혀 없어요. 그냥 요즘 좀 예민해진 것 같고, 스트레스를 잘 받는 것 같아요.",
+        "normalized": "아니요, 그런 건 없어요. 정신과를 간 적도, 진단받은 적도 전혀 없어요. 그냥 요즘 좀 예민해진 것 같고, 스트레스를 잘 받는 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1624.836002010852,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "\"그냥 요즘 좀 예민해진 것 같고, 스트레스를 잘 받는 것 같아요.\"",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 6,
+      "patient_message": "아니요, 그런 건 없어요. 병원을 간 적도 없고, 정신과 상담 같은 것도 받아본 적 없어요. 그냥 요즘 좀 예민해진 것 같아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [
+        "가슴 답답함",
+        "어깨 뻣뻣함",
+        "소파에 눕는 습관",
+        "피곤함"
+      ],
+      "agent_response": "정신과 진료를 받으신 적이 있으신가요? 혹시 과거에 진단받은 질환이 있다면 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "아침에 가슴 답답함과 어깨 뻣뻣함이 자주 느껴지며, 퇴근 후 소파에 눕는 습관이 심해짐. 피로가 남아 있고, 새 프로젝트 시작으로 긴장감과 조마조마한 기분이 가끔 듦. 요가 수업으로 기분 전환되나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 것이 편해 자주 못함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "아침에 가슴 답답함과 어깨 뻣뻣함이 자주 느껴지며, 퇴근 후 소파에 눕는 습관이 심해짐. 피로가 남아 있고, 새 프로젝트 시작으로 긴장감과 조마조마한 기분이 가끔 듦. 요가 수업으로 기분 전환되나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 것이 편해 자주 못함",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6306.253928691149,
+      "timestamp": "2026-07-15T15:56:42.015258",
+      "targeted_slot": "medical_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 없어요. 병원을 간 적도 없고, 정신과 상담 같은 것도 받아본 적 없어요. 그냥 요즘 좀 예민해진 것 같아요.",
+        "normalized": "아니요, 그런 건 없어요. 병원을 간 적도 없고, 정신과 상담 같은 것도 받아본 적 없어요. 그냥 요즘 좀 예민해진 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1341.1605167202652,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.2,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          }
+        ],
+        "evidence_phrase": "그냥 요즘 좀 예민해진 것 같아요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 1,
+      "dialogue_retry_reasons": [
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 982.6794140972197,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    },
+    {
+      "turn": 7,
+      "patient_message": "아니요, 그런 건 없어요. 한 번도 정신과를 간 적도 없고, 진단받은 적도 없어요. 그냥 요즘 좀 예민해진 것 같고, 스트레스를 잘 받는 것 같아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "이렇게 솔직하게 이야기해 주셔서 감사합니다. 정신과 진료를 받으신 적이 있으신가요? 혹시 과거에 진단받은 질환이 있다면 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지며, 퇴근 후 소파에 눕는 습관이 심해짐. 피로가 남아 있고, 새 프로젝트 시작 후 긴장되는 느낌과 조마조마한 기분이 가끔 듦. 요가 수업으로 기분 전환되나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 것이 편해 자주 못함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지며, 퇴근 후 소파에 눕는 습관이 심해짐. 피로가 남아 있고, 새 프로젝트 시작 후 긴장되는 느낌과 조마조마한 기분이 가끔 듦. 요가 수업으로 기분 전환되나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 것이 편해 자주 못함",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 7331.017923075706,
+      "timestamp": "2026-07-15T15:56:53.510917",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 없어요. 한 번도 정신과를 간 적도 없고, 진단받은 적도 없어요. 그냥 요즘 좀 예민해진 것 같고, 스트레스를 잘 받는 것 같아요.",
+        "normalized": "아니요, 그런 건 없어요. 한 번도 정신과를 간 적도 없고, 진단받은 적도 없어요. 그냥 요즘 좀 예민해진 것 같고, 스트레스를 잘 받는 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1198.3705325983465,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "그냥 요즘 좀 예민해진 것 같고, 스트레스를 잘 받는 것 같아요.",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "exact_repeat",
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2146.8882993794978,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": "exact_repeat",
+      "dialogue_exhaustion_degrade_phrase": "이렇게 솔직하게 이야기해 주셔서 감사합니다"
+    },
+    {
+      "turn": 8,
+      "patient_message": "아니요, 그런 건 없어요. 정신과를 간 적도, 진단받은 적도 전혀 없어요. 그냥 요즘 좀 예민해진 것 같아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "편하게 마음을 나눠주셔서 감사합니다. 정신과 진료를 받으신 적이 있으신가요? 혹시 과거에 진단받은 질환이 있다면 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "아침 업무 메일 확인 시 가슴이 조이는 느낌이 재발하며, 스트레스 상황에서 조마조마함과 함께 나타남. 과거보다 덜하지만 긴장되는 일이 있을 때 다시 증상이 나타남. 요가 수업으로 기분 전환되었으나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 것이 편해 자주 못함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "아침 업무 메일 확인 시 가슴이 조이는 느낌이 재발하며, 스트레스 상황에서 조마조마함과 함께 나타남. 과거보다 덜하지만 긴장되는 일이 있을 때 다시 증상이 나타남. 요가 수업으로 기분 전환되었으나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 것이 편해 자주 못함",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6278.976704925299,
+      "timestamp": "2026-07-15T15:57:04.248117",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 없어요. 정신과를 간 적도, 진단받은 적도 전혀 없어요. 그냥 요즘 좀 예민해진 것 같아요.",
+        "normalized": "아니요, 그런 건 없어요. 정신과를 간 적도, 진단받은 적도 전혀 없어요. 그냥 요즘 좀 예민해진 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1517.4999190494418,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.65,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "그냥 요즘 좀 예민해진 것 같아요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "exact_repeat",
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 2032.0442379452288,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": "exact_repeat",
+      "dialogue_exhaustion_degrade_phrase": "편하게 마음을 나눠주셔서 감사합니다"
+    },
+    {
+      "turn": 9,
+      "patient_message": "아니요, 그런 건 없어요. 한 번도 정신과를 간 적도, 진단받은 적도 없어요. 그냥 요즘 스트레스를 잘 받는 것 같아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "그런 마음까지 들려주셔서 감사합니다. 정신과 진료를 받으신 적이 있으신가요? 혹시 과거에 진단받은 질환이 있다면 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "아침에 가슴 답답함과 어깨 뻣뻣함이 재발하며, 새 프로젝트 시작으로 긴장감과 조마조마함이 다시 나타남. 요가 수업으로 기분 전환되나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 습관이 심해짐"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "아침에 가슴 답답함과 어깨 뻣뻣함이 재발하며, 새 프로젝트 시작으로 긴장감과 조마조마함이 다시 나타남. 요가 수업으로 기분 전환되나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 습관이 심해짐",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 6500.45531662181,
+      "timestamp": "2026-07-15T15:57:15.250584",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 없어요. 한 번도 정신과를 간 적도, 진단받은 적도 없어요. 그냥 요즘 스트레스를 잘 받는 것 같아요.",
+        "normalized": "아니요, 그런 건 없어요. 한 번도 정신과를 간 적도, 진단받은 적도 없어요. 그냥 요즘 스트레스를 잘 받는 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1152.4449093267322,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "medium",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.7
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.5
+          }
+        ],
+        "evidence_phrase": "그냥 요즘 스트레스를 잘 받는 것 같아요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 2,
+      "dialogue_retry_reasons": [
+        "exact_repeat",
+        "exact_repeat",
+        "exact_repeat"
+      ],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 1916.4079558104277,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": "exact_repeat",
+      "dialogue_exhaustion_degrade_phrase": "그런 마음까지 들려주셔서 감사합니다"
+    },
+    {
+      "turn": 10,
+      "patient_message": "아니요, 그런 건 없어요. 정신과를 간 적도, 진단받은 적도 전혀 없어요. 그냥 요즘 좀 예민해진 것 같아요.",
+      "safety_ctrs": 5,
+      "safety_risk": "none",
+      "safety_crisis": false,
+      "safety_categories": [
+        "distress"
+      ],
+      "safety_flagged": [],
+      "agent_response": "솔직하게 이야기해 주셔서 감사합니다. 정신과 진료를 받으신 적이 있으신가요? 혹시 과거에 진단받은 질환이 있다면 말씀해 주실 수 있을까요?",
+      "slot_updates": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지며, 퇴근 후 소파에 눕는 습관이 심해짐. 피로가 남아 있고, 새 프로젝트 시작으로 긴장되는 느낌과 조마조마한 기분이 가끔 듦. 요가 수업으로 기분 전환되나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 것이 편해 자주 못함"
+      },
+      "cumulative_slots": {
+        "chief_complaint": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지고, 퇴근 후 소파에 눕는 습관이 심해짐",
+        "history_of_present_illness": "가슴 답답함과 어깨 뻣뻣함이 아침에 더 자주 느껴지며, 퇴근 후 소파에 눕는 습관이 심해짐. 피로가 남아 있고, 새 프로젝트 시작으로 긴장되는 느낌과 조마조마한 기분이 가끔 듦. 요가 수업으로 기분 전환되나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 것이 편해 자주 못함",
+        "family_history": "어머니는 가끔 잠 못 주무심",
+        "substance_use_history": "커피 대신 차 위주로 마심",
+        "risk_assessment": "자살/자해 사고 탐색 질문에 대한 환자 응답: \"회사에서 대규모 프로젝트를 진행하면서부터 잠들기 전부터 마음이 조마조마해졌어요. 퇴근 후에도 어깨와 목이 뻐근하고, 가끔 가슴이 답답한 느낌이 ...\"",
+        "personal_social_history": "회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소"
+      },
+      "slot_coverage": 0.6,
+      "latency_ms": 5828.033532015979,
+      "timestamp": "2026-07-15T15:57:25.666366",
+      "targeted_slot": "past_psychiatric_history",
+      "slot_discards": {
+        "personal_social_history": "ungrounded: no lexical evidence in patient utterances",
+        "family_history": "ungrounded: no lexical evidence in patient utterances",
+        "substance_use_history": "ungrounded: no lexical evidence in patient utterances"
+      },
+      "grounded_coverage": 0.75,
+      "normalizer_meta": {
+        "original": "아니요, 그런 건 없어요. 정신과를 간 적도, 진단받은 적도 전혀 없어요. 그냥 요즘 좀 예민해진 것 같아요.",
+        "normalized": "아니요, 그런 건 없어요. 정신과를 간 적도, 진단받은 적도 전혀 없어요. 그냥 요즘 좀 예민해진 것 같아요.",
+        "input_type": "user_text",
+        "change_count": 0,
+        "risk_expressions_preserved": true,
+        "clinical_content_preserved": true,
+        "latency_ms": 1525.6187338382006,
+        "changes": [],
+        "prompts_degraded": false
+      },
+      "sentiment": {
+        "polarity": -0.6,
+        "arousal": "high",
+        "emotions": [
+          {
+            "label": "anxiety",
+            "intensity": 0.8
+          },
+          {
+            "label": "sadness",
+            "intensity": 0.4
+          }
+        ],
+        "evidence_phrase": "그냥 요즘 좀 예민해진 것 같아요",
+        "risk_signal": false
+      },
+      "dialogue_safety_ctrs": 5,
+      "dialogue_safety_risk": "none",
+      "prompts_degraded": false,
+      "dialogue_retry_count": 0,
+      "dialogue_retry_reasons": [],
+      "dialogue_fall_through": false,
+      "dialogue_retry_latency_ms": 0.0,
+      "dialogue_crisis_adjacent": false,
+      "dialogue_output_isolation_fallback": false,
+      "dialogue_near_dup_detail": [],
+      "dialogue_exhaustion_degrade": null,
+      "dialogue_exhaustion_degrade_phrase": null
+    }
+  ],
+  "errors": [],
+  "started_at": "2026-07-15T15:55:39.404320",
+  "ended_at": "2026-07-15T15:57:29.703533",
+  "grounded_coverage": 0.75,
+  "risk_floor": null,
+  "probe_events": [],
+  "session_ctrs": 4,
+  "nearby_psychiatric": [],
+  "patient_lat": 37.5807,
+  "patient_lng": 126.8898,
+  "ocr_documents": [],
+  "stt_transcripts": [],
+  "session_sentiment": {
+    "model_used": "aggregation",
+    "prompt_version": "v1",
+    "latency_ms": 0.10494096204638481,
+    "reason_summary": "Session sentiment: ['anxiety', 'sadness'], strength=strong",
+    "prompts_degraded": false,
+    "dominant_emotions": [
+      "anxiety",
+      "sadness"
+    ],
+    "emotion_distribution": {
+      "anxiety": 0.5,
+      "sadness": 0.45,
+      "neutral": 0.05
+    },
+    "polarity_trajectory": [
+      {
+        "turn": 0,
+        "polarity": -0.4
+      },
+      {
+        "turn": 1,
+        "polarity": -0.6
+      },
+      {
+        "turn": 2,
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "polarity": -0.6
+      },
+      {
+        "turn": 4,
+        "polarity": -0.5
+      },
+      {
+        "turn": 5,
+        "polarity": -0.65
+      },
+      {
+        "turn": 6,
+        "polarity": -0.2
+      },
+      {
+        "turn": 7,
+        "polarity": -0.65
+      },
+      {
+        "turn": 8,
+        "polarity": -0.65
+      },
+      {
+        "turn": 9,
+        "polarity": -0.6
+      },
+      {
+        "turn": 10,
+        "polarity": -0.6
+      }
+    ],
+    "signal_strength": "strong",
+    "emotional_shift_detected": false,
+    "shift_description": "",
+    "repeated_patterns": [
+      "anxiety 표현 10회 반복",
+      "sadness 표현 9회 반복"
+    ],
+    "per_utterance_tags": [
+      {
+        "turn": 0,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.4
+      },
+      {
+        "turn": 1,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 2,
+        "emotions": [
+          "neutral"
+        ],
+        "polarity": 0.0
+      },
+      {
+        "turn": 3,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 4,
+        "emotions": [
+          "sadness",
+          "anxiety"
+        ],
+        "polarity": -0.5
+      },
+      {
+        "turn": 5,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 6,
+        "emotions": [
+          "anxiety"
+        ],
+        "polarity": -0.2
+      },
+      {
+        "turn": 7,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 8,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.65
+      },
+      {
+        "turn": 9,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.6
+      },
+      {
+        "turn": 10,
+        "emotions": [
+          "anxiety",
+          "sadness"
+        ],
+        "polarity": -0.6
+      }
+    ]
+  },
+  "phr_summary": {},
+  "prompts_degraded": false,
+  "session_index": 5,
+  "simulated_date": "2026-08-19",
+  "is_revisit": true,
+  "model": "solar-pro3-260323",
+  "prompt_version": "v4",
+  "prior_handoff": "[이전 세션 요약 — 수집된 정보]\n- chief_complaint: 가슴 답답함과 어깨 뻣뻣함이 여전히 가끔씩 느껴지며, 아침에 업무 메일을 확인할 때 가슴이 조이는 느낌이 있음\n- history_of_present_illness: 아침 업무 메일 확인 시 가슴이 조이는 느낌이 재발하며, 스트레스 상황에서 조마조마함과 함께 나타남. 과거보다 덜하지만 긴장되는 일이 있을 때 다시 증상이 나타남. 요가 수업으로 기분 전환되었으나 일 생각이 나면 다시 긴장됨. 깊은 숨을 쉬려고 노력하지만 금방 가라앉지 않고, 집에 와서 차 한 잔 마시며 잠깐 멈추는 것이 도움이 되나 퇴근 후 소파에 눕는 것이 편해 자주 못함\n- family_history: 어머니는 가끔 잠 못 주무심\n- substance_use_history: 커피 대신 차 위주로 마심\n- personal_social_history: 회사 동료와 주 2회 통화, 퇴근 후 혼자 있는 시간 증가, 최근 연락 감소\n\n[이전 세션 요약 — 미수집 정보]\npast_psychiatric_history, medical_history",
+  "carried_slot_provenance": {
+    "personal_social_history": "carried_from_session_4",
+    "substance_use_history": "carried_from_session_4",
+    "risk_assessment": "carried_from_session_4",
+    "family_history": "carried_from_session_4"
+  },
+  "scenario_pack_id": "VP-001_improvement_plateau_s05",
+  "arc_mode": "improvement_plateau"
+}

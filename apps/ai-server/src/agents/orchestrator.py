@@ -57,13 +57,13 @@ _MAX_HANDOFF_REGEN = 2
 _CRISIS_MESSAGES: dict[CTRSLevel, str] = {
     CTRSLevel.EMERGENCY: (
         "지금 많이 위급한 상황이시군요. 즉시 119 또는 112에 연락해 주세요. "
-        "자살예방상담전화 1393도 24시간 운영되고 있습니다. "
+        "자살예방상담전화 109도 24시간 운영되고 있습니다. "
         "당신의 안전이 가장 중요합니다."
     ),
     CTRSLevel.HIGH_RISK: (
         "지금 많이 힘드시군요. 당신의 이야기를 듣고 있습니다. "
         "혼자 감당하지 않으셔도 됩니다. "
-        "자살예방상담전화 1393, 정신건강위기상담전화 1577-0199로 연락해 주세요."
+        "자살예방상담전화 109, 정신건강위기상담전화 1577-0199로 연락해 주세요."
     ),
 }
 
@@ -445,12 +445,20 @@ class OrchestratorAgent(BaseAgent):
         self._record_stage(state, SessionStage.handoff_delivery, "orchestrator", "pass")
         state.current_stage = SessionStage.completed
 
+        # REV-001 Issue 1/2 (critic, `discussion.md`): `handoff_ready` used to
+        # be hardcoded `True` here regardless of whether `handoff_report`
+        # above is actually populated — a pipeline exception (caught at
+        # line ~435) or a `VerifierAction.reject` (line ~418) both leave
+        # `handoff_report=None`, but the caller (`routes/chat.py`) was told
+        # "ready" anyway and shipped a "report will be written" message with
+        # no report reachable through the wire contract. `handoff_ready` now
+        # reflects reality: only True when a report was actually produced.
         return OrchestratorTurnResult(
             session_id=state.session_id,
             current_stage=SessionStage.completed,
             safety_status=state.safety_status,
             slot_coverage=state.slot_coverage,
-            handoff_ready=True,
+            handoff_ready=handoff_report is not None,
             handoff_report=handoff_report,
             session_state=state,
             stage_history=state.stage_history,

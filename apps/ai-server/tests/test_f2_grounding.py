@@ -30,6 +30,7 @@ from src.eval.f2_grounding import (
     VERDICT_REJECTED_RISK_LEXICON,
     VERDICT_REJECTED_UNKNOWN_SOURCE,
     VERDICT_REJECTED_UNKNOWN_TYPE,
+    _contains_any,
     _normalize_rag_chunk_source_id,
     audit_domain_candidates,
     check_evidence,
@@ -367,20 +368,22 @@ class TestRiskLexiconFilter:
             for i in idiom:
                 assert r not in i and i not in r, f"overlap between {r!r} and {i!r}"
 
-    def test_risk_lexicon_stem_family_count_is_20_not_15(self) -> None:
-        """REV-024 ruling 1/5, Issue 5: the "15-stem" citation (`rag_trigger.
-        py`, `injection_protocol.py`) undercounted the actual lexicon.
-        Mechanical, drift-proof count — same space-insensitive normalization
-        `test_risk_and_panic_idiom_lexicons_are_disjoint` above already uses
-        for this exact list: every stem's spaced/no-space sibling collapses
-        to one family (the tuple's own consistent construction pattern; the
-        3 bare 2-char nouns 자살/자해/유서 have no sibling to collapse). This
-        pins the exact number cited in both code comments — any future edit
-        to `_RISK_PHRASES` that shifts the family count must update this
-        test deliberately, not silently drift the citation again."""
-        assert len(_RISK_PHRASES) == 37
-        families = {p.replace(" ", "") for p in _RISK_PHRASES}
-        assert len(families) == 20
+    def test_risk_lexicon_stem_family_count_is_30_not_20(self) -> None:
+        """REV-024 ruling 1/5, Issue 5 established the 20-family/37-entry
+        baseline; VAL-010/VAL-015 (docs/ai/lexicon_expansion_val010.md)
+        expanded it to 30 families/48 entries (1 Korean + 9 English new
+        families — see the design note for the exact breakdown, including
+        why `don't want to live`/`do not want to live` and `self-harm`/
+        `self harm` count as 2 families each, not 1: the apostrophe/hyphen
+        survive the space-only collapse). Mechanical, drift-proof count —
+        same space+case-insensitive normalization `_contains_any` itself
+        uses. This pins the exact number cited in both code comments — any
+        future edit to `_RISK_PHRASES` that shifts the family count must
+        update this test deliberately, not silently drift the citation
+        again."""
+        assert len(_RISK_PHRASES) == 48
+        families = {p.replace(" ", "").casefold() for p in _RISK_PHRASES}
+        assert len(families) == 30
 
     def test_risk_lexicon_verdict_counted_separately_in_audit(self) -> None:
         """New verdict class must be distinguishable from existing reject
@@ -403,6 +406,151 @@ class TestRiskLexiconFilter:
         assert counts[VERDICT_REJECTED_RISK_LEXICON] == 1
         assert counts[VERDICT_REJECTED_QUOTE_MISMATCH] == 0
         assert counts[VERDICT_ACCEPTED] == 0
+
+
+class TestVal010Val015LexiconExpansion:
+    """VAL-010/VAL-015 (docs/ai/lexicon_expansion_val010.md) — Korean
+    paraphrase + English SI-stem expansion. Evidence sources: EXP-016
+    findings 27/31/34 (English, Policy-B judge-composed retrieval queries)
+    and 43 (Korean, Policy-A fallback query), both re-extracted verbatim
+    from the archived live artifacts (design note §1a). Positive test per
+    new stem, plus the adversarial English panic-fear non-collision guard
+    and the EXP-026b (VP-004, 9/13) replay this expansion does NOT filter
+    (design note §1b/§4 — those 9 queries are legitimate ISS-046
+    panic-idiom content, not a lexicon miss)."""
+
+    def test_korean_hate_living_paraphrase_rejected(self) -> None:
+        """EXP-016 finding 43 verbatim (SC-5 VP-003 session2 live query)."""
+        text = "(침묵 4초)  \n살기 싫어요."
+        utterances = {"turn_0": text}
+        v = check_evidence(
+            "utterance", "turn_0", text, chunk_texts={}, utterances=utterances,
+        )
+        assert v.verdict == VERDICT_REJECTED_RISK_LEXICON
+
+    def test_english_passive_si_query_rejected(self) -> None:
+        """EXP-016 finding 27/34 verbatim (SC-2/SC-3b VP-003 Policy-B
+        judge-composed retrieval query)."""
+        text = (
+            "persistent insomnia, anhedonia, and passive suicidal ideation "
+            "in a patient with hypertension and daily alcohol use"
+        )
+        utterances = {"turn_0": text}
+        v = check_evidence(
+            "utterance", "turn_0", text, chunk_texts={}, utterances=utterances,
+        )
+        assert v.verdict == VERDICT_REJECTED_RISK_LEXICON
+
+    def test_english_thoughts_of_death_query_rejected(self) -> None:
+        """EXP-016 finding 31 verbatim (SC-3 VP-003 rep2 Policy-B
+        judge-composed retrieval query)."""
+        text = "persistent thoughts of death and insomnia with nocturnal awakenings"
+        utterances = {"turn_0": text}
+        v = check_evidence(
+            "utterance", "turn_0", text, chunk_texts={}, utterances=utterances,
+        )
+        assert v.verdict == VERDICT_REJECTED_RISK_LEXICON
+
+    def test_english_stem_matching_is_case_insensitive(self) -> None:
+        """VAL-015: a judge-composed query is not guaranteed lowercase — a
+        sentence-initial capitalization must still be caught."""
+        text = "Suicidal Ideation reported alongside chronic insomnia."
+        utterances = {"turn_0": text}
+        v = check_evidence(
+            "utterance", "turn_0", text, chunk_texts={}, utterances=utterances,
+        )
+        assert v.verdict == VERDICT_REJECTED_RISK_LEXICON
+
+    @pytest.mark.parametrize(
+        "phrase",
+        [
+            "want to die",
+            "don't want to live",
+            "do not want to live",
+            "kill myself",
+            "end my life",
+            "self-harm",
+            "self harm",
+        ],
+    )
+    def test_minimal_english_si_class_stem_rejected(self, phrase: str) -> None:
+        """Brief-directed minimal English SI class (design note §2b) —
+        each is the English analogue of an already-covered Korean stem."""
+        text = f"The patient reported that they {phrase} most nights."
+        utterances = {"turn_0": text}
+        v = check_evidence(
+            "utterance", "turn_0", text, chunk_texts={}, utterances=utterances,
+        )
+        assert v.verdict == VERDICT_REJECTED_RISK_LEXICON, f"phrase {phrase!r} not rejected"
+
+    def test_english_panic_fear_quote_not_risk_lexicon_rejected(self) -> None:
+        """Adversarial non-collision guard (design note §2b): English
+        panic-attack fear-of-dying phrasing ("going to die"/"felt like I
+        was going to die") must NOT be caught by the new `thoughts of
+        death` stem — the two constructions share no substring. There is
+        no English `_PANIC_IDIOM_PHRASES` carve-out yet (only Korean is
+        covered today), so this test's assertion is that the RISK lexicon
+        itself does not false-positive on this phrasing, independent of
+        any idiom-exemption machinery."""
+        text = (
+            "I felt like I was going to die during the panic attack, my "
+            "heart was racing and I couldn't breathe."
+        )
+        assert not _contains_any(text, _RISK_PHRASES)
+        utterances = {"turn_0": text}
+        v = check_evidence(
+            "utterance", "turn_0", text, chunk_texts={}, utterances=utterances,
+        )
+        assert v.verdict == VERDICT_ACCEPTED
+
+    def test_new_stems_disjoint_from_panic_idiom_phrases(self) -> None:
+        """Re-verifies the structural disjoint guarantee
+        (test_risk_and_panic_idiom_lexicons_are_disjoint) explicitly for
+        the newly added stems only, so a future edit to that shared test
+        cannot silently stop covering this expansion's own additions."""
+        new_stems = ["살기 싫", "살기싫", "suicidal ideation", "thoughts of death"]
+        idiom = [p.replace(" ", "") for p in _PANIC_IDIOM_PHRASES]
+        for stem in new_stems:
+            collapsed = stem.replace(" ", "")
+            for i in idiom:
+                assert collapsed not in i and i not in collapsed, (
+                    f"overlap between new stem {stem!r} and idiom {i!r}"
+                )
+
+    def test_exp026b_vp004_nine_bypass_queries_replay_not_filtered_by_design(
+        self,
+    ) -> None:
+        """EXP-026b (`result.md` EXP-026 extension, VP-004, "9/13") replay —
+        design note §1b/§4. These 9 real live queries all contain the
+        Korean panic fear-of-dying idiom ("죽을 것 같다") WITH co-occurring
+        panic-symptom context (숨/심장) — the exact ISS-046 construct
+        `_PANIC_IDIOM_PHRASES` exists to exempt. They are correctly NOT
+        caught by this expansion (no new stem matches them) — replaying
+        them here locks in that this is the intended outcome, not an
+        overlooked gap, and would immediately fail loud if a future edit
+        accidentally added a stem that caught them (over-blocking
+        regression)."""
+        from src.rag_trigger import apply_risk_lexicon_filter
+
+        vp004_bypass_queries = [
+            "눈물이 멈추지 않고, 약을 먹어도 증상이 악화되며 숨이 안 쉬어지고 "
+            "심장이 터질 것처럼 뛰는 증상이 자주 발생하여 죽을 것 같다는 두려움",
+            "눈물이 멈추지 않고, 약을 먹어도 증상이 악화되며 숨이 안 쉬어지고 "
+            "심장이 터질 것처럼 뛰는 증상이 자주 발생하여 죽을 것 같다는 두려움을 "
+            "호소하고 있음",
+            "숨이 안 쉬어지고 심장이 터질 것 같은 두려움과 죽을 것 같다는 생각이 계속됨",
+            "숨이 안 쉬어지고 심장이 터질 것 같은 두려움과 죽을 것 같다는 생각이 "
+            "계속되며, 약을 두 번 바꿨음에도 증상이 악화되고 있음",
+            "숨이 안 쉬어지고 심장이 터질 것 같은 두려움과 죽을 것 같다는 생각이 계속됨",
+            "숨이 안 쉬어지고 심장이 터질 것 같은 두려움과 죽을 것 같다는 생각이 계속됨",
+            "숨이 안 쉬어지고 심장이 터질 것 같은 두려움과 죽을 것 같다는 생각이 계속됨",
+            "숨이 안 쉬어지고 심장이 터질 것 같은 두려움과 죽을 것 같다는 생각이 계속됨",
+            "숨이 안 쉬어지고 심장이 터질 것 같은 두려움과 죽을 것 같다는 생각이 계속됨",
+        ]
+        assert len(vp004_bypass_queries) == 9
+        clean, dropped = apply_risk_lexicon_filter(vp004_bypass_queries)
+        assert dropped == []
+        assert len(clean) == 9
 
 
 class TestRejectionCascade:

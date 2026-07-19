@@ -1,8 +1,8 @@
 """BUG-030 iteration-2 + BUG-035 companion guard — regression tests.
 
-Design: `docs/ai/fix_design_bug030_iter2.md`. Ratified: `ADR-029` (bound
+Design: `_archive/plans/fix_design_bug030_iter2.md`. Ratified: `ADR-029` (bound
 amendments D2/D3/D5), `REV-032` (criteria A-E), `CVR-011` (5 binding
-conditions), `docs/ai/rubric_bug030_acceptance.md` §10.
+conditions), `_archive/reports/rubric_bug030_acceptance.md` §10.
 
 Covers the design §7 test plan (items 1-8) plus the amendments folded in by
 ADR-029 during implementation:

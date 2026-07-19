@@ -1,0 +1,8 @@
+{
+  "exp_id": "EXP-016/runs/sc13",
+  "state": "blocked",
+  "cells_run": 0,
+  "cells_planned": 7,
+  "reason": "No legitimate public seam to point the patient-simulator persona loader at an explicit FILE path (required to consume docs/ai/personas/_canary_audit/ copies) without a code change. apps/ai-server/src/f1.py:2141 -> apps/ai-server/tests/simulation/patient_llm.py:52 load_persona(persona_id: str) resolves via a hardcoded PERSONAS_DIR (patient_llm.py:27) and PERSONAS_DIR.glob(f'{persona_id}_*.md') (patient_llm.py:62); no file-path parameter, no env override. f1.py --persona and continuous_test.py --persona both accept only a persona ID string. Per brief: never modify code, never copy canary files into the main personas directory.",
+  "action_taken": "none — code read-only, no canary files copied, no persona files modified"
+}

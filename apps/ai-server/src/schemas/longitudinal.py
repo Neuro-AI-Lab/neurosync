@@ -1,6 +1,6 @@
 """Schemas for F4 longitudinal (between-session) state-change analysis.
 
-`docs/ai/f4_quick_dev_plan.md` §4.3, `PLAN-2026-W29-D`, `ADR-036` items 1/9.
+`_archive/plans/f4_quick_dev_plan.md` §4.3, `PLAN-2026-W29-D`, `ADR-036` items 1/9.
 Standalone by design, same discipline as `schemas.ai_predicted_disease` /
 `schemas.survey_result` (REV-013 §3 lineage / this design's own §6.5 HPI red
 line): this module shares NO base class, field, or inheritance relationship

@@ -105,9 +105,9 @@ class TestE2EFullPipeline:
         assert result.crisis_triggered is True
         assert result.requires_human_review is True
         assert result.handoff_ready is False
-        # TODO(T1-F1-DEV-020): hotline unification pending — current production
-        # crisis messages cite 1393/119; update when the hotline text is unified.
-        assert "1393" in result.assistant_response or "119" in result.assistant_response
+        # BUG-009 fixed: crisis messages now cite the current 109/119 hotlines.
+        assert "109" in result.assistant_response or "119" in result.assistant_response
+        assert "1393" not in result.assistant_response
 
     @pytest.mark.asyncio
     async def test_high_coverage_triggers_full_pipeline(self):

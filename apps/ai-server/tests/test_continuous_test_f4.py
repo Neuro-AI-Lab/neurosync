@@ -1,5 +1,5 @@
 """`src.continuous_test`'s F4 stage + scenario-pack threading —
-`docs/ai/f4_quick_dev_plan.md`, `PLAN-2026-W29-D`, `ADR-036`. No live
+`_archive/plans/f4_quick_dev_plan.md`, `PLAN-2026-W29-D`, `ADR-036`. No live
 LLM/DB anywhere in this file: F1 is monkeypatched (mirrors
 `tests/test_continuous_test_f3.py`'s existing convention), F2/F3 are
 stubbed trivially since this file's focus is F4 assembly + scenario-pack
@@ -477,6 +477,13 @@ class TestCliScenarioPackFlag:
     def test_invalid_choice_rejected(self) -> None:
         with pytest.raises(SystemExit):
             ct.build_arg_parser().parse_args(["--scenario-pack", "VP-999"])
+
+    def test_all_registry_vps_accepted(self) -> None:
+        from tests.simulation.scenario_pack import _SCENARIO_PACKS
+
+        for vp_id in sorted(_SCENARIO_PACKS):
+            args = ct.build_arg_parser().parse_args(["--scenario-pack", vp_id])
+            assert args.scenario_pack == vp_id
 
     def test_no_f4_flag_default_false(self) -> None:
         args = ct.build_arg_parser().parse_args([])

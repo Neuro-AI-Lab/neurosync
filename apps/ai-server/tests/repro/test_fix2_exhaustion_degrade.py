@@ -1,6 +1,6 @@
 """Fix 2 — retry-budget-exhaustion safe-degrade regression tests.
 
-Design: `docs/ai/fix_design_exhaustion_bug037.md` §3. Ratified: `ADR-030`
+Design: `_archive/plans/fix_design_exhaustion_bug037.md` §3. Ratified: `ADR-030`
 (Decisions 1/2/3/5), `CVR-013` (Option C pick, 3 binding conditions),
 `REV-034` (splice/byte-identical-remainder condition, marker-contamination
 requirement). Filed under: `PLAN-2026-W28-U`.

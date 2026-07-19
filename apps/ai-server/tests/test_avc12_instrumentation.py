@@ -1,6 +1,6 @@
 """`src.avc12_instrumentation` — AVC-12 activation-rate counters.
 
-PLAN-2026-W28-Q W3 (`docs/ai/validation_plan_f1f2_continuous.md` §6
+PLAN-2026-W28-Q W3 (`_archive/plans/validation_plan_f1f2_continuous.md` §6
 AVC-12). Deterministic, artifact/log-fixture-based coverage only — every
 counter reads an already-existing artifact field or log message, never a
 new production emission point.
