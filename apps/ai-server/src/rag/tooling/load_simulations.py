@@ -1,12 +1,17 @@
 """시뮬레이션 대화(docs/ai/simulation_results) → DB 적재 (오프라인, sync).
 
-VP-001~004 각 페르소나를 "실제 환자가 입력한 것처럼" 5개 테이블에 채운다:
+정크(테스트리그/미완성) 배제 후 session_id별 최신 세션만 "실제 환자가
+입력한 것처럼" 채운다. 초·재세션이 같은 환자로 묶여 종단 데이터를 형성:
   users → patient_profiles → sessions → messages → rag.session_insights
+                → questionnaire_results → rag.longitudinal_series
 
 데이터 소스 (더미 0개):
   - 인구정보(이름/나이/성별/거주지): docs/ai/personas/VP-00X_*.md 표
-  - 대화 원문: *_conversation.json  turns[]
+  - 대화 원문: *_conversation.json  turns[]  (턴0·1 시드 겹침은 dedup)
   - 임상 슬롯:  *_conversation.json  final_slots[]  → session_insights.slots(JSONB)
+  - 추정질환/grounding(F2): *_domain_inference.json → session_insights 신설 컬럼
+  - 문진 결과(F3): *_survey.json(administered) → questionnaire_results
+      + longitudinal_series(척도별 시점)
   - class/자살플래그: 페르소나별 규칙 매핑(아래 PERSONA_META)
 
 ID는 uuid5로 결정론적 생성 → 재실행해도 중복 없음(ON CONFLICT).
@@ -67,6 +72,88 @@ PERSONA_META = {
 
 CURRENT_YEAR = 2026
 MINOR_AGE_CUTOFF = 14  # api patient_profiles.is_minor 판정 기준(만 14세 미만)
+
+# F3 survey_scorer의 ScaleName 5종 (0008 마이그레이션 CHECK 제약과 동일).
+ALLOWED_SCALES = {"PHQ-9", "GAD-7", "PHQ-4", "WHO-5", "AUDIT-C"}
+
+# 테스트리그 세션 식별자(정크). 실제 임상 세션(f1_VP-00X[_followup])만 남긴다.
+#   sc\d… : 시나리오 주입,  _injected/_rep\d/_phr/_audio : 변형 리그
+_TESTRIG = re.compile(r"(^sc\d|_injected|_rep\d|_phr|_audio)")
+
+
+def _max_patient_run(turns: list[dict]) -> int:
+    """연속으로 동일한 patient_message가 반복된 최대 길이(정크 판정용)."""
+    prev = None
+    run = 0
+    mx = 0
+    for t in turns:
+        pm = (t.get("patient_message") or "").strip()
+        if pm and pm == prev:
+            run += 1
+        else:
+            run = 1
+            prev = pm
+        mx = max(mx, run)
+    return mx
+
+
+def _select_conv_files() -> list[Path]:
+    """정크 배제 후 session_id별 최신 conversation 1개를 고른다.
+
+    필터: 실제 세션(테스트리그 아님) AND turns>=10 AND 연속중복<=2(턴0·1 시드
+    겹침만 허용). 파일명이 시간순 정렬되므로 마지막(최신)이 세션 대표.
+    """
+    best: dict[str, Path] = {}
+    for f in sorted(glob.glob(str(SIM_DIR / "VP-*" / "*_conversation.json"))):
+        try:
+            doc = json.loads(Path(f).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        sid = doc.get("session_id")
+        turns = doc.get("turns", [])
+        if not sid or _TESTRIG.search(sid):
+            continue
+        if len(turns) < 10 or _max_patient_run(turns) > 2:
+            continue
+        best[sid] = Path(f)  # 정렬상 뒤 = 최신
+    return [best[s] for s in sorted(best)]
+
+
+def _newest_domain_inference(persona_dir: Path, conv_session: str) -> dict | None:
+    """session_id가 일치하는 최신 domain_inference.json(F2 산출물) 반환."""
+    found = None
+    for f in sorted(persona_dir.glob("*_domain_inference.json")):
+        try:
+            d = json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if d.get("session_id") == conv_session:
+            found = d  # 정렬상 뒤 = 최신
+    return found
+
+
+def _administered_surveys(persona_dir: Path, conv_session: str) -> list[dict]:
+    """해당 세션에서 실제 시행된(administered) 문진 결과들을 시간순으로 반환.
+
+    outcome!=administered(no_questionnaire_indicated 등), 미허용 척도,
+    score_result 없음은 제외 → questionnaire_results NOT NULL/CHECK 안전.
+    """
+    out = []
+    for f in sorted(persona_dir.glob("*_survey.json")):
+        try:
+            s = json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if s.get("session_id") != conv_session:
+            continue
+        if s.get("outcome") != "administered":
+            continue
+        if s.get("scale_name") not in ALLOWED_SCALES:
+            continue
+        if not (s.get("score_result") or {}).get("severity"):
+            continue
+        out.append(s)
+    return out
 
 
 def _persona_demographics(persona_id: str) -> dict:
@@ -171,11 +258,17 @@ def _load_one(cur, conv_path: Path) -> dict:
     )
 
     # 4) messages (content 암호화). turn마다 환자발화(user) + AI응답(ai).
+    #    턴0·1 시드 겹침: 두 턴의 patient_message가 동일한 알려진 현상 →
+    #    직전과 같은 환자발화는 1회만 적재(agent_response는 서로 달라 그대로).
     n_msg = 0
+    prev_pm = None
     for turn in doc.get("turns", []):
         ts = _parse_ts(turn.get("timestamp"))
-        for role, key in (("user", "patient_message"), ("ai", "agent_response")):
-            content = turn.get(key)
+        pm = turn.get("patient_message")
+        pm_dedup = None if (pm and pm == prev_pm) else pm
+        if pm:
+            prev_pm = pm
+        for role, content in (("user", pm_dedup), ("ai", turn.get("agent_response"))):
             if not content:
                 continue
             mid = uuid.uuid5(NS, f"msg:{conv_session}:{turn.get('turn')}:{role}")
@@ -193,18 +286,33 @@ def _load_one(cur, conv_path: Path) -> dict:
             n_msg += 1
 
     # 5) rag.session_insights — my_past 검색 대상. situation은 평문바이트(_dec 호환).
+    #    F2 산출물(추정질환/grounding)은 domain_inference.json에서 가져온다.
+    #    class(3분류 도메인)는 PERSONA_META 유지, 추정질환은 신설 컬럼에 분리 저장.
     situation = _situation(doc.get("final_slots", []))
     embedding = embed_passages([situation])[0]
     slots_obj = {s["key"]: s["value"] for s in doc.get("final_slots", [])}
+
+    di = _newest_domain_inference(conv_path.parent, conv_session)
+    apd = di.get("ai_predicted_disease") if di else None
+    ai_predicted = Jsonb(apd) if apd else None
+    grounding = (
+        Jsonb({"domain_candidates": di.get("domain_candidates")}) if di else None
+    )
+    rec_q = (apd or {}).get("recommended_questionnaire")  # 없으면 NULL(허위 금지)
+
     cur.execute(
         """INSERT INTO rag.session_insights
              (session_id, patient_id, class, phq9_score, gad7_score, flag_suicidal,
-              situation_encrypted, slots, embedding, embedding_model)
-           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::vector, %s)
+              situation_encrypted, slots, embedding, embedding_model,
+              ai_predicted_disease, grounding, recommended_questionnaire)
+           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::vector, %s, %s, %s, %s)
            ON CONFLICT (session_id) DO UPDATE SET
              class=EXCLUDED.class, slots=EXCLUDED.slots,
              situation_encrypted=EXCLUDED.situation_encrypted,
-             embedding=EXCLUDED.embedding, embedding_model=EXCLUDED.embedding_model""",
+             embedding=EXCLUDED.embedding, embedding_model=EXCLUDED.embedding_model,
+             ai_predicted_disease=EXCLUDED.ai_predicted_disease,
+             grounding=EXCLUDED.grounding,
+             recommended_questionnaire=EXCLUDED.recommended_questionnaire""",
         (
             session_id,
             user_id,
@@ -216,26 +324,87 @@ def _load_one(cur, conv_path: Path) -> dict:
             Jsonb(slots_obj),
             to_pgvector(embedding),
             MODEL_TAG,
+            ai_predicted,
+            grounding,
+            rec_q,
         ),
     )
+
+    # 6) questionnaire_results — 실제 시행된 문진(administered)만. (session,type)당
+    #    최신 1건(UNIQUE 제약) → 척도별 재시행은 최신 점수로 upsert.
+    surveys = _administered_surveys(conv_path.parent, conv_session)
+    n_qr = 0
+    for s in surveys:  # 시간순 → 뒤(최신)가 이김
+        scale = s["scale_name"]
+        sr = s["score_result"]
+        qid = uuid.uuid5(NS, f"qr:{conv_session}:{scale}")
+        cur.execute(
+            """INSERT INTO questionnaire_results
+                 (id, session_id, type, answers, total_score, severity, completed_at)
+               VALUES (%s, %s, %s, %s, %s, %s, %s)
+               ON CONFLICT (session_id, type) DO UPDATE SET
+                 answers=EXCLUDED.answers, total_score=EXCLUDED.total_score,
+                 severity=EXCLUDED.severity, completed_at=EXCLUDED.completed_at""",
+            (
+                qid,
+                session_id,
+                scale,
+                Jsonb(s.get("responses")),
+                sr["total_score"],
+                sr["severity"],
+                _parse_ts(s.get("timestamp")),
+            ),
+        )
+        n_qr += 1
+
+    # 7) rag.longitudinal_series — F4 종단 시계열. 문진 시행 파일마다 1 시점.
+    #    (patient_id, scale, measured_at) UNIQUE로 멱등. 초·재세션이 같은 환자로
+    #    묶여 척도별 다중 시점을 형성한다.
+    n_long = 0
+    for s in surveys:
+        measured_at = _parse_ts(s.get("timestamp"))
+        if measured_at is None:
+            continue
+        sr = s["score_result"]
+        cur.execute(
+            """INSERT INTO rag.longitudinal_series
+                 (patient_id, session_id, scale, total_score, severity,
+                  measured_at, series)
+               VALUES (%s, %s, %s, %s, %s, %s, %s)
+               ON CONFLICT (patient_id, scale, measured_at) DO NOTHING""",
+            (
+                user_id,
+                session_id,
+                s["scale_name"],
+                sr["total_score"],
+                sr["severity"],
+                measured_at,
+                Jsonb(s.get("responses")),
+            ),
+        )
+        n_long += 1
 
     return {
         "persona": persona_id,
         "name": demo["name"],
         "patient_id": str(user_id),
         "session_id": str(session_id),
+        "conv_session": conv_session,
         "messages": n_msg,
         "slots": len(slots_obj),
         "class": meta["class"],
+        "disease": next(iter((apd or {}).get("candidates") or []), {}).get("disease"),
+        "questionnaires": n_qr,
+        "longitudinal": n_long,
     }
 
 
 def main() -> int:
-    conv_files = sorted(glob.glob(str(SIM_DIR / "VP-*" / "*_conversation.json")))
+    conv_files = _select_conv_files()  # 정크 배제 + session_id별 최신 1개
     if not conv_files:
-        print(f"[오류] conversation.json 없음: {SIM_DIR}")
+        print(f"[오류] 적재할 클린 세션 없음: {SIM_DIR}")
         return 1
-    print(f"적재 대상 {len(conv_files)}건 (임베딩 모델={MODEL_TAG})\n", flush=True)
+    print(f"적재 대상 {len(conv_files)}세션 (정크 배제 후, 임베딩 모델={MODEL_TAG})\n", flush=True)
 
     conn = connect()
     results = []
@@ -245,17 +414,22 @@ def main() -> int:
                 r = _load_one(cur, Path(f))
                 results.append(r)
                 print(
-                    f"  ✓ {r['persona']} {r['name']}  patient_id={r['patient_id']}  "
-                    f"msg={r['messages']} slots={r['slots']} class={r['class']}",
+                    f"  ✓ {r['conv_session']:18s} {r['name']}  "
+                    f"msg={r['messages']} slots={r['slots']} class={r['class']} "
+                    f"qr={r['questionnaires']} long={r['longitudinal']} "
+                    f"추정={r['disease']}",
                     flush=True,
                 )
         conn.commit()
     finally:
         conn.close()
 
-    print("\n=== rag_chat.py 검증용 patient_id ===", flush=True)
+    print("\n=== rag_chat.py 검증용 patient_id (persona별) ===", flush=True)
+    seen = {}
     for r in results:
-        print(f"  {r['persona']} {r['name']}: {r['patient_id']}", flush=True)
+        seen.setdefault(r["persona"], r["patient_id"])
+    for persona, pid in seen.items():
+        print(f"  {persona}: {pid}", flush=True)
     return 0
 
 
