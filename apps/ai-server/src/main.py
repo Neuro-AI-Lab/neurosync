@@ -7,10 +7,18 @@ Exposes:
 - POST /ai/chat/respond
 - POST /ai/slots/extract
 - POST /ai/survey/score
+- POST /ai/survey/plan (F3 administration plan — stateless, deployment_integration_plan.md R3)
+- POST /ai/temporal/analyze (F4 longitudinal analysis — stateless, R1)
+- POST /ai/handoff/report (F4+F5 hand-off report — stateless, R1)
 - POST /ai/domain/infer (F2, standalone — not wired into orchestrator.py)
 - POST /ai/ocr/parse
 - POST /ai/stt/transcribe
 - GET  /ai/nearby/hospitals(/report), /ai/nearby/pharmacies(/report), /ai/nearby/ui — HIRA + Kakao
+
+Stateless compute principle (R2): `/ai/temporal/analyze`/`/ai/handoff/report`/
+`/ai/survey/plan` never read or write server-side session state — every call
+carries its own full input payload; the backend owns patient/session
+identity + persistence.
 
 RAG is in-process only, now and at deployment — there is no RAG HTTP API
 (ADR-017: permanently out of scope). `src.rag.retrieval.retrieve_grounding`

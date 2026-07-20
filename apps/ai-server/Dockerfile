@@ -18,6 +18,28 @@ COPY apps/ai-server/pyproject.toml ./
 COPY apps/ai-server/src ./src
 COPY apps/ai-server/tests ./tests
 
+# Pinned prompts (docs/ai/deployment_integration_plan.md G1) — safety v2,
+# dialogue v4, domain_inference v2, handoff v2/v3, etc. `PromptLoader`
+# resolves relative to `PROMPTS_BASE_DIR` at request time; the ENV below is
+# only the IN-CONTAINER default (pydantic-settings env-var precedence over
+# `.env`-file values, src/config.py) — a host run's own `.env` value still
+# overrides it, unaffected by this image default.
+COPY docs/ai/prompts /app/prompts
+ENV PROMPTS_BASE_DIR=/app/prompts
+
+# Korean font assets for F5 PDF embedding (docs/ai/deployment_integration_plan.md
+# G2) — the SAME committed, SHA256-pinned TTF subsets
+# `src/services/f5_report.py::_register_korean_fonts` already reads from
+# `apps/ai-server/assets/fonts` at import-relative path resolution
+# (`Path(__file__).resolve().parents[2] / "assets" / "fonts"` ==
+# `/app/assets/fonts` once `src/` lands at `/app/src`); shipping the
+# committed build script alongside them (never regenerated at build time —
+# regeneration requires this host's own installed Noto CJK KR fonts, not
+# guaranteed reproducible inside the image) preserves provenance/audit
+# traceability for anyone inspecting the running container.
+COPY apps/ai-server/assets/fonts /app/assets/fonts
+COPY apps/ai-server/scripts/build_korean_fonts.py /app/scripts/build_korean_fonts.py
+
 RUN uv pip install --system -e . && \
     uv pip install --system -e /workspace/packages/shared-contracts/python && \
     chown -R app:app /app /workspace

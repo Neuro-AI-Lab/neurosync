@@ -57,6 +57,23 @@ services:
     command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
     environment:
       LOG_LEVEL: info
+      # ── Deployment-integration passthrough (docs/ai/deployment_integration_plan.md
+      # G3). Bare `KEY:` entries (no value) forward the value from compose's own
+      # process/`.env` environment 1:1 into the container; when unset there,
+      # compose OMITS the key entirely (never sets an empty-string override) — an
+      # unset var resolves to its Settings() field default in src/config.py, and
+      # PROMPTS_BASE_DIR specifically falls through to the Dockerfile's
+      # in-container ENV default (/app/prompts). No value is invented here.
+      HIRA_SERVICE_KEY:
+      HIRA_HOSPITAL_SERVICE_URL:
+      HIRA_PHARMACY_SERVICE_URL:
+      HIRA_MADM_DTL_SERVICE_URL:
+      HIRA_DRUG_EFFICACY_SERVICE_URL:
+      KAKAO_REST_KEY_ENCODED:
+      KAKAO_JS_KEY_ENCODED:
+      KAKAO_LOCAL_REST_BASE_URL:
+      LLM_CLIENT_TIMEOUT_S:
+      PROMPTS_BASE_DIR:
     ports:
       - "127.0.0.1:8001:8001"
     volumes:
