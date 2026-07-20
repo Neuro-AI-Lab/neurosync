@@ -1,0 +1,51 @@
+# DGX Spark production deployment — ai-server ONLY.
+#
+# ⚠️  STANDALONE file, NOT an override of docker-compose.yml — run with ONLY
+#     `-f infra/deploy/docker-compose.dgx.yml`. Never combine the two files.
+#
+#   - The DB server already runs on this DGX as a separately managed container
+#     (external 28881 → postgres 5432). This file deliberately defines NO
+#     postgres and NO api service — never start a second DB from here.
+#   - Distinct compose project name + container name → zero state collision
+#     with any compose project or container already on the DGX.
+#   - External port 24855 is the allocated ai-server port. Backend base URL:
+#     http://223.194.33.26:24855  (container listens on 8001, Dockerfile CMD).
+#   - All secrets come from apps/ai-server/.env via env_file at RUN time; the
+#     image never contains .env (root .dockerignore excludes it). The operator
+#     places .env on the DGX before `up`.
+#
+# Run from repo root on the DGX:
+#   docker compose -f infra/deploy/docker-compose.dgx.yml up -d --build
+#   curl -s localhost:24855/health
+#
+# DB reachability: DATABASE_URL in .env points at 223.194.33.26:28881. If the
+# container cannot hairpin through the host's external IP, change only the DSN
+# host to host.docker.internal:28881 (mapped via extra_hosts below) — an .env
+# edit, no code change.
+
+name: neuro-sync-ai-dgx
+
+services:
+  ai-server:
+    build:
+      context: ../..
+      dockerfile: apps/ai-server/Dockerfile
+    container_name: ns-ai-server-dgx
+    # No `command:` override and no src/tests volume mounts — the baked image
+    # is the deployment artifact; the Dockerfile's production CMD runs
+    # (no --reload).
+    env_file:
+      - ../../apps/ai-server/.env
+    environment:
+      LOG_LEVEL: info
+      # `environment:` outranks env_file in compose precedence. The dev .env
+      # carries the workstation-relative PROMPTS_BASE_DIR=docs/ai/prompts,
+      # which does not exist inside the container — pin the baked-in copy
+      # (Dockerfile: COPY docs/ai/prompts /app/prompts) so env_file injection
+      # can never break prompt loading.
+      PROMPTS_BASE_DIR: /app/prompts
+    ports:
+      - "24855:8001"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

@@ -29,12 +29,37 @@
 
 Deferred (P2 backlog): idempotency guard, request_id propagation (REV-001 majors), narrative activation (gated), FHIR $validate external option.
 
-## 3. Deployment runbook (Docker)
+## 3. Deployment runbook (Docker) — DGX topology confirmed 2026-07-20
 
-1. Local: `docker compose -f infra/deploy/docker-compose.yml build ai-server` → container smoke (boot, /health, route smoke).
-2. Transfer: `docker save` → `ssh DGX docker load` (or private registry).
-3. AI server: place `.env` (operator), `docker compose up -d`; in-compose DB via `postgres:5432`, external DB via 28881 if split later — env-DSN only.
-4. Verify: `/health` 200, DB preflight, prompt SHA pins, one F1-turn + one F5-report smoke.
+Confirmed topology (user, 2026-07-20): one DGX Spark host at `223.194.33.26` runs the DB
+server and the AI server as separate containers with distinct external ports.
+
+| Service | External | Internal | State |
+|---|---|---|---|
+| DB server (postgres, admin-managed container) | `223.194.33.26:28881` | 5432 | running |
+| ai-server (this deployment) | `223.194.33.26:24855` | 8001 | to deploy |
+
+The dev workstation (`192.168.68.62`) has no docker and needs none — deployment executes on
+the DGX. Dedicated standalone compose file: `infra/deploy/docker-compose.dgx.yml`
+(ai-server only; defines no postgres/api, distinct project+container name, production CMD,
+no source mounts, `PROMPTS_BASE_DIR` pinned to the baked `/app/prompts` so the dev `.env`'s
+workstation-relative value cannot leak in via env_file). Never combine it with the dev
+`docker-compose.yml`.
+
+On the DGX, as the account that runs the DB container:
+
+```bash
+git clone https://github.com/Neuro-AI-Lab/neurosync.git && cd neurosync   # or git pull
+# place apps/ai-server/.env (operator copies from the dev workstation; never committed)
+docker compose -f infra/deploy/docker-compose.dgx.yml up -d --build
+curl -s localhost:24855/health
+```
+
+Verify: `/health` 200 → route smoke (`POST /ai/survey/plan`, `/ai/temporal/analyze`,
+`/ai/handoff/report`) → DB preflight. If the container cannot reach the DB through the
+host's external IP (hairpin), change the DSN host in `.env` to
+`host.docker.internal:28881` (extra_hosts maps it) — env edit only.
+Backend base URL: `http://223.194.33.26:24855`.
 
 ## 4. Gates
 qa (CI-mirror + route contract tests + container build/boot smoke) → clinical-validator quick pass on /ai/survey/plan semantics (safety-net/SI-supplement decisions must match the validated behavior) → critic wording/regression check. Local commits only; publish on user's word.
