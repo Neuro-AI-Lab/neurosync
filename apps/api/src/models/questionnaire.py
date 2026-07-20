@@ -30,8 +30,11 @@ from src.db import Base
 class QuestionnaireResult(Base):
     __tablename__ = "questionnaire_results"
     __table_args__ = (
+        # v3 FR-040 — 문항 주입형 문진 4종. AUDITC/PHQ4는 top1 라우팅 결과로
+        # 선택될 수 있어야 하므로 제약을 확장한다 (마이그레이션 0008).
         CheckConstraint(
-            "type IN ('PHQ9','GAD7')", name="ck_questionnaire_results_type"
+            "type IN ('PHQ9','GAD7','AUDITC','PHQ4')",
+            name="ck_questionnaire_results_type",
         ),
         UniqueConstraint(
             "session_id", "type", name="uq_questionnaire_results_session_type"

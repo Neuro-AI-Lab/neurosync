@@ -19,6 +19,7 @@ import uuid
 from typing import Any
 
 from contracts.chat import ChatMessage, ChatRequest, Grounding
+from contracts.slots import SlotsExtractRequest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -85,6 +86,43 @@ async def _build_grounding(
         return None
 
 
+async def _extract_slots(
+    *,
+    ai_client: AIClient,
+    session_id: uuid.UUID,
+    context: list[Any],
+    current: dict[str, Any],
+) -> dict[str, Any]:
+    """F1 임상 슬롯 증분 추출 (best-effort).
+
+    주호소·수면·과거력 등을 대화에서 누적한다. 이 값이 F2 도메인 추정의
+    `final_slots`과 F5 핸드오프의 구조화 근거가 된다.
+
+    실패는 무시하고 기존 슬롯을 그대로 반환한다 — 슬롯 추출 때문에 대화가
+    끊기면 안 된다. 저장은 호출자가 플랫폼 sessions 테이블에만 한다
+    (rag.session_insights는 VP 코퍼스 테이블이라 실환자 데이터 금지).
+    """
+    try:
+        result = await ai_client.slots_extract(
+            SlotsExtractRequest(
+                session_id=str(session_id),
+                conversation_history=[
+                    {"role": m.role, "content": m.content} for m in context
+                ],
+                current_slots=current,
+            )
+        )
+    except AIClientError as exc:
+        logger.info("slots.extract.unavailable", extra={"error": str(exc)})
+        return current
+    except Exception:  # noqa: BLE001 — 배경 작업이라 대화를 막지 않는다
+        logger.warning("slots.extract.failed", exc_info=True)
+        return current
+
+    merged = {**current, **(result.extracted_slots or {})}
+    return merged
+
+
 async def respond(
     db: AsyncSession,
     *,
@@ -130,6 +168,13 @@ async def respond(
     if sess is not None:
         sess.progress_ratio = ratio
         sess.collected_items = result.progress.collected_items
+        # F1 — 임상 슬롯을 누적 추출한다. 실패해도 대화는 그대로 진행한다.
+        sess.clinical_slots = await _extract_slots(
+            ai_client=ai_client,
+            session_id=session_id,
+            context=context,
+            current=sess.clinical_slots or {},
+        )
 
     return {
         "messageId": str(ai_message_id),

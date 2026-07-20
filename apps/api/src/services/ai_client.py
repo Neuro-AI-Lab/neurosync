@@ -8,9 +8,12 @@ from __future__ import annotations
 
 import httpx
 from contracts.chat import ChatRequest, ChatResponse
+from contracts.domain import DomainInferRequest, DomainInferResponse
 from contracts.handoff import HandoffRequest, HandoffResponse
 from contracts.safety import SafetyRequest, SafetyResponse
+from contracts.slots import SlotsExtractRequest, SlotsExtractResponse
 from contracts.stt import STTRequest, STTResponse
+from contracts.survey import SurveyScoreRequest, SurveyScoreResponse
 
 from src.core.config import Settings, get_settings
 
@@ -85,6 +88,50 @@ class AIClient:
         except httpx.HTTPError as exc:
             raise AIClientError(f"handoff/generate failed: {exc}") from exc
         return HandoffResponse.model_validate(resp.json())
+
+    # ── v3 추가 (PRD_frontend_v3 §6-A) ──────────────────────────────────
+
+    async def survey_score(self, payload: SurveyScoreRequest) -> SurveyScoreResponse:
+        """POST /ai/survey/score. 결정론적 채점(LLM 없음) — 빠른 기본 타임아웃."""
+        url = f"{self._settings.ai_server_url}/ai/survey/score"
+        try:
+            resp = await self._client.post(url, json=payload.model_dump(mode="json"))
+            resp.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise AIClientError(f"survey/score failed: {exc}") from exc
+        return SurveyScoreResponse.model_validate(resp.json())
+
+    async def domain_infer(self, payload: DomainInferRequest) -> DomainInferResponse:
+        """POST /ai/domain/infer. LLM 호출이라 chat과 같은 예산을 쓴다.
+
+        NFR(v3-3): 모바일 '분석 중' 대기 상한이 5초이므로 이 예산을 넘기면
+        호출자가 폴백 문진으로 진행한다.
+        """
+        url = f"{self._settings.ai_server_url}/ai/domain/infer"
+        try:
+            resp = await self._client.post(
+                url,
+                json=payload.model_dump(mode="json"),
+                timeout=self._settings.ai_domain_timeout_seconds,
+            )
+            resp.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise AIClientError(f"domain/infer failed: {exc}") from exc
+        return DomainInferResponse.model_validate(resp.json())
+
+    async def slots_extract(self, payload: SlotsExtractRequest) -> SlotsExtractResponse:
+        """POST /ai/slots/extract. 대화 배경 작업 — 실패해도 대화를 막지 않는다."""
+        url = f"{self._settings.ai_server_url}/ai/slots/extract"
+        try:
+            resp = await self._client.post(
+                url,
+                json=payload.model_dump(mode="json"),
+                timeout=self._settings.ai_slots_timeout_seconds,
+            )
+            resp.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise AIClientError(f"slots/extract failed: {exc}") from exc
+        return SlotsExtractResponse.model_validate(resp.json())
 
     async def aclose(self) -> None:
         if self._owned:

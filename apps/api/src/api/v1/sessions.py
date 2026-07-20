@@ -54,7 +54,7 @@ from starlette.websockets import WebSocketState
 
 from src.core.config import Settings, get_settings
 from src.core.deps import require_role
-from src.core.encryption import encrypt_str
+from src.core.encryption import decrypt_str, encrypt_str
 from src.core.security import TokenError, decode_token
 from src.db import SessionLocal, get_session
 from src.models.audit_log import AuditLog
@@ -70,6 +70,7 @@ from src.schemas.session import (
 )
 from src.services.ai_client import AIClient, AIClientError, get_ai_client
 from src.services.chat import respond as chat_turn
+from src.services.domain_routing import infer_instrument
 from src.services.handoff import (
     build_report_response,
     create_pending_report,
@@ -154,14 +155,21 @@ async def submit_questionnaire(
     request: Request,
     patient: Annotated[User, Depends(require_role("patient"))],
     db: Annotated[AsyncSession, Depends(get_session)],
+    ai_client: Annotated[AIClient, Depends(get_ai_client)],
 ) -> dict:
     await _owned_in_progress_session(
         db, session_id=session_id, patient_id=patient.id
     )
 
     try:
-        result = await upsert_result(
-            db, session_id=session_id, qtype=body.type, answers=body.answers
+        # v3 FR-040 — 채점은 ai-server 결정론적 채점기에 위임(AUDIT-C 한국 절사점,
+        # PHQ-9 9번 critical item). 장애 시 서비스 내부에서 로컬 컷오프로 폴백한다.
+        result, critical = await upsert_result(
+            db,
+            session_id=session_id,
+            qtype=body.type,
+            answers=body.answers,
+            ai_client=ai_client,
         )
     except QuestionnaireError as exc:
         raise HTTPException(
@@ -191,8 +199,55 @@ async def submit_questionnaire(
             total_score=result.total_score,
             severity=result.severity,
             completed_at=result.completed_at,
+            critical_item_positive=critical,
         ).model_dump(by_alias=True, mode="json"),
     }
+
+
+def _message_aad(session_id: UUID, message_id: UUID) -> bytes:
+    return f"messages.content:{session_id}:{message_id}".encode()
+
+
+@router.post("/{session_id}/domain/infer")
+async def infer_domain(
+    session_id: UUID,
+    patient: Annotated[User, Depends(require_role("patient"))],
+    db: Annotated[AsyncSession, Depends(get_session)],
+    ai_client: Annotated[AIClient, Depends(get_ai_client)],
+) -> dict:
+    """v3 FR-039 — 대화 종료 후 top1 문진 도구를 결정한다 (§6-A 프록시).
+
+    응답은 도구 ID 하나뿐이다. 추정된 질환/도메인 문자열은 절대 내려보내지
+    않는다 (v3 원칙 1 / NFR v3-2) — 클라이언트가 화면에 병명을 띄울 수 없도록
+    애초에 값을 주지 않는 것이 유일하게 믿을 수 있는 방법이다.
+
+    라우팅은 실패하지 않는다. 어떤 오류든 폴백 문진으로 응답한다.
+    """
+    sess = await _owned_in_progress_session(
+        db, session_id=session_id, patient_id=patient.id
+    )
+
+    msg_rows = await db.execute(
+        select(Message)
+        .where(Message.session_id == session_id, Message.role == "user")
+        .order_by(Message.created_at)
+    )
+    turns: list[tuple[int, str]] = []
+    for i, m in enumerate(msg_rows.scalars().all(), start=1):
+        try:
+            content = decrypt_str(m.content_encrypted, aad=_message_aad(session_id, m.id))
+        except Exception:
+            continue
+        if content.strip():
+            turns.append((i, content))
+
+    instrument = await infer_instrument(
+        ai_client=ai_client,
+        session_id=session_id,
+        turns=turns,
+        clinical_slots=sess.clinical_slots or {},
+    )
+    return {"success": True, "data": {"instrument": instrument}}
 
 
 HANDOFF_ESTIMATED_SECONDS = 30
