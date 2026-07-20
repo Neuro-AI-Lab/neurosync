@@ -37,6 +37,10 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.execute("ALTER TABLE sessions DROP COLUMN IF EXISTS clinical_slots")
     op.execute("ALTER TABLE questionnaire_results DROP CONSTRAINT IF EXISTS ck_questionnaire_results_type")
+    # ⚠️ 데이터 유실 주의: 이 downgrade는 upgrade가 허용했던 AUDITC/PHQ4 결과를
+    # 삭제한다. 그 행들이 남아 있으면 좁은 CHECK 재적용이 실패하기 때문이다
+    # (기존 행을 즉시 검증함). 되돌리기 전 반드시 백업할 것.
+    op.execute("DELETE FROM questionnaire_results WHERE type IN ('AUDITC','PHQ4')")
     op.execute(
         "ALTER TABLE questionnaire_results ADD CONSTRAINT ck_questionnaire_results_type "
         "CHECK (type IN ('PHQ9','GAD7'))"

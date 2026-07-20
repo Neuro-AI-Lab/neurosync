@@ -114,6 +114,29 @@ async def test_no_utterances_skips_call_entirely() -> None:
     assert client.calls == []
 
 
+@pytest.mark.asyncio
+async def test_non_aiclient_exception_falls_back() -> None:
+    """PR#74 C1 회귀 — AIClientError가 아닌 예외(파싱/검증 실패 등)에서도 폴백해야
+    한다. domain_infer가 ValueError를 던져도 500이 아니라 FALLBACK이어야 한다."""
+    client = _FakeClient(error=ValueError("schema drift / malformed 200"))
+    got = await infer_instrument(ai_client=client, session_id=SESSION, turns=TURNS)
+    assert got == FALLBACK_INSTRUMENT
+
+
+@pytest.mark.asyncio
+async def test_non_scalar_slots_do_not_crash_routing() -> None:
+    """clinical_slots에 비문자열/중첩 값이 있어도 라우팅은 폴백으로라도 성공한다."""
+    client = _FakeClient(result=_response(_candidate("depression", 0.9)))
+    got = await infer_instrument(
+        ai_client=client,
+        session_id=SESSION,
+        turns=TURNS,
+        clinical_slots={"sleep": {"onset_hours": 3}, "mood_score": 2},  # type: ignore[dict-item]
+    )
+    # 문자열화되어 정상 라우팅(PHQ9)되거나 최악에도 폴백 — 절대 예외 없음.
+    assert got in {"PHQ9", "GAD7", "AUDITC", "PHQ4"}
+
+
 # ────────── 계약: 도메인 문자열 비노출 ──────────
 
 

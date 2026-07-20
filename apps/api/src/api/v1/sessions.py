@@ -59,6 +59,7 @@ from src.core.security import TokenError, decode_token
 from src.db import SessionLocal, get_session
 from src.models.audit_log import AuditLog
 from src.models.handoff import HandoffReport
+from src.models.patient_profile import PatientProfile
 from src.models.session import Message, Session
 from src.models.user import User
 from src.schemas.handoff import SubmitAccepted
@@ -161,6 +162,14 @@ async def submit_questionnaire(
         db, session_id=session_id, patient_id=patient.id
     )
 
+    # AUDIT-C 절사점은 성별 의존(한국 기준 여성이 더 낮음) — 프로필 gender를
+    # 채점에 전달한다. 없으면 "unknown". male/female만 인정.
+    gender_row = await db.execute(
+        select(PatientProfile.gender).where(PatientProfile.user_id == patient.id)
+    )
+    gender = gender_row.scalar_one_or_none()
+    patient_sex = gender if gender in ("male", "female") else "unknown"
+
     try:
         # v3 FR-040 — 채점은 ai-server 결정론적 채점기에 위임(AUDIT-C 한국 절사점,
         # PHQ-9 9번 critical item). 장애 시 서비스 내부에서 로컬 컷오프로 폴백한다.
@@ -170,6 +179,7 @@ async def submit_questionnaire(
             qtype=body.type,
             answers=body.answers,
             ai_client=ai_client,
+            patient_sex=patient_sex,
         )
     except QuestionnaireError as exc:
         raise HTTPException(
@@ -208,6 +218,10 @@ def _message_aad(session_id: UUID, message_id: UUID) -> bytes:
     return f"messages.content:{session_id}:{message_id}".encode()
 
 
+# 도메인 추정 근거로 쓸 최근 환자 발화 상한 (모바일 5초 상한 보호).
+DOMAIN_INFER_MAX_TURNS = 20
+
+
 @router.post("/{session_id}/domain/infer")
 async def infer_domain(
     session_id: UUID,
@@ -227,19 +241,32 @@ async def infer_domain(
         db, session_id=session_id, patient_id=patient.id
     )
 
+    # 최근 발화만 근거로 쓴다 — 모바일 5초 상한 안에서 복호화가 끝나야 하므로
+    # 무제한 로딩을 막는다(긴 세션 → 타임아웃 → 안전 방향인 폴백이지만 피한다).
     msg_rows = await db.execute(
         select(Message)
         .where(Message.session_id == session_id, Message.role == "user")
-        .order_by(Message.created_at)
+        .order_by(Message.created_at.desc())
+        .limit(DOMAIN_INFER_MAX_TURNS)
     )
+    recent = list(reversed(msg_rows.scalars().all()))
     turns: list[tuple[int, str]] = []
-    for i, m in enumerate(msg_rows.scalars().all(), start=1):
+    decrypt_failures = 0
+    for i, m in enumerate(recent, start=1):
         try:
             content = decrypt_str(m.content_encrypted, aad=_message_aad(session_id, m.id))
         except Exception:
+            decrypt_failures += 1
             continue
         if content.strip():
             turns.append((i, content))
+    if decrypt_failures:
+        # 내용은 남기지 않는다 — 키 오설정 등 관측성 확보용 카운트만.
+        logger.warning(
+            "domain/infer: %d message(s) failed to decrypt (session=%s)",
+            decrypt_failures,
+            session_id,
+        )
 
     instrument = await infer_instrument(
         ai_client=ai_client,

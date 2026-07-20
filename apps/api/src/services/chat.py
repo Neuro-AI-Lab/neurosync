@@ -14,6 +14,7 @@ streaming (`ai:token`) is deferred until the AI server exposes SSE.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import uuid
 from typing import Any
@@ -25,6 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import Settings
 from src.core.encryption import decrypt_str, encrypt_str
+from src.db import SessionLocal
 from src.models.session import Message, Session
 from src.services.ai_client import AIClient, AIClientError
 
@@ -86,11 +88,48 @@ async def _build_grounding(
         return None
 
 
+# 파이어-앤-포겟 태스크 GC 방지용 강한 참조.
+_bg_tasks: set[asyncio.Task] = set()
+
+
+def _spawn(coro) -> None:
+    task = asyncio.create_task(coro)
+    _bg_tasks.add(task)
+    task.add_done_callback(_bg_tasks.discard)
+
+
+async def _extract_slots_bg(
+    *,
+    session_id: uuid.UUID,
+    context: list[ChatMessage],
+    ai_client: AIClient,
+) -> None:
+    """응답 경로 밖에서 슬롯을 추출·저장한다 (별도 DB 세션).
+
+    요청 스코프 db는 응답과 함께 커밋/종료되므로 여기서 재사용하면 안 된다.
+    """
+    try:
+        async with SessionLocal() as bg_db:
+            row = await bg_db.execute(select(Session).where(Session.id == session_id))
+            sess = row.scalar_one_or_none()
+            if sess is None:
+                return
+            sess.clinical_slots = await _extract_slots(
+                ai_client=ai_client,
+                session_id=session_id,
+                context=context,
+                current=sess.clinical_slots or {},
+            )
+            await bg_db.commit()
+    except Exception:  # noqa: BLE001 — 배경 작업이라 어떤 실패도 대화에 영향 없음
+        logger.warning("slots.extract.bg.failed", exc_info=True)
+
+
 async def _extract_slots(
     *,
     ai_client: AIClient,
     session_id: uuid.UUID,
-    context: list[Any],
+    context: list[ChatMessage],
     current: dict[str, Any],
 ) -> dict[str, Any]:
     """F1 임상 슬롯 증분 추출 (best-effort).
@@ -168,13 +207,11 @@ async def respond(
     if sess is not None:
         sess.progress_ratio = ratio
         sess.collected_items = result.progress.collected_items
-        # F1 — 임상 슬롯을 누적 추출한다. 실패해도 대화는 그대로 진행한다.
-        sess.clinical_slots = await _extract_slots(
-            ai_client=ai_client,
-            session_id=session_id,
-            context=context,
-            current=sess.clinical_slots or {},
-        )
+
+    # F1 — 임상 슬롯 추출은 두 번째 AI 왕복이라, 응답 경로에서 await하면 답변이
+    # 그만큼 늦어진다(최악 chat+slots 예산 합). 응답을 먼저 돌려주고 슬롯은 별도
+    # 태스크 + 별도 DB 세션에서 누적한다. 실패해도 대화엔 영향 없다.
+    _spawn(_extract_slots_bg(session_id=session_id, context=context, ai_client=ai_client))
 
     return {
         "messageId": str(ai_message_id),

@@ -18,7 +18,7 @@ import uuid
 
 from contracts.domain import DomainInferRequest, UtteranceTurn
 
-from src.services.ai_client import AIClient, AIClientError
+from src.services.ai_client import AIClient
 
 logger = logging.getLogger(__name__)
 
@@ -57,18 +57,20 @@ async def infer_instrument(
         logger.info("domain routing: no utterances, using fallback (session=%s)", session_id)
         return FALLBACK_INSTRUMENT
 
-    payload = DomainInferRequest(
-        session_id=str(session_id),
-        final_slots=clinical_slots or {},
-        crisis_triggered=crisis_triggered,
-        turns=[UtteranceTurn(turn=n, patient_message=m) for n, m in turns],
-        # Stage 1(RAG 검색)은 플랫폼이 수행하지 않는다 — 근거는 환자 발화뿐.
-        retrieval_mode="llm_only",
-    )
-
+    # "라우팅은 실패하지 않는다" — 요청 조립(중첩 슬롯값 등으로 ValidationError
+    # 가능)부터 호출까지 통째로 감싸고, 어떤 예외든 폴백으로 떨어뜨린다.
     try:
+        payload = DomainInferRequest(
+            session_id=str(session_id),
+            # final_slots는 dict[str,str] 계약 — 비문자열 값은 문자열화해 검증 실패를 막는다.
+            final_slots={str(k): str(v) for k, v in (clinical_slots or {}).items()},
+            crisis_triggered=crisis_triggered,
+            turns=[UtteranceTurn(turn=n, patient_message=m) for n, m in turns],
+            # Stage 1(RAG 검색)은 플랫폼이 수행하지 않는다 — 근거는 환자 발화뿐.
+            retrieval_mode="llm_only",
+        )
         result = await ai_client.domain_infer(payload)
-    except AIClientError as exc:
+    except Exception as exc:  # noqa: BLE001 — 라우팅은 어떤 실패에서도 폴백한다
         logger.warning("domain routing fell back (session=%s): %s", session_id, exc)
         return FALLBACK_INSTRUMENT
 

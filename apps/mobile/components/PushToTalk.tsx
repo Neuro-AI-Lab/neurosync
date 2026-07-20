@@ -63,7 +63,7 @@ type Props = {
 
 function fmt(ms: number): string {
   const s = Math.floor(ms / 1000);
-  return `0:${String(s).padStart(2, "0")}`;
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
 export function PushToTalk({ token, sessionId, disabled, onTranscript, onNotice }: Props) {
@@ -117,6 +117,7 @@ export function PushToTalk({ token, sessionId, disabled, onTranscript, onNotice 
       );
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } catch {
+      clearTimer(); // 타이머가 이미 걸렸다면 정리 — idle 컴포넌트에 stray tick 방지
       setStatus("idle");
       onNotice("error", "녹음을 시작할 수 없어요. 키보드로 입력해 주세요.");
     }
