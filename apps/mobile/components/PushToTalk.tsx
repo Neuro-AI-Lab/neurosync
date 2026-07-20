@@ -1,4 +1,11 @@
-import { Audio } from "expo-av";
+import {
+  AudioQuality,
+  IOSOutputFormat,
+  RecordingOptions,
+  requestRecordingPermissionsAsync,
+  setAudioModeAsync,
+  useAudioRecorder,
+} from "expo-audio";
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
@@ -14,28 +21,28 @@ import { colors } from "../lib/tokens";
  * keyboard with a short notice (FR-037).
  *
  * Records 16kHz mono PCM WAV (backend `encoding=pcm16`). iOS LinearPCM is the
- * verified path; Android WAV via expo-av is best-effort (the backend would
+ * verified path; Android WAV via expo-audio is best-effort (the backend would
  * reject a non-WAV container — track per the chosen demo platform).
+ *
+ * Migrated expo-av → expo-audio for Expo SDK 54 (expo-av was removed): the
+ * recorder now comes from the `useAudioRecorder` hook instead of the imperative
+ * `Audio.Recording.createAsync`.
  */
 const MIN_MS = 700;
 
-const WAV_OPTIONS: Audio.RecordingOptions = {
+const WAV_OPTIONS: RecordingOptions = {
+  extension: ".wav",
+  sampleRate: 16000,
+  numberOfChannels: 1,
+  bitRate: 256000,
   isMeteringEnabled: false,
   android: {
-    extension: ".wav",
-    outputFormat: Audio.AndroidOutputFormat.DEFAULT,
-    audioEncoder: Audio.AndroidAudioEncoder.DEFAULT,
-    sampleRate: 16000,
-    numberOfChannels: 1,
-    bitRate: 256000,
+    outputFormat: "default",
+    audioEncoder: "default",
   },
   ios: {
-    extension: ".wav",
-    outputFormat: Audio.IOSOutputFormat.LINEARPCM,
-    audioQuality: Audio.IOSAudioQuality.HIGH,
-    sampleRate: 16000,
-    numberOfChannels: 1,
-    bitRate: 256000,
+    outputFormat: IOSOutputFormat.LINEARPCM,
+    audioQuality: AudioQuality.HIGH,
     linearPCMBitDepth: 16,
     linearPCMIsBigEndian: false,
     linearPCMIsFloat: false,
@@ -60,9 +67,9 @@ function fmt(ms: number): string {
 }
 
 export function PushToTalk({ token, sessionId, disabled, onTranscript, onNotice }: Props) {
+  const recorder = useAudioRecorder(WAV_OPTIONS);
   const [status, setStatus] = useState<Status>("idle");
   const [elapsed, setElapsed] = useState(0);
-  const recordingRef = useRef<Audio.Recording | null>(null);
   const startRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const canceledRef = useRef(false);
@@ -78,24 +85,28 @@ export function PushToTalk({ token, sessionId, disabled, onTranscript, onNotice 
     return () => {
       clearTimer();
       // Best-effort teardown if unmounted mid-recording.
-      void recordingRef.current?.stopAndUnloadAsync().catch(() => undefined);
+      if (recorder.isRecording) {
+        void recorder.stop().catch(() => undefined);
+      }
     };
+    // recorder identity is stable for the component's lifetime.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const start = async () => {
     if (disabled || status !== "idle" || !token || !sessionId) return;
     try {
-      const perm = await Audio.requestPermissionsAsync();
+      const perm = await requestRecordingPermissionsAsync();
       if (!perm.granted) {
         onNotice("permission", "마이크 권한이 필요해요. 설정에서 허용해 주세요.");
         return;
       }
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
       });
-      const { recording } = await Audio.Recording.createAsync(WAV_OPTIONS);
-      recordingRef.current = recording;
+      await recorder.prepareToRecordAsync(WAV_OPTIONS);
+      recorder.record();
       canceledRef.current = false;
       startRef.current = Date.now();
       setElapsed(0);
@@ -106,7 +117,6 @@ export function PushToTalk({ token, sessionId, disabled, onTranscript, onNotice 
       );
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } catch {
-      recordingRef.current = null;
       setStatus("idle");
       onNotice("error", "녹음을 시작할 수 없어요. 키보드로 입력해 주세요.");
     }
@@ -114,12 +124,9 @@ export function PushToTalk({ token, sessionId, disabled, onTranscript, onNotice 
 
   const stopRecording = async (): Promise<string | null> => {
     clearTimer();
-    const rec = recordingRef.current;
-    recordingRef.current = null;
-    if (!rec) return null;
     try {
-      await rec.stopAndUnloadAsync();
-      return rec.getURI();
+      await recorder.stop();
+      return recorder.uri;
     } catch {
       return null;
     }
@@ -234,7 +241,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.dangerLine,
     width: 260,
-    // lift it above the input bar
     shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowRadius: 8,
