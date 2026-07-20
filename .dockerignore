@@ -57,9 +57,18 @@ build
 # Large source materials (kept locally, never shipped)
 references
 
-# Docs — not needed at runtime
+# Docs — not needed at runtime, EXCEPT the versioned agent prompts, which the
+# ai-server image bakes in (apps/ai-server/Dockerfile: COPY docs/ai/prompts
+# /app/prompts + ENV PROMPTS_BASE_DIR). Without these negations the COPY fails
+# at build time ("not found" — the whole docs tree would be absent from the
+# build context).
 docs
+!docs/ai/prompts
+!docs/ai/prompts/**
 README.md
+
+# Archived legacy materials — segregated for traceability, never shipped
+_archive
 
 # Local data
 *.sqlite
