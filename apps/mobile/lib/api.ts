@@ -214,6 +214,8 @@ export type QuestionnaireResult = {
   totalScore: number;
   severity: string;
   completedAt: string;
+  /** v3 FR-043 — PHQ-9 9번 양성. 서버 채점기 판정을 그대로 쓴다. */
+  criticalItemPositive?: boolean;
 };
 
 export async function submitQuestionnaire(
@@ -230,6 +232,26 @@ export async function submitQuestionnaire(
       token,
       body: JSON.stringify({ type, answers }),
     },
+  );
+}
+
+// ────────── Domain routing (v3 FR-039, §6-A 프록시) ──────────
+
+/**
+ * 대화 종료 후 진행할 문진 도구 1종을 서버가 정해준다.
+ *
+ * 응답에는 도구 ID만 담긴다 — 추정된 질환/도메인 문자열은 서버가 내려보내지
+ * 않는다 (v3 원칙 1 / NFR v3-2). 클라이언트가 병명을 화면에 띄울 방법 자체가
+ * 없도록 계약이 설계돼 있다.
+ */
+export async function inferDomainInstrument(
+  token: string,
+  sessionId: string,
+): Promise<{ instrument: QuestionnaireType }> {
+  if (MOCK) return mockApi.inferDomainInstrument();
+  return request<{ instrument: QuestionnaireType }>(
+    `/api/v1/sessions/${sessionId}/domain/infer`,
+    { method: "POST", token },
   );
 }
 

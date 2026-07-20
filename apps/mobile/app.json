@@ -11,15 +11,25 @@
       "bundleIdentifier": "kr.wigtn.neurosync",
       "supportsTablet": false,
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "음성으로 사전 문진에 응답할 때 사용해요. 마이크를 누른 동안에만 녹음되며, 원본은 48시간 안에 자동 삭제됩니다.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "kr.wigtn.neurosync",
-      "permissions": ["android.permission.RECORD_AUDIO", "android.permission.INTERNET"]
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.INTERNET"
+      ]
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "음성으로 사전 문진에 응답할 때 사용해요. 마이크를 누른 동안에만 녹음되며, 원본은 48시간 안에 자동 삭제됩니다."
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     }

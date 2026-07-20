@@ -54,11 +54,12 @@ from starlette.websockets import WebSocketState
 
 from src.core.config import Settings, get_settings
 from src.core.deps import require_role
-from src.core.encryption import encrypt_str
+from src.core.encryption import decrypt_str, encrypt_str
 from src.core.security import TokenError, decode_token
 from src.db import SessionLocal, get_session
 from src.models.audit_log import AuditLog
 from src.models.handoff import HandoffReport
+from src.models.patient_profile import PatientProfile
 from src.models.session import Message, Session
 from src.models.user import User
 from src.schemas.handoff import SubmitAccepted
@@ -70,6 +71,7 @@ from src.schemas.session import (
 )
 from src.services.ai_client import AIClient, AIClientError, get_ai_client
 from src.services.chat import respond as chat_turn
+from src.services.domain_routing import infer_instrument
 from src.services.handoff import (
     build_report_response,
     create_pending_report,
@@ -154,14 +156,30 @@ async def submit_questionnaire(
     request: Request,
     patient: Annotated[User, Depends(require_role("patient"))],
     db: Annotated[AsyncSession, Depends(get_session)],
+    ai_client: Annotated[AIClient, Depends(get_ai_client)],
 ) -> dict:
     await _owned_in_progress_session(
         db, session_id=session_id, patient_id=patient.id
     )
 
+    # AUDIT-C 절사점은 성별 의존(한국 기준 여성이 더 낮음) — 프로필 gender를
+    # 채점에 전달한다. 없으면 "unknown". male/female만 인정.
+    gender_row = await db.execute(
+        select(PatientProfile.gender).where(PatientProfile.user_id == patient.id)
+    )
+    gender = gender_row.scalar_one_or_none()
+    patient_sex = gender if gender in ("male", "female") else "unknown"
+
     try:
-        result = await upsert_result(
-            db, session_id=session_id, qtype=body.type, answers=body.answers
+        # v3 FR-040 — 채점은 ai-server 결정론적 채점기에 위임(AUDIT-C 한국 절사점,
+        # PHQ-9 9번 critical item). 장애 시 서비스 내부에서 로컬 컷오프로 폴백한다.
+        result, critical = await upsert_result(
+            db,
+            session_id=session_id,
+            qtype=body.type,
+            answers=body.answers,
+            ai_client=ai_client,
+            patient_sex=patient_sex,
         )
     except QuestionnaireError as exc:
         raise HTTPException(
@@ -191,8 +209,72 @@ async def submit_questionnaire(
             total_score=result.total_score,
             severity=result.severity,
             completed_at=result.completed_at,
+            critical_item_positive=critical,
         ).model_dump(by_alias=True, mode="json"),
     }
+
+
+def _message_aad(session_id: UUID, message_id: UUID) -> bytes:
+    return f"messages.content:{session_id}:{message_id}".encode()
+
+
+# 도메인 추정 근거로 쓸 최근 환자 발화 상한 (모바일 5초 상한 보호).
+DOMAIN_INFER_MAX_TURNS = 20
+
+
+@router.post("/{session_id}/domain/infer")
+async def infer_domain(
+    session_id: UUID,
+    patient: Annotated[User, Depends(require_role("patient"))],
+    db: Annotated[AsyncSession, Depends(get_session)],
+    ai_client: Annotated[AIClient, Depends(get_ai_client)],
+) -> dict:
+    """v3 FR-039 — 대화 종료 후 top1 문진 도구를 결정한다 (§6-A 프록시).
+
+    응답은 도구 ID 하나뿐이다. 추정된 질환/도메인 문자열은 절대 내려보내지
+    않는다 (v3 원칙 1 / NFR v3-2) — 클라이언트가 화면에 병명을 띄울 수 없도록
+    애초에 값을 주지 않는 것이 유일하게 믿을 수 있는 방법이다.
+
+    라우팅은 실패하지 않는다. 어떤 오류든 폴백 문진으로 응답한다.
+    """
+    sess = await _owned_in_progress_session(
+        db, session_id=session_id, patient_id=patient.id
+    )
+
+    # 최근 발화만 근거로 쓴다 — 모바일 5초 상한 안에서 복호화가 끝나야 하므로
+    # 무제한 로딩을 막는다(긴 세션 → 타임아웃 → 안전 방향인 폴백이지만 피한다).
+    msg_rows = await db.execute(
+        select(Message)
+        .where(Message.session_id == session_id, Message.role == "user")
+        .order_by(Message.created_at.desc())
+        .limit(DOMAIN_INFER_MAX_TURNS)
+    )
+    recent = list(reversed(msg_rows.scalars().all()))
+    turns: list[tuple[int, str]] = []
+    decrypt_failures = 0
+    for i, m in enumerate(recent, start=1):
+        try:
+            content = decrypt_str(m.content_encrypted, aad=_message_aad(session_id, m.id))
+        except Exception:
+            decrypt_failures += 1
+            continue
+        if content.strip():
+            turns.append((i, content))
+    if decrypt_failures:
+        # 내용은 남기지 않는다 — 키 오설정 등 관측성 확보용 카운트만.
+        logger.warning(
+            "domain/infer: %d message(s) failed to decrypt (session=%s)",
+            decrypt_failures,
+            session_id,
+        )
+
+    instrument = await infer_instrument(
+        ai_client=ai_client,
+        session_id=session_id,
+        turns=turns,
+        clinical_slots=sess.clinical_slots or {},
+    )
+    return {"success": True, "data": {"instrument": instrument}}
 
 
 HANDOFF_ESTIMATED_SECONDS = 30

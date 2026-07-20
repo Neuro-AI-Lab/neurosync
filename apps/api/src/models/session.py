@@ -59,6 +59,11 @@ class Session(Base):
     collected_items: Mapped[list[str]] = mapped_column(
         JSONB, nullable=False, default=list, server_default="[]"
     )
+    # F1 임상 슬롯 (주호소·수면·과거력 등). 대화 중 백그라운드로 누적되어
+    # F2 도메인 추정(final_slots)과 F5 핸드오프의 입력이 된다.
+    # 주의: rag.session_insights.slots는 VP 시뮬레이션 코퍼스 테이블이므로
+    # 실환자 슬롯은 반드시 이 플랫폼 컬럼에만 쓴다 (코퍼스 오염 방지).
+    clinical_slots: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
 
     messages = relationship(
         "Message", back_populates="session", cascade="all, delete-orphan"

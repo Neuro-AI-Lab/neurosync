@@ -88,6 +88,11 @@ class Settings(BaseSettings):
     ai_chat_timeout_seconds: float = Field(default=10.0)
     # STT budget — PRD §4.1 SLA < 2,000ms, allow margin for the vendor chain.
     ai_stt_timeout_seconds: float = Field(default=8.0)
+    # v3 FR-039 — 도메인 추정. 모바일 '분석 중' 상한이 5초(NFR v3-3)라 그 안에서
+    # 끝나야 폴백 없이 top1 라우팅이 성립한다.
+    ai_domain_timeout_seconds: float = Field(default=4.5)
+    # F1 슬롯 추출 — 대화 배경 작업이라 짧게 끊고 실패는 무시한다.
+    ai_slots_timeout_seconds: float = Field(default=6.0)
 
     # STT audio (FR-033/036). S3 SSE-KMS is Phase 2; demo writes to local disk.
     audio_storage_dir: str = Field(default=".audio_store")

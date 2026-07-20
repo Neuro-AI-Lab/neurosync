@@ -120,6 +120,11 @@ export const mockApi = {
       completedAt: nowIso(),
     });
   },
+  inferDomainInstrument(): Promise<{ instrument: QuestionnaireType }> {
+    // 오프라인 데모 시나리오는 우울(PHQ-9)로 고정한다.
+    // 실제 라우팅은 서버가 F2 도메인 추정으로 결정한다 (v3 FR-039).
+    return delay({ instrument: "PHQ9" as QuestionnaireType }, 1200);
+  },
   submitSession(sessionId: string): Promise<SubmitAccepted> {
     const reportId = id("mock-report");
     // Record submit time so getReportStatus can simulate generating → ready.

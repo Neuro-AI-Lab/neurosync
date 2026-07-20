@@ -110,6 +110,10 @@ export const useRecords = create<RecordsState>((set) => ({
           maxScore: surveyMaxScore(SURVEYS[instrument]),
           severity: result.severity,
           status: "stored" as const,
+          // v3 FR-043 — 위험 플래그는 서버 채점기 판정을 따른다.
+          // (설문 중 인라인 확인 카드는 응답 즉시 떠야 하므로 별도로
+          //  클라이언트가 riskItemIndex로 판단한다 — 역할이 다르다.)
+          riskFlag: result.criticalItemPositive === true,
         },
         ...s.records,
       ],
