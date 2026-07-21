@@ -6,15 +6,16 @@ import time
 from dataclasses import dataclass
 from typing import Final, override
 
-import openai
 from contracts.handoff import Citation, HandoffRequest, HandoffResponse, SleepAppetiteActivity
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from src.adapters.base import ChatMessage, LLMAdapter
 from src.prompts.loader import PromptLoader
+from src.routing.fallback_policy import AdapterHealthFailure
 from src.routing.model_router import ModelRouter
 from src.schemas.common import ModelSelection
 from src.schemas.handoff import HandoffInput
+from src.services.handoff_claim_guard import handoff_claims_are_valid
 
 _AGENT_NAME: Final = "handoff_generator"
 _PROMPT_VERSION: Final = "v4"
@@ -22,7 +23,7 @@ _MAX_RETRIES: Final = 2
 
 
 @dataclass(frozen=True, slots=True)
-class HandoffContractValidationError(Exception):
+class HandoffContractValidationError(AdapterHealthFailure):
     """The provider response was not valid official handoff JSON."""
 
     @override
@@ -31,7 +32,7 @@ class HandoffContractValidationError(Exception):
 
 
 @dataclass(frozen=True, slots=True)
-class HandoffProviderError(Exception):
+class HandoffProviderError(AdapterHealthFailure):
     """The configured provider could not produce a response."""
 
     @override
@@ -65,46 +66,7 @@ class _HandoffDraft(BaseModel):
 
 
 def _validate_citations(draft: _HandoffDraft, request: HandoffRequest) -> None:
-    if draft.documents_summary:
-        raise HandoffContractValidationError()
-
-    populated_targets = {
-        field
-        for field, value in (
-            ("chief_complaint", draft.chief_complaint),
-            ("present_illness", draft.present_illness),
-            ("onset", draft.onset),
-            ("recent_changes", draft.recent_changes),
-            ("psych_history", draft.psych_history),
-            ("medications", draft.medications),
-            ("sleep_appetite_activity.sleep", draft.sleep_appetite_activity.sleep),
-            ("sleep_appetite_activity.appetite", draft.sleep_appetite_activity.appetite),
-            ("sleep_appetite_activity.activity", draft.sleep_appetite_activity.activity),
-        )
-        if value is not None and value.strip()
-    }
-    for field, values in (
-        ("symptoms", draft.symptoms),
-        ("triggers", draft.triggers),
-        ("clinician_attention", draft.clinician_attention),
-    ):
-        populated_targets.update(
-            f"{field}[{index}]" for index, value in enumerate(values) if value.strip()
-        )
-
-    message_content = {str(message.message_id): message.content for message in request.messages}
-    cited_targets: set[str] = set()
-    for citation in draft.evidence:
-        content = message_content.get(str(citation.source_message_id))
-        if (
-            content is None
-            or not citation.quote.strip()
-            or citation.quote not in content
-            or citation.field not in populated_targets
-        ):
-            raise HandoffContractValidationError()
-        cited_targets.add(citation.field)
-    if cited_targets != populated_targets:
+    if not handoff_claims_are_valid(draft, request):
         raise HandoffContractValidationError()
 
 
@@ -162,20 +124,39 @@ class HandoffContractGenerator:
             ),
             ChatMessage(role="user", content=local_input.model_dump_json(exclude_none=True)),
         ]
+        content: str | None = None
+        provider_failed = False
+        # Provider boundary: discard arbitrary Exception content; BaseException propagates.
         try:
             adapter = self._router.get_adapter(selection.adapter_name)
-            if not isinstance(adapter, LLMAdapter):
-                raise HandoffProviderError()
-            response = await adapter.chat_timed(
-                messages,
-                model=selection.model_id,
-                temperature=0.2,
-                max_tokens=4096,
-                response_format=response_format,
-            )
-        except (openai.OpenAIError, RuntimeError, ValueError, KeyError):
+            if isinstance(adapter, LLMAdapter):
+                response = await adapter.chat_timed(
+                    messages,
+                    model=selection.model_id,
+                    temperature=0.2,
+                    max_tokens=4096,
+                    response_format=response_format,
+                )
+                content = response.content
+            else:
+                provider_failed = True
+        except Exception:
+            provider_failed = True
+        if provider_failed or content is None:
             raise HandoffProviderError() from None
-        return response.content
+        return content
+
+    def _select_model(self) -> ModelSelection:
+        selection: ModelSelection | None = None
+        provider_failed = False
+        # Router boundary: discard arbitrary Exception content; BaseException propagates.
+        try:
+            selection = self._router.select_model(_AGENT_NAME, require_json=True)
+        except Exception:
+            provider_failed = True
+        if provider_failed or selection is None:
+            raise HandoffProviderError() from None
+        return selection
 
     async def generate(
         self,
@@ -184,7 +165,7 @@ class HandoffContractGenerator:
     ) -> HandoffResponse:
         """Try three configured tiers and return the first grounded response."""
         started = time.perf_counter()
-        selection = self._router.select_model(_AGENT_NAME, require_json=True)
+        selection = self._select_model()
         for attempt in range(1 + _MAX_RETRIES):
             try:
                 content = await self._request_json(selection, local_input)

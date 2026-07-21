@@ -57,7 +57,7 @@ router = APIRouter(prefix="/ai/handoff", tags=["handoff"])
 # base64 inflates bytes by ~4/3, so this caps the PRE-encode PDF byte size.
 _PDF_SIZE_GUARD_BYTES = 10 * 1024 * 1024
 
-def _get_handoff_agent(
+def get_handoff_agent(
     model_router: ModelRouter = Depends(get_model_router),
     prompt_loader: PromptLoader = Depends(get_prompt_loader),
 ) -> HandoffContractGenerator:
@@ -67,7 +67,7 @@ def _get_handoff_agent(
 @router.post("/generate", response_model=HandoffResponse)
 async def generate(
     body: HandoffRequest,
-    handoff_agent: HandoffContractGenerator = Depends(_get_handoff_agent),
+    handoff_agent: HandoffContractGenerator = Depends(get_handoff_agent),
 ) -> HandoffResponse:
     """Generate the shared response contract and reject unverifiable citations."""
     local_input = adapt_handoff_request(body)

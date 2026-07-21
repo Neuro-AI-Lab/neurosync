@@ -16,12 +16,16 @@ from src.agents.handoff_contract_generator import (
     HandoffProviderError,
 )
 from src.main import app
-from src.routes.handoff import _get_handoff_agent
+from src.routes.handoff import get_handoff_agent
 from src.schemas.common import ModelSelection
 from src.services.handoff_contract_adapter import adapt_handoff_request
 
 _MESSAGE_ID = "22222222-2222-4222-8222-222222222222"
-_QUOTE = "잠들기 어렵고 식욕이 줄었어요."
+_QUOTE = (
+    "수면 변화. 최근 수면 변화를 보고함. 불면과 식욕 저하가 지난주부터 최근 악화됨. "
+    "업무 스트레스 후 잠들기 어려움, 식욕 감소, 활동 저하가 있고 과거 상담을 받음. "
+    "복용약 확인 필요. 자가보고 확인."
+)
 _REQUIRED_TARGETS = (
     "chief_complaint",
     "present_illness",
@@ -37,8 +41,6 @@ _REQUIRED_TARGETS = (
     "medications",
     "clinician_attention[0]",
 )
-
-
 def _request() -> HandoffRequest:
     return HandoffRequest.model_validate(
         {
@@ -56,6 +58,21 @@ def _draft_json(
     documents_summary: tuple[str, ...] = (),
     onset: str | None = "지난주",
 ) -> str:
+    claims_by_target = {
+        "chief_complaint": "수면 변화",
+        "present_illness": "최근 수면 변화를 보고함.",
+        "symptoms[0]": "불면",
+        "symptoms[1]": "식욕 저하",
+        "onset": "지난주",
+        "recent_changes": "최근 악화",
+        "triggers[0]": "업무 스트레스",
+        "sleep_appetite_activity.sleep": "잠들기 어려움",
+        "sleep_appetite_activity.appetite": "감소",
+        "sleep_appetite_activity.activity": "저하",
+        "psych_history": "과거 상담",
+        "medications": "복용약 확인 필요",
+        "clinician_attention[0]": "자가보고 확인",
+    }
     return json.dumps(
         {
             "chief_complaint": "수면 변화",
@@ -77,7 +94,7 @@ def _draft_json(
                 {
                     "field": field,
                     "source_message_id": _MESSAGE_ID,
-                    "quote": _QUOTE,
+                    "quote": claims_by_target.get(field, _QUOTE),
                 }
                 for field in evidence_fields
             ],
@@ -126,14 +143,14 @@ def _agent_with_tiers(
 
 
 def _post_generate(agent: HandoffContractGenerator) -> Response:
-    app.dependency_overrides[_get_handoff_agent] = lambda: agent
+    app.dependency_overrides[get_handoff_agent] = lambda: agent
     try:
         return TestClient(app).post(
             "/ai/handoff/generate",
             json=_request().model_dump(mode="json"),
         )
     finally:
-        app.dependency_overrides.pop(_get_handoff_agent, None)
+        app.dependency_overrides.pop(get_handoff_agent, None)
 
 
 @pytest.mark.parametrize(

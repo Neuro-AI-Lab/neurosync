@@ -20,6 +20,7 @@ from src.schemas.common import ModelSelection
 from src.services.handoff_contract_adapter import adapt_handoff_request
 
 _MESSAGE_ID = "22222222-2222-4222-8222-222222222222"
+_SOURCE = "수면과 식욕 변화"
 
 
 def _request() -> HandoffRequest:
@@ -30,7 +31,7 @@ def _request() -> HandoffRequest:
                 {
                     "message_id": _MESSAGE_ID,
                     "role": "user",
-                    "content": "잠들기 어렵고 식욕이 줄었어요.",
+                    "content": _SOURCE,
                 }
             ],
         }
@@ -41,27 +42,21 @@ def _draft_json(**evidence_override: str) -> str:
     evidence = {
         "field": "chief_complaint",
         "source_message_id": _MESSAGE_ID,
-        "quote": "잠들기 어렵고 식욕이 줄었어요.",
+        "quote": _SOURCE,
     }
     evidence.update(evidence_override)
-    citations = [
-        evidence,
-        {**evidence, "field": "present_illness"},
-        {**evidence, "field": "symptoms[0]"},
-        {**evidence, "field": "sleep_appetite_activity.sleep"},
-        {**evidence, "field": "sleep_appetite_activity.appetite"},
-    ]
+    citations = [evidence]
     return json.dumps(
         {
             "chief_complaint": "수면과 식욕 변화",
-            "present_illness": "최근 수면과 식욕 변화를 보고함.",
-            "symptoms": ["불면"],
+            "present_illness": "",
+            "symptoms": [],
             "onset": None,
             "recent_changes": None,
             "triggers": [],
             "sleep_appetite_activity": {
-                "sleep": "잠들기 어려움",
-                "appetite": "감소",
+                "sleep": None,
+                "appetite": None,
                 "activity": None,
             },
             "psych_history": None,

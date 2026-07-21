@@ -15,7 +15,7 @@ from src.agents.handoff_contract_generator import (
     HandoffProviderError,
 )
 from src.main import app
-from src.routes.handoff import _get_handoff_agent
+from src.routes.handoff import get_handoff_agent
 from src.schemas.handoff import HandoffInput, HandoffOutput
 
 _SESSION_ID = "11111111-1111-4111-8111-111111111111"
@@ -116,11 +116,11 @@ class RecordingGenerator:
 @pytest.fixture
 def official_client() -> Iterator[tuple[TestClient, RecordingGenerator]]:
     generator = RecordingGenerator()
-    app.dependency_overrides[_get_handoff_agent] = lambda: generator
+    app.dependency_overrides[get_handoff_agent] = lambda: generator
     try:
         yield TestClient(app), generator
     finally:
-        app.dependency_overrides.pop(_get_handoff_agent, None)
+        app.dependency_overrides.pop(get_handoff_agent, None)
 
 
 def test_generate_round_trips_official_contract_losslessly(
@@ -199,10 +199,7 @@ def test_generate_rejects_legacy_risk_events_at_contract_boundary(
     response = client.post("/ai/handoff/generate", json=payload)
 
     assert response.status_code == 422
-    [error] = response.json()["detail"]
-    assert error["type"] == "extra_forbidden"
-    assert error["loc"] == ["body", "risk_events"]
-    assert error["input"] == [{"ctrs_level": "①"}]
+    assert response.json() == {"detail": "Handoff request validation failed"}
 
 
 def test_generate_openapi_uses_only_official_models() -> None:
@@ -235,11 +232,11 @@ def test_generate_returns_generic_errors(
 ) -> None:
     generator = RecordingGenerator()
     generator.generate = AsyncMock(side_effect=failure)
-    app.dependency_overrides[_get_handoff_agent] = lambda: generator
+    app.dependency_overrides[get_handoff_agent] = lambda: generator
     try:
         response = TestClient(app).post("/ai/handoff/generate", json=_official_payload())
     finally:
-        app.dependency_overrides.pop(_get_handoff_agent, None)
+        app.dependency_overrides.pop(get_handoff_agent, None)
 
     assert response.status_code == expected_status
     assert response.json() == {"detail": expected_detail}
