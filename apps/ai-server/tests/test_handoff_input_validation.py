@@ -146,7 +146,9 @@ class TestRiskEventOpenApiSchema:
         for field, labels in expected.items():
             prop = schema["properties"][field]
             assert prop.get("type") == "string", f"{field} must be a non-nullable string: {prop}"
+            assert "anyOf" not in prop, f"{field} must not expose a nullable union: {prop}"
             assert "null" not in repr(prop), f"{field} must not advertise null: {prop}"
+            assert "default" not in prop, f"{field} must not advertise a null default: {prop}"
             assert set(prop["enum"]) == labels, f"{field} enum must match validators: {prop}"
 
     def test_riskevent_schema_matches_validators(self):
@@ -166,6 +168,11 @@ class TestRiskEventSerializationRoundTrip:
         dumped = RiskEvent().model_dump()
         assert "risk_level" not in dumped and "ctrs_level" not in dumped
         RiskEvent.model_validate(dumped)  # must not raise
+
+    def test_nested_unlabeled_event_dump_revalidates(self):
+        dumped = HandoffInput(session_id="s", risk_events=[RiskEvent()]).model_dump()
+        assert dumped["risk_events"] == [{}]
+        assert HandoffInput.model_validate(dumped).risk_events == [RiskEvent()]
 
     def test_labeled_event_dumps_value_and_revalidates(self):
         dumped = RiskEvent(risk_level="high", ctrs_level="2").model_dump()

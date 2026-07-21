@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Final, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_serializer
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic.json_schema import SkipJsonSchema
 
 from src.agents.base import AgentInput, AgentOutput
 from src.schemas.common import EvidencePacket, RiskLevel
@@ -12,10 +13,22 @@ from src.schemas.common import EvidencePacket, RiskLevel
 RiskLevelLabel = Literal["none", "low", "medium", "high", "critical"]
 CtrsLabel = Literal["1", "2", "3", "4", "5"]
 
-# Derived from the published enums so the OpenAPI schema and the runtime
-# validators can never drift (test_riskevent_schema_matches_validators guards it).
-_VALID_CTRS_LABELS = frozenset(CtrsLabel.__args__)
-_VALID_RISK_LABELS = frozenset(RiskLevelLabel.__args__)
+_RISK_LABELS: Final[dict[str, RiskLevelLabel]] = {
+    "none": "none",
+    "low": "low",
+    "medium": "medium",
+    "high": "high",
+    "critical": "critical",
+}
+_CTRS_LABELS: Final[dict[str, CtrsLabel]] = {
+    "1": "1",
+    "2": "2",
+    "3": "3",
+    "4": "4",
+    "5": "5",
+}
+_VALID_RISK_LABELS: Final = frozenset(_RISK_LABELS)
+_VALID_CTRS_LABELS: Final = frozenset(_CTRS_LABELS)
 
 
 class RiskEvent(BaseModel):
@@ -33,52 +46,44 @@ class RiskEvent(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    risk_level: RiskLevelLabel = Field(
-        default=None,
+    risk_level: RiskLevelLabel | SkipJsonSchema[None] = Field(
+        default_factory=lambda: None,
+        exclude_if=lambda value: value is None,
         description="One of: none | low | medium | high | critical (omit the field if unknown)",
     )
-    ctrs_level: CtrsLabel = Field(
-        default=None,
+    ctrs_level: CtrsLabel | SkipJsonSchema[None] = Field(
+        default_factory=lambda: None,
+        exclude_if=lambda value: value is None,
         description="Crisis Triage Rating Scale, ASCII digit '1'-'5' (omit the field if unknown)",
     )
 
     @field_validator("risk_level", mode="before")
     @classmethod
-    def _normalize_risk_level(cls, value: object) -> str | None:
+    def _normalize_risk_level(cls, value: object) -> RiskLevelLabel:
         if value is None:
             # Explicit null is a malformed severity claim — reject. A genuinely
             # ABSENT field never reaches this validator (pydantic skips
             # validators for unset fields) and keeps the None default.
             raise ValueError("risk_level must not be null — omit the field instead")
         raw = str(value).strip().lower()
-        if raw not in _VALID_RISK_LABELS:
+        normalized = _RISK_LABELS.get(raw)
+        if normalized is None:
             raise ValueError(
                 f"risk_level must be one of {sorted(_VALID_RISK_LABELS)}, got {value!r}"
             )
-        return raw
+        return normalized
 
     @field_validator("ctrs_level", mode="before")
     @classmethod
-    def _normalize_ctrs_level(cls, value: object) -> str | None:
+    def _normalize_ctrs_level(cls, value: object) -> CtrsLabel:
         if value is None:
             raise ValueError("ctrs_level must not be null — omit the field instead")
         raw = str(value).strip()
         # ASCII-strict: rejects unicode digits ("١", "①"), out-of-range, non-digits.
-        if raw not in _VALID_CTRS_LABELS:
+        normalized = _CTRS_LABELS.get(raw)
+        if normalized is None:
             raise ValueError(f"ctrs_level must be an ASCII digit '1'-'5', got {value!r}")
-        return raw
-
-    @model_serializer(mode="wrap")
-    def _omit_absent_severity(self, handler: Any) -> dict[str, Any]:
-        # Absent severity fields serialize as OMITTED, never `null` — an
-        # unlabeled event must round-trip model_dump() -> model_validate()
-        # (cache, retry, forward) without the validators rejecting an explicit
-        # null that was never a real severity claim (codex P2).
-        data = handler(self)
-        for key in ("risk_level", "ctrs_level"):
-            if data.get(key) is None:
-                data.pop(key, None)
-        return data
+        return normalized
 
 
 class SlotData(BaseModel):
