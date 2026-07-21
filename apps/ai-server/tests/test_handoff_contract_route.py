@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 from uuid import UUID
 
 import pytest
-from contracts.handoff import HandoffRequest, HandoffResponse
+from contracts.handoff import Citation, HandoffRequest, HandoffResponse, SleepAppetiteActivity
 from fastapi.testclient import TestClient
 
 from src.agents.handoff_contract_generator import (
@@ -68,17 +68,19 @@ def _official_response() -> HandoffResponse:
         onset=None,
         recent_changes="식욕 감소",
         triggers=[],
-        sleep_appetite_activity={"sleep": "잠들기 어려움", "appetite": "감소"},
+        sleep_appetite_activity=SleepAppetiteActivity(
+            sleep="잠들기 어려움", appetite="감소"
+        ),
         psych_history=None,
         medications=None,
         documents_summary=["처방 문서 원문", "두 번째 문서"],
         clinician_attention=["자가보고 내용 확인"],
         evidence=[
-            {
-                "field": "chief_complaint",
-                "source_message_id": _USER_MESSAGE_ID,
-                "quote": "잠들기 어렵고 식욕이 줄었어요.",
-            }
+            Citation(
+                field="chief_complaint",
+                source_message_id=UUID(_USER_MESSAGE_ID),
+                quote="잠들기 어렵고 식욕이 줄었어요.",
+            )
         ],
         latency_ms=7,
     )

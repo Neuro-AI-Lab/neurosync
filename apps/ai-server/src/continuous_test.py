@@ -92,6 +92,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
+from src.services.f5_artifact_store import F5ArtifactPaths
+
 logger = logging.getLogger(__name__)
 
 # Multi-session chaining default (PLAN-2026-W28-Q W2, plan §3 "Multi-session
@@ -1336,7 +1338,7 @@ def _run_f5_report(
     f4_temporal_path: Path,
     *,
     write_dir: Path | None = None,
-) -> dict[str, Path]:
+) -> F5ArtifactPaths:
     """Read the VP's session ledger + every F1/F2/F4 artifact it points at,
     build `src.f5.HandoffReportInput`, call
     `src.f5.assemble_handoff_report` + `src.services.f5_report.
@@ -1493,6 +1495,9 @@ async def run_f5_stage(ctx: ChainContext) -> StageResult:
         logger.exception("continuous_test.f5.failed")
         return StageResult("F5", "fail", f"F5 report assembly raised: {exc}", duration_ms=_ms(t0))
 
+    artifacts = {
+        name: path for name, path in paths.items() if isinstance(path, Path)
+    }
     if "pdf" not in paths:
         # PDF export failed inside save_f5_result (md+FHIR still written) —
         # surface as WARN, never a clean pass, so the report/CLI/automation
@@ -1502,9 +1507,21 @@ async def run_f5_stage(ctx: ChainContext) -> StageResult:
             "F5 hand-off report PARTIAL — PDF export failed (see logs); "
             f"markdown+FHIR written -> {paths['markdown'].name}"
         )
-        return StageResult("F5", "warn", detail, artifacts=paths, duration_ms=_ms(t0))
+        return StageResult(
+            "F5",
+            "warn",
+            detail,
+            artifacts=artifacts,
+            duration_ms=_ms(t0),
+        )
     detail = f"F5 hand-off report complete -> {paths['markdown'].name}"
-    return StageResult("F5", "pass", detail, artifacts=paths, duration_ms=_ms(t0))
+    return StageResult(
+        "F5",
+        "pass",
+        detail,
+        artifacts=artifacts,
+        duration_ms=_ms(t0),
+    )
 
 
 # ── F5 standalone replay CLI (`--f5-from-artifacts`) ─────────────────────

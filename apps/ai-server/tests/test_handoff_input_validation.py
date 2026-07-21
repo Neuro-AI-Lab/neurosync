@@ -181,4 +181,5 @@ class TestRiskEventSerializationRoundTrip:
         assert rt.risk_level == "high" and rt.ctrs_level == "2"
 
     def test_extra_keys_preserved_through_serializer(self):
-        assert RiskEvent(crisis=True).model_dump() == {"crisis": True}
+        event = RiskEvent.model_validate({"crisis": True})
+        assert event.model_dump() == {"crisis": True}

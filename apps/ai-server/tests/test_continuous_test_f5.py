@@ -12,11 +12,14 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import Literal
 
 import pytest
 
 import src.continuous_test as ct
 from src.services.f5_markdown import inline_literal
+
+type JsonValue = str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]
 
 # ── Fixture helpers (synthetic F1/F2/F3/F4 artifacts, never real ones) ──
 
@@ -70,8 +73,8 @@ def _write_domain_inference(
     session_index: int,
     *,
     with_candidates: bool = True,
-    department_candidates: list[dict] | None = None,
-    validation_errors: list[dict] | None = None,
+    department_candidates: list[JsonValue] | None = None,
+    validation_errors: list[JsonValue] | None = None,
 ) -> Path:
     """`validation_errors` (`ADR-038` Decision 2a / `VAL-016`): the
     artifact's own top-level field mirroring a real Pydantic atomic-parse
@@ -79,7 +82,7 @@ def _write_domain_inference(
     vp_dir = tmp_path / persona_id
     vp_dir.mkdir(parents=True, exist_ok=True)
     path = vp_dir / f"{persona_id}_202601{session_index:02d}_010000_domain_inference.json"
-    artifact: dict = {
+    artifact: dict[str, JsonValue] = {
         "domain_candidates": [{"domain": "depression", "confidence": 0.7}],
         "department_candidates": (
             department_candidates
@@ -160,22 +163,23 @@ def _ledger_entry(
     di_path: Path | None,
     *,
     simulated_date: str = "2026-01-01",
-    f3: dict | None = "__default__",  # type: ignore[assignment]
+    f3: dict[str, JsonValue] | Literal["__default__"] | None = "__default__",
     survey_path: Path | None = None,
     outcome: str = "administered",
     scale_name: str = "PHQ-9",
     total_score: int = 15,
     safety_referral: bool = False,
     final_slots: dict[str, str] | None = None,
-) -> dict:
+) -> dict[str, JsonValue]:
     if f3 == "__default__":
-        f3 = {
+        responses: list[JsonValue] = [2] * 9 if outcome == "administered" else []
+        default_f3: dict[str, JsonValue] = {
             "outcome": outcome,
             "scale_name": scale_name if outcome == "administered" else None,
             "administration_mode": "natural",
             "item_bank_version": "v1" if outcome == "administered" else None,
             "item_bank_provenance": "v1 test provenance" if outcome == "administered" else None,
-            "responses": [2] * 9 if outcome == "administered" else [],
+            "responses": responses,
             "total_score": total_score if outcome == "administered" else None,
             "max_score": 27 if outcome == "administered" else None,
             "severity": "moderate" if outcome == "administered" else None,
@@ -189,11 +193,17 @@ def _ledger_entry(
             "scenario_pack_id": None,
             "arc_mode": None,
         }
+        f3 = default_f3
+    serialized_final_slots: dict[str, JsonValue] = (
+        {"chief_complaint": "x"}
+        if final_slots is None
+        else {key: value for key, value in final_slots.items()}
+    )
     return {
         "session_index": session_index,
         "simulated_date": simulated_date,
         "is_revisit": session_index > 1,
-        "final_slots": final_slots if final_slots is not None else {"chief_complaint": "x"},
+        "final_slots": serialized_final_slots,
         "missing_slots": [],
         "repro": {"model": "m", "prompt_version": "v"},
         "conversation_path": str(conv_path) if conv_path else None,
@@ -376,7 +386,10 @@ class TestRunF5Report:
         )
         paths = ct._run_f5_report("VP-TEST", tmp_path, temporal_path)
         assert set(paths) == {"markdown", "pdf", "fhir"}
-        for p in paths.values():
+        artifacts = [paths["markdown"], paths["fhir"]]
+        if "pdf" in paths:
+            artifacts.append(paths["pdf"])
+        for p in artifacts:
             assert p.exists()
             assert p.stat().st_size > 0
 
@@ -572,7 +585,10 @@ class TestRunF5Report:
         paths = ct._run_f5_report(
             persona_id, tmp_path, temporal_path, write_dir=write_dir
         )
-        for p in paths.values():
+        artifacts = [paths["markdown"], paths["fhir"]]
+        if "pdf" in paths:
+            artifacts.append(paths["pdf"])
+        for p in artifacts:
             assert p.exists()
             assert p.is_relative_to(write_dir)
 
@@ -999,7 +1015,7 @@ class TestF5ChainWiring:
         ledger_len_at_f5_call: list[int] = []
         temporal_paths_at_f5_call: list[Path | None] = []
         f4_temporal_path = tmp_path / "current-single-temporal.json"
-        captured: dict = {}
+        captured: dict[str, list[ct.StageResult]] = {}
 
         async def _fake_run_chain(ctx, stages=None):
             ctx.conversation_path = conv_path

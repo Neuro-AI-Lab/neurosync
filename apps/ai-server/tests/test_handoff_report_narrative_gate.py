@@ -10,8 +10,10 @@ from tests.test_deployment_stateless_routes import _session_entry
 
 client = TestClient(app)
 
+type JsonValue = str | int | float | bool | None | list[JsonValue] | dict[str, JsonValue]
 
-def _sessions() -> list[dict]:
+
+def _sessions() -> list[dict[str, JsonValue]]:
     return [
         _session_entry(
             1,

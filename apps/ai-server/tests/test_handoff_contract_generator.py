@@ -96,7 +96,9 @@ async def test_invalid_json_retries_then_returns_valid_official_response() -> No
     assert response.evidence[0].source_message_id == request.messages[0].message_id
     assert response.latency_ms >= 0
     assert chat.await_count == 2
-    response_format = chat.await_args.kwargs["response_format"]
+    await_call = chat.await_args
+    assert await_call is not None
+    response_format = await_call.kwargs["response_format"]
     schema = response_format["json_schema"]["schema"]
     assert set(schema["required"]) == set(schema["properties"])
     sleep_schema = schema["$defs"]["_SleepAppetiteActivityDraft"]
