@@ -231,6 +231,7 @@ class ChainContext:
     # was actually administered this session — `None` otherwise (not
     # needed, or needed but skipped for lack of an answer_fn).
     f3_si_supplement_pathway: dict[str, Any] | None = None
+    f4_temporal_path: Path | None = None
 
 
 StageFn = Callable[[ChainContext], Awaitable[StageResult]]
@@ -963,6 +964,7 @@ async def run_multi_session_chain(
                 k=0,
                 out_dir=out_dir,
                 scale_scores_path=None,
+                f4_temporal_path=f4_result.artifacts["json"],
             )
             all_results.append(await run_f5_stage(f5_ctx))
         else:
@@ -1329,14 +1331,20 @@ def _build_f5_f3_administration(entry: dict[str, Any]) -> Any | None:
 
 
 def _run_f5_report(
-    persona_id: str, out_dir: Path | None, *, write_dir: Path | None = None
+    persona_id: str,
+    out_dir: Path | None,
+    f4_temporal_path: Path,
+    *,
+    write_dir: Path | None = None,
 ) -> dict[str, Path]:
     """Read the VP's session ledger + every F1/F2/F4 artifact it points at,
     build `src.f5.HandoffReportInput`, call
     `src.f5.assemble_handoff_report` + `src.services.f5_report.
     save_f5_result`. Shared by `run_f5_stage` (STAGE_REGISTRY, live
     single-session path) and the standalone `--f5-from-artifacts` replay
-    CLI below — same assembly logic, never duplicated (mirrors
+    CLI below. The caller must supply the exact successful F4 JSON path;
+    only replay may resolve historical artifacts before calling this seam.
+    Assembly logic is never duplicated (mirrors
     `_run_f4_analysis`'s own dual-caller role).
 
     `out_dir` is where the ledger + F1-F4 artifacts are READ from
@@ -1415,16 +1423,12 @@ def _run_f5_report(
         for e in entries
     )
 
-    temporal_path = _find_latest_f5_temporal_artifact(persona_id, out_dir)
-    if temporal_path is None:
-        from src.f1 import OUTPUT_DIR
-
-        base = out_dir or OUTPUT_DIR
-        raise RuntimeError(
-            f"F5: no F4 longitudinal output (*_temporal.json) found for {persona_id} "
-            f"under {base / persona_id} — run F4 first (e.g. a `--sessions N` chain "
-            "without --no-f4, or the F4 STAGE_REGISTRY stage) before F5 can assemble its "
-            "B-section, which consumes F4's own output verbatim"
+    temporal_path = f4_temporal_path
+    if not temporal_path.is_file():
+        raise FileNotFoundError(
+            f"F5: exact F4 longitudinal output not found: {temporal_path} "
+            f"(persona={persona_id}) — run F4 first and pass that successful stage's "
+            "JSON artifact; live F5 will not fall back to artifact history"
         )
     try:
         longitudinal_data = json.loads(temporal_path.read_text(encoding="utf-8"))
@@ -1473,8 +1477,16 @@ async def run_f5_stage(ctx: ChainContext) -> StageResult:
     discipline as `_run_f4_analysis`'s own <2-entries skip), any other
     exception to a named "fail"."""
     t0 = time.perf_counter()
+    if ctx.f4_temporal_path is None:
+        return StageResult(
+            "F5",
+            "fail",
+            "F5 requires the exact JSON artifact from the successful F4 stage; "
+            "no f4_temporal_path was provided and live fallback is disabled",
+            duration_ms=_ms(t0),
+        )
     try:
-        paths = _run_f5_report(ctx.persona_id, ctx.out_dir)
+        paths = _run_f5_report(ctx.persona_id, ctx.out_dir, ctx.f4_temporal_path)
     except F5InsufficientSessionsError as exc:
         return StageResult("F5", "skip", str(exc), duration_ms=_ms(t0))
     except Exception as exc:  # noqa: BLE001 — harness must report, not crash, on stage failure
@@ -1532,7 +1544,15 @@ def _run_f5_replay_cli(artifacts_dir: Path, out_dir: Path | None) -> int:
     write_base = out_dir.resolve() if out_dir else read_base
 
     try:
-        paths = _run_f5_report(persona_id, read_base, write_dir=write_base)
+        temporal_path = _find_latest_f5_temporal_artifact(persona_id, read_base)
+        if temporal_path is None:
+            raise FileNotFoundError(
+                f"F5: no F4 longitudinal output (*_temporal.json) found for {persona_id} "
+                f"under {resolved} — run F4 first before replay"
+            )
+        paths = _run_f5_report(
+            persona_id, read_base, temporal_path, write_dir=write_base
+        )
     except Exception as exc:  # noqa: BLE001 — CLI must report, not traceback-dump
         print(f"F5 replay failed for persona={persona_id} (artifacts_dir={resolved}): {exc}")
         return 1
@@ -1886,6 +1906,7 @@ async def _main(args: argparse.Namespace) -> int:
             "F4 produced no fresh longitudinal output this run — F5 skipped (dependency not met)",
         )
     else:
+        ctx.f4_temporal_path = f4_result.artifacts["json"]
         f5_result = await run_f5_stage(ctx)
 
     # Preserve report order F1..F4, F5, F6 — insert the deferred F4+F5 just

@@ -334,14 +334,46 @@ class TestBuildF5DomainInferenceSnapshot:
 
 
 class TestRunF5Report:
+    def test_explicit_temporal_path_beats_lexically_newer_stale_file(
+        self, tmp_path: Path
+    ) -> None:
+        persona_id = "VP-EXACT-F4"
+        current_path = _build_two_session_fixture(tmp_path, persona_id)
+        stale_path = _write_temporal(tmp_path, persona_id, ts="99991231_235959")
+        stale_data = json.loads(stale_path.read_text(encoding="utf-8"))
+        stale_data["n_sessions"] = 99
+        stale_path.write_text(json.dumps(stale_data), encoding="utf-8")
+
+        paths = ct._run_f5_report(persona_id, tmp_path, current_path)
+
+        markdown = paths["markdown"].read_text(encoding="utf-8")
+        assert "(2세션" in markdown
+        assert "(99세션" not in markdown
+
+    def test_missing_exact_temporal_path_fails_without_glob_fallback(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        persona_id = "VP-MISSING-EXACT-F4"
+        current_path = _build_two_session_fixture(tmp_path, persona_id)
+        _write_temporal(tmp_path, persona_id, ts="99991231_235959")
+        current_path.unlink()
+
+        def _unexpected_glob(*_args, **_kwargs):
+            raise AssertionError("live F5 must not search for a replacement temporal artifact")
+
+        monkeypatch.setattr(ct, "_find_latest_f5_temporal_artifact", _unexpected_glob)
+
+        with pytest.raises(FileNotFoundError, match=current_path.name):
+            ct._run_f5_report(persona_id, tmp_path, current_path)
+
     def test_happy_path_builds_all_three_outputs(self, tmp_path: Path) -> None:
-        _build_two_session_fixture(
+        temporal_path = _build_two_session_fixture(
             tmp_path, "VP-TEST",
             chart_keys=(
                 "scales_ctrs_sentiment", "ctrs_zoom", "disease_similarity", "domain_confidence",
             ),
         )
-        paths = ct._run_f5_report("VP-TEST", tmp_path)
+        paths = ct._run_f5_report("VP-TEST", tmp_path, temporal_path)
         assert set(paths) == {"markdown", "pdf", "fhir"}
         for p in paths.values():
             assert p.exists()
@@ -384,9 +416,9 @@ class TestRunF5Report:
                 final_slots={"chief_complaint": "수면 개선 추세"},
             ),
         )
-        _write_temporal(tmp_path, persona_id)
+        temporal_path = _write_temporal(tmp_path, persona_id)
 
-        paths = ct._run_f5_report(persona_id, tmp_path)
+        paths = ct._run_f5_report(persona_id, tmp_path, temporal_path)
         md = paths["markdown"].read_text(encoding="utf-8")
         section = md.split("## 전체 세션 요약")[1].split("## 시행된 설문")[0]
         assert "S1: '2주 전부터 불면'" in section
@@ -429,9 +461,9 @@ class TestRunF5Report:
             ledger_path,
             _ledger_entry(2, conv2, di2, simulated_date="2026-01-08", survey_path=survey2),
         )
-        _write_temporal(tmp_path, persona_id)
+        temporal_path = _write_temporal(tmp_path, persona_id)
 
-        paths = ct._run_f5_report(persona_id, tmp_path)
+        paths = ct._run_f5_report(persona_id, tmp_path, temporal_path)
         md = paths["markdown"].read_text(encoding="utf-8")
         a7_section = md.split("## 권장 진료과 및 후속 조치")[1].split("## 임상 종합 소견")[0]
         assert "VAL-016" not in a7_section  # internal ticket ID relocated, not inline
@@ -448,7 +480,7 @@ class TestRunF5Report:
         ct._append_ledger_entry(ledger_path, _ledger_entry(1, conv, None))
 
         with pytest.raises(ct.F5InsufficientSessionsError, match="needs >=2"):
-            ct._run_f5_report(persona_id, tmp_path)
+            ct._run_f5_report(persona_id, tmp_path, tmp_path / "unused-temporal.json")
 
     def test_missing_temporal_json_raises_named_failure_directing_to_f4(
         self, tmp_path: Path
@@ -463,8 +495,9 @@ class TestRunF5Report:
             )
         # deliberately no *_temporal.json written this run
 
-        with pytest.raises(RuntimeError, match="run F4 first"):
-            ct._run_f5_report(persona_id, tmp_path)
+        missing_temporal_path = tmp_path / persona_id / "current_temporal.json"
+        with pytest.raises(FileNotFoundError, match="run F4 first"):
+            ct._run_f5_report(persona_id, tmp_path, missing_temporal_path)
 
     def test_missing_conversation_file_raises_named_failure(self, tmp_path: Path) -> None:
         persona_id = "VP-NOCONV"
@@ -479,21 +512,21 @@ class TestRunF5Report:
             ledger_path,
             _ledger_entry(2, missing_conv, None, simulated_date="2026-01-08"),
         )
-        _write_temporal(tmp_path, persona_id)
+        temporal_path = _write_temporal(tmp_path, persona_id)
 
         with pytest.raises(FileNotFoundError, match="conversation.json not found"):
-            ct._run_f5_report(persona_id, tmp_path)
+            ct._run_f5_report(persona_id, tmp_path, temporal_path)
 
     def test_chart_missing_tolerance_only_present_charts_referenced(
         self, tmp_path: Path
     ) -> None:
         persona_id = "VP-CHARTS"
-        _build_two_session_fixture(
+        temporal_path = _build_two_session_fixture(
             tmp_path, persona_id, chart_keys=("scales_ctrs_sentiment", "ctrs_zoom")
         )
         # disease_similarity / domain_confidence deliberately never written
         # (mirrors EXP-023 VP-003's own real gap, per the wave-1 handoff note).
-        paths = ct._run_f5_report(persona_id, tmp_path)
+        paths = ct._run_f5_report(persona_id, tmp_path, temporal_path)
         md = paths["markdown"].read_text(encoding="utf-8")
         assert "scales_ctrs_sentiment" in md
         assert "ctrs_zoom" in md
@@ -503,8 +536,8 @@ class TestRunF5Report:
 
     def test_no_charts_at_all_renders_absent_marker(self, tmp_path: Path) -> None:
         persona_id = "VP-NOCHARTS"
-        _build_two_session_fixture(tmp_path, persona_id, chart_keys=())
-        paths = ct._run_f5_report(persona_id, tmp_path)
+        temporal_path = _build_two_session_fixture(tmp_path, persona_id, chart_keys=())
+        paths = ct._run_f5_report(persona_id, tmp_path, temporal_path)
         md = paths["markdown"].read_text(encoding="utf-8")
         assert "정보 없음 (차트 없음)" in md
 
@@ -523,9 +556,9 @@ class TestRunF5Report:
                     outcome="no_questionnaire_indicated",
                 ),
             )
-        _write_temporal(tmp_path, persona_id)
+        temporal_path = _write_temporal(tmp_path, persona_id)
 
-        paths = ct._run_f5_report(persona_id, tmp_path)
+        paths = ct._run_f5_report(persona_id, tmp_path, temporal_path)
         md = paths["markdown"].read_text(encoding="utf-8")
         assert "정보 없음 (전체 세션 중 시행된 설문 없음)" in md
 
@@ -533,9 +566,11 @@ class TestRunF5Report:
         self, tmp_path: Path
     ) -> None:
         persona_id = "VP-SPLIT"
-        _build_two_session_fixture(tmp_path, persona_id)
+        temporal_path = _build_two_session_fixture(tmp_path, persona_id)
         write_dir = tmp_path / "elsewhere"
-        paths = ct._run_f5_report(persona_id, tmp_path, write_dir=write_dir)
+        paths = ct._run_f5_report(
+            persona_id, tmp_path, temporal_path, write_dir=write_dir
+        )
         for p in paths.values():
             assert p.exists()
             assert p.is_relative_to(write_dir)
@@ -546,6 +581,33 @@ class TestRunF5Report:
 
 class TestRunF5Stage:
     @pytest.mark.asyncio
+    async def test_fails_closed_when_exact_temporal_path_is_missing_even_with_stale_file(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        persona_id = "VP-STAGE-EXACT"
+        current_path = _build_two_session_fixture(tmp_path, persona_id)
+        _write_temporal(tmp_path, persona_id, ts="99991231_235959")
+        current_path.unlink()
+
+        def _unexpected_glob(*_args, **_kwargs):
+            raise AssertionError("live F5 must not search for a replacement temporal artifact")
+
+        monkeypatch.setattr(ct, "_find_latest_f5_temporal_artifact", _unexpected_glob)
+        ctx = ct.ChainContext(
+            persona_id=persona_id,
+            max_turns=1,
+            k=1,
+            out_dir=tmp_path,
+            scale_scores_path=None,
+            f4_temporal_path=current_path,
+        )
+
+        result = await ct.run_f5_stage(ctx)
+
+        assert result.status == "fail"
+        assert current_path.name in result.detail
+
+    @pytest.mark.asyncio
     async def test_skips_when_fewer_than_2_ledger_entries(self, tmp_path: Path) -> None:
         persona_id = "VP-SOLO2"
         conv = _write_conversation(tmp_path, persona_id, 1)
@@ -553,7 +615,12 @@ class TestRunF5Stage:
         ct._append_ledger_entry(ledger_path, _ledger_entry(1, conv, None))
 
         ctx = ct.ChainContext(
-            persona_id=persona_id, max_turns=1, k=1, out_dir=tmp_path, scale_scores_path=None
+            persona_id=persona_id,
+            max_turns=1,
+            k=1,
+            out_dir=tmp_path,
+            scale_scores_path=None,
+            f4_temporal_path=tmp_path / "unused-temporal.json",
         )
         result = await ct.run_f5_stage(ctx)
         assert result.status == "skip"
@@ -570,7 +637,12 @@ class TestRunF5Stage:
             )
 
         ctx = ct.ChainContext(
-            persona_id=persona_id, max_turns=1, k=1, out_dir=tmp_path, scale_scores_path=None
+            persona_id=persona_id,
+            max_turns=1,
+            k=1,
+            out_dir=tmp_path,
+            scale_scores_path=None,
+            f4_temporal_path=tmp_path / persona_id / "current_temporal.json",
         )
         result = await ct.run_f5_stage(ctx)
         assert result.status == "fail"
@@ -579,10 +651,15 @@ class TestRunF5Stage:
     @pytest.mark.asyncio
     async def test_passes_and_writes_artifacts(self, tmp_path: Path) -> None:
         persona_id = "VP-STAGE-PASS"
-        _build_two_session_fixture(tmp_path, persona_id)
+        temporal_path = _build_two_session_fixture(tmp_path, persona_id)
 
         ctx = ct.ChainContext(
-            persona_id=persona_id, max_turns=1, k=1, out_dir=tmp_path, scale_scores_path=None
+            persona_id=persona_id,
+            max_turns=1,
+            k=1,
+            out_dir=tmp_path,
+            scale_scores_path=None,
+            f4_temporal_path=temporal_path,
         )
         result = await ct.run_f5_stage(ctx)
         assert result.status == "pass"
@@ -600,6 +677,48 @@ class TestRunF5Stage:
 
 
 class TestF5ReplayCli:
+    def test_resolves_temporal_history_once_and_passes_path_explicitly(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        persona_id = "VP-REPLAY-RESOLVE"
+        base = tmp_path / "artifacts_root"
+        selected_path = _build_two_session_fixture(base, persona_id)
+        artifacts_dir = base / persona_id
+        resolved_paths: list[Path] = []
+        report_paths: list[Path] = []
+
+        def _resolve_once(candidate_persona_id: str, candidate_base: Path | None) -> Path:
+            assert candidate_persona_id == persona_id
+            assert candidate_base == base
+            resolved_paths.append(selected_path)
+            return selected_path
+
+        def _report(
+            candidate_persona_id: str,
+            candidate_base: Path | None,
+            f4_temporal_path: Path,
+            *,
+            write_dir: Path | None = None,
+        ) -> dict[str, Path]:
+            assert candidate_persona_id == persona_id
+            assert candidate_base == base
+            assert write_dir == base
+            report_paths.append(f4_temporal_path)
+            return {
+                "markdown": artifacts_dir / "report.md",
+                "pdf": artifacts_dir / "report.pdf",
+                "fhir": artifacts_dir / "report.json",
+            }
+
+        monkeypatch.setattr(ct, "_find_latest_f5_temporal_artifact", _resolve_once)
+        monkeypatch.setattr(ct, "_run_f5_report", _report)
+
+        exit_code = ct._run_f5_replay_cli(artifacts_dir, out_dir=None)
+
+        assert exit_code == 0
+        assert resolved_paths == [selected_path]
+        assert report_paths == [selected_path]
+
     def test_default_out_writes_into_artifacts_dir_itself(self, tmp_path: Path) -> None:
         persona_id = "VP-REPLAY"
         base = tmp_path / "artifacts_root"
@@ -708,11 +827,13 @@ class TestF5ChainWiring:
         )
 
     @pytest.mark.asyncio
-    async def test_multi_session_runs_f5_after_f4_over_complete_ledger(
+    async def test_multi_session_runs_f5_after_f4_with_exact_json_path_over_complete_ledger(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         conv_paths: list[Path] = []
         ledger_len_at_f5_call: list[int] = []
+        temporal_paths_at_f5_call: list[Path | None] = []
+        f4_temporal_path = tmp_path / "current-multi-temporal.json"
 
         async def _fake_run_simulation(persona_id, max_turns, followup_from=None, **kwargs):
             session_index = kwargs["session_index"]
@@ -725,13 +846,16 @@ class TestF5ChainWiring:
             return ct.StageResult("F2", "pass", "ok")
 
         async def _fake_f4(persona_id, out_dir):
-            return ct.StageResult("F4", "pass", "ok")
+            return ct.StageResult(
+                "F4", "pass", "ok", artifacts={"json": f4_temporal_path}
+            )
 
         async def _fake_f5(f5_ctx):
             entries = json.loads(
                 ct._ledger_path(f5_ctx.persona_id, f5_ctx.out_dir).read_text(encoding="utf-8")
             )
             ledger_len_at_f5_call.append(len(entries))
+            temporal_paths_at_f5_call.append(f5_ctx.f4_temporal_path)
             return ct.StageResult("F5", "pass", "ok")
 
         import src.f1 as f1_module
@@ -758,6 +882,7 @@ class TestF5ChainWiring:
         assert ledger_len_at_f5_call == [2], (
             f"F5 must run over the COMPLETE 2-entry ledger, saw {ledger_len_at_f5_call}"
         )
+        assert temporal_paths_at_f5_call == [f4_temporal_path]
 
     @pytest.mark.asyncio
     async def test_multi_session_skips_f5_when_f4_fails(
@@ -858,7 +983,7 @@ class TestF5ChainWiring:
         assert f5_results and f5_results[0].status == "skip"
 
     @pytest.mark.asyncio
-    async def test_single_session_runs_f4_and_f5_after_ledger_append(
+    async def test_single_session_runs_f4_then_passes_exact_json_path_to_f5_after_ledger_append(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Round-2 review blocker (codex): F4 and F5 both read the session
@@ -871,6 +996,8 @@ class TestF5ChainWiring:
         conv_path = _write_conversation(tmp_path, "VP-W1S", 1)
         ledger_len_at_f4_call: list[int] = []
         ledger_len_at_f5_call: list[int] = []
+        temporal_paths_at_f5_call: list[Path | None] = []
+        f4_temporal_path = tmp_path / "current-single-temporal.json"
         captured: dict = {}
 
         async def _fake_run_chain(ctx, stages=None):
@@ -888,13 +1015,16 @@ class TestF5ChainWiring:
                 ct._ledger_path(ctx.persona_id, ctx.out_dir).read_text(encoding="utf-8")
             )
             ledger_len_at_f4_call.append(len(entries))
-            return ct.StageResult("F4", "pass", "ok")
+            return ct.StageResult(
+                "F4", "pass", "ok", artifacts={"json": f4_temporal_path}
+            )
 
         async def _fake_f5(f5_ctx):
             entries = json.loads(
                 ct._ledger_path(f5_ctx.persona_id, f5_ctx.out_dir).read_text(encoding="utf-8")
             )
             ledger_len_at_f5_call.append(len(entries))
+            temporal_paths_at_f5_call.append(f5_ctx.f4_temporal_path)
             return ct.StageResult("F5", "pass", "ok")
 
         monkeypatch.setattr(ct, "run_chain", _fake_run_chain)
@@ -933,6 +1063,7 @@ class TestF5ChainWiring:
         assert ledger_len_at_f4_call == ledger_len_at_f5_call, (
             "F4 and F5 must observe the SAME ledger snapshot (codex consistency fix)"
         )
+        assert temporal_paths_at_f5_call == [f4_temporal_path]
         names = [r.name for r in captured["results"]]
         assert "F4" in names and "F5" in names and "F6" in names
         assert names.index("F4") < names.index("F5") < names.index("F6")
@@ -953,12 +1084,17 @@ class TestF5StagePartialExport:
         fhir = tmp_path / "VP-PDF_handoff_fhir.json"
         fhir.write_text("{}", encoding="utf-8")
 
-        def _fake_report(persona_id, out_dir, *, write_dir=None):
+        def _fake_report(persona_id, out_dir, f4_temporal_path, *, write_dir=None):
             return {"markdown": md, "fhir": fhir}
 
         monkeypatch.setattr(ct, "_run_f5_report", _fake_report)
         ctx = ct.ChainContext(
-            persona_id="VP-PDF", max_turns=0, k=0, out_dir=tmp_path, scale_scores_path=None
+            persona_id="VP-PDF",
+            max_turns=0,
+            k=0,
+            out_dir=tmp_path,
+            scale_scores_path=None,
+            f4_temporal_path=tmp_path / "current-temporal.json",
         )
         result = await ct.run_f5_stage(ctx)
         assert result.status == "warn"
@@ -971,7 +1107,7 @@ class TestF5StagePartialExport:
         md = tmp_path / "VP-OK_handoff.md"
         md.write_text("ok", encoding="utf-8")
 
-        def _fake_report(persona_id, out_dir, *, write_dir=None):
+        def _fake_report(persona_id, out_dir, f4_temporal_path, *, write_dir=None):
             return {
                 "markdown": md,
                 "pdf": tmp_path / "VP-OK_handoff.pdf",
@@ -980,7 +1116,12 @@ class TestF5StagePartialExport:
 
         monkeypatch.setattr(ct, "_run_f5_report", _fake_report)
         ctx = ct.ChainContext(
-            persona_id="VP-OK", max_turns=0, k=0, out_dir=tmp_path, scale_scores_path=None
+            persona_id="VP-OK",
+            max_turns=0,
+            k=0,
+            out_dir=tmp_path,
+            scale_scores_path=None,
+            f4_temporal_path=tmp_path / "current-temporal.json",
         )
         result = await ct.run_f5_stage(ctx)
         assert result.status == "pass"

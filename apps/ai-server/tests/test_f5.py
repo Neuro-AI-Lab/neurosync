@@ -234,6 +234,54 @@ class TestNarrativeDescoped:
 
 
 class TestNarrativeOptIn:
+    @pytest.mark.parametrize("format_control", ["\u200b", "\u200d", "\u00ad"])
+    def test_leak_guard_rejects_disease_split_by_unicode_format_control(
+        self, format_control: str
+    ) -> None:
+        from src.schemas.handoff_report import NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+        apd = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="PTSD", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+
+        out = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd,
+                narrative_enabled=True,
+                narrative_text=f"The patient has P{format_control}TSD symptoms.",
+            )
+        )
+
+        assert out.a8_narrative.narrative_enabled is False
+        assert out.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+    def test_format_control_comparison_preserves_clean_short_token_narrative(self) -> None:
+        apd = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="AD", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+        clean_text = "The patient h\u00adad insomnia and low mood."
+
+        out = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd,
+                narrative_enabled=True,
+                narrative_text=clean_text,
+            )
+        )
+
+        assert out.a8_narrative.narrative_enabled is True
+        assert out.a8_narrative.text == clean_text
+
     def test_enabled_with_text_renders_verbatim(self) -> None:
         out = assemble_handoff_report(
             _build_input(narrative_enabled=True, narrative_text="  환자는 수면 문제를 호소함.  ")

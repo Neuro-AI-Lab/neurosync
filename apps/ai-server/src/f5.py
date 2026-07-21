@@ -791,8 +791,11 @@ def _build_a7(inp: HandoffReportInput) -> RecommendationSection:
 
 def _leak_normalize(s: str) -> str:
     """NFKC + casefold so the A6→A8 refusal cannot be dodged by case or
-    unicode-width variants ("ptsd", "ＰＴＳＤ" must match candidate "PTSD")."""
-    return unicodedata.normalize("NFKC", s).casefold()
+    unicode-width variants ("ptsd", "ＰＴＳＤ" must match candidate "PTSD").
+    Unicode format controls are comparison-ignorable so zero-width and
+    soft-hyphen characters cannot split a disease name."""
+    normalized = unicodedata.normalize("NFKC", s).casefold()
+    return "".join(char for char in normalized if unicodedata.category(char) != "Cf")
 
 
 def _disease_leaks(disease: str, normalized_text: str) -> bool:
