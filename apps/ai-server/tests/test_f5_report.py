@@ -179,6 +179,7 @@ def _full_report(
     )
     inp = HandoffReportInput(
         vp_id="VP-TEST",
+        generated_at="2026-01-15T12:00:00+09:00",
         session=session,
         current_session_f3=current_f3,
         all_f3_administrations=(prior_f3, current_f3),
@@ -216,6 +217,7 @@ def _minimal_report():
     )
     inp = HandoffReportInput(
         vp_id="VP-MIN",
+        generated_at="2026-01-15T12:00:00+09:00",
         session=session,
         current_session_f3=None,
         all_f3_administrations=(),
@@ -970,6 +972,7 @@ def _vp004_shaped_report():
     current_f3 = next(a for a in admins if a.session_index == 10)
     inp = HandoffReportInput(
         vp_id="VP-004",
+        generated_at="2026-01-15T12:00:00+09:00",
         session=session,
         current_session_f3=current_f3,
         all_f3_administrations=tuple(admins),
@@ -1296,6 +1299,7 @@ class TestMarkdownInjectionHardening:
         )
         inp = HandoffReportInput(
             vp_id="VP-INJ",
+            generated_at="2026-01-15T12:00:00+09:00",
             session=session,
             current_session_f3=None,
             all_f3_administrations=(),

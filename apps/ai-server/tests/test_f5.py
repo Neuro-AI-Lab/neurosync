@@ -174,6 +174,7 @@ def _longitudinal(
 
 def _build_input(
     *,
+    generated_at: str = "2026-01-15T12:00:00+09:00",
     session: SessionSnapshot | None = None,
     current_session_f3: F3Administration | None = None,
     all_f3_administrations: tuple[F3Administration, ...] = (),
@@ -187,6 +188,7 @@ def _build_input(
 ) -> HandoffReportInput:
     return HandoffReportInput(
         vp_id="VP-TEST",
+        generated_at=generated_at,
         session=session or _session(),
         current_session_f3=current_session_f3,
         all_f3_administrations=all_f3_administrations,
@@ -203,6 +205,49 @@ def _build_input(
         narrative_enabled=narrative_enabled,
         narrative_text=narrative_text,
     )
+
+
+class TestDeterministicAssembly:
+    def test_required_generation_timestamp_is_part_of_the_input_contract(self) -> None:
+        parameter = inspect.signature(HandoffReportInput).parameters["generated_at"]
+        assert parameter.default is inspect.Parameter.empty
+
+    def test_identical_input_produces_identical_output(self) -> None:
+        inp = _build_input()
+
+        first = assemble_handoff_report(inp)
+        second = assemble_handoff_report(inp)
+
+        assert first.model_dump() == second.model_dump()
+
+    def test_naive_generation_timestamp_is_rejected(self) -> None:
+        with pytest.raises(ValueError, match="timezone-aware ISO timestamp"):
+            _build_input(generated_at="2026-01-15T12:00:00")
+
+    def test_utc_z_generation_timestamp_is_accepted_and_preserved(self) -> None:
+        inp = _build_input(generated_at="2026-01-15T03:00:00Z")
+
+        assert inp.generated_at == "2026-01-15T03:00:00Z"
+
+    def test_malformed_generation_timestamp_is_rejected(self) -> None:
+        with pytest.raises(ValueError) as exc_info:
+            _build_input(generated_at="not-a-timestamp")
+
+        assert str(exc_info.value) == "generated_at must be a valid timezone-aware ISO timestamp"
+
+    def test_changing_timestamp_preserves_all_clinical_sections(self) -> None:
+        first = assemble_handoff_report(
+            _build_input(generated_at="2026-01-15T12:00:00+09:00")
+        ).model_dump()
+        second = assemble_handoff_report(
+            _build_input(generated_at="2026-01-15T13:00:00+09:00")
+        ).model_dump()
+
+        first_timestamp = first.pop("generated_at")
+        second_timestamp = second.pop("generated_at")
+
+        assert first_timestamp != second_timestamp
+        assert first == second
 
 
 # ── Narrative descope (ADR-037 Decision 1) ─────────────────────────────
@@ -931,6 +976,7 @@ class TestA6ReasonSummarySurfacing:
         `HandoffReportInput` directly."""
         inp = HandoffReportInput(
             vp_id="VP-TEST",
+            generated_at="2026-01-15T12:00:00+09:00",
             session=_session(),
             current_session_f3=None,
             all_f3_administrations=(),

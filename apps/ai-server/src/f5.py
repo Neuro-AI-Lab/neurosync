@@ -48,7 +48,6 @@ import re
 import unicodedata
 from dataclasses import dataclass, field
 from datetime import date as _date
-from datetime import datetime
 from typing import Literal
 
 from src.grounding import reply_has_negation
@@ -91,6 +90,7 @@ from src.schemas.handoff_report import (
     StalenessPointer,
 )
 from src.schemas.longitudinal import LongitudinalAnalysisOutput
+from src.services.f5_generation_time import parse_aware_iso_timestamp
 
 # ── Harness -> production contract (design doc §4.1) ────────────────────
 
@@ -213,6 +213,7 @@ class HandoffReportInput:
     all_f3_administrations: tuple[F3Administration, ...]
     domain_inference: DomainInferenceSnapshot
     longitudinal: LongitudinalAnalysisOutput
+    generated_at: str
     chart_filenames: ChartFilenames = field(default_factory=ChartFilenames)
     # Task 1 — all-session slot maximization. Caller-sorted by non-
     # decreasing `session_index` (same non-re-validated discipline as
@@ -229,6 +230,9 @@ class HandoffReportInput:
     # agent (module docstring's zero-LLM invariant, unchanged). Required
     # (non-empty) whenever `narrative_enabled=True`; ignored otherwise.
     narrative_text: str | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "generated_at", parse_aware_iso_timestamp(self.generated_at))
 
 
 # ── Shared helpers ─────────────────────────────────────────────────────
@@ -893,7 +897,7 @@ def assemble_handoff_report(inp: HandoffReportInput) -> HandoffReportOutput:
 
     return HandoffReportOutput(
         vp_id=inp.vp_id,
-        generated_at=datetime.now().astimezone().isoformat(),
+        generated_at=inp.generated_at,
         a0_header=_build_header(inp),
         a1_chief_complaint=_build_a1(inp),
         a2_hpi=_build_a2(inp),

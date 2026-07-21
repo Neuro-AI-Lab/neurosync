@@ -19,6 +19,7 @@ from __future__ import annotations
 import base64
 import logging
 import tempfile
+from datetime import datetime
 from pathlib import Path
 
 from contracts.handoff import HandoffRequest, HandoffResponse
@@ -119,6 +120,7 @@ async def report(body: HandoffReportRequest) -> HandoffReportResponse:
 
     handoff_input = f5.HandoffReportInput(
         vp_id=body.vp_id,
+        generated_at=datetime.now().astimezone().isoformat(),
         session=build_session_snapshot(header),
         current_session_f3=current_f3,
         all_f3_administrations=all_f3,

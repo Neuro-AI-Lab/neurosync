@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
@@ -397,6 +398,7 @@ class TestRunF5Report:
 
         bundle = json.loads(paths["fhir"].read_text(encoding="utf-8"))
         assert validate_fhir_bundle(bundle) == []
+        assert datetime.fromisoformat(bundle["timestamp"]).utcoffset() is not None
 
         md = paths["markdown"].read_text(encoding="utf-8")
         assert "scales_ctrs_sentiment" in md

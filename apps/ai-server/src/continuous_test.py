@@ -1445,6 +1445,7 @@ def _run_f5_report(
 
     inp = HandoffReportInput(
         vp_id=persona_id,
+        generated_at=datetime.now().astimezone().isoformat(),
         session=session,
         current_session_f3=current_f3,
         all_f3_administrations=all_f3,

@@ -124,6 +124,7 @@ def _marker_report(*, other_slots_contain_marker: bool = False) -> HandoffReport
     )
     inp = HandoffReportInput(
         vp_id="VP-LEAK",
+        generated_at="2026-01-15T12:00:00+09:00",
         session=session,
         current_session_f3=current_f3,
         all_f3_administrations=(current_f3,),
@@ -282,6 +283,7 @@ def _marker_report_with_narrative(narrative_text: str) -> HandoffReportOutput:
     )
     inp = HandoffReportInput(
         vp_id="VP-LEAK2",
+        generated_at="2026-01-15T12:00:00+09:00",
         session=session,
         current_session_f3=None,
         all_f3_administrations=(),

@@ -144,6 +144,7 @@ def _report(
     )
     inp = HandoffReportInput(
         vp_id="VP-TEST",
+        generated_at="2026-01-15T12:00:00+09:00",
         session=session,
         current_session_f3=current_f3,
         all_f3_administrations=(prior_f3, current_f3),
@@ -176,6 +177,7 @@ def _empty_report():
     )
     inp = HandoffReportInput(
         vp_id="VP-MIN",
+        generated_at="2026-01-15T12:00:00+09:00",
         session=session,
         current_session_f3=None,
         all_f3_administrations=(),
@@ -413,6 +415,7 @@ class TestA6ReasonSummaryFhir:
         )
         inp = HandoffReportInput(
             vp_id="VP-TEST",
+            generated_at="2026-01-15T12:00:00+09:00",
             session=session,
             current_session_f3=None,
             all_f3_administrations=(),
@@ -465,6 +468,7 @@ class TestA7DisclosureFhir:
         )
         inp = HandoffReportInput(
             vp_id="VP-TEST",
+            generated_at="2026-01-15T12:00:00+09:00",
             session=session,
             current_session_f3=None,
             all_f3_administrations=(),
@@ -662,6 +666,7 @@ class TestFhirPrimitiveAndNarrativeValidity:
         )
         inp = HandoffReportInput(
             vp_id="VP-XML",
+            generated_at="2026-01-15T12:00:00+09:00",
             session=session,
             current_session_f3=None,
             all_f3_administrations=(),
