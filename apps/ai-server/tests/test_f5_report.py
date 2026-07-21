@@ -557,7 +557,9 @@ class TestSaveF5Result:
 
     def test_naming_matches_vp_prefix_pattern(self, tmp_path: Path) -> None:
         paths = save_f5_result(_full_report(), tmp_path, vp_id="VP-TEST")
-        pattern = re.compile(r"^VP-TEST_\d{8}_\d{6}_handoff")
+        # <vp>_<date>_<time>_<unique per-run token>_handoff.* (codex P2: the
+        # per-run token decouples same-second exports of the same VP).
+        pattern = re.compile(r"^VP-TEST_\d{8}_\d{6}_[0-9a-f]{8}_handoff")
         for p in paths.values():
             assert pattern.match(p.stem) or pattern.match(p.name)
 
@@ -1385,34 +1387,25 @@ class TestPdfRobustnessAndExporterIsolation:
         assert sentinel in text.replace(" ", ""), "later narrative content was dropped from PDF"
         assert "이하 생략" not in text, "PDF must paginate, not truncate with an omission marker"
 
-    def test_stale_pdf_removed_when_pdf_export_fails(self, tmp_path, monkeypatch) -> None:
-        # codex P2: on a same-second-prefix collision where the 2nd PDF export
-        # fails, the 1st run's PDF must NOT remain beside the freshly written
-        # md/FHIR — the stale/partial PDF is removed on failure.
-        from datetime import datetime as _dt
-
+    def test_failed_export_does_not_delete_a_prior_valid_pdf(self, tmp_path, monkeypatch) -> None:
+        # codex P2: unique per-run prefixes decouple rapid exports of the same
+        # VP, so a later FAILED export never deletes an earlier run's valid PDF
+        # (nor leaves a stale PDF paired with mismatched md/FHIR).
         import src.services.f5_report as f5r
 
-        class _FrozenDT(_dt):
-            @classmethod
-            def now(cls, tz=None):
-                return _dt(2026, 1, 1, 0, 0, 0, tzinfo=tz)
-
-        monkeypatch.setattr(f5r, "datetime", _FrozenDT)
         report = _minimal_report()
-        out = tmp_path / report.vp_id
-        out.mkdir(parents=True, exist_ok=True)
-        stale_pdf = out / f"{report.vp_id}_20260101_000000_handoff.pdf"
-        stale_pdf.write_bytes(b"%PDF-STALE-FROM-PREVIOUS-RUN")
+        first = save_f5_result(report, tmp_path)
+        assert "pdf" in first and first["pdf"].exists()
 
         def _boom(report, chart_paths):
             raise RuntimeError("simulated PDF failure")
 
         monkeypatch.setattr(f5r, "build_pdf_report", _boom)
-        paths = save_f5_result(report, tmp_path)
-        assert "pdf" not in paths
-        assert not stale_pdf.exists(), "stale PDF must be removed when export fails"
-        assert paths["markdown"].exists() and paths["fhir"].exists()
+        second = save_f5_result(report, tmp_path)
+        assert "pdf" not in second, "a failed export must not report a PDF path"
+        assert first["markdown"] != second["markdown"], "each run must get a unique prefix"
+        assert first["pdf"].exists(), "a prior run's valid PDF must survive a later failed export"
+        assert second["markdown"].exists() and second["fhir"].exists()
 
     def test_pdf_does_not_double_escape_clinical_text(self) -> None:
         # codex P2: clinical text containing < or | must render as real

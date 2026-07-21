@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.agents.base import AgentInput, AgentOutput
 from src.schemas.common import EvidencePacket, RiskLevel
 
-_VALID_CTRS_LABELS = frozenset({"1", "2", "3", "4", "5"})
-_VALID_RISK_LABELS = frozenset(level.value for level in RiskLevel)
+RiskLevelLabel = Literal["none", "low", "medium", "high", "critical"]
+CtrsLabel = Literal["1", "2", "3", "4", "5"]
+
+# Derived from the published enums so the OpenAPI schema and the runtime
+# validators can never drift (test_riskevent_schema_matches_validators guards it).
+_VALID_CTRS_LABELS = frozenset(CtrsLabel.__args__)
+_VALID_RISK_LABELS = frozenset(RiskLevelLabel.__args__)
 
 
 class RiskEvent(BaseModel):
@@ -26,13 +33,13 @@ class RiskEvent(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    risk_level: str | None = Field(
+    risk_level: RiskLevelLabel = Field(
         default=None,
-        description="One of: none | low | medium | high | critical",
+        description="One of: none | low | medium | high | critical (omit the field if unknown)",
     )
-    ctrs_level: str | None = Field(
+    ctrs_level: CtrsLabel = Field(
         default=None,
-        description="Crisis Triage Rating Scale, ASCII digit '1'-'5'",
+        description="Crisis Triage Rating Scale, ASCII digit '1'-'5' (omit the field if unknown)",
     )
 
     @field_validator("risk_level", mode="before")

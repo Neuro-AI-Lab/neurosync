@@ -118,7 +118,11 @@ def save_f5_result(
     out = base / resolved_vp_id
     out.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    prefix = f"{resolved_vp_id}_{ts}"
+    # Unique per-run suffix: two exports of the same VP within one clock second
+    # must NOT share a filename prefix — otherwise a later failed PDF export
+    # could leave (or, on cleanup, remove) the earlier run's PDF beside
+    # mismatched md/FHIR (codex P2). A per-run token decouples rapid runs.
+    prefix = f"{resolved_vp_id}_{ts}_{uuid.uuid4().hex[:8]}"
 
     paths: dict[str, Path] = {}
 

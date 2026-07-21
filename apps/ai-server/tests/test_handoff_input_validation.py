@@ -128,3 +128,30 @@ class TestDetectRiskLevelWithValidatedEvents:
     def test_dict_path_non_ascii_digit_floors_to_medium(self):
         # Internal dict path: non-ASCII digits never parse as CTRS (defense in depth).
         assert _detect_risk_level([{"ctrs_level": "١"}]) == RiskLevel.medium
+
+
+class TestRiskEventOpenApiSchema:
+    """codex P2: the request schema (/openapi.json) must ADVERTISE the severity
+    constraints the validators enforce (enum + non-null), while still allowing
+    field omission — else generated clients submit schema-legal payloads and
+    get surprise HTTP 422s."""
+
+    def test_schema_encodes_enum_nonnull_and_optional(self):
+        schema = RiskEvent.model_json_schema()
+        assert schema.get("required", []) == [], "severity fields must be omittable"
+        expected = {
+            "risk_level": {"none", "low", "medium", "high", "critical"},
+            "ctrs_level": {"1", "2", "3", "4", "5"},
+        }
+        for field, labels in expected.items():
+            prop = schema["properties"][field]
+            assert prop.get("type") == "string", f"{field} must be a non-nullable string: {prop}"
+            assert "null" not in repr(prop), f"{field} must not advertise null: {prop}"
+            assert set(prop["enum"]) == labels, f"{field} enum must match validators: {prop}"
+
+    def test_riskevent_schema_matches_validators(self):
+        from src.schemas.handoff import _VALID_CTRS_LABELS, _VALID_RISK_LABELS
+
+        schema = RiskEvent.model_json_schema()
+        assert set(schema["properties"]["risk_level"]["enum"]) == set(_VALID_RISK_LABELS)
+        assert set(schema["properties"]["ctrs_level"]["enum"]) == set(_VALID_CTRS_LABELS)
