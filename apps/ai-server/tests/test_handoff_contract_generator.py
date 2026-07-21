@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, call
 
 import pytest
-from contracts.handoff import HandoffRequest
+from contracts.handoff import HandoffRequest, HandoffResponse
+from pydantic import ValidationError
 
+import src.agents.handoff_contract_generator as generator_module
 from src.adapters.base import LLMAdapter
 from src.agents.handoff_contract_generator import (
     HandoffContractGenerator,
@@ -42,6 +44,13 @@ def _draft_json(**evidence_override: str) -> str:
         "quote": "잠들기 어렵고 식욕이 줄었어요.",
     }
     evidence.update(evidence_override)
+    citations = [
+        evidence,
+        {**evidence, "field": "present_illness"},
+        {**evidence, "field": "symptoms[0]"},
+        {**evidence, "field": "sleep_appetite_activity.sleep"},
+        {**evidence, "field": "sleep_appetite_activity.appetite"},
+    ]
     return json.dumps(
         {
             "chief_complaint": "수면과 식욕 변화",
@@ -59,13 +68,15 @@ def _draft_json(**evidence_override: str) -> str:
             "medications": None,
             "documents_summary": [],
             "clinician_attention": [],
-            "evidence": [evidence],
+            "evidence": citations,
         },
         ensure_ascii=False,
     )
 
 
-def _agent_with_outputs(outputs: list[str]) -> tuple[HandoffContractGenerator, AsyncMock]:
+def _agent_with_outputs(
+    outputs: list[str],
+) -> tuple[HandoffContractGenerator, AsyncMock, MagicMock]:
     agent = HandoffContractGenerator.__new__(HandoffContractGenerator)
     router = MagicMock()
     adapter = AsyncMock(spec=LLMAdapter)
@@ -77,18 +88,38 @@ def _agent_with_outputs(outputs: list[str]) -> tuple[HandoffContractGenerator, A
         model_id="test-model",
         supports_json_schema=True,
     )
+    router.get_fallback.side_effect = [
+        ModelSelection(
+            adapter_name="secondary",
+            model_id="secondary-model",
+            tier="secondary",
+            supports_json_schema=True,
+        ),
+        ModelSelection(
+            adapter_name="fallback",
+            model_id="fallback-model",
+            tier="fallback",
+            supports_json_schema=True,
+        ),
+    ]
     router.get_adapter.return_value = adapter
     agent._router = router
     prompt_loader = MagicMock()
     prompt_loader.load_system_prompt.return_value = "structured contract prompt"
     agent._prompt_loader = prompt_loader
-    return agent, adapter.chat_timed
+    return agent, adapter.chat_timed, router
+
+
+def _official_validation_error() -> ValidationError:
+    with pytest.raises(ValidationError) as failure:
+        HandoffResponse.model_validate({"latency_ms": -1})
+    return failure.value
 
 
 @pytest.mark.asyncio
 async def test_invalid_json_retries_then_returns_valid_official_response() -> None:
     request = _request()
-    agent, chat = _agent_with_outputs(["not json", _draft_json()])
+    agent, chat, _router = _agent_with_outputs(["not json", _draft_json()])
 
     response = await agent.generate(request, adapt_handoff_request(request))
 
@@ -117,7 +148,7 @@ async def test_invalid_json_retries_then_returns_valid_official_response() -> No
 @pytest.mark.asyncio
 async def test_invalid_citation_retries_twice_then_rejects(invalid_output: str) -> None:
     request = _request()
-    agent, chat = _agent_with_outputs([invalid_output] * 3)
+    agent, chat, _router = _agent_with_outputs([invalid_output] * 3)
 
     with pytest.raises(HandoffContractValidationError):
         await agent.generate(request, adapt_handoff_request(request))
@@ -128,10 +159,42 @@ async def test_invalid_citation_retries_twice_then_rejects(invalid_output: str) 
 @pytest.mark.asyncio
 async def test_provider_failure_is_not_misreported_as_contract_rejection() -> None:
     request = _request()
-    agent, chat = _agent_with_outputs([])
+    agent, chat, _router = _agent_with_outputs([])
     chat.side_effect = RuntimeError("provider unavailable")
 
     with pytest.raises(HandoffProviderError):
         await agent.generate(request, adapt_handoff_request(request))
 
-    assert chat.await_count == 1
+    assert chat.await_count == 3
+
+
+@pytest.mark.asyncio
+async def test_official_response_validation_falls_back_before_recording_success(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    request = _request()
+    agent, chat, router = _agent_with_outputs([_draft_json(), _draft_json()])
+    original_to_response = generator_module._to_response
+    official_failure = _official_validation_error()
+    construction_count = 0
+
+    def fail_first_construction(
+        draft: generator_module._HandoffDraft,
+        latency_ms: int,
+    ) -> HandoffResponse:
+        nonlocal construction_count
+        construction_count += 1
+        if construction_count == 1:
+            raise official_failure
+        return original_to_response(draft, latency_ms)
+
+    monkeypatch.setattr(generator_module, "_to_response", fail_first_construction)
+
+    response = await agent.generate(request, adapt_handoff_request(request))
+
+    assert response.chief_complaint == "수면과 식욕 변화"
+    assert chat.await_count == 2
+    assert router.record_failure.call_args_list == [
+        call("test", HandoffContractValidationError())
+    ]
+    router.record_success.assert_called_once_with("secondary")

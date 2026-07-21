@@ -13,18 +13,12 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 from src.adapters.base import ChatMessage, LLMAdapter
 from src.prompts.loader import PromptLoader
 from src.routing.model_router import ModelRouter
+from src.schemas.common import ModelSelection
 from src.schemas.handoff import HandoffInput
 
 _AGENT_NAME: Final = "handoff_generator"
 _PROMPT_VERSION: Final = "v4"
 _MAX_RETRIES: Final = 2
-_NESTED_CITATION_FIELDS: Final = frozenset(
-    {
-        "sleep_appetite_activity.sleep",
-        "sleep_appetite_activity.appetite",
-        "sleep_appetite_activity.activity",
-    }
-)
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,17 +65,47 @@ class _HandoffDraft(BaseModel):
 
 
 def _validate_citations(draft: _HandoffDraft, request: HandoffRequest) -> None:
+    if draft.documents_summary:
+        raise HandoffContractValidationError()
+
+    populated_targets = {
+        field
+        for field, value in (
+            ("chief_complaint", draft.chief_complaint),
+            ("present_illness", draft.present_illness),
+            ("onset", draft.onset),
+            ("recent_changes", draft.recent_changes),
+            ("psych_history", draft.psych_history),
+            ("medications", draft.medications),
+            ("sleep_appetite_activity.sleep", draft.sleep_appetite_activity.sleep),
+            ("sleep_appetite_activity.appetite", draft.sleep_appetite_activity.appetite),
+            ("sleep_appetite_activity.activity", draft.sleep_appetite_activity.activity),
+        )
+        if value is not None and value.strip()
+    }
+    for field, values in (
+        ("symptoms", draft.symptoms),
+        ("triggers", draft.triggers),
+        ("clinician_attention", draft.clinician_attention),
+    ):
+        populated_targets.update(
+            f"{field}[{index}]" for index, value in enumerate(values) if value.strip()
+        )
+
     message_content = {str(message.message_id): message.content for message in request.messages}
-    allowed_fields = frozenset(HandoffResponse.model_fields) | _NESTED_CITATION_FIELDS
+    cited_targets: set[str] = set()
     for citation in draft.evidence:
         content = message_content.get(str(citation.source_message_id))
         if (
             content is None
             or not citation.quote.strip()
             or citation.quote not in content
-            or citation.field not in allowed_fields
+            or citation.field not in populated_targets
         ):
             raise HandoffContractValidationError()
+        cited_targets.add(citation.field)
+    if cited_targets != populated_targets:
+        raise HandoffContractValidationError()
 
 
 def _to_response(draft: _HandoffDraft, latency_ms: int) -> HandoffResponse:
@@ -113,11 +137,11 @@ class HandoffContractGenerator:
         self._router = model_router
         self._prompt_loader = prompt_loader
 
-    async def _request_json(self, local_input: HandoffInput) -> str:
-        selection = self._router.select_model(_AGENT_NAME, require_json=True)
-        adapter = self._router.get_adapter(selection.adapter_name)
-        if not isinstance(adapter, LLMAdapter):
-            raise HandoffProviderError()
+    async def _request_json(
+        self,
+        selection: ModelSelection,
+        local_input: HandoffInput,
+    ) -> str:
         if selection.supports_json_schema:
             response_format = {
                 "type": "json_schema",
@@ -139,6 +163,9 @@ class HandoffContractGenerator:
             ChatMessage(role="user", content=local_input.model_dump_json(exclude_none=True)),
         ]
         try:
+            adapter = self._router.get_adapter(selection.adapter_name)
+            if not isinstance(adapter, LLMAdapter):
+                raise HandoffProviderError()
             response = await adapter.chat_timed(
                 messages,
                 model=selection.model_id,
@@ -146,10 +173,8 @@ class HandoffContractGenerator:
                 max_tokens=4096,
                 response_format=response_format,
             )
-        except (openai.OpenAIError, RuntimeError, ValueError, KeyError) as exc:
-            _ = self._router.record_failure(selection.adapter_name, exc)
-            raise HandoffProviderError() from exc
-        self._router.record_success(selection.adapter_name)
+        except (openai.OpenAIError, RuntimeError, ValueError, KeyError):
+            raise HandoffProviderError() from None
         return response.content
 
     async def generate(
@@ -157,15 +182,35 @@ class HandoffContractGenerator:
         request: HandoffRequest,
         local_input: HandoffInput,
     ) -> HandoffResponse:
-        """Retry malformed JSON/citations twice and return server-measured latency."""
+        """Try three configured tiers and return the first grounded response."""
         started = time.perf_counter()
-        for _attempt in range(1 + _MAX_RETRIES):
-            content = await self._request_json(local_input)
+        selection = self._router.select_model(_AGENT_NAME, require_json=True)
+        for attempt in range(1 + _MAX_RETRIES):
             try:
+                content = await self._request_json(selection, local_input)
                 draft = _HandoffDraft.model_validate_json(content)
                 _validate_citations(draft, request)
+                elapsed_ms = max(0, round((time.perf_counter() - started) * 1000))
+                response = _to_response(draft, elapsed_ms)
             except (ValidationError, HandoffContractValidationError):
-                continue
-            elapsed_ms = max(0, round((time.perf_counter() - started) * 1000))
-            return _to_response(draft, elapsed_ms)
+                failure: HandoffContractValidationError | HandoffProviderError = (
+                    HandoffContractValidationError()
+                )
+            except HandoffProviderError as exc:
+                failure = exc
+            else:
+                self._router.record_success(selection.adapter_name)
+                return response
+
+            _ = self._router.record_failure(selection.adapter_name, failure)
+            if attempt == _MAX_RETRIES:
+                raise failure
+            fallback = self._router.get_fallback(
+                _AGENT_NAME,
+                selection.adapter_name,
+                "handoff attempt failed",
+            )
+            if fallback is None:
+                raise failure
+            selection = fallback
         raise HandoffContractValidationError()
