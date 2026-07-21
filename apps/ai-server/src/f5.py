@@ -801,8 +801,11 @@ def _disease_leaks(disease: str, normalized_text: str) -> bool:
     ("AD") must not match inside "had" (false-positive narrative rejection),
     while a CJK candidate still matches when followed by a Korean particle
     ("우울증" in "우울증이"). Boundaries are ASCII-only (``[a-z0-9]`` after
-    casefold), so CJK adjacency is intentionally NOT treated as a boundary."""
-    norm = _leak_normalize(disease)
+    casefold), so CJK adjacency is intentionally NOT treated as a boundary. The
+    candidate is stripped first so surrounding whitespace can't become part of
+    the boundary-anchored pattern and defeat the match (e.g. candidate "PTSD "
+    against "…has PTSD symptoms" — codex clinical-isolation guarantee)."""
+    norm = _leak_normalize(disease).strip()
     if not norm:
         return False
     return re.search(rf"(?<![a-z0-9]){re.escape(norm)}(?![a-z0-9])", normalized_text) is not None
