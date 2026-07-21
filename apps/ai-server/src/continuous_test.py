@@ -1770,6 +1770,18 @@ def _build_single_session_ledger_entry(
     }
 
 
+def _chain_return_code(results: list[StageResult]) -> int:
+    """Process exit code for a full chain run: 1 if any stage hard-failed, 2 on
+    a partial F5 export (md/FHIR written but PDF missing — F5 'warn'), else 0.
+    Exit 2 mirrors the --f5-from-artifacts replay CLI so automation detects a
+    missing clinical artifact even when no stage hard-failed."""
+    if any(r.status == "fail" for r in results):
+        return 1
+    if any(r.name == "F5" and r.status == "warn" for r in results):
+        return 2
+    return 0
+
+
 async def _main(args: argparse.Namespace) -> int:
     out_dir = Path(args.out) if args.out else None
 
@@ -1817,7 +1829,7 @@ async def _main(args: argparse.Namespace) -> int:
             run_f4=run_f4,
         )
         print_multi_session_report(args.persona, results)
-        return 0 if all(r.status != "fail" for r in results) else 1
+        return _chain_return_code(results)
 
     ctx = ChainContext(
         persona_id=args.persona,
@@ -1882,7 +1894,7 @@ async def _main(args: argparse.Namespace) -> int:
     results[f6_index:f6_index] = [f4_result, f5_result]
 
     print_report(ctx, results)
-    return 0 if all(r.status != "fail" for r in results) else 1
+    return _chain_return_code(results)
 
 
 def main() -> int:

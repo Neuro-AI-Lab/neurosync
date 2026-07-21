@@ -1384,3 +1384,32 @@ class TestPdfRobustnessAndExporterIsolation:
         text = "".join(page.extract_text() for page in reader.pages)
         assert sentinel in text.replace(" ", ""), "later narrative content was dropped from PDF"
         assert "이하 생략" not in text, "PDF must paginate, not truncate with an omission marker"
+
+    def test_stale_pdf_removed_when_pdf_export_fails(self, tmp_path, monkeypatch) -> None:
+        # codex P2: on a same-second-prefix collision where the 2nd PDF export
+        # fails, the 1st run's PDF must NOT remain beside the freshly written
+        # md/FHIR — the stale/partial PDF is removed on failure.
+        from datetime import datetime as _dt
+
+        import src.services.f5_report as f5r
+
+        class _FrozenDT(_dt):
+            @classmethod
+            def now(cls, tz=None):
+                return _dt(2026, 1, 1, 0, 0, 0, tzinfo=tz)
+
+        monkeypatch.setattr(f5r, "datetime", _FrozenDT)
+        report = _minimal_report()
+        out = tmp_path / report.vp_id
+        out.mkdir(parents=True, exist_ok=True)
+        stale_pdf = out / f"{report.vp_id}_20260101_000000_handoff.pdf"
+        stale_pdf.write_bytes(b"%PDF-STALE-FROM-PREVIOUS-RUN")
+
+        def _boom(report, chart_paths):
+            raise RuntimeError("simulated PDF failure")
+
+        monkeypatch.setattr(f5r, "build_pdf_report", _boom)
+        paths = save_f5_result(report, tmp_path)
+        assert "pdf" not in paths
+        assert not stale_pdf.exists(), "stale PDF must be removed when export fails"
+        assert paths["markdown"].exists() and paths["fhir"].exists()

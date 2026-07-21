@@ -133,6 +133,10 @@ def save_f5_result(
         paths["pdf"] = pdf_path
     except Exception:
         logger.exception("F5 PDF export failed — markdown/FHIR artifacts continue")
+        # Never leave a STALE (previous same-second-prefix run) or partially
+        # written PDF beside the freshly written md/FHIR — a glob/dir consumer
+        # would otherwise pair the current report with an old/corrupt PDF.
+        pdf_path.unlink(missing_ok=True)
 
     fhir_bundle = build_fhir_bundle(report)
     fhir_path = out / f"{prefix}_handoff_fhir.json"

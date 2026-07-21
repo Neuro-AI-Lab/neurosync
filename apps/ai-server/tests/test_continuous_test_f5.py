@@ -984,3 +984,32 @@ class TestF5StagePartialExport:
         )
         result = await ct.run_f5_stage(ctx)
         assert result.status == "pass"
+
+
+class TestChainReturnCode:
+    """codex P2: a partial F5 export (md/FHIR written, PDF missing → F5 'warn')
+    must make the regular chain exit NONZERO (2), matching the replay CLI, so
+    automation detects the missing clinical artifact even without a hard fail."""
+
+    def test_partial_f5_export_exits_nonzero(self) -> None:
+        results = [
+            ct.StageResult("F1", "pass", "ok"),
+            ct.StageResult("F5", "warn", "PDF export failed — md/FHIR written"),
+        ]
+        assert ct._chain_return_code(results) == 2
+
+    def test_hard_fail_dominates_partial_export(self) -> None:
+        results = [
+            ct.StageResult("F5", "warn", "pdf missing"),
+            ct.StageResult("F4", "fail", "boom"),
+        ]
+        assert ct._chain_return_code(results) == 1
+
+    def test_clean_run_exits_zero(self) -> None:
+        results = [ct.StageResult("F1", "pass", "ok"), ct.StageResult("F5", "pass", "ok")]
+        assert ct._chain_return_code(results) == 0
+
+    def test_benign_non_f5_warn_stays_zero(self) -> None:
+        # An F4 'warn' (insufficient data) is not a missing artifact -> exit 0.
+        results = [ct.StageResult("F4", "warn", "only 1/2 readable")]
+        assert ct._chain_return_code(results) == 0
