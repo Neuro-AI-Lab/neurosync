@@ -1413,3 +1413,19 @@ class TestPdfRobustnessAndExporterIsolation:
         assert "pdf" not in paths
         assert not stale_pdf.exists(), "stale PDF must be removed when export fails"
         assert paths["markdown"].exists() and paths["fhir"].exists()
+
+    def test_pdf_does_not_double_escape_clinical_text(self) -> None:
+        # codex P2: clinical text containing < or | must render as real
+        # characters in the PDF (reportlab's own P() does the escaping), NOT as
+        # literal Markdown-escape artifacts &lt; / \|. The shared render helpers
+        # hand the PDF RAW text via _pdf_raw instead of Markdown-escaping it.
+        import io
+
+        import pypdf
+
+        report = TestMarkdownInjectionHardening._adversarial_report()
+        pdf = build_pdf_report(report, {})
+        assert pdf.startswith(b"%PDF")
+        text = "".join(page.extract_text() for page in pypdf.PdfReader(io.BytesIO(pdf)).pages)
+        assert "&lt;" not in text, "PDF double-escaped '<' as the literal artifact &lt;"
+        assert "\\|" not in text, "PDF rendered a literal Markdown pipe-escape \\|"

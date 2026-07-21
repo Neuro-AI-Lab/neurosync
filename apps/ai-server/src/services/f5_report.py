@@ -24,6 +24,7 @@ import json
 import logging
 import re
 import uuid
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 from xml.etree import ElementTree
@@ -319,6 +320,14 @@ def _md_cell(text: object) -> str:
     return _md_inline(text).replace("|", "\\|")
 
 
+def _pdf_raw(text: object) -> str:
+    r"""Identity sanitizer for the PDF exporter — reportlab's inner P() already
+    escapes ``&``/``<``/``>`` (and reportlab has no Markdown/pipe semantics), so
+    the shared render helpers must NOT pre-apply Markdown escaping to PDF-bound
+    text or it surfaces as literal ``&lt;…`` / ``\|`` artifacts (codex P2)."""
+    return str(text)
+
+
 _MD_LINE_STRUCTURE_RE = re.compile(r"^(\s*)([#>|=~`+*\-])", flags=re.MULTILINE)
 _MD_ORDERED_LIST_RE = re.compile(r"^(\s*\d+)([.)])", flags=re.MULTILINE)
 
@@ -360,18 +369,23 @@ def _pdf_line_chunks(text: str, max_lines: int = _PDF_PARAGRAPH_MAX_LINES) -> li
 
 
 def _truncate(
-    text: str | None, limit: int = 80, *, appendix: _AppendixCollector, label: str
+    text: str | None,
+    limit: int = 80,
+    *,
+    appendix: _AppendixCollector,
+    label: str,
+    sanitize: Callable[[object], str] = _md_cell,
 ) -> str:
-    """Truncates *text* for a compact body cell/line — CVR-026 Finding 1
-    (blocking): a truncated value's marker now points to a REAL, numbered
-    "상세 부록" (detail appendix) entry carrying the SAME full *text*
-    (never `"(상세 아래)"`, which pointed nowhere). `appendix`/`label` are
-    mandatory — every call site owns an `_AppendixCollector` for its
-    render pass. Output is markdown-sanitized (`_md_cell`) — call sites
-    place it in table cells and inline prose."""
+    r"""Truncates *text* for a compact body cell/line; the full text is anchored
+    into a numbered "상세 부록" (detail appendix) entry (CVR-026 Finding 1).
+    *sanitize* escapes the value for its target renderer: the Markdown default
+    (`_md_cell`) neutralizes table pipes/HTML; PDF callers pass `_pdf_raw` so
+    reportlab's own P() escapes it (avoiding literal ``&lt;``/``\|`` double-
+    escape artifacts). Each renderer owns its `_AppendixCollector`, so the
+    anchored full text is stored in the form correct for that renderer."""
     if not text:
         return ""
-    t = _md_cell(text)
+    t = sanitize(text)
     if len(t) <= limit:
         return t
     n = appendix.anchor(label, t)
@@ -534,7 +548,12 @@ def _key_concerns(
     return concerns or ["특이 우려 사항 없음"]
 
 
-def _summary_box_lines(report: HandoffReportOutput, appendix: _AppendixCollector) -> list[str]:
+def _summary_box_lines(
+    report: HandoffReportOutput,
+    appendix: _AppendixCollector,
+    *,
+    sanitize: Callable[[object], str] = _md_cell,
+) -> list[str]:
     """핵심 요약 (SBAR식, ≤8줄) — binding rule 2."""
     a0, a1, a3, a5 = (
         report.a0_header,
@@ -549,7 +568,7 @@ def _summary_box_lines(report: HandoffReportOutput, appendix: _AppendixCollector
         f"({a0.simulated_date}), 총 {lon.n_sessions}세션{span}",
         "주호소: "
         + (
-            _truncate(a1.text, 80, appendix=appendix, label="주호소 전문")
+            _truncate(a1.text, 80, appendix=appendix, label="주호소 전문", sanitize=sanitize)
             if a1.present
             else "미수집"
         ),
@@ -566,14 +585,23 @@ _DISCLAIMER_BOX_KO = [
 ]
 
 
-def _risk_prose(a3: RiskSafetySection, appendix: _AppendixCollector) -> str:
+def _risk_prose(
+    a3: RiskSafetySection,
+    appendix: _AppendixCollector,
+    *,
+    sanitize: Callable[[object], str] = _md_cell,
+) -> str:
     # CVR-026 Finding 1 (blocking, 최우선): the current-session risk
     # narrative's own patient-quote — a truncated, dead-referenced cut of
     # this exact quote was the single highest-severity finding. Full text
     # now always lands in the 상세 부록.
     risk_text = (
         _truncate(
-            a3.risk_assessment_text, 100, appendix=appendix, label="위험평가 발화 원문 (당해 세션)"
+            a3.risk_assessment_text,
+            100,
+            appendix=appendix,
+            label="위험평가 발화 원문 (당해 세션)",
+            sanitize=sanitize,
         )
         if a3.risk_assessment_present
         else "정보 없음"
@@ -594,16 +622,26 @@ def _risk_prose(a3: RiskSafetySection, appendix: _AppendixCollector) -> str:
     return " ".join(parts)
 
 
-def _risk_discordance_verdict(discordance_note: str, appendix: _AppendixCollector) -> str:
+def _risk_discordance_verdict(
+    discordance_note: str,
+    appendix: _AppendixCollector,
+    *,
+    sanitize: Callable[[object], str] = _md_cell,
+) -> str:
     if discordance_note.startswith("불일치"):
         return "불일치"
     if discordance_note.startswith("일치"):
         return "일치"
-    return _truncate(discordance_note, 20, appendix=appendix, label="위험 신호 판정 원문")
+    return _truncate(
+        discordance_note, 20, appendix=appendix, label="위험 신호 판정 원문", sanitize=sanitize
+    )
 
 
 def _risk_table_rows(
-    a3: RiskSafetySection, appendix: _AppendixCollector
+    a3: RiskSafetySection,
+    appendix: _AppendixCollector,
+    *,
+    sanitize: Callable[[object], str] = _md_cell,
 ) -> list[tuple[str, str, str, str, str]]:
     rows = []
     for sig in a3.longitudinal_risk_signals:
@@ -613,7 +651,7 @@ def _risk_table_rows(
             item9 = "음성"
         else:
             item9 = "미상"
-        verdict = _risk_discordance_verdict(sig.discordance_note, appendix)
+        verdict = _risk_discordance_verdict(sig.discordance_note, appendix, sanitize=sanitize)
         if sig.ceiling_caveat:
             verdict += " · 만점"
         score = f"{sig.total_score}/{sig.max_score}" if sig.total_score is not None else "-"
@@ -663,12 +701,16 @@ def _absent_session_rows(
 
 
 def _full_risk_table_rows(
-    a3: RiskSafetySection, lon: LongitudinalAnalysisOutput, appendix: _AppendixCollector
+    a3: RiskSafetySection,
+    lon: LongitudinalAnalysisOutput,
+    appendix: _AppendixCollector,
+    *,
+    sanitize: Callable[[object], str] = _md_cell,
 ) -> list[tuple[str, str, str, str, str]]:
     """`_risk_table_rows` (flagged sessions) merged with `_absent_session_rows`
     (every remaining ledger session), sorted back into session order -- the
     table renders every session once, never a silent gap."""
-    combined = _risk_table_rows(a3, appendix) + _absent_session_rows(a3, lon)
+    combined = _risk_table_rows(a3, appendix, sanitize=sanitize) + _absent_session_rows(a3, lon)
     return sorted(combined, key=lambda row: int(row[0]))
 
 
@@ -700,13 +742,15 @@ def _ceiling_caveat_summary(a3: RiskSafetySection) -> str | None:
     return f"[세션 {session_str} — {range_label}] {caveat_text}"
 
 
-def _mse_lines(a4: MentalStatusSection) -> list[str]:
+def _mse_lines(
+    a4: MentalStatusSection, *, sanitize: Callable[[object], str] = _md_inline
+) -> list[str]:
     assessable = [d for d in a4.domain_checklist if d.assessable]
     if not a4.present and not assessable:
         return ["텍스트 문진 특성상 관찰 기반 MSE는 평가 불가; 대화에서 도출된 소견 없음"]
-    lines = [f"{a4.label}: {_md_inline(a4.raw_text)}"] if a4.present else []
+    lines = [f"{a4.label}: {sanitize(a4.raw_text)}"] if a4.present else []
     if assessable:
-        lines += [f"- {d.domain}: {_md_inline(d.note)}" for d in assessable]
+        lines += [f"- {d.domain}: {sanitize(d.note)}" for d in assessable]
     elif a4.present:
         lines.append("개별 영역(mood/insight 등) 평가는 이 슬롯 특성상 불가")
     return lines
@@ -1473,7 +1517,10 @@ def build_pdf_report(
 
     # ── 핵심 요약 (SBAR box) ──
     summary_flow = [P("핵심 요약", "h3")]
-    summary_flow += [P(f"- {line}", "body") for line in _summary_box_lines(report, appendix)]
+    summary_flow += [
+        P(f"- {line}", "body")
+        for line in _summary_box_lines(report, appendix, sanitize=_pdf_raw)
+    ]
     story.append(_boxed(summary_flow))
     story.append(Spacer(1, 0.2 * cm))
 
@@ -1485,13 +1532,13 @@ def build_pdf_report(
 
     # ── 위험/안전 평가 ──
     story.append(P("위험/안전 평가", "h2"))
-    story.append(P(_risk_prose(a3, appendix), "body"))
-    risk_rows = _risk_table_rows(a3, appendix)
+    story.append(P(_risk_prose(a3, appendix, sanitize=_pdf_raw), "body"))
+    risk_rows = _risk_table_rows(a3, appendix, sanitize=_pdf_raw)
     ceiling_shown_in_a3 = False
     if risk_rows:
         story.append(P(NON_VALIDATED_ADMINISTRATION_CAVEAT_KO, "warn"))
         rows = [["세션", "일자", "점수", "9번 문항", "판정"]] + [
-            list(r) for r in _full_risk_table_rows(a3, lon, appendix)
+            list(r) for r in _full_risk_table_rows(a3, lon, appendix, sanitize=_pdf_raw)
         ]
         story.append(_table(rows))
         # ADR-038 Decision 2c / renderer polish (VP-004 review): full
@@ -1521,7 +1568,7 @@ def build_pdf_report(
     story.extend(_paras(f"주호소: {a1.text if a1.present else '미수집'}", "body"))
     story.extend(_paras(f"현병력: {a2.text if a2.present else '미수집'}", "body"))
     story.append(P("정신상태검사 (MSE)", "h3"))
-    for line in _mse_lines(a4):
+    for line in _mse_lines(a4, sanitize=_pdf_raw):
         story.append(P(line, "body"))
 
     # ── 전체 세션 요약 (슬롯) + 주요 경과 ──
@@ -1533,7 +1580,11 @@ def build_pdf_report(
             value_cell, source_cell = SLOT_NEVER_COLLECTED_KO, "-"
         else:
             value_cell = _truncate(
-                row.latest_value, 80, appendix=appendix, label=f"{row.label} 최신값 전문"
+                row.latest_value,
+                80,
+                appendix=appendix,
+                label=f"{row.label} 최신값 전문",
+                sanitize=_pdf_raw,
             )
             source_cell = f"{row.source_session_index}회차/{row.source_simulated_date}"
         rows.append(
