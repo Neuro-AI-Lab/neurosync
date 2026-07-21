@@ -154,12 +154,12 @@ async def report(body: HandoffReportRequest) -> HandoffReportResponse:
                 chart_paths[key] = path
             try:
                 pdf_bytes = build_pdf_report(handoff_report, chart_paths)
-            except RuntimeError as exc:
-                # Missing/mismatched embedded Korean font asset (ADR-038
-                # Decision 1 / BUG-044) — an honest 500, never a silently
-                # PDF-less response with no explanation.
-                logger.error("Handoff report PDF build failed: %s", exc)
-                raise HTTPException(status_code=500, detail=str(exc)) from exc
+            except Exception:  # noqa: BLE001  # noqa: BROAD_EXCEPT_OK
+                logger.error("Handoff report PDF generation failed")
+                raise HTTPException(
+                    status_code=500,
+                    detail="Handoff report PDF generation failed",
+                ) from None
 
         if len(pdf_bytes) > _PDF_SIZE_GUARD_BYTES:
             pdf_omitted_reason = (

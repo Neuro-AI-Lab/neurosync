@@ -547,10 +547,12 @@ class TestSaveF5Result:
     def test_writes_three_files_with_expected_naming(self, tmp_path: Path) -> None:
         paths = save_f5_result(_full_report(), tmp_path, vp_id="VP-TEST")
         assert set(paths) == {"markdown", "pdf", "fhir"}
+        pdf = paths.get("pdf")
+        assert pdf is not None
         assert paths["markdown"].name.endswith("_handoff.md")
-        assert paths["pdf"].name.endswith("_handoff.pdf")
+        assert pdf.name.endswith("_handoff.pdf")
         assert paths["fhir"].name.endswith("_handoff_fhir.json")
-        for p in paths.values():
+        for p in (paths["markdown"], pdf, paths["fhir"]):
             assert p.exists()
             assert p.stat().st_size > 0
             assert p.parent == tmp_path / "VP-TEST"
@@ -564,10 +566,12 @@ class TestSaveF5Result:
 
     def test_naming_matches_vp_prefix_pattern(self, tmp_path: Path) -> None:
         paths = save_f5_result(_full_report(), tmp_path, vp_id="VP-TEST")
-        # <vp>_<date>_<time>_<unique per-run token>_handoff.* (codex P2: the
-        # per-run token decouples same-second exports of the same VP).
-        pattern = re.compile(r"^VP-TEST_\d{8}_\d{6}_[0-9a-f]{8}_handoff")
-        for p in paths.values():
+        # <vp>_<date>_<time>_<full unique per-run token>_handoff.* (codex P2:
+        # the full token decouples same-second exports and reserves one group).
+        pattern = re.compile(r"^VP-TEST_\d{8}_\d{6}_[0-9a-f]{32}_handoff")
+        pdf = paths.get("pdf")
+        assert pdf is not None
+        for p in (paths["markdown"], pdf, paths["fhir"]):
             assert pattern.match(p.stem) or pattern.match(p.name)
 
 

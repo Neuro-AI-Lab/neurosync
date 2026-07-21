@@ -47,6 +47,11 @@ from src.schemas.handoff_report import (
     SlotOverviewSection,
 )
 from src.schemas.longitudinal import LongitudinalAnalysisOutput
+from src.services.f5_artifact_store import (
+    F5ArtifactBundle,
+    F5ArtifactPaths,
+    persist_f5_artifacts,
+)
 from src.services.f5_markdown import block_literal, inline_literal, table_cell_literal
 
 logger = logging.getLogger(__name__)
@@ -99,7 +104,7 @@ def save_f5_result(
     *,
     vp_id: str | None = None,
     chart_paths: dict[str, Path] | None = None,
-) -> dict[str, Path]:
+) -> F5ArtifactPaths:
     """Save F5 result as markdown + PDF + FHIR R4 document Bundle (design
     doc §5). Naming mirrors `save_f1_result`/.../`save_f4_result`:
     `<vp_id>_<ts>_handoff.md` / `_handoff.pdf` / `_handoff_fhir.json`, under
@@ -114,40 +119,28 @@ def save_f5_result(
     design doc §2.2 B5 row). The markdown/FHIR exporters use only the
     filenames already carried on `report.b_longitudinal.chart_filenames`.
     """
-    resolved_vp_id = vp_id or report.vp_id
+    resolved_vp_id = report.vp_id if vp_id is None else vp_id
     base = output_dir or OUTPUT_DIR
-    out = base / resolved_vp_id
-    out.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    # Unique per-run suffix: two exports of the same VP within one clock second
-    # must NOT share a filename prefix — otherwise a later failed PDF export
-    # could leave (or, on cleanup, remove) the earlier run's PDF beside
-    # mismatched md/FHIR (codex P2). A per-run token decouples rapid runs.
-    prefix = f"{resolved_vp_id}_{ts}_{uuid.uuid4().hex[:8]}"
-
-    paths: dict[str, Path] = {}
-
-    md_path = out / f"{prefix}_handoff.md"
-    md_path.write_text(build_markdown_report(report), encoding="utf-8")
-    paths["markdown"] = md_path
-
-    # One exporter's failure must never suppress the remaining artifacts —
-    # a PDF rendering error still leaves clinicians the md + FHIR outputs.
-    pdf_path = out / f"{prefix}_handoff.pdf"
+    markdown = build_markdown_report(report).encode()
+    pdf: bytes | None
     try:
-        pdf_path.write_bytes(build_pdf_report(report, chart_paths or {}))
-        paths["pdf"] = pdf_path
-    except Exception:
-        logger.exception("F5 PDF export failed — markdown/FHIR artifacts continue")
-        # Never leave a STALE (previous same-second-prefix run) or partially
-        # written PDF beside the freshly written md/FHIR — a glob/dir consumer
-        # would otherwise pair the current report with an old/corrupt PDF.
-        pdf_path.unlink(missing_ok=True)
+        pdf = build_pdf_report(report, chart_paths or {})
+    except Exception:  # noqa: BLE001  # noqa: BROAD_EXCEPT_OK
+        logger.error("F5 PDF export failed; markdown and FHIR artifacts continue")
+        pdf = None
 
-    fhir_bundle = build_fhir_bundle(report)
-    fhir_path = out / f"{prefix}_handoff_fhir.json"
-    fhir_path.write_text(json.dumps(fhir_bundle, ensure_ascii=False, indent=2), encoding="utf-8")
-    paths["fhir"] = fhir_path
+    fhir = json.dumps(build_fhir_bundle(report), ensure_ascii=False, indent=2).encode()
+    paths = persist_f5_artifacts(
+        base,
+        F5ArtifactBundle(
+            vp_id=resolved_vp_id,
+            timestamp=ts,
+            markdown=markdown,
+            fhir=fhir,
+            pdf=pdf,
+        ),
+    )
 
     logger.info("F5 results saved: %s", ", ".join(str(p) for p in paths.values()))
     return paths
