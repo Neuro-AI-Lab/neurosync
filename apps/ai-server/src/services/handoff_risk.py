@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Final, assert_never
 
 from src.schemas.common import CTRS_TO_RISK, CTRSLevel, RiskLevel
-from src.schemas.handoff import RiskEvent
+from src.schemas.handoff import JsonScalar, RiskEvent
 
-type JsonScalar = str | int | float | bool | None
-type RiskEventData = dict[str, JsonScalar]
+type RiskEventData = Mapping[str, JsonScalar]
 type RiskEventInput = RiskEvent | RiskEventData
 
 _RISK_ORDER: Final = {
@@ -25,7 +24,7 @@ def risk_event_text(event: RiskEventInput) -> str:
         case RiskEvent():
             view = event.model_dump(exclude_none=True)
             return str(view or event)
-        case dict():
+        case Mapping():
             return str(event)
         case _:
             assert_never(event)
@@ -35,7 +34,7 @@ def _risk_labels(event: RiskEventInput) -> tuple[str, str]:
     match event:
         case RiskEvent(risk_level=risk_level, ctrs_level=ctrs_level):
             return risk_level or "", ctrs_level or ""
-        case dict():
+        case Mapping():
             return str(event.get("risk_level", "")), str(event.get("ctrs_level", ""))
         case _:
             assert_never(event)

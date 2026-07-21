@@ -19,10 +19,10 @@ from pydantic import ValidationError
 
 from src.agents.handoff_generator import _detect_risk_level
 from src.schemas.common import RiskLevel
-from src.schemas.handoff import HandoffInput, RiskEvent
+from src.schemas.handoff import HandoffInput, JsonScalar, RiskEvent
 
 
-def _make_input(risk_events: list[dict[str, object]]) -> HandoffInput:
+def _make_input(risk_events: list[dict[str, JsonScalar]]) -> HandoffInput:
     return HandoffInput.model_validate({"session_id": "s", "risk_events": list(risk_events)})
 
 

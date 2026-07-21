@@ -12,6 +12,7 @@ from src.schemas.common import EvidencePacket, RiskLevel
 
 RiskLevelLabel = Literal["none", "low", "medium", "high", "critical"]
 CtrsLabel = Literal["1", "2", "3", "4", "5"]
+type JsonScalar = str | int | float | bool | None
 
 _RISK_LABELS: Final[dict[str, RiskLevelLabel]] = {
     "none": "none",
@@ -58,7 +59,7 @@ class RiskEvent(BaseModel):
 
     @field_validator("risk_level", mode="before")
     @classmethod
-    def _normalize_risk_level(cls, value: object) -> RiskLevelLabel:
+    def _normalize_risk_level(cls, value: JsonScalar) -> RiskLevelLabel:
         if value is None:
             # Explicit null is a malformed severity claim — reject. A genuinely
             # ABSENT field never reaches this validator (pydantic skips
@@ -74,7 +75,7 @@ class RiskEvent(BaseModel):
 
     @field_validator("ctrs_level", mode="before")
     @classmethod
-    def _normalize_ctrs_level(cls, value: object) -> CtrsLabel:
+    def _normalize_ctrs_level(cls, value: JsonScalar) -> CtrsLabel:
         if value is None:
             raise ValueError("ctrs_level must not be null — omit the field instead")
         raw = str(value).strip()
