@@ -807,21 +807,37 @@ class TestF5ChainWiring:
         assert f5_results and f5_results[0].status == "skip"
 
     @pytest.mark.asyncio
-    async def test_single_session_runs_f5_after_ledger_append(
+    async def test_single_session_runs_f4_and_f5_after_ledger_append(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """Round-2 review blocker (codex): F4 and F5 both read the session
+        ledger, so BOTH must run AFTER this session's entry is appended —
+        otherwise F4's longitudinal window is one session short of, and
+        inconsistent with, F5's header. Assert both observe the SAME complete
+        (1-entry) ledger snapshot and are ordered F4 -> F5 -> F6."""
         import argparse
 
         conv_path = _write_conversation(tmp_path, "VP-W1S", 1)
+        ledger_len_at_f4_call: list[int] = []
         ledger_len_at_f5_call: list[int] = []
         captured: dict = {}
 
         async def _fake_run_chain(ctx, stages=None):
             ctx.conversation_path = conv_path
             stage_names = [s.name for s in (stages if stages is not None else ct.STAGE_REGISTRY)]
+            assert "F4" not in stage_names and "F5" not in stage_names, (
+                f"F4 and F5 must be deferred out of run_chain, got {stage_names}"
+            )
             return [
                 ct.StageResult(n, "pass" if n != "F6" else "skip", "ok") for n in stage_names
             ]
+
+        async def _fake_f4(ctx):
+            entries = json.loads(
+                ct._ledger_path(ctx.persona_id, ctx.out_dir).read_text(encoding="utf-8")
+            )
+            ledger_len_at_f4_call.append(len(entries))
+            return ct.StageResult("F4", "pass", "ok")
 
         async def _fake_f5(f5_ctx):
             entries = json.loads(
@@ -831,6 +847,7 @@ class TestF5ChainWiring:
             return ct.StageResult("F5", "pass", "ok")
 
         monkeypatch.setattr(ct, "run_chain", _fake_run_chain)
+        monkeypatch.setattr(ct, "run_f4_stage", _fake_f4)
         monkeypatch.setattr(ct, "run_f5_stage", _fake_f5)
         monkeypatch.setattr(
             ct, "print_report", lambda ctx, results: captured.update(results=results)
@@ -854,10 +871,65 @@ class TestF5ChainWiring:
         )
         rc = await ct._main(args)
         assert rc == 0
+        assert ledger_len_at_f4_call == [1], (
+            "F4 must run AFTER the single-session ledger entry is appended, "
+            f"saw ledger lengths {ledger_len_at_f4_call}"
+        )
         assert ledger_len_at_f5_call == [1], (
             "F5 must run AFTER the single-session ledger entry is appended, "
             f"saw ledger lengths {ledger_len_at_f5_call}"
         )
+        assert ledger_len_at_f4_call == ledger_len_at_f5_call, (
+            "F4 and F5 must observe the SAME ledger snapshot (codex consistency fix)"
+        )
         names = [r.name for r in captured["results"]]
-        assert "F5" in names and "F6" in names
-        assert names.index("F5") < names.index("F6")
+        assert "F4" in names and "F5" in names and "F6" in names
+        assert names.index("F4") < names.index("F5") < names.index("F6")
+
+
+class TestF5StagePartialExport:
+    """Round-2 review blocker (codex): a PDF export failure inside
+    save_f5_result must NOT be reported as a clean F5 pass. run_f5_stage
+    surfaces it as 'warn' (md+FHIR still produced) so the report and the
+    replay CLI can detect the missing clinical artifact."""
+
+    @pytest.mark.asyncio
+    async def test_run_f5_stage_warns_when_pdf_missing(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        md = tmp_path / "VP-PDF_handoff.md"
+        md.write_text("ok", encoding="utf-8")
+        fhir = tmp_path / "VP-PDF_handoff_fhir.json"
+        fhir.write_text("{}", encoding="utf-8")
+
+        def _fake_report(persona_id, out_dir, *, write_dir=None):
+            return {"markdown": md, "fhir": fhir}
+
+        monkeypatch.setattr(ct, "_run_f5_report", _fake_report)
+        ctx = ct.ChainContext(
+            persona_id="VP-PDF", max_turns=0, k=0, out_dir=tmp_path, scale_scores_path=None
+        )
+        result = await ct.run_f5_stage(ctx)
+        assert result.status == "warn"
+        assert "PDF" in result.detail
+
+    @pytest.mark.asyncio
+    async def test_run_f5_stage_passes_when_all_artifacts_present(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        md = tmp_path / "VP-OK_handoff.md"
+        md.write_text("ok", encoding="utf-8")
+
+        def _fake_report(persona_id, out_dir, *, write_dir=None):
+            return {
+                "markdown": md,
+                "pdf": tmp_path / "VP-OK_handoff.pdf",
+                "fhir": tmp_path / "VP-OK_handoff_fhir.json",
+            }
+
+        monkeypatch.setattr(ct, "_run_f5_report", _fake_report)
+        ctx = ct.ChainContext(
+            persona_id="VP-OK", max_turns=0, k=0, out_dir=tmp_path, scale_scores_path=None
+        )
+        result = await ct.run_f5_stage(ctx)
+        assert result.status == "pass"

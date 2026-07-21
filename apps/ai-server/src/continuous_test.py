@@ -1478,6 +1478,16 @@ async def run_f5_stage(ctx: ChainContext) -> StageResult:
         logger.exception("continuous_test.f5.failed")
         return StageResult("F5", "fail", f"F5 report assembly raised: {exc}", duration_ms=_ms(t0))
 
+    if "pdf" not in paths:
+        # PDF export failed inside save_f5_result (md+FHIR still written) —
+        # surface as WARN, never a clean pass, so the report/CLI/automation
+        # can detect the missing clinical artifact (a PDF LayoutError must
+        # not masquerade as a complete hand-off).
+        detail = (
+            "F5 hand-off report PARTIAL — PDF export failed (see logs); "
+            f"markdown+FHIR written -> {paths['markdown'].name}"
+        )
+        return StageResult("F5", "warn", detail, artifacts=paths, duration_ms=_ms(t0))
     detail = f"F5 hand-off report complete -> {paths['markdown'].name}"
     return StageResult("F5", "pass", detail, artifacts=paths, duration_ms=_ms(t0))
 
@@ -1524,9 +1534,16 @@ def _run_f5_replay_cli(artifacts_dir: Path, out_dir: Path | None) -> int:
         print(f"F5 replay failed for persona={persona_id} (artifacts_dir={resolved}): {exc}")
         return 1
 
-    print(f"F5 hand-off report complete for {persona_id}:")
+    pdf_ok = "pdf" in paths
+    status = "complete" if pdf_ok else "PARTIAL (PDF export failed — see logs)"
+    print(f"F5 hand-off report {status} for {persona_id}:")
     for label, path in paths.items():
         print(f"  {label}: {path}")
+    if not pdf_ok:
+        # md+FHIR written but the PDF is missing — signal partial export with
+        # a non-zero exit so callers never treat it as a clean success.
+        print("  WARNING: PDF artifact missing — markdown/FHIR written, PDF export failed")
+        return 2
     return 0
 
 
@@ -1816,10 +1833,16 @@ async def _main(args: argparse.Namespace) -> int:
             return 1
         ctx.conversation_path = path
 
-    # F5 is excluded from the in-chain traversal and invoked from the
-    # post-ledger path below — inside run_chain it read a ledger that did
-    # not yet contain THIS session's entry (stale/skipped hand-off report).
-    results = await run_chain(ctx, stages=[s for s in STAGE_REGISTRY if s.name != "F5"])
+    # F4 AND F5 both read the session ledger, so BOTH are excluded from the
+    # in-chain traversal and invoked from the post-ledger path below: inside
+    # run_chain they would read a ledger that did not yet contain THIS
+    # session's entry — F5 got a stale/skipped hand-off report, and F4 a
+    # longitudinal window one session short of (and inconsistent with) F5's.
+    # This mirrors run_multi_session_chain, whose per-session ledger append
+    # precedes a single post-loop F4-then-F5 pass over the complete ledger.
+    results = await run_chain(
+        ctx, stages=[s for s in STAGE_REGISTRY if s.name not in ("F4", "F5")]
+    )
 
     # Plan §6 item 5: single-session ledger gap fix. Only written when F1
     # itself did not hard-fail (mirrors run_multi_session_chain's own
@@ -1830,10 +1853,18 @@ async def _main(args: argparse.Namespace) -> int:
         ledger_path = _ledger_path(args.persona, out_dir)
         _append_ledger_entry(ledger_path, _build_single_session_ledger_entry(ctx, results))
 
-    f4_result = next((r for r in results if r.name == "F4"), None)
-    if any(r.status == "fail" for r in results):
+    # F4 then F5 over the SAME (now-complete) ledger snapshot. A prior hard
+    # failure skips both; F4's own outcome then gates F5 (F5's B-section
+    # consumes F4's longitudinal output verbatim), exactly as multi-session.
+    chain_failed = any(r.status == "fail" for r in results)
+    if chain_failed:
+        f4_result = StageResult("F4", "skip", "prior stage failed — F4 skipped (dependency)")
+    else:
+        f4_result = await run_f4_stage(ctx)
+
+    if chain_failed:
         f5_result = StageResult("F5", "skip", "prior stage failed — F5 skipped (dependency)")
-    elif f4_result is None or f4_result.status not in ("pass", "warn"):
+    elif f4_result.status not in ("pass", "warn"):
         f5_result = StageResult(
             "F5",
             "skip",
@@ -1841,8 +1872,11 @@ async def _main(args: argparse.Namespace) -> int:
         )
     else:
         f5_result = await run_f5_stage(ctx)
+
+    # Preserve report order F1..F4, F5, F6 — insert the deferred F4+F5 just
+    # before F6 (or at the end when F6 is absent).
     f6_index = next((i for i, r in enumerate(results) if r.name == "F6"), len(results))
-    results.insert(f6_index, f5_result)
+    results[f6_index:f6_index] = [f4_result, f5_result]
 
     print_report(ctx, results)
     return 0 if all(r.status != "fail" for r in results) else 1
