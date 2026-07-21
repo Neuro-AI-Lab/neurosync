@@ -302,6 +302,68 @@ class TestNarrativeOptIn:
         assert out.a8_narrative.narrative_enabled is False
         assert out.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
 
+    def test_leak_guard_no_false_positive_on_short_latin_substring(self) -> None:
+        # codex P2: a short Latin candidate ("AD") must NOT match inside an
+        # ordinary English word ("had") — the opt-in narrative stays ENABLED.
+        apd = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="AD", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+        out = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd,
+                narrative_enabled=True,
+                narrative_text="The patient had insomnia and low mood.",
+            )
+        )
+        assert out.a8_narrative.narrative_enabled is True
+        assert out.a8_narrative.text is not None
+
+    def test_leak_guard_catches_standalone_latin_and_korean_particle(self) -> None:
+        # A real leak must still be caught: a standalone Latin token, and a CJK
+        # disease name followed by a Korean particle (우울증 in 우울증이).
+        from src.schemas.handoff_report import NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+        apd_latin = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="AD", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+        latin = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd_latin,
+                narrative_enabled=True,
+                narrative_text="환자는 AD 소견을 보임.",
+            )
+        )
+        assert latin.a8_narrative.narrative_enabled is False
+        assert latin.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+        apd_ko = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="우울증", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+        korean = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd_ko,
+                narrative_enabled=True,
+                narrative_text="환자는 우울증이 의심됨.",
+            )
+        )
+        assert korean.a8_narrative.narrative_enabled is False
+        assert korean.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
     def test_text_without_any_candidate_disease_name_is_not_rejected(self) -> None:
         clean_text = "환자는 수면 문제와 무기력감을 자가보고함. 위험 관련 소견은 A3 참조."
         out = assemble_handoff_report(

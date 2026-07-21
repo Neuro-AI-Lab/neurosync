@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_serializer
 
 from src.agents.base import AgentInput, AgentOutput
 from src.schemas.common import EvidencePacket, RiskLevel
@@ -67,6 +67,18 @@ class RiskEvent(BaseModel):
         if raw not in _VALID_CTRS_LABELS:
             raise ValueError(f"ctrs_level must be an ASCII digit '1'-'5', got {value!r}")
         return raw
+
+    @model_serializer(mode="wrap")
+    def _omit_absent_severity(self, handler: Any) -> dict[str, Any]:
+        # Absent severity fields serialize as OMITTED, never `null` — an
+        # unlabeled event must round-trip model_dump() -> model_validate()
+        # (cache, retry, forward) without the validators rejecting an explicit
+        # null that was never a real severity claim (codex P2).
+        data = handler(self)
+        for key in ("risk_level", "ctrs_level"):
+            if data.get(key) is None:
+                data.pop(key, None)
+        return data
 
 
 class SlotData(BaseModel):

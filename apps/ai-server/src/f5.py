@@ -795,6 +795,19 @@ def _leak_normalize(s: str) -> str:
     return unicodedata.normalize("NFKC", s).casefold()
 
 
+def _disease_leaks(disease: str, normalized_text: str) -> bool:
+    r"""True when *disease* appears in the already-normalized narrative NOT
+    merely as a substring of a larger ASCII word — a short Latin candidate
+    ("AD") must not match inside "had" (false-positive narrative rejection),
+    while a CJK candidate still matches when followed by a Korean particle
+    ("우울증" in "우울증이"). Boundaries are ASCII-only (``[a-z0-9]`` after
+    casefold), so CJK adjacency is intentionally NOT treated as a boundary."""
+    norm = _leak_normalize(disease)
+    if not norm:
+        return False
+    return re.search(rf"(?<![a-z0-9]){re.escape(norm)}(?![a-z0-9])", normalized_text) is not None
+
+
 def _build_a8(inp: HandoffReportInput) -> NarrativeSection:
     """`ADR-037` Decision 1 default (`narrative_enabled=False`) is
     UNCHANGED — A8 still ships the explicit disabled marker, never blank,
@@ -802,14 +815,14 @@ def _build_a8(inp: HandoffReportInput) -> NarrativeSection:
     `narrative_enabled=True` (enforced non-empty `narrative_text`,
     `assemble_handoff_report` below), this function applies ONE
     defense-in-depth check before rendering it — an NFKC+casefold
-    normalized substring scan of every A6 candidate's `disease` name
-    against the given text (HPI hard red line, design doc §6.1 point 1).
+    normalized, ASCII-token-boundary scan of every A6 candidate's `disease`
+    name against the given text (HPI hard red line, design doc §6.1 point 1).
     A match REFUSES the narrative
     entirely (never silently strips/redacts the matched substring, which
     could leave a mangled sentence that still implies the missing
     content) — this function still never calls any LLM/agent itself
-    (module docstring's zero-LLM invariant is unaffected: this is a pure
-    string containment check over caller-supplied data)."""
+    (module docstring's zero-LLM invariant is unaffected: this is a pure,
+    boundary-aware containment check over caller-supplied data)."""
     if not inp.narrative_enabled:
         return NarrativeSection(narrative_enabled=False, text=None)
 
@@ -817,7 +830,7 @@ def _build_a8(inp: HandoffReportInput) -> NarrativeSection:
     apd = inp.domain_inference.ai_predicted_disease
     candidate_diseases = [c.disease for c in (apd.candidates if apd else []) if c.disease]
     normalized_text = _leak_normalize(text)
-    leaked = [d for d in candidate_diseases if _leak_normalize(d) in normalized_text]
+    leaked = [d for d in candidate_diseases if _disease_leaks(d, normalized_text)]
     if leaked:
         return NarrativeSection(
             narrative_enabled=False, text=None, absent_marker=NARRATIVE_REJECTED_DISEASE_LEAK_KO

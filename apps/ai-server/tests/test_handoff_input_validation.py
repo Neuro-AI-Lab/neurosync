@@ -155,3 +155,23 @@ class TestRiskEventOpenApiSchema:
         schema = RiskEvent.model_json_schema()
         assert set(schema["properties"]["risk_level"]["enum"]) == set(_VALID_RISK_LABELS)
         assert set(schema["properties"]["ctrs_level"]["enum"]) == set(_VALID_CTRS_LABELS)
+
+
+class TestRiskEventSerializationRoundTrip:
+    """codex P2: an unlabeled event must round-trip via standard model_dump() —
+    absent severity serializes as OMITTED, never `null` (which the validators
+    would then reject), so a valid HandoffInput can be cached/retried/forwarded."""
+
+    def test_unlabeled_event_dumps_without_null_and_revalidates(self):
+        dumped = RiskEvent().model_dump()
+        assert "risk_level" not in dumped and "ctrs_level" not in dumped
+        RiskEvent.model_validate(dumped)  # must not raise
+
+    def test_labeled_event_dumps_value_and_revalidates(self):
+        dumped = RiskEvent(risk_level="high", ctrs_level="2").model_dump()
+        assert dumped["risk_level"] == "high" and dumped["ctrs_level"] == "2"
+        rt = RiskEvent.model_validate(dumped)
+        assert rt.risk_level == "high" and rt.ctrs_level == "2"
+
+    def test_extra_keys_preserved_through_serializer(self):
+        assert RiskEvent(crisis=True).model_dump() == {"crisis": True}
