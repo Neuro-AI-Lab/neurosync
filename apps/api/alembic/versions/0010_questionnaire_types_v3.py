@@ -7,16 +7,16 @@ v3 FR-039 — 도메인 추정은 F1 임상 슬롯을 입력으로 받는다. �
 보관한다. `rag.session_insights.slots`는 VP 시뮬레이션(코퍼스) 테이블이므로 실환자
 슬롯을 그쪽에 쓰면 RAG 코퍼스가 오염된다 — 반드시 분리한다.
 
-Revision ID: 0008
-Revises: 0007
+Revision ID: 0010
+Revises: 0009
 """
 
 from __future__ import annotations
 
 from alembic import op
 
-revision: str = "0008"
-down_revision: str | None = "0007"
+revision: str = "0010"
+down_revision: str | None = "0009"
 branch_labels: str | None = None
 depends_on: str | None = None
 
