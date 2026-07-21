@@ -1312,6 +1312,25 @@ class TestMarkdownInjectionHardening:
         )
         assert not any(line.startswith("## 가짜") for line in md.splitlines())
 
+    def test_md_block_neutralizes_setext_fences_lists_and_links(self) -> None:
+        # codex P2: Setext (===), fences (```/~~~), ordered lists (1./1)),
+        # blockquotes/tables and the inline-link seam ]( must ALL be escaped so
+        # opt-in narrative text cannot forge report structure.
+        import re
+
+        from src.services.f5_report import _md_block
+
+        raw = (
+            "제목\n===\n```\ncode\n```\n~~~\n1. 항목\n2) 항목\n> 인용\n"
+            "| a | b |\n[클릭](http://evil)"
+        )
+        out = _md_block(raw)
+        for line in out.splitlines():
+            assert not re.match(
+                r"^\s*(#|>|\||=|~|`|[-+*]\s|\d+[.)]\s)", line
+            ), f"active markdown line survived: {line!r}"
+        assert "](" not in out, "inline-link seam must be broken"
+
 
 class TestPdfRobustnessAndExporterIsolation:
     """Round-1 review blocker: newline-dense values abort PDF generation
@@ -1337,3 +1356,31 @@ class TestPdfRobustnessAndExporterIsolation:
         assert "markdown" in paths and paths["markdown"].exists()
         assert "fhir" in paths and paths["fhir"].exists()
         assert "pdf" not in paths
+
+    def test_pdf_line_chunks_preserve_all_content(self) -> None:
+        # codex P2: long free text must be PAGINATED, never truncated — every
+        # line survives across the returned chunks (no omission marker).
+        from src.services.f5_report import _PDF_PARAGRAPH_MAX_LINES, _pdf_line_chunks
+
+        lines = [f"line-{i}" for i in range(_PDF_PARAGRAPH_MAX_LINES * 3 + 7)]
+        chunks = _pdf_line_chunks("\n".join(lines))
+        assert len(chunks) > 1, "long text must split into multiple flowables"
+        assert all(len(c) <= _PDF_PARAGRAPH_MAX_LINES for c in chunks)
+        assert [ln for c in chunks for ln in c] == lines, "no line may be dropped or reordered"
+
+    def test_long_narrative_content_survives_in_pdf(self) -> None:
+        # codex P2: the LAST line of a >40-line narrative must appear in the
+        # rendered PDF (previously truncated with "… (이하 생략)").
+        import io
+
+        import pypdf
+
+        sentinel = "LASTLINE1234"
+        body = "\n".join(f"finding {i}" for i in range(60)) + f"\n{sentinel}"
+        report = _full_report(narrative_enabled=True, narrative_text=body)
+        pdf = build_pdf_report(report, {})
+        assert pdf.startswith(b"%PDF")
+        reader = pypdf.PdfReader(io.BytesIO(pdf))
+        text = "".join(page.extract_text() for page in reader.pages)
+        assert sentinel in text.replace(" ", ""), "later narrative content was dropped from PDF"
+        assert "이하 생략" not in text, "PDF must paginate, not truncate with an omission marker"

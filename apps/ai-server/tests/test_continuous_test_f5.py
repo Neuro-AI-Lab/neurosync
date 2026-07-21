@@ -807,6 +807,57 @@ class TestF5ChainWiring:
         assert f5_results and f5_results[0].status == "skip"
 
     @pytest.mark.asyncio
+    async def test_multi_session_skips_f5_when_f4_warns(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # codex P1: F4 "warn" (fewer than 2 readable ledger entries) writes NO
+        # fresh *_temporal.json, so F5 must be skipped — otherwise it would read
+        # a STALE temporal from an earlier run and emit a passing report mixing
+        # the current header with old longitudinal data.
+        conv_paths: list[Path] = []
+
+        async def _fake_run_simulation(persona_id, max_turns, followup_from=None, **kwargs):
+            session_index = kwargs["session_index"]
+            conv_paths.append(_write_conversation(tmp_path, persona_id, session_index))
+            return await TestF5ChainWiring._fake_f1(
+                persona_id, max_turns, followup_from, **kwargs
+            )
+
+        async def _fake_run_f2_stage(f2_ctx):
+            return ct.StageResult("F2", "pass", "ok")
+
+        async def _fake_f4_warn(persona_id, out_dir):
+            return ct.StageResult("F4", "warn", "only 1/2 ledger entries had readable artifacts")
+
+        f5_calls: list[str] = []
+
+        async def _fake_f5(f5_ctx):
+            f5_calls.append(f5_ctx.persona_id)
+            return ct.StageResult("F5", "pass", "ok")
+
+        import src.f1 as f1_module
+
+        monkeypatch.setattr(f1_module, "_run_simulation", _fake_run_simulation)
+        monkeypatch.setattr(ct, "run_f2_stage", _fake_run_f2_stage)
+        monkeypatch.setattr(ct, "_find_latest_f1_conversation", lambda persona_id: conv_paths[-1])
+        monkeypatch.setattr(ct, "_run_f4_analysis", _fake_f4_warn)
+        monkeypatch.setattr(ct, "run_f5_stage", _fake_f5)
+
+        results = await ct.run_multi_session_chain(
+            "VP-W1WARN",
+            n_sessions=1,
+            max_turns=3,
+            k=3,
+            out_dir=tmp_path,
+            scale_scores_path=None,
+            answer_mode="expected",
+            run_f4=True,
+        )
+        f5_results = [r for r in results if r.name == "F5"]
+        assert f5_calls == [], "F5 must not execute when F4 only warned (no fresh temporal)"
+        assert f5_results and f5_results[0].status == "skip"
+
+    @pytest.mark.asyncio
     async def test_single_session_runs_f4_and_f5_after_ledger_append(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:

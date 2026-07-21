@@ -315,16 +315,44 @@ def _md_cell(text: object) -> str:
     return _md_inline(text).replace("|", "\\|")
 
 
-_MD_LINE_STRUCTURE_RE = re.compile(r"^(\s*)([#>|\-+*])", flags=re.MULTILINE)
+_MD_LINE_STRUCTURE_RE = re.compile(r"^(\s*)([#>|=~`+*\-])", flags=re.MULTILINE)
+_MD_ORDERED_LIST_RE = re.compile(r"^(\s*\d+)([.)])", flags=re.MULTILINE)
 
 _PDF_PARAGRAPH_MAX_LINES = 40
 
 
 def _md_block(text: str) -> str:
-    """Multi-line variant for paragraph-preserving fields (A8 narrative):
-    keeps line breaks but backslash-escapes line-leading markdown tokens
-    and defuses raw HTML."""
-    return _MD_LINE_STRUCTURE_RE.sub(r"\1\\\2", str(text).replace("<", "&lt;"))
+    r"""Multi-line variant for paragraph-preserving fields (A8 narrative):
+    keeps line breaks but backslash-escapes EVERY line-leading markdown
+    structural token — ATX/Setext headings (``#``, ``=``, ``-``), blockquotes
+    (``>``), table pipes (``|``), code fences (`````` ` ``````, ``~``), bullet
+    (``+ * -``) and ordered (``1.``/``1)``) lists — plus the inline-link seam
+    ``](`` and raw HTML (``<``), so generated/adversarial clinical text can
+    never forge report structure (defense-in-depth for the opt-in narrative)."""
+    escaped = _MD_LINE_STRUCTURE_RE.sub(r"\1\\\2", str(text).replace("<", "&lt;"))
+    escaped = _MD_ORDERED_LIST_RE.sub(r"\1\\\2", escaped)
+    return escaped.replace("](", "]\\(")
+
+
+def _collapse_blank_runs(text: str) -> list[str]:
+    """Collapse runs of blank lines to a single blank so newline-dense free
+    text can't explode into an unbounded <br/> run (reportlab LayoutError)."""
+    collapsed: list[str] = []
+    for ln in text.split("\n"):
+        if not ln.strip() and collapsed and not collapsed[-1].strip():
+            continue
+        collapsed.append(ln)
+    return collapsed
+
+
+def _pdf_line_chunks(text: str, max_lines: int = _PDF_PARAGRAPH_MAX_LINES) -> list[list[str]]:
+    """Blank-collapsed lines split into <=max_lines chunks — one PDF flowable
+    per chunk so long clinical free text PAGINATES across pages. Every line is
+    preserved across the returned chunks (never truncated / dropped)."""
+    lines = _collapse_blank_runs(text)
+    if len(lines) <= max_lines:
+        return [lines]
+    return [lines[i : i + max_lines] for i in range(0, len(lines), max_lines)]
 
 
 def _truncate(
@@ -1375,17 +1403,18 @@ def build_pdf_report(
 
     def P(text: str, style: str = "body") -> Paragraph:
         safe = (text or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        # Newline-dense values previously exploded into unbounded <br/> runs,
-        # aborting the whole PDF with a reportlab LayoutError inside
-        # unsplittable cells — collapse blank-line runs and cap the total.
-        collapsed: list[str] = []
-        for ln in safe.split("\n"):
-            if not ln.strip() and collapsed and not collapsed[-1].strip():
-                continue
-            collapsed.append(ln)
-        if len(collapsed) > _PDF_PARAGRAPH_MAX_LINES:
-            collapsed = collapsed[:_PDF_PARAGRAPH_MAX_LINES] + ["… (이하 생략)"]
-        return Paragraph("<br/>".join(collapsed), styles[style])
+        # Collapse blank-line runs so newline-dense values don't explode into an
+        # unbounded <br/> run (reportlab LayoutError). Content is NEVER dropped
+        # here — genuinely long free text is paginated across flowables by
+        # `_paras` at its (main-story) call sites, not truncated.
+        return Paragraph("<br/>".join(_collapse_blank_runs(safe)), styles[style])
+
+    def _paras(text: str, style: str = "body") -> list[Paragraph]:
+        # Long free-text fields (주호소/현병력/A8 narrative/상세 부록) as a
+        # SEQUENCE of Paragraphs — reportlab page-breaks BETWEEN chunks, so no
+        # single oversized flowable can LayoutError and no line is ever dropped.
+        safe = (text or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        return [Paragraph("<br/>".join(chunk), styles[style]) for chunk in _pdf_line_chunks(safe)]
 
     def _table(rows: list[list[str]], font_size: float = 7.5) -> Table:
         t = Table(rows, hAlign="LEFT")
@@ -1485,8 +1514,8 @@ def build_pdf_report(
 
     # ── 주호소 및 현병력 (+ MSE) ──
     story.append(P("주호소 및 현병력", "h2"))
-    story.append(P(f"주호소: {a1.text if a1.present else '미수집'}", "body"))
-    story.append(P(f"현병력: {a2.text if a2.present else '미수집'}", "body"))
+    story.extend(_paras(f"주호소: {a1.text if a1.present else '미수집'}", "body"))
+    story.extend(_paras(f"현병력: {a2.text if a2.present else '미수집'}", "body"))
     story.append(P("정신상태검사 (MSE)", "h3"))
     for line in _mse_lines(a4):
         story.append(P(line, "body"))
@@ -1662,7 +1691,7 @@ def build_pdf_report(
     story.append(P("임상 종합 소견", "h2"))
     if a8.narrative_enabled and a8.text:
         story.append(P(NARRATIVE_ENABLED_LABEL_KO, "meta"))
-        story.append(P(a8.text, "body"))
+        story.extend(_paras(a8.text, "body"))
     else:
         story.append(P(a8.absent_marker, "body"))
 
@@ -1672,7 +1701,7 @@ def build_pdf_report(
     if appendix.entries:
         for n, label, full_text in appendix.entries:
             story.append(P(f"{n}. {label}", "h3"))
-            story.append(P(full_text, "body"))
+            story.extend(_paras(full_text, "body"))
     slot_history_sections = [
         (row.label, " → ".join(row.change_history_full))
         for row in _slot_table_rows(so)
@@ -1682,7 +1711,7 @@ def build_pdf_report(
         story.append(P("슬롯별 전체 변화 이력 (미압축)", "h3"))
         for label, full_text in slot_history_sections:
             story.append(P(label, "meta"))
-            story.append(P(full_text, "body"))
+            story.extend(_paras(full_text, "body"))
     if not appendix.entries and not slot_history_sections:
         story.append(P("해당 없음 — 본문에서 잘린 항목이 없습니다.", "body"))
 

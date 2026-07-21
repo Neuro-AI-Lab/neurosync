@@ -950,10 +950,13 @@ async def run_multi_session_chain(
     if run_f4 and not halted:
         f4_result = await _run_f4_analysis(persona_id, out_dir)
         all_results.append(f4_result)
-        # F5 runs from the post-ledger path after successful F4 — previously
-        # the multi-session chain bypassed STAGE_REGISTRY's F5 entry entirely,
-        # so the hand-off report was never produced for --sessions > 1.
-        if f4_result.status in ("pass", "warn"):
+        # F5 runs from the post-ledger path ONLY after a "pass" F4. F4 writes
+        # its *_temporal.json exclusively on "pass" — a "warn"/"skip"/"fail"
+        # produces NO fresh longitudinal output — so gating on "warn" too would
+        # let F5 silently consume a STALE temporal from an earlier run and emit
+        # a passing report mixing the current header with old data (codex P1).
+        # (Multi-session F5 was previously bypassed entirely for --sessions>1.)
+        if f4_result.status == "pass":
             f5_ctx = ChainContext(
                 persona_id=persona_id,
                 max_turns=0,
@@ -967,7 +970,7 @@ async def run_multi_session_chain(
                 StageResult(
                     "F5",
                     "skip",
-                    "F4 produced no longitudinal output — F5 skipped (dependency not met)",
+                    "F4 produced no fresh longitudinal output — F5 skipped (dependency not met)",
                 )
             )
 
@@ -1864,11 +1867,11 @@ async def _main(args: argparse.Namespace) -> int:
 
     if chain_failed:
         f5_result = StageResult("F5", "skip", "prior stage failed — F5 skipped (dependency)")
-    elif f4_result.status not in ("pass", "warn"):
+    elif f4_result.status != "pass":
         f5_result = StageResult(
             "F5",
             "skip",
-            "F4 produced no longitudinal output this run — F5 skipped (dependency not met)",
+            "F4 produced no fresh longitudinal output this run — F5 skipped (dependency not met)",
         )
     else:
         f5_result = await run_f5_stage(ctx)
