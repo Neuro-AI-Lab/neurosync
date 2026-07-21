@@ -45,6 +45,7 @@ already-computed fields — F3's `safety_referral` against F4's own
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from datetime import date as _date
 from datetime import datetime
@@ -788,15 +789,22 @@ def _build_a7(inp: HandoffReportInput) -> RecommendationSection:
 # ── A8 (optional narrative hook, Task 2 / `handoff_generator` v3) ────────
 
 
+def _leak_normalize(s: str) -> str:
+    """NFKC + casefold so the A6→A8 refusal cannot be dodged by case or
+    unicode-width variants ("ptsd", "ＰＴＳＤ" must match candidate "PTSD")."""
+    return unicodedata.normalize("NFKC", s).casefold()
+
+
 def _build_a8(inp: HandoffReportInput) -> NarrativeSection:
     """`ADR-037` Decision 1 default (`narrative_enabled=False`) is
     UNCHANGED — A8 still ships the explicit disabled marker, never blank,
     whenever the caller does not opt in. Task 2 adds the OPT-IN path: when
     `narrative_enabled=True` (enforced non-empty `narrative_text`,
     `assemble_handoff_report` below), this function applies ONE
-    defense-in-depth check before rendering it — a plain substring scan of
-    every A6 candidate's `disease` name against the given text (HPI hard
-    red line, design doc §6.1 point 1). A match REFUSES the narrative
+    defense-in-depth check before rendering it — an NFKC+casefold
+    normalized substring scan of every A6 candidate's `disease` name
+    against the given text (HPI hard red line, design doc §6.1 point 1).
+    A match REFUSES the narrative
     entirely (never silently strips/redacts the matched substring, which
     could leave a mangled sentence that still implies the missing
     content) — this function still never calls any LLM/agent itself
@@ -808,7 +816,8 @@ def _build_a8(inp: HandoffReportInput) -> NarrativeSection:
     text = (inp.narrative_text or "").strip()
     apd = inp.domain_inference.ai_predicted_disease
     candidate_diseases = [c.disease for c in (apd.candidates if apd else []) if c.disease]
-    leaked = [d for d in candidate_diseases if d in text]
+    normalized_text = _leak_normalize(text)
+    leaked = [d for d in candidate_diseases if _leak_normalize(d) in normalized_text]
     if leaked:
         return NarrativeSection(
             narrative_enabled=False, text=None, absent_marker=NARRATIVE_REJECTED_DISEASE_LEAK_KO
@@ -865,7 +874,7 @@ def assemble_handoff_report(inp: HandoffReportInput) -> HandoffReportOutput:
 
     return HandoffReportOutput(
         vp_id=inp.vp_id,
-        generated_at=datetime.now().isoformat(),
+        generated_at=datetime.now().astimezone().isoformat(),
         a0_header=_build_header(inp),
         a1_chief_complaint=_build_a1(inp),
         a2_hpi=_build_a2(inp),

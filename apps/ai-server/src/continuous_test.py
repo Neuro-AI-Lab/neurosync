@@ -950,6 +950,26 @@ async def run_multi_session_chain(
     if run_f4 and not halted:
         f4_result = await _run_f4_analysis(persona_id, out_dir)
         all_results.append(f4_result)
+        # F5 runs from the post-ledger path after successful F4 — previously
+        # the multi-session chain bypassed STAGE_REGISTRY's F5 entry entirely,
+        # so the hand-off report was never produced for --sessions > 1.
+        if f4_result.status in ("pass", "warn"):
+            f5_ctx = ChainContext(
+                persona_id=persona_id,
+                max_turns=0,
+                k=0,
+                out_dir=out_dir,
+                scale_scores_path=None,
+            )
+            all_results.append(await run_f5_stage(f5_ctx))
+        else:
+            all_results.append(
+                StageResult(
+                    "F5",
+                    "skip",
+                    "F4 produced no longitudinal output — F5 skipped (dependency not met)",
+                )
+            )
 
     return all_results
 
@@ -1441,12 +1461,14 @@ def _run_f5_report(
 
 
 async def run_f5_stage(ctx: ChainContext) -> StageResult:
-    """STAGE_REGISTRY entry point (single-session `run_chain` path, right
-    after F4 — same "reads whatever ledger entries have accumulated"
-    post-loop role `run_f4_stage` already plays for F4). Delegates entirely
-    to `_run_f5_report`; maps `F5InsufficientSessionsError` to a "skip"
-    `StageResult` (same discipline as `_run_f4_analysis`'s own <2-entries
-    skip), any other exception to a named "fail"."""
+    """Post-ledger F5 invocation shared by BOTH chain paths (`_main`'s
+    single-session path after its ledger append, and
+    `run_multi_session_chain` after a successful F4) — F5 reads the session
+    ledger, so it must only ever run once the current invocation's entries
+    are all appended. Delegates entirely to `_run_f5_report`; maps
+    `F5InsufficientSessionsError` to a "skip" `StageResult` (same
+    discipline as `_run_f4_analysis`'s own <2-entries skip), any other
+    exception to a named "fail"."""
     t0 = time.perf_counter()
     try:
         paths = _run_f5_report(ctx.persona_id, ctx.out_dir)
@@ -1794,8 +1816,10 @@ async def _main(args: argparse.Namespace) -> int:
             return 1
         ctx.conversation_path = path
 
-    results = await run_chain(ctx)
-    print_report(ctx, results)
+    # F5 is excluded from the in-chain traversal and invoked from the
+    # post-ledger path below — inside run_chain it read a ledger that did
+    # not yet contain THIS session's entry (stale/skipped hand-off report).
+    results = await run_chain(ctx, stages=[s for s in STAGE_REGISTRY if s.name != "F5"])
 
     # Plan §6 item 5: single-session ledger gap fix. Only written when F1
     # itself did not hard-fail (mirrors run_multi_session_chain's own
@@ -1806,6 +1830,21 @@ async def _main(args: argparse.Namespace) -> int:
         ledger_path = _ledger_path(args.persona, out_dir)
         _append_ledger_entry(ledger_path, _build_single_session_ledger_entry(ctx, results))
 
+    f4_result = next((r for r in results if r.name == "F4"), None)
+    if any(r.status == "fail" for r in results):
+        f5_result = StageResult("F5", "skip", "prior stage failed — F5 skipped (dependency)")
+    elif f4_result is None or f4_result.status not in ("pass", "warn"):
+        f5_result = StageResult(
+            "F5",
+            "skip",
+            "F4 produced no longitudinal output this run — F5 skipped (dependency not met)",
+        )
+    else:
+        f5_result = await run_f5_stage(ctx)
+    f6_index = next((i for i, r in enumerate(results) if r.name == "F6"), len(results))
+    results.insert(f6_index, f5_result)
+
+    print_report(ctx, results)
     return 0 if all(r.status != "fail" for r in results) else 1
 
 

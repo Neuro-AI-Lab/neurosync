@@ -684,3 +684,180 @@ class TestF5ReplayCliSubprocess:
         assert "F5 hand-off report complete" in result.stdout
         produced = list((out_dir / persona_id).glob("*_handoff.pdf"))
         assert len(produced) == 1
+
+
+class TestF5ChainWiring:
+    """Round-1 review blocker: with --sessions>1 F5 never ran (registry
+    bypassed), and with --sessions 1 F5 ran BEFORE the session's own ledger
+    entry existed. F5 must run from the post-ledger path after F4."""
+
+    @staticmethod
+    async def _fake_f1(persona_id, max_turns, followup_from=None, **kwargs):
+        from src.f1 import F1Result
+
+        session_index = kwargs["session_index"]
+        return F1Result(
+            session_id=f"f1_{persona_id}_s{session_index}",
+            persona_id=persona_id,
+            persona_name="테스트",
+            session_index=session_index,
+            is_revisit=session_index > 1,
+            model="stub-model",
+            prompt_version="v3",
+            final_slots=[{"key": "chief_complaint", "value": "cc"}],
+        )
+
+    @pytest.mark.asyncio
+    async def test_multi_session_runs_f5_after_f4_over_complete_ledger(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        conv_paths: list[Path] = []
+        ledger_len_at_f5_call: list[int] = []
+
+        async def _fake_run_simulation(persona_id, max_turns, followup_from=None, **kwargs):
+            session_index = kwargs["session_index"]
+            conv_paths.append(_write_conversation(tmp_path, persona_id, session_index))
+            return await TestF5ChainWiring._fake_f1(
+                persona_id, max_turns, followup_from, **kwargs
+            )
+
+        async def _fake_run_f2_stage(f2_ctx):
+            return ct.StageResult("F2", "pass", "ok")
+
+        async def _fake_f4(persona_id, out_dir):
+            return ct.StageResult("F4", "pass", "ok")
+
+        async def _fake_f5(f5_ctx):
+            entries = json.loads(
+                ct._ledger_path(f5_ctx.persona_id, f5_ctx.out_dir).read_text(encoding="utf-8")
+            )
+            ledger_len_at_f5_call.append(len(entries))
+            return ct.StageResult("F5", "pass", "ok")
+
+        import src.f1 as f1_module
+
+        monkeypatch.setattr(f1_module, "_run_simulation", _fake_run_simulation)
+        monkeypatch.setattr(ct, "run_f2_stage", _fake_run_f2_stage)
+        monkeypatch.setattr(ct, "_find_latest_f1_conversation", lambda persona_id: conv_paths[-1])
+        monkeypatch.setattr(ct, "_run_f4_analysis", _fake_f4)
+        monkeypatch.setattr(ct, "run_f5_stage", _fake_f5)
+
+        results = await ct.run_multi_session_chain(
+            "VP-W1",
+            n_sessions=2,
+            max_turns=3,
+            k=3,
+            out_dir=tmp_path,
+            scale_scores_path=None,
+            answer_mode="expected",
+            run_f4=True,
+        )
+        names = [r.name for r in results]
+        assert "F5" in names, f"F5 stage never ran in multi-session chain: {names}"
+        assert names.index("F5") > names.index("F4")
+        assert ledger_len_at_f5_call == [2], (
+            f"F5 must run over the COMPLETE 2-entry ledger, saw {ledger_len_at_f5_call}"
+        )
+
+    @pytest.mark.asyncio
+    async def test_multi_session_skips_f5_when_f4_fails(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        conv_paths: list[Path] = []
+
+        async def _fake_run_simulation(persona_id, max_turns, followup_from=None, **kwargs):
+            session_index = kwargs["session_index"]
+            conv_paths.append(_write_conversation(tmp_path, persona_id, session_index))
+            return await TestF5ChainWiring._fake_f1(
+                persona_id, max_turns, followup_from, **kwargs
+            )
+
+        async def _fake_run_f2_stage(f2_ctx):
+            return ct.StageResult("F2", "pass", "ok")
+
+        async def _fake_f4_fail(persona_id, out_dir):
+            return ct.StageResult("F4", "fail", "boom")
+
+        f5_calls: list[str] = []
+
+        async def _fake_f5(f5_ctx):
+            f5_calls.append(f5_ctx.persona_id)
+            return ct.StageResult("F5", "pass", "ok")
+
+        import src.f1 as f1_module
+
+        monkeypatch.setattr(f1_module, "_run_simulation", _fake_run_simulation)
+        monkeypatch.setattr(ct, "run_f2_stage", _fake_run_f2_stage)
+        monkeypatch.setattr(ct, "_find_latest_f1_conversation", lambda persona_id: conv_paths[-1])
+        monkeypatch.setattr(ct, "_run_f4_analysis", _fake_f4_fail)
+        monkeypatch.setattr(ct, "run_f5_stage", _fake_f5)
+
+        results = await ct.run_multi_session_chain(
+            "VP-W1B",
+            n_sessions=1,
+            max_turns=3,
+            k=3,
+            out_dir=tmp_path,
+            scale_scores_path=None,
+            answer_mode="expected",
+            run_f4=True,
+        )
+        f5_results = [r for r in results if r.name == "F5"]
+        assert f5_calls == [], "F5 must not execute when F4 failed"
+        assert f5_results and f5_results[0].status == "skip"
+
+    @pytest.mark.asyncio
+    async def test_single_session_runs_f5_after_ledger_append(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        import argparse
+
+        conv_path = _write_conversation(tmp_path, "VP-W1S", 1)
+        ledger_len_at_f5_call: list[int] = []
+        captured: dict = {}
+
+        async def _fake_run_chain(ctx, stages=None):
+            ctx.conversation_path = conv_path
+            stage_names = [s.name for s in (stages if stages is not None else ct.STAGE_REGISTRY)]
+            return [
+                ct.StageResult(n, "pass" if n != "F6" else "skip", "ok") for n in stage_names
+            ]
+
+        async def _fake_f5(f5_ctx):
+            entries = json.loads(
+                ct._ledger_path(f5_ctx.persona_id, f5_ctx.out_dir).read_text(encoding="utf-8")
+            )
+            ledger_len_at_f5_call.append(len(entries))
+            return ct.StageResult("F5", "pass", "ok")
+
+        monkeypatch.setattr(ct, "run_chain", _fake_run_chain)
+        monkeypatch.setattr(ct, "run_f5_stage", _fake_f5)
+        monkeypatch.setattr(
+            ct, "print_report", lambda ctx, results: captured.update(results=results)
+        )
+
+        args = argparse.Namespace(
+            persona="VP-W1S",
+            sessions=1,
+            max_turns=3,
+            k=3,
+            out=str(tmp_path),
+            scale_scores=None,
+            start_from_conversation=None,
+            answer_mode="expected",
+            force_questionnaire=None,
+            patient_sex=None,
+            scenario_pack=None,
+            no_f4=False,
+            f5_from_artifacts=None,
+            session_interval_days=14,
+        )
+        rc = await ct._main(args)
+        assert rc == 0
+        assert ledger_len_at_f5_call == [1], (
+            "F5 must run AFTER the single-session ledger entry is appended, "
+            f"saw ledger lengths {ledger_len_at_f5_call}"
+        )
+        names = [r.name for r in captured["results"]]
+        assert "F5" in names and "F6" in names
+        assert names.index("F5") < names.index("F6")

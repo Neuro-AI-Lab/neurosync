@@ -269,3 +269,46 @@ class TestSimilarityAndDomainTrendCharts:
 
     def test_domain_trend_plot_empty_list_is_none(self):
         assert generate_domain_trend_plot([]) is None
+
+
+class TestKoreanFontRegistration:
+    """Round-1 review finding: on hosts without the two hard-coded
+    /usr/share/fonts paths (macOS, slim containers), charts fell back to
+    DejaVu Sans and lost every Hangul label. The bundled SHA-pinned font
+    assets must be first-class candidates."""
+
+    def test_bundled_font_is_first_existing_candidate(self):
+        from pathlib import Path
+
+        from src.services.trend_plotter import _korean_font_candidates
+
+        candidates = _korean_font_candidates()
+        assert candidates, "no font candidates returned"
+        first = Path(candidates[0])
+        assert first.name == "NotoSansKR-Subset.ttf"
+        assert first.exists(), f"bundled font missing on disk: {first}"
+
+    def test_render_registers_korean_capable_family(self):
+        import matplotlib.pyplot as plt
+        from matplotlib import font_manager as fm
+
+        from src.services.trend_plotter import (
+            TrendDataPoint,
+            _korean_font_candidates,
+            generate_trend_plot,
+        )
+
+        result = generate_trend_plot(
+            [
+                TrendDataPoint(date="2026-01-01", phq9=12, label="1회차"),
+                TrendDataPoint(date="2026-02-01", phq9=8, label="2회차"),
+            ],
+            patient_name="김테스트",
+        )
+        assert result is not None
+        expected = fm.FontProperties(fname=_korean_font_candidates()[0]).get_name()
+        family = plt.rcParams["font.family"]
+        family_name = family[0] if isinstance(family, list) else family
+        assert family_name == expected, (
+            f"expected Korean-capable family {expected!r}, got {family_name!r}"
+        )

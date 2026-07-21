@@ -258,6 +258,50 @@ class TestNarrativeOptIn:
         assert out.a8_narrative.text is None
         assert out.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
 
+    def test_leak_guard_is_case_insensitive(self) -> None:
+        # Adversarial: A6 candidate "PTSD" must also be caught as "ptsd".
+        from src.schemas.handoff_report import NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+        apd = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="PTSD", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+        out = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd,
+                narrative_enabled=True,
+                narrative_text="환자에게서 ptsd 소견이 의심됨.",
+            )
+        )
+        assert out.a8_narrative.narrative_enabled is False
+        assert out.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+    def test_leak_guard_normalizes_fullwidth_unicode(self) -> None:
+        # Adversarial: fullwidth "ＰＴＳＤ" NFKC-normalizes to "PTSD" and must be caught.
+        from src.schemas.handoff_report import NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+        apd = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="PTSD", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+        out = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd,
+                narrative_enabled=True,
+                narrative_text="환자에게서 ＰＴＳＤ 소견이 의심됨.",
+            )
+        )
+        assert out.a8_narrative.narrative_enabled is False
+        assert out.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
     def test_text_without_any_candidate_disease_name_is_not_rejected(self) -> None:
         clean_text = "환자는 수면 문제와 무기력감을 자가보고함. 위험 관련 소견은 A3 참조."
         out = assemble_handoff_report(

@@ -2,10 +2,64 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.agents.base import AgentInput, AgentOutput
 from src.schemas.common import EvidencePacket, RiskLevel
+
+_VALID_CTRS_LABELS = frozenset({"1", "2", "3", "4", "5"})
+_VALID_RISK_LABELS = frozenset(level.value for level in RiskLevel)
+
+
+class RiskEvent(BaseModel):
+    """A single safety event attached to a handoff request.
+
+    Severity labels are strictly validated at the API boundary (ISS-021
+    hardening): an invalid ``risk_level``/``ctrs_level`` is rejected with a
+    validation error instead of being silently floored to ``medium``
+    downstream — e.g. the unicode-confusable CTRS label ``"①"`` (intent:
+    CTRS 1 = critical) previously passed ``str.isdigit()`` but failed
+    ``int()``, downgrading a critical event. Extra keys (e.g. ``crisis``,
+    free-text reasons) are preserved verbatim. An event with NO severity
+    keys remains valid and floors to medium downstream (issue #21).
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    risk_level: str | None = Field(
+        default=None,
+        description="One of: none | low | medium | high | critical",
+    )
+    ctrs_level: str | None = Field(
+        default=None,
+        description="Crisis Triage Rating Scale, ASCII digit '1'-'5'",
+    )
+
+    @field_validator("risk_level", mode="before")
+    @classmethod
+    def _normalize_risk_level(cls, value: object) -> str | None:
+        if value is None:
+            # Explicit null is a malformed severity claim — reject. A genuinely
+            # ABSENT field never reaches this validator (pydantic skips
+            # validators for unset fields) and keeps the None default.
+            raise ValueError("risk_level must not be null — omit the field instead")
+        raw = str(value).strip().lower()
+        if raw not in _VALID_RISK_LABELS:
+            raise ValueError(
+                f"risk_level must be one of {sorted(_VALID_RISK_LABELS)}, got {value!r}"
+            )
+        return raw
+
+    @field_validator("ctrs_level", mode="before")
+    @classmethod
+    def _normalize_ctrs_level(cls, value: object) -> str | None:
+        if value is None:
+            raise ValueError("ctrs_level must not be null — omit the field instead")
+        raw = str(value).strip()
+        # ASCII-strict: rejects unicode digits ("١", "①"), out-of-range, non-digits.
+        if raw not in _VALID_CTRS_LABELS:
+            raise ValueError(f"ctrs_level must be an ASCII digit '1'-'5', got {value!r}")
+        return raw
 
 
 class SlotData(BaseModel):
@@ -47,9 +101,10 @@ class HandoffInput(AgentInput):
     slots: SlotData = Field(default_factory=SlotData)
     conversation_history: list[dict[str, str]] = Field(default_factory=list)
     scale_scores: list[ScaleScore] = Field(default_factory=list)
-    risk_events: list[dict[str, str]] = Field(
+    risk_events: list[RiskEvent] = Field(
         default_factory=list,
-        description="Safety events during the session",
+        max_length=100,
+        description="Safety events during the session (severity labels strictly validated)",
     )
     ocr_documents: list[dict[str, str]] = Field(
         default_factory=list,

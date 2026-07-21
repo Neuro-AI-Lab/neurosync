@@ -1248,3 +1248,92 @@ class TestInternalRefStrippingAndDedup:
         # A3 contributes exactly 1 occurrence (table-adjacent), A5 its own
         # separate ADR-038 Decision 2c occurrence -> total 2, not 3+.
         assert text.count("ISS-F2V-028") == 2
+
+
+class TestMarkdownInjectionHardening:
+    """Round-1 review blocker: clinical text must not forge md structure."""
+
+    @staticmethod
+    def _adversarial_report(**kw):
+        session = SessionSnapshot(
+            session_id="f1_VP-INJ",
+            persona_id="VP-INJ",
+            persona_name="주입검증",
+            session_index=1,
+            simulated_date="2026-01-01",
+            model="solar-pro3",
+            final_slots={
+                "chief_complaint": "무기력 <script>alert(1)</script>",
+                "history_of_present_illness": "수면 문제\n\n## 위조된 진료 지시\n복약 중단",
+                "family_history": "약물A | 약물B | 약물C | 약물D | 약물E",
+            },
+            session_ctrs=3,
+            crisis_triggered=False,
+            crisis_turn=None,
+            risk_floor=None,
+            probe_event_count=0,
+        )
+        inp = HandoffReportInput(
+            vp_id="VP-INJ",
+            session=session,
+            current_session_f3=None,
+            all_f3_administrations=(),
+            domain_inference=DomainInferenceSnapshot(
+                ai_predicted_disease=AIPredictedDiseaseOutput(
+                    candidates=[], mode="experimental_unpopulated"
+                )
+            ),
+            longitudinal=LongitudinalAnalysisOutput(vp_id="VP-INJ", n_sessions=1),
+            **kw,
+        )
+        return assemble_handoff_report(inp)
+
+    def test_clinical_text_cannot_forge_headings(self) -> None:
+        md = build_markdown_report(self._adversarial_report())
+        assert not any(line.startswith("## 위조된") for line in md.splitlines())
+
+    def test_raw_html_is_neutralized(self) -> None:
+        md = build_markdown_report(self._adversarial_report())
+        assert "<script>" not in md
+
+    def test_pipes_in_slot_values_do_not_break_table_rows(self) -> None:
+        md = build_markdown_report(self._adversarial_report())
+        row = next(
+            line for line in md.splitlines() if "약물A" in line and line.startswith("|")
+        )
+        assert row.count("|") - row.count("\\|") == 6, f"table row broken: {row!r}"
+
+    def test_narrative_cannot_forge_headings(self) -> None:
+        md = build_markdown_report(
+            self._adversarial_report(
+                narrative_enabled=True,
+                narrative_text="정상 요약 문장.\n## 가짜 소견 섹션",
+            )
+        )
+        assert not any(line.startswith("## 가짜") for line in md.splitlines())
+
+
+class TestPdfRobustnessAndExporterIsolation:
+    """Round-1 review blocker: newline-dense values abort PDF generation
+    (reportlab LayoutError in unsplittable cells) and one exporter failure
+    suppressed every subsequent artifact."""
+
+    def test_newline_dense_narrative_still_renders_pdf(self) -> None:
+        bomb = "무기력" + ("\n" * 79) + "호소"
+        report = _full_report(narrative_enabled=True, narrative_text=bomb)
+        pdf = build_pdf_report(report, {})
+        assert pdf.startswith(b"%PDF")
+
+    def test_pdf_failure_does_not_suppress_fhir_and_markdown(
+        self, tmp_path, monkeypatch
+    ) -> None:
+        import src.services.f5_report as f5r
+
+        def _boom(report, chart_paths):
+            raise RuntimeError("simulated PDF failure")
+
+        monkeypatch.setattr(f5r, "build_pdf_report", _boom)
+        paths = save_f5_result(_minimal_report(), tmp_path)
+        assert "markdown" in paths and paths["markdown"].exists()
+        assert "fhir" in paths and paths["fhir"].exists()
+        assert "pdf" not in paths

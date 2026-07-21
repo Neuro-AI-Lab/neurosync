@@ -21,6 +21,19 @@ import io
 import logging
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
+
+_FONT_ASSET_DIR = Path(__file__).resolve().parents[2] / "assets" / "fonts"
+
+
+def _korean_font_candidates() -> list[str]:
+    """Hangul-capable font files, bundled SHA-pinned assets first so charts
+    render Korean labels on any host, then common system locations."""
+    return [
+        str(_FONT_ASSET_DIR / "NotoSansKR-Subset.ttf"),
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
+    ]
 
 logger = logging.getLogger(__name__)
 
@@ -199,11 +212,10 @@ def _render_plot(
     import matplotlib.font_manager as fm
     import matplotlib.pyplot as plt
 
-    # Korean font
-    for fpath in [
-        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
-        "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
-    ]:
+    # Korean font — bundled SHA-pinned assets first (portable: macOS/slim
+    # containers have neither /usr/share path, which silently degraded every
+    # Hangul label to missing glyphs), system fonts as fallback.
+    for fpath in _korean_font_candidates():
         try:
             fm.fontManager.addfont(fpath)
             plt.rcParams["font.family"] = fm.FontProperties(fname=fpath).get_name()

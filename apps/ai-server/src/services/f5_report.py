@@ -26,6 +26,8 @@ import re
 import uuid
 from datetime import datetime
 from pathlib import Path
+from xml.etree import ElementTree
+from xml.sax.saxutils import escape as xml_escape
 
 from src.f1 import OUTPUT_DIR
 from src.schemas.handoff_report import (
@@ -123,9 +125,14 @@ def save_f5_result(
     md_path.write_text(build_markdown_report(report), encoding="utf-8")
     paths["markdown"] = md_path
 
+    # One exporter's failure must never suppress the remaining artifacts —
+    # a PDF rendering error still leaves clinicians the md + FHIR outputs.
     pdf_path = out / f"{prefix}_handoff.pdf"
-    pdf_path.write_bytes(build_pdf_report(report, chart_paths or {}))
-    paths["pdf"] = pdf_path
+    try:
+        pdf_path.write_bytes(build_pdf_report(report, chart_paths or {}))
+        paths["pdf"] = pdf_path
+    except Exception:
+        logger.exception("F5 PDF export failed — markdown/FHIR artifacts continue")
 
     fhir_bundle = build_fhir_bundle(report)
     fhir_path = out / f"{prefix}_handoff_fhir.json"
@@ -296,6 +303,30 @@ def _dimension_ko(dimension: str) -> str:
     return _DIMENSION_KO.get(dimension, dimension)
 
 
+def _md_inline(text: object) -> str:
+    """Neutralize markdown/HTML structure in clinical free text rendered
+    inline: collapsing whitespace runs removes the line starts that forged
+    headings/blockquotes/table rows require, and `<` escaping defuses raw
+    HTML — clinician-facing content must render as DATA, never as markup."""
+    return " ".join(str(text).replace("<", "&lt;").split())
+
+
+def _md_cell(text: object) -> str:
+    return _md_inline(text).replace("|", "\\|")
+
+
+_MD_LINE_STRUCTURE_RE = re.compile(r"^(\s*)([#>|\-+*])", flags=re.MULTILINE)
+
+_PDF_PARAGRAPH_MAX_LINES = 40
+
+
+def _md_block(text: str) -> str:
+    """Multi-line variant for paragraph-preserving fields (A8 narrative):
+    keeps line breaks but backslash-escapes line-leading markdown tokens
+    and defuses raw HTML."""
+    return _MD_LINE_STRUCTURE_RE.sub(r"\1\\\2", str(text).replace("<", "&lt;"))
+
+
 def _truncate(
     text: str | None, limit: int = 80, *, appendix: _AppendixCollector, label: str
 ) -> str:
@@ -304,10 +335,11 @@ def _truncate(
     "상세 부록" (detail appendix) entry carrying the SAME full *text*
     (never `"(상세 아래)"`, which pointed nowhere). `appendix`/`label` are
     mandatory — every call site owns an `_AppendixCollector` for its
-    render pass."""
+    render pass. Output is markdown-sanitized (`_md_cell`) — call sites
+    place it in table cells and inline prose."""
     if not text:
         return ""
-    t = str(text)
+    t = _md_cell(text)
     if len(t) <= limit:
         return t
     n = appendix.anchor(label, t)
@@ -640,9 +672,9 @@ def _mse_lines(a4: MentalStatusSection) -> list[str]:
     assessable = [d for d in a4.domain_checklist if d.assessable]
     if not a4.present and not assessable:
         return ["텍스트 문진 특성상 관찰 기반 MSE는 평가 불가; 대화에서 도출된 소견 없음"]
-    lines = [f"{a4.label}: {a4.raw_text}"] if a4.present else []
+    lines = [f"{a4.label}: {_md_inline(a4.raw_text)}"] if a4.present else []
     if assessable:
-        lines += [f"- {d.domain}: {d.note}" for d in assessable]
+        lines += [f"- {d.domain}: {_md_inline(d.note)}" for d in assessable]
     elif a4.present:
         lines.append("개별 영역(mood/insight 등) 평가는 이 슬롯 특성상 불가")
     return lines
@@ -924,9 +956,9 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     lines += [
         "## 주호소 및 현병력",
         "",
-        f"**주호소**: {a1.text if a1.present else '미수집'}",
+        f"**주호소**: {_md_inline(a1.text) if a1.present else '미수집'}",
         "",
-        f"**현병력**: {a2.text if a2.present else '미수집'}",
+        f"**현병력**: {_md_inline(a2.text) if a2.present else '미수집'}",
         "",
         "### 정신상태검사 (MSE)",
         "",
@@ -960,7 +992,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     lines.append("")
     course_bullets = _major_course_bullets(so)
     if course_bullets:
-        lines += [f"- {b_}" for b_ in course_bullets]
+        lines += [f"- {_md_inline(b_)}" for b_ in course_bullets]
     else:
         lines.append("- 표시할 주요 경과 변화 없음")
     lines.append("")
@@ -1109,7 +1141,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     # discipline as AI 참고 정보/A6, never nested inside another section) ──
     lines += ["## 임상 종합 소견", ""]
     if a8.narrative_enabled and a8.text:
-        lines += [f"> {NARRATIVE_ENABLED_LABEL_KO}", "", a8.text, ""]
+        lines += [f"> {NARRATIVE_ENABLED_LABEL_KO}", "", _md_block(a8.text), ""]
     else:
         lines += [a8.absent_marker, ""]
 
@@ -1119,7 +1151,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         for n, label, text in appendix.entries:
             lines += [f"**{n}. {label}**", "", text, ""]
     slot_history_sections = [
-        (row.label, " → ".join(row.change_history_full))
+        (row.label, " → ".join(_md_inline(v) for v in row.change_history_full))
         for row in _slot_table_rows(so)
         if len(row.change_history_full) >= 2
     ]
@@ -1343,7 +1375,17 @@ def build_pdf_report(
 
     def P(text: str, style: str = "body") -> Paragraph:
         safe = (text or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        return Paragraph(safe.replace("\n", "<br/>"), styles[style])
+        # Newline-dense values previously exploded into unbounded <br/> runs,
+        # aborting the whole PDF with a reportlab LayoutError inside
+        # unsplittable cells — collapse blank-line runs and cap the total.
+        collapsed: list[str] = []
+        for ln in safe.split("\n"):
+            if not ln.strip() and collapsed and not collapsed[-1].strip():
+                continue
+            collapsed.append(ln)
+        if len(collapsed) > _PDF_PARAGRAPH_MAX_LINES:
+            collapsed = collapsed[:_PDF_PARAGRAPH_MAX_LINES] + ["… (이하 생략)"]
+        return Paragraph("<br/>".join(collapsed), styles[style])
 
     def _table(rows: list[list[str]], font_size: float = 7.5) -> Table:
         t = Table(rows, hAlign="LEFT")
@@ -1719,8 +1761,13 @@ def _local_concept(code: str, text: str) -> dict:
 
 def _div(text: str) -> dict:
     """`Narrative` (status=generated) wrapping free text in the required
-    xhtml div — used for every `Composition.section.text` below."""
-    return {"status": "generated", "div": f"<div xmlns='http://www.w3.org/1999/xhtml'>{text}</div>"}
+    xhtml div — used for every `Composition.section.text` below. Clinical
+    text is XML-escaped: values like "수면 <4h & 불안" must stay well-formed
+    XHTML, and markup-shaped input must never survive as live markup."""
+    return {
+        "status": "generated",
+        "div": f"<div xmlns='http://www.w3.org/1999/xhtml'>{xml_escape(text)}</div>",
+    }
 
 
 def build_fhir_bundle(report: HandoffReportOutput) -> dict:
@@ -1828,7 +1875,24 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
             "code": _local_concept("ctrs", "Crisis Triage Rating Scale (session_ctrs, local)"),
             "subject": {"reference": patient_url},
             "effectiveDateTime": a3.current_simulated_date,
-            "valueInteger": a3.session_ctrs,
+            # FHIR JSON forbids null primitives — absent CTRS becomes
+            # dataAbsentReason below instead of "valueInteger": null.
+            **(
+                {"valueInteger": a3.session_ctrs}
+                if a3.session_ctrs is not None
+                else {
+                    "dataAbsentReason": {
+                        "coding": [
+                            {
+                                "system": (
+                                    "http://terminology.hl7.org/CodeSystem/data-absent-reason"
+                                ),
+                                "code": "unknown",
+                            }
+                        ]
+                    }
+                }
+            ),
             "note": [
                 {
                     "text": (
@@ -2291,16 +2355,25 @@ def validate_fhir_bundle(bundle: dict) -> list[str]:
                     f"{rtype} (fullUrl={e.get('fullUrl')}) missing required field '{f}'"
                 )
 
-    def _walk(obj: object) -> None:
+    def _walk(obj: object, path: str = "bundle") -> None:
         if isinstance(obj, dict):
             ref = obj.get("reference")
             if isinstance(ref, str) and ref.startswith("urn:uuid:") and ref not in full_url_set:
                 violations.append(f"unresolved reference: {ref}")
-            for v in obj.values():
-                _walk(v)
+            div = obj.get("div")
+            if isinstance(div, str):
+                try:
+                    ElementTree.fromstring(div)
+                except ElementTree.ParseError as exc:
+                    violations.append(f"{path}: Narrative.div is not well-formed XHTML ({exc})")
+            for k, v in obj.items():
+                if v is None:
+                    violations.append(f"{path}.{k}: null values are forbidden in FHIR JSON")
+                else:
+                    _walk(v, f"{path}.{k}")
         elif isinstance(obj, list):
-            for v in obj:
-                _walk(v)
+            for i, v in enumerate(obj):
+                _walk(v, f"{path}[{i}]")
 
     _walk(bundle)
 
