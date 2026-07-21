@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import stat
 import uuid
@@ -259,3 +260,41 @@ class TestExclusiveArtifactCreation:
         assert _digest(prior_pdf) == prior_pdf_hash
         assert "CLINICAL-SECRET-SENTINEL" not in caplog.text
         assert all(record.exc_info is None for record in caplog.records)
+        assert "pdf_status=failed" in caplog.text
+
+    def test_success_log_contains_metrics_but_no_identifier_or_artifact_path(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        vp_sentinel = "CLINICAL-VP-SENTINEL"
+        root = tmp_path / "CLINICAL-ROOT-SENTINEL"
+        root.mkdir()
+        caplog.set_level(logging.INFO, logger=f5_report.__name__)
+
+        paths = save_f5_result(_minimal_report(), root, vp_id=vp_sentinel)
+
+        forbidden = [vp_sentinel, root.name, str(root)]
+        forbidden.extend(path.name for path in _all_paths(paths))
+        forbidden.extend(str(path) for path in _all_paths(paths))
+        assert all(value not in caplog.text for value in forbidden)
+        assert "artifact_count=3" in caplog.text
+        assert "pdf_status=saved" in caplog.text
+        assert "markdown_bytes=" in caplog.text
+        assert "fhir_bytes=" in caplog.text
+        assert "pdf_bytes=" in caplog.text
+
+    @pytest.mark.parametrize("failure_type", [KeyboardInterrupt, SystemExit])
+    def test_persistence_pdf_boundary_propagates_system_exceptions(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        failure_type: type[KeyboardInterrupt] | type[SystemExit],
+    ) -> None:
+        def _raise_system_exception(
+            _report: HandoffReportOutput, _chart_paths: dict[str, Path]
+        ) -> bytes:
+            raise failure_type
+
+        monkeypatch.setattr(f5_report, "build_pdf_report", _raise_system_exception)
+
+        with pytest.raises(failure_type):
+            save_f5_result(_minimal_report(), tmp_path)

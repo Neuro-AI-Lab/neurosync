@@ -21,6 +21,7 @@ import logging
 import tempfile
 from datetime import datetime
 from pathlib import Path
+from typing import assert_never
 
 from contracts.handoff import HandoffRequest, HandoffResponse
 from contracts.longitudinal import HandoffReportRequest, HandoffReportResponse
@@ -35,6 +36,7 @@ from src.agents.handoff_contract_generator import (
 from src.dependencies import get_model_router, get_prompt_loader
 from src.prompts.loader import PromptLoader
 from src.routing.model_router import ModelRouter
+from src.services.f5_pdf_boundary import PdfRendered, PdfRenderFailed, render_pdf
 from src.services.f5_report import build_fhir_bundle, build_markdown_report, build_pdf_report
 from src.services.handoff_contract_adapter import adapt_handoff_request
 from src.services.stateless_longitudinal import (
@@ -154,14 +156,17 @@ async def report(body: HandoffReportRequest) -> HandoffReportResponse:
                 path = tmp_dir / f"{key}.png"
                 path.write_bytes(png)
                 chart_paths[key] = path
-            try:
-                pdf_bytes = build_pdf_report(handoff_report, chart_paths)
-            except Exception:  # noqa: BLE001  # noqa: BROAD_EXCEPT_OK
-                logger.error("Handoff report PDF generation failed")
-                raise HTTPException(
-                    status_code=500,
-                    detail="Handoff report PDF generation failed",
-                ) from None
+            match render_pdf(build_pdf_report, handoff_report, chart_paths):
+                case PdfRendered(content=pdf_bytes):
+                    pass
+                case PdfRenderFailed():
+                    logger.error("Handoff report PDF generation failed: pdf_status=failed")
+                    raise HTTPException(
+                        status_code=500,
+                        detail="Handoff report PDF generation failed",
+                    ) from None
+                case unreachable:
+                    assert_never(unreachable)
 
         if len(pdf_bytes) > _PDF_SIZE_GUARD_BYTES:
             pdf_omitted_reason = (
@@ -170,8 +175,10 @@ async def report(body: HandoffReportRequest) -> HandoffReportResponse:
                 "report_markdown/fhir_bundle are unaffected."
             )
             logger.warning(
-                "Handoff report PDF omitted (size guard): vp_id=%s bytes=%d",
-                body.vp_id, len(pdf_bytes),
+                "Handoff report PDF omitted by response size guard: "
+                "pdf_status=omitted bytes=%d limit=%d",
+                len(pdf_bytes),
+                _PDF_SIZE_GUARD_BYTES,
             )
         else:
             pdf_base64 = base64.b64encode(pdf_bytes).decode("ascii")

@@ -108,6 +108,7 @@ def test_generic_pdf_failure_log_and_http_detail_are_phi_safe(
     assert _SECRET not in response.text
     assert _SECRET not in caplog.text
     assert all(record.exc_info is None for record in caplog.records)
+    assert "pdf_status=failed" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -126,3 +127,44 @@ async def test_direct_route_pdf_failure_has_no_exception_chain(
     formatted = "".join(traceback.format_exception(failure))
     assert failure.__cause__ is None
     assert _SECRET not in formatted
+
+
+def test_oversize_pdf_log_contains_metrics_but_no_caller_identifier(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    vp_sentinel = "CLINICAL-VP-SENTINEL"
+
+    def _oversize_pdf(_report: HandoffReportOutput, _chart_paths: dict[str, Path]) -> bytes:
+        return b"x" * (handoff_route._PDF_SIZE_GUARD_BYTES + 1)
+
+    monkeypatch.setattr(handoff_route, "build_pdf_report", _oversize_pdf)
+    payload = _payload()
+    payload["vp_id"] = vp_sentinel
+    caplog.set_level(logging.WARNING, logger=handoff_route.__name__)
+
+    response = TestClient(app).post("/ai/handoff/report", json=payload)
+
+    assert response.status_code == 200
+    assert response.json()["pdf_base64"] is None
+    assert response.json()["pdf_omitted_reason"] is not None
+    assert vp_sentinel not in caplog.text
+    assert "pdf_status=omitted" in caplog.text
+    assert f"bytes={handoff_route._PDF_SIZE_GUARD_BYTES + 1}" in caplog.text
+    assert f"limit={handoff_route._PDF_SIZE_GUARD_BYTES}" in caplog.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("failure_type", [KeyboardInterrupt, SystemExit])
+async def test_route_pdf_boundary_propagates_system_exceptions(
+    monkeypatch: pytest.MonkeyPatch,
+    failure_type: type[KeyboardInterrupt] | type[SystemExit],
+) -> None:
+    def _raise_system_exception(
+        _report: HandoffReportOutput, _chart_paths: dict[str, Path]
+    ) -> bytes:
+        raise failure_type
+
+    monkeypatch.setattr(handoff_route, "build_pdf_report", _raise_system_exception)
+
+    with pytest.raises(failure_type):
+        await handoff_route.report(_request())

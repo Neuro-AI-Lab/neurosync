@@ -27,6 +27,7 @@ import uuid
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
+from typing import assert_never
 
 from src.f1 import OUTPUT_DIR
 from src.schemas.handoff_report import (
@@ -63,6 +64,7 @@ from src.services.f5_markdown import (
     plain_text,
     table_cell_literal,
 )
+from src.services.f5_pdf_boundary import PdfRendered, PdfRenderFailed, render_pdf
 from src.services.f5_pdf_text import (
     DEFAULT_PDF_PARAGRAPH_MAX_LINES,
     collapse_blank_runs,
@@ -157,11 +159,18 @@ def save_f5_result(
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     markdown = build_markdown_report(report).encode()
     pdf: bytes | None
-    try:
-        pdf = build_pdf_report(report, chart_paths or {})
-    except Exception:  # noqa: BLE001  # noqa: BROAD_EXCEPT_OK
-        logger.error("F5 PDF export failed; markdown and FHIR artifacts continue")
-        pdf = None
+    match render_pdf(build_pdf_report, report, chart_paths or {}):
+        case PdfRendered(content=pdf):
+            pdf_status = "saved"
+        case PdfRenderFailed():
+            logger.error(
+                "F5 PDF export failed: "
+                "pdf_status=failed markdown_status=continued fhir_status=continued"
+            )
+            pdf = None
+            pdf_status = "failed"
+        case unreachable:
+            assert_never(unreachable)
 
     fhir = json.dumps(build_fhir_bundle(report), ensure_ascii=False, indent=2).encode()
     paths = persist_f5_artifacts(
@@ -175,7 +184,15 @@ def save_f5_result(
         ),
     )
 
-    logger.info("F5 results saved: %s", ", ".join(str(p) for p in paths.values()))
+    logger.info(
+        "F5 artifacts saved: artifact_count=%d markdown_bytes=%d fhir_bytes=%d "
+        "pdf_status=%s pdf_bytes=%d",
+        len(paths),
+        len(markdown),
+        len(fhir),
+        pdf_status,
+        0 if pdf is None else len(pdf),
+    )
     return paths
 
 
