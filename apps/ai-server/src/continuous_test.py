@@ -93,6 +93,7 @@ from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
 from src.services.f5_artifact_store import F5ArtifactPaths
+from src.services.f5_stage_status import stage_return_code
 
 logger = logging.getLogger(__name__)
 
@@ -1809,15 +1810,7 @@ def _build_single_session_ledger_entry(
 
 
 def _chain_return_code(results: list[StageResult]) -> int:
-    """Process exit code for a full chain run: 1 if any stage hard-failed, 2 on
-    a partial F5 export (md/FHIR written but PDF missing — F5 'warn'), else 0.
-    Exit 2 mirrors the --f5-from-artifacts replay CLI so automation detects a
-    missing clinical artifact even when no stage hard-failed."""
-    if any(r.status == "fail" for r in results):
-        return 1
-    if any(r.name == "F5" and r.status == "warn" for r in results):
-        return 2
-    return 0
+    return stage_return_code(results)
 
 
 async def _main(args: argparse.Namespace) -> int:

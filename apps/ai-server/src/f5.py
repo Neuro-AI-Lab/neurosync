@@ -45,7 +45,6 @@ already-computed fields — F3's `safety_referral` against F4's own
 from __future__ import annotations
 
 import re
-import unicodedata
 from dataclasses import dataclass, field
 from datetime import date as _date
 from typing import Literal
@@ -91,6 +90,7 @@ from src.schemas.handoff_report import (
 )
 from src.schemas.longitudinal import LongitudinalAnalysisOutput
 from src.services.f5_generation_time import parse_aware_iso_timestamp
+from src.services.f5_narrative_guard import contains_candidate_disease
 
 # ── Harness -> production contract (design doc §4.1) ────────────────────
 
@@ -793,31 +793,6 @@ def _build_a7(inp: HandoffReportInput) -> RecommendationSection:
 # ── A8 (optional narrative hook, Task 2 / `handoff_generator` v3) ────────
 
 
-def _leak_normalize(s: str) -> str:
-    """NFKC + casefold so the A6→A8 refusal cannot be dodged by case or
-    unicode-width variants ("ptsd", "ＰＴＳＤ" must match candidate "PTSD").
-    Unicode format controls are comparison-ignorable so zero-width and
-    soft-hyphen characters cannot split a disease name."""
-    normalized = unicodedata.normalize("NFKC", s).casefold()
-    return "".join(char for char in normalized if unicodedata.category(char) != "Cf")
-
-
-def _disease_leaks(disease: str, normalized_text: str) -> bool:
-    r"""True when *disease* appears in the already-normalized narrative NOT
-    merely as a substring of a larger ASCII word — a short Latin candidate
-    ("AD") must not match inside "had" (false-positive narrative rejection),
-    while a CJK candidate still matches when followed by a Korean particle
-    ("우울증" in "우울증이"). Boundaries are ASCII-only (``[a-z0-9]`` after
-    casefold), so CJK adjacency is intentionally NOT treated as a boundary. The
-    candidate is stripped first so surrounding whitespace can't become part of
-    the boundary-anchored pattern and defeat the match (e.g. candidate "PTSD "
-    against "…has PTSD symptoms" — codex clinical-isolation guarantee)."""
-    norm = _leak_normalize(disease).strip()
-    if not norm:
-        return False
-    return re.search(rf"(?<![a-z0-9]){re.escape(norm)}(?![a-z0-9])", normalized_text) is not None
-
-
 def _build_a8(inp: HandoffReportInput) -> NarrativeSection:
     """`ADR-037` Decision 1 default (`narrative_enabled=False`) is
     UNCHANGED — A8 still ships the explicit disabled marker, never blank,
@@ -839,9 +814,7 @@ def _build_a8(inp: HandoffReportInput) -> NarrativeSection:
     text = (inp.narrative_text or "").strip()
     apd = inp.domain_inference.ai_predicted_disease
     candidate_diseases = [c.disease for c in (apd.candidates if apd else []) if c.disease]
-    normalized_text = _leak_normalize(text)
-    leaked = [d for d in candidate_diseases if _disease_leaks(d, normalized_text)]
-    if leaked:
+    if contains_candidate_disease(text, candidate_diseases):
         return NarrativeSection(
             narrative_enabled=False, text=None, absent_marker=NARRATIVE_REJECTED_DISEASE_LEAK_KO
         )

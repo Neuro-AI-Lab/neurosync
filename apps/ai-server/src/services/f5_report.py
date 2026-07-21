@@ -27,8 +27,6 @@ import uuid
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from xml.etree import ElementTree
-from xml.sax.saxutils import escape as xml_escape
 
 from src.f1 import OUTPUT_DIR
 from src.schemas.handoff_report import (
@@ -52,9 +50,44 @@ from src.services.f5_artifact_store import (
     F5ArtifactPaths,
     persist_f5_artifacts,
 )
-from src.services.f5_markdown import block_literal, inline_literal, table_cell_literal
+from src.services.f5_fhir_safety import (
+    fhir_structure_violations,
+)
+from src.services.f5_fhir_safety import (
+    narrative_div as _div,
+)
+from src.services.f5_markdown import (
+    block_literal,
+    inline_literal,
+    is_safe_chart_filename,
+    plain_text,
+    table_cell_literal,
+)
+from src.services.f5_pdf_text import (
+    DEFAULT_PDF_PARAGRAPH_MAX_LINES,
+    collapse_blank_runs,
+    pdf_line_chunks,
+)
 
 logger = logging.getLogger(__name__)
+
+type _RenderScalar = str | int | float | bool | None
+
+
+def _md_inline(text: _RenderScalar) -> str:
+    return inline_literal(str(text))
+
+
+def _md_block(text: str) -> str:
+    return block_literal(text)
+
+
+def _md_cell(text: _RenderScalar) -> str:
+    return table_cell_literal(str(text))
+
+
+def _pdf_raw(text: _RenderScalar) -> str:
+    return plain_text(str(text))
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -166,7 +199,6 @@ _CHART_TITLES_KO = {
     "disease_similarity": "질환 유사도 차트",
     "domain_confidence": "진료과 후보 신뢰도 차트",
 }
-_SAFE_CHART_FILENAME_RE = re.compile(r"[A-Za-z0-9._-]+\Z")
 
 # Task (chart-readability fix, this mission): 1-line Korean caption
 # rendered directly UNDER each embedded chart (md + PDF), stating what the
@@ -307,48 +339,12 @@ def _dimension_ko(dimension: str) -> str:
     return _DIMENSION_KO.get(dimension, dimension)
 
 
-def _md_inline(text: object) -> str:
-    return inline_literal(str(text))
-
-
-def _md_cell(text: object) -> str:
-    return table_cell_literal(str(text))
-
-
-def _pdf_raw(text: object) -> str:
-    r"""Identity sanitizer for the PDF exporter — reportlab's inner P() already
-    escapes ``&``/``<``/``>`` (and reportlab has no Markdown/pipe semantics), so
-    the shared render helpers must NOT pre-apply Markdown escaping to PDF-bound
-    text or it surfaces as literal ``&lt;…`` / ``\|`` artifacts (codex P2)."""
-    return str(text)
-
-
-_PDF_PARAGRAPH_MAX_LINES = 40
-
-
-def _md_block(text: str) -> str:
-    return block_literal(text)
-
-
-def _collapse_blank_runs(text: str) -> list[str]:
-    """Collapse runs of blank lines to a single blank so newline-dense free
-    text can't explode into an unbounded <br/> run (reportlab LayoutError)."""
-    collapsed: list[str] = []
-    for ln in text.split("\n"):
-        if not ln.strip() and collapsed and not collapsed[-1].strip():
-            continue
-        collapsed.append(ln)
-    return collapsed
+_PDF_PARAGRAPH_MAX_LINES = DEFAULT_PDF_PARAGRAPH_MAX_LINES
+_collapse_blank_runs = collapse_blank_runs
 
 
 def _pdf_line_chunks(text: str, max_lines: int = _PDF_PARAGRAPH_MAX_LINES) -> list[list[str]]:
-    """Blank-collapsed lines split into <=max_lines chunks — one PDF flowable
-    per chunk so long clinical free text PAGINATES across pages. Every line is
-    preserved across the returned chunks (never truncated / dropped)."""
-    lines = _collapse_blank_runs(text)
-    if len(lines) <= max_lines:
-        return [lines]
-    return [lines[i : i + max_lines] for i in range(0, len(lines), max_lines)]
+    return pdf_line_chunks(text, max_lines)
 
 
 def _truncate(
@@ -357,7 +353,7 @@ def _truncate(
     *,
     appendix: _AppendixCollector,
     label: str,
-    sanitize: Callable[[object], str] = _md_cell,
+    sanitize: Callable[[_RenderScalar], str] = _md_cell,
 ) -> str:
     r"""Truncates *text* for a compact body cell/line; the full text is anchored
     into a numbered "상세 부록" (detail appendix) entry (CVR-026 Finding 1).
@@ -535,7 +531,7 @@ def _summary_box_lines(
     report: HandoffReportOutput,
     appendix: _AppendixCollector,
     *,
-    sanitize: Callable[[object], str] = _md_cell,
+    sanitize: Callable[[_RenderScalar], str] = _md_cell,
 ) -> list[str]:
     """핵심 요약 (SBAR식, ≤8줄) — binding rule 2."""
     a0, a1, a3, a5 = (
@@ -572,7 +568,7 @@ def _risk_prose(
     a3: RiskSafetySection,
     appendix: _AppendixCollector,
     *,
-    sanitize: Callable[[object], str] = _md_cell,
+    sanitize: Callable[[_RenderScalar], str] = _md_cell,
 ) -> str:
     # CVR-026 Finding 1 (blocking, 최우선): the current-session risk
     # narrative's own patient-quote — a truncated, dead-referenced cut of
@@ -609,7 +605,7 @@ def _risk_discordance_verdict(
     discordance_note: str,
     appendix: _AppendixCollector,
     *,
-    sanitize: Callable[[object], str] = _md_cell,
+    sanitize: Callable[[_RenderScalar], str] = _md_cell,
 ) -> str:
     if discordance_note.startswith("불일치"):
         return "불일치"
@@ -624,7 +620,7 @@ def _risk_table_rows(
     a3: RiskSafetySection,
     appendix: _AppendixCollector,
     *,
-    sanitize: Callable[[object], str] = _md_cell,
+    sanitize: Callable[[_RenderScalar], str] = _md_cell,
 ) -> list[tuple[str, str, str, str, str]]:
     rows = []
     for sig in a3.longitudinal_risk_signals:
@@ -688,7 +684,7 @@ def _full_risk_table_rows(
     lon: LongitudinalAnalysisOutput,
     appendix: _AppendixCollector,
     *,
-    sanitize: Callable[[object], str] = _md_cell,
+    sanitize: Callable[[_RenderScalar], str] = _md_cell,
 ) -> list[tuple[str, str, str, str, str]]:
     """`_risk_table_rows` (flagged sessions) merged with `_absent_session_rows`
     (every remaining ledger session), sorted back into session order -- the
@@ -726,7 +722,7 @@ def _ceiling_caveat_summary(a3: RiskSafetySection) -> str | None:
 
 
 def _mse_lines(
-    a4: MentalStatusSection, *, sanitize: Callable[[object], str] = _md_inline
+    a4: MentalStatusSection, *, sanitize: Callable[[_RenderScalar], str] = _md_inline
 ) -> list[str]:
     assessable = [d for d in a4.domain_checklist if d.assessable]
     if not a4.present and not assessable:
@@ -1156,11 +1152,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     any_chart = False
     fig_no = 0
     for key, filename in chart_map.items():
-        if (
-            filename
-            and filename not in {".", ".."}
-            and _SAFE_CHART_FILENAME_RE.fullmatch(filename)
-        ):
+        if filename and is_safe_chart_filename(filename):
             any_chart = True
             fig_no += 1
             lines.append(f"![{key}]({filename})")
@@ -1873,17 +1865,6 @@ def _local_concept(code: str, text: str) -> dict:
     return {"coding": [{"system": _LOCAL_CODE_SYSTEM, "code": code}], "text": text}
 
 
-def _div(text: str) -> dict:
-    """`Narrative` (status=generated) wrapping free text in the required
-    xhtml div — used for every `Composition.section.text` below. Clinical
-    text is XML-escaped: values like "수면 <4h & 불안" must stay well-formed
-    XHTML, and markup-shaped input must never survive as live markup."""
-    return {
-        "status": "generated",
-        "div": f"<div xmlns='http://www.w3.org/1999/xhtml'>{xml_escape(text)}</div>",
-    }
-
-
 def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     """R4 `Bundle(type="document")`, `Composition` first entry (design doc
     §5.3). File-export only — no `$validate` call, no server round-trip
@@ -2469,27 +2450,7 @@ def validate_fhir_bundle(bundle: dict) -> list[str]:
                     f"{rtype} (fullUrl={e.get('fullUrl')}) missing required field '{f}'"
                 )
 
-    def _walk(obj: object, path: str = "bundle") -> None:
-        if isinstance(obj, dict):
-            ref = obj.get("reference")
-            if isinstance(ref, str) and ref.startswith("urn:uuid:") and ref not in full_url_set:
-                violations.append(f"unresolved reference: {ref}")
-            div = obj.get("div")
-            if isinstance(div, str):
-                try:
-                    ElementTree.fromstring(div)
-                except ElementTree.ParseError as exc:
-                    violations.append(f"{path}: Narrative.div is not well-formed XHTML ({exc})")
-            for k, v in obj.items():
-                if v is None:
-                    violations.append(f"{path}.{k}: null values are forbidden in FHIR JSON")
-                else:
-                    _walk(v, f"{path}.{k}")
-        elif isinstance(obj, list):
-            for i, v in enumerate(obj):
-                _walk(v, f"{path}[{i}]")
-
-    _walk(bundle)
+    violations.extend(fhir_structure_violations(bundle, full_url_set))
 
     for sec in first.get("section", []):
         if not sec.get("title"):
