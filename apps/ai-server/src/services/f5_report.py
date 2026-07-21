@@ -47,6 +47,7 @@ from src.schemas.handoff_report import (
     SlotOverviewSection,
 )
 from src.schemas.longitudinal import LongitudinalAnalysisOutput
+from src.services.f5_markdown import block_literal, inline_literal, table_cell_literal
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +173,7 @@ _CHART_TITLES_KO = {
     "disease_similarity": "질환 유사도 차트",
     "domain_confidence": "진료과 후보 신뢰도 차트",
 }
+_SAFE_CHART_FILENAME_RE = re.compile(r"[A-Za-z0-9._-]+\Z")
 
 # Task (chart-readability fix, this mission): 1-line Korean caption
 # rendered directly UNDER each embedded chart (md + PDF), stating what the
@@ -313,15 +315,11 @@ def _dimension_ko(dimension: str) -> str:
 
 
 def _md_inline(text: object) -> str:
-    """Neutralize markdown/HTML structure in clinical free text rendered
-    inline: collapsing whitespace runs removes the line starts that forged
-    headings/blockquotes/table rows require, and `<` escaping defuses raw
-    HTML — clinician-facing content must render as DATA, never as markup."""
-    return " ".join(str(text).replace("<", "&lt;").split())
+    return inline_literal(str(text))
 
 
 def _md_cell(text: object) -> str:
-    return _md_inline(text).replace("|", "\\|")
+    return table_cell_literal(str(text))
 
 
 def _pdf_raw(text: object) -> str:
@@ -332,23 +330,11 @@ def _pdf_raw(text: object) -> str:
     return str(text)
 
 
-_MD_LINE_STRUCTURE_RE = re.compile(r"^(\s*)([#>|=~`+*\-])", flags=re.MULTILINE)
-_MD_ORDERED_LIST_RE = re.compile(r"^(\s*\d+)([.)])", flags=re.MULTILINE)
-
 _PDF_PARAGRAPH_MAX_LINES = 40
 
 
 def _md_block(text: str) -> str:
-    r"""Multi-line variant for paragraph-preserving fields (A8 narrative):
-    keeps line breaks but backslash-escapes EVERY line-leading markdown
-    structural token — ATX/Setext headings (``#``, ``=``, ``-``), blockquotes
-    (``>``), table pipes (``|``), code fences (`````` ` ``````, ``~``), bullet
-    (``+ * -``) and ordered (``1.``/``1)``) lists — plus the inline-link seam
-    ``](`` and raw HTML (``<``), so generated/adversarial clinical text can
-    never forge report structure (defense-in-depth for the opt-in narrative)."""
-    escaped = _MD_LINE_STRUCTURE_RE.sub(r"\1\\\2", str(text).replace("<", "&lt;"))
-    escaped = _MD_ORDERED_LIST_RE.sub(r"\1\\\2", escaped)
-    return escaped.replace("](", "]\\(")
+    return block_literal(text)
 
 
 def _collapse_blank_runs(text: str) -> list[str]:
@@ -752,9 +738,9 @@ def _mse_lines(
     assessable = [d for d in a4.domain_checklist if d.assessable]
     if not a4.present and not assessable:
         return ["텍스트 문진 특성상 관찰 기반 MSE는 평가 불가; 대화에서 도출된 소견 없음"]
-    lines = [f"{a4.label}: {sanitize(a4.raw_text)}"] if a4.present else []
+    lines = [f"{sanitize(a4.label)}: {sanitize(a4.raw_text)}"] if a4.present else []
     if assessable:
-        lines += [f"- {d.domain}: {sanitize(d.note)}" for d in assessable]
+        lines += [f"- {sanitize(d.domain)}: {sanitize(d.note)}" for d in assessable]
     elif a4.present:
         lines.append("개별 영역(mood/insight 등) 평가는 이 슬롯 특성상 불가")
     return lines
@@ -975,11 +961,14 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     lon = b.analysis
     so = report.slot_overview
 
-    lines: list[str] = [f"# F5 인계 요약 보고서 — {report.vp_id}", ""]
+    lines: list[str] = [f"# F5 인계 요약 보고서 — {_md_inline(report.vp_id)}", ""]
 
     # ── 핵심 요약 (SBAR box) ──
     lines += ["> **핵심 요약**", ">"]
-    lines += [f"> - {line}" for line in _summary_box_lines(report, appendix)]
+    lines += [
+        f"> - {_md_inline(line)}"
+        for line in _summary_box_lines(report, appendix, sanitize=_pdf_raw)
+    ]
     lines.append("")
 
     # ── 면책 조항 (3줄 이내 박스) ──
@@ -988,8 +977,13 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     lines.append("")
 
     # ── 위험/안전 평가 ──
-    lines += ["## 위험/안전 평가", "", _risk_prose(a3, appendix), ""]
-    risk_rows = _risk_table_rows(a3, appendix)
+    lines += [
+        "## 위험/안전 평가",
+        "",
+        _md_inline(_risk_prose(a3, appendix, sanitize=_pdf_raw)),
+        "",
+    ]
+    risk_rows = _risk_table_rows(a3, appendix, sanitize=_pdf_raw)
     # CVR-026 Finding 8 (minor): the exact-ceiling caveat previously
     # repeated verbatim BOTH adjacent to the risk table AND in the
     # staleness-pointer note directly below it (same fact, same session,
@@ -1006,8 +1000,11 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
             "|---|---|---|---|---|",
         ]
         lines += [
-            f"| {sid} | {date} | {score} | {item9} | {verdict} |"
-            for sid, date, score, item9, verdict in _full_risk_table_rows(a3, lon, appendix)
+            f"| {_md_cell(sid)} | {_md_cell(date)} | {_md_cell(score)} | "
+            f"{_md_cell(item9)} | {_md_cell(verdict)} |"
+            for sid, date, score, item9, verdict in _full_risk_table_rows(
+                a3, lon, appendix, sanitize=_pdf_raw
+            )
         ]
         # ADR-038 Decision 2c / renderer polish (VP-004 review): full
         # ceiling caveat text still rendered adjacent to the table (never
@@ -1018,18 +1015,18 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         lines.append("")
         if ceiling_summary:
             ceiling_shown_in_a3 = True
-            lines.append(f"> {ceiling_summary}")
+            lines.append(f"> {_md_inline(ceiling_summary)}")
             lines.append("")
     else:
         lines += ["해당 없음 — 전체 세션 중 item-9 양성/안전 의뢰 이력이 없습니다.", ""]
-    lines += [f"> 최신 시행 척도 안내: {_staleness_note_ko(a3.staleness_pointer)}"]
+    lines += [f"> 최신 시행 척도 안내: {_md_inline(_staleness_note_ko(a3.staleness_pointer))}"]
     if a3.staleness_pointer.total_score is not None:
         lines.append(f"> {NON_VALIDATED_ADMINISTRATION_CAVEAT_KO}")
     if a3.staleness_pointer.ceiling_caveat:
         staleness_ceiling_text = (
             _CEILING_POINTER_KO if ceiling_shown_in_a3 else a3.staleness_pointer.ceiling_caveat
         )
-        lines.append(f"> {staleness_ceiling_text}")
+        lines.append(f"> {_md_inline(staleness_ceiling_text)}")
     lines.append("")
 
     # ── 주호소 및 현병력 (+ MSE) ──
@@ -1050,7 +1047,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     lines += [
         "## 전체 세션 요약",
         "",
-        f"> {so.non_validated_caveat}",
+        f"> {_md_inline(so.non_validated_caveat)}",
         "",
         "| 슬롯 | 최신값 | 출처 | 변화 | 비고 |",
         "|---|---|---|---|---|",
@@ -1060,12 +1057,17 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
             value_cell, source_cell = SLOT_NEVER_COLLECTED_KO, "-"
         else:
             value_cell = _truncate(
-                row.latest_value, 80, appendix=appendix, label=f"{row.label} 최신값 전문"
+                row.latest_value,
+                80,
+                appendix=appendix,
+                label=f"{row.label} 최신값 전문",
+                sanitize=_pdf_raw,
             )
             source_cell = f"{row.source_session_index}회차/{row.source_simulated_date}"
         lines.append(
-            f"| {row.label} | {value_cell} | {source_cell} | {_change_history_summary(row)} | "
-            f"{row.section_pointer or '-'} |"
+            f"| {_md_cell(row.label)} | {_md_cell(value_cell)} | {_md_cell(source_cell)} | "
+            f"{_md_cell(_change_history_summary(row))} | "
+            f"{_md_cell(row.section_pointer or '-')} |"
         )
     lines.append("")
     lines.append("**주요 경과**")
@@ -1084,11 +1086,11 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         lines += ["정보 없음 (전체 세션 중 시행된 설문 없음)", ""]
     else:
         lines += [
-            f"> {a5.non_validated_caveat}",
+            f"> {_md_inline(a5.non_validated_caveat)}",
             "",
-            f"**{a5.scale_name} {a5.total_score}/{a5.max_score} "
-            f"({_severity_ko(a5.severity)})** — {a5.administering_session_index}회차 "
-            f"({a5.administering_simulated_date})"
+            f"**{_md_inline(a5.scale_name)} {a5.total_score}/{a5.max_score} "
+            f"({_md_inline(_severity_ko(a5.severity))})** — {a5.administering_session_index}회차 "
+            f"({_md_inline(a5.administering_simulated_date)})"
             + (" [당해 세션 미시행, 직전 시행값]" if a5.is_stale_relative_to_header else ""),
             "",
             f"- 응답: {','.join(str(v) for v in a5.responses)}",
@@ -1100,31 +1102,35 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
                 if a5.critical_item_positive is False
                 else "미상"
             ),
-            f"- 문진 방식: {a5.administration_mode or '미상'}",
+            f"- 문진 방식: {_md_inline(a5.administration_mode or '미상')}",
         ]
         if a5.threshold_caveat:
-            lines.append(f"- {a5.threshold_caveat}")
+            lines.append(f"- {_md_inline(a5.threshold_caveat)}")
         if a5.threshold_caveat_asymmetry_note:
-            lines.append(f"- {a5.threshold_caveat_asymmetry_note}")
+            lines.append(f"- {_md_inline(a5.threshold_caveat_asymmetry_note)}")
         if a5.ceiling_caveat:
             # A5 stays the canonical cross-section occurrence (ADR-038
             # Decision 2c, locked by test) — never deduped away.
-            lines.append(f"- {a5.ceiling_caveat}")
+            lines.append(f"- {_md_inline(a5.ceiling_caveat)}")
         lines.append("")
         if a5.gap_disclosure:
             lines.append("**F3 공백 (당해 세션까지):**")
             lines.append("")
             if a5.gap_acuity_framing_note:
-                lines += [f"> {_strip_internal_refs(a5.gap_acuity_framing_note, notes)}", ""]
+                lines += [
+                    f"> {_md_inline(_strip_internal_refs(a5.gap_acuity_framing_note, notes))}",
+                    "",
+                ]
                 gap_framing_shown = True
-            lines += [f"- {_humanize_engine_text(g, notes)}" for g in a5.gap_disclosure]
+            lines += [f"- {_md_inline(_humanize_engine_text(g, notes))}" for g in a5.gap_disclosure]
             lines.append("")
 
     # ── 종단 추세 + 차트 ──
     lines += [
         "## 종단 추세",
         "",
-        f"전체 방향: **{_DIRECTION_KO.get(lon.overall_direction, lon.overall_direction)}** "
+        "전체 방향: **"
+        f"{_md_inline(_DIRECTION_KO.get(lon.overall_direction, lon.overall_direction))}** "
         f"({lon.n_sessions}세션"
         + (f", {lon.session_span_days}일" if lon.session_span_days is not None else "")
         + ")",
@@ -1135,11 +1141,16 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         "|---|---|---|",
     ]
     for dim, direction, evidence in _trend_table_rows(lon):
-        lines.append(f"| {dim} | {direction} | {evidence} |")
+        lines.append(
+            f"| {_md_cell(dim)} | {_md_cell(direction)} | {_md_cell(evidence)} |"
+        )
     lines.append("")
-    lines += _events_and_concordance_lines(
-        lon, b, gap_framing_already_shown=gap_framing_shown, notes=notes
-    )
+    lines += [
+        _md_inline(line)
+        for line in _events_and_concordance_lines(
+            lon, b, gap_framing_already_shown=gap_framing_shown, notes=notes
+        )
+    ]
     lines.append("")
     lines.append("### 추세 차트")
     lines.append("")
@@ -1152,7 +1163,11 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     any_chart = False
     fig_no = 0
     for key, filename in chart_map.items():
-        if filename:
+        if (
+            filename
+            and filename not in {".", ".."}
+            and _SAFE_CHART_FILENAME_RE.fullmatch(filename)
+        ):
             any_chart = True
             fig_no += 1
             lines.append(f"![{key}]({filename})")
@@ -1173,11 +1188,11 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         "",
     ]
     if not a6.present:
-        lines += [_none_marker(a6.no_data_note, "정보 없음"), ""]
+        lines += [_md_inline(_none_marker(a6.no_data_note, "정보 없음")), ""]
         if a6.mode:
-            lines.append(f"mode: {a6.mode}")
+            lines.append(f"mode: {_md_inline(a6.mode)}")
         if a6.reason_summary:
-            lines += ["", f"사유: {_a6_reason_summary_ko(a6.reason_summary, notes)}"]
+            lines += ["", f"사유: {_md_inline(_a6_reason_summary_ko(a6.reason_summary, notes))}"]
         lines.append("")
     else:
         top, rest = a6.candidates[:3], a6.candidates[3:]
@@ -1185,19 +1200,27 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         for rc in top:
             rank_cell = rc.tie_marker or str(rc.rank)
             score = f"{rc.candidate.similarity_score:.3f}"
-            lines.append(f"| {rank_cell} | {rc.candidate.disease} | {score} |")
+            lines.append(
+                f"| {_md_cell(rank_cell)} | {_md_cell(rc.candidate.disease)} | "
+                f"{_md_cell(score)} |"
+            )
         lines.append("")
         if rest:
             rest_txt = ", ".join(
-                f"{rc.candidate.disease}({rc.candidate.similarity_score:.3f})" for rc in rest
+                f"{_md_inline(rc.candidate.disease)}({rc.candidate.similarity_score:.3f})"
+                for rc in rest
             )
             lines.append(f"기타 후보: {rest_txt}")
             lines.append("")
-        lines.append(f"> {a6.disclaimer}")
+        lines.append(f"> {_md_inline(a6.disclaimer)}")
         if a6.recommended_questionnaire:
             lines.append(
-                f"> 추천 설문: {a6.recommended_questionnaire}"
-                + (f" — {a6.recommendation_caveat}" if a6.recommendation_caveat else "")
+                f"> 추천 설문: {_md_inline(a6.recommended_questionnaire)}"
+                + (
+                    f" — {_md_inline(a6.recommendation_caveat)}"
+                    if a6.recommendation_caveat
+                    else ""
+                )
             )
         lines.append("")
 
@@ -1205,17 +1228,24 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     lines += ["## 권장 진료과 및 후속 조치", ""]
     if a7.department_candidates:
         lines += ["| 진료과 | 사유 |", "|---|---|"]
-        lines += [f"| {d.department} | {d.reason} |" for d in a7.department_candidates]
+        lines += [
+            f"| {_md_cell(d.department)} | {_md_cell(d.reason)} |"
+            for d in a7.department_candidates
+        ]
         lines.append("")
     else:
-        lines += [_a7_absence_note_ko(a7, notes), ""]
+        lines += [_md_inline(_a7_absence_note_ko(a7, notes)), ""]
     if a7.recommended_questionnaire:
         lines.append(
-            f"추천 설문: {a7.recommended_questionnaire}"
-            + (f" — {a7.recommendation_caveat}" if a7.recommendation_caveat else "")
+            f"추천 설문: {_md_inline(a7.recommended_questionnaire)}"
+            + (
+                f" — {_md_inline(a7.recommendation_caveat)}"
+                if a7.recommendation_caveat
+                else ""
+            )
         )
         lines.append("")
-    lines += [f"> {a7.medication_note}", ""]
+    lines += [f"> {_md_inline(a7.medication_note)}", ""]
 
     # ── 임상 종합 소견 (own top-level section — same structural-separation
     # discipline as AI 참고 정보/A6, never nested inside another section) ──
@@ -1223,13 +1253,13 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     if a8.narrative_enabled and a8.text:
         lines += [f"> {NARRATIVE_ENABLED_LABEL_KO}", "", _md_block(a8.text), ""]
     else:
-        lines += [a8.absent_marker, ""]
+        lines += [_md_inline(a8.absent_marker), ""]
 
     # ── 상세 부록 (CVR-026 Finding 1/2/3) ──
     lines += ["## 상세 부록", ""]
     if appendix.entries:
         for n, label, text in appendix.entries:
-            lines += [f"**{n}. {label}**", "", text, ""]
+            lines += [f"**{n}. {_md_inline(label)}**", "", _md_block(text), ""]
     slot_history_sections = [
         (row.label, " → ".join(_md_inline(v) for v in row.change_history_full))
         for row in _slot_table_rows(so)
@@ -1238,25 +1268,28 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     if slot_history_sections:
         lines += ["### 슬롯별 전체 변화 이력 (미압축)", ""]
         for label, text in slot_history_sections:
-            lines += [f"**{label}**", "", text, ""]
+            lines += [f"**{_md_inline(label)}**", "", text, ""]
     if not appendix.entries and not slot_history_sections:
         lines += ["해당 없음 — 본문에서 잘린 항목이 없습니다.", ""]
 
     # ── 각주 (감사용 메타) ──
     lines += ["## 각주", ""]
-    footnote = f"모델: {a0.model} · 생성 시각: {report.generated_at} · 세션ID: {a0.session_id}"
+    footnote = (
+        f"모델: {_md_inline(a0.model)} · 생성 시각: {_md_inline(report.generated_at)} · "
+        f"세션ID: {_md_inline(a0.session_id)}"
+    )
     lines.append(footnote)
     if a5.present:
-        lines.append(f"설문 문항 출처: {a5.item_bank_provenance or '미상'}")
+        lines.append(f"설문 문항 출처: {_md_inline(a5.item_bank_provenance or '미상')}")
     lines.append("")
     # CVR-026 Finding 5/7: internal review/bug-ID citations + code-path
     # audit refs live ONLY here, separated from the clinical footnote line
     # above (Finding 7's own recommendation) — never in the scannable body.
     lines.append("### 시스템 참고 (내부 감사용, 임상 판단 근거 아님)")
     lines.append("")
-    lines.append(f"종단 추세 판정 근거: {b.overall_direction_sensitivity_note}")
+    lines.append(f"종단 추세 판정 근거: {_md_block(b.overall_direction_sensitivity_note)}")
     for note in notes.notes:
-        lines.append(note)
+        lines.append(_md_block(note))
     lines.append("")
 
     return "\n".join(lines)

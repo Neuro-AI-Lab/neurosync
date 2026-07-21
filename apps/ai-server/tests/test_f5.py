@@ -32,6 +32,7 @@ from src.f5 import (
 )
 from src.schemas.ai_predicted_disease import AIPredictedDiseaseCandidate, AIPredictedDiseaseOutput
 from src.schemas.longitudinal import CTRSSeriesPoint, LongitudinalAnalysisOutput, ScaleSeriesPoint
+from src.services.f5_markdown import inline_literal
 from src.services.f5_report import build_markdown_report
 
 # ── Fixtures modeled on real VP-001/VP-003 EXP-023 shapes ──────────────
@@ -642,7 +643,7 @@ class TestA3LongitudinalRiskSignal:
         assert signals[0].critical_item_positive is False
 
         md = build_markdown_report(out)
-        assert "2026-08-01" in md
+        assert inline_literal(signals[0].simulated_date) in md
 
     def test_staleness_pointer_vp003_worked_example(self) -> None:
         """VP-003 worked example (ADR-037 Decision 2): S11 current

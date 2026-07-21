@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 
 import src.continuous_test as ct
+from src.services.f5_markdown import inline_literal
 
 # ── Fixture helpers (synthetic F1/F2/F3/F4 artifacts, never real ones) ──
 
@@ -469,7 +470,7 @@ class TestRunF5Report:
         assert "VAL-016" not in a7_section  # internal ticket ID relocated, not inline
         assert "정보 없음 (권장 진료과 없음)" not in a7_section  # old bare wording gone
         assert "이번 실행에서는 진료과 후보가 산출되지 않았습니다" in a7_section  # honest KO note
-        assert "VAL-016" in md.split("## 각주")[1]  # relocated, not dropped
+        assert inline_literal("VAL-016") in md.split("## 각주")[1]  # relocated, not dropped
 
     def test_fewer_than_2_ledger_entries_raises_insufficient_sessions(
         self, tmp_path: Path

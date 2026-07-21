@@ -10,6 +10,7 @@ the old A0-A8/B1-B5 section titles) — FHIR-facing tests are untouched."""
 
 from __future__ import annotations
 
+import html
 import io
 import re
 from pathlib import Path
@@ -57,6 +58,12 @@ _EXPECTED_SECTION_MARKERS = [
     "## 상세 부록",
     "## 각주",
 ]
+
+_LITERAL_ESCAPE_RE = re.compile(r"\\([\\`*_{}\[\]()#+\-.!|~=])")
+
+
+def _rendered_literal(markdown: str) -> str:
+    return html.unescape(_LITERAL_ESCAPE_RE.sub(r"\1", markdown))
 
 
 def _full_report(
@@ -260,7 +267,7 @@ class TestMarkdownCompleteness:
 
     def test_a8_absent_marker_when_narrative_disabled(self) -> None:
         md = build_markdown_report(_full_report())
-        assert "AI 종합 소견 미생성 (narrative disabled)" in md
+        assert "AI 종합 소견 미생성 (narrative disabled)" in _rendered_literal(md)
 
     def test_non_validated_caveat_adjacent_to_a5_numbers(self) -> None:
         md = build_markdown_report(_full_report())
@@ -357,7 +364,7 @@ class TestSummaryBox:
         box = md.split("**핵심 요약**")[1].split("**면책 조항**")[0]
         assert "위험 플래그" in box
         assert "최신 설문" in box
-        assert "PHQ-9" in box
+        assert "PHQ-9" in _rendered_literal(box)
 
     def test_summary_box_at_most_8_content_lines(self) -> None:
         md = build_markdown_report(_full_report())
@@ -673,13 +680,13 @@ class TestA7DisclosureExporters:
         report = _full_report(department_candidates=(), validation_errors_present=True)
         md = build_markdown_report(report)
         a7_section = md.split("## 권장 진료과 및 후속 조치")[1].split("## 임상 종합 소견")[0]
-        assert _A7_ABSENCE_VALIDATION_DROPPED_PLAIN_KO in a7_section
+        assert _A7_ABSENCE_VALIDATION_DROPPED_PLAIN_KO in _rendered_literal(a7_section)
         assert A7_NO_CANDIDATES_VALIDATION_DROPPED_KO not in a7_section
         assert "VAL-016" not in a7_section
         # relocated, not dropped — the full original + ID lives in the
         # 각주 시스템 참고 subsection of the SAME document.
-        assert A7_NO_CANDIDATES_VALIDATION_DROPPED_KO in md
-        assert "VAL-016" in md.split("## 각주")[1]
+        assert A7_NO_CANDIDATES_VALIDATION_DROPPED_KO in _rendered_literal(md)
+        assert "VAL-016" in _rendered_literal(md.split("## 각주")[1])
 
     def test_markdown_shows_model_judged_wording_when_not_flagged(self) -> None:
         from src.schemas.handoff_report import (
@@ -690,7 +697,7 @@ class TestA7DisclosureExporters:
         report = _full_report(department_candidates=(), validation_errors_present=False)
         md = build_markdown_report(report)
         a7_section = md.split("## 권장 진료과 및 후속 조치")[1].split("## 임상 종합 소견")[0]
-        assert A7_NO_CANDIDATES_MODEL_JUDGED_KO in a7_section
+        assert A7_NO_CANDIDATES_MODEL_JUDGED_KO in _rendered_literal(a7_section)
         assert A7_NO_CANDIDATES_VALIDATION_DROPPED_KO not in a7_section
 
     def test_pdf_shows_validation_dropped_wording_when_flagged(self) -> None:
@@ -732,8 +739,8 @@ class TestA6ReasonSummaryExporters:
         md = build_markdown_report(report)
         a6_section = md.split("## AI 참고 정보 (비진단)")[1].split("## 권장 진료과 및 후속 조치")[0]
         assert "no RAG chunks retrieved this run" not in a6_section
-        assert _A6_REASON_SUMMARY_FALLBACK_KO in a6_section
-        assert "mode: experimental_unpopulated" in a6_section
+        assert _A6_REASON_SUMMARY_FALLBACK_KO in _rendered_literal(a6_section)
+        assert "mode: experimental_unpopulated" in _rendered_literal(a6_section)
         assert "no RAG chunks retrieved this run" in md.split("## 각주")[1]
 
     def test_markdown_translates_known_production_reason_summary(self) -> None:
@@ -811,8 +818,8 @@ class TestCeilingCaveatExporters:
         md = build_markdown_report(report)
         a3_section = md.split("## 위험/안전 평가")[1].split("## 주호소 및 현병력")[0]
         a5_section = md.split("## 시행된 설문")[1].split("## 종단 추세")[0]
-        assert CEILING_SCORE_CAVEAT_KO in a3_section
-        assert CEILING_SCORE_CAVEAT_KO in a5_section
+        assert CEILING_SCORE_CAVEAT_KO in _rendered_literal(a3_section)
+        assert CEILING_SCORE_CAVEAT_KO in _rendered_literal(a5_section)
         # adjacency: the caveat must sit on the same 27/27 line's table/note,
         # not merely appear anywhere in the whole document -- already
         # implied by the section-scoped assertions above, plus explicit
@@ -981,10 +988,12 @@ class TestRiskTableRendererPolish:
 
         md = build_markdown_report(_vp004_shaped_report())
         a3_section = md.split("## 위험/안전 평가")[1].split("## 주호소 및 현병력")[0]
-        assert a3_section.count("ISS-F2V-028") == 1
-        assert a3_section.count(CEILING_SCORE_CAVEAT_KO) == 1
+        assert _rendered_literal(a3_section).count("ISS-F2V-028") == 1
+        assert _rendered_literal(a3_section).count(CEILING_SCORE_CAVEAT_KO) == 1
         consolidated_line = next(
-            line for line in a3_section.splitlines() if "ISS-F2V-028" in line
+            _rendered_literal(line)
+            for line in a3_section.splitlines()
+            if "ISS-F2V-028" in _rendered_literal(line)
         )
         for idx in (1, 3, 4, 5, 7, 8, 9):
             assert str(idx) in consolidated_line.split("]")[0], (
@@ -1009,8 +1018,8 @@ class TestRiskTableRendererPolish:
         cells = [c.strip() for c in row6.split("|")]
         # | <blank> | 6 | date | score | item9 | verdict | <blank> |
         assert cells[3] == "미시행"
-        assert cells[4] == "-"
-        assert "GAD-7" in cells[5]
+        assert _rendered_literal(cells[4]) == "-"
+        assert "GAD-7" in _rendered_literal(cells[5])
 
     def test_pdf_absent_session_row_present(self) -> None:
         pdf_bytes = build_pdf_report(_vp004_shaped_report())
@@ -1074,13 +1083,13 @@ class TestNarrativeOptInExporters:
         md = build_markdown_report(report)
         a8_section = md.split("## 임상 종합 소견")[1].split("## 각주")[0]
         assert "AI 생성 — 임상 진단 아님" in a8_section
-        assert "환자는 수면 문제를 자가보고함." in a8_section
+        assert "환자는 수면 문제를 자가보고함." in _rendered_literal(a8_section)
         assert "AI 종합 소견 미생성" not in a8_section
 
     def test_markdown_disabled_still_shows_absent_marker(self) -> None:
         md = build_markdown_report(_full_report())
         a8_section = md.split("## 임상 종합 소견")[1].split("## 각주")[0]
-        assert "AI 종합 소견 미생성 (narrative disabled)" in a8_section
+        assert "AI 종합 소견 미생성 (narrative disabled)" in _rendered_literal(a8_section)
 
     def test_pdf_renders_enabled_label_and_text(self) -> None:
         report = _full_report(
@@ -1130,7 +1139,7 @@ class TestDetailAppendix:
         report.a3_risk_safety.risk_assessment_text = long_quote
         md = build_markdown_report(report)
         assert "(상세 아래)" not in md
-        assert "(상세 부록 1 참조)" in md
+        assert "(상세 부록 1 참조)" in _rendered_literal(md)
         appendix = md.split("## 상세 부록")[1].split("## 각주")[0]
         assert long_quote in appendix
 
@@ -1224,7 +1233,7 @@ class TestInternalRefStrippingAndDedup:
         assert "CVR-020" not in body
         assert "binding condition" not in body
         footnote = md.split("## 각주")[1]
-        assert "CVR-020" in footnote
+        assert "CVR-020" in _rendered_literal(footnote)
 
     def test_gap_acuity_framing_note_has_no_review_id_in_body(self) -> None:
         from src.schemas.handoff_report import CRISIS_F3_GAP_ACUITY_FRAMING_KO
@@ -1240,7 +1249,7 @@ class TestInternalRefStrippingAndDedup:
         report = _full_report(prior_total_score=27, prior_max_score=27)
         md = build_markdown_report(report)
         a3_section = md.split("## 위험/안전 평가")[1].split("## 주호소 및 현병력")[0]
-        assert a3_section.count(CEILING_SCORE_CAVEAT_KO) == 1
+        assert _rendered_literal(a3_section).count(CEILING_SCORE_CAVEAT_KO) == 1
 
     def test_pdf_ceiling_caveat_not_repeated_within_a3(self) -> None:
         report = _full_report(prior_total_score=27, prior_max_score=27)
@@ -1254,6 +1263,12 @@ class TestInternalRefStrippingAndDedup:
 
 class TestMarkdownInjectionHardening:
     """Round-1 review blocker: clinical text must not forge md structure."""
+
+    _ACTIVE_LINK_OR_IMAGE = re.compile(r"(?<!\\)!?(?<!\\)\[[^\n]*?(?<!\\)\]\([^\n)]*\)")
+
+    @staticmethod
+    def _unescaped_pipe_count(row: str) -> int:
+        return len(re.findall(r"(?<!\\)\|", row))
 
     @staticmethod
     def _adversarial_report(**kw):
@@ -1332,6 +1347,147 @@ class TestMarkdownInjectionHardening:
                 r"^\s*(#|>|\||=|~|`|[-+*]\s|\d+[.)]\s)", line
             ), f"active markdown line survived: {line!r}"
         assert "](" not in out, "inline-link seam must be broken"
+
+    def test_literal_escapers_normalize_lines_and_escape_all_markdown_punctuation(self) -> None:
+        # Given
+        from src.services.f5_report import _md_block, _md_inline
+
+        punctuation = r"\`*_{}[]()#+-.!|~="
+
+        # When
+        inline = _md_inline(f"left\r\n right {punctuation}")
+        block = _md_block(f"line1\r\nline2\rline3 {punctuation}")
+
+        # Then
+        assert "\r" not in inline + block
+        assert "\n" not in inline
+        assert block.count("\n") == 2
+        escaped_punctuation = r"\\\`\*\_\{\}\[\]\(\)\#\+\-\.\!\|\~\="
+        assert inline.endswith(escaped_punctuation)
+        assert block.endswith(escaped_punctuation)
+
+    def test_inline_clinical_links_and_images_remain_literal_data(self) -> None:
+        # Given
+        report = self._adversarial_report()
+        report.a1_chief_complaint.text = "증상 [inlinelink](https://example.invalid/a)"
+        report.a2_hpi.text = "관찰 ![inlineimage](https://example.invalid/i.png)"
+
+        # When
+        section = build_markdown_report(report).split("## 주호소 및 현병력")[1].split(
+            "## 전체 세션 요약"
+        )[0]
+
+        # Then
+        assert "inlinelink" in section and "inlineimage" in section
+        assert self._ACTIVE_LINK_OR_IMAGE.search(section) is None
+
+    def test_a6_candidate_fields_cannot_create_links_images_or_table_cells(self) -> None:
+        # Given
+        report = _full_report()
+        candidate = report.a6_ai_predicted_disease.candidates[0]
+        candidate.tie_marker = "[rank](https://example.invalid/r) | forged"
+        candidate.candidate.disease = "![disease](https://example.invalid/d.png) | forged"
+        report.a6_ai_predicted_disease.disclaimer = "<b>notice</b> [policy](https://invalid)"
+        report.a6_ai_predicted_disease.recommended_questionnaire = "![survey](https://invalid/i)"
+        report.a6_ai_predicted_disease.recommendation_caveat = "[caveat](https://invalid/c)"
+
+        # When
+        section = build_markdown_report(report).split("## AI 참고 정보 (비진단)")[1].split(
+            "## 권장 진료과 및 후속 조치"
+        )[0]
+        candidate_row = next(line for line in section.splitlines() if "disease" in line)
+
+        # Then
+        assert all(token in section for token in ("rank", "disease", "notice", "survey", "caveat"))
+        assert self._ACTIVE_LINK_OR_IMAGE.search(section) is None
+        assert self._unescaped_pipe_count(candidate_row) == 4
+        assert "<b>" not in section
+
+    def test_a7_department_and_reason_cannot_create_links_images_or_table_cells(self) -> None:
+        # Given
+        report = _full_report(
+            department_candidates=(
+                DepartmentCandidateInput(
+                    department="[clinic](https://example.invalid/c) | forged",
+                    reason="![reason](https://example.invalid/r.png) | forged",
+                    domain_ref="sleep",
+                ),
+            )
+        )
+
+        # When
+        section = build_markdown_report(report).split("## 권장 진료과 및 후속 조치")[1].split(
+            "## 임상 종합 소견"
+        )[0]
+        candidate_row = next(line for line in section.splitlines() if "clinic" in line)
+
+        # Then
+        assert "clinic" in section and "reason" in section
+        assert self._ACTIVE_LINK_OR_IMAGE.search(section) is None
+        assert self._unescaped_pipe_count(candidate_row) == 3
+
+    def test_model_session_and_item_provenance_are_literal_metadata(self) -> None:
+        # Given
+        report = _full_report()
+        report.a0_header.model = "[model](https://example.invalid/m)"
+        report.a0_header.session_id = "![session](https://example.invalid/s.png)"
+        report.generated_at = "[generated](https://example.invalid/g)"
+        report.a5_questionnaires.item_bank_provenance = "![bank](https://example.invalid/b.png)"
+
+        # When
+        footnotes = build_markdown_report(report).split("## 각주")[1]
+
+        # Then
+        assert all(token in footnotes for token in ("model", "session", "generated", "bank"))
+        assert self._ACTIVE_LINK_OR_IMAGE.search(footnotes) is None
+
+    def test_appendix_and_longitudinal_evidence_preserve_data_without_structure(self) -> None:
+        # Given
+        report = _full_report()
+        payload = "[evidence](https://example.invalid/e) | ![plot](https://invalid/p.png)"
+        row = next(row for row in report.slot_overview.rows if row.key == "chief_complaint")
+        row.latest_value = f"{payload} " * 8
+        row.change_history_full = [f"early {payload}", f"late {payload}"]
+        report.b_longitudinal.analysis.trend_verdicts = [
+            TrendVerdict(
+                dimension=f"dimension {payload}",
+                direction="worsened",
+                basis="fixture",
+                n_comparable_points=2,
+                evidence=[f"dimension {payload}: {payload}"],
+            )
+        ]
+
+        # When
+        markdown = build_markdown_report(report)
+        trend = markdown.split("## 종단 추세")[1].split("### 추세 차트")[0]
+        appendix = markdown.split("## 상세 부록")[1].split("## 각주")[0]
+        trend_row = next(line for line in trend.splitlines() if "dimension" in line)
+
+        # Then
+        assert "evidence" in trend and "evidence" in appendix
+        assert self._ACTIVE_LINK_OR_IMAGE.search(trend + appendix) is None
+        assert self._unescaped_pipe_count(trend_row) == 4
+        assert not any(
+            line.startswith(("# evidence", "> evidence")) for line in appendix.splitlines()
+        )
+
+    def test_unsafe_chart_filename_renders_absence_instead_of_image(self) -> None:
+        # Given
+        report = _full_report()
+        report.b_longitudinal.chart_filenames.scales_ctrs_sentiment = (
+            "../escape.png)\n## forged\n![remote](https://example.invalid/x.png)"
+        )
+
+        # When
+        chart_section = build_markdown_report(report).split("### 추세 차트")[1].split(
+            "## AI 참고 정보"
+        )[0]
+
+        # Then
+        assert "척도·CTRS·감성 추이 차트: 생성되지 않음" in chart_section
+        assert "scales_ctrs_sentiment" not in chart_section
+        assert self._ACTIVE_LINK_OR_IMAGE.search(chart_section) is None
 
 
 class TestPdfRobustnessAndExporterIsolation:
