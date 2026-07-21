@@ -32,16 +32,15 @@ _VALID_CTRS_LABELS: Final = frozenset(_CTRS_LABELS)
 
 
 class RiskEvent(BaseModel):
-    """A single safety event attached to a handoff request.
+    """A safety event in the local legacy handoff-agent input.
 
-    Severity labels are strictly validated at the API boundary (ISS-021
-    hardening): an invalid ``risk_level``/``ctrs_level`` is rejected with a
-    validation error instead of being silently floored to ``medium``
-    downstream — e.g. the unicode-confusable CTRS label ``"①"`` (intent:
-    CTRS 1 = critical) previously passed ``str.isdigit()`` but failed
-    ``int()``, downgrading a critical event. Extra keys (e.g. ``crisis``,
-    free-text reasons) are preserved verbatim. An event with NO severity
-    keys remains valid and floors to medium downstream (issue #21).
+    This model is not the public ``POST /ai/handoff/generate`` request shape;
+    that boundary uses the shared ``HandoffRiskSignal`` contract. Local
+    severity labels remain strict (ISS-021): an invalid
+    ``risk_level``/``ctrs_level`` is rejected instead of being silently
+    floored to ``medium`` downstream. Extra legacy keys are preserved. An
+    event with no severity keys remains valid and floors to medium downstream
+    (issue #21).
     """
 
     model_config = ConfigDict(extra="allow")
@@ -120,7 +119,7 @@ class ScaleScore(BaseModel):
 
 
 class HandoffInput(AgentInput):
-    """Input to the handoff generator."""
+    """Local legacy input adapted from the public shared request contract."""
 
     slots: SlotData = Field(default_factory=SlotData)
     conversation_history: list[dict[str, str]] = Field(default_factory=list)

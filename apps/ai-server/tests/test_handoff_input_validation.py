@@ -1,11 +1,12 @@
-"""ISS-021 hardening: strict severity validation at the handoff API boundary.
+"""ISS-021 hardening for the local legacy handoff-agent input.
 
 Security review finding: ``HandoffInput.risk_events`` accepted arbitrary
 strings, and ``_event_risk()`` used unicode-wide ``str.isdigit()`` + a broad
 ``except ValueError`` — so a unicode-confusable CTRS label such as ``"①"``
 (intent: CTRS 1 = 초응급/critical) was silently floored to ``medium`` in the
-clinician-facing output. Severity metadata must be rejected at the request
-boundary (HTTP 422) instead of silently downgraded.
+clinician-facing output. ``RiskEvent`` protects the local model boundary;
+``POST /ai/handoff/generate`` uses the separate shared ``HandoffRiskSignal``
+contract.
 
 Kept intact: a present-but-UNLABELLED event (no severity keys at all) still
 floors to medium (issue #21 semantics).
@@ -13,72 +14,25 @@ floors to medium (issue #21 semantics).
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
-
-import httpx
 import pytest
-from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 from src.agents.handoff_generator import _detect_risk_level
-from src.main import app
 from src.schemas.common import RiskLevel
 from src.schemas.handoff import HandoffInput, RiskEvent
 
-client = TestClient(app)
 
-
-def _post(risk_events: Sequence[Mapping[str, object]]) -> httpx.Response:
-    return client.post(
-        "/ai/handoff/generate",
-        json={"session_id": "s-validation", "risk_events": list(risk_events)},
-    )
-
-
-def _make_input(risk_events: Sequence[Mapping[str, object]]) -> HandoffInput:
+def _make_input(risk_events: list[dict[str, object]]) -> HandoffInput:
     return HandoffInput.model_validate({"session_id": "s", "risk_events": list(risk_events)})
 
 
-class TestRouteRejectsInvalidSeverityLabels:
-    """POST /ai/handoff/generate → 422 for malformed severity metadata."""
-
-    def test_circled_digit_ctrs_rejected(self):
-        # "①" is isdigit()-True but int()-invalid — previously floored to medium.
-        assert _post([{"ctrs_level": "①"}]).status_code == 422
-
-    def test_arabic_indic_digit_ctrs_rejected(self):
-        # "١" is isdigit()-True AND int()-valid (=1) — non-ASCII must not parse.
-        assert _post([{"ctrs_level": "١"}]).status_code == 422
-
-    def test_out_of_range_ctrs_rejected(self):
-        assert _post([{"ctrs_level": "9"}]).status_code == 422
-        assert _post([{"ctrs_level": "0"}]).status_code == 422
-
-    def test_non_digit_ctrs_rejected(self):
-        assert _post([{"ctrs_level": "abc"}]).status_code == 422
-
-    def test_unknown_risk_level_rejected(self):
-        assert _post([{"risk_level": "severe"}]).status_code == 422
-
-    def test_explicit_null_ctrs_rejected(self):
-        # Explicit null is a malformed severity claim (old dict[str,str] schema
-        # rejected it) — only a genuinely ABSENT field may take the medium floor.
-        assert _post([{"ctrs_level": None}]).status_code == 422
-
-    def test_explicit_null_risk_level_rejected(self):
-        assert _post([{"risk_level": None, "ctrs_level": "2"}]).status_code == 422
-
-    def test_oversized_risk_events_rejected(self):
-        events = [{"risk_level": "low"}] * 101
-        assert _post(events).status_code == 422
-
-
 class TestSchemaValidation:
-    """HandoffInput/RiskEvent validation + normalization semantics."""
+    """Local HandoffInput/RiskEvent validation and normalization semantics."""
 
-    def test_confusable_ctrs_raises(self):
+    @pytest.mark.parametrize("label", ["①", "١", "9", "0", "abc"])
+    def test_invalid_ctrs_raises(self, label: str):
         with pytest.raises(ValidationError):
-            _make_input([{"ctrs_level": "①"}])
+            _make_input([{"ctrs_level": label}])
 
     def test_unknown_risk_level_raises(self):
         with pytest.raises(ValidationError):
@@ -110,6 +64,10 @@ class TestSchemaValidation:
         # No severity keys at all → allowed; floors to medium downstream (#21).
         inp = _make_input([{"note": "observed distress"}])
         assert inp.risk_events[0].risk_level is None
+
+    def test_oversized_risk_events_raises(self):
+        with pytest.raises(ValidationError):
+            _make_input([{"risk_level": "low"}] * 101)
 
 
 class TestDetectRiskLevelWithValidatedEvents:

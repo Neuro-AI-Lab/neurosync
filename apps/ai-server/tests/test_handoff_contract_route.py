@@ -173,6 +173,38 @@ def test_generate_round_trips_official_contract_losslessly(
     assert "report_markdown" not in response.json()
 
 
+def test_generate_preserves_vendor_specific_risk_level(
+    official_client: tuple[TestClient, RecordingGenerator],
+) -> None:
+    client, generator = official_client
+    payload = _official_payload()
+    payload["risk_signals"] = [{"level": "vendor-specific"}]
+
+    response = client.post("/ai/handoff/generate", json=payload)
+
+    assert response.status_code == 200, response.text
+    assert generator.adapted is not None
+    assert [event.model_dump() for event in generator.adapted.risk_events] == [
+        {"level": "vendor-specific"}
+    ]
+
+
+def test_generate_rejects_legacy_risk_events_at_contract_boundary(
+    official_client: tuple[TestClient, RecordingGenerator],
+) -> None:
+    client, _ = official_client
+    payload = _official_payload()
+    payload["risk_events"] = [{"ctrs_level": "①"}]
+
+    response = client.post("/ai/handoff/generate", json=payload)
+
+    assert response.status_code == 422
+    [error] = response.json()["detail"]
+    assert error["type"] == "extra_forbidden"
+    assert error["loc"] == ["body", "risk_events"]
+    assert error["input"] == [{"ctrs_level": "①"}]
+
+
 def test_generate_openapi_uses_only_official_models() -> None:
     schema = TestClient(app).get("/openapi.json").json()
     operation = schema["paths"]["/ai/handoff/generate"]["post"]
