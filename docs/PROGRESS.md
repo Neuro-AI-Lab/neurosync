@@ -1,7 +1,8 @@
 # Neuro-Sync 개발 진행 현황
 
 > **작성일**: 2026-06-18 · **데모 D-Day**: 2026-07-31
-> **소스**: [PRD](prd/PRD_neuro-sync.md) · [PLAN](todo_plan/PLAN_neuro-sync.md) · [AI PRD](ai/PRD_ai.md)
+> **소스**: [PRD](prd/PRD_neuro-sync.md) · [PLAN](todo_plan/PLAN_neuro-sync.md) ·
+> [AI 마스터 계획](AI_master_plan.md) · [Task 1 활성 AI PRD](ai/PRD_task1_v2.md)
 > 본 문서는 머지된 작업 기준의 스냅샷이다. 세부 체크리스트는 PLAN을 따른다.
 
 ## 1. 개요

@@ -2,13 +2,14 @@
 
 > **Owner**: AI Research 팀 (단독)
 > **언어/프레임워크**: Python 3.12 + FastAPI + LangChain/LangGraph + (vLLM 또는 외부 LLM SDK)
-> **PRD**: [`../../docs/ai/PRD_ai.md`](../../docs/ai/PRD_ai.md)
-> **계획**: [`../../docs/ai/PLAN_ai.md`](../../docs/ai/PLAN_ai.md)
+> **PRD**: [`../../docs/ai/PRD_task1_v2.md`](../../docs/ai/PRD_task1_v2.md)
+> **계획**: [`../../docs/AI_master_plan.md`](../../docs/AI_master_plan.md)
 > **Platform 팀은 본 폴더에 PR 금지** — 인터페이스 변경이 필요하면 `packages/shared-contracts/`로 합의
 
 ## 책임 범위
 
-5개 HTTP 인터페이스를 구현한다 (`docs/ai/README.md` §3.1).
+현재 마운트된 전체 인터페이스의 실행 기준은 [`src/main.py`](src/main.py)다. 아래 표는 주요 POST
+route를 요약하며, `/ai/nearby/*` GET route도 `src/main.py`에서 마운트한다.
 
 | 엔드포인트 | FR | SLA (p95) |
 |-----------|-----|-----------|
@@ -17,6 +18,12 @@
 | `POST /ai/stt/transcribe` | FR-033, FR-037 | < 2,000ms |
 | `POST /ai/ocr/parse` | FR-009 | < 10s |
 | `POST /ai/handoff/generate` | FR-018 | < 30s |
+| `POST /ai/handoff/report` | F4+F5 stateless export | 입력 크기·PDF 옵션에 따름 |
+| `POST /ai/slots/extract` | F1 임상 슬롯 | 모델 설정에 따름 |
+| `POST /ai/survey/score`, `/plan` | F3 채점·계획 | score는 zero-LLM |
+| `POST /ai/domain/infer` | F2 영역 추론 | 모델 설정에 따름 |
+| `POST /ai/temporal/summarize`, `/analyze` | F4 종단 분석 | analyze는 zero-LLM |
+| `POST /ai/sentiment/utterance`, `/session` | 감정 분석 | 모델 설정에 따름 |
 
 ## 본 폴더에서 하지 않는 것
 
@@ -25,24 +32,25 @@
 - 환자 식별정보 처리 — 가명처리된 텍스트만 받는다고 가정
 - 감사 로그 작성 — Platform `audit_logs`에 위임
 
-## 디렉토리 구조 (예정)
+## 디렉토리 구조
 
 ```
 apps/ai-server/
 ├── pyproject.toml
 ├── Dockerfile
 ├── src/
-│   ├── chat/         # /ai/chat/respond
-│   ├── safety/       # /ai/safety/classify (키워드 + LLM 분류기)
-│   ├── stt/          # STT Adapter (A.dot / Whisper / Whisper Local)
-│   ├── ocr/          # Upstage Document Parse 클라이언트 + 후처리
-│   ├── handoff/      # Handoff Report 생성 + 인용 검증
-│   ├── orchestration/  # 멀티 LLM 라우팅 (Post-MVP)
-│   ├── prompts/      # 프롬프트 로딩·버전 관리 (docs/ai/prompts와 sync)
+│   ├── agents/       # LLM·rule-based agent
 │   ├── adapters/     # LLM/STT 벤더 어댑터
-│   └── main.py
+│   ├── routes/       # FastAPI route
+│   ├── routing/      # 모델 선택·fallback
+│   ├── schemas/      # AI 서버 로컬 schema
+│   ├── services/     # Handoff/F4/F5 변환·export 경계
+│   ├── eval/         # 평가 코드
+│   ├── prompts/      # 프롬프트 로딩·버전 관리
+│   ├── rag/          # in-process RAG
+│   └── main.py       # 마운트된 route의 실행 기준
 ├── tests/
-└── eval/             # docs/ai/eval과 sync — 회귀 테스트
+└── assets/           # F5 PDF 폰트 등 runtime asset
 ```
 
 ## 외부 의존성
@@ -50,7 +58,7 @@ apps/ai-server/
 - LLM API Key: Claude / GPT / Solar Pro 3 / KT Mi:dm / SKT A.X K1 / LG K-EXAONE (시점별 선택)
 - STT: OpenAI Whisper (Phase 1b) → SK A.dot STT (계약 후)
 - OCR: Upstage Document Parse
-- 트레이싱: LangSmith (또는 자체) — `docs/ai/PRD_ai.md` AI-5 결정 후
+- 트레이싱 정책: [`../../docs/ai/PRD_task1_v2.md`](../../docs/ai/PRD_task1_v2.md)의 현재 구현·검증 상태를 따른다.
 
 ## 배포
 

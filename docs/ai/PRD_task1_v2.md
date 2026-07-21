@@ -7,6 +7,12 @@
 > **Parent Document**: [`docs/AI_master_plan.md`](../AI_master_plan.md)
 > **Companion Documents**: `checklist_task1.md` (v2), `development_report.md` (append-only 작업 보고)
 
+> **2026-07-22 Handoff contract reconciliation (version unchanged):** 현재 `/ai/handoff/generate`는
+> 공식 `HandoffRequest`→`HandoffResponse` 구조화 경계이고, `/ai/handoff/report`는 결정론적 F4+F5
+> export 경계다. 아래의 12-section `HandoffGeneratorAgent`/`EvidenceVerifierAgent` 설명은
+> `OrchestratorAgent.run()` 레거시 경로에만 적용된다. 이 정합화 기록은 semver/deprecation 정책을
+> 신설하거나 Platform·AI CODEOWNER 승인을 획득했다고 주장하지 않는다. 승인은 PR 리뷰 요건으로 남는다.
+
 ---
 
 ## 0. 문서 개요
@@ -307,7 +313,7 @@ Stage 2: DomainInferenceAgent LLM 호출 (1회)
 
 `f2.py` 검증 파이프라인(f1.py 패턴): 입력 로드 → Stage1 → Stage2 → 근거-화이트리스트 검사 → 산출물(`{VP}_{ts}_domain_inference.json` + report.md, 재현 메타) → 콘솔 요약. **`orchestrator.py`/신규 라우트의 프로덕션 통합은 §9.2 G-D-F2 게이트로 명시적으로 보류**(ISS-029 "검증 경로≠프로덕션 경로" 재발 방지; 스키마 통일 T1-F0-DEV-007 미완이 선행조건).
 
-**구현 정합 주석 (VAL-007, 2026-07-08):** 위 Stage 1 목록은 원 계획(PLAN-2026-W28-C C-2) 대비 실제 구현(`apps/ai-server/src/rag/retrieval.py::retrieve_domain_chunks()`)과 한 가지 차이가 있다 — **ontology 소스는 현재 Stage 1 검색에 포함되지 않는다**(`case_card`/`qa`만 조회). 코드 주석(`retrieval.py:191`)의 근거: ontology의 `follow_up` 그래프는 F2가 아니라 채팅 실시간 근거제시(chat-realtime-grounding) 전용 설계라는 판단. 이 근거 자체는 타당하나, critic(REV-007)이 지적한 대로 이 축소는 계획 검토(critic REV-006)·사용자 승인 단계에서 명시적으로 노출되지 않았다(VAL-007, 문서-구현 drift). 코드 자체는 정상 동작하며 결함이 아니다. 본 항목은 사후 문서 정합화이며, ontology 소스 재도입 여부는 별도 재검토 대상으로 남긴다.
+**구현 정합 주석 (VAL-007, 2026-07-08):** 위 Stage 1 목록은 원 계획(PLAN-2026-W28-C C-2) 대비 실제 구현(`apps/ai-server/src/rag/retrieval.py::retrieve_domain_chunks()`)과 한 가지 차이가 있다 — **ontology 소스는 현재 Stage 1 검색에 포함되지 않는다**(`case_card`/`qa`만 조회). 코드 주석(`retrieval.py`)의 근거: ontology의 `follow_up` 그래프는 F2가 아니라 채팅 실시간 근거제시(chat-realtime-grounding) 전용 설계라는 판단. 이 근거 자체는 타당하나, critic(REV-007)이 지적한 대로 이 축소는 계획 검토(critic REV-006)·사용자 승인 단계에서 명시적으로 노출되지 않았다(VAL-007, 문서-구현 drift). 코드 자체는 정상 동작하며 결함이 아니다. 본 항목은 사후 문서 정합화이며, ontology 소스 재도입 여부는 별도 재검토 대상으로 남긴다.
 
 ### 3.3 입력 계약
 
@@ -353,7 +359,7 @@ Stage 2: DomainInferenceAgent LLM 호출 (1회)
 }
 ```
 
-- `domain` enum 8종은 v1 정의(`PRD_task1.md:474`)를 승계한다.
+- `domain` enum 8종은 v1 정의(`PRD_task1.md`)를 승계한다.
 - `domain_candidates` ≤ 3개, 후보당 `evidence` ≥ 1개 (빈 배열=스키마 위반).
 - `retrieval_meta.chunk_ids`는 **전체 보존**(감사 재현용) — 일부 샘플링 금지.
 - `summary`는 `evidence`에 없는 신규 임상 주장을 포함해서는 안 된다(프롬프트 절대 규칙, §3.5).
@@ -382,7 +388,7 @@ Stage 2: DomainInferenceAgent LLM 호출 (1회)
 - VP-001~004 F1 기록을 입력으로 사용, **n≥2/VP(권장 n≥3)**.
 - **골든 라벨 사전 등록(필수 선행조건)**: 페르소나 파일에 domain 필드가 존재하지 않는다(brainstorm 검증됨). `data`가 라이브 실행 **전에** DATASET 항목으로 다중-라벨 매핑을 저작하고(예: VP-001 = {anxiety, sleep} — 페르소나 §2 "불안감과 수면 문제" 직접 병기), `critic`이 승인한다(사후 합리화 차단). 라벨은 페르소나 전문에서 blind 도출하며 `rag_chat.py`의 비공식 태그(`PERSONAS` dict의 단일-라벨 코멘트)는 참고하지 않는다 — 해당 코멘트는 F2 목적으로 검토된 적이 없고 VP-004의 공존 진단(주요우울장애 의심+공황 발작)을 누락하는 등 불완전함이 확인되었다(REV-006 이슈 #2).
 - **VER-004(top-1 70%/top-3 90%) 비승계**: "사전 정의 10개 임상 시나리오"가 저장소에 실존하지 않음(grep 0건 확인, REV-006 Summary 긍정 소견 (a)) — 조작화된 적이 없는 v1 초안치이다. 첫 배치는 서술적 보고만 사용한다("n=4×2, top-1 X/8" — 비율 주장 아님). 70%/90%는 임상 검토 시나리오셋 확보 또는 관측 ≥12건 누적 전까지 **유예 목표**로 둔다.
-- **레이턴시**: `latency_ms`를 매 런 캡처하고, p95를 v1 SLA(`llm_only` p95<3,000ms, RAG 활성 p95<5,000ms — `PRD_task1.md:497-499` 승계)와 대비하여 **서술 보고**한다(표본이 작아 정식 pass/fail 판정은 licensed되지 않는다).
+- **레이턴시**: `latency_ms`를 매 런 캡처하고, p95를 v1 SLA(`llm_only` p95<3,000ms, RAG 활성 p95<5,000ms — `PRD_task1.md` 승계)와 대비하여 **서술 보고**한다(표본이 작아 정식 pass/fail 판정은 licensed되지 않는다).
 - **DB 프리플라이트 실패 처리**: 실패 시 RAG-모드 검증 런은 **중단·보고**한다(silent `llm_only` 강등 금지). `llm_only` 런은 별도 라벨로 진행 가능하다.
 
 **하드 게이트:** 근거 요약 grounding 감사 — utterance evidence는 `has_lexical_evidence()` 재사용, rag_chunk evidence는 `chunk_ids` 대조에 더해 **quote↔청크 본문 어휘 대조**(REV-006 조건 1 — source_id 멤버십만으로는 불충분, 실행 산출물에 청크 본문 또는 대조 가능한 텍스트를 보존) — **fabrication = 0**.
@@ -397,7 +403,7 @@ developer의 읽기전용 스캔(PLAN-2026-W28-C C-1)에서 3건의 보안 격�
 
 | # | 격차 | 처분 (ADR-013) | 상태 |
 |---|---|---|---|
-| S1 | `rag_chat.py:33` 공인 IP:포트 리터럴 + `:36-42` 환자 UUID 4종 하드코딩 — `POST /ai/rag/grounding` 무인증이라 UUID가 사실상 접근 자격증명. git 이력 2커밋, `origin/Master` 포함 | **옵션 (a) 채택**(2026-07-08): rag 라우터에 env 기반 bearer/API-key 인증 적용(타 라우트 무영향) + `rag_chat.py` 하드코딩 IP/UUID → env/인자화. **갱신(2026-07-09, `PLAN-2026-W28-H` Track A, `ADR-017`): 처분이 인증(mitigation)에서 RETIRE(제거)로 변경됐다** — RAG는 현재·배포시 모두 in-process only이며 HTTP로 서빙할 계획이 없다는 사용자의 영구·범주적 결정에 따라, 완화가 아니라 노출면 자체의 제거를 선택했다(critic `REV-013` §2 판정). **재갱신(2026-07-09, `PLAN-2026-W28-I` TASK 4, `ADR-019`): RETIRE(retired-not-deleted)에서 전면 삭제(FULL DELETION)로 격상됐다** — 사용자 직접 지시("auth.py 파일을 안쓸거면 삭제하면되는거아니냐? RAG API 관련 기능 모두 없애라")에 따라 `src/rag/route.py`/`auth.py`/`tests/rag/test_route_auth.py` 세 파일을 **파일시스템에서 완전히 삭제**했다(retired-not-deleted 상태를 대체, 파일 자체가 트리에 부재 — critic `REV-015` Part B가 정적 코드 증거로 독립 확인) | **구현 완료·검증됨(전면 삭제, 2026-07-09 최신 상태)** — `src/rag/route.py`/`auth.py`/`tests/rag/test_route_auth.py` **삭제됨**(파일 부재, `Glob apps/ai-server/src/rag/*.py` → `embed.py`/`ontology.py`/`crypto.py`/`retrieval.py`만 존재; `Glob apps/ai-server/tests/rag/*.py` → `test_crypto.py`/`test_retrieval.py`만 존재). `main.py`에 `rag_router` 참조 0건, `POST /ai/rag/grounding` → 404(라우트 자체가 존재하지 않음 — 재마운트할 코드가 없음), `/health` → 200, rag-접두 경로 0건 마운트, qa 스위트 760 passed(768에서 삭제된 8개 route-auth 테스트만큼 감소, 그 외 전부 그린). `NS_RAG_API_KEY`/`NS_RAG_DEV_MODE`/`NS_RAG_URL`은 `.env.example`+`.env` 어디에도 없음(grep 0건, 공개 IP 리터럴 포함 제거). `UPSTAGE_API_KEY`(임베딩, 별개 키)는 무영향·필수 유지, in-process RAG core(`retrieval.py`/`embed.py`/`crypto.py`/`ontology.py`)는 무접촉. **`VAL-005`는 구조적으로 해소**(무인증 엔드포인트 자체가 소멸 — 정책적 완화가 아니라 라우트 객체 자체의 부재, RETIRE-언마운트보다 strictly stronger). **역전 시 안전장치(강화됨):** 향후 RAG를 HTTP로 서빙하려면 (a) 영구 descope 번복을 승인하는 신규 ADR + (b) bearer 인증을 재활성이 아니라 **처음부터 재구현**(재활성할 코드 자체가 없음) + (c) 신규 `VAL-005`급 보안 리뷰 — 마운트 전 3가지 모두 필수. **RAG는 개발 단계와 배포 단계 모두 영구 in-process 로컬 workstation 기능이다 — HTTP로 서빙되는 일은 없으며 앞으로도 없다**("현 단계"/"당분간" 류의 hedging 없음). 근거: `discussion.md` ADR-017, ADR-019, REV-013 §2, REV-015 Part B; `error.md` VAL-005; `development_report.md` DR-010 §2, DR-011 §2 |
+| S1 | `rag_chat.py` 공인 IP:포트 리터럴 + 같은 파일의 환자 UUID 4종 하드코딩 — `POST /ai/rag/grounding` 무인증이라 UUID가 사실상 접근 자격증명. git 이력 2커밋, `origin/Master` 포함 | **옵션 (a) 채택**(2026-07-08): rag 라우터에 env 기반 bearer/API-key 인증 적용(타 라우트 무영향) + `rag_chat.py` 하드코딩 IP/UUID → env/인자화. **갱신(2026-07-09, `PLAN-2026-W28-H` Track A, `ADR-017`): 처분이 인증(mitigation)에서 RETIRE(제거)로 변경됐다** — RAG는 현재·배포시 모두 in-process only이며 HTTP로 서빙할 계획이 없다는 사용자의 영구·범주적 결정에 따라, 완화가 아니라 노출면 자체의 제거를 선택했다(critic `REV-013` §2 판정). **재갱신(2026-07-09, `PLAN-2026-W28-I` TASK 4, `ADR-019`): RETIRE(retired-not-deleted)에서 전면 삭제(FULL DELETION)로 격상됐다** — 사용자 직접 지시("auth.py 파일을 안쓸거면 삭제하면되는거아니냐? RAG API 관련 기능 모두 없애라")에 따라 `src/rag/route.py`/`auth.py`/`tests/rag/test_route_auth.py` 세 파일을 **파일시스템에서 완전히 삭제**했다(retired-not-deleted 상태를 대체, 파일 자체가 트리에 부재 — critic `REV-015` Part B가 정적 코드 증거로 독립 확인) | **구현 완료·검증됨(전면 삭제, 2026-07-09 최신 상태)** — `src/rag/route.py`/`auth.py`/`tests/rag/test_route_auth.py` **삭제됨**(파일 부재, `Glob apps/ai-server/src/rag/*.py` → `embed.py`/`ontology.py`/`crypto.py`/`retrieval.py`만 존재; `Glob apps/ai-server/tests/rag/*.py` → `test_crypto.py`/`test_retrieval.py`만 존재). `main.py`에 `rag_router` 참조 0건, `POST /ai/rag/grounding` → 404(라우트 자체가 존재하지 않음 — 재마운트할 코드가 없음), `/health` → 200, rag-접두 경로 0건 마운트, qa 스위트 760 passed(768에서 삭제된 8개 route-auth 테스트만큼 감소, 그 외 전부 그린). `NS_RAG_API_KEY`/`NS_RAG_DEV_MODE`/`NS_RAG_URL`은 `.env.example`+`.env` 어디에도 없음(grep 0건, 공개 IP 리터럴 포함 제거). `UPSTAGE_API_KEY`(임베딩, 별개 키)는 무영향·필수 유지, in-process RAG core(`retrieval.py`/`embed.py`/`crypto.py`/`ontology.py`)는 무접촉. **`VAL-005`는 구조적으로 해소**(무인증 엔드포인트 자체가 소멸 — 정책적 완화가 아니라 라우트 객체 자체의 부재, RETIRE-언마운트보다 strictly stronger). **역전 시 안전장치(강화됨):** 향후 RAG를 HTTP로 서빙하려면 (a) 영구 descope 번복을 승인하는 신규 ADR + (b) bearer 인증을 재활성이 아니라 **처음부터 재구현**(재활성할 코드 자체가 없음) + (c) 신규 `VAL-005`급 보안 리뷰 — 마운트 전 3가지 모두 필수. **RAG는 개발 단계와 배포 단계 모두 영구 in-process 로컬 workstation 기능이다 — HTTP로 서빙되는 일은 없으며 앞으로도 없다**("현 단계"/"당분간" 류의 hedging 없음). 근거: `discussion.md` ADR-017, ADR-019, REV-013 §2, REV-015 Part B; `error.md` VAL-005; `development_report.md` DR-010 §2, DR-011 §2 |
 | S2 | `retrieval.py`의 `_dec()`가 `situation_encrypted`를 실제 복호화하지 않음(`crypto.py`에 decrypt 미구현) — 암호화 바이트가 LLM 프롬프트로 유입 가능 | 본 미션 범위 포함: crypto.py decrypt 구현 + retrieval.py 복호화 적용. `ENCRYPTION_KEY` 부재 시 해당 필드 제외 + 명시 로깅(암호문 LLM 유입 금지) | **구현 완료·검증됨** (`T1-F2-SEC-002`) — `src/rag/crypto.py::decrypt_str`(실 AES-GCM), `retrieval.py::_dec()` 실패 시 필드 제외, `tests/rag/test_crypto.py` 7 cases |
 | S3 | `src/rag/` 유닛 테스트 0건 | 본 미션 범위 포함: 모킹 기반 유닛 테스트 신규 | **구현 완료·검증됨** (`T1-F2-SEC-003`) — `tests/rag/` 신규 모킹 테스트 26건 |
 
@@ -421,7 +427,7 @@ developer의 읽기전용 스캔(PLAN-2026-W28-C C-1)에서 3건의 보안 격�
 
 **Population state (v2.8, `PLAN-2026-W28-K`): SHIPPABLE, live-populated via path1 (`ADR-020`).** `mode` now transitions `experimental_unpopulated`→`rag_live` on a live run — the RAG arm is certified (`ADR-018`, superseding the `ADR-016` EXPERIMENTAL disposition this section previously cited) and this mission shipped live population on top of that certified arm. Disease candidates are derived **code-side**, from data F2's Stage 1 already retrieved this run — no second retrieval call, no prompt change: each already-retrieved `rag.case_card`/`rag.qa` chunk is matched against the existing symptom-keyword logic (`_detect_symptoms`), then joined against `rag.disease`/`rag.symptom`/`rag.disease_symptom` (the existing 26-disease ontology graph, `_followup`'s query shape, widened per-chunk). Each candidate carries the winning chunk's own retrieval `similarity_score` (never LLM-guessed, never an overlap count), plus `source_id`+`quote` provenance (`ADR-020` condition 2); top-5, ranked by score, never padded; MAX-not-sum aggregation across chunks (no softmax-adjacent drift, `ADR-020`/§3.9 라벨링 above); a legitimate 0-candidate outcome is reported honestly, not treated as an error. Every candidate's evidence is checked against this project's risk-lexicon taxonomy against the **full source-chunk text**, not only the extracted quote — any candidate whose sole matched chunk is risk-lexicon-flagged is DROPPED (not clipped/redacted), mirroring `domain_candidates`' own "no evidence, no candidate" discipline.
 
-**The leak-and-fix arc, reported plainly:** the first live populated-path batch (`EXP-009`, `k=3`) and the k-sweep (`EXP-010`, `k∈{2,3,5}`) both shipped disease candidates citing chunks (`case_card:664`, `case_card:563` — VP-003) that the same run's own `domain_candidates` pipeline independently flagged as risk-lexicon-matched. Root cause: the initial risk-lexicon check tested only a ±40-character quote window around the matched symptom term, not the full chunk. Critic (`REV-017`) ruled this **NOT SHIPPABLE (blocking)** and reopened `VAL-011`. Fix (`f2.py:465`): the check now additionally tests the full chunk text. Re-verification (`EXP-011`, clean, n=2/VP, `k=3`): 0/33 shipped candidates cite a risk-lexicon-flagged chunk; both prior leak chunks are retrieved again this batch but neither is cited or shipped; benign personas still ship legitimate candidate sets (no over-blocking). Critic re-review (`REV-018`) independently re-derived this evidence and ruled the populated path **SHIPPABLE**.
+**The leak-and-fix arc, reported plainly:** the first live populated-path batch (`EXP-009`, `k=3`) and the k-sweep (`EXP-010`, `k∈{2,3,5}`) both shipped disease candidates citing chunks (`case_card:664`, `case_card:563` — VP-003) that the same run's own `domain_candidates` pipeline independently flagged as risk-lexicon-matched. Root cause: the initial risk-lexicon check tested only a ±40-character quote window around the matched symptom term, not the full chunk. Critic (`REV-017`) ruled this **NOT SHIPPABLE (blocking)** and reopened `VAL-011`. Fix (`f2.py`): the check now additionally tests the full chunk text. Re-verification (`EXP-011`, clean, n=2/VP, `k=3`): 0/33 shipped candidates cite a risk-lexicon-flagged chunk; both prior leak chunks are retrieved again this batch but neither is cited or shipped; benign personas still ship legitimate candidate sets (no over-blocking). Critic re-review (`REV-018`) independently re-derived this evidence and ruled the populated path **SHIPPABLE**.
 
 **Mandatory caveats (`REV-018` §2) — every user-facing statement about this entity must carry all five, in substance:**
 1. `similarity_score` is a RAG cosine-similarity signal between the retrieved *chunk* and the Stage-1 *query* — NOT a patient-to-disease similarity, NOT a calibrated probability (a two-hop proxy).
@@ -444,7 +450,7 @@ developer의 읽기전용 스캔(PLAN-2026-W28-C C-1)에서 3건의 보안 격�
 
 ## 4. 기능 1-3 (F3): 구조화된 사전문진 설문
 
-> **재정의 고지 (2026-07-12, `PLAN-2026-W28-V`, `ADR-031`) — 아래 원문(v2.0 작성 당시 서술)에 대한 주석, 삭제 아님:** 아래 서술은 실제로는 `OrchestratorAgent.plan_surveys`/`score_and_check_safety`(`src/agents/orchestrator.py:592,638`)로 구현되어 `src/routes/chat.py`의 라이브 11-state 채팅 플로우에 배선되고 `tests/test_survey_safety_integration.py`로 회귀 커버되는 **설문 플래너**를 가리킨다. **이 코드 경로는 본 미션에서 변경되지 않는다** — 아래 서술은 유효한 as-built 기록으로 유지된다. 사용자가 `ADR-031`로 지시한 새 "F3"는 이 플래너를 대체하지 않는다: F2가 이미 추천한 설문 1개만을 실행하는 **별도·병행하는** 제2의 경로이며, 라이브 채팅과는 다른 호출부(오프라인/F2 기반 검증 하네스)를 서비스한다. **superseded되는 것은 오직 "F3라는 라벨이 곧 이 설문 플래너를 뜻한다"는 전제뿐이다** — 신규 경로는 §4.1("F3 v2.1")에 별도 정의한다.
+> **재정의 고지 (2026-07-12, `PLAN-2026-W28-V`, `ADR-031`) — 아래 원문(v2.0 작성 당시 서술)에 대한 주석, 삭제 아님:** 아래 서술은 실제로는 `OrchestratorAgent.plan_surveys`/`score_and_check_safety`(`src/agents/orchestrator.py`)로 구현되어 `src/routes/chat.py`의 라이브 11-state 채팅 플로우에 배선되고 `tests/test_survey_safety_integration.py`로 회귀 커버되는 **설문 플래너**를 가리킨다. **이 코드 경로는 본 미션에서 변경되지 않는다** — 아래 서술은 유효한 as-built 기록으로 유지된다. 사용자가 `ADR-031`로 지시한 새 "F3"는 이 플래너를 대체하지 않는다: F2가 이미 추천한 설문 1개만을 실행하는 **별도·병행하는** 제2의 경로이며, 라이브 채팅과는 다른 호출부(오프라인/F2 기반 검증 하네스)를 서비스한다. **superseded되는 것은 오직 "F3라는 라벨이 곧 이 설문 플래너를 뜻한다"는 전제뿐이다** — 신규 경로는 §4.1("F3 v2.1")에 별도 정의한다.
 
 **상태: 구현 완료. Scoring unit test 통과. E2E(F1 대화 → 설문 선택 → 채점 → Safety 연동) 검증은 합성 입력 기반 — 실데이터 E2E는 Phase 2.**
 
@@ -556,18 +562,20 @@ PLAN-2026-W29-D, REV-044, CVR-020, ADR-036, CVR-021, REV-045, CVR-022; `result.m
 
 > **주의(2026-07-14 추가, §6.1 신설과 함께):** 아래 서술은 `HandoffGeneratorAgent`(`agents/handoff_generator.py`,
 > v2 프롬프트, LLM 기반 12-section 독립 리포트) + `EvidenceVerifierAgent`의 기존 라이브 파이프라인
-> (`routes/handoff.py`, 합성/단일 세션 입력 기반 검증)을 가리키며, §6.1이 서술하는 신규 결정론적 F5 엔진
+> (`OrchestratorAgent.run()`, 합성/단일 세션 입력 기반 검증)을 가리키며, §6.1이 서술하는 신규 결정론적 F5 엔진
 > (`src/f5.py`, `PLAN-2026-W29-E`)과는 **다른, 별도의 코드 경로**다 — v2 프롬프트는 §6.1의 F5 엔진에서
 > 호출되지 않는다(`ADR-037` Decision 1, 내러티브 경로 DESCOPED). 양자는 병존하며, §6.1은 아래 §6.0을
-> 대체하지 않는다. 원문은 그대로 보존한다.
+> 대체하지 않는다. 이 레거시 경로는 현재 `/ai/handoff/generate`에서 호출되지 않는다.
 
-**상태: 구현 완료. 4VP handoff 생성 + EvidenceVerifier 검증 통과 (합성/단일 세션 입력 기반). 12-section 완전성 자동 검증 및 evidence citation coverage 테스트 통과.**
+**레거시 OrchestratorAgent 경로 상태: 구현 완료. 4VP handoff 생성 + EvidenceVerifier 검증 통과
+(합성/단일 세션 입력 기반). 12-section 완전성 자동 검증 및 legacy evidence citation coverage 테스트 통과.**
 
 as-built 반영 사항:
 - 12-section 템플릿 강제 + `section_completeness` 필드.
 - Evidence registry + dangling reference 검증, CTRS-action 일관성 검증.
-- 재생성 루프: passed → 반환 / regenerate → 최대 2회 / reject → HTTP 422, 소진 시 `requires_human_review=True`.
-- PDF/JSON 듀얼 출력.
+- 레거시 재생성 루프: passed → 반환 / warning 3건 이상이면 최대 2회 재생성 / error reject 또는
+  재생성 소진 → `handoff_ready=False`. 이 경로 자체는 HTTP 422를 만들지 않는다.
+- 레거시 출력은 Markdown + evidence packet이며 현재 PDF producer는 없다.
 - `SlotData` 필드 누락 수정 (ISS-018): history_of_present_illness, psychosocial_context, substance_use, energy 추가.
 - Handoff 위험도 = 세션 내 최대 심각도 (risk cap 수정), scale_scores + risk_events 인계 시 데이터 손실 수정 (2026-07 초 merge).
 
@@ -681,6 +689,26 @@ non-validated-administration caveat 동반 필수. `similarity_score`는 확률�
 `result.md` EXP-024; `error.md` BUG-043(resolved)/BUG-044(resolved)/VAL-016(open);
 `_archive/plans/f5_quick_dev_plan.md`, `docs/ai/f5_checklist.md`.
 
+### 6.2 현재 Handoff HTTP 경계 — as-built (2026-07-22)
+
+`POST /ai/handoff/generate`는 `HandoffContractGenerator`와 v4 JSON prompt를 사용한다. 출력의 채워진
+scalar(`chief_complaint`, `present_illness`, `onset`, `recent_changes`, `psych_history`, `medications`)와
+`sleep_appetite_activity.sleep|appetite|activity` leaf는 각각 동일 target의 citation을 가져야 한다.
+`symptoms`, `triggers`, `clinician_attention`은 `field[i]` 형식의 zero-based 항목별 citation이 필요하다.
+Metadata, container, 빈 값, 인덱스 없는 list target은 다른 주장을 대신 커버할 수 없다. Citation은 요청의
+실제 `message_id`와 그 메시지에 포함된 non-empty exact-substring quote를 가리켜야 한다.
+
+현재 `Citation`에는 문서 source ID가 없으므로 `doc_texts`에서 만든 임상 주장을 정직하게 귀속할 방법이
+없다. 계약이 공동 변경되기 전까지 `documents_summary=[]`를 강제한다. 생성 시도는 설정된
+primary→secondary→fallback 순서로 최대 세 번이다. transport 실패와 JSON/공식 응답/citation 계약
+불일치는 해당 tier의 실패로 기록하며, 전체 검증을 통과한 응답만 성공으로 기록한다. 최종 계약 불일치는
+generic 422, 최종 provider 실패는 generic 500이다. 이 route는 `EvidenceVerifierAgent`를 호출하지 않는다.
+
+`POST /ai/handoff/report`는 결정론적 F4+F5 조립 경계다. A8은 production contract에서 닫혀 있어
+`narrative_enabled=false`, `narrative_text=null`만 허용한다. 과거에 수용되던 `true/null`, `true/text`,
+`false/text` 조합은 422로 거부된다. 이는 현재 migration/compatibility 경계의 명시이며 semver나
+deprecation 정책을 새로 정하지 않는다.
+
 ---
 
 ## 7. 스키마 통일 결정 (v2 신규)
@@ -708,14 +736,17 @@ non-validated-administration caveat 동반 필수. `similarity_score`는 확률�
 |--------|------|---------|---------|
 | POST | `/ai/chat/respond` | 기존 수정 | 구현 (Orchestrator 연동). f1.py와 정합성 검증 필요 |
 | POST | `/ai/safety/classify` | 기존 유지 | 구현 (CTRS 필드 포함) |
-| POST | `/ai/stt/transcribe` | 신규 | **미구현** (ISS-011) |
-| POST | `/ai/ocr/parse` | 신규 | **미구현** (ISS-011) |
+| POST | `/ai/stt/transcribe` | 신규 | 구현·마운트 (현재 로컬 `STTInput`/`STTOutput`) |
+| POST | `/ai/ocr/parse` | 신규 | 구현·마운트 (현재 로컬 `OCRInput`/`OCROutput`) |
 | POST | `/ai/slots/extract` | 신규 | 구현 |
 | POST | `/ai/survey/score` | 신규 | 구현 (rule-based) |
+| POST | `/ai/survey/plan` | 신규 | 구현·마운트 (공유 `SurveyPlanRequest`/`SurveyPlanResponse`) |
 | POST | `/ai/temporal/retrieve` | 신규 (v1 계획) | **F4 보류** (superseded-for-F2, §3.6 — 삭제 아님) |
 | POST | `/ai/domain/infer` | 신규 (v2.2, F2 재정의) | **구현 완료** — llm_only 경로 비인증 해제(`ADR-015`), RAG 경로는 EXPERIMENTAL 잔류(§3.8). 프로덕션 통합은 G-D-F2 보류 |
 | POST | `/ai/temporal/summarize` | 신규 | 구현 |
-| POST | `/ai/handoff/generate` | 기존 수정 | 구현 (12-section + 검증 루프) |
+| POST | `/ai/temporal/analyze` | 신규 (F4) | 구현·마운트 (공유 요청 + 로컬 응답) |
+| POST | `/ai/handoff/generate` | 기존 수정 | 공식 구조화 응답 + indexed per-leaf/item citation 검증; configured 3-tier 시도 |
+| POST | `/ai/handoff/report` | 신규 (F4+F5) | 결정론적 export; A8는 `false/null`만 허용 |
 | POST | `/ai/sentiment/*` | (v1 미정의) | 구현 (utterance/session 모드) |
 
 SLA, Request/Response 스키마 상세는 v1 §2.5, §3.5, §4.5, §5.5, §6.6을 승계한다 (slot 필드는 §7 canonical로 읽는다).
@@ -766,8 +797,8 @@ SLA, Request/Response 스키마 상세는 v1 §2.5, §3.5, §4.5, §5.5, §6.6�
 | `f2.py` (구현 완료 — llm_only 비인증 해제·RAG EXPERIMENTAL, §3) | F1 conversation.json + 12-slot + CTRS + is_first_visit | Stage1 코드검색(rag/retrieval.py 재사용) → Stage2 DomainInferenceAgent LLM → 근거-화이트리스트 검사 | domain/department 후보 + evidence + retrieval_meta |
 | `f3.py` | F1 slots + persona 설문 기준값 | Survey Planner rule → Scoring → (양성 시) Safety 재평가 | scale_scores JSON + 위험 연동 로그 |
 | `f4.py` | 종단 데이터셋 (t1..tN) | SentimentAnalyzer(세션별) → TemporalSummary | direction + evidence + plot_data |
-| `f5.py` | F1 slots + F3 scores + F4 summary + risk events | HandoffGenerator → EvidenceVerifier (재생성 루프) | 12-section report + verifier 판정 |
-| `continuous_test.py`(Track C 검증 하네스, `PLAN-2026-W28-H`, 모듈: `apps/ai-server/src/continuous_test.py`) | 신규 F1 persona 실행 또는 기존 F1 conversation.json(`--start-from-conversation`) | F1 → F2 체이닝, `STAGE_REGISTRY`로 확장 가능한 스테이지 레지스트리, F3~F6은 명시적 no-op 스텁(구현되는 즉시 자동 편입 — 미구현을 침묵 스킵하지 않음), 자체 DB 프리플라이트로 F2의 silent llm_only 강등을 WARN으로 노출 | 체인 산출물(F1+F2 아티팩트 재사용, 덮어쓰지 않음) + 콘솔 PASS/WARN 로그. `orchestrator.py`/11-state 프로덕션 머신에는 미연동(f1.py/f2.py와 동일하게 검증 전용) |
+| `f5.py` | F1 slots + F3 scores + F4 summary + risk events | 결정론적 `assemble_handoff_report` (zero-LLM, EvidenceVerifier 미호출) | typed 15-section report + Markdown/PDF/FHIR |
+| `continuous_test.py`(검증 하네스, 모듈: `apps/ai-server/src/continuous_test.py`) | 신규 F1 persona 실행 또는 기존 conversation/session ledger 재생 | `STAGE_REGISTRY`의 F1~F5 구현 stage 실행; 단일·다중 세션 모두 ledger append 뒤 F4→F5 실행, F6만 명시적 skip | F1~F5 체인/재생 산출물 + 콘솔 PASS/WARN 로그. `orchestrator.py` 프로덕션 머신에는 미연동 |
 
 ### 9.5 통합 E2E
 

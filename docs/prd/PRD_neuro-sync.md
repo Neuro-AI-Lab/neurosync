@@ -2,12 +2,12 @@
 
 > **Version**: 1.4
 > **Created**: 2026-06-02
-> **Updated**: 2026-06-04 (§6 8주 데모 일정으로 재구성, 비개발 의사결정 제거)
+> **Updated**: 2026-07-22 (활성 AI SSOT·공유 계약 인벤토리·Handoff 호환 경계 정합화)
 > **Status**: Draft
 > **Source**: `Neuro-Sync 프로젝트 개요.pdf` (개요서 기준), `AI챔피언 제안서_국내트랙_260423_최종.hwpx` (보조 참조)
 > **Scale Grade**: Startup (PoC/파일럿) — 의료 도메인 특성상 보안·가용성 Growth급 상향
 >
-> **Document Scope**: 본 문서는 마스터 PRD로 **인터페이스 contract, 비AI 영역(Auth/DB/FE/Infra/Security), 공유 NFR**의 단일 소스이다. **AI 내부 설계(LLM/Orchestration/Safety 내부/STT 어댑터/OCR 파이프라인/프롬프트/평가)** 는 [`docs/ai/PRD_ai.md`](../ai/PRD_ai.md)에서 별도 관리한다.
+> **Document Scope**: 본 문서는 마스터 PRD로 **인터페이스 contract, 비AI 영역(Auth/DB/FE/Infra/Security), 공유 NFR**의 단일 소스이다. **AI 내부 설계(LLM/Orchestration/Safety 내부/STT 어댑터/OCR 파이프라인/프롬프트/평가)** 는 [`docs/AI_master_plan.md`](../AI_master_plan.md)와 활성 Task 1 문서 [`docs/ai/PRD_task1_v2.md`](../ai/PRD_task1_v2.md)에서 관리한다.
 
 ## 0. Ownership Matrix
 
@@ -19,9 +19,9 @@
 |------------|------|--------|
 | 마스터 PRD (본 문서) | `docs/prd/PRD_neuro-sync.md` | Platform 주도 / AI Research 협의 수정 |
 | 마스터 PLAN | `docs/todo_plan/PLAN_neuro-sync.md` | Platform 주도 |
-| **AI 도메인 PRD** | [`docs/ai/PRD_ai.md`](../ai/PRD_ai.md) | **AI Research 단독** |
-| **AI 팀 PLAN** | [`docs/ai/PLAN_ai.md`](../ai/PLAN_ai.md) | **AI Research 단독** |
-| AI API 가이드 (5종 벤더) | [`docs/ai/AI_API_가이드.md`](../ai/AI_API_가이드.md) | AI Research |
+| **AI 마스터 계획** | [`docs/AI_master_plan.md`](../AI_master_plan.md) | **AI Research 단독** |
+| **Task 1 활성 AI PRD** | [`docs/ai/PRD_task1_v2.md`](../ai/PRD_task1_v2.md) | **AI Research 단독** |
+| AI API 가이드 | [`docs/ai/api/`](../ai/api/) | AI Research |
 | AI 세부 작업 폴더 | [`docs/ai/`](../ai/) (orchestration/prompts/safety_guard/stt/ocr/eval) | AI Research |
 | 원본 PDF 자료 | 프로젝트 루트 `references/*.pdf` | 공유 read-only |
 
@@ -34,7 +34,7 @@
 | [`apps/api/`](../../apps/api/) | **Platform 단독** | FastAPI 백엔드: Auth, DB, WebSocket 게이트웨이, Celery 워커, AI 서버 HTTP 클라이언트 |
 | [`apps/mobile/`](../../apps/mobile/) | **Platform 단독** | React Native 환자 앱 (마이크 UI 포함) |
 | [`apps/web/`](../../apps/web/) | **Platform 단독** | Next.js 의료진 대시보드 |
-| [`apps/ai-server/`](../../apps/ai-server/) | **AI Research 단독** | FastAPI AI 서비스 — §0.3의 5개 인터페이스 구현 |
+| [`apps/ai-server/`](../../apps/ai-server/) | **AI Research 단독** | FastAPI AI 서비스 — 실제 마운트 목록은 `src/main.py` 기준 |
 | [`packages/shared-contracts/`](../../packages/shared-contracts/) | **공유 (양 팀 리뷰 필수)** | Pydantic + TypeScript 인터페이스 스키마 (single source) |
 | [`infra/`](../../infra/) | **Platform 단독** | 배포 매니페스트·CI·시크릿. AI 팀은 환경변수·리소스 요구를 PR로 제안. |
 | [`tools/`](../../tools/) | Platform 주도, 양 팀 기여 | 공유 dev 스크립트 |
@@ -51,7 +51,7 @@
 
 ### 0.2 영역 경계 (Boundary Contract)
 
-| 영역 | Owner | 마스터 PRD가 정의 | AI PRD가 정의 |
+| 영역 | Owner | 마스터 PRD가 정의 | AI 문서가 정의 |
 |------|-------|-------------------|--------------|
 | 인증/RBAC/RLS/세션/2FA | Platform | 전부 | — |
 | DB 스키마 | Platform | 전체 스키마 | AI 결과 저장 컬럼 사양만 요구 |
@@ -70,15 +70,40 @@
 
 ### 0.3 인터페이스 Contract (양 팀 변경 시 합의 필수)
 
-AI 서비스가 Platform에 제공하는 5개 인터페이스. **시그니처 변경 시 양 PRD 동시 PR**.
+`packages/shared-contracts/python/src/contracts/`에 출하된 Platform↔AI 계약 인벤토리다.
+**시그니처 변경 시 본 문서와 [`docs/ai/PRD_task1_v2.md`](../ai/PRD_task1_v2.md)를 함께
+갱신하고 Platform·AI CODEOWNER 승인을 모두 받아야 한다.** 현재 마운트된 전체 AI 서버 라우트의
+실행 기준은 [`apps/ai-server/src/main.py`](../../apps/ai-server/src/main.py)이며, 아래 표는 로컬 전용
+스키마 라우트까지 모두 열거하는 표가 아니다.
 
-| 인터페이스 | 입력 | 출력 | SLA (마스터 §4.1) |
-|-----------|------|------|-------------------|
-| `POST /ai/chat/respond` | messages, sessionContext | text(stream), modelUsed | 첫 토큰 < 800ms |
-| `POST /ai/safety/classify` | message, prevContext | risk_level, evidence, confidence | < 1,000ms |
-| `POST /ai/stt/transcribe` | audio, lang, prevContext | text, confidence, vendor | < 2,000ms |
-| `POST /ai/ocr/parse` | file_url(s3), doc_type | text, structured_blocks | < 10s |
-| `POST /ai/handoff/generate` | session_id, messages, phq9, gad7, doc_texts, risk_events | report_markdown, citations | < 30s |
+| 인터페이스 | 공유 계약 | 현재 AI route binding |
+|-----------|----------|-----------------------|
+| `POST /ai/chat/respond` | `ChatRequest` → `ChatResponse` | 로컬 `DialogueInput` → `DialogueOutput` |
+| `POST /ai/safety/classify` | `SafetyRequest` → `SafetyResponse` | 로컬 `SafetyInput` → `SafetyOutput` |
+| `POST /ai/stt/transcribe` | `STTRequest` → `STTResponse` | 로컬 `STTInput` → `STTOutput` |
+| `POST /ai/slots/extract` | `SlotsExtractRequest` → `SlotsExtractResponse` | 로컬 `ClinicalSlotInput` → `ClinicalSlotOutput` |
+| `POST /ai/survey/score` | `SurveyScoreRequest` → `SurveyScoreResponse` | 로컬 `SurveyScoreInput` → `SurveyScoreOutput` |
+| `POST /ai/survey/plan` | `SurveyPlanRequest` → `SurveyPlanResponse` | 공유 계약 사용 |
+| `POST /ai/domain/infer` | `DomainInferRequest` → `DomainInferResponse` | 로컬 `DomainInferenceInput` → `DomainInferenceOutput` |
+| `POST /ai/temporal/analyze` | `TemporalAnalyzeRequest` | 공유 요청 + 로컬 `LongitudinalAnalysisOutput` |
+| `POST /ai/handoff/generate` | `HandoffRequest` → `HandoffResponse` | 공유 계약 사용 |
+| `POST /ai/handoff/report` | `HandoffReportRequest` → `HandoffReportResponse` | 공유 계약 사용 |
+
+`/ai/ocr/parse`, `/ai/temporal/summarize`, `/ai/sentiment/*`, `/ai/nearby/*`도 현재 마운트되어
+있지만 로컬 스키마를 사용하므로 위 공유 패키지 인벤토리에는 포함하지 않는다.
+
+**Handoff 호환·검증 규칙:**
+- `/ai/handoff/generate`는 Markdown 12-section 경계가 아니라 구조화된 공식 응답 경계다. 채워진
+  scalar와 `sleep_appetite_activity.<leaf>`마다 citation이 필요하고, list는 `symptoms[i]`,
+  `triggers[i]`, `clinician_attention[i]`처럼 항목별 zero-based target을 요구한다. metadata,
+  container, 빈 target은 허용하지 않는다.
+- Citation은 실제 요청 `messages[].message_id`와 그 메시지의 non-empty exact-substring quote를
+  가리켜야 한다. 문서 source ID가 계약에 없으므로 `documents_summary`는 당분간 빈 배열이다.
+- 생성기는 설정된 primary→secondary→fallback을 최대 세 번 시도한다. transport/계약 실패를 해당
+  tier에 기록하고, 공식 응답과 citation 검증을 모두 통과한 뒤에만 성공을 기록한다.
+- `/ai/handoff/report` A8 입력은 `narrative_enabled=false`, `narrative_text=null`만 허용한다. 과거에
+  수용되던 `true/null`, `true/text`, `false/text` 조합은 422가 된다. 이는 현재 호환 경계의 migration
+  메모이며 별도 semver 또는 deprecation 정책을 신설하지 않는다.
 
 **격리 원칙**:
 - AI는 DB에 직접 쓰지 않음. 결과는 응답으로만 반환, Platform이 저장.
@@ -86,11 +111,17 @@ AI 서비스가 Platform에 제공하는 5개 인터페이스. **시그니처 �
 - 외부 LLM/STT 호출 = AI 팀 책임, 위·수탁 계약 = Platform 법무 협업.
 - AI 호출 감사 로그(`audit_logs`)는 Platform이 작성, AI는 트레이싱(LangSmith 등)으로 자체 관측.
 
-상세는 [`docs/ai/README.md`](../ai/README.md) §3.
+상세는 [`packages/shared-contracts/README.md`](../../packages/shared-contracts/README.md)와
+[`docs/ai/PRD_task1_v2.md`](../ai/PRD_task1_v2.md)를 따른다.
 
 ---
 
 ## Changelog
+
+- **2026-07-22 contract reconciliation (version unchanged)**: 삭제된 AI 문서 포인터를 현재 SSOT로
+  교체하고, 공유 계약 인벤토리와 두 Handoff 경계의 migration/검증 규칙을 as-built에 맞췄다.
+  이 기록은 semver/deprecation 정책이나 외부 승인을 새로 선언하지 않는다. Platform·AI CODEOWNER
+  승인은 PR 리뷰에서 아직 받아야 한다.
 
 - **v1.5 (2026-07-15)**: 프론트엔드 v3 방향 반영 — 증분 PRD [`PRD_frontend_v3.md`](./PRD_frontend_v3.md) 신설 (FR-038~049)
   - **문진 파이프라인 개정**: 대화 → PHQ-9 → GAD-7 **고정 순차 폐지** → 대화 종료 시 RAG 도메인 추정(백그라운드, 화면 비노출) → **top1 문진 1종만** 수행 (PHQ-9/GAD-7/AUDIT-C, 폴백 PHQ-4). §5.5 Flow A·§6 데모 IN 갱신
@@ -106,12 +137,12 @@ AI 서비스가 Platform에 제공하는 5개 인터페이스. **시그니처 �
   - §8.2 Open Questions를 12건 → 4건으로 축소 (제안서 해결 항목 제거)
   - STT 어댑터는 Whisper 구현만 데모 범위, A.dot 어댑터는 스텁
 - **v1.3 (2026-06-04)**: AI/Platform Ownership Matrix 도입 + 코드 워크스페이스 분리
-  - §0 신설: 워크스페이스 분리, 영역 경계, 5개 인터페이스 contract
+  - §0 신설: 워크스페이스 분리, 영역 경계, 당시 초기 5개 인터페이스 contract
   - §0.1.1 신설: **코드 모노레포 폴더별 owner** (`apps/api`·`apps/mobile`·`apps/web`·`infra` = Platform / `apps/ai-server` = AI / `packages/shared-contracts` = 공유) + 통신 경계 + CI 분리
   - §3 FR 표에 **Owner 컬럼** 추가 (Platform / AI / Shared)
-  - AI 영역(LLM/Safety 내부 로직/STT 어댑터/OCR 파이프라인/Handoff 프롬프트)은 [`docs/ai/PRD_ai.md`](../ai/PRD_ai.md)로 분리
+  - AI 영역(LLM/Safety 내부 로직/STT 어댑터/OCR 파이프라인/Handoff 프롬프트)은 당시 AI PRD로 분리했으며, 현재 활성 SSOT는 [`docs/AI_master_plan.md`](../AI_master_plan.md)와 [`docs/ai/PRD_task1_v2.md`](../ai/PRD_task1_v2.md)다.
   - 본 마스터 PRD의 AI 영역 절(§5.1 STT/§5.3 AI 블록 등)은 **인터페이스만 유지**, 내부 구현은 AI PRD 참조
-  - [`docs/ai/AI_API_가이드.md`](../ai/AI_API_가이드.md) — `docs/references/`에서 AI 워크스페이스로 이동
+  - AI API 가이드는 당시 AI 워크스페이스로 이동했으며, 현재 파일들은 [`docs/ai/api/`](../ai/api/)에서 관리한다.
   - 루트 [`apps/`](../../apps/), [`packages/`](../../packages/), [`infra/`](../../infra/), [`tools/`](../../tools/), [`.github/CODEOWNERS`](../../.github/CODEOWNERS), 루트 [`README.md`](../../README.md), [`.gitignore`](../../.gitignore) 골격 생성
 - **v1.2 (2026-06-04)**: 음성 입력(STT) 기능 통합 — SK A.dot STT 우선 채택, 폴백 전략 명시
   - FR-033 ~ FR-037 신설: STT 입력, 음성 동의(민감정보), 결과 편집·명시적 전송, 원본 오디오 단기 보존, STT 실패 폴백
@@ -300,19 +331,19 @@ And 녹음된 오디오는 임시 보관되었다가 동일 48시간 정책에 �
 
 ## 3. Functional Requirements
 
-> **Owner 컬럼 범례**: `P` = Platform 단독, `A` = AI Research 단독, `S` = Shared (Platform 인프라/UX + AI 응답). `A` 또는 `S` 행의 AI 내부 설계는 [`docs/ai/PRD_ai.md`](../ai/PRD_ai.md)에서 상세화.
+> **Owner 컬럼 범례**: `P` = Platform 단독, `A` = AI Research 단독, `S` = Shared (Platform 인프라/UX + AI 응답). `A` 또는 `S` 행의 AI 내부 설계는 [`docs/AI_master_plan.md`](../AI_master_plan.md)와 [`docs/ai/PRD_task1_v2.md`](../ai/PRD_task1_v2.md)에서 상세화.
 
 | ID | Owner | Requirement | Priority | Dependencies |
 |----|-------|------------|----------|--------------|
 | **FR-001** | P | 환자 회원가입/로그인 (이메일+비밀번호, 약관·개인정보·민감정보·**위험 통보** 4개 동의 분리, 동의 이력 스냅샷 저장) | P0 (Must) | - |
 | **FR-002** | P | 환자 기본 프로필 입력 (이름, 생년/연령대, 성별, 연락처, 거주 지역, 비상 연락처, 진료 예정 병원) + **연령 검증 분기**: 만 14세 미만은 법정대리인 동의 필수, 만 14~19세는 추가 안내 | P0 | FR-001 |
 | **FR-003** | P | 환자 홈 화면 (문진 시작 버튼, 진행 중 세션 표시, 리포트 상태, 위험 도움말 진입, 병원 찾기 진입) | P0 | FR-001 |
-| **FR-004** | S | AI 대화형 사전 문진 채팅 (자유 발화 입력, AI 후속 질문, 대화 저장, 진행률 표시, 종료 버튼) — **Platform**: UI/WebSocket/저장. **AI**: 응답 생성 + 후속 질문 ([`PRD_ai.md`](../ai/PRD_ai.md) §3) | P0 | FR-002 |
-| **FR-005** | S | 사전 문진 채팅 중 **위험 발화 실시간 감지** 및 일반 대화 중단 — **Platform**: WebSocket 차단/라우팅. **AI**: Safety 분류기 ([`PRD_ai.md`](../ai/PRD_ai.md) §4) | P0 | FR-004 |
+| **FR-004** | S | AI 대화형 사전 문진 채팅 (자유 발화 입력, AI 후속 질문, 대화 저장, 진행률 표시, 종료 버튼) — **Platform**: UI/WebSocket/저장. **AI**: 응답 생성 + 후속 질문 ([`PRD_task1_v2.md`](../ai/PRD_task1_v2.md)) | P0 | FR-002 |
+| **FR-005** | S | 사전 문진 채팅 중 **위험 발화 실시간 감지** 및 일반 대화 중단 — **Platform**: WebSocket 차단/라우팅. **AI**: Safety 분류기 ([`PRD_task1_v2.md`](../ai/PRD_task1_v2.md)) | P0 | FR-004 |
 | **FR-006** | P | PHQ-9 표준 문진 (9문항, 문항별 응답 선택, 총점 자동 계산, 결과 저장) | P0 | FR-002 |
 | **FR-007** | P | GAD-7 표준 문진 (7문항, 문항별 응답 선택, 총점 자동 계산, 결과 저장) | P0 | FR-002 |
 | **FR-008** | P | 문서 업로드 (카메라/갤러리/PDF, 문서 유형 선택, 상태 표시, 목록 확인, 삭제 요청) | P0 | FR-002 |
-| **FR-009** | S | 업로드 문서 OCR 파싱 → 텍스트 추출 → 환자 세션 연결 (비동기) — **Platform**: 큐/저장/세션 연결. **AI**: Document Parse 호출 + 후처리 ([`PRD_ai.md`](../ai/PRD_ai.md) §5) | P0 | FR-008 |
+| **FR-009** | S | 업로드 문서 OCR 파싱 → 텍스트 추출 → 환자 세션 연결 (비동기) — **Platform**: 큐/저장/세션 연결. **AI**: Document Parse 호출 + 후처리 ([`PRD_task1_v2.md`](../ai/PRD_task1_v2.md)) | P0 | FR-008 |
 | **FR-010** | P | 문진 완료 및 최종 제출 (입력 요약 확인, 안내 문구, 제출 후 수정 제한) | P0 | FR-004, FR-006, FR-007, FR-008 |
 | **FR-011** | S | 위험 신호 대응 화면 (119/**109** 안내, 비상 연락처 안내, 안전 확인 질문, 위험 이벤트 서버 저장) — **Platform**: UI/저장/SMS. **AI**: 위험 감지가 트리거. *(v1.5: 진입은 위험 확인 창에서 [도움 받기] 선택 시에만 — v3 FR-042/044)* | P0 | FR-005 |
 | **FR-012** | P | 병원 찾기 (지역 기반 검색, 병원명/주소/전화 표시, 지도, 전화 연결, 응급 시 응급기관 우선) | P0 | FR-002 |
@@ -321,11 +352,11 @@ And 녹음된 오디오는 임시 보관되었다가 동일 48시간 정책에 �
 | **FR-015** | P | 의료진 로그인 + 기관별 접근 제한 + 관리자/의료진 권한 분리 | P0 | - |
 | **FR-016** | P | 의료진 환자 목록 (이름, 문진 완료 여부, 리포트 생성 여부, 위험 신호, 최근 제출일, 우선 확인 표시) | P0 | FR-015 |
 | **FR-017** | P | 의료진 환자 상세 (기본 정보, 사전 문진 세션, PHQ-9/GAD-7 점수, 업로드 문서 목록, 위험 이벤트, Handoff 리포트) | P0 | FR-016 |
-| **FR-018** | S | **AI 기반 Handoff 리포트 자동 생성** (주호소, 현병력, 주요 증상, 시작 시점, 최근 변화, 유발 요인, 수면/식욕/활동, 과거 정신건강 이력, 복용약, 문진 점수, 문서 요약, 위험 신호, 의료진 확인 필요 사항, **원문 근거 인용 링크 포함**) — **Platform**: 큐/저장/렌더링. **AI**: 생성 프롬프트 + 인용 검증 ([`PRD_ai.md`](../ai/PRD_ai.md) §6) | P0 | FR-010 |
+| **FR-018** | S | **AI 기반 Handoff 리포트 자동 생성** (주호소, 현병력, 주요 증상, 시작 시점, 최근 변화, 유발 요인, 수면/식욕/활동, 과거 정신건강 이력, 복용약, 문진 점수, 문서 요약, 위험 신호, 의료진 확인 필요 사항, **원문 근거 인용 링크 포함**) — **Platform**: 큐/저장/렌더링. **AI**: 구조화 생성 + scalar/nested leaf 및 list item별 인용 검증; 문서 source ID 계약 전에는 `documents_summary=[]` ([`PRD_task1_v2.md`](../ai/PRD_task1_v2.md)) | P0 | FR-010 |
 | **FR-019** | P | Handoff 리포트 PDF 다운로드 | P0 | FR-018 |
 | **FR-020** | P | Handoff 리포트 EMR 복사용 텍스트 복사 (구조화 텍스트) | P0 | FR-018 |
 | **FR-021** | P | 의료진 대시보드 위험 신호 강조 표시 | P0 | FR-017 |
-| **FR-022** | S | 위험 이벤트 로그 (환자ID, 발생 시각, 트리거 발화, AI 판정 근거, 처리 상태 저장) — **Platform**: 스키마/저장. **AI**: 판정 근거·등급 ([`PRD_ai.md`](../ai/PRD_ai.md) §4) | P0 | FR-005, FR-011 |
+| **FR-022** | S | 위험 이벤트 로그 (환자ID, 발생 시각, 트리거 발화, AI 판정 근거, 처리 상태 저장) — **Platform**: 스키마/저장. **AI**: 판정 근거·등급 ([`PRD_task1_v2.md`](../ai/PRD_task1_v2.md)) | P0 | FR-005, FR-011 |
 | **FR-023** | P | 모든 민감정보 접근 감사 로그 (Who, When, What, IP) | P0 | FR-015 |
 | **FR-024** | P | 푸시 알림 (모바일) | P2 (Could) | FR-014 |
 | **FR-025** | P | 증상군 기반 병원 추천, 야간진료/입원 가능/연령대 필터, 거리순 정렬, 심평원 API 연동 | P2 | FR-012 |
@@ -336,7 +367,7 @@ And 녹음된 오디오는 임시 보관되었다가 동일 48시간 정책에 �
 | **FR-030** | P | **감사 로그 무결성**: append-only 트리거(UPDATE/DELETE 차단), 이전 레코드 hash chain(`prev_hash`), super_admin도 직접 SELECT/조작 시 별도 메타 audit_log 기록 | P0 | FR-023 |
 | **FR-031** | P | **의료진 세션 타임아웃**: idle 15분 후 자동 로그아웃, 활동 시 슬라이딩 갱신, 강제 재인증(비밀번호 또는 2FA) | P0 | FR-015 |
 | **FR-032** | S | **위험 트리거 컨텍스트 보존**: risk_event 발생 시 직전 5턴 + 직후 3턴 메시지 ID 배열을 `risk_events.context_message_ids`에 저장 (사후 검토용) — **Platform**: 컬럼/저장. **AI**: 컨텍스트 범위 권고 | P1 | FR-005, FR-022 |
-| **FR-033** | S | **음성 입력 (STT) Push-to-Talk**: `/intake/chat`에 마이크 버튼 제공, 길게 눌러 녹음 → 손 떼면 종료. 백엔드 STT 어댑터로 변환(우선: SK A.dot STT, 폴백: Whisper) → 결과를 입력창에 자동 채움(자동 전송 금지). 16kHz mono, Opus 또는 PCM 인코딩. — **Platform**: 마이크 UI/REST 게이트웨이/오디오 저장. **AI**: STT 어댑터 + 폴백 ([`PRD_ai.md`](../ai/PRD_ai.md) §7) | P1 | FR-004, FR-034 |
+| **FR-033** | S | **음성 입력 (STT) Push-to-Talk**: `/intake/chat`에 마이크 버튼 제공, 길게 눌러 녹음 → 손 떼면 종료. 백엔드 STT 어댑터로 변환(우선: SK A.dot STT, 폴백: Whisper) → 결과를 입력창에 자동 채움(자동 전송 금지). 16kHz mono, Opus 또는 PCM 인코딩. — **Platform**: 마이크 UI/REST 게이트웨이/오디오 저장. **AI**: STT 어댑터 + 폴백 ([`PRD_task1_v2.md`](../ai/PRD_task1_v2.md)) | P1 | FR-004, FR-034 |
 | **FR-034** | P | **음성 녹음 별도 동의 (민감정보)**: 음성은 PIPA 민감정보(생체정보 포함)에 해당 → 4개 기본 동의와 별도로 옵트인 수집. 미동의 시 마이크 버튼 비활성화. 동의 이력 스냅샷 저장 + 회원가입 후 설정에서 변경 가능. | P0 | FR-001 |
 | **FR-035** | S | **STT 결과 편집 및 명시적 전송**: STT 변환 결과는 항상 사용자 편집 가능 상태로 입력창에 노출. 자동 전송 금지. 환자가 "전송" 버튼을 명시적으로 눌러야 LLM/Safety Guard로 전달. — **Platform**: 편집 UI/전송 흐름. **AI**: 변환 결과 반환만, 자동 송신 안 함 | P0 | FR-033 |
 | **FR-036** | P | **원본 오디오 단기 보존 정책**: STT 변환 직후 변환 결과(`stt_transcriptions`)는 메시지와 함께 보존, 원본 오디오 파일(`audio_recordings`)은 **48시간 내 자동 삭제** (재변환·품질 검증 윈도). 환자가 환경설정에서 "변환 즉시 삭제"를 선택하면 변환 완료 시점에 삭제. 48시간 윈도 사유: 변환 실패 재시도, 신뢰도 의심 시 임상 검수. | P0 | FR-033, FR-034 |
