@@ -37,7 +37,12 @@ from src.dependencies import get_model_router, get_prompt_loader
 from src.prompts.loader import PromptLoader
 from src.routing.model_router import ModelRouter
 from src.services.f5_pdf_boundary import PdfRendered, PdfRenderFailed, render_pdf
-from src.services.f5_report import build_fhir_bundle, build_markdown_report, build_pdf_report
+from src.services.f5_report import (
+    build_fhir_bundle,
+    build_markdown_report,
+    build_pdf_report,
+    validate_fhir_bundle,
+)
 from src.services.handoff_contract_adapter import adapt_handoff_request
 from src.services.stateless_longitudinal import (
     build_all_sessions,
@@ -140,6 +145,22 @@ async def report(body: HandoffReportRequest) -> HandoffReportResponse:
 
     report_markdown = build_markdown_report(handoff_report)
     fhir_bundle = build_fhir_bundle(handoff_report)
+    # The FHIR validator reads externally shaped nested JSON; keep ordinary
+    # shape failures behind the same generic, PHI-free HTTP boundary.
+    try:
+        fhir_violations = validate_fhir_bundle(fhir_bundle)
+    except Exception:
+        fhir_violations = None
+    if fhir_violations is None or fhir_violations:
+        violation_count = 1 if fhir_violations is None else len(fhir_violations)
+        logger.error(
+            "Handoff report FHIR validation failed: violation_count=%d",
+            violation_count,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Handoff report FHIR validation failed",
+        ) from None
 
     pdf_base64: str | None = None
     pdf_omitted_reason: str | None = None

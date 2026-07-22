@@ -207,6 +207,9 @@ def _build_input(
     )
 
 
+build_test_input = _build_input
+
+
 class TestDeterministicAssembly:
     def test_required_generation_timestamp_is_part_of_the_input_contract(self) -> None:
         parameter = inspect.signature(HandoffReportInput).parameters["generated_at"]

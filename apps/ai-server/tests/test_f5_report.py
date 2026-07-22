@@ -234,6 +234,10 @@ def _minimal_report():
 # ── Markdown ────────────────────────────────────────────────────────────
 
 
+full_report_fixture = _full_report
+minimal_report_fixture = _minimal_report
+
+
 class TestMarkdownCompleteness:
     def test_all_sections_present_full_report(self) -> None:
         md = build_markdown_report(_full_report())

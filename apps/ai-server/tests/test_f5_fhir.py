@@ -208,6 +208,26 @@ class TestBundleStructure:
         violations = validate_fhir_bundle(bundle)
         assert violations == [], violations
 
+    def test_patient_id_falls_back_to_vp_id_when_persona_id_empty(self) -> None:
+        # Regression: empty A0 persona_id must not yield an invalid Patient id="".
+        report = _report()
+        report.a0_header.persona_id = ""
+
+        bundle = build_fhir_bundle(report)
+
+        assert validate_fhir_bundle(bundle) == [], validate_fhir_bundle(bundle)
+        entries = bundle["entry"]
+        assert isinstance(entries, list)
+        patient = next(
+            resource
+            for entry in entries
+            if isinstance(entry, dict)
+            and isinstance(resource := entry.get("resource"), dict)
+            and resource.get("resourceType") == "Patient"
+        )
+        assert patient["id"] == report.vp_id
+        assert patient["id"] != ""
+
     def test_all_full_urls_unique(self) -> None:
         bundle = build_fhir_bundle(_report())
         full_urls = [e["fullUrl"] for e in bundle["entry"]]

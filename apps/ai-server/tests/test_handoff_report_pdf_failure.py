@@ -89,6 +89,10 @@ def _request() -> handoff_route.HandoffReportRequest:
     return handoff_route.HandoffReportRequest.model_validate(_payload())
 
 
+report_payload = _payload
+report_request = _request
+
+
 def test_generic_pdf_failure_log_and_http_detail_are_phi_safe(
     monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:

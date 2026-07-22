@@ -13,12 +13,20 @@ import os
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Final, Literal, NotRequired, TypedDict, override
+from typing import Final, NotRequired, TypedDict, override
+
+from src.services.f5_artifact_cleanup import (
+    ArtifactCleanupError,
+    ArtifactKey,
+    ReservedArtifact,
+    close_completed,
+    discard_after_primary,
+    discard_reserved,
+)
 
 _MAX_GROUP_ATTEMPTS: Final = 100
 _DIRECTORY_FLAGS: Final = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
 _FILE_FLAGS: Final = os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW | os.O_CLOEXEC
-type _ArtifactKey = Literal["markdown", "pdf", "fhir"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,14 +66,6 @@ class F5ArtifactPaths(TypedDict):
     pdf: NotRequired[Path]
 
 
-@dataclass(frozen=True, slots=True)
-class _ReservedFile:
-    key: _ArtifactKey
-    name: str
-    content: bytes
-    descriptor: int
-
-
 def _validated_vp_id(raw: str) -> str:
     separators = {"/", "\\", os.sep}
     if os.altsep is not None:
@@ -80,16 +80,6 @@ def _validated_vp_id(raw: str) -> str:
     return raw
 
 
-def _discard_reserved(vp_descriptor: int, reserved: list[_ReservedFile]) -> None:
-    for artifact in reserved:
-        try:
-            os.unlink(artifact.name, dir_fd=vp_descriptor)
-        except FileNotFoundError:
-            continue
-        finally:
-            os.close(artifact.descriptor)
-
-
 def _write_content(descriptor: int, content: bytes) -> None:
     remaining = memoryview(content)
     while remaining:
@@ -97,8 +87,8 @@ def _write_content(descriptor: int, content: bytes) -> None:
         remaining = remaining[written:]
 
 
-def _reserve_group(vp_descriptor: int, bundle: F5ArtifactBundle) -> list[_ReservedFile]:
-    artifacts: list[tuple[_ArtifactKey, str, bytes]] = [
+def _reserve_group(vp_descriptor: int, bundle: F5ArtifactBundle) -> list[ReservedArtifact]:
+    artifacts: list[tuple[ArtifactKey, str, bytes]] = [
         ("markdown", "handoff.md", bundle.markdown),
         ("fhir", "handoff_fhir.json", bundle.fhir),
     ]
@@ -106,23 +96,22 @@ def _reserve_group(vp_descriptor: int, bundle: F5ArtifactBundle) -> list[_Reserv
         artifacts.insert(1, ("pdf", "handoff.pdf", bundle.pdf))
     for _attempt in range(_MAX_GROUP_ATTEMPTS):
         prefix = f"{bundle.vp_id}_{bundle.timestamp}_{uuid.uuid4().hex}"
-        reserved: list[_ReservedFile] = []
-        collision = False
-        complete = False
+        reserved: list[ReservedArtifact] = []
         try:
             for key, suffix, content in artifacts:
                 name = f"{prefix}_{suffix}"
                 descriptor = os.open(name, _FILE_FLAGS, 0o600, dir_fd=vp_descriptor)
-                reserved.append(_ReservedFile(key, name, content, descriptor))
+                reserved.append(ReservedArtifact(key, name, content, descriptor))
                 os.fchmod(descriptor, 0o600)
-            complete = True
         except FileExistsError:
-            collision = True
-        finally:
-            if not complete:
-                _discard_reserved(vp_descriptor, reserved)
-        if collision:
+            try:
+                discard_reserved(vp_descriptor, reserved)
+            except ArtifactCleanupError:
+                raise
             continue
+        except BaseException as primary:
+            discard_after_primary(vp_descriptor, reserved, primary)
+            raise
         return reserved
     raise ArtifactCollisionError(attempts=_MAX_GROUP_ATTEMPTS)
 
@@ -153,17 +142,13 @@ def persist_f5_artifacts(root: Path, bundle: F5ArtifactBundle) -> F5ArtifactPath
         vp_descriptor = _open_vp_directory(root_descriptor, vp_id)
         try:
             reserved = _reserve_group(vp_descriptor, bundle)
-            write_complete = False
             try:
                 for artifact in reserved:
                     _write_content(artifact.descriptor, artifact.content)
-                write_complete = True
-            finally:
-                if write_complete:
-                    for artifact in reserved:
-                        os.close(artifact.descriptor)
-                else:
-                    _discard_reserved(vp_descriptor, reserved)
+            except BaseException as primary:
+                discard_after_primary(vp_descriptor, reserved, primary)
+                raise
+            close_completed(vp_descriptor, reserved)
         finally:
             os.close(vp_descriptor)
     finally:

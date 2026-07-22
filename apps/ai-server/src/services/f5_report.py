@@ -52,6 +52,8 @@ from src.services.f5_artifact_store import (
     persist_f5_artifacts,
 )
 from src.services.f5_fhir_safety import (
+    InvalidFhirBundleError,
+    JsonObject,
     fhir_structure_violations,
 )
 from src.services.f5_fhir_safety import (
@@ -69,6 +71,7 @@ from src.services.f5_pdf_text import (
     DEFAULT_PDF_PARAGRAPH_MAX_LINES,
     collapse_blank_runs,
     pdf_line_chunks,
+    pdf_paragraph_markup,
 )
 
 logger = logging.getLogger(__name__)
@@ -158,6 +161,17 @@ def save_f5_result(
     base = output_dir or OUTPUT_DIR
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     markdown = build_markdown_report(report).encode()
+    fhir_bundle = build_fhir_bundle(report)
+    # This structural validator consumes nested external-format JSON; sanitize
+    # ordinary shape failures here without retaining clinical exception content.
+    try:
+        violations = validate_fhir_bundle(fhir_bundle)
+    except Exception:
+        violations = None
+    if violations is None or violations:
+        violation_count = 1 if violations is None else len(violations)
+        raise InvalidFhirBundleError(violation_count) from None
+    fhir = json.dumps(fhir_bundle, ensure_ascii=False, indent=2).encode()
     pdf: bytes | None
     match render_pdf(build_pdf_report, report, chart_paths or {}):
         case PdfRendered(content=pdf):
@@ -172,7 +186,6 @@ def save_f5_result(
         case unreachable:
             assert_never(unreachable)
 
-    fhir = json.dumps(build_fhir_bundle(report), ensure_ascii=False, indent=2).encode()
     paths = persist_f5_artifacts(
         base,
         F5ArtifactBundle(
@@ -1489,7 +1502,7 @@ def build_pdf_report(
     }
 
     def P(text: str, style: str = "body") -> Paragraph:
-        safe = (text or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        safe = pdf_paragraph_markup(text or "")
         # Collapse blank-line runs so newline-dense values don't explode into an
         # unbounded <br/> run (reportlab LayoutError). Content is NEVER dropped
         # here — genuinely long free text is paginated across flowables by
@@ -1500,7 +1513,7 @@ def build_pdf_report(
         # Long free-text fields (주호소/현병력/A8 narrative/상세 부록) as a
         # SEQUENCE of Paragraphs — reportlab page-breaks BETWEEN chunks, so no
         # single oversized flowable can LayoutError and no line is ever dropped.
-        safe = (text or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        safe = pdf_paragraph_markup(text or "")
         return [Paragraph("<br/>".join(chunk), styles[style]) for chunk in _pdf_line_chunks(safe)]
 
     def _table(rows: list[list[str]], font_size: float = 7.5) -> Table:
@@ -1823,17 +1836,17 @@ def build_pdf_report(
     for note in notes.notes:
         story.append(P(note, "meta"))
 
-    buf = io.BytesIO()
-    doc = SimpleDocTemplate(
-        buf,
-        pagesize=A4,
-        topMargin=1.5 * cm,
-        bottomMargin=1.5 * cm,
-        leftMargin=1.5 * cm,
-        rightMargin=1.5 * cm,
-    )
-    doc.build(story)
-    return buf.getvalue()
+    with io.BytesIO() as buf:
+        doc = SimpleDocTemplate(
+            buf,
+            pagesize=A4,
+            topMargin=1.5 * cm,
+            bottomMargin=1.5 * cm,
+            leftMargin=1.5 * cm,
+            rightMargin=1.5 * cm,
+        )
+        doc.build(story)
+        return buf.getvalue()
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -1869,20 +1882,20 @@ _SCALE_TOTAL_LOINC = {
 }
 
 
-def _new_entry(resource: dict) -> tuple[str, dict]:
+def _new_entry(resource: JsonObject) -> tuple[str, JsonObject]:
     full_url = f"urn:uuid:{uuid.uuid4()}"
     return full_url, {"fullUrl": full_url, "resource": resource}
 
 
-def _loinc_concept(key: str, text: str) -> dict:
+def _loinc_concept(key: str, text: str) -> JsonObject:
     return {"coding": [{"system": "http://loinc.org", "code": _LOINC[key]}], "text": text}
 
 
-def _local_concept(code: str, text: str) -> dict:
+def _local_concept(code: str, text: str) -> JsonObject:
     return {"coding": [{"system": _LOCAL_CODE_SYSTEM, "code": code}], "text": text}
 
 
-def build_fhir_bundle(report: HandoffReportOutput) -> dict:
+def build_fhir_bundle(report: HandoffReportOutput) -> JsonObject:
     """R4 `Bundle(type="document")`, `Composition` first entry (design doc
     §5.3). File-export only — no `$validate` call, no server round-trip
     (D3). Structural validity only — see `validate_fhir_bundle` and the
@@ -1902,10 +1915,10 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     b = report.b_longitudinal
     lon = b.analysis
 
-    entries: list[dict] = []
+    entries: list[JsonObject] = []
     full_urls: dict[str, str] = {}
 
-    def add(key: str, resource: dict) -> str:
+    def add(key: str, resource: JsonObject) -> str:
         full_url, entry = _new_entry(resource)
         entries.append(entry)
         full_urls[key] = full_url
@@ -1916,7 +1929,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
         "patient",
         {
             "resourceType": "Patient",
-            "id": a0.persona_id,
+            "id": a0.persona_id or report.vp_id,
             "meta": {
                 "tag": [{"system": "urn:neurosync:simulation-flag", "code": "simulated-patient"}]
             },
@@ -1925,7 +1938,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
         },
     )
 
-    sections: list[dict] = []
+    sections: list[JsonObject] = []
 
     # ── A1 CC ──
     sections.append(
@@ -2110,7 +2123,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     )
 
     # ── A5 Questionnaires: QuestionnaireResponse + Observation(total) ──
-    a5_entries: list[dict] = []
+    a5_entries: list[JsonObject] = []
     if a5.present:
         qr_url = add(
             "questionnaire_response",
@@ -2129,7 +2142,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
         )
         a5_entries.append({"reference": qr_url})
         total_code = _SCALE_TOTAL_LOINC.get(a5.scale_name or "")
-        obs_code = (
+        obs_code: JsonObject = (
             {
                 "coding": [{"system": "http://loinc.org", "code": total_code}],
                 "text": f"{a5.scale_name} total",
@@ -2137,7 +2150,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
             if total_code
             else _local_concept("scale-total", f"{a5.scale_name} total")
         )
-        notes = [{"text": a5.non_validated_caveat}]
+        notes: list[JsonObject] = [{"text": a5.non_validated_caveat}]
         if a5.threshold_caveat:
             notes.append({"text": a5.threshold_caveat})
         if a5.threshold_caveat_asymmetry_note:
@@ -2186,9 +2199,9 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     )
 
     # ── A6 AI-predicted-disease (hard red line — own section/resource) ──
-    a6_entries: list[dict] = []
+    a6_entries: list[JsonObject] = []
     if a6.present:
-        components = [
+        components: list[JsonObject] = [
             {
                 "code": {"text": rc.candidate.disease},
                 "valueQuantity": {"value": rc.candidate.similarity_score, "unit": "similarity"},
@@ -2245,7 +2258,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     )
 
     # ── A7 Department recommendation: ServiceRequest ──
-    a7_entries: list[dict] = []
+    a7_entries: list[JsonObject] = []
     for d in a7.department_candidates:
         sr_url = add(
             f"service_request_{len(a7_entries)}",
@@ -2275,10 +2288,10 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     )
 
     # ── B1-B3: repeated Observation per scale_series/ctrs_series point ──
-    b_entries: list[dict] = []
+    b_entries: list[JsonObject] = []
     for scale_name, points in lon.scale_series.items():
         total_code = _SCALE_TOTAL_LOINC.get(scale_name)
-        code = (
+        code: JsonObject = (
             {
                 "coding": [{"system": "http://loinc.org", "code": total_code}],
                 "text": f"{scale_name} total",
@@ -2391,7 +2404,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
         }
     )
 
-    composition = {
+    composition: JsonObject = {
         "resourceType": "Composition",
         "id": str(uuid.uuid4()),
         "status": "final",
@@ -2417,7 +2430,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     }
 
 
-def validate_fhir_bundle(bundle: dict) -> list[str]:
+def _validate_fhir_bundle(bundle: dict) -> list[str]:
     """Structural self-check only (design doc §5.3 last paragraph) — NEVER
     an HL7 `$validate` call (D3). Returns a list of violation strings
     (empty = structurally OK per this project's own checks). Checks:
@@ -2486,3 +2499,7 @@ def validate_fhir_bundle(bundle: dict) -> list[str]:
         )
 
     return violations
+
+
+def validate_fhir_bundle(bundle: JsonObject) -> list[str]:
+    return _validate_fhir_bundle(bundle)
