@@ -22,6 +22,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import re
 import uuid
 from datetime import datetime
@@ -95,6 +96,7 @@ def save_f5_result(
     *,
     vp_id: str | None = None,
     chart_paths: dict[str, Path] | None = None,
+    render_editorial: bool | None = None,
 ) -> dict[str, Path]:
     """Save F5 result as markdown + PDF + FHIR R4 document Bundle (design
     doc §5). Naming mirrors `save_f1_result`/.../`save_f4_result`:
@@ -131,6 +133,21 @@ def save_f5_result(
     fhir_path = out / f"{prefix}_handoff_fhir.json"
     fhir_path.write_text(json.dumps(fhir_bundle, ensure_ascii=False, indent=2), encoding="utf-8")
     paths["fhir"] = fhir_path
+
+    # Editorial (HTML→Chrome) handoff PDF — F5's advanced report renderer.
+    # Opt-in: explicit render_editorial=True, or env F5_EDITORIAL=1. Skips
+    # gracefully (logged) when Chrome/matplotlib/template are unavailable, so
+    # unit tests and headless boxes are never broken or slowed by default.
+    if render_editorial is None:
+        render_editorial = os.getenv("F5_EDITORIAL", "0") == "1"
+    if render_editorial:
+        try:
+            from src.services.editorial_handoff import render_editorial_handoff
+            ed = render_editorial_handoff(resolved_vp_id, out / f"{prefix}_handoff_editorial.pdf")
+            if ed is not None:
+                paths["editorial_pdf"] = ed
+        except Exception as exc:  # never let editorial rendering break F5 save
+            logger.warning("editorial handoff render errored (non-fatal): %s", exc)
 
     logger.info("F5 results saved: %s", ", ".join(str(p) for p in paths.values()))
     return paths

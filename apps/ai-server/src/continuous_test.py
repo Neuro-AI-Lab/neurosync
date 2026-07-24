@@ -950,6 +950,19 @@ async def run_multi_session_chain(
     if run_f4 and not halted:
         f4_result = await _run_f4_analysis(persona_id, out_dir)
         all_results.append(f4_result)
+        # F5 post-loop — 멀티세션 체인 한 번으로 F1→F5 전 과정 완료(editorial PDF 포함).
+        # 별도 --f5-from-artifacts 없이 파이프라인 끝에서 인계 리포트까지 산출한다.
+        t5 = time.perf_counter()
+        try:
+            f5_paths = _run_f5_report(persona_id, out_dir)
+            all_results.append(StageResult(
+                "F5", "pass", f"F5 hand-off complete -> {f5_paths['markdown'].name}",
+                artifacts=f5_paths, duration_ms=_ms(t5)))
+        except F5InsufficientSessionsError as exc:
+            all_results.append(StageResult("F5", "skip", str(exc), duration_ms=_ms(t5)))
+        except Exception as exc:  # noqa: BLE001 — harness reports, never crashes
+            logger.exception("continuous_test.f5.postloop.failed")
+            all_results.append(StageResult("F5", "fail", f"F5 raised: {exc}", duration_ms=_ms(t5)))
 
     return all_results
 
@@ -1437,6 +1450,7 @@ def _run_f5_report(
         write_dir if write_dir is not None else out_dir,
         vp_id=persona_id,
         chart_paths=chart_paths,
+        render_editorial=True,  # F5 실행 시 editorial(HTML→Chrome) PDF까지 자동 생성
     )
 
 

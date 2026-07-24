@@ -269,3 +269,218 @@ class TestSimilarityAndDomainTrendCharts:
 
     def test_domain_trend_plot_empty_list_is_none(self):
         assert generate_domain_trend_plot([]) is None
+
+
+# ── Small-multiples refactor (17-point spec) ─────────────────────────
+
+import numpy as np  # noqa: E402
+import pytest  # noqa: E402
+
+from src.services.trend_plotter import (  # noqa: E402
+    MetricSpec,
+    TrendPlotResult,
+    _build_figure,
+    _build_metric_specs,
+    _prepare_metric_values,
+    build_trend_chart_payload,
+    summarize_change,
+)
+
+
+def _opts(**over):
+    base = dict(
+        connect_missing=False, missing_connection_style="dashed", x_axis_mode="date",
+        annotation_mode="key_points", show_delta_annotations=False, ctrs_display_mode="step",
+        slot_fill_max=8, audit_c_threshold=None, include_figure_title=False,
+        include_patient_name=False, title="t", patient_name="p", figsize=(9, 8.5),
+    )
+    base.update(over)
+    return base
+
+
+class TestMissingValues:
+    """Req 1: missing → numpy.nan, line breaks at gaps, no interpolation."""
+
+    def test_missing_become_nan_full_length(self):
+        dps = [TrendDataPoint("2026-01-01", phq9=22),
+               TrendDataPoint("2026-02-01", phq9=None),
+               TrendDataPoint("2026-03-01", phq9=None),
+               TrendDataPoint("2026-04-01", phq9=18)]
+        vals = _prepare_metric_values(dps, "phq9")
+        assert len(vals) == 4
+        assert vals[0] == 22 and vals[3] == 18
+        assert np.isnan(vals[1]) and np.isnan(vals[2])
+
+    def test_gap_breaks_line_no_solid_s1_s4(self):
+        import matplotlib.pyplot as plt
+        dps = [TrendDataPoint("2026-01-01", phq9=22),
+               TrendDataPoint("2026-02-01", phq9=None),
+               TrendDataPoint("2026-03-01", phq9=None),
+               TrendDataPoint("2026-04-01", phq9=18)]
+        fig, axes = _build_figure(dps, [], _opts())
+        ydata = np.concatenate([ln.get_ydata() for ln in axes["phq9"].get_lines()
+                                if len(ln.get_ydata()) == 4])
+        assert np.isnan(ydata).any()  # nan segment → no continuous S1..S4 line
+        plt.close(fig)
+
+    def test_connect_missing_opt_adds_overlay(self):
+        import matplotlib.pyplot as plt
+        dps = [TrendDataPoint("2026-01-01", phq9=22),
+               TrendDataPoint("2026-02-01", phq9=None),
+               TrendDataPoint("2026-04-01", phq9=18)]
+        off = _build_figure(dps, [], _opts(connect_missing=False))
+        on = _build_figure(dps, [], _opts(connect_missing=True))
+        assert len(on[1]["phq9"].get_lines()) > len(off[1]["phq9"].get_lines())
+        plt.close(off[0])
+        plt.close(on[0])
+
+
+class TestCTRSPanel:
+    """Req 5: step render, 1 at bottom / 5 at top, no invert."""
+
+    def test_step_orientation_low_at_bottom(self):
+        import matplotlib.pyplot as plt
+        dps = [TrendDataPoint("2026-01-01", ctrs=3),
+               TrendDataPoint("2026-02-01", ctrs=4),
+               TrendDataPoint("2026-03-01", ctrs=4)]
+        fig, axes = _build_figure(dps, [], _opts())
+        ax = axes["ctrs"]
+        lo, hi = ax.get_ylim()
+        assert lo < hi and lo < 1 and hi > 5  # ascending, not inverted
+        assert list(ax.get_yticks()) == [1, 2, 3, 4, 5]
+        labels = [t.get_text() for t in ax.get_yticklabels()]
+        assert labels[0].startswith("1") and "안정" in labels[-1]
+        plt.close(fig)
+
+    def test_ctrs_values_not_fabricated(self):
+        dps = [TrendDataPoint("2026-01-01", ctrs=3),
+               TrendDataPoint("2026-02-01", ctrs=None),
+               TrendDataPoint("2026-03-01", ctrs=4)]
+        vals = _prepare_metric_values(dps, "ctrs")
+        assert vals[0] == 3 and np.isnan(vals[1]) and vals[2] == 4
+
+
+class TestAuditCPanel:
+    """Req 2: 2 points → compact; 3+ → line; no fabricated values."""
+
+    def test_two_points_compact_no_fabrication(self):
+        dps = [TrendDataPoint(f"2026-0{i + 1}-01") for i in range(6)]
+        dps += [TrendDataPoint("2026-07-01", audit_c=11),
+                TrendDataPoint("2026-08-01", audit_c=10)]
+        specs = {s.key: s for s in _build_metric_specs(
+            dps, slot_fill_max=8, audit_c_threshold=None)}
+        assert specs["audit_c"].display_type == "compact"
+        vals = _prepare_metric_values(dps, "audit_c")
+        assert list(vals[~np.isnan(vals)]) == [11.0, 10.0]  # only the real values
+
+    def test_three_points_line_mode(self):
+        dps = [TrendDataPoint("2026-01-01", audit_c=8),
+               TrendDataPoint("2026-02-01", audit_c=6),
+               TrendDataPoint("2026-03-01", audit_c=4)]
+        specs = {s.key: s for s in _build_metric_specs(
+            dps, slot_fill_max=8, audit_c_threshold=None)}
+        assert specs["audit_c"].display_type == "line"
+
+
+class TestPanelPresence:
+    """Req 17d,e: single measurement OK, absent metric → no panel."""
+
+    def test_single_measurement_no_error(self):
+        r = generate_trend_plot([TrendDataPoint("2026-01-01", phq9=15)])
+        assert isinstance(r, TrendPlotResult) and len(r.png_bytes) > 0
+
+    def test_absent_metric_has_no_panel(self):
+        import matplotlib.pyplot as plt
+        dps = [TrendDataPoint("2026-01-01", phq9=10),
+               TrendDataPoint("2026-02-01", phq9=8)]
+        fig, axes = _build_figure(dps, [], _opts())
+        assert "phq9" in axes
+        assert not ({"gad7", "ctrs", "audit_c"} & set(axes))
+        plt.close(fig)
+
+
+class TestOutputFormats:
+    """Req 12: png / svg / both."""
+
+    @pytest.mark.parametrize(("fmt", "has_png", "has_svg"), [
+        ("png", True, False), ("svg", False, True), ("both", True, True)])
+    def test_output_format(self, fmt, has_png, has_svg):
+        dps = [TrendDataPoint("2026-01-01", phq9=20),
+               TrendDataPoint("2026-02-01", phq9=12)]
+        r = generate_trend_plot(dps, output_format=fmt)
+        assert (len(r.png_bytes) > 0) is has_png
+        assert (r.svg_bytes is not None and len(r.svg_bytes) > 0) is has_svg
+
+
+class TestChartPayload:
+    """Req 14: JSON-serializable, None preserved."""
+
+    def test_payload_preserves_none(self):
+        import json
+        dps = [TrendDataPoint("2026-01-01", phq9=22, ctrs=3, sentiment=None, slot_fill_count=5),
+               TrendDataPoint("2026-02-01", phq9=None, ctrs=None, audit_c=9)]
+        evs = [ClinicalEvent("2026-01-15", "약물 시작", "medication")]
+        payload = build_trend_chart_payload(dps, evs)
+        s0, s1 = payload["sessions"]
+        assert s0["phq9"] == 22 and s0["sentiment"] is None
+        assert s1["phq9"] is None and s1["ctrs"] is None and s1["audit_c"] == 9
+        assert payload["events"][0]["event_type"] == "medication"
+        json.dumps(payload)  # serializable
+
+
+class TestNewOutputBackCompat:
+    """Req 16: new args/fields default; legacy fields present."""
+
+    def test_old_positional_signature(self):
+        dps = [TrendDataPoint("2026-01-01", phq9=20, ctrs=2),
+               TrendDataPoint("2026-02-01", phq9=10, ctrs=4)]
+        r = generate_trend_plot(dps, "홍길동", "종단 추이", None)
+        assert isinstance(r, TrendPlotResult) and r.png_bytes and r.base64_str
+
+    def test_datapoint_without_audit_c(self):
+        assert TrendDataPoint("2026-01-01", phq9=10).audit_c is None
+
+    def test_result_has_legacy_and_new_fields(self):
+        r = generate_trend_plot([TrendDataPoint("2026-01-01", phq9=20),
+                                 TrendDataPoint("2026-02-01", phq9=15)])
+        for attr in ("png_bytes", "base64_str", "width_px", "height_px", "svg_bytes"):
+            assert hasattr(r, attr)
+
+
+class TestSummarizeChange:
+    """Req 11: neutral within same band, direction across bands."""
+
+    _SPEC = MetricSpec("phq9", "PHQ-9", 0, 27,
+                       [(0, 4, "정상"), (5, 9, "경도"), (10, 14, "중등도"),
+                        (15, 19, "중등–중증"), (20, 27, "중증")], "line", True)
+
+    def test_same_band_is_neutral(self):
+        dps = [TrendDataPoint("2026-01-01", phq9=21), TrendDataPoint("2026-02-01", phq9=20)]
+        assert summarize_change(dps, "phq9", self._SPEC)["state"] == "neutral"
+
+    def test_improved_across_bands(self):
+        dps = [TrendDataPoint("2026-01-01", phq9=22), TrendDataPoint("2026-02-01", phq9=8)]
+        s = summarize_change(dps, "phq9", self._SPEC)
+        assert s["state"] == "improved" and s["delta"] == -14
+
+
+class TestEventTimelineAndAxis:
+    """Req 3, 8: dedicated event row; session x-axis mode."""
+
+    def test_event_row_present(self):
+        import matplotlib.pyplot as plt
+        dps = [TrendDataPoint("2026-01-01", phq9=20), TrendDataPoint("2026-03-01", phq9=12)]
+        evs = [ClinicalEvent("2026-01-15", "설트랄린 시작", "medication"),
+               ClinicalEvent("2026-02-01", "위기 개입", "crisis"),
+               ClinicalEvent("2026-02-20", "재평가", "assessment")]
+        fig, axes = _build_figure(dps, evs, _opts())
+        assert "_events" in axes
+        plt.close(fig)
+
+    def test_session_axis_mode(self):
+        import matplotlib.pyplot as plt
+        dps = [TrendDataPoint("2026-01-01", phq9=20), TrendDataPoint("2026-02-01", phq9=12)]
+        fig, axes = _build_figure(dps, [], _opts(x_axis_mode="session"))
+        labels = [t.get_text() for t in fig.axes[-1].get_xticklabels()]
+        assert any(lbl.startswith("S") for lbl in labels)
+        plt.close(fig)

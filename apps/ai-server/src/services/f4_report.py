@@ -94,12 +94,17 @@ def _build_trend_data_points(output: LongitudinalAnalysisOutput) -> list[TrendDa
         p.simulated_date: p.total_score
         for p in output.scale_series.get("GAD-7", []) if p.administered
     }
+    audit_c_by_date = {
+        p.simulated_date: p.total_score
+        for p in output.scale_series.get("AUDIT-C", []) if p.administered
+    }
     return [
         TrendDataPoint(
             date=d,
             phq9=phq9_by_date.get(d),
             gad7=gad7_by_date.get(d),
             ctrs=ctrs_by_date.get(d),
+            audit_c=audit_c_by_date.get(d),
             sentiment=sentiment_by_date.get(d),
             slot_fill_count=slot_fill_by_date.get(d),
         )
