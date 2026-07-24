@@ -80,17 +80,43 @@
 repair·retry 흔적: Solar/도메인-EXAONE 계열 최소(1~4), **A.X 계열 전반 10~15**로 급증.
 A.X는 native JSON 미지원이라 프롬프트+repair에 의존 → 스키마 강한 에이전트(slot)에서 부담 최대.
 
+### 4.5 라운드 D — 선택 배치 가설 검증
+
+`clinical_slot`·`safety_classifier`를 Solar로 고정하고 나머지를 국내 타 모델로 돌려, "성능을
+지키면서 국내모델을 최대한 쓸 수 있는가"를 검증.
+
+| 구성 | 배치 | 호출 S/E/AX | 중앙 지연 | 최대 지연 | 재시도 | 완주 |
+|---|---|---|---|---|---|---|
+| **mix_optimal** | slot·safety=Solar, domain→EXAONE, dialogue→A.X | 54/11/10 | **5,276ms** | **7,536ms** | 18 | 완주 |
+| exaone_but_slotsafety | slot·safety=Solar, 그 외 전부 EXAONE | 30/43/0 | 6,041ms | **79,363ms** | 12 | 완주 |
+| ax_but_slotsafety | slot·safety=Solar, 그 외 전부 A.X | 34/10/36 | 6,251ms | 12,227ms | **28** | 완주 |
+| safety_ax(재실행) | safety만 A.X | 14/2/2 | —† | —† | 1 | 완주 |
+
+**검증 결과**
+- **선택 배치가 유효** — `mix_optimal`은 중앙 5.3s(baseline 5.06s와 동일급)·tail 7.5s로, slot을 Solar로
+  지키자 **124s tail이 사라짐**. 국내 타 모델(EXAONE·A.X)을 domain·dialogue에 배치해도 성능 유지.
+- **단, EXAONE는 slot 외에도 tail 취약** — `exaone_but_slotsafety`는 median은 좋아도 **tail 79s**
+  (handoff/temporal 등 다른 구조화 에이전트에서 tail 발생). EXAONE 전반의 tail 관리가 별도 과제.
+- **A.X는 tail은 잡히나 repair 최다** — `ax_but_slotsafety` tail 12s로 통제되나 repair 28건(반복 복구 비용).
+- **safety_ax 재현성** — 재실행에서도 대화 턴 표본 <2(0ms). safety_classifier를 A.X로 두면 F1 대화 턴
+  전개가 달라짐(조기 종료/판정 차이 추정) → **위기판정 정확도 별도 검증 필요**(품질 라운드로 이관).
+
+† safety_ax 소표본으로 지연 지표 제외(§3 †와 동일).
+
 ## 5. 종합 결론
 
 1. **주력 1순위는 Solar 유지가 타당.** 속도·구조화 출력 안정성 모두 우위.
 2. **모델 민감도는 에이전트마다 크게 다르다.** 스키마 강도가 높은 **clinical_slot > safety_classifier >
    dialogue > domain_inference** 순으로 비-Solar 모델 취약. 전면 스왑보다 **에이전트별 선택 배치**가 정답.
-3. **국내 타 모델 실전 배치 가이드(예비)**:
-   - `domain_inference` → EXAONE/A.X 대체 여지 큼(지연·부하 낮음).
-   - `dialogue` → A.X 우선 후보(빠름, repair는 중간).
-   - `clinical_slot`·`safety_classifier` → Solar 유지 권장(스키마·안전 크리티컬).
-4. **전면 스왑을 하려면 선행 과제**: EXAONE/A.X용 **JSON 스키마 강제·repair 파이프라인 최적화**,
-   특히 slot_exaone의 **124s tail latency 원인(타임아웃·스트리밍) 해소**.
+3. **국내 타 모델 실전 배치 가이드(라운드 D로 검증)** — 권장 구성 = **`mix_optimal`**:
+   - `clinical_slot`·`safety_classifier` → **Solar 유지**(스키마·안전 크리티컬, tail 방지의 핵심).
+   - `domain_inference` → **EXAONE** 대체 여지 큼(지연·부하 낮음).
+   - `dialogue` → **A.X** 우선 후보(빠름).
+   - 이 배치는 중앙 지연 5.3s(baseline 동일급)·tail 7.5s로 **성능 손실 없이 국내 타 모델 사용률↑**.
+4. **전면 스왑을 하려면 선행 과제**: EXAONE/A.X용 **JSON 스키마 강제·repair 파이프라인 최적화**.
+   특히 (a) slot_exaone **124s tail**, (b) EXAONE의 slot 외 구조화 에이전트 **tail(79s)**,
+   (c) A.X repair 다발(28건) 을 타임아웃·스트리밍·스키마 강제로 해소해야 전면 대체 가능.
+5. **safety_classifier의 A.X 배치는 대화 흐름을 바꿈**(재현 확인) → 위기판정 정확도 품질 검증 전까지 Solar 유지.
 
 ### 5.1 한계 및 후속
 - VP-001 단일·2세션·4턴 축소셋 → **표본 확대(다페르소나·풀아크)** 필요.
