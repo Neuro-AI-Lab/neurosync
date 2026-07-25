@@ -32,6 +32,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import Settings, get_settings
+from src.core.deps import require_role
 from src.core.encryption import encrypt_str
 from src.core.security import (
     PasswordPolicyError,
@@ -49,6 +50,7 @@ from src.models.patient_profile import PatientProfile
 from src.models.user import User
 from src.schemas.auth import (
     LoginRequest,
+    ProfileDemographicsUpdate,
     RefreshRequest,
     RegisterRequest,
     SuccessResponse,
@@ -366,3 +368,32 @@ async def refresh_tokens(
             "expiresIn": settings.access_token_expire_minutes * 60,
         }
     )
+
+
+@router.patch("/me/profile", response_model=dict)
+async def update_my_profile(
+    payload: ProfileDemographicsUpdate,
+    patient: Annotated[User, Depends(require_role("patient"))],
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> dict:
+    """v3 수정 1 (미결 #3) — 가입 후 인적사항(선택) 저장/수정.
+
+    가입 폼을 '계정·동의'와 '인적사항' 단계로 분리하면서, 인적사항은 이 엔드포인트로
+    별도 저장한다. 본인 프로필의 사회인구학적 항목만 갱신하며, 보낸 필드만 반영한다
+    (exclude_unset). 모두 선택이라 아무 것도 안 보내면 no-op."""
+    prow = await db.execute(
+        select(PatientProfile).where(PatientProfile.user_id == patient.id)
+    )
+    profile = prow.scalar_one_or_none()
+    if profile is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "PROFILE_NOT_FOUND", "message": "프로필을 찾을 수 없어요."},
+        )
+
+    # 보낸 필드만 갱신 — 미전송 항목은 건드리지 않는다.
+    updates = payload.model_dump(exclude_unset=True)
+    for field, value in updates.items():
+        setattr(profile, field, value)
+    await db.commit()
+    return {"success": True, "data": {"updated": list(updates.keys())}}

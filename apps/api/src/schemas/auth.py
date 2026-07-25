@@ -115,6 +115,23 @@ class RegisterRequest(BaseModel):
         return self
 
 
+class ProfileDemographicsUpdate(BaseModel):
+    """v3 수정 1 — 가입 후 인적사항(선택) 수정. 보낸 필드만 갱신한다.
+
+    가입 폼을 계정/동의 단계와 인적사항 단계로 분리하면서, 인적사항은 이 엔드포인트
+    (PATCH /auth/me/profile)로 별도 저장한다. 모두 선택이라 건너뛰기 가능."""
+
+    marital_status: MaritalStatus | None = Field(default=None, alias="maritalStatus")
+    household_type: HouseholdType | None = Field(default=None, alias="householdType")
+    education_level: EducationLevel | None = Field(default=None, alias="educationLevel")
+    occupation: str | None = Field(default=None, max_length=60)
+    employment_status: EmploymentStatus | None = Field(default=None, alias="employmentStatus")
+    income_level: IncomeLevel | None = Field(default=None, alias="incomeLevel")
+    religion: Religion | None = Field(default=None)
+
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+
 class TokenPair(BaseModel):
     user_id: UUID = Field(alias="userId")
     access_token: str = Field(alias="accessToken")
