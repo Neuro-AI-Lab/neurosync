@@ -7,6 +7,8 @@ WebSocket /sessions, Safety routing 등은 후속 슬라이스.
 import asyncio
 import contextlib
 import logging
+import os
+import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
@@ -17,6 +19,24 @@ from fastapi.responses import JSONResponse
 from src import __version__
 from src.api.v1 import api_v1
 from src.core.config import get_settings
+
+# BUG-087 — apps/api had zero logging configuration: `logger.warning`/`.info`
+# calls anywhere under `src/` (e.g. `services/chat.py`'s AIClientError path)
+# propagated to a root logger with no handler and were silently dropped, even
+# though `uvicorn`'s own dictConfig (uvicorn/config.py, `disable_existing_loggers:
+# False`) never touches the root logger to begin with. `force=True` makes this
+# call win regardless of import order relative to uvicorn's logging setup, and
+# regardless of whether pytest or a prior `basicConfig` call already attached a
+# handler (idempotent across re-imports / test-suite reruns).
+# LOG_LEVEL env var lets ops raise/lower verbosity without a code change;
+# stdout matches how the deployment stack (`nohup uvicorn ... > *_stdout.log`)
+# captures output.
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s %(name)s %(levelname)s %(message)s",
+    stream=sys.stdout,
+    force=True,
+)
 
 logger = logging.getLogger(__name__)
 

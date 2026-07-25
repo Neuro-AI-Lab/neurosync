@@ -382,7 +382,13 @@ async def test_ws_low_safety_emits_ai_complete_with_progress(client, test_settin
 @pytest.mark.asyncio
 @respx.mock
 async def test_ws_chat_failure_is_graceful(client, test_settings):
-    """AI chat down → still get the ack, no ai:complete (dialogue is best-effort)."""
+    """BUG-086(c) (2026-07-25): AI chat down → still get the ack, AND (as
+    of this fix) a non-empty `ai:complete` fallback reply — `respond()`'s
+    AIClientError/generic-exception catch sites used to `return None`
+    (fully silent turn, patient sees nothing); they now persist + return
+    a generic fallback message so the patient is never left with
+    indefinite silence. Connection stays healthy for a second message,
+    which gets the same treatment."""
     respx.post(f"{test_settings.ai_server_url}/ai/safety/classify").mock(
         return_value=Response(200, json=_ai_safety_response("low"))
     )
@@ -408,7 +414,13 @@ async def test_ws_chat_failure_is_graceful(client, test_settings):
         )
         ack = ws.receive_json()
         assert ack["type"] == "user:message:received"
-        # Next message round-trips fine — connection still healthy.
+        complete = ws.receive_json()
+        assert complete["type"] == "ai:complete"
+        assert complete["payload"]["content"]  # never empty (BUG-086 invariant)
+        assert complete["payload"]["modelUsed"] == "fallback"
+
+        # Next message round-trips fine — connection still healthy, and
+        # gets the same non-silent fallback treatment again.
         ws.send_json(
             {
                 "type": "user:message",
@@ -416,6 +428,9 @@ async def test_ws_chat_failure_is_graceful(client, test_settings):
             }
         )
         assert ws.receive_json()["type"] == "user:message:received"
+        complete2 = ws.receive_json()
+        assert complete2["type"] == "ai:complete"
+        assert complete2["payload"]["content"]
 
 
 @pytest.mark.asyncio

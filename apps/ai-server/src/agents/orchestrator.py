@@ -135,6 +135,26 @@ _INCOMPLETE_INTAKE_MESSAGE = (
     "나누고 싶은 이야기가 있다면 편하게 말씀해 주세요."
 )
 
+# BUG-086/BUG-090 (2026-07-25): single source of truth for the "stage-1"
+# closing ack — shipped the instant slot-coverage/risk-grounded
+# termination criteria are met (BUG-090: immediately, never gated behind
+# the expensive slot-extraction + handoff-generation + evidence-
+# verification chain), and reused verbatim as the non-empty fallback
+# whenever that deferred chain later completes WITHOUT a verified report
+# and WITHOUT the risk-screening-incomplete escalation (BUG-086: an
+# orchestrator turn result's `assistant_response` must never be the empty
+# string — apps/api's `ChatResponse.assistant_response` contract
+# (`min_length=1`, `packages/shared-contracts/python/src/contracts/
+# chat.py`) rejects "" outright and silently drops the entire turn, with
+# no once-fire latch engaging afterward — see BUG-086's error.md entry
+# for the live-reproduced permanent stall this caused). Previously
+# duplicated as a bare string literal in `routes/chat.py`'s Step 3
+# branch; that call site now reads `OrchestratorTurnResult.
+# assistant_response` instead of re-declaring the text.
+_HANDOFF_ACK_MESSAGE = (
+    "네 알겠습니다. 답변 주신 내용을 토대로 증상 확인 중입니다."
+)
+
 # Crisis response messages per CTRS level
 _CRISIS_MESSAGES: dict[CTRSLevel, str] = {
     CTRSLevel.EMERGENCY: (
@@ -307,6 +327,35 @@ class OrchestratorAgent(BaseAgent):
                 })
             return self._build_post_handoff_result(state)
 
+        # BUG-090: lazy-resume guard. Only reached once `state.
+        # pending_handoff_pipeline` is True (set below, the instant
+        # termination criteria were first met on a PRIOR turn — see
+        # that field's own schema docstring for why this "resume on the
+        # next request" shape, rather than an in-process background
+        # task, is the only deferral mechanism available without adding a
+        # session store to ai-server). THIS turn is where the deferred
+        # slot-extraction + handoff-generation + evidence-verification
+        # chain actually runs — mirrors Cluster G's own turn-count/
+        # conversation-history bookkeeping (placed AFTER the crisis check
+        # and Cluster G's own guard above, so a post-handoff crisis
+        # disclosure or an already-fully-delivered session are both
+        # unaffected by this branch; the two guards are mutually
+        # exclusive by construction — `_run_post_dialogue_pipeline` below
+        # always sets `handoff_delivered = True` before returning, so a
+        # session is never `pending_handoff_pipeline` and
+        # `handoff_delivered` at once).
+        if state.pending_handoff_pipeline:
+            state.pending_handoff_pipeline = False
+            state.turn_count += 1
+            if inp.raw_input:
+                state.conversation_history.append({
+                    "role": "user",
+                    "content": inp.raw_input,
+                })
+            result = await self._run_post_dialogue_pipeline(state)
+            state.handoff_delivered = True  # BUG-086: latch unconditionally
+            return result
+
         # Stage 3: Context retrieval (first turn only, or when needed)
         if state.turn_count == 0:
             await self._run_context_retrieval(state)
@@ -351,17 +400,46 @@ class OrchestratorAgent(BaseAgent):
         # crossing the threshold is necessary but no longer sufficient on
         # its own until risk_assessment is grounded).
         if self._should_extract_slots(state):
-            result = await self._run_post_dialogue_pipeline(state)
-            # ADR-044: a real handoff (`handoff_ready`) is terminal, as
-            # before. So is the escalation outcome (`clinical_escalation_
-            # required` — `state.risk_screening_incomplete` was just set
-            # by `_should_extract_slots`'s backstop branch, and turn_count
-            # can only grow, so re-attempting the pipeline next turn would
-            # never resolve it) — ordinary regenerate/reject/exception
-            # outcomes (neither flag set) still legitimately retry next
-            # turn, unchanged.
-            state.handoff_delivered = result.handoff_ready or result.clinical_escalation_required
-            return result
+            # BUG-090 (user-directed UX redesign, 2026-07-25): termination
+            # criteria (coverage threshold + risk-grounded, or the max-
+            # turns backstop) are met THIS turn — ship the stage-1 ack
+            # IMMEDIATELY instead of blocking this turn's response behind
+            # the expensive slot-extraction + handoff-generation +
+            # evidence-verification chain (`_run_post_dialogue_pipeline`,
+            # live-measured 49-58s). That chain is deferred to the NEXT
+            # `process_turn` call for this session (picked up by the
+            # `pending_handoff_pipeline` guard above — see that field's
+            # schema docstring for why "resume on next request" is the
+            # only sound deferral shape here, ai-server having no cross-
+            # request session store). `state.risk_screening_incomplete`
+            # is already known synchronously (no LLM call required) —
+            # the escalation ack ships on THIS turn too, never delayed,
+            # so the clinician-facing urgency signal (`clinical_
+            # escalation_required`) reaches the caller no later than
+            # before this change (in fact strictly earlier — previously
+            # it also waited behind the same 49-58s chain).
+            state.pending_handoff_pipeline = True
+            escalation = state.risk_screening_incomplete
+            self._record_stage(
+                state, SessionStage.slot_extraction, "orchestrator",
+                "pass" if not escalation else "skip",
+                "termination criteria met — handoff pipeline deferred to "
+                "next turn (BUG-090)"
+                + (", risk_screening_incomplete (ADR-044)" if escalation else ""),
+            )
+            return OrchestratorTurnResult(
+                session_id=state.session_id,
+                current_stage=SessionStage.completed,
+                assistant_response=(
+                    _INCOMPLETE_INTAKE_MESSAGE if escalation else _HANDOFF_ACK_MESSAGE
+                ),
+                safety_status=state.safety_status,
+                slot_coverage=state.slot_coverage,
+                handoff_ready=False,
+                clinical_escalation_required=escalation,
+                session_state=state,
+                stage_history=state.stage_history,
+            )
 
         # Still in dialogue — return turn result for caller to generate response
         self._record_stage(state, SessionStage.dialogue_loop, "03_dialogue", "continue")
@@ -1065,25 +1143,58 @@ class OrchestratorAgent(BaseAgent):
         correct message/flag on every subsequent turn of that session, so
         the patient consistently sees the calm escalation message rather
         than the "already handed off" one it was never actually given.
+
+        BUG-086 fix: `state.handoff_delivered` is now ALSO latched True on
+        an unverified terminal outcome (regenerate-exhausted/reject/
+        exception, no escalation) — `state.handoff_unverified` picks the
+        matching `_HANDOFF_ACK_MESSAGE` text on every subsequent turn,
+        distinct from both the real-success `_POST_HANDOFF_MESSAGE` and
+        the escalation `_INCOMPLETE_INTAKE_MESSAGE`.
+
+        CVR-058 (blocking) fix: the `unverified` branch used to ship
+        `_HANDOFF_ACK_MESSAGE` verbatim on EVERY subsequent turn of the
+        session, regardless of what the patient said — live-observed as a
+        7-turn identical-string non-responsive loop (qa session
+        `5f6583d4`), right at a point where the patient may have just
+        disclosed SI. `_HANDOFF_ACK_MESSAGE` is still returned here as
+        `assistant_response` (the safe, never-empty fallback — BUG-086's
+        own invariant is preserved unconditionally), but
+        `needs_closing_dialogue=True` is now also set on this branch so
+        `routes/chat.py` can override it with a real, content-aware
+        `DialogueAgent` closing-mode call. The escalation and real-
+        success branches are unaffected (both already ship a genuine
+        terminal message, not a content-blind repeat).
         """
         escalation = state.risk_screening_incomplete
+        unverified = state.handoff_unverified
         self._record_stage(
             state, SessionStage.completed, "orchestrator",
             "skip",
             "post-handoff short-circuit ("
-            + ("risk_screening_incomplete, ADR-044" if escalation
-               else "handoff_delivered, ADR-043") + ")"
+            + (
+                "risk_screening_incomplete, ADR-044" if escalation
+                else "handoff_unverified, BUG-086" if unverified
+                else "handoff_delivered, ADR-043"
+            ) + ")"
         )
+        if escalation:
+            assistant_response = _INCOMPLETE_INTAKE_MESSAGE
+        elif unverified:
+            assistant_response = _HANDOFF_ACK_MESSAGE
+        else:
+            assistant_response = _POST_HANDOFF_MESSAGE
         return OrchestratorTurnResult(
             session_id=state.session_id,
             current_stage=SessionStage.completed,
-            assistant_response=_INCOMPLETE_INTAKE_MESSAGE if escalation else _POST_HANDOFF_MESSAGE,
+            assistant_response=assistant_response,
             safety_status=state.safety_status,
             slot_coverage=state.slot_coverage,
             handoff_ready=False,
             clinical_escalation_required=escalation,
             session_state=state,
             stage_history=state.stage_history,
+            # CVR-058 fix: unverified-only — escalation/real-success stay False.
+            needs_closing_dialogue=(unverified and not escalation),
         )
 
     @staticmethod
@@ -1360,10 +1471,34 @@ class OrchestratorAgent(BaseAgent):
         # report and the "ready" status are gated, not the underlying data.
         escalation = state.risk_screening_incomplete
         handoff_ready = handoff_report is not None and not escalation
+        # BUG-086 fix (2026-07-25, qa live-reproduced session `2671d9fe`):
+        # this branch used to ship a bare empty string whenever the
+        # pipeline reached its terminal `completed` outcome WITHOUT a
+        # verified report and WITHOUT the escalation flag (verifier
+        # rejected, regenerate budget exhausted, or the pipeline raised —
+        # `handoff_report is None and not escalation`). apps/api's own
+        # `ChatResponse.assistant_response` contract (`min_length=1`)
+        # rejects "" outright and silently drops the ENTIRE turn — no
+        # `ai:complete` frame, no DB row, and (before the `handoff_
+        # delivered` latch fix above) the turn re-ran from scratch on
+        # every subsequent message forever. `assistant_response` must
+        # never be empty here: reuse `_HANDOFF_ACK_MESSAGE` (the same
+        # text already shown on the earlier stage-1 ack turn, per
+        # BUG-090) for the unverified case — it is a safe, generic,
+        # already-patient-facing string, and this turn is only reachable
+        # via the BUG-090 lazy-resume path, whose own stage-1 ack turn
+        # the patient has typically already left the chat screen after
+        # (see BUG-090's RESULT discussion) — so this text is a
+        # defensive non-empty fallback, not the primary UX surface.
+        unverified = handoff_report is None and not escalation
+        state.handoff_unverified = unverified
+        assistant_response = (
+            _INCOMPLETE_INTAKE_MESSAGE if escalation else _HANDOFF_ACK_MESSAGE
+        )
         return OrchestratorTurnResult(
             session_id=state.session_id,
             current_stage=SessionStage.completed,
-            assistant_response=_INCOMPLETE_INTAKE_MESSAGE if escalation else "",
+            assistant_response=assistant_response,
             safety_status=state.safety_status,
             slot_coverage=state.slot_coverage,
             handoff_ready=handoff_ready,

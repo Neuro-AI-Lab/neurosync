@@ -272,13 +272,17 @@ def test_is_meta_utterance_still_does_not_flag_genuine_answers(text: str) -> Non
 
 
 def test_prompt_version_pinned_v5_6() -> None:
-    assert PROMPT_VERSION == "v5.6"
+    # BUG-089 (2026-07-25, session `2671d9fe`): bumped v5.6 -> v5.7
+    # (addition-only — one new current-turn-attribution bullet, see
+    # v5.7's own changelog note). Every assertion below still holds — the
+    # v5.6 content this test targets is byte-identical in v5.7.
+    assert PROMPT_VERSION == "v5.7"
 
 
 def test_v5_6_prompt_carries_cvr057_discriminant_principle() -> None:
     loader = PromptLoader(PROMPTS_DIR)
     content = loader.load_system_prompt("dialogue", PROMPT_VERSION)
-    assert content, "dialogue v5.6 prompt loaded empty"
+    assert content, "dialogue v5.7 prompt loaded empty"
 
     # Fact-response and meta-utterance de-escalation principles present.
     assert "사실/행정 응답" in content

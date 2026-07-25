@@ -93,18 +93,33 @@ class TestBug085RecapTextLiteralSlotAttribution:
 
 class TestBug085Stage1ClosingMessage:
     def test_handoff_ready_message_is_the_redesigned_neutral_phrase(self) -> None:
+        # BUG-086/090 (2026-07-25): the literal moved from `routes/chat.py`
+        # (a bare hardcoded string) to `agents/orchestrator.py`'s
+        # `_HANDOFF_ACK_MESSAGE` — the single source of truth both the
+        # immediate stage-1-ack turn (BUG-090) and the routes/chat.py Step
+        # 3 branch (now reading `orch_result.assistant_response` instead
+        # of re-declaring the text, BUG-086's "never duplicate" fix) share.
+        from src.agents import orchestrator as orchestrator_module
         from src.routes import chat as chat_route
 
-        source = chat_route.__loader__.get_source(chat_route.__name__)  # type: ignore[union-attr]
+        orch_source = orchestrator_module.__loader__.get_source(  # type: ignore[union-attr]
+            orchestrator_module.__name__
+        )
         assert (
             "네 알겠습니다. 답변 주신 내용을 토대로 증상 확인 중입니다."
-            in source
+            in orch_source
         )
-        assert "충분한 정보가 수집되었습니다" not in source
-        assert "사전문진 보고서를 작성하겠습니다" not in source
+        assert "충분한 정보가 수집되었습니다" not in orch_source
+        assert "사전문진 보고서를 작성하겠습니다" not in orch_source
         # No patient-facing "보고서" mention in actual code/string literals —
         # only the code comments explaining the fix reference the word itself.
         non_comment_lines = [
-            line for line in source.splitlines() if not line.strip().startswith("#")
+            line for line in orch_source.splitlines() if not line.strip().startswith("#")
         ]
         assert not any("보고서" in line for line in non_comment_lines)
+
+        # routes/chat.py's own Step 3 branch no longer hardcodes the text —
+        # it must read it off `orch_result.assistant_response` instead.
+        chat_source = chat_route.__loader__.get_source(chat_route.__name__)  # type: ignore[union-attr]
+        assert "네 알겠습니다. 답변 주신 내용을 토대로 증상 확인 중입니다." not in chat_source
+        assert "assistant_response=orch_result.assistant_response" in chat_source

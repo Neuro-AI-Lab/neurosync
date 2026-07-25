@@ -396,6 +396,84 @@ async def _extract_slots(
     return merged
 
 
+# BUG-086(c) (2026-07-25): AIClientError/generic-exception paths in
+# `respond()` used to `return None` — a fully silent turn (no reply, no
+# persisted message) with only a best-effort log line (itself invisible
+# in practice per BUG-087, apps/api's own missing logging config — a
+# separate, qa-owned gap this fix does not touch). ai-server's own
+# BUG-086 root cause (an empty-string `assistant_response` rejected by
+# this contract's own `min_length=1`) is now eliminated at the source
+# (`OrchestratorAgent` never emits ""), so this path should mostly stop
+# firing for THAT specific reason — but any other AI-server outage/
+# timeout/5xx still lands here, and a patient must never see indefinite
+# silence for those either. A short, generic, non-alarming fallback text
+# ships instead, persisted like a real assistant turn so conversation
+# continuity (`respond()`'s own `context[-1].role != "user"` invariant)
+# is preserved for the next call.
+_AI_UNAVAILABLE_FALLBACK_TEXT = (
+    "죄송합니다, 지금 답변을 준비하는 데 문제가 있었어요. 잠시 후 다시 "
+    "말씀해 주시겠어요?"
+)
+
+
+async def _fallback_reply(
+    db: AsyncSession,
+    *,
+    session_id: uuid.UUID,
+    settings: Settings,
+    session_state: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """BUG-086(c): non-empty, persisted fallback turn for `respond()`'s
+    AIClientError/generic-exception catch sites — replaces the previous
+    silent `return None`. Reloads `Session` defensively (the exception
+    may have been raised before `respond()`'s own `sess_row` query ran)
+    so the progress bar keeps its last-known values instead of resetting
+    to 0 (same "never regress progress on an error path" discipline
+    `_progress_fields_from_session_state`'s own docstring already
+    documents for the `session_state`-absent case)."""
+    sess_row = await db.execute(select(Session).where(Session.id == session_id))
+    sess = sess_row.scalar_one_or_none()
+
+    ai_message_id = uuid.uuid4()
+    db.add(
+        Message(
+            id=ai_message_id,
+            session_id=session_id,
+            role="ai",
+            content_encrypted=encrypt_str(
+                _AI_UNAVAILABLE_FALLBACK_TEXT,
+                aad=_message_aad(session_id, ai_message_id),
+                settings=settings,
+            ),
+            input_modality="text",
+        )
+    )
+
+    collected_items = sess.collected_items if sess is not None else []
+    ratio = sess.progress_ratio if sess is not None else 0.0
+
+    return {
+        "messageId": str(ai_message_id),
+        "content": _AI_UNAVAILABLE_FALLBACK_TEXT,
+        "modelUsed": "fallback",
+        "progress": {
+            "collectedItems": collected_items,
+            "totalItems": _INTAKE_TOTAL_ITEMS,
+            "ratio": ratio,
+        },
+        # Echo the caller's own round-trip channel back unchanged — this
+        # turn produced no NEW orchestrator state, so there is nothing to
+        # advance it with (same "keep last-known" discipline as progress).
+        "sessionState": session_state,
+        "riskLevel": "none",
+        "requiresHumanReview": False,
+        "handoffReady": False,
+        "handoffReport": None,
+        "clinicalEscalationRequired": False,
+        "riskDetected": None,
+    }
+
+
 async def respond(
     db: AsyncSession,
     *,
@@ -449,10 +527,14 @@ async def respond(
         )
     except AIClientError as exc:
         logger.info("chat.respond.unavailable", extra={"error": str(exc)})
-        return None
+        return await _fallback_reply(
+            db, session_id=session_id, settings=settings, session_state=session_state,
+        )
     except Exception:  # noqa: BLE001 — dialogue is best-effort, never break the WS
         logger.warning("chat.respond.failed", exc_info=True)
-        return None
+        return await _fallback_reply(
+            db, session_id=session_id, settings=settings, session_state=session_state,
+        )
 
     # CVR-051 fix: ai-server's own conversation-history-aware safety gate
     # (inside its orchestrator) fired on THIS turn — mirror the pre-gate
