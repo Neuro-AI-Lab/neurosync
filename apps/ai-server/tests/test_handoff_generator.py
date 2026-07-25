@@ -30,6 +30,18 @@ def test_max_across_mixed_events() -> None:
     assert _detect_risk_level(events) == RiskLevel.high
 
 
+def test_contradictory_labels_take_max_not_explicit() -> None:
+    # Issue #21: "parse each event's risk_level and/or map ctrs_level via
+    # CTRS_TO_RISK, and return the max" — a contradictory pair must never
+    # resolve DOWNWARD (fail-closed for clinician-facing triage metadata).
+    assert _detect_risk_level([{"risk_level": "none", "ctrs_level": "1"}]) == RiskLevel.critical
+    assert _detect_risk_level([{"risk_level": "low", "ctrs_level": "2"}]) == RiskLevel.high
+
+
+def test_consistent_pair_unchanged_by_max_rule() -> None:
+    assert _detect_risk_level([{"risk_level": "high", "ctrs_level": "3"}]) == RiskLevel.high
+
+
 def test_empty_is_none() -> None:
     assert _detect_risk_level([]) == RiskLevel.none
 

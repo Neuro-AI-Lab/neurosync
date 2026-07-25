@@ -12,15 +12,14 @@ neuro-sync/
 ├── docs/
 │   ├── prd/PRD_neuro-sync.md        Platform 마스터 PRD
 │   ├── todo_plan/PLAN_neuro-sync.md Platform 마스터 PLAN
+│   ├── AI_master_plan.md            AI 전체 개발 계획
 │   └── ai/                          🤖 AI Research 워크스페이스
-│       ├── README.md                AI 진입점 + Boundary Contract
-│       ├── PRD_ai.md                AI 도메인 PRD
-│       ├── PLAN_ai.md               AI 팀 계획
-│       ├── AI_API_가이드.md         5종 벤더 가이드
-│       ├── orchestration/ prompts/ safety_guard/ stt/ ocr/ eval/
+│       ├── PRD_task1_v2.md          Task 1 활성 AI PRD
+│       ├── checklist_task1.md       Task 1 개발·검증 체크리스트
+│       └── agents/ prompts/ api/ personas/
 ├── apps/
 │   ├── api/                         Platform — FastAPI 백엔드 (Auth/DB/WS/Workers)
-│   ├── ai-server/                   🤖 AI — FastAPI AI 서비스 (5개 인터페이스)
+│   ├── ai-server/                   🤖 AI — FastAPI AI 서비스
 │   ├── mobile/                      Platform — React Native (환자 앱)
 │   └── web/                         Platform — Next.js (의료진 대시보드)
 ├── packages/
@@ -39,9 +38,9 @@ neuro-sync/
 3. `apps/api/`, `apps/mobile/`, `apps/web/`, `infra/`
 
 ### AI Research 팀
-1. [`docs/ai/README.md`](./docs/ai/README.md) — AI 워크스페이스 진입점
-2. [`docs/ai/PRD_ai.md`](./docs/ai/PRD_ai.md) — AI 도메인 PRD
-3. [`docs/ai/PLAN_ai.md`](./docs/ai/PLAN_ai.md) — AI 팀 계획
+1. [`docs/AI_master_plan.md`](./docs/AI_master_plan.md) — AI 전체 개발 계획
+2. [`docs/ai/PRD_task1_v2.md`](./docs/ai/PRD_task1_v2.md) — Task 1 활성 AI PRD
+3. [`docs/ai/checklist_task1.md`](./docs/ai/checklist_task1.md) — Task 1 개발·검증 체크리스트
 4. `apps/ai-server/`
 
 ## 통신 아키텍처
@@ -55,16 +54,22 @@ Mobile / Web ──HTTPS──> apps/api ──HTTP(internal)──> apps/ai-ser
 
 - 모바일/웹은 **Platform API만** 호출 (AI 서버 직접 접근 금지)
 - AI 서버는 **DB 직접 접근 금지** — 결과는 HTTP 응답으로만 반환
-- 5개 AI 인터페이스 스키마는 `packages/shared-contracts/`가 단일 소스
+- Platform↔AI 공유 스키마는 `packages/shared-contracts/`가 단일 소스다. 실제 마운트된 AI 서버
+  엔드포인트 목록은 [`apps/ai-server/src/main.py`](./apps/ai-server/src/main.py)를 기준으로 한다.
 
 ## 인터페이스 변경 절차
 
 `packages/shared-contracts/` 변경 시:
 1. CODEOWNERS에 따라 양 팀 리뷰어 자동 할당
-2. [`docs/prd/PRD_neuro-sync.md` §0.3](./docs/prd/PRD_neuro-sync.md) + [`docs/ai/PRD_ai.md` §1](./docs/ai/PRD_ai.md) 동시 갱신
+2. [`docs/prd/PRD_neuro-sync.md` §0.3](./docs/prd/PRD_neuro-sync.md) +
+   [`docs/ai/PRD_task1_v2.md`](./docs/ai/PRD_task1_v2.md) 동시 갱신
 3. 양 팀 approve 후 머지
 4. `apps/api`·`apps/ai-server`가 버전 업데이트
 
+현재 변경도 이 절차의 예외가 아니다. Platform·AI CODEOWNER 승인은 PR 리뷰에서 받아야 하며,
+이 문서 갱신 자체가 승인을 획득했다는 뜻은 아니다.
+
 ## 현재 단계
 
-**Phase 0 차단 게이트** — 코드 작성 전 (마스터 PLAN 참조). 본 README는 진입 직전 골격.
+현재 구현·검증 상태는 [`docs/ai/PRD_task1_v2.md`](./docs/ai/PRD_task1_v2.md)와 기능별 체크리스트를
+기준으로 확인한다. 과거 Phase 표나 완료 표시는 해당 문서에 기록된 증거 범위 안에서만 해석한다.

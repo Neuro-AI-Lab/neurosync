@@ -6,12 +6,22 @@
 |---|---|
 | **Agent ID** | `11` |
 | **Agent Name** | `EvidenceVerifierAgent` |
-| **역할** | Handoff report 품질 검증 및 release gate |
+| **역할** | 레거시 Orchestrator handoff 품질 검증 |
 | **LLM Routing** | **100% rule-based — 실제로는 LLM을 전혀 호출하지 않는다.** `agents/evidence_verifier.py`에는 router/adapter/prompt_loader 참조가 없다(정규식/패턴 매칭 기반). `agent_model_registry.yaml`은 `benchmarked`로 등록해 두었으나 코드 현실과 어긋난 등록 상태다(알려진 드리프트, 별도 BUG 예정 — 본 미션 범위에서 registry는 수정하지 않음) |
+
+## 현재 호출 범위
+
+이 에이전트는 `OrchestratorAgent.run()`의 레거시 `HandoffGeneratorAgent` 재생성 루프에서 실제로
+호출된다. 따라서 globally dead는 아니다. 반면 현재 `POST /ai/handoff/generate`는
+`HandoffContractGenerator`가 공식 구조화 JSON과 indexed per-leaf/item citation을 직접 검증하며,
+이 에이전트를 호출하지 않는다. `POST /ai/handoff/report`의 결정론적 F5 경로도 호출하지 않는다.
+아래 검증 체크와 release-gate 표현은 모두 레거시 Orchestrator 경로에만 적용된다.
 
 ## 목적
 
-HandoffGeneratorAgent(10)가 생성한 report를 배포 전에 검증한다. 모든 검증 항목을 통과해야만 report가 의료진에게 전달된다. 위반 사항 발견 시 **reject하고 재생성을 요청**하며, 최대 2회 재시도 후에도 통과하지 못하면 의료진에게 경고와 함께 전달한다. 이 에이전트가 **release gate** 역할을 수행한다.
+레거시 Orchestrator가 `HandoffGeneratorAgent`(10)로 생성한 report를 검증한다. 위반 사항 발견 시
+reject 또는 regenerate 결과를 반환하며, Orchestrator가 최대 2회 재생성 흐름을 제어한다. 이 범위
+안에서만 release gate 역할을 한다.
 
 ## 검증 항목 (Validation Checklist) — 스펙 대비 구현 현황
 
@@ -34,7 +44,7 @@ HandoffGeneratorAgent(10)가 생성한 report를 배포 전에 검증한다. 모
 
 ## V-07 CTRS 일관성 검증 세부 규칙 — 스펙 대비 구현 현황
 
-**정정:** V-07은 개념상 "CTRS level이 관련 위험 지표와 폭넓게 일관적인지" 교차 검증하는 취지이나, 실제 구현 함수 `_check_ctrs_action_alignment(report: str, ctrs_level: int)`(`agents/evidence_verifier.py:302-337`)은 **report 텍스트와 ctrs_level 정수만 입력받는다.** PHQ-9 점수, safety classifier의 위험 카테고리/`crisis_triggered` 플래그, 자살 계획·수단 언급 여부, 자살시도 진행 여부는 이 함수의 인자에 없고 코드 어디에도 그 값을 참조하는 로직이 없다 — 아래 6개 행 중 실제로 구현된 것은 **마지막 행(섹션 11 키워드 존재 검사)뿐**이며, 이는 위 "검증 항목" 표의 V-07 "부분 구현" 표기와 일치한다.
+**정정:** V-07은 개념상 "CTRS level이 관련 위험 지표와 폭넓게 일관적인지" 교차 검증하는 취지이나, 실제 구현 함수 `_check_ctrs_action_alignment(report: str, ctrs_level: int)`(`agents/evidence_verifier.py`)은 **report 텍스트와 ctrs_level 정수만 입력받는다.** PHQ-9 점수, safety classifier의 위험 카테고리/`crisis_triggered` 플래그, 자살 계획·수단 언급 여부, 자살시도 진행 여부는 이 함수의 인자에 없고 코드 어디에도 그 값을 참조하는 로직이 없다 — 아래 6개 행 중 실제로 구현된 것은 **마지막 행(섹션 11 키워드 존재 검사)뿐**이며, 이는 위 "검증 항목" 표의 V-07 "부분 구현" 표기와 일치한다.
 
 | 조건 | 최소 CTRS | 불일치 시 | 구현 상태 |
 |---|---|---|---|
@@ -45,7 +55,7 @@ HandoffGeneratorAgent(10)가 생성한 report를 배포 전에 검증한다. 모
 | Safety classifier가 crisis_triggered = true 반환 | CTRS 1-2 | CTRS 3-5이면 FAIL | **미구현** (design-intent only — `crisis_triggered` 플래그가 함수 입력에 없음) |
 | 섹션 11(권장 조치)에 CTRS별 필수 키워드 미포함 | CTRS 1: `119\|112\|응급`, CTRS 2: `109\|119\|긴급\|위기상담`, CTRS 3: `정신건강의학과\|109\|위기` | 미포함 시 FAIL | **구현** (`_check_ctrs_action_alignment`) — CTRS 1/2 미포함은 `severity=error`, CTRS 3 미포함은 `severity=warning` |
 
-**FAIL 판정 시:** 위 마지막 행(구현된 유일한 체크)만 실제로 report를 reject/regenerate로 이끈다. CTRS 1/2 미포함은 `error`로 기록되어 즉시 reject(CRITICAL 위반) 대상이다. CTRS 3 미포함은 `warning`으로 기록되며, 단독으로는 reject를 유발하지 않고 다른 warning과 합산해 3건 이상일 때만 regenerate를 유발한다(`run()`의 `error_count`/`warning_count` 판정, `agents/evidence_verifier.py:133-142`) — 위 "검증 항목" 표의 V-07 CRITICAL 표기는 이 체크가 개념적으로 속한 심각도 분류이며, CTRS 3 행의 코드 레벨 `severity=warning`과는 별개다. 나머지 5개 행(미구현)은 FAIL 판정 자체가 발생하지 않는다 — 해당 조건이 코드에서 평가되지 않기 때문이다.
+**FAIL 판정 시:** 위 마지막 행(구현된 유일한 체크)만 실제로 report를 reject/regenerate로 이끈다. CTRS 1/2 미포함은 `error`로 기록되어 즉시 reject(CRITICAL 위반) 대상이다. CTRS 3 미포함은 `warning`으로 기록되며, 단독으로는 reject를 유발하지 않고 다른 warning과 합산해 3건 이상일 때만 regenerate를 유발한다(`run()`의 `error_count`/`warning_count` 판정, `agents/evidence_verifier.py`) — 위 "검증 항목" 표의 V-07 CRITICAL 표기는 이 체크가 개념적으로 속한 심각도 분류이며, CTRS 3 행의 코드 레벨 `severity=warning`과는 별개다. 나머지 5개 행(미구현)은 FAIL 판정 자체가 발생하지 않는다 — 해당 조건이 코드에서 평가되지 않기 때문이다.
 
 ## 입력
 
@@ -209,8 +219,8 @@ HandoffGeneratorAgent(10)가 생성한 report를 배포 전에 검증한다. 모
 
 ## 안전 제약
 
-1. **Release gate 역할**: 이 에이전트를 통과하지 않은 report는 의료진에게 전달되지 않는다.
-2. **CRITICAL 위반 무시 금지**: CRITICAL 위반은 어떤 경우에도 무시할 수 없다. 3회 실패 시에도 경고를 첨부한다.
+1. **레거시 release gate 역할**: Orchestrator 경로에서 이 에이전트를 통과하지 않은 report는 전달 준비 상태가 되지 않는다.
+2. **Error 위반 무시 금지**: error가 하나라도 있으면 `reject`하며 Orchestrator는 report를 준비 완료로 표시하지 않는다.
 3. **자동 수정 금지**: Verifier는 report를 직접 수정하지 않는다. 수정은 HandoffGeneratorAgent가 수행한다.
 4. **검증 로그 보존**: 모든 검증 결과(PASS/FAIL)를 로그에 저장한다. 추후 감사(audit)에 활용한다.
 
@@ -218,6 +228,7 @@ HandoffGeneratorAgent(10)가 생성한 report를 배포 전에 검증한다. 모
 
 | 실패 유형 | 대응 |
 |---|---|
-| 3회 연속 CRITICAL 실패 | Report에 상세 경고를 첨부하여 의료진에게 전달. 차단하지 않음 |
+| error 1건 이상 | `reject`; 레거시 Orchestrator 결과는 `handoff_ready=False` |
+| warning 3건 이상 | `regenerate`; 최대 2회 재생성 뒤에도 통과하지 못하면 `handoff_ready=False` |
 
 **정정:** 이 에이전트는 LLM을 호출하지 않으므로 "LLM 검증 실패"/"전체 LLM 실패"/"검증 timeout"(LLM 응답 대기 관련) 행은 as-built 상태에 존재하지 않는다(과거 버전 문서의 서술 제거). V-04/06/10/11/12의 미구현은 "실패"가 아니라 해당 체크가 애초에 수행되지 않는 상태이며, 그 항목들은 결과에 나타나지 않는다.

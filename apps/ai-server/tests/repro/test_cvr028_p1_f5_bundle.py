@@ -92,6 +92,7 @@ def _session(final_slots: dict[str, str]) -> SessionSnapshot:
 def _minimal_input(final_slots: dict[str, str], all_sessions=()) -> HandoffReportInput:
     return HandoffReportInput(
         vp_id="VP-010",
+        generated_at="2026-01-15T12:00:00+09:00",
         session=_session(final_slots),
         current_session_f3=None,
         all_f3_administrations=(),

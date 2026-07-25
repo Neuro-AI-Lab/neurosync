@@ -1,19 +1,40 @@
-# Agent 10: Handoff Report Writer Agent
+# Agent 10: Handoff generators
 
 ## 개요
 
 | 항목 | 내용 |
 |---|---|
 | **Agent ID** | `10` |
-| **Agent Name** | `HandoffGeneratorAgent` |
-| **역할** | 의료진용 사전 문진 handoff report 생성 |
+| **Agent Name** | `HandoffContractGenerator` (현재 HTTP) / `HandoffGeneratorAgent` (레거시 orchestrator) |
+| **역할** | 의료진용 사전 문진 handoff 생성 |
 | **LLM Routing** | benchmarked (Primary: Upstage Solar Pro 3 / Secondary: LG K-EXAONE / Fallback: SKT A.X K1) |
+
+## 현재 경로 구분
+
+| 경로 | 구현 | 출력·검증 |
+|---|---|---|
+| `POST /ai/handoff/generate` | `agents/handoff_contract_generator.py`, prompt v4 | 공식 `HandoffResponse` JSON. `EvidenceVerifierAgent` 미호출 |
+| `OrchestratorAgent.run()` | `agents/handoff_generator.py`, prompt v2 | 아래에 보존한 레거시 12-section Markdown + `EvidenceVerifierAgent` 루프 |
+| `POST /ai/handoff/report` | 결정론적 `src/f5.py` | zero-LLM F4+F5 export; 이 Agent를 호출하지 않음 |
+
+현재 `/generate`는 채워진 scalar와 `sleep_appetite_activity.<leaf>`마다 동일 target citation을 요구한다.
+`symptoms[i]`, `triggers[i]`, `clinician_attention[i]`는 zero-based 항목별 citation이 필요하다.
+Metadata, container, 빈 target, 인덱스 없는 list 이름은 허용하지 않는다. 각 citation은 요청의 실제
+`message_id`와 그 메시지의 non-empty exact-substring quote를 가리켜야 한다. 문서 source ID가 공식
+계약에 없으므로 `documents_summary`는 비워 둔다.
+
+Provider 시도는 설정된 primary→secondary→fallback 순서의 최대 세 번이다. transport 실패나
+JSON/공식 응답/citation 계약 불일치는 해당 tier 실패로 기록하고, 모든 검증을 통과한 뒤에만 성공을
+기록한다. 최종 계약 불일치는 generic 422, 최종 provider 실패는 generic 500으로 반환한다.
+
+이하 12-section, `[ev_*]`, section completeness 설명은 레거시 `HandoffGeneratorAgent` 경로의
+사양이다. 현재 `/ai/handoff/generate` 응답 shape로 읽으면 안 된다.
 
 ## 목적
 
 사전 문진 과정에서 수집된 모든 정보를 종합하여 의료진이 진료에 즉시 활용할 수 있는 구조화된 handoff report를 생성한다. 모든 주장(claim)에는 반드시 evidence 인용을 포함한다. **진단적 단정을 하지 않으며**, **치료 지시를 하지 않는다**.
 
-## Report 12개 섹션
+## 레거시 Report 12개 섹션
 
 PRD Section 6.3 기준 12-section 구조. 모든 필수 섹션은 반드시 존재해야 하며, 데이터가 없는 경우 "해당 정보 없음"으로 포함한다.
 
@@ -224,11 +245,11 @@ Report 내 모든 evidence 인용은 `[ev_{source_type}_{3-digit sequence}]` 형
 4. **CTRS level과 권장 조치 정합성**: CTRS 1-2인 경우 권장 조치에 즉시 대응 관련 내용이 반드시 포함되어야 한다.
 5. **Low-confidence 항목 명시**: confidence < 0.7인 항목은 Section 11에 나열한다.
 
-## 실패 시 대응
+## 레거시 Orchestrator 경로 실패 시 대응
 
 | 실패 유형 | 대응 |
 |---|---|
-| LLM report 생성 실패 | Secondary → Fallback LLM 시도 |
-| 전체 LLM 실패 | 구조화된 slot 데이터를 템플릿에 직접 삽입한 minimal report 생성 |
-| Evidence verification 실패 (11번 Agent reject) | 지적 사항 수정 후 재생성 (최대 2회) |
+| LLM report 생성 실패 | 다음 configured tier를 한 번 시도; 그 tier도 실패하면 Orchestrator가 실패로 기록 |
+| EvidenceVerifier `reject` | 즉시 중단하고 `handoff_ready=False`; 재생성하지 않음 |
+| EvidenceVerifier warning 3건 이상 | `regenerate`로 최대 2회 재생성; 소진 시 `handoff_ready=False` |
 | 필수 섹션 데이터 부재 | 해당 섹션에 "정보 미수집" 표기 후 Section 11에 한계로 기록 |

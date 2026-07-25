@@ -92,6 +92,9 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
+from src.services.f5_artifact_store import F5ArtifactPaths
+from src.services.f5_stage_status import stage_return_code
+
 logger = logging.getLogger(__name__)
 
 # Multi-session chaining default (PLAN-2026-W28-Q W2, plan §3 "Multi-session
@@ -231,6 +234,7 @@ class ChainContext:
     # was actually administered this session — `None` otherwise (not
     # needed, or needed but skipped for lack of an answer_fn).
     f3_si_supplement_pathway: dict[str, Any] | None = None
+    f4_temporal_path: Path | None = None
 
 
 StageFn = Callable[[ChainContext], Awaitable[StageResult]]
@@ -950,6 +954,30 @@ async def run_multi_session_chain(
     if run_f4 and not halted:
         f4_result = await _run_f4_analysis(persona_id, out_dir)
         all_results.append(f4_result)
+        # F5 runs from the post-ledger path ONLY after a "pass" F4. F4 writes
+        # its *_temporal.json exclusively on "pass" — a "warn"/"skip"/"fail"
+        # produces NO fresh longitudinal output — so gating on "warn" too would
+        # let F5 silently consume a STALE temporal from an earlier run and emit
+        # a passing report mixing the current header with old data (codex P1).
+        # (Multi-session F5 was previously bypassed entirely for --sessions>1.)
+        if f4_result.status == "pass":
+            f5_ctx = ChainContext(
+                persona_id=persona_id,
+                max_turns=0,
+                k=0,
+                out_dir=out_dir,
+                scale_scores_path=None,
+                f4_temporal_path=f4_result.artifacts["json"],
+            )
+            all_results.append(await run_f5_stage(f5_ctx))
+        else:
+            all_results.append(
+                StageResult(
+                    "F5",
+                    "skip",
+                    "F4 produced no fresh longitudinal output — F5 skipped (dependency not met)",
+                )
+            )
 
     return all_results
 
@@ -1306,14 +1334,20 @@ def _build_f5_f3_administration(entry: dict[str, Any]) -> Any | None:
 
 
 def _run_f5_report(
-    persona_id: str, out_dir: Path | None, *, write_dir: Path | None = None
-) -> dict[str, Path]:
+    persona_id: str,
+    out_dir: Path | None,
+    f4_temporal_path: Path,
+    *,
+    write_dir: Path | None = None,
+) -> F5ArtifactPaths:
     """Read the VP's session ledger + every F1/F2/F4 artifact it points at,
     build `src.f5.HandoffReportInput`, call
     `src.f5.assemble_handoff_report` + `src.services.f5_report.
     save_f5_result`. Shared by `run_f5_stage` (STAGE_REGISTRY, live
     single-session path) and the standalone `--f5-from-artifacts` replay
-    CLI below — same assembly logic, never duplicated (mirrors
+    CLI below. The caller must supply the exact successful F4 JSON path;
+    only replay may resolve historical artifacts before calling this seam.
+    Assembly logic is never duplicated (mirrors
     `_run_f4_analysis`'s own dual-caller role).
 
     `out_dir` is where the ledger + F1-F4 artifacts are READ from
@@ -1392,16 +1426,12 @@ def _run_f5_report(
         for e in entries
     )
 
-    temporal_path = _find_latest_f5_temporal_artifact(persona_id, out_dir)
-    if temporal_path is None:
-        from src.f1 import OUTPUT_DIR
-
-        base = out_dir or OUTPUT_DIR
-        raise RuntimeError(
-            f"F5: no F4 longitudinal output (*_temporal.json) found for {persona_id} "
-            f"under {base / persona_id} — run F4 first (e.g. a `--sessions N` chain "
-            "without --no-f4, or the F4 STAGE_REGISTRY stage) before F5 can assemble its "
-            "B-section, which consumes F4's own output verbatim"
+    temporal_path = f4_temporal_path
+    if not temporal_path.is_file():
+        raise FileNotFoundError(
+            f"F5: exact F4 longitudinal output not found: {temporal_path} "
+            f"(persona={persona_id}) — run F4 first and pass that successful stage's "
+            "JSON artifact; live F5 will not fall back to artifact history"
         )
     try:
         longitudinal_data = json.loads(temporal_path.read_text(encoding="utf-8"))
@@ -1416,6 +1446,7 @@ def _run_f5_report(
 
     inp = HandoffReportInput(
         vp_id=persona_id,
+        generated_at=datetime.now().astimezone().isoformat(),
         session=session,
         current_session_f3=current_f3,
         all_f3_administrations=all_f3,
@@ -1441,23 +1472,58 @@ def _run_f5_report(
 
 
 async def run_f5_stage(ctx: ChainContext) -> StageResult:
-    """STAGE_REGISTRY entry point (single-session `run_chain` path, right
-    after F4 — same "reads whatever ledger entries have accumulated"
-    post-loop role `run_f4_stage` already plays for F4). Delegates entirely
-    to `_run_f5_report`; maps `F5InsufficientSessionsError` to a "skip"
-    `StageResult` (same discipline as `_run_f4_analysis`'s own <2-entries
-    skip), any other exception to a named "fail"."""
+    """Post-ledger F5 invocation shared by BOTH chain paths (`_main`'s
+    single-session path after its ledger append, and
+    `run_multi_session_chain` after a successful F4) — F5 reads the session
+    ledger, so it must only ever run once the current invocation's entries
+    are all appended. Delegates entirely to `_run_f5_report`; maps
+    `F5InsufficientSessionsError` to a "skip" `StageResult` (same
+    discipline as `_run_f4_analysis`'s own <2-entries skip), any other
+    exception to a named "fail"."""
     t0 = time.perf_counter()
+    if ctx.f4_temporal_path is None:
+        return StageResult(
+            "F5",
+            "fail",
+            "F5 requires the exact JSON artifact from the successful F4 stage; "
+            "no f4_temporal_path was provided and live fallback is disabled",
+            duration_ms=_ms(t0),
+        )
     try:
-        paths = _run_f5_report(ctx.persona_id, ctx.out_dir)
+        paths = _run_f5_report(ctx.persona_id, ctx.out_dir, ctx.f4_temporal_path)
     except F5InsufficientSessionsError as exc:
         return StageResult("F5", "skip", str(exc), duration_ms=_ms(t0))
     except Exception as exc:  # noqa: BLE001 — harness must report, not crash, on stage failure
         logger.exception("continuous_test.f5.failed")
         return StageResult("F5", "fail", f"F5 report assembly raised: {exc}", duration_ms=_ms(t0))
 
+    artifacts = {
+        name: path for name, path in paths.items() if isinstance(path, Path)
+    }
+    if "pdf" not in paths:
+        # PDF export failed inside save_f5_result (md+FHIR still written) —
+        # surface as WARN, never a clean pass, so the report/CLI/automation
+        # can detect the missing clinical artifact (a PDF LayoutError must
+        # not masquerade as a complete hand-off).
+        detail = (
+            "F5 hand-off report PARTIAL — PDF export failed (see logs); "
+            f"markdown+FHIR written -> {paths['markdown'].name}"
+        )
+        return StageResult(
+            "F5",
+            "warn",
+            detail,
+            artifacts=artifacts,
+            duration_ms=_ms(t0),
+        )
     detail = f"F5 hand-off report complete -> {paths['markdown'].name}"
-    return StageResult("F5", "pass", detail, artifacts=paths, duration_ms=_ms(t0))
+    return StageResult(
+        "F5",
+        "pass",
+        detail,
+        artifacts=artifacts,
+        duration_ms=_ms(t0),
+    )
 
 
 # ── F5 standalone replay CLI (`--f5-from-artifacts`) ─────────────────────
@@ -1497,14 +1563,29 @@ def _run_f5_replay_cli(artifacts_dir: Path, out_dir: Path | None) -> int:
     write_base = out_dir.resolve() if out_dir else read_base
 
     try:
-        paths = _run_f5_report(persona_id, read_base, write_dir=write_base)
+        temporal_path = _find_latest_f5_temporal_artifact(persona_id, read_base)
+        if temporal_path is None:
+            raise FileNotFoundError(
+                f"F5: no F4 longitudinal output (*_temporal.json) found for {persona_id} "
+                f"under {resolved} — run F4 first before replay"
+            )
+        paths = _run_f5_report(
+            persona_id, read_base, temporal_path, write_dir=write_base
+        )
     except Exception as exc:  # noqa: BLE001 — CLI must report, not traceback-dump
         print(f"F5 replay failed for persona={persona_id} (artifacts_dir={resolved}): {exc}")
         return 1
 
-    print(f"F5 hand-off report complete for {persona_id}:")
+    pdf_ok = "pdf" in paths
+    status = "complete" if pdf_ok else "PARTIAL (PDF export failed — see logs)"
+    print(f"F5 hand-off report {status} for {persona_id}:")
     for label, path in paths.items():
         print(f"  {label}: {path}")
+    if not pdf_ok:
+        # md+FHIR written but the PDF is missing — signal partial export with
+        # a non-zero exit so callers never treat it as a clean success.
+        print("  WARNING: PDF artifact missing — markdown/FHIR written, PDF export failed")
+        return 2
     return 0
 
 
@@ -1728,6 +1809,10 @@ def _build_single_session_ledger_entry(
     }
 
 
+def _chain_return_code(results: list[StageResult]) -> int:
+    return stage_return_code(results)
+
+
 async def _main(args: argparse.Namespace) -> int:
     out_dir = Path(args.out) if args.out else None
 
@@ -1775,7 +1860,7 @@ async def _main(args: argparse.Namespace) -> int:
             run_f4=run_f4,
         )
         print_multi_session_report(args.persona, results)
-        return 0 if all(r.status != "fail" for r in results) else 1
+        return _chain_return_code(results)
 
     ctx = ChainContext(
         persona_id=args.persona,
@@ -1794,8 +1879,16 @@ async def _main(args: argparse.Namespace) -> int:
             return 1
         ctx.conversation_path = path
 
-    results = await run_chain(ctx)
-    print_report(ctx, results)
+    # F4 AND F5 both read the session ledger, so BOTH are excluded from the
+    # in-chain traversal and invoked from the post-ledger path below: inside
+    # run_chain they would read a ledger that did not yet contain THIS
+    # session's entry — F5 got a stale/skipped hand-off report, and F4 a
+    # longitudinal window one session short of (and inconsistent with) F5's.
+    # This mirrors run_multi_session_chain, whose per-session ledger append
+    # precedes a single post-loop F4-then-F5 pass over the complete ledger.
+    results = await run_chain(
+        ctx, stages=[s for s in STAGE_REGISTRY if s.name not in ("F4", "F5")]
+    )
 
     # Plan §6 item 5: single-session ledger gap fix. Only written when F1
     # itself did not hard-fail (mirrors run_multi_session_chain's own
@@ -1806,7 +1899,34 @@ async def _main(args: argparse.Namespace) -> int:
         ledger_path = _ledger_path(args.persona, out_dir)
         _append_ledger_entry(ledger_path, _build_single_session_ledger_entry(ctx, results))
 
-    return 0 if all(r.status != "fail" for r in results) else 1
+    # F4 then F5 over the SAME (now-complete) ledger snapshot. A prior hard
+    # failure skips both; F4's own outcome then gates F5 (F5's B-section
+    # consumes F4's longitudinal output verbatim), exactly as multi-session.
+    chain_failed = any(r.status == "fail" for r in results)
+    if chain_failed:
+        f4_result = StageResult("F4", "skip", "prior stage failed — F4 skipped (dependency)")
+    else:
+        f4_result = await run_f4_stage(ctx)
+
+    if chain_failed:
+        f5_result = StageResult("F5", "skip", "prior stage failed — F5 skipped (dependency)")
+    elif f4_result.status != "pass":
+        f5_result = StageResult(
+            "F5",
+            "skip",
+            "F4 produced no fresh longitudinal output this run — F5 skipped (dependency not met)",
+        )
+    else:
+        ctx.f4_temporal_path = f4_result.artifacts["json"]
+        f5_result = await run_f5_stage(ctx)
+
+    # Preserve report order F1..F4, F5, F6 — insert the deferred F4+F5 just
+    # before F6 (or at the end when F6 is absent).
+    f6_index = next((i for i, r in enumerate(results) if r.name == "F6"), len(results))
+    results[f6_index:f6_index] = [f4_result, f5_result]
+
+    print_report(ctx, results)
+    return _chain_return_code(results)
 
 
 def main() -> int:

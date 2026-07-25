@@ -144,6 +144,7 @@ def _report(
     )
     inp = HandoffReportInput(
         vp_id="VP-TEST",
+        generated_at="2026-01-15T12:00:00+09:00",
         session=session,
         current_session_f3=current_f3,
         all_f3_administrations=(prior_f3, current_f3),
@@ -176,6 +177,7 @@ def _empty_report():
     )
     inp = HandoffReportInput(
         vp_id="VP-MIN",
+        generated_at="2026-01-15T12:00:00+09:00",
         session=session,
         current_session_f3=None,
         all_f3_administrations=(),
@@ -205,6 +207,26 @@ class TestBundleStructure:
         bundle = build_fhir_bundle(_empty_report())
         violations = validate_fhir_bundle(bundle)
         assert violations == [], violations
+
+    def test_patient_id_falls_back_to_vp_id_when_persona_id_empty(self) -> None:
+        # Regression: empty A0 persona_id must not yield an invalid Patient id="".
+        report = _report()
+        report.a0_header.persona_id = ""
+
+        bundle = build_fhir_bundle(report)
+
+        assert validate_fhir_bundle(bundle) == [], validate_fhir_bundle(bundle)
+        entries = bundle["entry"]
+        assert isinstance(entries, list)
+        patient = next(
+            resource
+            for entry in entries
+            if isinstance(entry, dict)
+            and isinstance(resource := entry.get("resource"), dict)
+            and resource.get("resourceType") == "Patient"
+        )
+        assert patient["id"] == report.vp_id
+        assert patient["id"] != ""
 
     def test_all_full_urls_unique(self) -> None:
         bundle = build_fhir_bundle(_report())
@@ -413,6 +435,7 @@ class TestA6ReasonSummaryFhir:
         )
         inp = HandoffReportInput(
             vp_id="VP-TEST",
+            generated_at="2026-01-15T12:00:00+09:00",
             session=session,
             current_session_f3=None,
             all_f3_administrations=(),
@@ -465,6 +488,7 @@ class TestA7DisclosureFhir:
         )
         inp = HandoffReportInput(
             vp_id="VP-TEST",
+            generated_at="2026-01-15T12:00:00+09:00",
             session=session,
             current_session_f3=None,
             all_f3_administrations=(),
@@ -615,3 +639,67 @@ class TestNarrativeOptInFhir:
         report = _report(narrative_enabled=True, narrative_text="환자는 수면 문제를 자가보고함.")
         bundle = build_fhir_bundle(report)
         assert validate_fhir_bundle(bundle) == []
+
+
+class TestFhirPrimitiveAndNarrativeValidity:
+    """Round-1 review blockers: naive timestamps, null primitives, unescaped XHTML."""
+
+    def test_bundle_timestamp_and_composition_date_are_timezone_aware(self) -> None:
+        from datetime import datetime
+
+        bundle = build_fhir_bundle(_report())
+        assert datetime.fromisoformat(bundle["timestamp"]).tzinfo is not None
+        comp = bundle["entry"][0]["resource"]
+        assert datetime.fromisoformat(comp["date"]).tzinfo is not None
+
+    def test_absent_ctrs_omits_value_integer_with_data_absent_reason(self) -> None:
+        bundle = build_fhir_bundle(_empty_report())
+        ctrs_obs = [
+            e["resource"]
+            for e in bundle["entry"]
+            if e["resource"].get("resourceType") == "Observation"
+            and any(c.get("code") == "ctrs" for c in e["resource"]["code"].get("coding", []))
+        ]
+        assert ctrs_obs, "CTRS observation missing entirely"
+        obs = ctrs_obs[0]
+        assert "valueInteger" not in obs
+        assert obs.get("dataAbsentReason"), "absent CTRS must carry dataAbsentReason"
+
+    def test_narrative_divs_are_wellformed_xml_with_escaped_clinical_text(self) -> None:
+        import xml.etree.ElementTree as ET
+
+        session = SessionSnapshot(
+            session_id="f1_VP-XML",
+            persona_id="VP-XML",
+            persona_name="김검증",
+            session_index=1,
+            simulated_date="2026-01-01",
+            model="solar-pro3",
+            final_slots={
+                "chief_complaint": "불안 & 수면 <3시간, 기록: <script>alert(1)</script>",
+            },
+            session_ctrs=3,
+            crisis_triggered=False,
+            crisis_turn=None,
+            risk_floor=None,
+            probe_event_count=0,
+        )
+        inp = HandoffReportInput(
+            vp_id="VP-XML",
+            generated_at="2026-01-15T12:00:00+09:00",
+            session=session,
+            current_session_f3=None,
+            all_f3_administrations=(),
+            domain_inference=DomainInferenceSnapshot(
+                ai_predicted_disease=AIPredictedDiseaseOutput(
+                    candidates=[], mode="experimental_unpopulated"
+                )
+            ),
+            longitudinal=LongitudinalAnalysisOutput(vp_id="VP-XML", n_sessions=1),
+        )
+        bundle = build_fhir_bundle(assemble_handoff_report(inp))
+        comp = bundle["entry"][0]["resource"]
+        for section in comp["section"]:
+            div = section["text"]["div"]
+            ET.fromstring(div)
+            assert "<script>" not in div

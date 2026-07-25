@@ -15,8 +15,14 @@ logger = logging.getLogger(__name__)
 _TRANSIENT_STATUS_CODES = {429, 500, 502, 503, 504}
 
 
+class AdapterHealthFailure(Exception):
+    """Content-free failure whose occurrence counts toward adapter health."""
+
+
 def is_transient(exc: Exception) -> bool:
     """Return True if the error is likely transient and worth retrying/falling back."""
+    if isinstance(exc, AdapterHealthFailure):
+        return True
     if isinstance(exc, openai.RateLimitError):
         return True
     if isinstance(exc, openai.APIStatusError) and exc.status_code in _TRANSIENT_STATUS_CODES:

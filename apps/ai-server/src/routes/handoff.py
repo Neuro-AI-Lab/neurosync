@@ -19,24 +19,31 @@ from __future__ import annotations
 import base64
 import logging
 import tempfile
-import uuid
+from datetime import datetime
 from pathlib import Path
+from typing import assert_never
 
+from contracts.handoff import HandoffRequest, HandoffResponse
 from contracts.longitudinal import HandoffReportRequest, HandoffReportResponse
 from fastapi import APIRouter, Depends, HTTPException
 
 from src import f4, f5
-from src.agents.evidence_verifier import (
-    EvidenceVerifierAgent,
-    EvidenceVerifierInput,
-    VerifierAction,
+from src.agents.handoff_contract_generator import (
+    HandoffContractGenerator,
+    HandoffContractValidationError,
+    HandoffProviderError,
 )
-from src.agents.handoff_generator import HandoffGeneratorAgent
 from src.dependencies import get_model_router, get_prompt_loader
 from src.prompts.loader import PromptLoader
 from src.routing.model_router import ModelRouter
-from src.schemas.handoff import HandoffInput, HandoffOutput
-from src.services.f5_report import build_fhir_bundle, build_markdown_report, build_pdf_report
+from src.services.f5_pdf_boundary import PdfRendered, PdfRenderFailed, render_pdf
+from src.services.f5_report import (
+    build_fhir_bundle,
+    build_markdown_report,
+    build_pdf_report,
+    validate_fhir_bundle,
+)
+from src.services.handoff_contract_adapter import adapt_handoff_request
 from src.services.stateless_longitudinal import (
     build_all_sessions,
     build_domain_inference_snapshot,
@@ -55,104 +62,28 @@ router = APIRouter(prefix="/ai/handoff", tags=["handoff"])
 # base64 inflates bytes by ~4/3, so this caps the PRE-encode PDF byte size.
 _PDF_SIZE_GUARD_BYTES = 10 * 1024 * 1024
 
-_MAX_REGENERATE_ATTEMPTS = 2
-
-
-def _get_handoff_agent(
+def get_handoff_agent(
     model_router: ModelRouter = Depends(get_model_router),
     prompt_loader: PromptLoader = Depends(get_prompt_loader),
-) -> HandoffGeneratorAgent:
-    return HandoffGeneratorAgent(model_router=model_router, prompt_loader=prompt_loader)
+) -> HandoffContractGenerator:
+    return HandoffContractGenerator(model_router=model_router, prompt_loader=prompt_loader)
 
 
-def _get_verifier_agent() -> EvidenceVerifierAgent:
-    return EvidenceVerifierAgent()
-
-
-@router.post("/generate", response_model=HandoffOutput)
+@router.post("/generate", response_model=HandoffResponse)
 async def generate(
-    body: HandoffInput,
-    handoff_agent: HandoffGeneratorAgent = Depends(_get_handoff_agent),
-    verifier: EvidenceVerifierAgent = Depends(_get_verifier_agent),
-) -> HandoffOutput:
-    """Generate a handoff report, then verify evidence integrity.
-
-    If the verifier says ``regenerate``, the report is regenerated up to
-    ``_MAX_REGENERATE_ATTEMPTS`` times. If it says ``reject``, a 422 is returned.
-    """
-    if not body.request_id:
-        body.request_id = str(uuid.uuid4())
-
-    logger.info(
-        "Handoff generate request_id=%s session_id=%s",
-        body.request_id,
-        body.session_id,
-    )
-
-    last_result: HandoffOutput | None = None
-
-    for attempt in range(1 + _MAX_REGENERATE_ATTEMPTS):
-        try:
-            result = await handoff_agent.run(body)
-        except Exception as exc:
-            logger.error("Handoff generation failed: %s", exc, exc_info=True)
-            raise HTTPException(
-                status_code=500, detail="Handoff report generation failed"
-            ) from exc
-
-        last_result = result
-
-        # Verify
-        verifier_input = EvidenceVerifierInput(
-            session_id=body.session_id,
-            request_id=body.request_id,
-            report_markdown=result.report_markdown,
-            evidence_packets=result.evidence_packets,
-        )
-
-        try:
-            verification = await verifier.run(verifier_input)
-        except Exception as exc:
-            logger.warning("Evidence verification failed, returning unverified: %s", exc)
-            break
-
-        if verification.action == VerifierAction.passed:
-            logger.info(
-                "Handoff verified (attempt %d): latency=%.0fms",
-                attempt + 1,
-                result.latency_ms,
-            )
-            return result
-
-        if verification.action == VerifierAction.reject:
-            logger.warning(
-                "Handoff REJECTED: %d issues — %s",
-                len(verification.issues),
-                [i.description for i in verification.issues],
-            )
-            raise HTTPException(
-                status_code=422,
-                detail={
-                    "message": "Handoff report rejected by evidence verifier",
-                    "issues": [i.model_dump() for i in verification.issues],
-                },
-            )
-
-        # regenerate
-        logger.info(
-            "Handoff needs regeneration (attempt %d/%d): %d issues",
-            attempt + 1,
-            1 + _MAX_REGENERATE_ATTEMPTS,
-            len(verification.issues),
-        )
-
-    # Exhausted regeneration attempts — return the last result with a warning
-    if last_result:
-        last_result.requires_human_review = True
-        last_result.reason_summary += " [WARNING: verification issues remain after regeneration]"
-        return last_result
-
-    raise HTTPException(status_code=500, detail="Handoff generation failed unexpectedly")
+    body: HandoffRequest,
+    handoff_agent: HandoffContractGenerator = Depends(get_handoff_agent),
+) -> HandoffResponse:
+    """Generate the shared response contract and reject unverifiable citations."""
+    local_input = adapt_handoff_request(body)
+    try:
+        return await handoff_agent.generate(body, local_input)
+    except HandoffContractValidationError as exc:
+        logger.warning("Handoff response rejected after validation retries")
+        raise HTTPException(status_code=422, detail="Handoff response validation failed") from exc
+    except HandoffProviderError as exc:
+        logger.error("Handoff response provider failed")
+        raise HTTPException(status_code=500, detail="Handoff report generation failed") from exc
 
 
 @router.post("/report", response_model=HandoffReportResponse)
@@ -196,6 +127,7 @@ async def report(body: HandoffReportRequest) -> HandoffReportResponse:
 
     handoff_input = f5.HandoffReportInput(
         vp_id=body.vp_id,
+        generated_at=datetime.now().astimezone().isoformat(),
         session=build_session_snapshot(header),
         current_session_f3=current_f3,
         all_f3_administrations=all_f3,
@@ -213,6 +145,22 @@ async def report(body: HandoffReportRequest) -> HandoffReportResponse:
 
     report_markdown = build_markdown_report(handoff_report)
     fhir_bundle = build_fhir_bundle(handoff_report)
+    # The FHIR validator reads externally shaped nested JSON; keep ordinary
+    # shape failures behind the same generic, PHI-free HTTP boundary.
+    try:
+        fhir_violations = validate_fhir_bundle(fhir_bundle)
+    except Exception:
+        fhir_violations = None
+    if fhir_violations is None or fhir_violations:
+        violation_count = 1 if fhir_violations is None else len(fhir_violations)
+        logger.error(
+            "Handoff report FHIR validation failed: violation_count=%d",
+            violation_count,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Handoff report FHIR validation failed",
+        ) from None
 
     pdf_base64: str | None = None
     pdf_omitted_reason: str | None = None
@@ -229,14 +177,17 @@ async def report(body: HandoffReportRequest) -> HandoffReportResponse:
                 path = tmp_dir / f"{key}.png"
                 path.write_bytes(png)
                 chart_paths[key] = path
-            try:
-                pdf_bytes = build_pdf_report(handoff_report, chart_paths)
-            except RuntimeError as exc:
-                # Missing/mismatched embedded Korean font asset (ADR-038
-                # Decision 1 / BUG-044) — an honest 500, never a silently
-                # PDF-less response with no explanation.
-                logger.error("Handoff report PDF build failed: %s", exc)
-                raise HTTPException(status_code=500, detail=str(exc)) from exc
+            match render_pdf(build_pdf_report, handoff_report, chart_paths):
+                case PdfRendered(content=pdf_bytes):
+                    pass
+                case PdfRenderFailed():
+                    logger.error("Handoff report PDF generation failed: pdf_status=failed")
+                    raise HTTPException(
+                        status_code=500,
+                        detail="Handoff report PDF generation failed",
+                    ) from None
+                case unreachable:
+                    assert_never(unreachable)
 
         if len(pdf_bytes) > _PDF_SIZE_GUARD_BYTES:
             pdf_omitted_reason = (
@@ -245,8 +196,10 @@ async def report(body: HandoffReportRequest) -> HandoffReportResponse:
                 "report_markdown/fhir_bundle are unaffected."
             )
             logger.warning(
-                "Handoff report PDF omitted (size guard): vp_id=%s bytes=%d",
-                body.vp_id, len(pdf_bytes),
+                "Handoff report PDF omitted by response size guard: "
+                "pdf_status=omitted bytes=%d limit=%d",
+                len(pdf_bytes),
+                _PDF_SIZE_GUARD_BYTES,
             )
         else:
             pdf_base64 = base64.b64encode(pdf_bytes).decode("ascii")

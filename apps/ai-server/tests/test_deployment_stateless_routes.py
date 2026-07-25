@@ -11,6 +11,7 @@ on synthetic session-series payloads via `TestClient`.
 
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -131,6 +132,7 @@ class TestHandoffReportRoute:
         assert "F5 인계 요약 보고서" in data["report_markdown"]
         assert data["fhir_bundle"]["resourceType"] == "Bundle"
         assert data["fhir_bundle"]["type"] == "document"
+        assert datetime.fromisoformat(data["fhir_bundle"]["timestamp"]).utcoffset() is not None
         assert data["pdf_base64"] is None
         assert data["chart_pngs_base64"] == {}
 

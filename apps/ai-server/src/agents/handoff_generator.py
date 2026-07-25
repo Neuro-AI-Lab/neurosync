@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Sequence
 from typing import Any
 
 from pydantic import BaseModel
@@ -12,8 +13,9 @@ from src.adapters.base import ChatMessage, LLMAdapter
 from src.agents.base import AgentInput, BaseAgent
 from src.prompts.loader import PromptLoader
 from src.routing.model_router import ModelRouter
-from src.schemas.common import CTRS_TO_RISK, CTRSLevel, EvidencePacket, EvidenceSource, RiskLevel
+from src.schemas.common import EvidencePacket, EvidenceSource, RiskLevel
 from src.schemas.handoff import HandoffInput, HandoffOutput, SlotData
+from src.services.handoff_risk import RiskEventInput, detect_risk_level, risk_event_text
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +61,7 @@ def _build_user_content(inp: HandoffInput) -> str:
     if inp.risk_events:
         parts.append("\n## 위험 이벤트")
         for idx, evt in enumerate(inp.risk_events, 1):
-            parts.append(f"- [{idx}] {evt}")
+            parts.append(f"- [{idx}] {risk_event_text(evt)}")
 
     # OCR documents
     if inp.ocr_documents:
@@ -91,45 +93,8 @@ def _find_missing_slots(slots: SlotData) -> list[str]:
     return [k for k, v in data.items() if v is None]
 
 
-_RISK_ORDER: dict[RiskLevel, int] = {
-    RiskLevel.none: 0,
-    RiskLevel.low: 1,
-    RiskLevel.medium: 2,
-    RiskLevel.high: 3,
-    RiskLevel.critical: 4,
-}
-_RISK_BY_VALUE: dict[str, RiskLevel] = {r.value: r for r in RiskLevel}
-
-
-def _event_risk(evt: object) -> RiskLevel:
-    """Best-effort severity of a single risk event.
-
-    Prefers an explicit ``risk_level``; otherwise maps ``ctrs_level`` via
-    CTRS_TO_RISK; a present-but-unlabelled event keeps the "at least medium"
-    floor.
-    """
-    if not isinstance(evt, dict):
-        return RiskLevel.medium
-    raw = str(evt.get("risk_level", "")).strip().lower()
-    if raw in _RISK_BY_VALUE:
-        return _RISK_BY_VALUE[raw]
-    ctrs_raw = str(evt.get("ctrs_level", "")).strip()
-    if ctrs_raw.isdigit():
-        try:
-            return CTRS_TO_RISK.get(CTRSLevel(int(ctrs_raw)), RiskLevel.medium)
-        except ValueError:
-            pass
-    return RiskLevel.medium
-
-
-def _detect_risk_level(risk_events: list[dict[str, str]]) -> RiskLevel:
-    """Return the maximum severity across all risk events (none if empty)."""
-    if not risk_events:
-        return RiskLevel.none
-    return max(
-        (_event_risk(evt) for evt in risk_events),
-        key=lambda r: _RISK_ORDER[r],
-    )
+def _detect_risk_level(risk_events: Sequence[RiskEventInput]) -> RiskLevel:
+    return detect_risk_level(risk_events)
 
 
 class NarrativeGenerationOutput(BaseModel):
@@ -356,7 +321,7 @@ def _extract_evidence_packets(inp: HandoffInput) -> list[EvidencePacket]:
                 evidence_id=_next_id("risk"),
                 source_type=EvidenceSource.risk_event,
                 source_ref="Safety Agent",
-                content_summary=str(evt)[:120],
+                content_summary=risk_event_text(evt)[:120],
             )
         )
 

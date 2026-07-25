@@ -20,7 +20,8 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic_core import PydanticCustomError
 
 
 class HandoffMessage(BaseModel):
@@ -57,6 +58,20 @@ class HandoffRequest(BaseModel):
     risk_signals: list[HandoffRiskSignal] = Field(default_factory=list)
 
     model_config = ConfigDict(extra="forbid")
+
+    @field_validator("messages")
+    @classmethod
+    def reject_duplicate_message_ids(
+        cls,
+        messages: list[HandoffMessage],
+    ) -> list[HandoffMessage]:
+        message_ids = [message.message_id for message in messages]
+        if len(message_ids) != len(set(message_ids)):
+            raise PydanticCustomError(
+                "duplicate_message_ids",
+                "message_id values must be unique",
+            )
+        return messages
 
 
 class Citation(BaseModel):

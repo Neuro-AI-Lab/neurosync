@@ -143,10 +143,7 @@ class ModelRouter:
         failed_adapter: str,
         reason: str,
     ) -> ModelSelection | None:
-        """Return the next-tier adapter after *failed_adapter*, or None if exhausted.
-
-        Also notifies the fallback policy about the failure.
-        """
+        """Return the next healthy tier after *failed_adapter*, or None if exhausted."""
         agent_cfg = self._registry.get(agent_name)
         if agent_cfg is None or agent_cfg.get("strategy") != "benchmarked":
             return None

@@ -24,8 +24,10 @@ import json
 import logging
 import re
 import uuid
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
+from typing import assert_never
 
 from src.f1 import OUTPUT_DIR
 from src.schemas.handoff_report import (
@@ -44,8 +46,53 @@ from src.schemas.handoff_report import (
     SlotOverviewSection,
 )
 from src.schemas.longitudinal import LongitudinalAnalysisOutput
+from src.services.f5_artifact_store import (
+    F5ArtifactBundle,
+    F5ArtifactPaths,
+    persist_f5_artifacts,
+)
+from src.services.f5_fhir_safety import (
+    InvalidFhirBundleError,
+    JsonObject,
+    fhir_structure_violations,
+)
+from src.services.f5_fhir_safety import (
+    narrative_div as _div,
+)
+from src.services.f5_markdown import (
+    block_literal,
+    inline_literal,
+    is_safe_chart_filename,
+    plain_text,
+    table_cell_literal,
+)
+from src.services.f5_pdf_boundary import PdfRendered, PdfRenderFailed, render_pdf
+from src.services.f5_pdf_text import (
+    DEFAULT_PDF_PARAGRAPH_MAX_LINES,
+    collapse_blank_runs,
+    pdf_line_chunks,
+    pdf_paragraph_markup,
+)
 
 logger = logging.getLogger(__name__)
+
+type _RenderScalar = str | int | float | bool | None
+
+
+def _md_inline(text: _RenderScalar) -> str:
+    return inline_literal(str(text))
+
+
+def _md_block(text: str) -> str:
+    return block_literal(text)
+
+
+def _md_cell(text: _RenderScalar) -> str:
+    return table_cell_literal(str(text))
+
+
+def _pdf_raw(text: _RenderScalar) -> str:
+    return plain_text(str(text))
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -95,7 +142,7 @@ def save_f5_result(
     *,
     vp_id: str | None = None,
     chart_paths: dict[str, Path] | None = None,
-) -> dict[str, Path]:
+) -> F5ArtifactPaths:
     """Save F5 result as markdown + PDF + FHIR R4 document Bundle (design
     doc §5). Naming mirrors `save_f1_result`/.../`save_f4_result`:
     `<vp_id>_<ts>_handoff.md` / `_handoff.pdf` / `_handoff_fhir.json`, under
@@ -110,29 +157,55 @@ def save_f5_result(
     design doc §2.2 B5 row). The markdown/FHIR exporters use only the
     filenames already carried on `report.b_longitudinal.chart_filenames`.
     """
-    resolved_vp_id = vp_id or report.vp_id
+    resolved_vp_id = report.vp_id if vp_id is None else vp_id
     base = output_dir or OUTPUT_DIR
-    out = base / resolved_vp_id
-    out.mkdir(parents=True, exist_ok=True)
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    prefix = f"{resolved_vp_id}_{ts}"
-
-    paths: dict[str, Path] = {}
-
-    md_path = out / f"{prefix}_handoff.md"
-    md_path.write_text(build_markdown_report(report), encoding="utf-8")
-    paths["markdown"] = md_path
-
-    pdf_path = out / f"{prefix}_handoff.pdf"
-    pdf_path.write_bytes(build_pdf_report(report, chart_paths or {}))
-    paths["pdf"] = pdf_path
-
+    markdown = build_markdown_report(report).encode()
     fhir_bundle = build_fhir_bundle(report)
-    fhir_path = out / f"{prefix}_handoff_fhir.json"
-    fhir_path.write_text(json.dumps(fhir_bundle, ensure_ascii=False, indent=2), encoding="utf-8")
-    paths["fhir"] = fhir_path
+    # This structural validator consumes nested external-format JSON; sanitize
+    # ordinary shape failures here without retaining clinical exception content.
+    try:
+        violations = validate_fhir_bundle(fhir_bundle)
+    except Exception:
+        violations = None
+    if violations is None or violations:
+        violation_count = 1 if violations is None else len(violations)
+        raise InvalidFhirBundleError(violation_count) from None
+    fhir = json.dumps(fhir_bundle, ensure_ascii=False, indent=2).encode()
+    pdf: bytes | None
+    match render_pdf(build_pdf_report, report, chart_paths or {}):
+        case PdfRendered(content=pdf):
+            pdf_status = "saved"
+        case PdfRenderFailed():
+            logger.error(
+                "F5 PDF export failed: "
+                "pdf_status=failed markdown_status=continued fhir_status=continued"
+            )
+            pdf = None
+            pdf_status = "failed"
+        case unreachable:
+            assert_never(unreachable)
 
-    logger.info("F5 results saved: %s", ", ".join(str(p) for p in paths.values()))
+    paths = persist_f5_artifacts(
+        base,
+        F5ArtifactBundle(
+            vp_id=resolved_vp_id,
+            timestamp=ts,
+            markdown=markdown,
+            fhir=fhir,
+            pdf=pdf,
+        ),
+    )
+
+    logger.info(
+        "F5 artifacts saved: artifact_count=%d markdown_bytes=%d fhir_bytes=%d "
+        "pdf_status=%s pdf_bytes=%d",
+        len(paths),
+        len(markdown),
+        len(fhir),
+        pdf_status,
+        0 if pdf is None else len(pdf),
+    )
     return paths
 
 
@@ -296,18 +369,32 @@ def _dimension_ko(dimension: str) -> str:
     return _DIMENSION_KO.get(dimension, dimension)
 
 
+_PDF_PARAGRAPH_MAX_LINES = DEFAULT_PDF_PARAGRAPH_MAX_LINES
+_collapse_blank_runs = collapse_blank_runs
+
+
+def _pdf_line_chunks(text: str, max_lines: int = _PDF_PARAGRAPH_MAX_LINES) -> list[list[str]]:
+    return pdf_line_chunks(text, max_lines)
+
+
 def _truncate(
-    text: str | None, limit: int = 80, *, appendix: _AppendixCollector, label: str
+    text: str | None,
+    limit: int = 80,
+    *,
+    appendix: _AppendixCollector,
+    label: str,
+    sanitize: Callable[[_RenderScalar], str] = _md_cell,
 ) -> str:
-    """Truncates *text* for a compact body cell/line — CVR-026 Finding 1
-    (blocking): a truncated value's marker now points to a REAL, numbered
-    "상세 부록" (detail appendix) entry carrying the SAME full *text*
-    (never `"(상세 아래)"`, which pointed nowhere). `appendix`/`label` are
-    mandatory — every call site owns an `_AppendixCollector` for its
-    render pass."""
+    r"""Truncates *text* for a compact body cell/line; the full text is anchored
+    into a numbered "상세 부록" (detail appendix) entry (CVR-026 Finding 1).
+    *sanitize* escapes the value for its target renderer: the Markdown default
+    (`_md_cell`) neutralizes table pipes/HTML; PDF callers pass `_pdf_raw` so
+    reportlab's own P() escapes it (avoiding literal ``&lt;``/``\|`` double-
+    escape artifacts). Each renderer owns its `_AppendixCollector`, so the
+    anchored full text is stored in the form correct for that renderer."""
     if not text:
         return ""
-    t = str(text)
+    t = sanitize(text)
     if len(t) <= limit:
         return t
     n = appendix.anchor(label, t)
@@ -470,7 +557,12 @@ def _key_concerns(
     return concerns or ["특이 우려 사항 없음"]
 
 
-def _summary_box_lines(report: HandoffReportOutput, appendix: _AppendixCollector) -> list[str]:
+def _summary_box_lines(
+    report: HandoffReportOutput,
+    appendix: _AppendixCollector,
+    *,
+    sanitize: Callable[[_RenderScalar], str] = _md_cell,
+) -> list[str]:
     """핵심 요약 (SBAR식, ≤8줄) — binding rule 2."""
     a0, a1, a3, a5 = (
         report.a0_header,
@@ -485,7 +577,7 @@ def _summary_box_lines(report: HandoffReportOutput, appendix: _AppendixCollector
         f"({a0.simulated_date}), 총 {lon.n_sessions}세션{span}",
         "주호소: "
         + (
-            _truncate(a1.text, 80, appendix=appendix, label="주호소 전문")
+            _truncate(a1.text, 80, appendix=appendix, label="주호소 전문", sanitize=sanitize)
             if a1.present
             else "미수집"
         ),
@@ -502,14 +594,23 @@ _DISCLAIMER_BOX_KO = [
 ]
 
 
-def _risk_prose(a3: RiskSafetySection, appendix: _AppendixCollector) -> str:
+def _risk_prose(
+    a3: RiskSafetySection,
+    appendix: _AppendixCollector,
+    *,
+    sanitize: Callable[[_RenderScalar], str] = _md_cell,
+) -> str:
     # CVR-026 Finding 1 (blocking, 최우선): the current-session risk
     # narrative's own patient-quote — a truncated, dead-referenced cut of
     # this exact quote was the single highest-severity finding. Full text
     # now always lands in the 상세 부록.
     risk_text = (
         _truncate(
-            a3.risk_assessment_text, 100, appendix=appendix, label="위험평가 발화 원문 (당해 세션)"
+            a3.risk_assessment_text,
+            100,
+            appendix=appendix,
+            label="위험평가 발화 원문 (당해 세션)",
+            sanitize=sanitize,
         )
         if a3.risk_assessment_present
         else "정보 없음"
@@ -530,16 +631,26 @@ def _risk_prose(a3: RiskSafetySection, appendix: _AppendixCollector) -> str:
     return " ".join(parts)
 
 
-def _risk_discordance_verdict(discordance_note: str, appendix: _AppendixCollector) -> str:
+def _risk_discordance_verdict(
+    discordance_note: str,
+    appendix: _AppendixCollector,
+    *,
+    sanitize: Callable[[_RenderScalar], str] = _md_cell,
+) -> str:
     if discordance_note.startswith("불일치"):
         return "불일치"
     if discordance_note.startswith("일치"):
         return "일치"
-    return _truncate(discordance_note, 20, appendix=appendix, label="위험 신호 판정 원문")
+    return _truncate(
+        discordance_note, 20, appendix=appendix, label="위험 신호 판정 원문", sanitize=sanitize
+    )
 
 
 def _risk_table_rows(
-    a3: RiskSafetySection, appendix: _AppendixCollector
+    a3: RiskSafetySection,
+    appendix: _AppendixCollector,
+    *,
+    sanitize: Callable[[_RenderScalar], str] = _md_cell,
 ) -> list[tuple[str, str, str, str, str]]:
     rows = []
     for sig in a3.longitudinal_risk_signals:
@@ -549,7 +660,7 @@ def _risk_table_rows(
             item9 = "음성"
         else:
             item9 = "미상"
-        verdict = _risk_discordance_verdict(sig.discordance_note, appendix)
+        verdict = _risk_discordance_verdict(sig.discordance_note, appendix, sanitize=sanitize)
         if sig.ceiling_caveat:
             verdict += " · 만점"
         score = f"{sig.total_score}/{sig.max_score}" if sig.total_score is not None else "-"
@@ -599,12 +710,16 @@ def _absent_session_rows(
 
 
 def _full_risk_table_rows(
-    a3: RiskSafetySection, lon: LongitudinalAnalysisOutput, appendix: _AppendixCollector
+    a3: RiskSafetySection,
+    lon: LongitudinalAnalysisOutput,
+    appendix: _AppendixCollector,
+    *,
+    sanitize: Callable[[_RenderScalar], str] = _md_cell,
 ) -> list[tuple[str, str, str, str, str]]:
     """`_risk_table_rows` (flagged sessions) merged with `_absent_session_rows`
     (every remaining ledger session), sorted back into session order -- the
     table renders every session once, never a silent gap."""
-    combined = _risk_table_rows(a3, appendix) + _absent_session_rows(a3, lon)
+    combined = _risk_table_rows(a3, appendix, sanitize=sanitize) + _absent_session_rows(a3, lon)
     return sorted(combined, key=lambda row: int(row[0]))
 
 
@@ -636,13 +751,15 @@ def _ceiling_caveat_summary(a3: RiskSafetySection) -> str | None:
     return f"[세션 {session_str} — {range_label}] {caveat_text}"
 
 
-def _mse_lines(a4: MentalStatusSection) -> list[str]:
+def _mse_lines(
+    a4: MentalStatusSection, *, sanitize: Callable[[_RenderScalar], str] = _md_inline
+) -> list[str]:
     assessable = [d for d in a4.domain_checklist if d.assessable]
     if not a4.present and not assessable:
         return ["텍스트 문진 특성상 관찰 기반 MSE는 평가 불가; 대화에서 도출된 소견 없음"]
-    lines = [f"{a4.label}: {a4.raw_text}"] if a4.present else []
+    lines = [f"{sanitize(a4.label)}: {sanitize(a4.raw_text)}"] if a4.present else []
     if assessable:
-        lines += [f"- {d.domain}: {d.note}" for d in assessable]
+        lines += [f"- {sanitize(d.domain)}: {sanitize(d.note)}" for d in assessable]
     elif a4.present:
         lines.append("개별 영역(mood/insight 등) 평가는 이 슬롯 특성상 불가")
     return lines
@@ -863,11 +980,14 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     lon = b.analysis
     so = report.slot_overview
 
-    lines: list[str] = [f"# F5 인계 요약 보고서 — {report.vp_id}", ""]
+    lines: list[str] = [f"# F5 인계 요약 보고서 — {_md_inline(report.vp_id)}", ""]
 
     # ── 핵심 요약 (SBAR box) ──
     lines += ["> **핵심 요약**", ">"]
-    lines += [f"> - {line}" for line in _summary_box_lines(report, appendix)]
+    lines += [
+        f"> - {_md_inline(line)}"
+        for line in _summary_box_lines(report, appendix, sanitize=_pdf_raw)
+    ]
     lines.append("")
 
     # ── 면책 조항 (3줄 이내 박스) ──
@@ -876,8 +996,13 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     lines.append("")
 
     # ── 위험/안전 평가 ──
-    lines += ["## 위험/안전 평가", "", _risk_prose(a3, appendix), ""]
-    risk_rows = _risk_table_rows(a3, appendix)
+    lines += [
+        "## 위험/안전 평가",
+        "",
+        _md_inline(_risk_prose(a3, appendix, sanitize=_pdf_raw)),
+        "",
+    ]
+    risk_rows = _risk_table_rows(a3, appendix, sanitize=_pdf_raw)
     # CVR-026 Finding 8 (minor): the exact-ceiling caveat previously
     # repeated verbatim BOTH adjacent to the risk table AND in the
     # staleness-pointer note directly below it (same fact, same session,
@@ -894,8 +1019,11 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
             "|---|---|---|---|---|",
         ]
         lines += [
-            f"| {sid} | {date} | {score} | {item9} | {verdict} |"
-            for sid, date, score, item9, verdict in _full_risk_table_rows(a3, lon, appendix)
+            f"| {_md_cell(sid)} | {_md_cell(date)} | {_md_cell(score)} | "
+            f"{_md_cell(item9)} | {_md_cell(verdict)} |"
+            for sid, date, score, item9, verdict in _full_risk_table_rows(
+                a3, lon, appendix, sanitize=_pdf_raw
+            )
         ]
         # ADR-038 Decision 2c / renderer polish (VP-004 review): full
         # ceiling caveat text still rendered adjacent to the table (never
@@ -906,27 +1034,27 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         lines.append("")
         if ceiling_summary:
             ceiling_shown_in_a3 = True
-            lines.append(f"> {ceiling_summary}")
+            lines.append(f"> {_md_inline(ceiling_summary)}")
             lines.append("")
     else:
         lines += ["해당 없음 — 전체 세션 중 item-9 양성/안전 의뢰 이력이 없습니다.", ""]
-    lines += [f"> 최신 시행 척도 안내: {_staleness_note_ko(a3.staleness_pointer)}"]
+    lines += [f"> 최신 시행 척도 안내: {_md_inline(_staleness_note_ko(a3.staleness_pointer))}"]
     if a3.staleness_pointer.total_score is not None:
         lines.append(f"> {NON_VALIDATED_ADMINISTRATION_CAVEAT_KO}")
     if a3.staleness_pointer.ceiling_caveat:
         staleness_ceiling_text = (
             _CEILING_POINTER_KO if ceiling_shown_in_a3 else a3.staleness_pointer.ceiling_caveat
         )
-        lines.append(f"> {staleness_ceiling_text}")
+        lines.append(f"> {_md_inline(staleness_ceiling_text)}")
     lines.append("")
 
     # ── 주호소 및 현병력 (+ MSE) ──
     lines += [
         "## 주호소 및 현병력",
         "",
-        f"**주호소**: {a1.text if a1.present else '미수집'}",
+        f"**주호소**: {_md_inline(a1.text) if a1.present else '미수집'}",
         "",
-        f"**현병력**: {a2.text if a2.present else '미수집'}",
+        f"**현병력**: {_md_inline(a2.text) if a2.present else '미수집'}",
         "",
         "### 정신상태검사 (MSE)",
         "",
@@ -938,7 +1066,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     lines += [
         "## 전체 세션 요약",
         "",
-        f"> {so.non_validated_caveat}",
+        f"> {_md_inline(so.non_validated_caveat)}",
         "",
         "| 슬롯 | 최신값 | 출처 | 변화 | 비고 |",
         "|---|---|---|---|---|",
@@ -948,19 +1076,24 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
             value_cell, source_cell = SLOT_NEVER_COLLECTED_KO, "-"
         else:
             value_cell = _truncate(
-                row.latest_value, 80, appendix=appendix, label=f"{row.label} 최신값 전문"
+                row.latest_value,
+                80,
+                appendix=appendix,
+                label=f"{row.label} 최신값 전문",
+                sanitize=_pdf_raw,
             )
             source_cell = f"{row.source_session_index}회차/{row.source_simulated_date}"
         lines.append(
-            f"| {row.label} | {value_cell} | {source_cell} | {_change_history_summary(row)} | "
-            f"{row.section_pointer or '-'} |"
+            f"| {_md_cell(row.label)} | {_md_cell(value_cell)} | {_md_cell(source_cell)} | "
+            f"{_md_cell(_change_history_summary(row))} | "
+            f"{_md_cell(row.section_pointer or '-')} |"
         )
     lines.append("")
     lines.append("**주요 경과**")
     lines.append("")
     course_bullets = _major_course_bullets(so)
     if course_bullets:
-        lines += [f"- {b_}" for b_ in course_bullets]
+        lines += [f"- {_md_inline(b_)}" for b_ in course_bullets]
     else:
         lines.append("- 표시할 주요 경과 변화 없음")
     lines.append("")
@@ -972,11 +1105,11 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         lines += ["정보 없음 (전체 세션 중 시행된 설문 없음)", ""]
     else:
         lines += [
-            f"> {a5.non_validated_caveat}",
+            f"> {_md_inline(a5.non_validated_caveat)}",
             "",
-            f"**{a5.scale_name} {a5.total_score}/{a5.max_score} "
-            f"({_severity_ko(a5.severity)})** — {a5.administering_session_index}회차 "
-            f"({a5.administering_simulated_date})"
+            f"**{_md_inline(a5.scale_name)} {a5.total_score}/{a5.max_score} "
+            f"({_md_inline(_severity_ko(a5.severity))})** — {a5.administering_session_index}회차 "
+            f"({_md_inline(a5.administering_simulated_date)})"
             + (" [당해 세션 미시행, 직전 시행값]" if a5.is_stale_relative_to_header else ""),
             "",
             f"- 응답: {','.join(str(v) for v in a5.responses)}",
@@ -988,31 +1121,35 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
                 if a5.critical_item_positive is False
                 else "미상"
             ),
-            f"- 문진 방식: {a5.administration_mode or '미상'}",
+            f"- 문진 방식: {_md_inline(a5.administration_mode or '미상')}",
         ]
         if a5.threshold_caveat:
-            lines.append(f"- {a5.threshold_caveat}")
+            lines.append(f"- {_md_inline(a5.threshold_caveat)}")
         if a5.threshold_caveat_asymmetry_note:
-            lines.append(f"- {a5.threshold_caveat_asymmetry_note}")
+            lines.append(f"- {_md_inline(a5.threshold_caveat_asymmetry_note)}")
         if a5.ceiling_caveat:
             # A5 stays the canonical cross-section occurrence (ADR-038
             # Decision 2c, locked by test) — never deduped away.
-            lines.append(f"- {a5.ceiling_caveat}")
+            lines.append(f"- {_md_inline(a5.ceiling_caveat)}")
         lines.append("")
         if a5.gap_disclosure:
             lines.append("**F3 공백 (당해 세션까지):**")
             lines.append("")
             if a5.gap_acuity_framing_note:
-                lines += [f"> {_strip_internal_refs(a5.gap_acuity_framing_note, notes)}", ""]
+                lines += [
+                    f"> {_md_inline(_strip_internal_refs(a5.gap_acuity_framing_note, notes))}",
+                    "",
+                ]
                 gap_framing_shown = True
-            lines += [f"- {_humanize_engine_text(g, notes)}" for g in a5.gap_disclosure]
+            lines += [f"- {_md_inline(_humanize_engine_text(g, notes))}" for g in a5.gap_disclosure]
             lines.append("")
 
     # ── 종단 추세 + 차트 ──
     lines += [
         "## 종단 추세",
         "",
-        f"전체 방향: **{_DIRECTION_KO.get(lon.overall_direction, lon.overall_direction)}** "
+        "전체 방향: **"
+        f"{_md_inline(_DIRECTION_KO.get(lon.overall_direction, lon.overall_direction))}** "
         f"({lon.n_sessions}세션"
         + (f", {lon.session_span_days}일" if lon.session_span_days is not None else "")
         + ")",
@@ -1023,11 +1160,16 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         "|---|---|---|",
     ]
     for dim, direction, evidence in _trend_table_rows(lon):
-        lines.append(f"| {dim} | {direction} | {evidence} |")
+        lines.append(
+            f"| {_md_cell(dim)} | {_md_cell(direction)} | {_md_cell(evidence)} |"
+        )
     lines.append("")
-    lines += _events_and_concordance_lines(
-        lon, b, gap_framing_already_shown=gap_framing_shown, notes=notes
-    )
+    lines += [
+        _md_inline(line)
+        for line in _events_and_concordance_lines(
+            lon, b, gap_framing_already_shown=gap_framing_shown, notes=notes
+        )
+    ]
     lines.append("")
     lines.append("### 추세 차트")
     lines.append("")
@@ -1040,7 +1182,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     any_chart = False
     fig_no = 0
     for key, filename in chart_map.items():
-        if filename:
+        if filename and is_safe_chart_filename(filename):
             any_chart = True
             fig_no += 1
             lines.append(f"![{key}]({filename})")
@@ -1061,11 +1203,11 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         "",
     ]
     if not a6.present:
-        lines += [_none_marker(a6.no_data_note, "정보 없음"), ""]
+        lines += [_md_inline(_none_marker(a6.no_data_note, "정보 없음")), ""]
         if a6.mode:
-            lines.append(f"mode: {a6.mode}")
+            lines.append(f"mode: {_md_inline(a6.mode)}")
         if a6.reason_summary:
-            lines += ["", f"사유: {_a6_reason_summary_ko(a6.reason_summary, notes)}"]
+            lines += ["", f"사유: {_md_inline(_a6_reason_summary_ko(a6.reason_summary, notes))}"]
         lines.append("")
     else:
         top, rest = a6.candidates[:3], a6.candidates[3:]
@@ -1073,19 +1215,27 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         for rc in top:
             rank_cell = rc.tie_marker or str(rc.rank)
             score = f"{rc.candidate.similarity_score:.3f}"
-            lines.append(f"| {rank_cell} | {rc.candidate.disease} | {score} |")
+            lines.append(
+                f"| {_md_cell(rank_cell)} | {_md_cell(rc.candidate.disease)} | "
+                f"{_md_cell(score)} |"
+            )
         lines.append("")
         if rest:
             rest_txt = ", ".join(
-                f"{rc.candidate.disease}({rc.candidate.similarity_score:.3f})" for rc in rest
+                f"{_md_inline(rc.candidate.disease)}({rc.candidate.similarity_score:.3f})"
+                for rc in rest
             )
             lines.append(f"기타 후보: {rest_txt}")
             lines.append("")
-        lines.append(f"> {a6.disclaimer}")
+        lines.append(f"> {_md_inline(a6.disclaimer)}")
         if a6.recommended_questionnaire:
             lines.append(
-                f"> 추천 설문: {a6.recommended_questionnaire}"
-                + (f" — {a6.recommendation_caveat}" if a6.recommendation_caveat else "")
+                f"> 추천 설문: {_md_inline(a6.recommended_questionnaire)}"
+                + (
+                    f" — {_md_inline(a6.recommendation_caveat)}"
+                    if a6.recommendation_caveat
+                    else ""
+                )
             )
         lines.append("")
 
@@ -1093,58 +1243,68 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     lines += ["## 권장 진료과 및 후속 조치", ""]
     if a7.department_candidates:
         lines += ["| 진료과 | 사유 |", "|---|---|"]
-        lines += [f"| {d.department} | {d.reason} |" for d in a7.department_candidates]
+        lines += [
+            f"| {_md_cell(d.department)} | {_md_cell(d.reason)} |"
+            for d in a7.department_candidates
+        ]
         lines.append("")
     else:
-        lines += [_a7_absence_note_ko(a7, notes), ""]
+        lines += [_md_inline(_a7_absence_note_ko(a7, notes)), ""]
     if a7.recommended_questionnaire:
         lines.append(
-            f"추천 설문: {a7.recommended_questionnaire}"
-            + (f" — {a7.recommendation_caveat}" if a7.recommendation_caveat else "")
+            f"추천 설문: {_md_inline(a7.recommended_questionnaire)}"
+            + (
+                f" — {_md_inline(a7.recommendation_caveat)}"
+                if a7.recommendation_caveat
+                else ""
+            )
         )
         lines.append("")
-    lines += [f"> {a7.medication_note}", ""]
+    lines += [f"> {_md_inline(a7.medication_note)}", ""]
 
     # ── 임상 종합 소견 (own top-level section — same structural-separation
     # discipline as AI 참고 정보/A6, never nested inside another section) ──
     lines += ["## 임상 종합 소견", ""]
     if a8.narrative_enabled and a8.text:
-        lines += [f"> {NARRATIVE_ENABLED_LABEL_KO}", "", a8.text, ""]
+        lines += [f"> {NARRATIVE_ENABLED_LABEL_KO}", "", _md_block(a8.text), ""]
     else:
-        lines += [a8.absent_marker, ""]
+        lines += [_md_inline(a8.absent_marker), ""]
 
     # ── 상세 부록 (CVR-026 Finding 1/2/3) ──
     lines += ["## 상세 부록", ""]
     if appendix.entries:
         for n, label, text in appendix.entries:
-            lines += [f"**{n}. {label}**", "", text, ""]
+            lines += [f"**{n}. {_md_inline(label)}**", "", _md_block(text), ""]
     slot_history_sections = [
-        (row.label, " → ".join(row.change_history_full))
+        (row.label, " → ".join(_md_inline(v) for v in row.change_history_full))
         for row in _slot_table_rows(so)
         if len(row.change_history_full) >= 2
     ]
     if slot_history_sections:
         lines += ["### 슬롯별 전체 변화 이력 (미압축)", ""]
         for label, text in slot_history_sections:
-            lines += [f"**{label}**", "", text, ""]
+            lines += [f"**{_md_inline(label)}**", "", text, ""]
     if not appendix.entries and not slot_history_sections:
         lines += ["해당 없음 — 본문에서 잘린 항목이 없습니다.", ""]
 
     # ── 각주 (감사용 메타) ──
     lines += ["## 각주", ""]
-    footnote = f"모델: {a0.model} · 생성 시각: {report.generated_at} · 세션ID: {a0.session_id}"
+    footnote = (
+        f"모델: {_md_inline(a0.model)} · 생성 시각: {_md_inline(report.generated_at)} · "
+        f"세션ID: {_md_inline(a0.session_id)}"
+    )
     lines.append(footnote)
     if a5.present:
-        lines.append(f"설문 문항 출처: {a5.item_bank_provenance or '미상'}")
+        lines.append(f"설문 문항 출처: {_md_inline(a5.item_bank_provenance or '미상')}")
     lines.append("")
     # CVR-026 Finding 5/7: internal review/bug-ID citations + code-path
     # audit refs live ONLY here, separated from the clinical footnote line
     # above (Finding 7's own recommendation) — never in the scannable body.
     lines.append("### 시스템 참고 (내부 감사용, 임상 판단 근거 아님)")
     lines.append("")
-    lines.append(f"종단 추세 판정 근거: {b.overall_direction_sensitivity_note}")
+    lines.append(f"종단 추세 판정 근거: {_md_block(b.overall_direction_sensitivity_note)}")
     for note in notes.notes:
-        lines.append(note)
+        lines.append(_md_block(note))
     lines.append("")
 
     return "\n".join(lines)
@@ -1342,8 +1502,19 @@ def build_pdf_report(
     }
 
     def P(text: str, style: str = "body") -> Paragraph:
-        safe = (text or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        return Paragraph(safe.replace("\n", "<br/>"), styles[style])
+        safe = pdf_paragraph_markup(text or "")
+        # Collapse blank-line runs so newline-dense values don't explode into an
+        # unbounded <br/> run (reportlab LayoutError). Content is NEVER dropped
+        # here — genuinely long free text is paginated across flowables by
+        # `_paras` at its (main-story) call sites, not truncated.
+        return Paragraph("<br/>".join(_collapse_blank_runs(safe)), styles[style])
+
+    def _paras(text: str, style: str = "body") -> list[Paragraph]:
+        # Long free-text fields (주호소/현병력/A8 narrative/상세 부록) as a
+        # SEQUENCE of Paragraphs — reportlab page-breaks BETWEEN chunks, so no
+        # single oversized flowable can LayoutError and no line is ever dropped.
+        safe = pdf_paragraph_markup(text or "")
+        return [Paragraph("<br/>".join(chunk), styles[style]) for chunk in _pdf_line_chunks(safe)]
 
     def _table(rows: list[list[str]], font_size: float = 7.5) -> Table:
         t = Table(rows, hAlign="LEFT")
@@ -1398,7 +1569,10 @@ def build_pdf_report(
 
     # ── 핵심 요약 (SBAR box) ──
     summary_flow = [P("핵심 요약", "h3")]
-    summary_flow += [P(f"- {line}", "body") for line in _summary_box_lines(report, appendix)]
+    summary_flow += [
+        P(f"- {line}", "body")
+        for line in _summary_box_lines(report, appendix, sanitize=_pdf_raw)
+    ]
     story.append(_boxed(summary_flow))
     story.append(Spacer(1, 0.2 * cm))
 
@@ -1410,13 +1584,13 @@ def build_pdf_report(
 
     # ── 위험/안전 평가 ──
     story.append(P("위험/안전 평가", "h2"))
-    story.append(P(_risk_prose(a3, appendix), "body"))
-    risk_rows = _risk_table_rows(a3, appendix)
+    story.append(P(_risk_prose(a3, appendix, sanitize=_pdf_raw), "body"))
+    risk_rows = _risk_table_rows(a3, appendix, sanitize=_pdf_raw)
     ceiling_shown_in_a3 = False
     if risk_rows:
         story.append(P(NON_VALIDATED_ADMINISTRATION_CAVEAT_KO, "warn"))
         rows = [["세션", "일자", "점수", "9번 문항", "판정"]] + [
-            list(r) for r in _full_risk_table_rows(a3, lon, appendix)
+            list(r) for r in _full_risk_table_rows(a3, lon, appendix, sanitize=_pdf_raw)
         ]
         story.append(_table(rows))
         # ADR-038 Decision 2c / renderer polish (VP-004 review): full
@@ -1443,10 +1617,10 @@ def build_pdf_report(
 
     # ── 주호소 및 현병력 (+ MSE) ──
     story.append(P("주호소 및 현병력", "h2"))
-    story.append(P(f"주호소: {a1.text if a1.present else '미수집'}", "body"))
-    story.append(P(f"현병력: {a2.text if a2.present else '미수집'}", "body"))
+    story.extend(_paras(f"주호소: {a1.text if a1.present else '미수집'}", "body"))
+    story.extend(_paras(f"현병력: {a2.text if a2.present else '미수집'}", "body"))
     story.append(P("정신상태검사 (MSE)", "h3"))
-    for line in _mse_lines(a4):
+    for line in _mse_lines(a4, sanitize=_pdf_raw):
         story.append(P(line, "body"))
 
     # ── 전체 세션 요약 (슬롯) + 주요 경과 ──
@@ -1458,7 +1632,11 @@ def build_pdf_report(
             value_cell, source_cell = SLOT_NEVER_COLLECTED_KO, "-"
         else:
             value_cell = _truncate(
-                row.latest_value, 80, appendix=appendix, label=f"{row.label} 최신값 전문"
+                row.latest_value,
+                80,
+                appendix=appendix,
+                label=f"{row.label} 최신값 전문",
+                sanitize=_pdf_raw,
             )
             source_cell = f"{row.source_session_index}회차/{row.source_simulated_date}"
         rows.append(
@@ -1620,7 +1798,7 @@ def build_pdf_report(
     story.append(P("임상 종합 소견", "h2"))
     if a8.narrative_enabled and a8.text:
         story.append(P(NARRATIVE_ENABLED_LABEL_KO, "meta"))
-        story.append(P(a8.text, "body"))
+        story.extend(_paras(a8.text, "body"))
     else:
         story.append(P(a8.absent_marker, "body"))
 
@@ -1630,7 +1808,7 @@ def build_pdf_report(
     if appendix.entries:
         for n, label, full_text in appendix.entries:
             story.append(P(f"{n}. {label}", "h3"))
-            story.append(P(full_text, "body"))
+            story.extend(_paras(full_text, "body"))
     slot_history_sections = [
         (row.label, " → ".join(row.change_history_full))
         for row in _slot_table_rows(so)
@@ -1640,7 +1818,7 @@ def build_pdf_report(
         story.append(P("슬롯별 전체 변화 이력 (미압축)", "h3"))
         for label, full_text in slot_history_sections:
             story.append(P(label, "meta"))
-            story.append(P(full_text, "body"))
+            story.extend(_paras(full_text, "body"))
     if not appendix.entries and not slot_history_sections:
         story.append(P("해당 없음 — 본문에서 잘린 항목이 없습니다.", "body"))
 
@@ -1658,17 +1836,17 @@ def build_pdf_report(
     for note in notes.notes:
         story.append(P(note, "meta"))
 
-    buf = io.BytesIO()
-    doc = SimpleDocTemplate(
-        buf,
-        pagesize=A4,
-        topMargin=1.5 * cm,
-        bottomMargin=1.5 * cm,
-        leftMargin=1.5 * cm,
-        rightMargin=1.5 * cm,
-    )
-    doc.build(story)
-    return buf.getvalue()
+    with io.BytesIO() as buf:
+        doc = SimpleDocTemplate(
+            buf,
+            pagesize=A4,
+            topMargin=1.5 * cm,
+            bottomMargin=1.5 * cm,
+            leftMargin=1.5 * cm,
+            rightMargin=1.5 * cm,
+        )
+        doc.build(story)
+        return buf.getvalue()
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -1704,26 +1882,20 @@ _SCALE_TOTAL_LOINC = {
 }
 
 
-def _new_entry(resource: dict) -> tuple[str, dict]:
+def _new_entry(resource: JsonObject) -> tuple[str, JsonObject]:
     full_url = f"urn:uuid:{uuid.uuid4()}"
     return full_url, {"fullUrl": full_url, "resource": resource}
 
 
-def _loinc_concept(key: str, text: str) -> dict:
+def _loinc_concept(key: str, text: str) -> JsonObject:
     return {"coding": [{"system": "http://loinc.org", "code": _LOINC[key]}], "text": text}
 
 
-def _local_concept(code: str, text: str) -> dict:
+def _local_concept(code: str, text: str) -> JsonObject:
     return {"coding": [{"system": _LOCAL_CODE_SYSTEM, "code": code}], "text": text}
 
 
-def _div(text: str) -> dict:
-    """`Narrative` (status=generated) wrapping free text in the required
-    xhtml div — used for every `Composition.section.text` below."""
-    return {"status": "generated", "div": f"<div xmlns='http://www.w3.org/1999/xhtml'>{text}</div>"}
-
-
-def build_fhir_bundle(report: HandoffReportOutput) -> dict:
+def build_fhir_bundle(report: HandoffReportOutput) -> JsonObject:
     """R4 `Bundle(type="document")`, `Composition` first entry (design doc
     §5.3). File-export only — no `$validate` call, no server round-trip
     (D3). Structural validity only — see `validate_fhir_bundle` and the
@@ -1743,10 +1915,10 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     b = report.b_longitudinal
     lon = b.analysis
 
-    entries: list[dict] = []
+    entries: list[JsonObject] = []
     full_urls: dict[str, str] = {}
 
-    def add(key: str, resource: dict) -> str:
+    def add(key: str, resource: JsonObject) -> str:
         full_url, entry = _new_entry(resource)
         entries.append(entry)
         full_urls[key] = full_url
@@ -1757,7 +1929,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
         "patient",
         {
             "resourceType": "Patient",
-            "id": a0.persona_id,
+            "id": a0.persona_id or report.vp_id,
             "meta": {
                 "tag": [{"system": "urn:neurosync:simulation-flag", "code": "simulated-patient"}]
             },
@@ -1766,7 +1938,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
         },
     )
 
-    sections: list[dict] = []
+    sections: list[JsonObject] = []
 
     # ── A1 CC ──
     sections.append(
@@ -1828,7 +2000,24 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
             "code": _local_concept("ctrs", "Crisis Triage Rating Scale (session_ctrs, local)"),
             "subject": {"reference": patient_url},
             "effectiveDateTime": a3.current_simulated_date,
-            "valueInteger": a3.session_ctrs,
+            # FHIR JSON forbids null primitives — absent CTRS becomes
+            # dataAbsentReason below instead of "valueInteger": null.
+            **(
+                {"valueInteger": a3.session_ctrs}
+                if a3.session_ctrs is not None
+                else {
+                    "dataAbsentReason": {
+                        "coding": [
+                            {
+                                "system": (
+                                    "http://terminology.hl7.org/CodeSystem/data-absent-reason"
+                                ),
+                                "code": "unknown",
+                            }
+                        ]
+                    }
+                }
+            ),
             "note": [
                 {
                     "text": (
@@ -1934,7 +2123,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     )
 
     # ── A5 Questionnaires: QuestionnaireResponse + Observation(total) ──
-    a5_entries: list[dict] = []
+    a5_entries: list[JsonObject] = []
     if a5.present:
         qr_url = add(
             "questionnaire_response",
@@ -1953,7 +2142,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
         )
         a5_entries.append({"reference": qr_url})
         total_code = _SCALE_TOTAL_LOINC.get(a5.scale_name or "")
-        obs_code = (
+        obs_code: JsonObject = (
             {
                 "coding": [{"system": "http://loinc.org", "code": total_code}],
                 "text": f"{a5.scale_name} total",
@@ -1961,7 +2150,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
             if total_code
             else _local_concept("scale-total", f"{a5.scale_name} total")
         )
-        notes = [{"text": a5.non_validated_caveat}]
+        notes: list[JsonObject] = [{"text": a5.non_validated_caveat}]
         if a5.threshold_caveat:
             notes.append({"text": a5.threshold_caveat})
         if a5.threshold_caveat_asymmetry_note:
@@ -2010,9 +2199,9 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     )
 
     # ── A6 AI-predicted-disease (hard red line — own section/resource) ──
-    a6_entries: list[dict] = []
+    a6_entries: list[JsonObject] = []
     if a6.present:
-        components = [
+        components: list[JsonObject] = [
             {
                 "code": {"text": rc.candidate.disease},
                 "valueQuantity": {"value": rc.candidate.similarity_score, "unit": "similarity"},
@@ -2069,7 +2258,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     )
 
     # ── A7 Department recommendation: ServiceRequest ──
-    a7_entries: list[dict] = []
+    a7_entries: list[JsonObject] = []
     for d in a7.department_candidates:
         sr_url = add(
             f"service_request_{len(a7_entries)}",
@@ -2099,10 +2288,10 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     )
 
     # ── B1-B3: repeated Observation per scale_series/ctrs_series point ──
-    b_entries: list[dict] = []
+    b_entries: list[JsonObject] = []
     for scale_name, points in lon.scale_series.items():
         total_code = _SCALE_TOTAL_LOINC.get(scale_name)
-        code = (
+        code: JsonObject = (
             {
                 "coding": [{"system": "http://loinc.org", "code": total_code}],
                 "text": f"{scale_name} total",
@@ -2215,7 +2404,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
         }
     )
 
-    composition = {
+    composition: JsonObject = {
         "resourceType": "Composition",
         "id": str(uuid.uuid4()),
         "status": "final",
@@ -2241,7 +2430,7 @@ def build_fhir_bundle(report: HandoffReportOutput) -> dict:
     }
 
 
-def validate_fhir_bundle(bundle: dict) -> list[str]:
+def _validate_fhir_bundle(bundle: dict) -> list[str]:
     """Structural self-check only (design doc §5.3 last paragraph) — NEVER
     an HL7 `$validate` call (D3). Returns a list of violation strings
     (empty = structurally OK per this project's own checks). Checks:
@@ -2291,18 +2480,7 @@ def validate_fhir_bundle(bundle: dict) -> list[str]:
                     f"{rtype} (fullUrl={e.get('fullUrl')}) missing required field '{f}'"
                 )
 
-    def _walk(obj: object) -> None:
-        if isinstance(obj, dict):
-            ref = obj.get("reference")
-            if isinstance(ref, str) and ref.startswith("urn:uuid:") and ref not in full_url_set:
-                violations.append(f"unresolved reference: {ref}")
-            for v in obj.values():
-                _walk(v)
-        elif isinstance(obj, list):
-            for v in obj:
-                _walk(v)
-
-    _walk(bundle)
+    violations.extend(fhir_structure_violations(bundle, full_url_set))
 
     for sec in first.get("section", []):
         if not sec.get("title"):
@@ -2321,3 +2499,7 @@ def validate_fhir_bundle(bundle: dict) -> list[str]:
         )
 
     return violations
+
+
+def validate_fhir_bundle(bundle: JsonObject) -> list[str]:
+    return _validate_fhir_bundle(bundle)

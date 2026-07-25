@@ -45,6 +45,7 @@ from src.schemas.handoff_report import (
     NarrativeSection,
 )
 from src.schemas.longitudinal import CTRSSeriesPoint, LongitudinalAnalysisOutput, ScaleSeriesPoint
+from src.services.f5_markdown import table_cell_literal
 from src.services.f5_report import build_fhir_bundle, build_markdown_report, build_pdf_report
 
 _LEAK_MARKER_DISEASE = "ZZZ_F5_LEAK_MARKER_DISEASE_9999"
@@ -123,6 +124,7 @@ def _marker_report(*, other_slots_contain_marker: bool = False) -> HandoffReport
     )
     inp = HandoffReportInput(
         vp_id="VP-LEAK",
+        generated_at="2026-01-15T12:00:00+09:00",
         session=session,
         current_session_f3=current_f3,
         all_f3_administrations=(current_f3,),
@@ -281,6 +283,7 @@ def _marker_report_with_narrative(narrative_text: str) -> HandoffReportOutput:
     )
     inp = HandoffReportInput(
         vp_id="VP-LEAK2",
+        generated_at="2026-01-15T12:00:00+09:00",
         session=session,
         current_session_f3=None,
         all_f3_administrations=(),
@@ -344,15 +347,16 @@ class TestMarkdownIsolation:
     def test_marker_disease_only_in_a6_markdown_section(self) -> None:
         report = _marker_report()
         md = build_markdown_report(report)
-        assert _LEAK_MARKER_DISEASE in md  # sanity: it IS rendered somewhere
+        marker_literal = table_cell_literal(_LEAK_MARKER_DISEASE)
+        assert marker_literal in md  # sanity: it IS rendered somewhere
 
         a6_section = md.split("## AI 참고 정보 (비진단)")[1].split("## 권장 진료과 및 후속 조치")[0]
-        assert _LEAK_MARKER_DISEASE in a6_section
+        assert marker_literal in a6_section
 
         other_sections = (
             md.split("## AI 참고 정보 (비진단)")[0] + md.split("## 권장 진료과 및 후속 조치", 1)[1]
         )
-        assert _LEAK_MARKER_DISEASE not in other_sections
+        assert marker_literal not in other_sections
         assert _LEAK_MARKER_QUOTE not in other_sections
 
     def test_a7_department_reason_leak_does_not_implicate_a6_isolation(self) -> None:
@@ -364,12 +368,11 @@ class TestMarkdownIsolation:
         md = build_markdown_report(report)
         a6_section = md.split("## AI 참고 정보 (비진단)")[1].split("## 권장 진료과 및 후속 조치")[0]
         a7_section = md.split("## 권장 진료과 및 후속 조치")[1].split("## 임상 종합 소견")[0]
+        marker_literal = table_cell_literal(_LEAK_MARKER_DISEASE)
         # The disease candidate itself still only appears in A6 (by rank/score).
-        assert (
-            f"{_LEAK_MARKER_DISEASE} |" in a6_section or f"| {_LEAK_MARKER_DISEASE} " in a6_section
-        )
+        assert f"| {marker_literal} |" in a6_section
         # A7's own (separately-sourced) marker text renders in A7, not fabricated into A6.
-        assert _LEAK_MARKER_DISEASE in a7_section
+        assert marker_literal in a7_section
 
 
 # ── (d) PDF-level isolation ──────────────────────────────────────────────

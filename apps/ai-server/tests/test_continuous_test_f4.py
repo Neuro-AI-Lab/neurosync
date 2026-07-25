@@ -426,12 +426,15 @@ class TestRunF4PostLoopStep:
             "VP-001", n_sessions=2, max_turns=1, k=1, out_dir=tmp_path,
             scale_scores_path=None,
         )
-        assert results[-1].name == "F4"
+        # F5 (hand-off) now follows F4 in the post-loop path — F4 sits second
+        # to last, F5 last.
+        assert results[-2].name == "F4"
+        assert results[-1].name == "F5"
         # F3 was stubbed to "skip" every session -> no "f3" ledger content ->
         # F4 assembly still runs (>=2 ledger entries exist) but with no
         # scale data -> "skip"/"warn"/"pass" are all acceptable non-crash
         # outcomes here; the key assertion is that F4 was invoked at all.
-        assert results[-1].status in ("pass", "warn", "skip")
+        assert results[-2].status in ("pass", "warn", "skip")
 
     @pytest.mark.asyncio
     async def test_run_f4_false_skips_post_loop_step(

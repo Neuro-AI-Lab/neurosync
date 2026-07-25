@@ -103,8 +103,8 @@ class HandoffReportRequest(BaseModel):
     vp_id: str
     sessions: list[LongitudinalSessionEntry]
     domain_inference: DomainInferenceInput = Field(default_factory=DomainInferenceInput)
-    narrative_enabled: bool = False
-    narrative_text: str | None = None
+    narrative_enabled: Literal[False] = False
+    narrative_text: Literal[None] = None
     include_charts: bool = False
     include_pdf: bool = True
 

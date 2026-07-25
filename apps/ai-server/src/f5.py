@@ -47,7 +47,6 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from datetime import date as _date
-from datetime import datetime
 from typing import Literal
 
 from src.grounding import reply_has_negation
@@ -90,6 +89,8 @@ from src.schemas.handoff_report import (
     StalenessPointer,
 )
 from src.schemas.longitudinal import LongitudinalAnalysisOutput
+from src.services.f5_generation_time import parse_aware_iso_timestamp
+from src.services.f5_narrative_guard import contains_candidate_disease
 
 # ── Harness -> production contract (design doc §4.1) ────────────────────
 
@@ -212,6 +213,7 @@ class HandoffReportInput:
     all_f3_administrations: tuple[F3Administration, ...]
     domain_inference: DomainInferenceSnapshot
     longitudinal: LongitudinalAnalysisOutput
+    generated_at: str
     chart_filenames: ChartFilenames = field(default_factory=ChartFilenames)
     # Task 1 — all-session slot maximization. Caller-sorted by non-
     # decreasing `session_index` (same non-re-validated discipline as
@@ -228,6 +230,9 @@ class HandoffReportInput:
     # agent (module docstring's zero-LLM invariant, unchanged). Required
     # (non-empty) whenever `narrative_enabled=True`; ignored otherwise.
     narrative_text: str | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "generated_at", parse_aware_iso_timestamp(self.generated_at))
 
 
 # ── Shared helpers ─────────────────────────────────────────────────────
@@ -794,22 +799,22 @@ def _build_a8(inp: HandoffReportInput) -> NarrativeSection:
     whenever the caller does not opt in. Task 2 adds the OPT-IN path: when
     `narrative_enabled=True` (enforced non-empty `narrative_text`,
     `assemble_handoff_report` below), this function applies ONE
-    defense-in-depth check before rendering it — a plain substring scan of
-    every A6 candidate's `disease` name against the given text (HPI hard
-    red line, design doc §6.1 point 1). A match REFUSES the narrative
+    defense-in-depth check before rendering it — an NFKC+casefold
+    normalized, ASCII-token-boundary scan of every A6 candidate's `disease`
+    name against the given text (HPI hard red line, design doc §6.1 point 1).
+    A match REFUSES the narrative
     entirely (never silently strips/redacts the matched substring, which
     could leave a mangled sentence that still implies the missing
     content) — this function still never calls any LLM/agent itself
-    (module docstring's zero-LLM invariant is unaffected: this is a pure
-    string containment check over caller-supplied data)."""
+    (module docstring's zero-LLM invariant is unaffected: this is a pure,
+    boundary-aware containment check over caller-supplied data)."""
     if not inp.narrative_enabled:
         return NarrativeSection(narrative_enabled=False, text=None)
 
     text = (inp.narrative_text or "").strip()
     apd = inp.domain_inference.ai_predicted_disease
     candidate_diseases = [c.disease for c in (apd.candidates if apd else []) if c.disease]
-    leaked = [d for d in candidate_diseases if d in text]
-    if leaked:
+    if contains_candidate_disease(text, candidate_diseases):
         return NarrativeSection(
             narrative_enabled=False, text=None, absent_marker=NARRATIVE_REJECTED_DISEASE_LEAK_KO
         )
@@ -865,7 +870,7 @@ def assemble_handoff_report(inp: HandoffReportInput) -> HandoffReportOutput:
 
     return HandoffReportOutput(
         vp_id=inp.vp_id,
-        generated_at=datetime.now().isoformat(),
+        generated_at=inp.generated_at,
         a0_header=_build_header(inp),
         a1_chief_complaint=_build_a1(inp),
         a2_hpi=_build_a2(inp),

@@ -30,7 +30,10 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from src import __version__
 from src.routes.chat import router as chat_router
@@ -52,6 +55,19 @@ app = FastAPI(
     version=__version__,
     description="Multi-agent AI service — Safety, Chat, Handoff (+ STT, OCR planned).",
 )
+
+
+@app.exception_handler(RequestValidationError)
+async def redact_handoff_request_validation(
+    request: Request,
+    exc: RequestValidationError,
+) -> JSONResponse:
+    if request.url.path == "/ai/handoff/generate":
+        return JSONResponse(
+            status_code=422,
+            content={"detail": "Handoff request validation failed"},
+        )
+    return await request_validation_exception_handler(request, exc)
 
 # ── Mount domain routers ──────────────────────────────────────────────
 app.include_router(safety_router)

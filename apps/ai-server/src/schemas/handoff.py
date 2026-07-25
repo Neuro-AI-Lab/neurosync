@@ -2,10 +2,88 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from typing import Final, Literal
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic.json_schema import SkipJsonSchema
 
 from src.agents.base import AgentInput, AgentOutput
 from src.schemas.common import EvidencePacket, RiskLevel
+
+RiskLevelLabel = Literal["none", "low", "medium", "high", "critical"]
+CtrsLabel = Literal["1", "2", "3", "4", "5"]
+type JsonScalar = str | int | float | bool | None
+
+_RISK_LABELS: Final[dict[str, RiskLevelLabel]] = {
+    "none": "none",
+    "low": "low",
+    "medium": "medium",
+    "high": "high",
+    "critical": "critical",
+}
+_CTRS_LABELS: Final[dict[str, CtrsLabel]] = {
+    "1": "1",
+    "2": "2",
+    "3": "3",
+    "4": "4",
+    "5": "5",
+}
+_VALID_RISK_LABELS: Final = frozenset(_RISK_LABELS)
+_VALID_CTRS_LABELS: Final = frozenset(_CTRS_LABELS)
+
+
+class RiskEvent(BaseModel):
+    """A safety event in the local legacy handoff-agent input.
+
+    This model is not the public ``POST /ai/handoff/generate`` request shape;
+    that boundary uses the shared ``HandoffRiskSignal`` contract. Local
+    severity labels remain strict (ISS-021): an invalid
+    ``risk_level``/``ctrs_level`` is rejected instead of being silently
+    floored to ``medium`` downstream. Extra legacy keys are preserved. An
+    event with no severity keys remains valid and floors to medium downstream
+    (issue #21).
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    risk_level: RiskLevelLabel | SkipJsonSchema[None] = Field(
+        default_factory=lambda: None,
+        exclude_if=lambda value: value is None,
+        description="One of: none | low | medium | high | critical (omit the field if unknown)",
+    )
+    ctrs_level: CtrsLabel | SkipJsonSchema[None] = Field(
+        default_factory=lambda: None,
+        exclude_if=lambda value: value is None,
+        description="Crisis Triage Rating Scale, ASCII digit '1'-'5' (omit the field if unknown)",
+    )
+
+    @field_validator("risk_level", mode="before")
+    @classmethod
+    def _normalize_risk_level(cls, value: JsonScalar) -> RiskLevelLabel:
+        if value is None:
+            # Explicit null is a malformed severity claim — reject. A genuinely
+            # ABSENT field never reaches this validator (pydantic skips
+            # validators for unset fields) and keeps the None default.
+            raise ValueError("risk_level must not be null — omit the field instead")
+        raw = str(value).strip().lower()
+        normalized = _RISK_LABELS.get(raw)
+        if normalized is None:
+            raise ValueError(
+                f"risk_level must be one of {sorted(_VALID_RISK_LABELS)}, got {value!r}"
+            )
+        return normalized
+
+    @field_validator("ctrs_level", mode="before")
+    @classmethod
+    def _normalize_ctrs_level(cls, value: JsonScalar) -> CtrsLabel:
+        if value is None:
+            raise ValueError("ctrs_level must not be null — omit the field instead")
+        raw = str(value).strip()
+        # ASCII-strict: rejects unicode digits ("١", "①"), out-of-range, non-digits.
+        normalized = _CTRS_LABELS.get(raw)
+        if normalized is None:
+            raise ValueError(f"ctrs_level must be an ASCII digit '1'-'5', got {value!r}")
+        return normalized
 
 
 class SlotData(BaseModel):
@@ -42,14 +120,15 @@ class ScaleScore(BaseModel):
 
 
 class HandoffInput(AgentInput):
-    """Input to the handoff generator."""
+    """Local legacy input adapted from the public shared request contract."""
 
     slots: SlotData = Field(default_factory=SlotData)
     conversation_history: list[dict[str, str]] = Field(default_factory=list)
     scale_scores: list[ScaleScore] = Field(default_factory=list)
-    risk_events: list[dict[str, str]] = Field(
+    risk_events: list[RiskEvent] = Field(
         default_factory=list,
-        description="Safety events during the session",
+        max_length=100,
+        description="Safety events during the session (severity labels strictly validated)",
     )
     ocr_documents: list[dict[str, str]] = Field(
         default_factory=list,

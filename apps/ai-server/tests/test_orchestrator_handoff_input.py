@@ -44,7 +44,7 @@ def test_build_handoff_input_carries_scale_scores_and_risk_events() -> None:
     assert phq.severity == "severe"
 
     assert len(hi.risk_events) >= 1, f"risk events dropped from handoff input: {hi.risk_events}"
-    assert hi.risk_events[0].get("risk_level") == "high"
+    assert hi.risk_events[0].risk_level == "high"
 
 
 def test_build_handoff_input_no_events_when_safe_first_visit() -> None:

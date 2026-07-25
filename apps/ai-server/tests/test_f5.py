@@ -32,6 +32,7 @@ from src.f5 import (
 )
 from src.schemas.ai_predicted_disease import AIPredictedDiseaseCandidate, AIPredictedDiseaseOutput
 from src.schemas.longitudinal import CTRSSeriesPoint, LongitudinalAnalysisOutput, ScaleSeriesPoint
+from src.services.f5_markdown import inline_literal
 from src.services.f5_report import build_markdown_report
 
 # ── Fixtures modeled on real VP-001/VP-003 EXP-023 shapes ──────────────
@@ -173,6 +174,7 @@ def _longitudinal(
 
 def _build_input(
     *,
+    generated_at: str = "2026-01-15T12:00:00+09:00",
     session: SessionSnapshot | None = None,
     current_session_f3: F3Administration | None = None,
     all_f3_administrations: tuple[F3Administration, ...] = (),
@@ -186,6 +188,7 @@ def _build_input(
 ) -> HandoffReportInput:
     return HandoffReportInput(
         vp_id="VP-TEST",
+        generated_at=generated_at,
         session=session or _session(),
         current_session_f3=current_session_f3,
         all_f3_administrations=all_f3_administrations,
@@ -202,6 +205,52 @@ def _build_input(
         narrative_enabled=narrative_enabled,
         narrative_text=narrative_text,
     )
+
+
+build_test_input = _build_input
+
+
+class TestDeterministicAssembly:
+    def test_required_generation_timestamp_is_part_of_the_input_contract(self) -> None:
+        parameter = inspect.signature(HandoffReportInput).parameters["generated_at"]
+        assert parameter.default is inspect.Parameter.empty
+
+    def test_identical_input_produces_identical_output(self) -> None:
+        inp = _build_input()
+
+        first = assemble_handoff_report(inp)
+        second = assemble_handoff_report(inp)
+
+        assert first.model_dump() == second.model_dump()
+
+    def test_naive_generation_timestamp_is_rejected(self) -> None:
+        with pytest.raises(ValueError, match="timezone-aware ISO timestamp"):
+            _build_input(generated_at="2026-01-15T12:00:00")
+
+    def test_utc_z_generation_timestamp_is_accepted_and_preserved(self) -> None:
+        inp = _build_input(generated_at="2026-01-15T03:00:00Z")
+
+        assert inp.generated_at == "2026-01-15T03:00:00Z"
+
+    def test_malformed_generation_timestamp_is_rejected(self) -> None:
+        with pytest.raises(ValueError) as exc_info:
+            _build_input(generated_at="not-a-timestamp")
+
+        assert str(exc_info.value) == "generated_at must be a valid timezone-aware ISO timestamp"
+
+    def test_changing_timestamp_preserves_all_clinical_sections(self) -> None:
+        first = assemble_handoff_report(
+            _build_input(generated_at="2026-01-15T12:00:00+09:00")
+        ).model_dump()
+        second = assemble_handoff_report(
+            _build_input(generated_at="2026-01-15T13:00:00+09:00")
+        ).model_dump()
+
+        first_timestamp = first.pop("generated_at")
+        second_timestamp = second.pop("generated_at")
+
+        assert first_timestamp != second_timestamp
+        assert first == second
 
 
 # ── Narrative descope (ADR-037 Decision 1) ─────────────────────────────
@@ -234,6 +283,54 @@ class TestNarrativeDescoped:
 
 
 class TestNarrativeOptIn:
+    @pytest.mark.parametrize("format_control", ["\u200b", "\u200d", "\u00ad"])
+    def test_leak_guard_rejects_disease_split_by_unicode_format_control(
+        self, format_control: str
+    ) -> None:
+        from src.schemas.handoff_report import NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+        apd = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="PTSD", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+
+        out = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd,
+                narrative_enabled=True,
+                narrative_text=f"The patient has P{format_control}TSD symptoms.",
+            )
+        )
+
+        assert out.a8_narrative.narrative_enabled is False
+        assert out.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+    def test_format_control_comparison_preserves_clean_short_token_narrative(self) -> None:
+        apd = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="AD", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+        clean_text = "The patient h\u00adad insomnia and low mood."
+
+        out = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd,
+                narrative_enabled=True,
+                narrative_text=clean_text,
+            )
+        )
+
+        assert out.a8_narrative.narrative_enabled is True
+        assert out.a8_narrative.text == clean_text
+
     def test_enabled_with_text_renders_verbatim(self) -> None:
         out = assemble_handoff_report(
             _build_input(narrative_enabled=True, narrative_text="  환자는 수면 문제를 호소함.  ")
@@ -256,6 +353,136 @@ class TestNarrativeOptIn:
         )
         assert out.a8_narrative.narrative_enabled is False
         assert out.a8_narrative.text is None
+        assert out.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+    def test_leak_guard_is_case_insensitive(self) -> None:
+        # Adversarial: A6 candidate "PTSD" must also be caught as "ptsd".
+        from src.schemas.handoff_report import NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+        apd = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="PTSD", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+        out = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd,
+                narrative_enabled=True,
+                narrative_text="환자에게서 ptsd 소견이 의심됨.",
+            )
+        )
+        assert out.a8_narrative.narrative_enabled is False
+        assert out.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+    def test_leak_guard_normalizes_fullwidth_unicode(self) -> None:
+        # Adversarial: fullwidth "ＰＴＳＤ" NFKC-normalizes to "PTSD" and must be caught.
+        from src.schemas.handoff_report import NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+        apd = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="PTSD", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+        out = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd,
+                narrative_enabled=True,
+                narrative_text="환자에게서 ＰＴＳＤ 소견이 의심됨.",
+            )
+        )
+        assert out.a8_narrative.narrative_enabled is False
+        assert out.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+    def test_leak_guard_no_false_positive_on_short_latin_substring(self) -> None:
+        # codex P2: a short Latin candidate ("AD") must NOT match inside an
+        # ordinary English word ("had") — the opt-in narrative stays ENABLED.
+        apd = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="AD", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+        out = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd,
+                narrative_enabled=True,
+                narrative_text="The patient had insomnia and low mood.",
+            )
+        )
+        assert out.a8_narrative.narrative_enabled is True
+        assert out.a8_narrative.text is not None
+
+    def test_leak_guard_catches_standalone_latin_and_korean_particle(self) -> None:
+        # A real leak must still be caught: a standalone Latin token, and a CJK
+        # disease name followed by a Korean particle (우울증 in 우울증이).
+        from src.schemas.handoff_report import NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+        apd_latin = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="AD", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+        latin = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd_latin,
+                narrative_enabled=True,
+                narrative_text="환자는 AD 소견을 보임.",
+            )
+        )
+        assert latin.a8_narrative.narrative_enabled is False
+        assert latin.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+        apd_ko = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="우울증", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+        korean = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd_ko,
+                narrative_enabled=True,
+                narrative_text="환자는 우울증이 의심됨.",
+            )
+        )
+        assert korean.a8_narrative.narrative_enabled is False
+        assert korean.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+    def test_leak_guard_strips_candidate_whitespace(self) -> None:
+        # codex P1: a candidate with surrounding whitespace ("PTSD ") must still
+        # be caught — the whitespace must not become part of the boundary regex
+        # and defeat the A6→A8 isolation guarantee.
+        from src.schemas.handoff_report import NARRATIVE_REJECTED_DISEASE_LEAK_KO
+
+        apd = AIPredictedDiseaseOutput(
+            candidates=[
+                AIPredictedDiseaseCandidate(
+                    disease="PTSD ", similarity_score=0.5, source_id="case_card:1", quote="q"
+                )
+            ],
+            mode="rag_live",
+        )
+        out = assemble_handoff_report(
+            _build_input(
+                ai_predicted_disease=apd,
+                narrative_enabled=True,
+                narrative_text="The patient has PTSD symptoms.",
+            )
+        )
+        assert out.a8_narrative.narrative_enabled is False
         assert out.a8_narrative.absent_marker == NARRATIVE_REJECTED_DISEASE_LEAK_KO
 
     def test_text_without_any_candidate_disease_name_is_not_rejected(self) -> None:
@@ -464,7 +691,7 @@ class TestA3LongitudinalRiskSignal:
         assert signals[0].critical_item_positive is False
 
         md = build_markdown_report(out)
-        assert "2026-08-01" in md
+        assert inline_literal(signals[0].simulated_date) in md
 
     def test_staleness_pointer_vp003_worked_example(self) -> None:
         """VP-003 worked example (ADR-037 Decision 2): S11 current
@@ -752,6 +979,7 @@ class TestA6ReasonSummarySurfacing:
         `HandoffReportInput` directly."""
         inp = HandoffReportInput(
             vp_id="VP-TEST",
+            generated_at="2026-01-15T12:00:00+09:00",
             session=_session(),
             current_session_f3=None,
             all_f3_administrations=(),
