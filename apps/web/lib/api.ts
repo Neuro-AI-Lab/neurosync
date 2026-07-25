@@ -213,29 +213,29 @@ export type ReportPatient = {
   gender: string | null;
 };
 
-export type Citation = {
-  field: string;
-  source_message_id: string;
-  quote: string;
+// BUG-066 fix (EXP-031 fix_wave_design.md): `HandoffNarrative` now mirrors
+// the realigned `contracts.handoff.HandoffResponse` (report_markdown-primary)
+// instead of the pre-fix invented chief_complaint/present_illness shape
+// ai-server never produced. `report_json` is `UNVERIFIED`/usually `None`
+// (no `report_json=` assignment found in ai-server's `handoff_generator.py`
+// as of this fix) — `HandoffReportView` renders `report_markdown` as the
+// primary surface and does not assume `report_json`'s internal shape.
+export type EvidencePacket = {
+  evidence_id: string;
+  source_type: string;
+  source_ref: string;
+  content_summary: string;
 };
 
 export type HandoffNarrative = {
-  chief_complaint: string;
-  present_illness: string;
-  symptoms: string[];
-  onset: string | null;
-  recent_changes: string | null;
-  triggers: string[];
-  sleep_appetite_activity: {
-    sleep: string | null;
-    appetite: string | null;
-    activity: string | null;
-  };
-  psych_history: string | null;
-  medications: string | null;
-  documents_summary: string[];
-  clinician_attention: string[];
-  evidence: Citation[];
+  report_markdown: string;
+  report_json: Record<string, unknown> | null;
+  report_pdf_base64: string | null;
+  trend_plot_base64: string | null;
+  evidence_packets: EvidencePacket[];
+  missing_slots: string[];
+  risk_level: string;
+  requires_human_review: boolean;
 };
 
 export type HandoffReport = {
