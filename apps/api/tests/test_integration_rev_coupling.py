@@ -360,6 +360,7 @@ async def test_full_session_lifecycle_cross_phase_coupling(
     db_session, seeded_session, caplog
 ) -> None:
     from sqlalchemy import select
+
     from src.core.config import Settings
     from src.models.audit_log import AuditLog
     from src.models.session import Session
@@ -463,7 +464,8 @@ async def test_full_session_lifecycle_cross_phase_coupling(
     ).scalars().all()
     caveat_rows = [r for r in audit_rows if r.action == "survey.plan.proxy_caveat"]
     assert len(caveat_rows) == 1
-    assert "GAD-7" in caveat_rows[0].audit_metadata["caveat"] or caveat_rows[0].audit_metadata["scale"] == "GAD-7"
+    caveat_metadata = caveat_rows[0].audit_metadata
+    assert "GAD-7" in caveat_metadata["caveat"] or caveat_metadata["scale"] == "GAD-7"
 
     # H1: domain/infer must NOT have touched session_state at all.
     row_after_panic = (
@@ -539,7 +541,9 @@ async def test_full_session_lifecycle_cross_phase_coupling(
 
     # ── Step 6: score — canonical ai-server result used, zero local fallback ──
     with caplog.at_level(logging.WARNING, logger="src.services.questionnaire"):
-        score_stub = _StubScoreAIClient(total_score=15, max_score=21, severity="severe", critical=True)
+        score_stub = _StubScoreAIClient(
+            total_score=15, max_score=21, severity="severe", critical=True
+        )
         total, severity, critical = await score_with_ai(
             "GAD7", [3, 3, 3, 3, 1, 1, 1], ai_client=score_stub, session_id=session_id
         )
