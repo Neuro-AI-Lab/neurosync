@@ -1,6 +1,6 @@
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, BackHandler, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -60,6 +60,20 @@ export default function EmergencyScreen() {
   const [alone, setAlone] = useState<AloneStatus | null>(null);
   const [acking, setAcking] = useState(false);
 
+  // CVR-052 gap 2/3 fix: `reason`/`mode` are optional nav params threaded
+  // from the MEDIUM-banner "도움 받기" tap (`chat.tsx`) — falls back to
+  // `risk?.reason` (the WS payload already stored in the session store) so
+  // this screen still gets the distinguishing signal even if it is ever
+  // entered another way (e.g. the HIGH/CRITICAL `RiskConfirmModal` path,
+  // which does not pass these params). `mode === "self_hotline"` is
+  // CVR-052 finding 4's consent-gated distinction — no dedicated screen
+  // exists for it yet (verified this pass), so it reuses this screen with
+  // a softened framing instead of the full-alarm crisis copy.
+  const params = useLocalSearchParams<{ reason?: string; mode?: string }>();
+  const reason = params.reason ?? risk?.reason ?? "";
+  const isClassifierUnavailable = reason === "classifier_unavailable";
+  const isSelfHotlineOnly = params.mode === "self_hotline";
+
   const acknowledge = async (value: AloneStatus) => {
     // Optimistic — the UI reflects the choice even if the network is flaky.
     setAlone(value);
@@ -78,9 +92,15 @@ export default function EmergencyScreen() {
   const hotlines = mergeHotlines(risk?.hotlines);
 
   useEffect(() => {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    // CVR-052 gap 2 fix: suppress the crisis-entry haptic when arriving via
+    // a classifier-unavailable (technical failure, not a detected risk)
+    // banner tap — CVR-052 finding 3.
+    if (!isClassifierUnavailable) {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    }
     const sub = BackHandler.addEventListener("hardwareBackPress", () => true);
     return () => sub.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const dial = async (name: string, number: string) => {
@@ -121,13 +141,37 @@ export default function EmergencyScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
-      <View style={[styles.alert, { marginTop: insets.top + 8 }]}>
+      <View
+        style={[
+          styles.alert,
+          { marginTop: insets.top + 8 },
+          isClassifierUnavailable && styles.alertNeutral,
+        ]}
+      >
         <View style={styles.eyebrowRow}>
-          <View style={styles.pulse} />
-          <Text style={styles.eyebrow}>지금, 안전 확인이 필요해요</Text>
+          <View style={[styles.pulse, isClassifierUnavailable && styles.pulseNeutral]} />
+          <Text style={[styles.eyebrow, isClassifierUnavailable && styles.eyebrowNeutral]}>
+            {isClassifierUnavailable ? "안전 확인이 지연되고 있어요" : "지금, 안전 확인이 필요해요"}
+          </Text>
         </View>
-        <Text style={styles.alertTitle}>당신의 안전이 가장 중요해요</Text>
-        <Text style={styles.alertSub}>혼자 감당하지 않으셔도 돼요. 아래로 바로 연결돼요.</Text>
+        {isClassifierUnavailable ? (
+          // CVR-052 gap 2 fix: neutral, corrective framing for a classifier-
+          // infra outage — replaces the maximal-urgency crisis copy CVR-052
+          // finding 3 flags as disproportionate for this arrival reason.
+          // Hotline/contact access below is unchanged (the screen's actual
+          // function is preserved, only the framing changes).
+          <>
+            <Text style={styles.alertTitle}>안전 확인이 지연되었어요</Text>
+            <Text style={styles.alertSub}>
+              필요하시면 아래 연락처로 바로 연결하실 수 있어요.
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.alertTitle}>당신의 안전이 가장 중요해요</Text>
+            <Text style={styles.alertSub}>혼자 감당하지 않으셔도 돼요. 아래로 바로 연결돼요.</Text>
+          </>
+        )}
       </View>
 
       <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + 24 }]}>
@@ -150,24 +194,36 @@ export default function EmergencyScreen() {
           </Pressable>
         ))}
 
-        {/* FR-011/022 — patient self-report routes to risk_events.alone_status. */}
-        <Text style={styles.qline}>지금 혼자 계신가요?</Text>
-        <View style={styles.etwo}>
-          {(["alone", "with_someone"] as const).map((v) => (
-            <Pressable
-              key={v}
-              onPress={() => acknowledge(v)}
-              disabled={acking}
-              accessibilityRole="button"
-              accessibilityState={{ selected: alone === v }}
-              style={[styles.eBtn, alone === v && styles.eBtnSel]}
-            >
-              <Text style={[styles.eBtnText, alone === v && styles.eBtnTextSel]}>
-                {v === "alone" ? "혼자 있어요" : "함께 있어요"}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        {/* FR-011/022 — patient self-report routes to risk_events.alone_status.
+            CVR-052 gap 2 fix: suppressed for the classifier-unavailable
+            arrival reason — "are you alone right now" is a genuine-crisis
+            prompt disproportionate to an infra failure (finding 3). */}
+        {!isClassifierUnavailable ? (
+          <>
+            <Text style={styles.qline}>지금 혼자 계신가요?</Text>
+            <View style={styles.etwo}>
+              {(["alone", "with_someone"] as const).map((v) => (
+                <Pressable
+                  key={v}
+                  onPress={() => acknowledge(v)}
+                  disabled={acking}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: alone === v }}
+                  style={[styles.eBtn, alone === v && styles.eBtnSel]}
+                >
+                  <Text style={[styles.eBtnText, alone === v && styles.eBtnTextSel]}>
+                    {v === "alone" ? "혼자 있어요" : "함께 있어요"}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </>
+        ) : null}
+        {isSelfHotlineOnly ? (
+          <Text style={styles.selfHotlineNote}>
+            도움이 필요하시면 아래 번호로 언제든 연락하실 수 있어요.
+          </Text>
+        ) : null}
         {alone !== null ? (
           <Text style={styles.ackHint}>
             {alone === "alone"
@@ -193,6 +249,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.dangerSoft,
     borderRadius: 16,
     padding: 16,
+  },
+  // CVR-052 gap 2 fix: neutral variants for the classifier-unavailable
+  // arrival — same layout, no danger-toned color, so this is visibly NOT
+  // the genuine-crisis presentation.
+  alertNeutral: { borderColor: colors.lineStrong, backgroundColor: colors.fill },
+  pulseNeutral: { backgroundColor: colors.muted },
+  eyebrowNeutral: { color: colors.muted },
+  selfHotlineNote: {
+    fontSize: 12.5,
+    color: colors.ink2,
+    textAlign: "center",
+    marginTop: 4,
   },
   eyebrowRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   pulse: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.danger },

@@ -19,6 +19,7 @@ import type {
   RegisterInput,
   ReportStatusOut,
   RiskEventAck,
+  SessionListItem,
   SessionOut,
   SubmitAccepted,
   TokenPair,
@@ -233,6 +234,21 @@ export const mockApi = {
       aloneStatus,
       acknowledgedAt: nowIso(),
     });
+  },
+  // S09 records — not the demo's primary MOCK path (records.tsx keeps using
+  // the `state/records.ts` local store when MOCK, per its own FR-045/046/047
+  // seed), but kept lib-pattern-consistent so any other MOCK-mode caller of
+  // `listSessions` gets a sane, self-contained response.
+  listSessions(): Promise<SessionListItem[]> {
+    return delay([
+      {
+        sessionId: id("mock-session"),
+        status: "in_progress",
+        createdAt: nowIso(),
+        progressRatio: 0,
+        hasReport: false,
+      },
+    ]);
   },
 };
 
