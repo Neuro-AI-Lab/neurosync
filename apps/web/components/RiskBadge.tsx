@@ -1,4 +1,4 @@
-import { riskColor, type RiskLevel } from "../lib/tokens";
+import { riskBadge, type RiskLevel } from "../lib/tokens";
 
 const LABEL: Record<RiskLevel, string> = {
   low: "안전",
@@ -8,13 +8,13 @@ const LABEL: Record<RiskLevel, string> = {
 };
 
 export function RiskBadge({ level }: { level: RiskLevel }) {
-  const c = riskColor[level];
+  const c = riskBadge[level];
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs font-semibold ${c.bg} ${c.border} ${c.text}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold tracking-tight ${c.bg} ${c.border} ${c.text}`}
       aria-label={`위험 등급: ${LABEL[level]}`}
     >
-      <span aria-hidden>●</span>
+      <span className={`h-1.5 w-1.5 rounded-full ${c.dot}`} aria-hidden />
       {LABEL[level]}
     </span>
   );
