@@ -41,8 +41,11 @@ from fastapi import (
     APIRouter,
     BackgroundTasks,
     Depends,
+    File,
+    Form,
     HTTPException,
     Request,
+    UploadFile,
     WebSocket,
     WebSocketDisconnect,
     status,
@@ -55,6 +58,7 @@ from starlette.websockets import WebSocketState
 from src.core.config import Settings, get_settings
 from src.core.deps import require_role
 from src.core.encryption import decrypt_str, encrypt_str
+from src.core.file_security import FileSecurityError, validate_upload
 from src.core.security import TokenError, decode_token
 from src.db import SessionLocal, get_session
 from src.models.audit_log import AuditLog
@@ -275,6 +279,79 @@ async def infer_domain(
         clinical_slots=sess.clinical_slots or {},
     )
     return {"success": True, "data": {"instrument": instrument}}
+
+
+@router.post("/{session_id}/documents/ocr", status_code=status.HTTP_201_CREATED)
+async def parse_document(
+    session_id: UUID,
+    request: Request,
+    patient: Annotated[User, Depends(require_role("patient"))],
+    db: Annotated[AsyncSession, Depends(get_session)],
+    ai_client: Annotated[AIClient, Depends(get_ai_client)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    document: Annotated[UploadFile, File()],
+    document_type_hint: Annotated[str, Form()] = "unknown",
+) -> dict:
+    """v3 FR-048 — 대화 중 첨부한 처방전/진단서를 OCR로 구조화한다.
+
+    플랫폼이 파일을 검증(FR-028)한 뒤 ai-server /ai/ocr/parse로 프록시한다.
+    확정 반영은 클라이언트가 확인 화면에서 [확인 완료]를 눌러야 이뤄지므로,
+    이 엔드포인트는 추출만 하고 리포트에 자동 반영하지 않는다.
+    """
+    await _owned_in_progress_session(db, session_id=session_id, patient_id=patient.id)
+
+    data = await document.read()
+    # FR-028 — 크기·형식·매직넘버 검증. 정규 content-type을 ai-server로 넘긴다.
+    try:
+        content_type = validate_upload(
+            data,
+            declared_content_type=document.content_type,
+            max_bytes=settings.ocr_max_bytes,
+        )
+    except FileSecurityError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": exc.code, "message": exc.message},
+        ) from exc
+
+    try:
+        result = await ai_client.ocr_parse(
+            document=data,
+            filename=document.filename or "document",
+            content_type=content_type,
+            session_id=str(session_id),
+            patient_id=str(patient.id),
+            document_type_hint=document_type_hint,
+        )
+    except AIClientError as exc:
+        logger.warning("ocr parse failed (session=%s): %s", session_id, exc)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={
+                "code": "OCR_UNAVAILABLE",
+                "message": "문서 인식에 실패했어요. 잠시 후 다시 시도해 주세요.",
+            },
+        ) from exc
+
+    db.add(
+        AuditLog(
+            actor_id=patient.id,
+            actor_role="patient",
+            action="session.document.ocr",
+            resource_type="session",
+            resource_id=session_id,
+            ip=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+            # 문서 내용은 로그에 남기지 않는다 — 유형/건수만.
+            audit_metadata={
+                "document_type": result.document_type,
+                "low_confidence_count": len(result.low_confidence_items),
+            },
+        )
+    )
+    await db.commit()
+    # by_alias — 모바일에는 camelCase로 (나머지 API와 동일 컨벤션).
+    return {"success": True, "data": result.model_dump(by_alias=True, mode="json")}
 
 
 HANDOFF_ESTIMATED_SECONDS = 30

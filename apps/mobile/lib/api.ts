@@ -255,6 +255,91 @@ export async function inferDomainInstrument(
   );
 }
 
+// ────────── OCR 문서 첨부 (v3 FR-048) ──────────
+
+export type OCRMedication = {
+  name: string;
+  dose?: string | null;
+  frequency?: string | null;
+  route?: string | null;
+  confidence?: number;
+};
+
+export type OCRSummary = {
+  diagnoses: string[];
+  diagnosisCodes?: string[];
+  medications: OCRMedication[];
+  department?: string | null;
+  dates: string[];
+  scaleScores?: Record<string, number>;
+  patientName?: string | null;
+  patientAge?: string | null;
+  patientGender?: string | null;
+};
+
+export type OCRLowConfidenceItem = {
+  blockId: string;
+  field: string;
+  value: string;
+  confidence: number;
+  severity: "info" | "verify" | "retry";
+  message: string;
+};
+
+export type OCRResult = {
+  documentType: string;
+  extractedSummary: OCRSummary;
+  lowConfidenceItems: OCRLowConfidenceItem[];
+  pageCount: number;
+  elementCount: number;
+};
+
+export type DocumentUpload = { uri: string; name: string; mime: string };
+
+/**
+ * 처방전/진단서 이미지를 업로드해 OCR 구조화 결과를 받는다 (multipart).
+ * 확정 반영은 사용자가 확인 화면에서 [확인 완료]를 눌러야 이뤄진다 (FR-048).
+ */
+export async function parseDocument(
+  token: string,
+  sessionId: string,
+  file: DocumentUpload,
+  documentTypeHint = "unknown",
+): Promise<OCRResult> {
+  if (MOCK) return mockApi.parseDocument();
+
+  const form = new FormData();
+  // RN FormData file part: { uri, name, type }.
+  form.append(
+    "document",
+    { uri: file.uri, name: file.name, type: file.mime } as unknown as Blob,
+  );
+  form.append("document_type_hint", documentTypeHint);
+
+  const resp = await fetch(
+    `${API_BASE_URL}/api/v1/sessions/${sessionId}/documents/ocr`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form, // Content-Type은 fetch가 boundary와 함께 설정
+    },
+  );
+  let body: Envelope<OCRResult> | null = null;
+  try {
+    body = (await resp.json()) as Envelope<OCRResult>;
+  } catch {
+    body = null;
+  }
+  if (!resp.ok || !body || body.success === false) {
+    const err: APIError =
+      body && body.success === false
+        ? body.error
+        : { code: "NETWORK", message: "문서 인식에 실패했어요." };
+    throw new APIException(resp.status, err);
+  }
+  return body.data;
+}
+
 // ────────── Submit (FR-010) ──────────
 
 export type SubmitAccepted = {

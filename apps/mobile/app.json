@@ -28,6 +28,13 @@
         {
           "microphonePermission": "음성으로 사전 문진에 응답할 때 사용해요. 마이크를 누른 동안에만 녹음되며, 원본은 48시간 안에 자동 삭제됩니다."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "처방전·진단서를 촬영해 사전 문진에 반영하기 위해 카메라를 사용해요.",
+          "photosPermission": "처방전·진단서를 앨범에서 선택해 사전 문진에 반영하기 위해 사진 접근을 사용해요."
+        }
       ]
     ],
     "experiments": {

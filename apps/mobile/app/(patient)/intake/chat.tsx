@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { AttachButton } from "../../../components/AttachButton";
 import { MessageBubble } from "../../../components/MessageBubble";
 import { NavBar } from "../../../components/NavBar";
 import { PushToTalk } from "../../../components/PushToTalk";
@@ -247,6 +248,16 @@ export default function ChatScreen() {
       />
 
       <View style={[styles.inbar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+        <AttachButton
+          disabled={status !== "open"}
+          onPick={(doc) =>
+            // FR-048 — 촬영/선택 후 OCR 확인 화면으로. 인식·확정은 거기서.
+            router.push({
+              pathname: "/(patient)/intake/ocr-confirm",
+              params: { uri: doc.uri, name: doc.name, mime: doc.mime },
+            })
+          }
+        />
         <TextInput
           value={draft}
           onChangeText={setDraft}

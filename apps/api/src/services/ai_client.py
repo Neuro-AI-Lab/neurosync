@@ -18,6 +18,7 @@ import httpx
 from contracts.chat import ChatRequest, ChatResponse
 from contracts.domain import DomainInferRequest, DomainInferResponse
 from contracts.handoff import HandoffRequest, HandoffResponse
+from contracts.ocr import OCRParseResponse
 from contracts.safety import SafetyRequest, SafetyResponse
 from contracts.slots import SlotsExtractRequest, SlotsExtractResponse
 from contracts.stt import STTRequest, STTResponse
@@ -131,6 +132,37 @@ class AIClient:
             payload,
             timeout=self._settings.ai_slots_timeout_seconds,
         )
+
+    async def ocr_parse(
+        self,
+        *,
+        document: bytes,
+        filename: str,
+        content_type: str,
+        session_id: str,
+        patient_id: str,
+        document_type_hint: str = "unknown",
+    ) -> OCRParseResponse:
+        """POST /ai/ocr/parse (multipart). 처방전/진단서 파싱 (FR-048).
+
+        _post는 JSON 전용이라 여기선 직접 multipart를 보낸다. 다른 메서드와
+        동일하게 전송/파싱 실패를 통째로 AIClientError로 감싼다(PR#74 C1 원칙).
+        """
+        url = f"{self._settings.ai_server_url}/ai/ocr/parse"
+        files = {"document": (filename, document, content_type)}
+        data = {
+            "session_id": session_id,
+            "patient_id": patient_id,
+            "document_type_hint": document_type_hint,
+        }
+        try:
+            resp = await self._client.post(
+                url, files=files, data=data, timeout=self._settings.ai_ocr_timeout_seconds
+            )
+            resp.raise_for_status()
+            return OCRParseResponse.model_validate(resp.json())
+        except (httpx.HTTPError, ValidationError, ValueError) as exc:
+            raise AIClientError(f"/ai/ocr/parse failed: {exc}") from exc
 
     async def aclose(self) -> None:
         if self._owned:

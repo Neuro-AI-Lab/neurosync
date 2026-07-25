@@ -93,6 +93,11 @@ class Settings(BaseSettings):
     ai_domain_timeout_seconds: float = Field(default=4.5)
     # F1 슬롯 추출 — 대화 배경 작업이라 짧게 끊고 실패는 무시한다.
     ai_slots_timeout_seconds: float = Field(default=6.0)
+    # OCR — Upstage Document Parse 왕복 + 큰 파일 업로드라 여유 있게.
+    ai_ocr_timeout_seconds: float = Field(default=30.0)
+
+    # FR-048/028 — 대화 중 첨부(처방전) 업로드 상한. Upstage 50MB보다 보수적.
+    ocr_max_bytes: int = Field(default=20 * 1024 * 1024)  # 20MB (FR-028)
 
     # STT audio (FR-033/036). S3 SSE-KMS is Phase 2; demo writes to local disk.
     audio_storage_dir: str = Field(default=".audio_store")

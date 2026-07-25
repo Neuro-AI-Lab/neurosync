@@ -11,6 +11,7 @@
  */
 
 import type {
+  OCRResult,
   QuestionnaireResult,
   QuestionnaireType,
   RegisterInput,
@@ -124,6 +125,37 @@ export const mockApi = {
     // 오프라인 데모 시나리오는 우울(PHQ-9)로 고정한다.
     // 실제 라우팅은 서버가 F2 도메인 추정으로 결정한다 (v3 FR-039).
     return delay({ instrument: "PHQ9" as QuestionnaireType }, 1200);
+  },
+  parseDocument(): Promise<OCRResult> {
+    // 오프라인 데모: 처방전 한 장을 인식한 것처럼 구조화 결과를 돌려준다.
+    return delay(
+      {
+        documentType: "prescription",
+        extractedSummary: {
+          diagnoses: ["우울에피소드 (F32.1)"],
+          medications: [
+            { name: "에스시탈로프람", dose: "10mg", frequency: "1일 1회", route: "경구" },
+            { name: "졸피뎀", dose: "10mg", frequency: "취침 전", route: "경구" },
+          ],
+          department: "정신건강의학과",
+          dates: ["2026-06-18"],
+          scaleScores: {},
+        },
+        lowConfidenceItems: [
+          {
+            blockId: "b-3",
+            field: "medications[1].dose",
+            value: "10mg",
+            confidence: 0.62,
+            severity: "verify",
+            message: "확인 필요",
+          },
+        ],
+        pageCount: 1,
+        elementCount: 12,
+      },
+      1400,
+    );
   },
   submitSession(sessionId: string): Promise<SubmitAccepted> {
     const reportId = id("mock-report");
