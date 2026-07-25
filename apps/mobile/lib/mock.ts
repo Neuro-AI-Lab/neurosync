@@ -104,6 +104,9 @@ export const mockApi = {
     // Accept ANY credentials in mock mode.
     return delay(MOCK_TOKENS());
   },
+  updateProfileDemographics(): Promise<{ updated: string[] }> {
+    return delay({ updated: [] }, 300);
+  },
   refresh(): Promise<string | null> {
     return delay(`mock-access.${++seq}`);
   },
