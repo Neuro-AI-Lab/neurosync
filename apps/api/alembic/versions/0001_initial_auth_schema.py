@@ -3,6 +3,31 @@
 PRD §5.2. Demo: no FR-030 trigger / FR-027 guardian enforcement at DB layer
 (those are Phase 2).
 
+BUG-065 fix (EXP-031 fix_wave_design.md, edited in place — see rationale
+below): `patient_profiles.is_minor` was originally a Postgres
+`GENERATED ALWAYS AS ... STORED` column using `EXTRACT(YEAR FROM
+CURRENT_DATE)`. PG16 rejects `CURRENT_DATE` (volatile) inside a STORED
+generated column's expression ("generation expression is not immutable") —
+there is no immutable way to reference "today" inside such an expression by
+design, so this migration could never successfully `upgrade()` a fresh PG16
+database; the live demo DB only worked because its `is_minor` expression was
+hand-patched directly (outside any migration) to a literal year. `is_minor`
+is now a plain `Boolean NOT NULL` column with no DB-side computation; the
+application layer sets it explicitly at INSERT time
+(`api/v1/auth.py`'s registration handler, reusing the pre-existing
+`_is_minor()` helper it already used independently for the FR-027 guardian-
+consent gate) — one source of truth instead of an app function and a
+DB-computed shadow of it.
+
+This migration is edited IN PLACE (not superseded by a later migration)
+specifically because it has never successfully applied on PG16 in its
+original form — there is no already-provisioned PG16 environment running
+`0001`'s pre-fix shape to protect by leaving it alone; a later migration
+could not fix a fresh bootstrap that never gets past `0001` in the first
+place. Any environment that already ran a pre-fix `0001` against an older
+Postgres (or was hand-patched, like the demo DB) is unaffected by this
+source edit — migrations are not re-run once applied.
+
 Revision ID: 0001
 Revises:
 Create Date: 2026-06-09
@@ -70,15 +95,10 @@ def upgrade() -> None:
         ),
         sa.Column("name_encrypted", sa.LargeBinary(), nullable=False),
         sa.Column("birth_year", sa.Integer(), nullable=False),
-        sa.Column(
-            "is_minor",
-            sa.Boolean(),
-            sa.Computed(
-                "(EXTRACT(YEAR FROM CURRENT_DATE)::int - birth_year) < 14",
-                persisted=True,
-            ),
-            nullable=False,
-        ),
+        # BUG-065 fix: plain column, no DB-side GENERATED expression (see
+        # module docstring) — the app sets this explicitly at INSERT time
+        # (`api/v1/auth.py::register`, via `_is_minor()`).
+        sa.Column("is_minor", sa.Boolean(), nullable=False),
         sa.Column("gender", sa.Text()),
         sa.Column("phone_encrypted", sa.LargeBinary()),
         sa.Column("region", sa.Text()),
