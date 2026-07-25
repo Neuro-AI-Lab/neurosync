@@ -41,30 +41,24 @@ function toEmrText(report: HandoffReport, patientName: string): string {
     }
     L.push("");
   }
+  // BUG-066 fix (see HandoffReportView.tsx): `HandoffNarrative` mirrors
+  // ai-server's real `report_markdown`-primary shape — the previous
+  // chief_complaint/present_illness/... fields here were never actually
+  // produced by ai-server. Mirror the same fields HandoffReportView renders.
   const n = report.narrative;
   if (n) {
     L.push("■ 요약");
-    if (n.chief_complaint) L.push(`주호소: ${n.chief_complaint}`);
-    if (n.present_illness) L.push(`현병력: ${n.present_illness}`);
-    if (n.symptoms?.length) L.push(`주요 증상: ${n.symptoms.join(", ")}`);
-    if (n.onset) L.push(`시작 시점: ${n.onset}`);
-    if (n.recent_changes) L.push(`최근 변화: ${n.recent_changes}`);
-    const saa = n.sleep_appetite_activity;
-    const saaText = [
-      saa?.sleep ? `수면 ${saa.sleep}` : null,
-      saa?.appetite ? `식욕 ${saa.appetite}` : null,
-      saa?.activity ? `활동 ${saa.activity}` : null,
-    ]
-      .filter(Boolean)
-      .join(" · ");
-    if (saaText) L.push(`수면/식욕/활동: ${saaText}`);
-    if (n.psych_history) L.push(`과거 정신건강 이력: ${n.psych_history}`);
-    if (n.medications) L.push(`복용약: ${n.medications}`);
-    if (n.clinician_attention?.length) L.push(`의료진 확인 필요: ${n.clinician_attention.join(", ")}`);
-    if (n.evidence?.length) {
+    L.push(n.report_markdown);
+    if (n.missing_slots?.length) {
+      L.push("");
+      L.push(`누락된 항목: ${n.missing_slots.join(", ")}`);
+    }
+    if (n.evidence_packets?.length) {
       L.push("");
       L.push("■ 원문 근거");
-      for (const e of n.evidence) L.push(`- ${e.field}: "${e.quote}"`);
+      for (const e of n.evidence_packets) {
+        L.push(`- ${e.source_type} (${e.source_ref}): ${e.content_summary}`);
+      }
     }
   }
   L.push("");

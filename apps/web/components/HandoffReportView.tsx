@@ -1,4 +1,5 @@
 import type {
+  EvidencePacket,
   HandoffNarrative,
   HandoffReport,
   QuestionnaireScore,
@@ -75,44 +76,40 @@ function ListField({ label, items }: { label: string; items: string[] }) {
   );
 }
 
-function Narrative({ n }: { n: HandoffNarrative }) {
-  const saa = n.sleep_appetite_activity;
-  const saaText = [
-    saa.sleep ? `수면: ${saa.sleep}` : null,
-    saa.appetite ? `식욕: ${saa.appetite}` : null,
-    saa.activity ? `활동: ${saa.activity}` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+function EvidenceRow({ e }: { e: EvidencePacket }) {
+  return (
+    <blockquote className="border-l-2 border-state-info pl-3 text-sm text-text-secondary">
+      <span className="font-medium text-text-primary">{e.source_type}</span>{" "}
+      ({e.source_ref}): {e.content_summary}
+    </blockquote>
+  );
+}
 
+// BUG-066 fix: `HandoffResponse` (contracts.handoff, apps/api<->ai-server)
+// was realigned to ai-server's real `HandoffOutput` shape — the previous
+// chief_complaint/present_illness/... fields this component read were never
+// actually produced by ai-server (BUG-066's root cause: silent request-side
+// field drop + response-side ValidationError, "status":"failed" every time
+// live). `report_markdown` is the primary rendering surface going forward;
+// `report_json`'s internal shape is UNVERIFIED (ai-server does not appear to
+// populate it) so it is not parsed here.
+function Narrative({ n }: { n: HandoffNarrative }) {
   return (
     <dl className="flex flex-col gap-4">
-      <Field label="주호소" value={n.chief_complaint} />
-      <Field label="현병력" value={n.present_illness} />
-      <ListField label="주요 증상" items={n.symptoms} />
-      <Field label="시작 시점" value={n.onset} />
-      <Field label="최근 변화" value={n.recent_changes} />
-      <ListField label="유발 요인" items={n.triggers} />
-      <Field label="수면 / 식욕 / 활동" value={saaText || null} />
-      <Field label="과거 정신건강 이력" value={n.psych_history} />
-      <Field label="복용약" value={n.medications} />
-      <ListField label="업로드 문서 요약" items={n.documents_summary} />
-      <ListField label="의료진 확인 필요" items={n.clinician_attention} />
+      <div className="flex flex-col gap-0.5">
+        <dt className="text-xs font-semibold text-text-secondary">리포트</dt>
+        <dd className="text-text-primary whitespace-pre-wrap">{n.report_markdown}</dd>
+      </div>
+      <ListField label="누락된 항목" items={n.missing_slots} />
 
-      {n.evidence && n.evidence.length > 0 ? (
+      {n.evidence_packets && n.evidence_packets.length > 0 ? (
         <div className="flex flex-col gap-2">
           <dt className="text-[11px] font-medium uppercase tracking-wide text-faint">
-            원문 근거 ({n.evidence.length})
+            원문 근거 ({n.evidence_packets.length})
           </dt>
           <dd className="flex flex-col gap-2.5">
-            {n.evidence.map((e, i) => (
-              <blockquote
-                key={i}
-                className="border-l-2 border-ink2 pl-3 text-[13px] leading-relaxed text-text-secondary"
-              >
-                <span className="font-semibold text-text-primary">{e.field}</span>:{" "}
-                “{e.quote}”
-              </blockquote>
+            {n.evidence_packets.map((e, i) => (
+              <EvidenceRow key={i} e={e} />
             ))}
           </dd>
         </div>
