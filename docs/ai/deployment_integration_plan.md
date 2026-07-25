@@ -82,7 +82,8 @@ PHR 처리는 LLM을 직접 호출하는 임상 에이전트(`PatientHistoryAgen
 병원/약국 검색은 더 이상 ai-server 기능이 아니다. 소유권은 앱(APP) 팀으로 이관되어
 사용자-개시(user-initiated) 앱 측 기능이 된다 — 이 backend/ai-server 파이프라인을 전혀 경유하지
 않는다. Crisis flow(`agents/orchestrator.py::_CRISIS_MESSAGES`)는 고정된 hotline
-텍스트(`109`, `119`/`112`, `1577-0199`, 원문 그대로, grep으로 검증)를 유지하지만, 더 이상 그
+텍스트(Master #85 통일안 `109`/`119`/`112`, 구 `1577-0199`는 제거됨, 원문 그대로 grep으로
+검증 — ADR-048/BUG-062)를 유지하지만, 더 이상 그
 응답의 일부로 실시간 nearby-hospital 조회를 수행하지 않는다. 환경변수 영향: `HIRA`
 hospital/pharmacy/MadmDtl 키와 `KAKAO_*` 키는 **더 이상 ai-server가 소비하지 않는다**(dev
 compose, `infra/deploy/docker-compose.yml`은 이제 `HIRA_SERVICE_KEY`,

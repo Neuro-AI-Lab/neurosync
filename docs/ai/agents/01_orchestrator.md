@@ -46,7 +46,7 @@ input_received → safety_gate → context_retrieval → dialogue_loop → slot_
 CTRS 1-2 감지 시 별도 crisis_flow 상태로 전환한다:
 
 1. 대화 즉시 중단 (dialogue_loop 중이면 강제 종료)
-2. CTRS level별 위기 대응 메시지 반환 — **정정(BUG-009 fixed, 재확인 2026-07-20):** 실제 코드(`_CRISIS_MESSAGES`, `agents/orchestrator.py:57-68`)가 반환하는 메시지는 CTRS 1(`EMERGENCY`) "즉시 119 또는 112에 연락해 주세요. 자살예방상담전화 109도 24시간 운영되고 있습니다", CTRS 2(`HIGH_RISK`) "자살예방상담전화 109, 정신건강위기상담전화 1577-0199로 연락해 주세요"다 — `109`가 두 CTRS level 메시지 모두에 등장하며, `f1.py`/`evidence_verifier.py`(`09_evidence_verifier.md` V-07 세부 규칙, CTRS 1: `119|112|응급`, CTRS 2: `109|119|긴급|위기상담`)와 일치한다(`grep -n "109\|119\|1577-0199" apps/ai-server/src/agents/orchestrator.py`로 검증). 이 문서의 이전 버전이 인용한 "1393" 표기는 더 이상 코드에 존재하지 않는다.
+2. CTRS level별 위기 대응 메시지 반환 — **정정(BUG-009 fixed; Master #85/ADR-048/BUG-062로 재정합, 2026-07-25):** 실제 코드(`_CRISIS_MESSAGES`, `agents/orchestrator.py:139-150`)가 반환하는 메시지는 CTRS 1(`EMERGENCY`) "즉시 119 또는 112에 연락해 주세요. 자살예방상담전화 109도 24시간 운영되고 있습니다", CTRS 2(`HIGH_RISK`) "자살예방 통합상담전화 109로 연락해 주세요"다 — `109`가 두 CTRS level 메시지 모두에 등장하며, `f1.py`/`evidence_verifier.py`(`09_evidence_verifier.md` V-07 세부 규칙, CTRS 1: `119|112|응급`, CTRS 2: `109|119|긴급|위기상담`)와 일치한다(`grep -n "109\|119\|112" apps/ai-server/src/agents/orchestrator.py`로 검증). 구 번호 "1393"·"1577-0199"는 Master #85 통일안(109는 현행 국가 자살예방 통합번호)에 따라 코드에서 완전히 제거됐다.
 3. Dashboard critical alert 생성
 4. Human review 즉시 등록
 5. 긴급 handoff report 생성 (수집된 정보 범위 내에서)
