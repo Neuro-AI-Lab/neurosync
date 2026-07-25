@@ -68,6 +68,14 @@ class PatientDetail(BaseModel):
     phone: str | None
     region: str | None
     emergency_contact: str | None = Field(default=None, alias="emergencyContact")
+    # v3 수정 1 — 확장 인적사항(코드). 의료진 화면에서 한국어 라벨로 매핑.
+    marital_status: str | None = Field(default=None, alias="maritalStatus")
+    household_type: str | None = Field(default=None, alias="householdType")
+    education_level: str | None = Field(default=None, alias="educationLevel")
+    occupation: str | None = None
+    employment_status: str | None = Field(default=None, alias="employmentStatus")
+    income_level: str | None = Field(default=None, alias="incomeLevel")
+    religion: str | None = None
     consent: ConsentSnapshotOut | None
     sessions: list[SessionSummary]
 

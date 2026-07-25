@@ -33,10 +33,12 @@ from src.models.session import RiskEvent
 logger = logging.getLogger(__name__)
 
 
+# v3 FR-044 — 2024-01부터 자살예방상담전화(1393)·정신건강상담전화(1577-0199)는
+# 자살예방 통합번호 109로 통합됐다. 모바일(MOCK_HOTLINES)과 동일하게 맞춘다.
 HOTLINES = [
-    {"name": "자살예방상담전화", "number": "1393"},
+    {"name": "자살예방 통합번호", "number": "109"},
     {"name": "응급의료", "number": "119"},
-    {"name": "정신건강상담전화", "number": "1577-0199"},
+    {"name": "경찰", "number": "112"},
 ]
 
 RouteTarget = Literal["/emergency", "/self_hotline"]

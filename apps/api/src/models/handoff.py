@@ -54,3 +54,6 @@ class HandoffReport(Base):
         DateTime(timezone=True), server_default=func.now()
     )
     generated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # v3 수정 7 · §6-B — 수동 전달 게이트. NULL = 보관(환자만 열람),
+    # 값 있음 = 의료진에게 전달됨. 의료진 조회는 이 값이 있을 때만 노출.
+    delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

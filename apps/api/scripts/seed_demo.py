@@ -315,6 +315,8 @@ async def _make_persona(db, settings: Settings, p: dict) -> None:
             status="ready",
             content=p["narrative"],
             generated_at=datetime.now(UTC) - timedelta(hours=1),
+            # v3 §6-B — 시드 리포트는 이미 전달된 상태로 둔다(의료진 대시보드 노출).
+            delivered_at=datetime.now(UTC) - timedelta(minutes=50),
         )
     )
 

@@ -12,7 +12,7 @@ import os
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, SecretStr, field_validator, model_validator
+from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
@@ -95,6 +95,16 @@ class Settings(BaseSettings):
     ai_slots_timeout_seconds: float = Field(default=6.0)
     # OCR — Upstage Document Parse 왕복 + 큰 파일 업로드라 여유 있게.
     ai_ocr_timeout_seconds: float = Field(default=30.0)
+    # F4 종단 추론 — 직전/이번 방문 비교(LLM 서사 포함). 리포트 열람 경로라 짧게.
+    ai_temporal_timeout_seconds: float = Field(default=8.0)
+    # 병원 찾기(FR-049) — HIRA 외부 API를 거치므로 여유 있게.
+    ai_nearby_timeout_seconds: float = Field(default=8.0)
+    # 카카오맵 JS 키 — 플랫폼이 지도 HTML을 렌더할 때 사용. ai-server .env와 동일한
+    # KAKAO_JS_KEY_ENCODED 이름을 받아들인다(운영 편의). 미설정이면 안내 화면으로 저하.
+    kakao_map_javascript_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("KAKAO_JS_KEY_ENCODED", "KAKAO_MAP_JAVASCRIPT_KEY"),
+    )
 
     # FR-048/028 — 대화 중 첨부(처방전) 업로드 상한. Upstage 50MB보다 보수적.
     ocr_max_bytes: int = Field(default=20 * 1024 * 1024)  # 20MB (FR-028)

@@ -11,11 +11,24 @@ import uuid
 from datetime import UTC, datetime
 
 import pytest
+from sqlalchemy import select
 
 import src.api.v1.sessions as sessions_module
 from src.core.security import create_token
+from src.models.handoff import HandoffReport
 from src.models.session import RiskEvent, Session
 from src.models.user import User
+
+
+async def _deliver_report(db_session, sid: str) -> None:
+    """§6-B — 리포트를 전달 상태로. 의료진 조회는 전달된 리포트만 노출한다."""
+    rep = (
+        await db_session.execute(
+            select(HandoffReport).where(HandoffReport.session_id == uuid.UUID(sid))
+        )
+    ).scalar_one()
+    rep.delivered_at = datetime.now(UTC)
+    await db_session.commit()
 
 
 def _register_patient(client, email: str | None = None) -> dict:
@@ -171,6 +184,16 @@ async def test_get_report_composes_questionnaires(client, db_session, test_setti
         clinician.id, "access", role="clinician", settings=test_settings
     )
 
+    # §6-B — 전달 전에는 의료진이 리포트를 볼 수 없다(보관 상태).
+    pre = client.get(
+        f"/api/v1/sessions/{sid}/report",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert pre.status_code == 404, "undelivered report must be hidden from clinician"
+
+    # 환자가 전달하면 그때 노출된다. 결정론적 사실(문진 점수)은 AI 서사와 무관하게
+    # 서버가 합성한다 — bg 생성이 no-op이라 status는 여전히 generating.
+    await _deliver_report(db_session, sid)
     res = client.get(
         f"/api/v1/sessions/{sid}/report",
         headers={"Authorization": f"Bearer {token}"},
@@ -199,6 +222,79 @@ async def test_report_requires_clinician(client):
         headers={"Authorization": f"Bearer {access}"},
     )
     assert res.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_deliver_requires_ready_report(client):
+    """§6-B — 생성 중(보관 전 단계)인 리포트는 전달할 수 없다."""
+    auth = _register_patient(client)
+    access = auth["accessToken"]
+    sid = _create_session(client, access)
+    client.post(f"/api/v1/sessions/{sid}/submit", headers={"Authorization": f"Bearer {access}"})
+    # bg 생성이 no-op이라 리포트는 generating 상태 → 전달 불가(409).
+    res = client.post(
+        f"/api/v1/sessions/{sid}/report/deliver",
+        headers={"Authorization": f"Bearer {access}"},
+    )
+    assert res.status_code == 409
+    assert res.json()["detail"]["code"] == "REPORT_NOT_READY"
+
+
+@pytest.mark.asyncio
+async def test_patient_delivers_report_then_clinician_sees(client, db_session, test_settings):
+    """§6-B 핵심 흐름 — 보관 → [전달하기] → 의료진 노출. 전달은 멱등."""
+    auth = _register_patient(client)
+    access = auth["accessToken"]
+    sid = _create_session(client, access)
+    client.post(
+        f"/api/v1/sessions/{sid}/questionnaires",
+        headers={"Authorization": f"Bearer {access}"},
+        json={"type": "PHQ9", "answers": [1, 1, 1, 1, 1, 1, 1, 1, 1]},
+    )
+    client.post(f"/api/v1/sessions/{sid}/submit", headers={"Authorization": f"Bearer {access}"})
+
+    # 리포트를 ready로 만든다(bg 생성 대체).
+    rep = (
+        await db_session.execute(
+            select(HandoffReport).where(HandoffReport.session_id == uuid.UUID(sid))
+        )
+    ).scalar_one()
+    rep.status = "ready"
+    await db_session.commit()
+
+    clinician = User(
+        email=f"doc-{uuid.uuid4().hex[:8]}@hospital.example",
+        password_hash="x",
+        role="clinician",
+    )
+    db_session.add(clinician)
+    await db_session.flush()
+    token = create_token(clinician.id, "access", role="clinician", settings=test_settings)
+    report_url = f"/api/v1/sessions/{sid}/report"
+    clin_headers = {"Authorization": f"Bearer {token}"}
+
+    # 전달 전 — 의료진 404.
+    assert client.get(report_url, headers=clin_headers).status_code == 404
+
+    # 환자가 전달.
+    d = client.post(
+        f"/api/v1/sessions/{sid}/report/deliver",
+        headers={"Authorization": f"Bearer {access}"},
+    )
+    assert d.status_code == 200, d.text
+    delivered_at = d.json()["data"]["deliveredAt"]
+    assert d.json()["data"]["delivered"] is True
+
+    # 전달 후 — 의료진 200.
+    assert client.get(report_url, headers=clin_headers).status_code == 200
+
+    # 재전달 멱등 — 전달 시각 불변.
+    d2 = client.post(
+        f"/api/v1/sessions/{sid}/report/deliver",
+        headers={"Authorization": f"Bearer {access}"},
+    )
+    assert d2.status_code == 200
+    assert d2.json()["data"]["deliveredAt"] == delivered_at
 
 
 # ────────── risk event ack (FR-011/022) ──────────
