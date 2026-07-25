@@ -7,8 +7,8 @@ Covers:
   (a) BUG-022 exact-match clinical-agent input-schema field allowlist.
   (b) Pinned system-prompt files exist (and safety_classifier's actually
       loads through PromptLoader).
-  (c) Crisis hotline constants (109/119/1577-0199) present in f1.py and
-      orchestrator.py.
+  (c) Crisis hotline constants (109/119/112 — Master canonical set per ADR-048,
+      BUG-062) present in f1.py and orchestrator.py.
   (d) `is_diagnostic: Literal[False]` on survey/handoff report schemas.
 """
 
@@ -248,7 +248,8 @@ class TestCrisisHotlines:
         joined = " ".join(_CRISIS_MESSAGES.values())
         assert "109" in joined
         assert "119" in joined
-        assert "1577-0199" in joined
+        assert "112" in joined
+        assert "1577-0199" not in joined
 
 
 # ── (d) is_diagnostic: Literal[False] on survey/handoff report schemas ──
