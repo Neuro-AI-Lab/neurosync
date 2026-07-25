@@ -45,7 +45,13 @@ export default function ChatScreen() {
 
   const [draft, setDraft] = useState("");
   const [status, setStatus] = useState<WSStatus>("idle");
-  const [mediumBanner, setMediumBanner] = useState<string | null>(null);
+  // CVR-052 gap 1 fix: `neutral: true` for the classifier-unavailable reason
+  // (technical failure, not a clinical signal) — suppresses the risk-toned
+  // banner color, per CVR-052 finding 2/recommendation 1.
+  const [mediumBanner, setMediumBanner] = useState<{ text: string; neutral: boolean } | null>(
+    null,
+  );
+  const lastRisk = useSession((s) => s.lastRisk);
   // v3 FR-042 — 강제 전환 대신 확인 창. FR-041 — 도메인 추정 '분석 중' 상태.
   const [riskConfirm, setRiskConfirm] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -83,7 +89,7 @@ export default function ChatScreen() {
         addAiMessage({ id: messageId, role: "ai", content, sentAt: Date.now() });
         setProgress(p.ratio);
       } else if (event.type === "risk:detected") {
-        const { level } = event.payload;
+        const { level, reason } = event.payload;
         setRisk(event.payload);
         if (level === "high" || level === "critical") {
           // v3 FR-042 — 강제 전환 금지. 강한 햅틱 + 확인 창(모달)에서
@@ -91,8 +97,20 @@ export default function ChatScreen() {
           void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
           setRiskConfirm(true);
         } else if (level === "medium") {
-          // 인라인 배너만 (Screen Spec §S-05 medium 정책)
-          setMediumBanner("안전 확인이 필요해요. 도움이 필요하면 알려주세요.");
+          // 인라인 배너만 (Screen Spec §S-05 medium 정책). CVR-052 gap 1 fix:
+          // `reason === "classifier_unavailable"`(안전 분류기 다운, level은
+          // 항상 MEDIUM 하드코딩— services/safety.py::handle_unavailable_
+          // classifier)는 실제 위험 판정이 아니라 기술적 장애다. 동일한
+          // 위험-톤 문구를 재사용하면 환자가 두 상황을 구분할 수 없다는
+          // CVR-052 finding 2 — 별도의, 위험-톤이 아닌 안내 문구로 분기.
+          setMediumBanner(
+            reason === "classifier_unavailable"
+              ? {
+                  text: "일시적으로 확인이 지연되고 있어요. 잠시 후 다시 시도해 주세요.",
+                  neutral: true,
+                }
+              : { text: "안전 확인이 필요해요. 도움이 필요하면 알려주세요.", neutral: false },
+          );
         }
       } else if (event.type === "auth:error") {
         Alert.alert("연결 오류", "로그인이 만료되었어요. 다시 로그인해 주세요.");
@@ -126,17 +144,32 @@ export default function ChatScreen() {
   ]);
 
   // PRD §5.5 flow — surface the questionnaire step once intake is ~70% done.
-  const progressPct = Math.round(progress * 100);
+  // 사용자 판정(2026-07-25): 환자 화면에는 슬롯 수집율(progress_ratio)을
+  // 수치·진행바로 노출하지 않는다 — `questionnaireReady`는 임계값 도달 여부만
+  // 내부적으로 판단해 "설문" 내비 버튼 강조에 쓰고, 비율 자체는 표시하지 않는다.
   const questionnaireReady = progress >= 0.7;
 
   // v3 FR-039/041 — 대화 종료 → '분석 중' → top1 문진 1종으로 바로 진입.
   // 추정 결과(도구 ID)는 라우팅에만 쓰고 화면·상태에 남기지 않는다 (NFR v3-2).
+  // 사용자 지시(2026-07-25, 마무리 멘트 재설계 2단계): domain/infer 성공 후
+  // (= "증상 확인"이 완료된 시점) 설문 전환 전 마무리 멘트를 채팅 말풍선으로
+  // 보여준 뒤 설문으로 이동한다. inferTopSurvey는 절대 throw하지 않으므로
+  // (5초 상한 초과/오류는 FALLBACK_SURVEY로 흡수) 이 멘트는 실패 여부와
+  // 무관하게 항상 표시된다.
   const goSurvey = async () => {
     if (analyzing) return;
     setAnalyzing(true);
     try {
       const instrument = await inferTopSurvey(initialAccessToken, sessionId);
       if (!mountedRef.current) return; // 이탈 후 늦은 내비게이션 방지
+      addAiMessage({
+        id: Crypto.randomUUID(),
+        role: "ai",
+        content:
+          "증상 확인이 완료되었습니다. 보다 정확한 상태 확인을 위해 자가 설문을 진행하겠습니다. " +
+          "해당 설문 결과는 의료진 면담에 활용되므로 솔직하게 답변해주시면 감사하겠습니다.",
+        sentAt: Date.now(),
+      });
       router.push({
         pathname: "/(patient)/intake/survey",
         params: { instrument },
@@ -206,27 +239,41 @@ export default function ChatScreen() {
         }
       />
 
-      <View style={styles.cprog}>
-        <View style={styles.cprogRow}>
-          <Text style={styles.cprogLabel}>수집 진행률</Text>
-          <Text style={styles.cprogPct}>
-            {questionnaireReady ? `문진 준비됨 · ${progressPct}%` : `${progressPct}%`}
-          </Text>
-        </View>
-        <View
-          style={styles.track}
-          accessibilityRole="progressbar"
-          accessibilityValue={{ min: 0, max: 100, now: progressPct }}
-        >
-          <View style={[styles.fill, { width: `${progressPct}%` }]} />
-        </View>
-      </View>
+      {/* 사용자 판정(2026-07-25): 슬롯 수집율(progress_ratio) 수치·진행바를
+          환자 화면에서 제거 — 이전에는 여기 수집 진행률 라벨/퍼센트/진행바
+          (styles.cprog/cprogRow/cprogLabel/cprogPct/track/fill)가 있었다.
+          progress 자체(setProgress)는 백엔드·설문 라우팅 판단(questionnaireReady)에
+          계속 쓰이며, 화면 표시만 제거한다. */}
 
       {statusLabel ? <Text style={styles.statusText}>{statusLabel}</Text> : null}
       {mediumBanner ? (
-        <View style={styles.banner} accessibilityLiveRegion="polite">
-          <Text style={styles.bannerText}>{mediumBanner}</Text>
-          <Pressable onPress={() => router.push("/(patient)/emergency")}>
+        <View
+          style={[styles.banner, mediumBanner.neutral && styles.bannerNeutral]}
+          accessibilityLiveRegion="polite"
+        >
+          <Text style={styles.bannerText}>{mediumBanner.text}</Text>
+          <Pressable
+            onPress={() =>
+              // CVR-052 gap 3 fix: consume the backend-computed, consent-
+              // gated `routeTo` (`/emergency` vs `/self_hotline`,
+              // `services/safety.py::_payload_for`) instead of the pre-fix
+              // unconditional hardcoded push — restores the consent-
+              // respecting distinction CVR-052 finding 4 found was inert.
+              // No dedicated `/self_hotline` screen exists in the mobile app
+              // (verified this pass) — per the "no major frontend rewrite"
+              // constraint, `/self_hotline` reuses the one real destination
+              // (`emergency.tsx`) with a `mode` param it now reads (CVR-052
+              // gap 2/3 combined fix, see that screen) rather than adding a
+              // new route file.
+              router.push({
+                pathname: "/(patient)/emergency",
+                params: {
+                  reason: lastRisk?.reason ?? "",
+                  mode: lastRisk?.routeTo === "/self_hotline" ? "self_hotline" : "emergency",
+                },
+              })
+            }
+          >
             <Text style={styles.bannerLink}>도움 받기</Text>
           </Pressable>
         </View>
@@ -322,12 +369,6 @@ void sentenceColor;
 const styles = StyleSheet.create({
   navAct: { fontSize: 14, color: colors.muted, fontWeight: "600", paddingHorizontal: 6 },
   navActReady: { color: colors.ink },
-  cprog: { paddingHorizontal: 16, paddingBottom: 8 },
-  cprogRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 },
-  cprogLabel: { fontSize: 11, color: colors.muted },
-  cprogPct: { fontSize: 11.5, color: colors.ink, fontWeight: "500" },
-  track: { height: 4, borderRadius: 999, backgroundColor: colors.fill, overflow: "hidden" },
-  fill: { height: 4, borderRadius: 999, backgroundColor: colors.ink },
   statusText: { fontSize: 12, color: colors.muted, paddingHorizontal: 16, paddingVertical: 4 },
   banner: {
     flexDirection: "row",
@@ -345,6 +386,13 @@ const styles = StyleSheet.create({
   },
   bannerText: { color: colors.ink, flex: 1, fontSize: 12, lineHeight: 16 },
   bannerLink: { color: colors.warn, fontWeight: "600", fontSize: 12 },
+  // CVR-052 gap 1 fix: neutral (non-risk-toned) styling for the
+  // classifier-unavailable banner — a technical-failure notice should not
+  // look identical to a genuine risk detection (finding 2).
+  bannerNeutral: {
+    backgroundColor: colors.fill,
+    borderColor: colors.lineStrong,
+  },
   list: { flex: 1 },
   listContent: { paddingHorizontal: 16, paddingVertical: 8 },
   empty: {

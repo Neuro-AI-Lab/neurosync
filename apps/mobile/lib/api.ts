@@ -255,6 +255,26 @@ export async function createSession(token: string): Promise<SessionOut> {
   });
 }
 
+// ────────── S09 records (기록 조회) ──────────
+
+export type SessionListItem = {
+  sessionId: string;
+  status: string;
+  createdAt: string;
+  progressRatio: number;
+  hasReport: boolean;
+};
+
+/** The signed-in patient's own session history (own-data-only server-side). */
+export async function listSessions(token: string): Promise<SessionListItem[]> {
+  if (MOCK) return mockApi.listSessions();
+  const { sessions } = await request<{ sessions: SessionListItem[] }>(
+    "/api/v1/sessions",
+    { method: "GET", token },
+  );
+  return sessions;
+}
+
 // ────────── Questionnaires (FR-006/007 · v3 FR-040) ──────────
 
 // v3 FR-040 — 문항 주입형 문진 4종. AUDITC/PHQ4의 서버 저장은
@@ -608,3 +628,4 @@ export async function transcribeAudio(
   }
   return body.data;
 }
+
