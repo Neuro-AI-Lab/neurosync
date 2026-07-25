@@ -65,13 +65,7 @@ services:
       # PROMPTS_BASE_DIR specifically falls through to the Dockerfile's
       # in-container ENV default (/app/prompts). No value is invented here.
       HIRA_SERVICE_KEY:
-      HIRA_HOSPITAL_SERVICE_URL:
-      HIRA_PHARMACY_SERVICE_URL:
-      HIRA_MADM_DTL_SERVICE_URL:
       HIRA_DRUG_EFFICACY_SERVICE_URL:
-      KAKAO_REST_KEY_ENCODED:
-      KAKAO_JS_KEY_ENCODED:
-      KAKAO_LOCAL_REST_BASE_URL:
       LLM_CLIENT_TIMEOUT_S:
       PROMPTS_BASE_DIR:
     ports:

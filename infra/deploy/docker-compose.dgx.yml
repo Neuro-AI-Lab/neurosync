@@ -1,0 +1,111 @@
+# DGX Spark production deployment — ai-server + api.
+#
+# ⚠️  STANDALONE file, NOT an override of docker-compose.yml — run with ONLY
+#     `-f infra/deploy/docker-compose.dgx.yml`. Never combine the two files.
+#
+#   - The DB server already runs on this DGX as a separately managed container
+#     (external 28881 → postgres 5432). This file deliberately defines NO
+#     postgres service — never start a second DB from here. Both ai-server and
+#     api reference the same standing external DB via DATABASE_URL in their
+#     respective .env files (env_file below); neither service owns the DB
+#     container.
+#   - Distinct compose project name + container name → zero state collision
+#     with any compose project or container already on the DGX.
+#   - External port 24855 is the allocated ai-server port. Backend base URL:
+#     http://223.194.33.26:24855  (container listens on 8001, Dockerfile CMD).
+#   - External port 24856 for api is a WORKING ASSUMPTION (ADR-046 decision 5,
+#     2026-07-22) — no port has been formally allocated by the operator yet.
+#     Co-locating api on this same DGX + compose file is itself a working
+#     assumption (PRD §9 decision #6 default: co-locate with DB + ai-server,
+#     no separate-host instruction received). If the operator assigns a
+#     different port or a separate host, only this file's `ports:`/service
+#     block needs to change — no code change required.
+#   - All secrets come from each service's own .env via env_file at RUN time;
+#     the images never contain .env (root .dockerignore excludes it). The
+#     operator places both apps/ai-server/.env and apps/api/.env on the DGX
+#     before `up`. ENCRYPTION_KEY MUST be byte-identical across the two .env
+#     files — see docs/ai/deployment_integration_plan.md §6b (ENCRYPTION_KEY
+#     SOP) before first boot.
+#
+# Run from repo root on the DGX:
+#   docker compose -f infra/deploy/docker-compose.dgx.yml up -d --build
+#   curl -s localhost:24855/health   # ai-server
+#   curl -s localhost:24856/health   # api
+#
+# DB reachability: DATABASE_URL in each .env points at 223.194.33.26:28881. If
+# a container cannot hairpin through the host's external IP, change only the
+# DSN host to host.docker.internal:28881 (mapped via extra_hosts below) — an
+# .env edit, no code change.
+#
+# api-server startup order (manual, not compose-orchestrated — see runbook
+# docs/ai/deployment_integration_plan.md §6a): apps/api requires
+# `alembic upgrade head` to be run manually once against the target DB before
+# (or on) first boot of the api container. This file does NOT run migrations
+# automatically (no init container / entrypoint hook) — see runbook for why.
+
+name: neuro-sync-ai-dgx
+
+services:
+  ai-server:
+    build:
+      context: ../..
+      dockerfile: apps/ai-server/Dockerfile
+    container_name: ns-ai-server-dgx
+    # No `command:` override and no src/tests volume mounts — the baked image
+    # is the deployment artifact; the Dockerfile's production CMD runs
+    # (no --reload).
+    env_file:
+      - ../../apps/ai-server/.env
+    environment:
+      LOG_LEVEL: info
+      # `environment:` outranks env_file in compose precedence. The dev .env
+      # carries the workstation-relative PROMPTS_BASE_DIR=docs/ai/prompts,
+      # which does not exist inside the container — pin the baked-in copy
+      # (Dockerfile: COPY docs/ai/prompts /app/prompts) so env_file injection
+      # can never break prompt loading.
+      PROMPTS_BASE_DIR: /app/prompts
+    ports:
+      - "24855:8001"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  api:
+    # ADR-046 decision 5 (2026-07-22): apps/api DGX compose service = working
+    # assumption (co-locate with the standing DB + ai-server on this DGX, no
+    # separate-host instruction received). Replaceable by the operator without
+    # touching apps/api code — swap this block for a remote-host runbook if
+    # instructed otherwise.
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    container_name: ns-api-dgx
+    # No `command:` override — Dockerfile's production CMD runs (no --reload).
+    env_file:
+      - ../../apps/api/.env
+    environment:
+      # `environment:` outranks env_file. DATABASE_URL is intentionally NOT
+      # overridden here — apps/api/.env (the real operator-managed file, not
+      # .env.example) must already carry the production DSN pointed at the
+      # same standing external postgres ai-server uses (223.194.33.26:28881,
+      # asyncpg driver per apps/api/pyproject.toml). This file defines no
+      # postgres service; DATABASE_URL is a reference to that existing
+      # container, never a new one. If the shipped .env.example's dev-local
+      # value (localhost:5432) leaks into a DGX .env by mistake, the api
+      # container fails DB connectivity at boot — visible immediately via the
+      # /health check below, not a silent misroute.
+      #
+      # AI_SERVER_URL is overridden here (same precedence rule) because both
+      # services share this compose project's default network — resolving
+      # the ai-server service name directly avoids a hairpin round-trip
+      # through the external IP:port for same-host, same-project traffic. If
+      # api is later moved to a separate host/compose project, change only
+      # this one value to http://223.194.33.26:24855 (no code change).
+      AI_SERVER_URL: http://ai-server:8001
+    ports:
+      - "24856:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - ai-server
+    restart: unless-stopped

@@ -37,6 +37,7 @@ from uuid import UUID
 
 import anyio
 from contracts.safety import SafetyRequest
+from contracts.survey_plan import SurveyPlanRequest
 from contracts.temporal import TemporalSummarizeRequest
 from fastapi import (
     APIRouter,
@@ -71,6 +72,7 @@ from src.models.user import User
 from src.schemas.handoff import SubmitAccepted
 from src.schemas.questionnaire import QuestionnaireResultOut, QuestionnaireSubmit
 from src.schemas.session import (
+    SessionListItemOut,
     SessionOut,
     WSAuthConnect,
     WSUserMessage,
@@ -80,17 +82,18 @@ from src.services.chat import respond as chat_turn
 
 # ISS-022: shared org-access rule (handoff.py도 동일 임포트)
 from src.services.clinician import _can_access_patient
-from src.services.domain_routing import infer_instrument
+from src.services.domain_routing import infer_instrument_with_caveat
 from src.services.handoff import (
     build_report_response,
     create_pending_report,
     generate_report_task,
 )
-from src.services.questionnaire import QuestionnaireError, upsert_result
+from src.services.questionnaire import AI_SCALE_NAME, QuestionnaireError, upsert_result
 from src.services.safety import (
     handle_safety_result,
     handle_unavailable_classifier,
     latest_consent_snapshot,
+    to_safety_assessment,
 )
 
 logger = logging.getLogger(__name__)
@@ -129,6 +132,53 @@ async def create_session(
             session_id=sess.id, status=sess.status, created_at=sess.created_at
         ).model_dump(by_alias=True, mode="json"),
     }
+
+
+SESSIONS_LIST_MAX = 100
+
+
+@router.get("")
+async def list_sessions(
+    patient: Annotated[User, Depends(require_role("patient"))],
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> dict:
+    """S09 records (기록 조회) — the patient's own session history.
+
+    Own-data-only by construction (`Session.patient_id == patient.id` in the
+    query itself, not a post-filter) — never leaks another patient's
+    sessions. `has_report` is a plain existence check against
+    `handoff_reports`, independent of report `status` (a `generating`/
+    `failed` report still counts as "exists" for this list view; the client
+    resolves the actual phase via the existing `/report/status` route when
+    the user opens a record).
+    """
+    rows = await db.execute(
+        select(Session)
+        .where(Session.patient_id == patient.id)
+        .order_by(Session.created_at.desc())
+        .limit(SESSIONS_LIST_MAX)
+    )
+    sessions = list(rows.scalars().all())
+    if not sessions:
+        return {"success": True, "data": {"sessions": []}}
+
+    session_ids = [s.id for s in sessions]
+    report_rows = await db.execute(
+        select(HandoffReport.session_id).where(HandoffReport.session_id.in_(session_ids))
+    )
+    session_ids_with_report = {row[0] for row in report_rows.all()}
+
+    items = [
+        SessionListItemOut(
+            session_id=s.id,
+            status=s.status,
+            created_at=s.created_at,
+            progress_ratio=s.progress_ratio,
+            has_report=s.id in session_ids_with_report,
+        ).model_dump(by_alias=True, mode="json")
+        for s in sessions
+    ]
+    return {"success": True, "data": {"sessions": items}}
 
 
 async def _owned_in_progress_session(
@@ -277,13 +327,70 @@ async def infer_domain(
             session_id,
         )
 
-    instrument = await infer_instrument(
+    routing = await infer_instrument_with_caveat(
         ai_client=ai_client,
         session_id=session_id,
         turns=turns,
         clinical_slots=sess.clinical_slots or {},
+        # BUG-059: previously never threaded, so `DomainInferRequest.
+        # crisis_triggered` sent to ai-server was always False. Same value
+        # already forwarded for the survey/plan `crisis_triggered` below
+        # (`sess.clinical_escalation_required`, the ADR-044 screening
+        # backstop signal) — ai-server's live domain route does not
+        # reproject this field or use it as selection evidence, so this is
+        # additive/inert today, not a behavior change.
+        crisis_triggered=bool(sess.clinical_escalation_required),
     )
-    return {"success": True, "data": {"instrument": instrument}}
+    instrument = routing.instrument
+
+    # PLAN-2026-W30-INTEG P3-1(a)/(c) — F2 routing -> F3 plan. Best-effort: a
+    # plan-call failure never blocks the patient-facing instrument response
+    # (same "라우팅은 실패하지 않는다" posture as infer_instrument itself).
+    plan_data: dict[str, Any] | None = None
+    try:
+        plan_response = await ai_client.survey_plan(
+            SurveyPlanRequest(
+                recommended_questionnaire=AI_SCALE_NAME.get(instrument),
+                recommendation_caveat=routing.caveat,
+                crisis_triggered=bool(sess.clinical_escalation_required),
+            )
+        )
+    except AIClientError as exc:
+        logger.warning(
+            "survey plan call failed, patient response stays instrument-only (session=%s): %s",
+            session_id,
+            exc,
+        )
+    else:
+        if routing.caveat:
+            # Clinician/audit-facing only (P3-0 consult safety constraint) —
+            # persisted to audit_logs, never returned in this endpoint's
+            # patient-facing response body below.
+            db.add(
+                AuditLog(
+                    actor_id=patient.id,
+                    actor_role="patient",
+                    action="survey.plan.proxy_caveat",
+                    resource_type="session",
+                    resource_id=session_id,
+                    audit_metadata={"scale": plan_response.scale, "caveat": routing.caveat},
+                )
+            )
+            await db.commit()
+            logger.info(
+                "survey plan: proxy caveat recorded for clinician/audit review "
+                "(session=%s, scale=%s)",
+                session_id,
+                plan_response.scale,
+            )
+        plan_data = plan_response.model_dump(mode="json")
+        # Never forward the caveat itself to the patient survey UI (safety constraint).
+        plan_data.pop("recommendation_caveat", None)
+
+    data: dict[str, Any] = {"instrument": instrument}
+    if plan_data is not None:
+        data["plan"] = plan_data
+    return {"success": True, "data": data}
 
 
 @router.post("/{session_id}/documents/ocr", status_code=status.HTTP_201_CREATED)
@@ -780,12 +887,22 @@ async def session_chat(
         return
     user_id, role = auth
 
-    # Authorize session — only the owner can open this WS.
+    # Authorize session — only the owner can open this WS. Also reload the
+    # PRIOR turn's `session_state` (Phase 1, ADR-046 #2 wiring) so a
+    # reconnect resumes from the persisted round-trip state rather than
+    # always starting `None` again (`services/chat.py::respond` persists it
+    # each turn via `Session.session_state`).
     async with SessionLocal() as db:
         owner_row = await db.execute(
-            select(Session.patient_id).where(Session.id == session_id)
+            select(Session.patient_id, Session.session_state).where(
+                Session.id == session_id
+            )
         )
-        owner = owner_row.scalar_one_or_none()
+        owner_row_result = owner_row.one_or_none()
+        owner = owner_row_result[0] if owner_row_result is not None else None
+        persisted_session_state: dict[str, Any] | None = (
+            owner_row_result[1] if owner_row_result is not None else None
+        )
         if owner is None or owner != user_id:
             await _send_error_and_close(ws, 1008, "SESSION_NOT_AUTHORIZED")
             return
@@ -811,6 +928,16 @@ async def session_chat(
     # C-2: bounded LRU. Key → cached response frames for replay. A single
     # user:message can fan out to multiple frames (ack + ai:complete).
     idem_cache: OrderedDict[str, list[dict[str, Any]]] = OrderedDict()
+
+    # ADR-046 #2 round-trip channel (contract1, `services.chat.respond`'s own
+    # `session_state` param docstring): seeded from the DB-persisted prior
+    # turn's `Session.session_state` (Phase 1 fix — previously always
+    # started `None` on a reconnect since no DB column existed yet, PRD
+    # §5.1 Option B note). Every `user:message` frame on this WS threads the
+    # PRIOR turn's `ChatResponse.session_state` back into the next
+    # `/ai/chat/respond` call; `services/chat.py::respond` persists the
+    # latest value back to `Session.session_state` after each turn.
+    session_state: dict[str, Any] | None = persisted_session_state
 
     try:
         while True:
@@ -860,12 +987,13 @@ async def session_chat(
                     await ws.send_json(frame_out)
                 continue
 
-            frames = await _handle_message(
+            frames, session_state = await _handle_message(
                 settings=settings,
                 ai_client=ai_client,
                 user_id=user_id,
                 session_id=session_id,
                 frame=frame,
+                session_state=session_state,
             )
 
             idem_cache[frame.payload.idempotency_key] = frames
@@ -903,7 +1031,13 @@ async def _handle_message(
     user_id: UUID,
     session_id: UUID,
     frame: WSUserMessage,
-) -> list[dict[str, Any]]:
+    session_state: dict[str, Any] | None = None,
+) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    """Returns (frames, next_session_state) — `next_session_state` is the
+    ADR-046 #2 round-trip value the caller must thread into the NEXT call's
+    `session_state` param (unchanged from the input when this turn never
+    reached the AI dialogue call, e.g. a risk-interrupt or safety-classifier
+    failure short-circuit below)."""
     started = time.perf_counter()
 
     async with SessionLocal() as db:
@@ -922,9 +1056,19 @@ async def _handle_message(
     safety_unavailable = False
     safety = None
     try:
-        safety = await ai_client.safety_classify(
-            SafetyRequest(message=frame.payload.content)
+        # BUG-062 fix: `SafetyRequest` now mirrors ai-server's real
+        # `SafetyInput` (session_id/user_message/conversation_history) — the
+        # pre-gate call has no multi-turn context of its own (single-message
+        # classification), so `conversation_history` stays empty, matching
+        # this call site's pre-fix behavior (the old `prev_context` field was
+        # never populated either). Translate the wire response into the
+        # platform's internal `SafetyAssessment` via the single-source
+        # `to_safety_assessment` (relocated from `ai_client.py`'s interim
+        # adapter into `services/safety.py`'s domain layer).
+        wire_safety = await ai_client.safety_classify(
+            SafetyRequest(session_id=str(session_id), user_message=frame.payload.content)
         )
+        safety = to_safety_assessment(wire_safety)
     except AIClientError as exc:
         logger.warning("safety.unavailable", extra={"error": str(exc)})
         safety_unavailable = True
@@ -961,7 +1105,7 @@ async def _handle_message(
 
     # HIGH/CRITICAL — the dialogue is interrupted (PRD §5.1): risk only, no AI reply.
     if payload is not None:
-        return [{"type": "risk:detected", "payload": payload}]
+        return [{"type": "risk:detected", "payload": payload}], session_state
 
     safety_level_str = safety.level.value if safety is not None else "unknown"
     frames: list[dict[str, Any]] = [
@@ -980,13 +1124,36 @@ async def _handle_message(
     # swallowed inside chat_turn so the chat keeps flowing.
     async with SessionLocal() as db:
         ai_payload = await chat_turn(
-            db, ai_client=ai_client, session_id=session_id, settings=settings
+            db,
+            ai_client=ai_client,
+            session_id=session_id,
+            settings=settings,
+            session_state=session_state,
         )
         await db.commit()
+    next_session_state = session_state
     if ai_payload is not None:
+        # CVR-051 fix: ai-server's own orchestrator-internal safety gate
+        # (conversation-history-aware, distinct from the pre-gate call
+        # above) fired a crisis on this turn — `chat_turn` (`services/
+        # chat.py::respond`) already ran the SAME `handle_safety_result`
+        # escalation the pre-gate path uses and threaded the resulting
+        # payload through as `riskDetected`. Emit it as its own
+        # `risk:detected` frame (identical shape/semantics to the
+        # pre-gate emission above) BEFORE `ai:complete`, then strip the
+        # key so the wire-contract-typed `ai:complete` payload is
+        # unchanged from before this fix.
+        risk_detected = ai_payload.pop("riskDetected", None)
+        if risk_detected is not None:
+            frames.append({"type": "risk:detected", "payload": risk_detected})
         frames.append({"type": "ai:complete", "payload": ai_payload})
+        # ADR-046 #2 round-trip: only advance the carried state when this
+        # turn actually reached the AI dialogue call and got one back —
+        # a failed/unavailable turn (ai_payload is None) keeps the last
+        # good state instead of clobbering it with None.
+        next_session_state = ai_payload.get("sessionState", session_state)
 
-    return frames
+    return frames, next_session_state
 
 
 __all__ = ["router"]

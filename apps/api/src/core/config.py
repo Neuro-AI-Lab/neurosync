@@ -83,9 +83,43 @@ class Settings(BaseSettings):
     # AI server (apps/ai-server) location
     ai_server_url: str = Field(default="http://localhost:8001")
     # Handoff generation budget — PRD §4.1 p95 < 30s, allow margin.
-    ai_handoff_timeout_seconds: float = Field(default=45.0)
-    # Chat reply budget — first token < 800ms; full non-streaming reply margin.
-    ai_chat_timeout_seconds: float = Field(default=10.0)
+    # BUG-068 (2026-07-23, live): the evidence-verifier's own worst-case
+    # 3-attempt regenerate loop (ai-server `routes/handoff.py`,
+    # `_MAX_REGENERATE_ATTEMPTS = 2`) was observed at 48.1s live, exceeding
+    # the prior 45.0s client budget so apps/api gave up right as ai-server
+    # was about to return a (degraded but content-bearing) 200. This call is
+    # driven by `generate_report_task`, an async background task polled via
+    # `/report/status` — no interactive user is blocked waiting on this
+    # client call — so a generous margin over the observed worst case costs
+    # nothing but a slightly later status flip. 90s ~= 1.9x the 48.1s
+    # observed worst case.
+    ai_handoff_timeout_seconds: float = Field(default=90.0)
+    # Chat reply budget — first token < 800ms for an ORDINARY turn; the
+    # budget itself must cover the rare turn where it does not stay
+    # ordinary. BUG-081 (2026-07-25, live): when a turn crosses the
+    # slot-coverage/risk-grounded threshold, ai-server's orchestrator runs
+    # its ENTIRE post-dialogue pipeline (slot_extraction + handoff_
+    # generation + the evidence-verifier's up-to-3-attempt regenerate loop
+    # — the SAME chain BUG-068 measured at 48.1s worst case for the
+    # regenerate loop alone) synchronously, inside this ONE
+    # `/ai/chat/respond` call — confirmed by source read
+    # (`OrchestratorAgent._execute_pipeline` awaits
+    # `_run_post_dialogue_pipeline` directly; there is no background-task
+    # split on the ai-server side for this pipeline, unlike apps/api's own
+    # `services/chat.py::_extract_slots_bg`, which IS backgrounded). A live
+    # instance ran ~30s and was still in progress when the prior 10.0s
+    # budget gave up; the turn (including a genuine, already-computed SI
+    # grounding) was silently dropped. 90.0s mirrors `ai_handoff_timeout_
+    # seconds`'s margin (~1.9x the 48.1s BUG-068 worst case) since this is
+    # structurally the same chain plus one extra LLM call (slot
+    # extraction) — this only affects the tail latency of the rare
+    # threshold-crossing turn; ordinary turns return long before this
+    # budget is ever approached. Splitting the post-dialogue pipeline out
+    # of the synchronous request/response cycle (background task + a
+    # distinct WS frame) remains the preferred longer-term fix (see
+    # BUG-081's fix direction) — out of scope for this timeout-alignment
+    # pass.
+    ai_chat_timeout_seconds: float = Field(default=90.0)
     # STT budget — PRD §4.1 SLA < 2,000ms, allow margin for the vendor chain.
     ai_stt_timeout_seconds: float = Field(default=8.0)
     # v3 FR-039 — 도메인 추정. 모바일 '분석 중' 상한이 5초(NFR v3-3)라 그 안에서
@@ -108,6 +142,18 @@ class Settings(BaseSettings):
 
     # FR-048/028 — 대화 중 첨부(처방전) 업로드 상한. Upstage 50MB보다 보수적.
     ocr_max_bytes: int = Field(default=20 * 1024 * 1024)  # 20MB (FR-028)
+
+    # Safety classify budget — BUG-080 (2026-07-25, live): `safety_classify`
+    # previously used the bare `httpx.AsyncClient(timeout=2.0)` constructor
+    # default (no dedicated setting, unlike every other AIClient method).
+    # ai-server's `/ai/safety/classify` unconditionally makes a real Upstage
+    # LLM call (`_llm_classify`, unless the rule-level is already >= high);
+    # observed live latency was 952-4373ms across 2 sessions/9 turns. A 2.0s
+    # budget caused 6/9 turns (67%) to trip the client-side timeout and
+    # fail-open into `classifier_unavailable` full-block on ordinary,
+    # non-crisis turns. 6.0s gives >1.4x margin over the observed 4.373s
+    # worst case.
+    ai_safety_timeout_seconds: float = Field(default=6.0)
 
     # STT audio (FR-033/036). S3 SSE-KMS is Phase 2; demo writes to local disk.
     audio_storage_dir: str = Field(default=".audio_store")
