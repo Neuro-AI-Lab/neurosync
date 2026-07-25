@@ -11,8 +11,10 @@
  */
 
 import type {
+  DeliverResult,
   OCRResult,
   QuestionnaireResult,
+  ReportTrend,
   QuestionnaireType,
   RegisterInput,
   ReportStatusOut,
@@ -155,6 +157,46 @@ export const mockApi = {
         elementCount: 12,
       },
       1400,
+    );
+  },
+  deliverReport(): Promise<DeliverResult> {
+    return delay({ delivered: true, deliveredAt: nowIso() }, 400);
+  },
+  getReportTrend(): Promise<ReportTrend> {
+    // 오프라인 데모: 3회 방문에 걸쳐 호전되는 추이(PHQ-9 18→14→9, GAD-7 15→11→7).
+    // CTRS는 낮을수록 위험 — 2→3→3으로 위험도 완화. 실경로는 F4 plot_data 바인딩.
+    return delay(
+      {
+        overallDirection: "improved",
+        isFirstVisit: false,
+        plotData: [
+          {
+            date: "2026-05-14",
+            phq9: 18,
+            gad7: 15,
+            ctrsLevel: 2,
+            sentimentPolarity: -0.42,
+            events: ["첫 방문"],
+          },
+          {
+            date: "2026-06-18",
+            phq9: 14,
+            gad7: 11,
+            ctrsLevel: 3,
+            sentimentPolarity: -0.18,
+            events: [],
+          },
+          {
+            date: "2026-07-19",
+            phq9: 9,
+            gad7: 7,
+            ctrsLevel: 3,
+            sentimentPolarity: 0.12,
+            events: ["수면 호전"],
+          },
+        ],
+      },
+      600,
     );
   },
   submitSession(sessionId: string): Promise<SubmitAccepted> {

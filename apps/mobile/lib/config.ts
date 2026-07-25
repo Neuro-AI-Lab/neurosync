@@ -48,6 +48,15 @@ export const WS_BASE_URL = envOr(
  */
 export const MOCK = envOr("EXPO_PUBLIC_MOCK", __DEV__ ? "1" : "0") === "1";
 
+/**
+ * 병원 찾기 지도 URL (FR-049). 플랫폼 프록시가 카카오맵 HTML을 렌더하고, 앱은
+ * 이 URL을 WebView로 로드한다. 지도는 실서버가 필요한 기능이라 MOCK으로
+ * 대체하지 않는다 — 서버가 없으면 WebView가 에러 화면을 보여준다.
+ */
+export function hospitalsMapUrl(lat: number, lng: number, radiusKm = 5): string {
+  return `${API_BASE_URL}/api/v1/nearby/hospitals/map?lat=${lat}&lng=${lng}&radius_km=${radiusKm}`;
+}
+
 if (!__DEV__) {
   // Defense-in-depth: a release build must never run the mock backend, even if
   // EXPO_PUBLIC_MOCK=1 is set by mistake. Fail fast rather than ship fake data.

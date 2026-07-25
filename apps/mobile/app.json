@@ -35,6 +35,12 @@
           "cameraPermission": "처방전·진단서를 촬영해 사전 문진에 반영하기 위해 카메라를 사용해요.",
           "photosPermission": "처방전·진단서를 앨범에서 선택해 사전 문진에 반영하기 위해 사진 접근을 사용해요."
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "가까운 정신건강의학과를 지도에 표시하기 위해 위치를 사용해요."
+        }
       ]
     ],
     "experiments": {
