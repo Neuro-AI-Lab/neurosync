@@ -40,15 +40,15 @@ export default function ReportDetailScreen() {
   const [trend, setTrend] = useState<ReportTrend | null>(null);
   useEffect(() => {
     let alive = true;
-    const sid = sessionId ?? recordId;
-    if (!accessToken || !sid) return;
-    getReportTrend(accessToken, sid)
+    // 세션 id가 있을 때만 조회한다. recordId는 로컬 레코드 id라 세션 UUID가 아니다.
+    if (!accessToken || !sessionId) return;
+    getReportTrend(accessToken, sessionId)
       .then((t) => alive && setTrend(t))
       .catch(() => alive && setTrend(null));
     return () => {
       alive = false;
     };
-  }, [accessToken, sessionId, recordId]);
+  }, [accessToken, sessionId]);
 
   // FR-047 · §6-B — 수동 전달. MOCK은 로컬 상태만 전이, 실모드는 서버에 전달 후
   // 로컬 반영. 실모드는 세션 id가 있어야 전달 대상이 특정된다.
@@ -59,11 +59,10 @@ export default function ReportDetailScreen() {
       markDelivered(record.id);
       return;
     }
-    const sid = sessionId ?? recordId;
-    if (!accessToken || !sid) return;
+    if (!accessToken || !sessionId) return;
     setDelivering(true);
     try {
-      await deliverReport(accessToken, sid);
+      await deliverReport(accessToken, sessionId);
       markDelivered(record.id);
     } catch (e) {
       Alert.alert(

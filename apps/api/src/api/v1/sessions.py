@@ -498,6 +498,15 @@ async def get_report_trend(
         )
         if not _can_access_patient(actor, hosp.scalar_one_or_none()):
             raise not_found
+        # §6-B — 의료진은 전달된 리포트만 볼 수 있다. 미전달(또는 리포트 미생성)
+        # 세션은 척도 점수 추이도 노출하지 않는다 — /report 게이트와 동일 불변식.
+        drow = await db.execute(
+            select(HandoffReport.delivered_at).where(
+                HandoffReport.session_id == session_id
+            )
+        )
+        if drow.scalar_one_or_none() is None:
+            raise not_found
 
     current_scales = await _session_scales(db, session_id)
 

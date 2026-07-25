@@ -65,7 +65,10 @@ def validate_upload(
             "UNSUPPORTED_FILE_TYPE",
             "지원하지 않는 파일이에요. JPG·PNG·PDF만 올릴 수 있어요.",
         )
-    # 선언 타입이 있으면 매직넘버와 일치해야 한다 (위장 차단).
+    # 실제 방어는 매직넘버 스니핑 결과(sniffed)를 신뢰값으로 반환하는 것이다 —
+    # 위장한 선언 헤더로는 지원 외 타입을 통과시킬 수 없다(이미 위 sniff 게이트 통과).
+    # 아래는 선언 타입이 아예 허용 목록 밖이면 조기 차단하는 보조 필터일 뿐이며,
+    # declared==sniffed 일치까지 강제하지는 않는다(관대한 client content-type 수용).
     if declared_content_type and declared_content_type not in ALLOWED_CONTENT_TYPES:
         raise FileSecurityError(
             "UNSUPPORTED_FILE_TYPE",
