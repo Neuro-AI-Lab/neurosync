@@ -356,7 +356,14 @@ async def test_clinician_cannot_read_other_org_report(client, db_session, test_s
     _, sess_b, _ = await _create_patient_with_session(
         db_session, test_settings, target_hospital_id=org_b.id
     )
-    db_session.add(HandoffReport(session_id=sess_b.id, status="generating"))
+    # 전달·ready로 둔다 — 그래야 404 사유가 §6-B 게이트가 아니라 org-scope임이 분명해진다.
+    db_session.add(
+        HandoffReport(
+            session_id=sess_b.id,
+            status="ready",
+            delivered_at=datetime.now(UTC),
+        )
+    )
     await db_session.commit()
 
     token = await _token(clinician_a, test_settings)
@@ -365,3 +372,27 @@ async def test_clinician_cannot_read_other_org_report(client, db_session, test_s
         headers={"Authorization": f"Bearer {token}"},
     )
     assert res.status_code == 404, "clinician read another org's handoff report (PHI leak)"
+
+
+@pytest.mark.asyncio
+async def test_trend_hidden_from_clinician_until_delivered(client, db_session, test_settings):
+    """§6-B (F-1 회귀) — 미전달 리포트는 의료진에게 점수 추이도 노출하지 않는다.
+
+    org-scope는 통과하지만(같은 기관) delivered_at IS NULL이면 /report/trend 도
+    /report와 동일하게 404여야 한다. 게이트가 ai_client(temporal) 호출 이전에
+    차단하므로 LLM 모킹 없이 검증된다."""
+    org = await _create_org(db_session, "Hospital A")
+    clinician = await _create_clinician(db_session, test_settings, organization_id=org.id)
+    _, sess, _ = await _create_patient_with_session(
+        db_session, test_settings, target_hospital_id=org.id
+    )
+    # ready 이지만 아직 미전달.
+    db_session.add(HandoffReport(session_id=sess.id, status="ready", delivered_at=None))
+    await db_session.commit()
+
+    token = await _token(clinician, test_settings)
+    res = client.get(
+        f"/api/v1/sessions/{sess.id}/report/trend",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res.status_code == 404, "undelivered trend must be hidden from clinician (§6-B)"

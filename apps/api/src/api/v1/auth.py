@@ -231,6 +231,14 @@ async def register(
             settings=settings,
         ),
         target_hospital_id=payload.target_hospital_id,
+        # v3 수정 1 — 확장 인적사항(선택). 비-PII 범주형이라 평문 저장.
+        marital_status=payload.marital_status,
+        household_type=payload.household_type,
+        education_level=payload.education_level,
+        occupation=payload.occupation,
+        employment_status=payload.employment_status,
+        income_level=payload.income_level,
+        religion=payload.religion,
     )
     session.add(profile)
 

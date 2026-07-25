@@ -4,6 +4,40 @@
 
 html,
 body {
-  background: theme(colors.surface);
+  background: theme(colors.canvas);
   color: theme(colors.text-primary);
+  font-family:
+    "Pretendard", "Pretendard Variable", -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* 숫자(점수·날짜) 정렬용 — 클래스 tabular-nums로 개별 적용 */
+
+/* FR-019 인쇄/PDF 저장 — .print-report 만 남기고 대시보드 크롬은 숨긴다. */
+@media print {
+  body {
+    background: #ffffff;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .print-report,
+  .print-report * {
+    visibility: visible;
+  }
+  .print-report {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    gap: 1rem;
+  }
+  /* 인쇄 시 카드 그림자·과한 여백 정리 */
+  .print-report section {
+    border-color: #d9d9d3;
+    break-inside: avoid;
+  }
 }

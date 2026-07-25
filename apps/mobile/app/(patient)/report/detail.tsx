@@ -11,21 +11,68 @@
  */
 
 import { router, useLocalSearchParams } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "../../../components/Button";
 import { NavBar } from "../../../components/NavBar";
+import { TrendChart } from "../../../components/TrendChart";
+import { APIException, deliverReport, getReportTrend, ReportTrend } from "../../../lib/api";
 import { MOCK } from "../../../lib/config";
 import { SURVEYS } from "../../../lib/surveys";
 import { colors } from "../../../lib/tokens";
+import { useAuth } from "../../../state/auth";
 import { SEVERITY_KO, STATUS_KO, useRecords } from "../../../state/records";
+import { useSession } from "../../../state/session";
 
 export default function ReportDetailScreen() {
   const insets = useSafeAreaInsets();
   const { recordId } = useLocalSearchParams<{ recordId?: string }>();
   const record = useRecords((s) => s.records.find((r) => r.id === recordId));
   const markDelivered = useRecords((s) => s.markDelivered);
+  const accessToken = useAuth((s) => s.accessToken);
+  const sessionId = useSession((s) => s.sessionId);
+
+  // 점수 추이 (수정 7 · F4). 실데이터는 세션 id로 조회하며, mock 모드에서는
+  // 인자와 무관하게 시연 시리즈를 돌려준다. 비교할 이전 방문이 없거나 실패하면
+  // 차트를 조용히 숨긴다(리포트 본문과 동일한 mock-first 자세).
+  const [trend, setTrend] = useState<ReportTrend | null>(null);
+  useEffect(() => {
+    let alive = true;
+    // 세션 id가 있을 때만 조회한다. recordId는 로컬 레코드 id라 세션 UUID가 아니다.
+    if (!accessToken || !sessionId) return;
+    getReportTrend(accessToken, sessionId)
+      .then((t) => alive && setTrend(t))
+      .catch(() => alive && setTrend(null));
+    return () => {
+      alive = false;
+    };
+  }, [accessToken, sessionId]);
+
+  // FR-047 · §6-B — 수동 전달. MOCK은 로컬 상태만 전이, 실모드는 서버에 전달 후
+  // 로컬 반영. 실모드는 세션 id가 있어야 전달 대상이 특정된다.
+  const [delivering, setDelivering] = useState(false);
+  const onDeliver = async () => {
+    if (!record) return;
+    if (MOCK) {
+      markDelivered(record.id);
+      return;
+    }
+    if (!accessToken || !sessionId) return;
+    setDelivering(true);
+    try {
+      await deliverReport(accessToken, sessionId);
+      markDelivered(record.id);
+    } catch (e) {
+      Alert.alert(
+        "전달하지 못했어요",
+        e instanceof APIException ? e.body.message : "잠시 후 다시 시도해 주세요.",
+      );
+    } finally {
+      setDelivering(false);
+    }
+  };
 
   if (!record) {
     return (
@@ -73,6 +120,11 @@ export default function ReportDetailScreen() {
           </Text>
         </View>
 
+        {/* 점수 추이 차트 (수정 7 · F4 plot_data). 비교할 이전 방문이 있을 때만. */}
+        {trend && trend.plotData.length >= 2 ? (
+          <TrendChart points={trend.plotData} direction={trend.overallDirection} />
+        ) : null}
+
         {/* Handoff 미니 프리뷰 — 예시 서사는 MOCK 전용. 실모드에서 실제 기록 위에
             가짜 임상 텍스트가 렌더되면 안 된다 (§6-A/B 배포 후 실데이터 바인딩). */}
         {MOCK ? (
@@ -119,9 +171,14 @@ export default function ReportDetailScreen() {
 
         <View style={{ flex: 1 }} />
 
-        {/* FR-047 — §6-B 배포 전 실모드 비노출 가드. MOCK에서만 전이 시연. */}
-        {MOCK && record.status === "stored" ? (
-          <Button label="의료진에게 전달하기" onPress={() => markDelivered(record.id)} />
+        {/* FR-047 · §6-B — 보관 중인 리포트를 [전달하기]. 실모드는 전달 대상
+            세션 id가 있을 때만 노출(과거 이력 실연동은 §6-A 후속). */}
+        {record.status === "stored" && (MOCK || sessionId) ? (
+          <Button
+            label="의료진에게 전달하기"
+            onPress={() => void onDeliver()}
+            loading={delivering}
+          />
         ) : null}
         {record.status === "delivered" ? (
           <Text style={styles.deliveredNote}>의료진에게 전달됐어요. 진료 때 함께 확인해요.</Text>

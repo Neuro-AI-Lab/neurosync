@@ -42,36 +42,39 @@ export function LoginForm() {
     }
   };
 
+  const fieldClass =
+    "border border-border-strong rounded-lg px-3 py-2.5 text-base bg-surface text-text-primary focus:outline-none focus:border-ink transition-colors";
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-text-primary">이메일</span>
+      <label className="flex flex-col gap-1.5">
+        <span className="text-[13px] font-medium text-text-primary">이메일</span>
         <input
           type="email"
           required
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="border border-border rounded-md px-3 py-2 text-base focus:outline-none focus:border-state-info"
+          className={fieldClass}
         />
       </label>
-      <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-text-primary">비밀번호</span>
+      <label className="flex flex-col gap-1.5">
+        <span className="text-[13px] font-medium text-text-primary">비밀번호</span>
         <input
           type="password"
           required
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="border border-border rounded-md px-3 py-2 text-base focus:outline-none focus:border-state-info"
+          className={fieldClass}
         />
       </label>
-      <label className="flex flex-col gap-1">
-        <span className="text-sm font-medium text-text-primary">권한</span>
+      <label className="flex flex-col gap-1.5">
+        <span className="text-[13px] font-medium text-text-primary">권한</span>
         <select
           value={role}
           onChange={(e) => setRole(e.target.value as "clinician" | "org_admin")}
-          className="border border-border rounded-md px-3 py-2 text-base"
+          className={fieldClass}
         >
           <option value="clinician">의료진</option>
           <option value="org_admin">기관 관리자</option>
@@ -79,7 +82,7 @@ export function LoginForm() {
       </label>
 
       {error ? (
-        <p className="text-sm text-state-danger bg-red-50 border border-red-200 rounded-md px-3 py-2">
+        <p className="text-[13px] text-danger-ink bg-danger-soft border border-danger-line rounded-lg px-3 py-2.5">
           {error}
         </p>
       ) : null}
@@ -87,7 +90,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={submitting || !email || !password}
-        className="bg-state-info text-white font-semibold rounded-md py-2.5 disabled:opacity-50"
+        className="bg-ink text-white font-semibold rounded-lg py-3 mt-1 transition-opacity hover:opacity-90 disabled:opacity-40"
       >
         {submitting ? "로그인 중…" : "로그인"}
       </button>

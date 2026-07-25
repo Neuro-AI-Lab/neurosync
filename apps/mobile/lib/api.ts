@@ -144,6 +144,28 @@ async function request<T>(
 
 // ────────── Auth ──────────
 
+// v3 수정 1 — 확장 인적사항 코드 유니온 (백엔드 schemas/auth.py와 일치).
+export type MaritalStatus = "single" | "married" | "divorced" | "bereaved" | "separated" | "other";
+export type HouseholdType = "alone" | "spouse" | "parents" | "children" | "relatives" | "other";
+export type EducationLevel = "middle_or_below" | "high_school" | "college" | "graduate" | "other";
+export type EmploymentStatus =
+  | "employed"
+  | "self_employed"
+  | "unemployed"
+  | "student"
+  | "retired"
+  | "homemaker"
+  | "other";
+export type IncomeLevel = "low" | "mid_low" | "mid" | "mid_high" | "high" | "prefer_not";
+export type Religion =
+  | "none"
+  | "protestant"
+  | "catholic"
+  | "buddhist"
+  | "won"
+  | "other"
+  | "prefer_not";
+
 export type RegisterInput = {
   email: string;
   password: string;
@@ -153,6 +175,14 @@ export type RegisterInput = {
   phone: string;
   region: string;
   emergencyContact: string;
+  // 확장 인적사항 — 모두 선택. 미입력 시 생략(백엔드 default None).
+  maritalStatus?: MaritalStatus;
+  householdType?: HouseholdType;
+  educationLevel?: EducationLevel;
+  occupation?: string;
+  employmentStatus?: EmploymentStatus;
+  incomeLevel?: IncomeLevel;
+  religion?: Religion;
   consents: {
     tos: boolean;
     privacy: boolean;
@@ -255,6 +285,91 @@ export async function inferDomainInstrument(
   );
 }
 
+// ────────── OCR 문서 첨부 (v3 FR-048) ──────────
+
+export type OCRMedication = {
+  name: string;
+  dose?: string | null;
+  frequency?: string | null;
+  route?: string | null;
+  confidence?: number;
+};
+
+export type OCRSummary = {
+  diagnoses: string[];
+  diagnosisCodes?: string[];
+  medications: OCRMedication[];
+  department?: string | null;
+  dates: string[];
+  scaleScores?: Record<string, number>;
+  patientName?: string | null;
+  patientAge?: string | null;
+  patientGender?: string | null;
+};
+
+export type OCRLowConfidenceItem = {
+  blockId: string;
+  field: string;
+  value: string;
+  confidence: number;
+  severity: "info" | "verify" | "retry";
+  message: string;
+};
+
+export type OCRResult = {
+  documentType: string;
+  extractedSummary: OCRSummary;
+  lowConfidenceItems: OCRLowConfidenceItem[];
+  pageCount: number;
+  elementCount: number;
+};
+
+export type DocumentUpload = { uri: string; name: string; mime: string };
+
+/**
+ * 처방전/진단서 이미지를 업로드해 OCR 구조화 결과를 받는다 (multipart).
+ * 확정 반영은 사용자가 확인 화면에서 [확인 완료]를 눌러야 이뤄진다 (FR-048).
+ */
+export async function parseDocument(
+  token: string,
+  sessionId: string,
+  file: DocumentUpload,
+  documentTypeHint = "unknown",
+): Promise<OCRResult> {
+  if (MOCK) return mockApi.parseDocument();
+
+  const form = new FormData();
+  // RN FormData file part: { uri, name, type }.
+  form.append(
+    "document",
+    { uri: file.uri, name: file.name, type: file.mime } as unknown as Blob,
+  );
+  form.append("document_type_hint", documentTypeHint);
+
+  const resp = await fetch(
+    `${API_BASE_URL}/api/v1/sessions/${sessionId}/documents/ocr`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form, // Content-Type은 fetch가 boundary와 함께 설정
+    },
+  );
+  let body: Envelope<OCRResult> | null = null;
+  try {
+    body = (await resp.json()) as Envelope<OCRResult>;
+  } catch {
+    body = null;
+  }
+  if (!resp.ok || !body || body.success === false) {
+    const err: APIError =
+      body && body.success === false
+        ? body.error
+        : { code: "NETWORK", message: "문서 인식에 실패했어요." };
+    throw new APIException(resp.status, err);
+  }
+  return body.data;
+}
+
 // ────────── Submit (FR-010) ──────────
 
 export type SubmitAccepted = {
@@ -295,6 +410,62 @@ export async function getReportStatus(
   if (MOCK) return mockApi.getReportStatus(sessionId);
   return request<ReportStatusOut>(`/api/v1/sessions/${sessionId}/report/status`, {
     method: "GET",
+    token,
+  });
+}
+
+// ────────── 점수 추이 (F4 종단 추론 · 리포트 차트) ──────────
+
+export type TrendDirection = "improved" | "worsened" | "unchanged" | "unknown";
+
+export type TrendPoint = {
+  date: string;
+  phq9: number | null;
+  gad7: number | null;
+  /** CTRS 위험 단계 1~5 — **숫자가 낮을수록 위험**(1=최고위험). */
+  ctrsLevel: number | null;
+  sentimentPolarity: number | null;
+  events: string[];
+};
+
+export type ReportTrend = {
+  overallDirection: TrendDirection;
+  plotData: TrendPoint[];
+  isFirstVisit: boolean;
+};
+
+/**
+ * 리포트 점수 추이 (핸드오프 문서 수정 7). 이번 세션과 직전 방문의 표준 척도
+ * 점수를 비교한 F4 plot_data를 차트에 바인딩한다. 환자 본인 응답 기반 점수만
+ * 시각화하며 AI 추정 도메인은 표시하지 않는다(NFR v3-2).
+ */
+export async function getReportTrend(
+  token: string,
+  sessionId: string,
+): Promise<ReportTrend> {
+  if (MOCK) return mockApi.getReportTrend();
+  return request<ReportTrend>(`/api/v1/sessions/${sessionId}/report/trend`, {
+    method: "GET",
+    token,
+  });
+}
+
+// ────────── 리포트 수동 전달 (FR-047 · §6-B) ──────────
+
+export type DeliverResult = { delivered: boolean; deliveredAt: string };
+
+/**
+ * 보관 중인 리포트를 의료진에게 전달한다(핸드오프 수정 7 · §6-B). 전달 전까지
+ * 리포트는 환자만 열람하며, 이 호출로 delivered_at이 채워져야 의료진 웹에 노출된다.
+ * 멱등 — 이미 전달됐으면 기존 전달 시각을 그대로 돌려준다.
+ */
+export async function deliverReport(
+  token: string,
+  sessionId: string,
+): Promise<DeliverResult> {
+  if (MOCK) return mockApi.deliverReport();
+  return request<DeliverResult>(`/api/v1/sessions/${sessionId}/report/deliver`, {
+    method: "POST",
     token,
   });
 }

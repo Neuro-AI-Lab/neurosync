@@ -18,10 +18,13 @@ import httpx
 from contracts.chat import ChatRequest, ChatResponse
 from contracts.domain import DomainInferRequest, DomainInferResponse
 from contracts.handoff import HandoffRequest, HandoffResponse
+from contracts.nearby import NearbyHospitalsResponse
+from contracts.ocr import OCRParseResponse
 from contracts.safety import SafetyRequest, SafetyResponse
 from contracts.slots import SlotsExtractRequest, SlotsExtractResponse
 from contracts.stt import STTRequest, STTResponse
 from contracts.survey import SurveyScoreRequest, SurveyScoreResponse
+from contracts.temporal import TemporalSummarizeRequest, TemporalSummarizeResponse
 from pydantic import BaseModel, ValidationError
 
 from src.core.config import Settings, get_settings
@@ -123,6 +126,42 @@ class AIClient:
             timeout=self._settings.ai_domain_timeout_seconds,
         )
 
+    async def nearby_hospitals(
+        self, *, lat: float, lng: float, radius_km: float = 5.0, num_of_rows: int = 30
+    ) -> NearbyHospitalsResponse:
+        """GET /ai/nearby/hospitals (FR-049). 데이터 조회만 — 지도 렌더는 플랫폼.
+
+        _post는 POST 전용이라 GET은 여기서 직접 보낸다(ocr_parse와 동일 예외 처리).
+        HIRA 키 미설정 등으로 502가 나면 호출자가 빈 지도로 폴백한다.
+        """
+        url = f"{self._settings.ai_server_url}/ai/nearby/hospitals"
+        try:
+            resp = await self._client.get(
+                url,
+                params={
+                    "lat": lat,
+                    "lng": lng,
+                    "radius_km": radius_km,
+                    "num_of_rows": num_of_rows,
+                },
+                timeout=self._settings.ai_nearby_timeout_seconds,
+            )
+            resp.raise_for_status()
+            return NearbyHospitalsResponse.model_validate(resp.json())
+        except (httpx.HTTPError, ValidationError, ValueError) as exc:
+            raise AIClientError(f"/ai/nearby/hospitals failed: {exc}") from exc
+
+    async def temporal_summarize(
+        self, payload: TemporalSummarizeRequest
+    ) -> TemporalSummarizeResponse:
+        """F4 종단 추론 — 직전/이번 방문 척도 비교 + plot_data (리포트 추이 차트)."""
+        return await self._post(
+            "/ai/temporal/summarize",
+            TemporalSummarizeResponse,
+            payload,
+            timeout=self._settings.ai_temporal_timeout_seconds,
+        )
+
     async def slots_extract(self, payload: SlotsExtractRequest) -> SlotsExtractResponse:
         """POST /ai/slots/extract. 대화 배경 작업 — 실패해도 대화를 막지 않는다."""
         return await self._post(
@@ -131,6 +170,37 @@ class AIClient:
             payload,
             timeout=self._settings.ai_slots_timeout_seconds,
         )
+
+    async def ocr_parse(
+        self,
+        *,
+        document: bytes,
+        filename: str,
+        content_type: str,
+        session_id: str,
+        patient_id: str,
+        document_type_hint: str = "unknown",
+    ) -> OCRParseResponse:
+        """POST /ai/ocr/parse (multipart). 처방전/진단서 파싱 (FR-048).
+
+        _post는 JSON 전용이라 여기선 직접 multipart를 보낸다. 다른 메서드와
+        동일하게 전송/파싱 실패를 통째로 AIClientError로 감싼다(PR#74 C1 원칙).
+        """
+        url = f"{self._settings.ai_server_url}/ai/ocr/parse"
+        files = {"document": (filename, document, content_type)}
+        data = {
+            "session_id": session_id,
+            "patient_id": patient_id,
+            "document_type_hint": document_type_hint,
+        }
+        try:
+            resp = await self._client.post(
+                url, files=files, data=data, timeout=self._settings.ai_ocr_timeout_seconds
+            )
+            resp.raise_for_status()
+            return OCRParseResponse.model_validate(resp.json())
+        except (httpx.HTTPError, ValidationError, ValueError) as exc:
+            raise AIClientError(f"/ai/ocr/parse failed: {exc}") from exc
 
     async def aclose(self) -> None:
         if self._owned:

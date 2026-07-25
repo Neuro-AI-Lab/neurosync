@@ -205,7 +205,8 @@ async def test_ws_high_safety_routes_to_emergency_for_opted_in_patient(
         assert event["payload"]["category"] == "suicide"
         assert event["payload"]["routeTo"] == "/emergency"
         numbers = [h["number"] for h in event["payload"]["hotlines"]]
-        assert "1393" in numbers
+        # v3 FR-044 — 109 통합번호(구 1393·1577-0199 폐지).
+        assert "109" in numbers
         assert "119" in numbers
 
 

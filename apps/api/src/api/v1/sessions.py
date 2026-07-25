@@ -37,12 +37,16 @@ from uuid import UUID
 
 import anyio
 from contracts.safety import SafetyRequest
+from contracts.temporal import TemporalSummarizeRequest
 from fastapi import (
     APIRouter,
     BackgroundTasks,
     Depends,
+    File,
+    Form,
     HTTPException,
     Request,
+    UploadFile,
     WebSocket,
     WebSocketDisconnect,
     status,
@@ -55,11 +59,13 @@ from starlette.websockets import WebSocketState
 from src.core.config import Settings, get_settings
 from src.core.deps import require_role
 from src.core.encryption import decrypt_str, encrypt_str
+from src.core.file_security import FileSecurityError, validate_upload
 from src.core.security import TokenError, decode_token
 from src.db import SessionLocal, get_session
 from src.models.audit_log import AuditLog
 from src.models.handoff import HandoffReport
 from src.models.patient_profile import PatientProfile
+from src.models.questionnaire import QuestionnaireResult
 from src.models.session import Message, Session
 from src.models.user import User
 from src.schemas.handoff import SubmitAccepted
@@ -71,6 +77,9 @@ from src.schemas.session import (
 )
 from src.services.ai_client import AIClient, AIClientError, get_ai_client
 from src.services.chat import respond as chat_turn
+
+# ISS-022: shared org-access rule (handoff.py도 동일 임포트)
+from src.services.clinician import _can_access_patient
 from src.services.domain_routing import infer_instrument
 from src.services.handoff import (
     build_report_response,
@@ -277,6 +286,79 @@ async def infer_domain(
     return {"success": True, "data": {"instrument": instrument}}
 
 
+@router.post("/{session_id}/documents/ocr", status_code=status.HTTP_201_CREATED)
+async def parse_document(
+    session_id: UUID,
+    request: Request,
+    patient: Annotated[User, Depends(require_role("patient"))],
+    db: Annotated[AsyncSession, Depends(get_session)],
+    ai_client: Annotated[AIClient, Depends(get_ai_client)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    document: Annotated[UploadFile, File()],
+    document_type_hint: Annotated[str, Form()] = "unknown",
+) -> dict:
+    """v3 FR-048 — 대화 중 첨부한 처방전/진단서를 OCR로 구조화한다.
+
+    플랫폼이 파일을 검증(FR-028)한 뒤 ai-server /ai/ocr/parse로 프록시한다.
+    확정 반영은 클라이언트가 확인 화면에서 [확인 완료]를 눌러야 이뤄지므로,
+    이 엔드포인트는 추출만 하고 리포트에 자동 반영하지 않는다.
+    """
+    await _owned_in_progress_session(db, session_id=session_id, patient_id=patient.id)
+
+    data = await document.read()
+    # FR-028 — 크기·형식·매직넘버 검증. 정규 content-type을 ai-server로 넘긴다.
+    try:
+        content_type = validate_upload(
+            data,
+            declared_content_type=document.content_type,
+            max_bytes=settings.ocr_max_bytes,
+        )
+    except FileSecurityError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": exc.code, "message": exc.message},
+        ) from exc
+
+    try:
+        result = await ai_client.ocr_parse(
+            document=data,
+            filename=document.filename or "document",
+            content_type=content_type,
+            session_id=str(session_id),
+            patient_id=str(patient.id),
+            document_type_hint=document_type_hint,
+        )
+    except AIClientError as exc:
+        logger.warning("ocr parse failed (session=%s): %s", session_id, exc)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={
+                "code": "OCR_UNAVAILABLE",
+                "message": "문서 인식에 실패했어요. 잠시 후 다시 시도해 주세요.",
+            },
+        ) from exc
+
+    db.add(
+        AuditLog(
+            actor_id=patient.id,
+            actor_role="patient",
+            action="session.document.ocr",
+            resource_type="session",
+            resource_id=session_id,
+            ip=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+            # 문서 내용은 로그에 남기지 않는다 — 유형/건수만.
+            audit_metadata={
+                "document_type": result.document_type,
+                "low_confidence_count": len(result.low_confidence_items),
+            },
+        )
+    )
+    await db.commit()
+    # by_alias — 모바일에는 camelCase로 (나머지 API와 동일 컨벤션).
+    return {"success": True, "data": result.model_dump(by_alias=True, mode="json")}
+
+
 HANDOFF_ESTIMATED_SECONDS = 30
 
 require_clinician = require_role("clinician", "org_admin", "super_admin")
@@ -364,6 +446,161 @@ async def get_report_status(
     return {
         "success": True,
         "data": {"status": report.status, "reportId": str(report.id)},
+    }
+
+
+# 문진 type(DB) → ai-server 척도명. F4 입력은 "PHQ-9" 형식을 기대한다.
+_SCALE_NAME = {"PHQ9": "PHQ-9", "GAD7": "GAD-7", "AUDITC": "AUDIT-C", "PHQ4": "PHQ-4"}
+
+
+async def _session_scales(db: AsyncSession, session_id: UUID) -> dict[str, int]:
+    """세션의 문진 결과를 {척도명: 총점} 맵으로. 표준 척도 점수만(환자 응답 기반)."""
+    rows = await db.execute(
+        select(QuestionnaireResult).where(QuestionnaireResult.session_id == session_id)
+    )
+    return {_SCALE_NAME.get(r.type, r.type): r.total_score for r in rows.scalars()}
+
+
+@router.get("/{session_id}/report/trend", response_model=dict)
+async def get_report_trend(
+    session_id: UUID,
+    actor: Annotated[
+        User, Depends(require_role("patient", "clinician", "org_admin", "super_admin"))
+    ],
+    db: Annotated[AsyncSession, Depends(get_session)],
+    ai_client: Annotated[AIClient, Depends(get_ai_client)],
+) -> dict:
+    """수정 7 — 리포트 점수 추이 차트용 F4 종단 추론 (plot_data 바인딩).
+
+    환자(본인 세션) 또는 의료진(소속 기관 환자, ISS-022 org-scope)이 조회한다.
+    이번 세션과 같은 환자의 직전(더 이른) 세션 문진 점수를 비교해 방향과 시각화
+    포인트를 돌려준다. 표준 척도 점수(환자 본인 응답 기반)만 시각화하고 AI 추정
+    도메인·질환명은 넣지 않는다(NFR v3-2). 직전 세션이 없으면 첫 방문으로 처리.
+    """
+    not_found = HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail={"code": "SESSION_NOT_FOUND", "message": "세션을 찾을 수 없어요."},
+    )
+    srow = await db.execute(select(Session).where(Session.id == session_id))
+    sess = srow.scalar_one_or_none()
+    if sess is None:
+        raise not_found
+    # 권한: 환자는 본인 세션만, 의료진은 소속 기관 환자만. 어떤 실패든 404로 통일해
+    # 다른 환자 세션의 존재를 노출하지 않는다.
+    if actor.role == "patient":
+        if sess.patient_id != actor.id:
+            raise not_found
+    else:
+        hosp = await db.execute(
+            select(PatientProfile.target_hospital_id).where(
+                PatientProfile.user_id == sess.patient_id
+            )
+        )
+        if not _can_access_patient(actor, hosp.scalar_one_or_none()):
+            raise not_found
+        # §6-B — 의료진은 전달된 리포트만 볼 수 있다. 미전달(또는 리포트 미생성)
+        # 세션은 척도 점수 추이도 노출하지 않는다 — /report 게이트와 동일 불변식.
+        drow = await db.execute(
+            select(HandoffReport.delivered_at).where(
+                HandoffReport.session_id == session_id
+            )
+        )
+        if drow.scalar_one_or_none() is None:
+            raise not_found
+
+    current_scales = await _session_scales(db, session_id)
+
+    # 같은 환자의 직전 세션 중 문진 결과가 있는 가장 최근 것을 이전 방문으로.
+    prow = await db.execute(
+        select(Session)
+        .where(
+            Session.patient_id == sess.patient_id,
+            Session.created_at < sess.created_at,
+        )
+        .order_by(Session.created_at.desc())
+    )
+    prior_scales: dict[str, int] = {}
+    prior_date = ""
+    for prior in prow.scalars():
+        scales = await _session_scales(db, prior.id)
+        if scales:
+            prior_scales = scales
+            prior_date = prior.created_at.date().isoformat()
+            break
+
+    payload = TemporalSummarizeRequest(
+        session_id=str(session_id),
+        patient_id=str(sess.patient_id),
+        is_first_visit=not prior_scales,
+        current_scales=current_scales,
+        prior_scales=prior_scales,
+        current_date=sess.created_at.date().isoformat(),
+        prior_date=prior_date,
+    )
+    try:
+        result = await ai_client.temporal_summarize(payload)
+    except AIClientError as exc:
+        logger.warning("temporal summarize failed (session=%s): %s", session_id, exc)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={
+                "code": "TREND_UNAVAILABLE",
+                "message": "추이 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+            },
+        ) from exc
+
+    # by_alias — 모바일에는 camelCase (나머지 API와 동일 컨벤션).
+    return {"success": True, "data": result.model_dump(by_alias=True, mode="json")}
+
+
+@router.post("/{session_id}/report/deliver", response_model=dict)
+async def deliver_report(
+    session_id: UUID,
+    request: Request,
+    patient: Annotated[User, Depends(require_role("patient"))],
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> dict:
+    """v3 수정 7 · §6-B — 환자가 보관 중인 리포트를 의료진에게 전달한다.
+
+    submit 시점엔 리포트가 '보관'(delivered_at NULL)으로만 생성된다. 환자가 이
+    엔드포인트를 호출해야 delivered_at이 채워지고 의료진 조회에 노출된다. 이미
+    전달된 리포트는 멱등적으로 기존 전달 시각을 그대로 돌려준다(이중 전달 방지)."""
+    srow = await db.execute(select(Session).where(Session.id == session_id))
+    sess = srow.scalar_one_or_none()
+    if sess is None or sess.patient_id != patient.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "SESSION_NOT_FOUND", "message": "세션을 찾을 수 없어요."},
+        )
+
+    rrow = await db.execute(
+        select(HandoffReport).where(HandoffReport.session_id == session_id)
+    )
+    report = rrow.scalar_one_or_none()
+    if report is None or report.status != "ready":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": "REPORT_NOT_READY", "message": "아직 전달할 수 있는 리포트가 없어요."},
+        )
+
+    if report.delivered_at is None:
+        report.delivered_at = datetime.now(UTC)
+        db.add(
+            AuditLog(
+                actor_id=patient.id,
+                actor_role="patient",
+                action="session.report.deliver",
+                resource_type="handoff_report",
+                resource_id=report.id,
+                ip=request.client.host if request.client else None,
+                user_agent=request.headers.get("user-agent"),
+            )
+        )
+        await db.commit()
+
+    return {
+        "success": True,
+        "data": {"delivered": True, "deliveredAt": report.delivered_at.isoformat()},
     }
 
 

@@ -8,9 +8,9 @@ export default async function DashboardLayout({
 }) {
   const user = await getSessionUser();
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen bg-canvas">
       <DashboardHeader user={user} />
-      <div className="max-w-5xl mx-auto px-6 py-8">{children}</div>
+      <div className="max-w-5xl mx-auto px-6 py-10">{children}</div>
     </div>
   );
 }

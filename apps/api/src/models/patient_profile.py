@@ -46,6 +46,15 @@ class PatientProfile(Base):
     gender: Mapped[str | None] = mapped_column(Text)
     phone_encrypted: Mapped[bytes | None] = mapped_column(LargeBinary)
     region: Mapped[str | None] = mapped_column(Text)
+    # v3 수정 1 — 사회인구학적 항목 확장 (모두 선택, 코드 저장 · 마이그레이션 0011).
+    # 비-PII 범주형이라 gender/region처럼 평문 Text. 소득·종교는 민감(prefer_not 허용).
+    marital_status: Mapped[str | None] = mapped_column(Text)
+    household_type: Mapped[str | None] = mapped_column(Text)
+    education_level: Mapped[str | None] = mapped_column(Text)
+    occupation: Mapped[str | None] = mapped_column(Text)
+    employment_status: Mapped[str | None] = mapped_column(Text)
+    income_level: Mapped[str | None] = mapped_column(Text)
+    religion: Mapped[str | None] = mapped_column(Text)
     emergency_contact_encrypted: Mapped[bytes | None] = mapped_column(LargeBinary)
     target_hospital_id: Mapped[uuid.UUID | None] = mapped_column(PG_UUID(as_uuid=True))
     pseudonymized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

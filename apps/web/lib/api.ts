@@ -139,6 +139,14 @@ export type PatientDetail = {
   phone: string | null;
   region: string | null;
   emergencyContact: string | null;
+  // v3 수정 1 — 확장 인적사항 코드 (한국어 매핑은 화면에서).
+  maritalStatus: string | null;
+  householdType: string | null;
+  educationLevel: string | null;
+  occupation: string | null;
+  employmentStatus: string | null;
+  incomeLevel: string | null;
+  religion: string | null;
   consent: ConsentOut | null;
   sessions: SessionSummary[];
 };
@@ -249,5 +257,34 @@ export async function getReport(sessionId: string): Promise<HandoffReport | null
   } catch (e) {
     if (e instanceof APIException && e.status === 404) return null;
     throw e;
+  }
+}
+
+// ── 점수 추이 (F4 종단 추론) ──
+
+export type TrendPoint = {
+  date: string;
+  phq9: number | null;
+  gad7: number | null;
+  ctrsLevel: number | null;
+  sentimentPolarity: number | null;
+  events: string[];
+};
+
+export type ReportTrend = {
+  overallDirection: "improved" | "worsened" | "unchanged" | "unknown";
+  plotData: TrendPoint[];
+  isFirstVisit: boolean;
+};
+
+/**
+ * 환자의 세션 간 표준 척도(PHQ-9/GAD-7) 추이. 의료진은 org-scope로 접근한다.
+ * 추이는 리포트 본문의 보조 정보라 실패해도 페이지를 막지 않는다 — null 반환.
+ */
+export async function getReportTrend(sessionId: string): Promise<ReportTrend | null> {
+  try {
+    return await fetchAPI<ReportTrend>(`/api/v1/sessions/${sessionId}/report/trend`);
+  } catch {
+    return null;
   }
 }

@@ -213,15 +213,26 @@ async def _mark_failed(
 
 
 async def build_report_response(
-    db: AsyncSession, *, actor: User, session_id: uuid.UUID
+    db: AsyncSession,
+    *,
+    actor: User,
+    session_id: uuid.UUID,
+    require_delivered: bool = True,
 ) -> HandoffReportOut | None:
     """Compose the GET /report payload. Returns None if no report row exists,
-    or if the session's patient is outside the actor's organization (ISS-022)."""
+    or if the session's patient is outside the actor's organization (ISS-022).
+
+    v3 §6-B — 수동 전달: 기본적으로 **전달된 리포트만** 노출한다. 환자가
+    [전달하기]를 누르기 전(delivered_at IS NULL)에는 의료진이 볼 수 없다. 리포트
+    본문은 여전히 clinician 전용이며, 이 게이트는 '언제 보이는가'만 통제한다."""
     row = await db.execute(
         select(HandoffReport).where(HandoffReport.session_id == session_id)
     )
     report = row.scalar_one_or_none()
     if report is None:
+        return None
+    if require_delivered and report.delivered_at is None:
+        # 아직 환자가 전달하지 않음 — 존재 자체를 노출하지 않는다(None → 404).
         return None
 
     sess_row = await db.execute(select(Session).where(Session.id == session_id))

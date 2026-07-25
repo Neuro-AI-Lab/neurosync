@@ -20,28 +20,26 @@ export function SessionCard({
   return (
     <Link
       href={`/dashboard/patients/${patientId}/sessions/${session.id}`}
-      className="block bg-surface border border-border rounded-lg p-4 hover:bg-surface-elevated"
+      className="group block bg-surface border border-border rounded-xl p-4 transition-colors hover:border-border-strong"
     >
       <div className="flex items-center justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <p className="font-medium text-text-primary">
+        <div className="flex flex-col gap-1.5">
+          <p className="font-semibold tracking-tight text-text-primary">
             {statusLabel[session.status] ?? session.status}
           </p>
-          <p className="text-sm text-text-secondary">
+          <p className="text-[13px] text-text-secondary tabular-nums">
             시작 {new Date(session.createdAt).toLocaleString("ko-KR")}
           </p>
           {session.submittedAt ? (
-            <p className="text-sm text-text-secondary">
+            <p className="text-[13px] text-text-secondary tabular-nums">
               제출 {new Date(session.submittedAt).toLocaleString("ko-KR")}
             </p>
           ) : null}
         </div>
-        <div className="flex flex-col items-end gap-1">
-          {session.latestRisk ? (
-            <RiskBadge level={session.latestRisk.level} />
-          ) : null}
+        <div className="flex flex-col items-end gap-1.5">
+          {session.latestRisk ? <RiskBadge level={session.latestRisk.level} /> : null}
           {session.riskEventCount > 0 ? (
-            <span className="text-xs text-text-secondary">
+            <span className="text-xs text-text-secondary tabular-nums">
               위험 {session.riskEventCount}건
             </span>
           ) : null}

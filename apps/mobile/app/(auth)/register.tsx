@@ -14,7 +14,24 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
-import { APIException } from "../../lib/api";
+import {
+  APIException,
+  EducationLevel,
+  EmploymentStatus,
+  HouseholdType,
+  IncomeLevel,
+  MaritalStatus,
+  Religion,
+} from "../../lib/api";
+import {
+  EDUCATION_OPTIONS,
+  EMPLOYMENT_OPTIONS,
+  HOUSEHOLD_OPTIONS,
+  INCOME_OPTIONS,
+  MARITAL_OPTIONS,
+  Option,
+  RELIGION_OPTIONS,
+} from "../../lib/demographics";
 import { Check, ChevronRight } from "../../lib/icons";
 import { colors } from "../../lib/tokens";
 import { useAuth } from "../../state/auth";
@@ -36,6 +53,15 @@ export default function RegisterScreen() {
   const [emergency, setEmergency] = useState("");
   const [region, setRegion] = useState("서울 강남구");
   const [gender, setGender] = useState<"male" | "female" | "other">("male");
+
+  // v3 수정 1 — 확장 인적사항 (모두 선택, 기본 미선택).
+  const [marital, setMarital] = useState<MaritalStatus | null>(null);
+  const [household, setHousehold] = useState<HouseholdType | null>(null);
+  const [education, setEducation] = useState<EducationLevel | null>(null);
+  const [occupation, setOccupation] = useState("");
+  const [employment, setEmployment] = useState<EmploymentStatus | null>(null);
+  const [income, setIncome] = useState<IncomeLevel | null>(null);
+  const [religion, setReligion] = useState<Religion | null>(null);
 
   const [tos, setTos] = useState(false);
   const [privacy, setPrivacy] = useState(false);
@@ -82,6 +108,14 @@ export default function RegisterScreen() {
         phone: phone.trim(),
         region: region.trim(),
         emergencyContact: emergency.trim(),
+        // 확장 인적사항 — 선택한 것만 전송(null/빈값은 생략).
+        ...(marital ? { maritalStatus: marital } : {}),
+        ...(household ? { householdType: household } : {}),
+        ...(education ? { educationLevel: education } : {}),
+        ...(occupation.trim() ? { occupation: occupation.trim() } : {}),
+        ...(employment ? { employmentStatus: employment } : {}),
+        ...(income ? { incomeLevel: income } : {}),
+        ...(religion ? { religion } : {}),
         consents: { tos, privacy, sensitive, riskNotification, voice: voiceConsent },
       });
       router.replace("/(patient)/(tabs)/home");
@@ -148,6 +182,19 @@ export default function RegisterScreen() {
           </View>
         </View>
 
+        {/* v3 수정 1 — 확장 인적사항 (선택). 진료 맥락 파악에 쓰이며 미입력 가능. */}
+        <Text style={styles.sectionLabel}>추가 인적사항 (선택)</Text>
+        <Text style={styles.sectionHint}>
+          진료 맥락 파악에 도움이 돼요. 입력하지 않아도 가입할 수 있어요.
+        </Text>
+        <ChipSelect label="혼인 상태" options={MARITAL_OPTIONS} value={marital} onChange={setMarital} />
+        <ChipSelect label="동거 형태" options={HOUSEHOLD_OPTIONS} value={household} onChange={setHousehold} />
+        <ChipSelect label="학력" options={EDUCATION_OPTIONS} value={education} onChange={setEducation} />
+        <Input label="직업 (선택)" placeholder="예: 회사원" value={occupation} onChangeText={setOccupation} />
+        <ChipSelect label="고용 상태" options={EMPLOYMENT_OPTIONS} value={employment} onChange={setEmployment} />
+        <ChipSelect label="소득 수준 (민감·선택)" options={INCOME_OPTIONS} value={income} onChange={setIncome} />
+        <ChipSelect label="종교 (민감·선택)" options={RELIGION_OPTIONS} value={religion} onChange={setReligion} />
+
         {/* Consent — 전체 동의 + grouped checkbox list */}
         <Text style={styles.sectionLabel}>약관 동의</Text>
         <Pressable
@@ -190,6 +237,41 @@ export default function RegisterScreen() {
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
+  );
+}
+
+function ChipSelect<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: Option<T>[];
+  value: T | null;
+  onChange: (v: T | null) => void;
+}) {
+  return (
+    <View style={styles.selectWrap}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <View style={styles.wrapChips}>
+        {options.map((opt) => {
+          const on = value === opt.code;
+          return (
+            <Pressable
+              key={opt.code}
+              // 다시 누르면 선택 해제 — 선택 항목이므로 되돌릴 수 있어야 한다.
+              onPress={() => onChange(on ? null : opt.code)}
+              style={[styles.wchip, on && styles.chipOn]}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: on }}
+            >
+              <Text style={[styles.wchipText, on && styles.chipTextOn]}>{opt.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
   );
 }
 
@@ -259,6 +341,20 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 14, color: colors.ink },
   chipTextOn: { color: colors.onInk, fontWeight: "600" },
   sectionLabel: { fontSize: 12.5, fontWeight: "600", color: colors.muted, marginTop: 12, paddingLeft: 2 },
+  sectionHint: { fontSize: 11.5, color: colors.faint, paddingLeft: 2, marginTop: -6, lineHeight: 16 },
+  selectWrap: { gap: 7 },
+  wrapChips: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
+  wchip: {
+    paddingHorizontal: 13,
+    height: 38,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface,
+  },
+  wchipText: { fontSize: 13.5, color: colors.ink },
   agreeAll: {
     flexDirection: "row",
     alignItems: "center",
