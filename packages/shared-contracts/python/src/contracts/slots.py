@@ -28,6 +28,14 @@ class SlotsExtractRequest(BaseModel):
     current_slots: dict[str, Any] = Field(
         default_factory=dict, description="지금까지 누적된 슬롯 (증분 추출용)"
     )
+    dialogue_target_slot: str | None = Field(
+        default=None,
+        description="BUG-072/073: 직전에 dialogue steering이 실제로 질문한 슬롯 "
+        "(ai-server `SessionState.dialogue_target_slot`, single source of "
+        "truth). platform이 라운드트립받은 `session_state`에서 그대로 읽어 "
+        "채운다 — 이 값이 있으면 ai-server가 마지막 환자 발화를 이 슬롯에 대한 "
+        "ask-evidence로 태깅해, 짧은 부인 답변('없어')도 grounding될 수 있다.",
+    )
 
     model_config = ConfigDict(extra="allow")
 
@@ -39,5 +47,12 @@ class SlotsExtractResponse(BaseModel):
     essential_filled: list[str] = Field(default_factory=list)
     essential_missing: list[str] = Field(default_factory=list)
     slot_coverage: float = 0.0
+    slot_status: dict[str, str] = Field(
+        default_factory=dict,
+        description="BUG-072: 이번 호출에서 accept된 슬롯 키의 3-상태 grounding "
+        "판정('filled'|'denied') — ai-server `src.grounding."
+        "verdict_to_slot_status`. 이번 호출에서 제안되지 않았거나 필터에서 "
+        "drop된 키는 없음 — 누적 뷰가 필요하면 호출자가 이전 턴 값과 병합한다.",
+    )
 
     model_config = ConfigDict(extra="ignore")

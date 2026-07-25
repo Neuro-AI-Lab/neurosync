@@ -9,6 +9,13 @@ PRD §0.3 contract — change requires both PRDs updated simultaneously.
 
 플랫폼 코드는 하이픈이 없고(`PHQ9`) 채점기 스케일명은 하이픈이 있다(`PHQ-9`).
 변환은 apps/api의 `services.questionnaire.AI_SCALE_NAME`이 담당한다.
+
+ADR-046 #2 (contract3 fix): `responses`는 flat `list[int]`가 아니라 ai-server
+`schemas.survey.SurveyScoreInput.responses: list[SurveyItemResponse]`(1-based
+`index` + `value` 쌍)과 동일한 shape이다 — 이전 flat-int shape는 ai-server
+스키마와 구조적으로 불일치해 상시 422를 유발했다
+(`analysis_app_merge_20260721.md` 발견 3). `apps/api`측 변환은
+`services.questionnaire.score_with_ai`가 담당한다.
 """
 
 from __future__ import annotations
@@ -20,10 +27,20 @@ from pydantic import BaseModel, ConfigDict, Field
 ScaleName = Literal["PHQ-9", "GAD-7", "PHQ-4", "WHO-5", "AUDIT-C"]
 
 
+class SurveyItemResponse(BaseModel):
+    """One administered item's response — mirrors ai-server's own
+    `schemas.survey.SurveyItemResponse` (index/value pair) 1:1."""
+
+    index: int = Field(..., description="1-based item index")
+    value: int = Field(..., description="Selected response value for this item")
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class SurveyScoreRequest(BaseModel):
     session_id: str = Field(default="", description="추적용 — 채점에는 쓰이지 않음")
     scale_name: ScaleName
-    responses: list[int] = Field(min_length=1, max_length=20)
+    responses: list[SurveyItemResponse] = Field(min_length=1, max_length=20)
     patient_sex: str = Field(
         default="unknown", description="male/female/unknown — AUDIT-C 절사점에 사용"
     )
