@@ -1,8 +1,0 @@
-[
-  {
-    "turn_index": 1,
-    "modality": "stt",
-    "fixture_path": "tests/fixtures/audio/VP-004/VP-004-002.mp3",
-    "label": "SC11_VP-004_risk-cell_stt_rep2_early-turn"
-  }
-]

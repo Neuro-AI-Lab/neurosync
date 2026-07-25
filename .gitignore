@@ -123,6 +123,16 @@ PR.md
 # Large source corpus — 986M 원본 데이터셋(전문의학·심리상담), 별도 보관. git 아님.
 /data/
 
+# deployment-shape: local-only process artifacts, ADR-041 (2026-07-20)
+# _archive/ = archived dev-cycle records + wave-6 legacy code, kept locally only.
+# result.md/error.md/version.md/discussion.md already covered above (Claude Code
+# block, lines ~88-93) — listed here again per ADR-041 scope for traceability.
+_archive/
+result.md
+error.md
+version.md
+discussion.md
+
 # LAN 배포 compose — 호스트/환경 특정, 별도 관리(비밀은 .env.local의 POSTGRES_PASSWORD)
 infra/deploy/docker-compose.lan.yml
 

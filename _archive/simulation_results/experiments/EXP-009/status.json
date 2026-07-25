@@ -1,1 +1,0 @@
-{"exp_id":"EXP-009","state":"completed","pid":322743,"started_at":"2026-07-09T18:18:26+09:00","last_heartbeat":"2026-07-09T18:20:46+09:00","exit_code":0,"log":"experiments/EXP-009/run.log","cmd":"bash experiments/EXP-009/launch.sh"}

@@ -1,1 +1,0 @@
-{"exp_id":"EXP-006","state":"completed","pid":102662,"started_at":"2026-07-09T11:20:24+09:00","last_heartbeat":"2026-07-09T11:22:28+09:00","exit_code":0,"log":"experiments/EXP-006/run.log","cmd":"bash /tmp/claude-1000/-home-neuroai-users-dhkim-aichampion-neurosync/79879af5-2f58-47fd-bf25-069291144dd2/scratchpad/run_cert_batch.sh"}

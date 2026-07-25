@@ -1,1 +1,0 @@
-{"exp_id":"EXP-016/runs/sc5","state":"completed","pid":1165996,"started_at":"2026-07-11T22:24:37+09:00","last_heartbeat":"2026-07-11T22:28:54+09:00","exit_code":0,"log":"experiments/EXP-016/runs/sc5/run.log","cmd":"bash experiments/EXP-016/sc458_chain.sh VP-003 SC-5 2"}

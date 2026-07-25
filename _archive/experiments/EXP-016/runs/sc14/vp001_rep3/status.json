@@ -1,1 +1,0 @@
-{"exp_id":"EXP-016/runs/sc14/vp001_rep3","state":"completed","pid":1013839,"started_at":"2026-07-11T17:58:25+09:00","last_heartbeat":"2026-07-11T17:58:35+09:00","exit_code":0,"log":"experiments/EXP-016/runs/sc14/vp001_rep3/run.log","cmd":"bash -c cd apps/ai-server && .venv/bin/python -m src.f1 --persona VP-001 --max-turns 0"}
