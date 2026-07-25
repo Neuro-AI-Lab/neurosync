@@ -5,7 +5,8 @@ Two modes:
   Mode B (session-level): Aggregate all utterance results into a session report.
 
 This agent's output is consumed by:
-  - TemporalSummaryAgent (sentiment trend in plot_data)
+  - F4 longitudinal analysis (sentiment trend series; temporal_summary agent
+    retired, role merged into F4)
   - HandoffGeneratorAgent (per-utterance tags in Section 8)
 """
 

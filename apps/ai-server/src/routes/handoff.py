@@ -103,11 +103,35 @@ async def generate(
         last_result = result
 
         # Verify
+        # BUG-069 fix: `is_first_visit`/`has_scale_scores`/`has_ocr_documents`/
+        # `prior_handoff_present` were previously never threaded through from
+        # `body` here — the verifier's section-completeness and (new)
+        # first-visit-trend checks silently ran against their Pydantic
+        # defaults (`is_first_visit=True`, the rest `False`) regardless of
+        # the REAL request.
+        #
+        # BUG-069 follow-up (F5 metadata enrichment, 2026-07-25):
+        # `patient_gender`/`session_started_at`/`session_ended_at` are now
+        # threaded through too — `HandoffInput` gained these optional fields
+        # (apps/api's `_build_request` populates them from `PatientProfile.
+        # gender`/`Session.created_at`/`Session.submitted_at` when
+        # available). Passing them here upgrades the verifier's metadata
+        # check from "any specific-looking assertion is fabricated" (the
+        # `None` case, unchanged for callers that don't supply these) to a
+        # real mismatch comparison, per `EvidenceVerifierInput`'s own
+        # docstring.
         verifier_input = EvidenceVerifierInput(
             session_id=body.session_id,
             request_id=body.request_id,
             report_markdown=result.report_markdown,
             evidence_packets=result.evidence_packets,
+            is_first_visit=body.is_first_visit,
+            has_scale_scores=bool(body.scale_scores),
+            has_ocr_documents=bool(body.ocr_documents),
+            prior_handoff_present=bool(body.prior_handoff),
+            patient_gender=body.patient_gender,
+            session_started_at=body.session_started_at,
+            session_ended_at=body.session_ended_at,
         )
 
         try:
@@ -174,6 +198,34 @@ async def report(body: HandoffReportRequest) -> HandoffReportResponse:
         )
     sessions = sorted_sessions(body.sessions)
     header = sessions[-1]
+
+    # BUG-055 fail-loud (Option B, ADR-046 #1): a session that triggered
+    # crisis or was flagged for the ADR-044 clinical-escalation backstop
+    # MUST carry an explicit `risk_assessment` string on this request — a
+    # silently-absent value here is exactly BUG-055's original fail-silent
+    # mechanism (the field did not exist at all before this fix). Hard 422,
+    # never a quiet None-pass-through. This is an assembly-time contract
+    # check only — SafetyClassifier's own live safety path (crisis
+    # interception during `/ai/chat/respond`) is entirely unaffected.
+    fail_loud_sessions = [
+        s.session_index
+        for s in sessions
+        if (s.crisis_triggered or s.clinical_escalation_required)
+        and not (s.risk_assessment and s.risk_assessment.strip())
+    ]
+    if fail_loud_sessions:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "BUG-055 fail-loud: session_index "
+                f"{fail_loud_sessions} triggered crisis or clinical "
+                "escalation but carry no risk_assessment on the wire — the "
+                "caller must thread session_state.slot_data.risk_assessment "
+                "(ChatResponse.session_state, contract1) into "
+                "LongitudinalSessionEntry.risk_assessment for that session "
+                "before calling /ai/handoff/report."
+            ),
+        )
 
     series_input = build_series_input(body.vp_id, sessions)
     try:

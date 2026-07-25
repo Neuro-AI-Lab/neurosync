@@ -20,6 +20,18 @@ class ClinicalSlotInput(AgentInput):
         default_factory=dict,
         description="Already-collected slot values",
     )
+    dialogue_target_slot: str | None = Field(
+        default=None,
+        description="BUG-072/073: the slot dialogue steering was ACTUALLY "
+        "asking about most recently (`SessionState.dialogue_target_slot`, "
+        "single source of truth) — the one ask-evidence hint this route "
+        "can construct from its own wire shape. When set, the LAST patient "
+        "utterance in `conversation_history` is tagged with it for "
+        "`src.grounding.evaluate_slot_grounding`'s ask-evidence-gated "
+        "negative-template branch, so a bare denial reply ('없어') to a "
+        "directly-asked slot question can ground instead of being dropped "
+        "for lack of lexical evidence.",
+    )
 
 
 class ClinicalSlotOutput(AgentOutput):
@@ -44,4 +56,14 @@ class ClinicalSlotOutput(AgentOutput):
         ge=0.0,
         le=1.0,
         description="Fraction of all slots filled",
+    )
+    slot_status: dict[str, str] = Field(
+        default_factory=dict,
+        description="BUG-072: 3-state grounding verdict ('filled'|'denied') "
+        "for keys ACCEPTED this call — see `src.grounding."
+        "verdict_to_slot_status`. Keys absent here were either not "
+        "proposed by the extractor this call or dropped by the grounding "
+        "filter; the caller's own persistent view should treat those as "
+        "'missing' unless already known 'denied'/'filled' from a prior "
+        "turn (this field is additive per-call, not a full merged view).",
     )

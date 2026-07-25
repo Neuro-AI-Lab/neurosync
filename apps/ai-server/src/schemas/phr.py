@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -132,3 +132,38 @@ class PhrSummary(AgentOutput):
     )
 
     model_config = ConfigDict(extra="ignore")
+
+
+class PhrContextRequest(BaseModel):
+    """`POST /ai/phr/context` 요청 — stateless (R2): 파일 경로가 아니라 원본
+    MyHealthWay bundle JSON 객체를 request body로 받는다. 백엔드가 세션
+    시작 시 1회 호출 — 반환된 `context`를 이후 매 `/ai/chat/respond` 턴의
+    `patient_history_context`에 그대로 넣는다."""
+
+    session_id: str | None = Field(
+        default=None, description="옵션 — 로깅/추적용, 서버 세션 상태를 만들지 않음"
+    )
+    bundles: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description=(
+            "MyHealthWay 원본 bundle JSON 객체 목록 "
+            "(`{'publicData': [...], ...}` 컨테이너, 여러 개 병합 가능)"
+        ),
+    )
+
+
+class PhrContextResponse(BaseModel):
+    """`POST /ai/phr/context` 응답."""
+
+    context: str = Field(
+        ...,
+        description=(
+            "DialogueInput.patient_history_context로 그대로 전달할 자연어 요약 "
+            "(`src.phr_ingest.to_system_prompt_note`의 출력, 그 이상도 이하도 아님)"
+        ),
+    )
+    summary: PhrSummary = Field(..., description="구조화된 PHR 병합 요약 전체")
+    handoff_snippet: dict[str, Any] = Field(
+        ...,
+        description="`src.phr_ingest.to_handoff_snippet`의 출력 — Handoff 문서 삽입용",
+    )

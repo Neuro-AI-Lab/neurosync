@@ -27,11 +27,11 @@ detailed per-function below: `scale_series`/`session_ctrs`/`sentiment`
 TrendVerdicts all share ONE non-naive basis, `first_vs_last_delta+slope_sign
 (+band_transition for scales)` (`_first_last_slope_trend`, `_scale_trend_
 verdict`/`_ctrs_trend_verdict`/`_sentiment_trend_verdict`) — NEVER
-`temporal_summary.SCALE_THRESHOLD=5` pairwise-delta reuse as the sole
+`temporal_compare.SCALE_THRESHOLD=5` pairwise-delta reuse as the sole
 basis (REV-044 Issue 1: a single pairwise step in an 11-session
 tapering-cadence arc rarely reaches +-5, which would silently suppress the
 exact across-series signal Criterion 1 requires). Per-pair
-`TemporalSummaryAgent._compare_scale`/`_compare_ctrs`/`_compare_sentiment`
+`temporal_compare._compare_scale`/`_compare_ctrs`/`_compare_sentiment`
 outputs are still computed and attached, but ONLY as supplementary evidence
 strings, explicitly labeled `"supplementary (pairwise reuse, ...)"` — never
 the basis for `direction`. `overall_direction`'s N-dimension combination
@@ -47,8 +47,6 @@ from typing import Literal
 import numpy as np
 from pydantic import ValidationError
 
-from src.agents.temporal_summary import SCALE_THRESHOLD as TEMPORAL_SCALE_THRESHOLD
-from src.agents.temporal_summary import TemporalSummaryAgent
 from src.grounding import QUESTIONABLE_SLOT_KEYS
 from src.schemas.ai_predicted_disease import AIPredictedDiseaseOutput
 from src.schemas.longitudinal import (
@@ -61,6 +59,8 @@ from src.schemas.longitudinal import (
     SlotFillPoint,
     TrendVerdict,
 )
+from src.temporal_compare import SCALE_THRESHOLD as TEMPORAL_SCALE_THRESHOLD
+from src.temporal_compare import _compare_ctrs, _compare_scale, _compare_sentiment
 
 _Direction = Literal["improved", "worsened", "unchanged", "unknown"]
 
@@ -440,8 +440,8 @@ def _scale_trend_verdict(scale_name: str, points: list[ScaleSeriesPoint]) -> Tre
     (administered, non-None) point for THIS scale, cross-checked against
     the net ordinal severity-band transition (never the band BOUNDARIES —
     those are `survey_scorer.py`'s alone). Supplementary evidence: every
-    consecutive pair's `TemporalSummaryAgent._compare_scale` reuse
-    (`temporal_summary.SCALE_THRESHOLD`), explicitly labeled — never the
+    consecutive pair's `temporal_compare._compare_scale` reuse
+    (`temporal_compare.SCALE_THRESHOLD`), explicitly labeled — never the
     basis for `direction`.
     """
     administered_points = [p for p in points if p.administered and p.total_score is not None]
@@ -482,12 +482,12 @@ def _scale_trend_verdict(scale_name: str, points: list[ScaleSeriesPoint]) -> Tre
         # (int-only) — cast back to int for this call (total_score is
         # always an int on the artifact; `comparable` itself is float-typed
         # only for `_first_last_slope_trend`'s/`numpy`'s sake above).
-        pair = TemporalSummaryAgent._compare_scale(
+        pair = _compare_scale(
             scale_name, int(comparable[i + 1][1]), int(comparable[i][1])
         )
         pair_evidence = pair.evidence[0] if pair.evidence else ""
         evidence.append(
-            f"supplementary (pairwise reuse, temporal_summary.SCALE_THRESHOLD="
+            f"supplementary (pairwise reuse, temporal_compare.SCALE_THRESHOLD="
             f"{TEMPORAL_SCALE_THRESHOLD}, session {comparable[i][0]}->{comparable[i + 1][0]}): "
             f"{pair.direction.value} — {pair_evidence}"
         )
@@ -504,7 +504,7 @@ def _scale_trend_verdict(scale_name: str, points: list[ScaleSeriesPoint]) -> Tre
 def _ctrs_trend_verdict(points: list[CTRSSeriesPoint]) -> TrendVerdict:
     """Basis (Criterion 0): identical `_first_last_slope_trend` discipline.
     CTRS is inverted (1=highest risk .. 5=stable), so `higher_is_better=
-    True`. Supplementary: per-pair `TemporalSummaryAgent._compare_ctrs`
+    True`. Supplementary: per-pair `temporal_compare._compare_ctrs`
     reuse, labeled."""
     comparable = [
         (p.session_index, float(p.session_ctrs)) for p in points if p.session_ctrs is not None
@@ -526,9 +526,9 @@ def _ctrs_trend_verdict(points: list[CTRSSeriesPoint]) -> TrendVerdict:
         evidence.append(f"session_ctrs: minimum CTRS reached across the series: {min_ctrs:g}")
 
     for i in range(len(comparable) - 1):
-        pair = TemporalSummaryAgent._compare_ctrs(int(comparable[i + 1][1]), int(comparable[i][1]))
+        pair = _compare_ctrs(int(comparable[i + 1][1]), int(comparable[i][1]))
         evidence.append(
-            "supplementary (pairwise reuse, temporal_summary._compare_ctrs, "
+            "supplementary (pairwise reuse, temporal_compare._compare_ctrs, "
             f"session {comparable[i][0]}->{comparable[i + 1][0]}): {pair.direction.value}"
         )
 
@@ -541,7 +541,7 @@ def _ctrs_trend_verdict(points: list[CTRSSeriesPoint]) -> TrendVerdict:
 def _sentiment_trend_verdict(points: list[SentimentSeriesPoint]) -> TrendVerdict:
     """Basis (Criterion 0): identical `_first_last_slope_trend` discipline
     over `mean_polarity` (F1-8-primary, see `_session_mean_polarity`).
-    Supplementary: per-pair `TemporalSummaryAgent._compare_sentiment`
+    Supplementary: per-pair `temporal_compare._compare_sentiment`
     reuse, labeled."""
     comparable = [
         (p.session_index, p.mean_polarity) for p in points if p.mean_polarity is not None
@@ -552,9 +552,9 @@ def _sentiment_trend_verdict(points: list[SentimentSeriesPoint]) -> TrendVerdict
     )
 
     for i in range(len(comparable) - 1):
-        pair = TemporalSummaryAgent._compare_sentiment(comparable[i + 1][1], comparable[i][1])
+        pair = _compare_sentiment(comparable[i + 1][1], comparable[i][1])
         evidence.append(
-            "supplementary (pairwise reuse, temporal_summary._compare_sentiment, "
+            "supplementary (pairwise reuse, temporal_compare._compare_sentiment, "
             f"session {comparable[i][0]}->{comparable[i + 1][0]}): {pair.direction.value}"
         )
 

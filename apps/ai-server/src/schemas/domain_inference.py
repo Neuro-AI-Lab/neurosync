@@ -14,6 +14,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 from src.agents.base import AgentInput, AgentOutput
+from src.schemas.ai_predicted_disease import AIPredictedDiseaseOutput
 from src.schemas.handoff import ScaleScore
 
 # BUG-031 (8->9): "panic" added per EXP-025's live reproduction — the LLM
@@ -188,4 +189,47 @@ class DomainInferenceOutput(AgentOutput):
         "(which field, what value, what constraint) — present only on a "
         "schema-validation failure; None on a JSON-parse failure (no "
         "ValidationError was ever raised) or success.",
+    )
+
+
+class DomainInferRouteResponse(BaseModel):
+    """`POST /ai/domain/infer`'s full response — Stage 2 (certified LLM
+    output, whitelist-cascade filtered) + the AI-predicted-disease sibling
+    container, the SAME top-level-sibling shape `src/f2.py`'s own JSON
+    artifact uses (`ai_predicted_disease` is never merged into
+    `DomainInferenceOutput` itself — REV-013 §3: standalone, shares no type).
+
+    Backend-integration closure (2026-07-20, EXP-028): the app needs this
+    FULL artifact (top-5 `ai_predicted_disease` candidates with
+    `similarity_score` + `recommended_questionnaire`) as F3-plan/F4-F5-
+    trend-chart input — `DomainInferenceOutput` alone (Stage 2 LLM
+    candidates only) was never enough.
+    """
+
+    session_id: str
+    request_id: str | None = None
+    model_used: str
+    prompt_version: str
+    latency_ms: float
+    domain_candidates: list[DomainCandidate] = Field(
+        default_factory=list,
+        description="POST-whitelist-cascade (filter_domain_candidates, ADR-014) — "
+        "never the agent's raw output.",
+    )
+    department_candidates: list[DepartmentCandidate] = Field(default_factory=list)
+    orphan_departments: list[DepartmentCandidate] = Field(
+        default_factory=list,
+        description="find_orphan_departments — a department referencing a "
+        "domain the cascade eliminated (audit signal, NOT auto-dropped from "
+        "department_candidates above, matching f2.py's own discipline).",
+    )
+    summary: str = Field(default="")
+    retrieval_meta: RetrievalMeta
+    ai_predicted_disease: AIPredictedDiseaseOutput = Field(
+        ...,
+        description="Top-5 candidates + recommended_questionnaire/"
+        "recommendation_caveat — mode='rag_live' when Stage 1 retrieved "
+        "chunks this call, 'experimental_unpopulated' (empty candidates, "
+        "honest reason_summary) on llm_only degradation, exactly f2.py's "
+        "own graceful-degradation discipline.",
     )

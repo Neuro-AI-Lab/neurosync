@@ -16,15 +16,16 @@ COPY packages/shared-contracts/python /workspace/packages/shared-contracts/pytho
 
 COPY apps/ai-server/pyproject.toml ./
 COPY apps/ai-server/src ./src
-COPY apps/ai-server/tests ./tests
 
 # Pinned prompts (docs/ai/deployment_integration_plan.md G1) — safety v2,
-# dialogue v4, domain_inference v2, handoff v2/v3, etc. `PromptLoader`
-# resolves relative to `PROMPTS_BASE_DIR` at request time; the ENV below is
-# only the IN-CONTAINER default (pydantic-settings env-var precedence over
+# dialogue v4, domain_inference v2, handoff v2/v3, etc. ADR-041 T4: prompts
+# now live inside the deploy unit (apps/ai-server/prompts/, moved from
+# repo-root docs/ai/prompts/). `PromptLoader` resolves relative to
+# `PROMPTS_BASE_DIR` at request time; the ENV below is only the
+# IN-CONTAINER default (pydantic-settings env-var precedence over
 # `.env`-file values, src/config.py) — a host run's own `.env` value still
 # overrides it, unaffected by this image default.
-COPY docs/ai/prompts /app/prompts
+COPY apps/ai-server/prompts /app/prompts
 ENV PROMPTS_BASE_DIR=/app/prompts
 
 # Korean font assets for F5 PDF embedding (docs/ai/deployment_integration_plan.md

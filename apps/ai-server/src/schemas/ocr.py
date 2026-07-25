@@ -1,6 +1,6 @@
 """Schemas for the OCR Document agent.
 
-Contract mirrors docs/ai/agents/07_ocr.md + docs/ai/prompts/ocr/v1.system.md
+Contract mirrors docs/ai/agents/07_ocr.md + apps/ai-server/prompts/ocr/v1.system.md
 (non-LLM adapter spec). Consumers: F1 pipeline (session context injection)
 + /ai/ocr/parse route.
 
@@ -19,7 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from src.agents.base import AgentInput, AgentOutput
 
-# Confidence gate thresholds (docs/ai/prompts/ocr/v1.system.md §Confidence Threshold)
+# Confidence gate thresholds (apps/ai-server/prompts/ocr/v1.system.md §Confidence Threshold)
 CONFIDENCE_HIGH = 0.9
 CONFIDENCE_LOW = 0.7
 CONFIDENCE_VERIFY = 0.5

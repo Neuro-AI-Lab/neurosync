@@ -41,6 +41,33 @@ CTRS_TO_RISK: dict[CTRSLevel, RiskLevel] = {
 RISK_TO_CTRS: dict[RiskLevel, CTRSLevel] = {v: k for k, v in CTRS_TO_RISK.items()}
 
 
+# ── Soft-safety in-turn hotline reminder (BUG-047) ────────────────────────
+#
+# CTRS 3 (ACUTE) + suicidal_ideation/self_harm category — short of the full
+# CTRS 1-2 crisis bypass, but still SI-adjacent enough to warrant an in-turn
+# 109 reminder. Single source of truth for BOTH `src/f1.py`'s harness
+# pipeline (`_probe_should_trigger`, the ORIGINAL implementation this was
+# ported from verbatim) and the production `OrchestratorAgent`/
+# `routes/chat.py` route — moved here so neither copy can drift from the
+# other, and so the production port never invents its own threshold.
+SOFT_SAFETY_TRIGGER_CTRS = CTRSLevel.ACUTE
+SOFT_SAFETY_TRIGGER_CATEGORIES: frozenset[str] = frozenset({"suicidal_ideation", "self_harm"})
+SOFT_SAFETY_NOTE = (
+    " 그리고 혹시 마음이 많이 힘들어질 때는 언제든 자살예방상담전화 109에서 "
+    "도움을 받으실 수 있다는 것도 기억해 주세요."
+)
+
+
+def should_trigger_soft_safety(ctrs_level: int, categories: list[str] | set[str]) -> bool:
+    """CTRS 3 + suicidal_ideation/self_harm category -> soft in-turn hotline
+    reminder. Mirrors `src.f1.F1Pipeline._probe_should_trigger`'s exact
+    condition (BUG-047) — never re-derive a different threshold in a
+    caller; import and call this."""
+    if int(ctrs_level) != int(SOFT_SAFETY_TRIGGER_CTRS):
+        return False
+    return bool(set(categories) & SOFT_SAFETY_TRIGGER_CATEGORIES)
+
+
 class EvidenceSource(StrEnum):
     """Allowed evidence types for clinical claims."""
 
