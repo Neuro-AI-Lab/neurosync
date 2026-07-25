@@ -31,11 +31,11 @@ input_received → safety_gate → context_retrieval → dialogue_loop → slot_
 |---|---|---|---|
 | `input_received` | 입력 수신 및 정규화. STT/OCR 입력 시 InputNormalizer(05) 호출 | `safety_gate` | 입력 validation 실패 → HTTP 422 |
 | `safety_gate` | SafetyClassifier(02) 실행. **모든 입력에 대해 필수 실행** | CTRS 1-2 → `crisis_flow`, CTRS 3-5 → `context_retrieval` | timeout → CTRS 2 간주, crisis_flow 발동 |
-| `context_retrieval` | TemporalRetriever(08) 호출 + unified_context 조립. Safety와 **병렬 실행 가능** | `dialogue_loop` | retriever 실패 → 현재 세션 정보만으로 진행 |
+| `context_retrieval` | **정정(wave-5, ADR-040):** TemporalRetriever(08)는 실제 구현된 적이 없으며 retired/archived 상태다(`_archive/legacy_code/agent_inventory_wave5/08_temporal_retriever.md`). 이 상태는 코드상 항상 no-op(`agents/orchestrator.py::_run_context_retrieval`) — 재진 환자라도 "cross-session trend context out of scope for this module"으로 skip 기록만 남긴다. Context assembly는 라이브 체인의 일부가 아니며, 종단적(longitudinal) 분석은 F4(`src/f4.py`)가 전담한다 | `dialogue_loop` | — (원래 no-op이므로 별도 실패 분기 없음) |
 | `dialogue_loop` | Dialogue(03) 호출. 턴 반복. slot_coverage 모니터링 | slot_coverage >= 0.7 → `slot_extraction`, 환자 종료 요청 → `slot_extraction` | LLM 전체 실패 → 대화 일시 중단 |
 | `slot_extraction` | ClinicalSlot(04) 호출. 대화 전체에서 구조화된 slot 추출 | `handoff_generation` | 추출 실패 → 대화 원문으로 handoff 생성 시도 |
-| `handoff_generation` | HandoffGenerator(10) 호출. 12-section report 생성 | `evidence_verification` | 생성 실패 → minimal template report 생성 |
-| `evidence_verification` | EvidenceVerifier(11) 호출. release gate | passed → `handoff_delivery`, regenerate → `handoff_generation` (max 2회), reject → HTTP 422 | verifier 실패 → rule-based 검증만 수행 |
+| `handoff_generation` | HandoffGenerator(08) 호출. 12-section report 생성 | `evidence_verification` | 생성 실패 → minimal template report 생성 |
+| `evidence_verification` | EvidenceVerifier(09) 호출. release gate | passed → `handoff_delivery`, regenerate → `handoff_generation` (max 2회), reject → HTTP 422 | verifier 실패 → rule-based 검증만 수행 |
 | `handoff_delivery` | report 반환 및 세션 종료 처리 | `completed` (정상 종료 시) | 저장 실패 → 재시도 후 경고 첨부 반환 |
 | `crisis_flow` | CTRS 1-2 분기 전용 상태. 아래 "Crisis Flow" 절 참조 | `completed` 또는 `handoff_delivery`(긴급 report 생성 후) | — |
 | `completed` | 세션 정상 종료 상태 | (종료) | — |
@@ -46,10 +46,11 @@ input_received → safety_gate → context_retrieval → dialogue_loop → slot_
 CTRS 1-2 감지 시 별도 crisis_flow 상태로 전환한다:
 
 1. 대화 즉시 중단 (dialogue_loop 중이면 강제 종료)
-2. CTRS level별 위기 대응 메시지 반환 — **정정(BUG-009, open):** 실제 코드(`_CRISIS_MESSAGES`, `agents/orchestrator.py:57-68`)가 반환하는 메시지는 CTRS 1(`EMERGENCY`) "즉시 119 또는 112에 연락해 주세요. 자살예방상담전화 1393도 24시간 운영되고 있습니다", CTRS 2(`HIGH_RISK`) "자살예방상담전화 1393, 정신건강위기상담전화 1577-0199로 연락해 주세요"다. **"109"는 이 프로덕션 경로 어디에도 등장하지 않는다** — `f1.py`/`evidence_verifier.py`(`11_evidence_verifier.md`의 V-07 세부 규칙 참조, CTRS 1: `119|112|응급`, CTRS 2: `109|119|긴급|위기상담`) 등 이미 "109"로 표준화된 다른 위기 대응 표면과 불일치하는, 알려진 미해결 결함이다(BUG-009, `error.md`)
+2. CTRS level별 위기 대응 메시지 반환 — **정정(BUG-009 fixed, 재확인 2026-07-20):** 실제 코드(`_CRISIS_MESSAGES`, `agents/orchestrator.py:57-68`)가 반환하는 메시지는 CTRS 1(`EMERGENCY`) "즉시 119 또는 112에 연락해 주세요. 자살예방상담전화 109도 24시간 운영되고 있습니다", CTRS 2(`HIGH_RISK`) "자살예방상담전화 109, 정신건강위기상담전화 1577-0199로 연락해 주세요"다 — `109`가 두 CTRS level 메시지 모두에 등장하며, `f1.py`/`evidence_verifier.py`(`09_evidence_verifier.md` V-07 세부 규칙, CTRS 1: `119|112|응급`, CTRS 2: `109|119|긴급|위기상담`)와 일치한다(`grep -n "109\|119\|1577-0199" apps/ai-server/src/agents/orchestrator.py`로 검증). 이 문서의 이전 버전이 인용한 "1393" 표기는 더 이상 코드에 존재하지 않는다.
 3. Dashboard critical alert 생성
 4. Human review 즉시 등록
 5. 긴급 handoff report 생성 (수집된 정보 범위 내에서)
+6. **정정(wave-6, ADR-041):** 위기 대응 메시지는 hotlines-only다 — nearby-hospital 검색은 crisis_flow에 포함되지 않는다. `NearbyFacilitiesAgent`(구 agent 16)와 `/ai/nearby/*` 라우트는 삭제되었고(`_archive/legacy_code/agent_inventory_wave6/16_nearby_facilities.md`), 병원/약국 검색은 앱(app) 측 사용자-개시 기능으로 이전되었다.
 
 ## 입력
 
@@ -155,10 +156,10 @@ Orchestrator는 `context_retrieval` 단계에서 여러 source의 정보를 단�
 2. **Safety gate 우선 실행**: 모든 환자 메시지는 SafetyClassifierAgent(02)를 먼저 거친다. 예외 없음.
 3. **CTRS 1-2 즉시 대응**: CTRS 1-2 판정 시 dialogue loop를 즉시 중단하고 crisis flow를 발동한다.
    - Crisis flow: 위기 대응 메시지 전달 + 의료진 즉시 알림 + handoff report 긴급 생성
-4. **Context retrieval**: TemporalRetrieverAgent(08)를 호출하여 과거 대화, 이전 handoff, PHQ-9/GAD-7 이력을 가져온다.
+4. **Context retrieval — 정정(wave-5, ADR-040):** TemporalRetrieverAgent(08)는 호출되지 않는다. 이 에이전트는 실제 구현된 적이 없으며 retired/archived 상태다(`_archive/legacy_code/agent_inventory_wave5/08_temporal_retriever.md`). `context_retrieval` 상태는 코드상 항상 no-op이며, 과거 대화/이전 handoff/척도 이력에 대한 종단적 분석은 F4(`src/f4.py`)가 별도의 stateless 모듈로 전담한다(HPI 격리, `tests/test_f4_hpi_isolation.py`).
 5. **Dialogue loop 관리**: DialogueAgent(03)의 턴을 관리하며, 충분한 정보 수집 여부를 판단한다.
 6. **Slot extraction 트리거**: 대화 종료 또는 충분한 정보 수집 시 ClinicalSlotAgent(04)를 호출한다.
-7. **Handoff 생성 및 검증**: HandoffGeneratorAgent(10) 호출 후, EvidenceVerifierAgent(11)로 검증한다.
+7. **Handoff 생성 및 검증**: HandoffGeneratorAgent(08) 호출 후, EvidenceVerifierAgent(09)로 검증한다.
 8. **상태 머신 persist**: 각 stage 전환 시 session_state를 저장하여 장애 복구가 가능하도록 한다.
 
 ## 에이전트 호출 순서
@@ -167,12 +168,12 @@ Orchestrator는 `context_retrieval` 단계에서 여러 source의 정보를 단�
 |---|---|---|
 | 1 | `05_input_normalizer` | STT/OCR 입력 시 |
 | 2 | `02_safety_classifier` | 모든 환자 메시지 (매 턴) |
-| 3 | `08_temporal_retriever` | 대화 시작 시 + 필요 시 |
+| 3 | ~~`08_temporal_retriever`~~ **정정(wave-5, ADR-040):** 호출되지 않음 — 실제 구현된 적 없이 retired/archived (`_archive/legacy_code/agent_inventory_wave5/08_temporal_retriever.md`). `context_retrieval` 상태는 항상 no-op | — |
 | 4 | `03_dialogue` | 대화 진행 중 |
 | 5 | `04_clinical_slot` | 대화 종료 시 |
-| 6 | `09_temporal_summary` | handoff 생성 전 |
-| 7 | `10_handoff_generator` | slot 추출 완료 후 |
-| 8 | `11_evidence_verifier` | handoff 생성 후 (release gate) |
+| 6 | ~~`09_temporal_summary`~~ **정정(wave-5, ADR-040):** 호출되지 않음 — agent shell 및 `POST /ai/temporal/summarize`는 retired/archived (`_archive/legacy_code/agent_inventory_wave5/09_temporal_summary.md`). 비교 연산자(`_compare_scale`/`_compare_ctrs`/`_compare_sentiment`)는 `src/temporal_compare.py`로 이관되어 F4(`src/f4.py`)가 유일한 라이브 소비자다 | — |
+| 7 | `08_handoff_generator` | slot 추출 완료 후 |
+| 8 | `09_evidence_verifier` | handoff 생성 후 (release gate) |
 
 ## 안전 제약
 
@@ -199,7 +200,7 @@ Orchestrator는 `context_retrieval` 단계에서 여러 source의 정보를 단�
 | SafetyClassifier(02) | 2초 | keyword 결과만 사용. 양쪽 실패 시 CTRS 2 간주 (안전 우선) |
 | Dialogue(03) | 5초 | Secondary → Fallback LLM 시도. 전체 실패 시 대화 일시 중단 |
 | ClinicalSlot(04) | 5초 | 대화 원문을 비구조화 상태로 handoff에 첨부 |
-| TemporalRetriever(08) | 3초 | 과거 맥락 없이 현재 세션 정보만으로 진행 |
-| TemporalSummary(09) | 5초 | direction을 모두 "unknown"으로 처리 |
-| HandoffGenerator(10) | 30초 | minimal template report 생성 |
-| EvidenceVerifier(11) | 10초 | rule-based 검증만 수행 |
+| ~~TemporalRetriever(08)~~ | — | **정정(wave-5, ADR-040):** 해당 없음 — 호출되지 않음(retired/archived, 실제 구현된 적 없음). `context_retrieval` 상태는 항상 no-op이므로 별도 timeout/fallback 정책이 적용되지 않는다 |
+| ~~TemporalSummary(09)~~ | — | **정정(wave-5, ADR-040):** 해당 없음 — 호출되지 않음(agent shell retired/archived). 종단적 비교는 F4(`src/f4.py`, `src/temporal_compare.py`)가 별도 stateless 경로로 수행한다 |
+| HandoffGenerator(08) | 30초 | minimal template report 생성 |
+| EvidenceVerifier(09) | 10초 | rule-based 검증만 수행 |
