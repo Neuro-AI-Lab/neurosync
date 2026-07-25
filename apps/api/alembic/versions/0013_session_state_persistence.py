@@ -21,9 +21,23 @@ ADR-046 #2 decision 2 / Option A). Two additive columns on `sessions`:
   notification (F5) is a follow-up PRD's scope; this column plus the
   structured log in `services/chat.py::respond` are the Phase 1 minimum.
 
-Revision ID: 0011
-Revises: 0010
+Revision ID: 0013
+Revises: 0012
 Create Date: 2026-07-22
+
+ADR-047 chain-linearize (2026-07-26): renumbered 0011 -> 0013 and repointed
+down_revision 0010 -> 0012. This file and 0012_risk_events_status_messages_
+role_check_widen.py (renumbered 0012 -> 0014) both originally claimed
+`revision = "0011"`/`"0012"` on a branch (#78) forked before `patient_
+demographics` and `handoff_delivered_at` (#85, merged earlier at 2026-07-25
+21:21) landed their own 0011/0012 files on Master — a same-ID collision that
+Alembic silently resolves by dict-overwrite (last file loaded wins the
+revision-map slot; the other becomes a permanently unreachable orphan head,
+never applied by `alembic upgrade head`, no error raised). See ADR-047 in
+discussion.md for the full chain audit. `0013_f1f3_backend_integration_
+schema.py` (#79's idempotent catch-up for this same session_state/risk_
+events/messages content) is retired as fully redundant now that this file
+and 0014 are correctly chained.
 """
 
 from collections.abc import Sequence
@@ -32,8 +46,8 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "0011"
-down_revision: str | None = "0010"
+revision: str = "0013"
+down_revision: str | None = "0012"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

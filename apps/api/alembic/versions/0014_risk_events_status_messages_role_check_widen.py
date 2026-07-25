@@ -24,17 +24,22 @@ backfill risk, scheduled as its own follow-up PR per the design doc).
 Both constraint changes use `IF EXISTS`/guard-safe raw SQL so a partial-apply
 retry is idempotent (0008->0010 migration-gap precedent).
 
-Revision ID: 0012
-Revises: 0011
+Revision ID: 0014
+Revises: 0013
 Create Date: 2026-07-23
+
+ADR-047 chain-linearize (2026-07-26): renumbered 0012 -> 0014 and repointed
+down_revision 0011 -> 0013 (was a same-ID collision with #85's 0011/0012;
+see 0013_session_state_persistence.py's docstring and ADR-047 in
+discussion.md for the full audit).
 """
 
 from collections.abc import Sequence
 
 from alembic import op
 
-revision: str = "0012"
-down_revision: str | None = "0011"
+revision: str = "0014"
+down_revision: str | None = "0013"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
