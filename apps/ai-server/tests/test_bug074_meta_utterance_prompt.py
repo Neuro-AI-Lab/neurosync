@@ -44,10 +44,12 @@ def test_prompt_version_pinned_v5_6() -> None:
     # "공감 캘리브레이션" section changed (condensed to a principle + one
     # safety-critical ban). BUG-085-follow-up (session `04cfe927`): bumped
     # v5.5 -> v5.6 (CVR-057 6-type table + meta-utterance section widened
-    # with a third, capability/memory-complaint subtype) — every
-    # meta-utterance-section assertion this module makes below is still
-    # satisfied, resolved via `PROMPT_VERSION`.
-    assert PROMPT_VERSION == "v5.6"
+    # with a third, capability/memory-complaint subtype). BUG-089
+    # (session `2671d9fe`): bumped v5.6 -> v5.7 (addition-only — one new
+    # "공감 캘리브레이션" bullet, meta-utterance sections untouched) —
+    # every meta-utterance-section assertion this module makes below is
+    # still satisfied, resolved via `PROMPT_VERSION`.
+    assert PROMPT_VERSION == "v5.7"
 
 
 def test_v5_4_prompt_resolves_and_keeps_meta_utterance_section() -> None:

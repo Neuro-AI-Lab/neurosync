@@ -206,14 +206,64 @@ class SessionState(BaseModel):
 
     # ── Cluster G (post-handoff once-fire guard, ADR-043) ────────────
     # True once the pipeline has reached a TERMINAL outcome this session —
-    # either a real handoff (`handoff_ready=True`) OR the ADR-044
-    # backstop-escalation terminal state below. Checked at the TOP of
-    # `_execute_pipeline` (after the mandatory safety gate) so the
-    # post-dialogue pipeline (slot extraction + handoff generation +
-    # verification) never re-runs on a subsequent turn purely because
-    # `current_stage == completed`. NOT set on an ordinary regenerate/
-    # reject/exception outcome (those legitimately retry next turn).
+    # either a real handoff (`handoff_ready=True`), the ADR-044
+    # backstop-escalation terminal state below, OR (BUG-086 fix,
+    # 2026-07-25) an ordinary regenerate-budget-exhausted/reject/
+    # exception outcome. Checked at the TOP of `_execute_pipeline` (after
+    # the mandatory safety gate) so the post-dialogue pipeline (slot
+    # extraction + handoff generation + verification) never re-runs on a
+    # subsequent turn purely because `current_stage == completed`.
+    #
+    # BUG-086 (qa, live-reproduced session `2671d9fe`): this field used to
+    # stay False on a regenerate/reject/exception outcome ("those
+    # legitimately retry next turn" was the original design intent) — but
+    # `OrchestratorAgent._run_post_dialogue_pipeline` already
+    # unconditionally sets `state.current_stage = SessionStage.completed`
+    # regardless of that outcome, so the "retry" this comment used to
+    # describe never actually re-entered `dialogue_loop` to gather new
+    # information anyway — it just re-ran the ENTIRE ~50s LLM chain from
+    # scratch on IDENTICAL data and hit the same non-terminal outcome
+    # again, forever, on every subsequent turn (confirmed live: turns 11
+    # and 12 both took the identical ~50-58s shape and were both silently
+    # dropped by apps/api's `ChatResponse.assistant_response(min_length=1)`
+    # contract because the assistant_response was empty on that path —
+    # see `handoff_unverified` below for the accompanying message fix).
+    # Latching here converts that permanent silent stall into a single
+    # terminal outcome the patient sees ONE ack for.
     handoff_delivered: bool = False
+
+    # BUG-086 fix (additive): True once `_run_post_dialogue_pipeline`
+    # reached its terminal `completed` outcome WITHOUT producing a
+    # verified handoff report AND WITHOUT the `risk_screening_incomplete`
+    # escalation (i.e. the evidence verifier rejected the report, the
+    # regenerate budget was exhausted, or the pipeline raised an
+    # exception — see that method's own final block). Read by
+    # `OrchestratorAgent._build_post_handoff_result` on every SUBSEQUENT
+    # turn of this session to pick the correct terminal message
+    # (`_HANDOFF_ACK_MESSAGE`) instead of the real-success
+    # `_POST_HANDOFF_MESSAGE` or the `_INCOMPLETE_INTAKE_MESSAGE`
+    # escalation text — distinct terminal state from both of those.
+    handoff_unverified: bool = False
+
+    # BUG-090 fix (additive): True for exactly one turn — set the instant
+    # `_should_extract_slots` first fires termination criteria (coverage
+    # threshold + risk-grounded, or the max-turns backstop), consumed
+    # (read + reset False) at the TOP of the very NEXT `process_turn`
+    # call for this session. ai-server has no cross-request session store
+    # (the caller round-trips `session_state` as an opaque dict on every
+    # call — a fresh `SessionState` is deserialized from THAT payload
+    # every time, never the in-process object from a prior call), so an
+    # in-process `asyncio.create_task` background job spawned on the
+    # termination turn could never durably deliver its result into a
+    # FUTURE `process_turn` call anyway — "lazy, resumed on the next
+    # request" is therefore the only deferral mechanism available without
+    # adding a session store to ai-server (out of scope this pass, see
+    # BUG-090's RESULT discussion). While this flag is True, the patient
+    # has already been shown the stage-1 ack
+    # (`_HANDOFF_ACK_MESSAGE`/`_INCOMPLETE_INTAKE_MESSAGE`) and the
+    # expensive slot-extraction + handoff-generation + evidence-
+    # verification chain has NOT run yet for this session.
+    pending_handoff_pipeline: bool = False
 
     # ── ADR-044 (CVR-043 pin-fix, backstop vs risk-grounding gate) ───
     # True once `_MAX_DIALOGUE_TURNS` was reached this session while

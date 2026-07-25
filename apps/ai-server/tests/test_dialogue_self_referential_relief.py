@@ -107,9 +107,12 @@ def test_prompt_version_pinned_v5_6() -> None:
     # principle + one safety-critical ban, see v5.5's own changelog note).
     # BUG-085-follow-up (2026-07-25, session `04cfe927`): bumped v5.5 ->
     # v5.6 (CVR-057 6-type discriminant table, see v5.6's own changelog
-    # note). The safety-critical "다행" ban itself (this test module's
-    # subject) is preserved, unchanged in substance, by both revisions.
-    assert PROMPT_VERSION == "v5.6"
+    # note). BUG-089 (2026-07-25, session `2671d9fe`): bumped v5.6 -> v5.7
+    # (addition-only — one new "공감 캘리브레이션" bullet on current-turn
+    # attribution, see v5.7's own changelog note). The safety-critical
+    # "다행" ban itself (this test module's subject) is preserved,
+    # unchanged in substance, by all three revisions.
+    assert PROMPT_VERSION == "v5.7"
 
 
 def test_v5_1_prompt_resolves_and_bans_root_while_allowing_gratitude() -> None:

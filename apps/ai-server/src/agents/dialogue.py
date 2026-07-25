@@ -337,7 +337,21 @@ _DEGRADE_MARKER_CLAUSES: frozenset[str] = frozenset(
 # ("기억 못하시나요?", "너 못하냐고") -- same live session, turns 8/9,
 # neither a self/emotion disclosure nor a repetition complaint, and the
 # model responded to both as if they were emotional self-disclosure.
-PROMPT_VERSION = "v5.6"
+#
+# BUG-089 (2026-07-25, qa live-confirmed, session `2671d9fe`): v5.7 —
+# ONE new bullet appended to "공감 캘리브레이션" (addition-only, v5.6 body
+# otherwise byte-identical). The live evidence showed the empathy clause
+# re-anchoring to an emotionally-salient disclosure from SEVERAL turns
+# earlier ("진료 예약"/SI-disclosure-adjacent content) across 3+
+# consecutive turns whose ACTUAL patient utterance had already moved on
+# to unrelated content -- a gap CVR-057's discriminant table never
+# covered (it scopes "how strongly to react to the immediately-preceding
+# utterance's TYPE", not "which turn's content to react to at all"). The
+# new bullet states, as an abstract principle (no literal example
+# sentences, same BUG-030 lesson), that empathy is always grounded in
+# THIS turn's utterance, never a recalled prior turn's content once the
+# patient has moved on.
+PROMPT_VERSION = "v5.7"
 
 # BUG-085-follow-up (session `04cfe927`, probe-topic-mismatch guard):
 # stage-name -> question_hint lookup, sourced verbatim from
@@ -1158,6 +1172,54 @@ class DialogueAgent(BaseAgent):
                             "question-repeat guard exhausted retry budget — "
                             "deterministic target-bound question forced "
                             "instead of an empathy-only degrade"
+                        ),
+                    )
+                    break
+                if expected_probe_stage is not None and violation.startswith("near_dup"):
+                    # BUG-088 (qa, 2026-07-25, live session `2671d9fe`):
+                    # `probe_topic_mismatch` itself already has a dedicated
+                    # exhaustion path above (`_force_probe_question`) — but
+                    # a `near_dup_*` violation (e.g. `near_dup_session_cap`)
+                    # can independently become the FINAL exhaustion-
+                    # triggering violation on an active probe/SI-screen
+                    # turn (`expected_probe_stage is not None`) even when
+                    # the candidate's QUESTION span is still off the
+                    # assigned stage — `_is_empathy_degradable`'s generic
+                    # route below only splices the leading empathy clause
+                    # and would ship that mismatched question unchanged
+                    # (qa's live-confirmed defect: an SI "method/means"
+                    # question kept shipping across turns regardless of
+                    # the patient's actual, non-SI-method answers). A
+                    # probe/SI-screen turn is safety-critical (never
+                    # deferred/degraded ambiguously, mirrors Cluster C's
+                    # own "risk_assessment never deferred" invariant in
+                    # orchestrator.py) — force the deterministic stage-
+                    # bound question here too, same composer
+                    # `probe_topic_mismatch`'s own exhaustion path uses,
+                    # rather than risk a cosmetic empathy-only degrade
+                    # leaving the wrong question shipped.
+                    degraded_text = DialogueAgent._force_probe_question(
+                        llm_resp.assistant_response, expected_probe_stage,
+                    )
+                    logger.warning(
+                        "DialogueAgent near-dup safety net exhausted retry "
+                        "budget (%d) on an active probe/SI-screen turn "
+                        "(stage='%s') — forcing a deterministic stage-bound "
+                        "question instead of an empathy-only degrade, "
+                        "unresolved violation(s) %s",
+                        _MAX_REGENERATION_ATTEMPTS, expected_probe_stage,
+                        retry_reasons + [violation],
+                    )
+                    retry_reasons.append(violation)
+                    exhaustion_degrade = violation
+                    exhaustion_degrade_phrase = expected_probe_stage
+                    llm_resp = DialogueLLMResponse(
+                        assistant_response=degraded_text,
+                        reason_summary=(
+                            "near-dup guard exhausted retry budget on an "
+                            "active probe turn — deterministic stage-bound "
+                            "question forced instead of an empathy-only "
+                            "degrade"
                         ),
                     )
                     break

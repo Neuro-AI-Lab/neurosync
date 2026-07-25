@@ -182,7 +182,13 @@ async def respond(
             # 환자에게 노출되면 안 된다. 2단계(설문 전환) 멘트는 모바일
             # intake 흐름(chat.tsx::goSurvey, domain/infer 성공 후)에서
             # 별도로 표시된다.
-            assistant_response="네 알겠습니다. 답변 주신 내용을 토대로 증상 확인 중입니다.",
+            # BUG-086/090 (2026-07-25): this used to re-declare the ack
+            # text as a bare literal — now reads `orch_result.
+            # assistant_response`, which `OrchestratorAgent` itself
+            # populates with the SAME text (`_HANDOFF_ACK_MESSAGE`, the
+            # single source of truth) on this path, avoiding the
+            # duplicate hardcoded copy.
+            assistant_response=orch_result.assistant_response,
             slot_updates={},
             risk_level=orch_result.safety_status.risk_level,
             requires_human_review=False,

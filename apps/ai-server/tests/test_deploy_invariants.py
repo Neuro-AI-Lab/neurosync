@@ -186,6 +186,12 @@ class TestPinnedPromptFiles:
             # complaint subtype — see v5.6's own changelog note) — v5.5
             # kept for history, same drift-detection rationale as above.
             ("dialogue", "v5.6"),
+            # BUG-089 (2026-07-25, session `2671d9fe`): dialogue's runtime
+            # pin moved to v5.7 (one new addition-only "공감 캘리브레이션"
+            # bullet — current-turn attribution principle, see v5.7's own
+            # changelog note) — v5.6 kept for history, same drift-
+            # detection rationale as above.
+            ("dialogue", "v5.7"),
             ("domain_inference", "v2"),
             ("handoff_generator", "v4"),
             ("handoff_generator", "v3"),
@@ -1036,9 +1042,29 @@ def test_coverage_seeding_9_of_12_filled_slots_fires_handoff_ready() -> None:
         )
     )
     assert turn2.session_state.risk_grounded is True
-    assert turn2.handoff_ready is True
-    assert turn2.handoff_report is not None
     assert turn2.session_state.slot_coverage >= 0.7
+    # BUG-090: termination criteria are met on turn2, but the stage-1 ack
+    # ships IMMEDIATELY — the handoff-generation+verification chain is
+    # deferred to the NEXT `process_turn` call (`pending_handoff_pipeline`),
+    # never blocking turn2's own response.
+    assert turn2.handoff_ready is False
+    assert turn2.handoff_report is None
+    assert turn2.session_state.pending_handoff_pipeline is True
+    assert turn2.assistant_response  # BUG-086: never empty
+
+    turn3 = asyncio.run(
+        orch.process_turn(
+            OrchestratorInput(
+                session_id="t-coverage-seed",
+                raw_input="",
+                filled_slots=nine_slots,
+                session_state=turn2.session_state,
+            )
+        )
+    )
+    assert turn3.session_state.pending_handoff_pipeline is False
+    assert turn3.handoff_ready is True
+    assert turn3.handoff_report is not None
 
 
 def test_coverage_seeding_below_threshold_stays_in_dialogue() -> None:
@@ -1125,8 +1151,23 @@ def test_b5_patient_fillable_coverage_6_of_7_fires_handoff_ready() -> None:
         )
     )
     assert turn2.session_state.risk_grounded is True
-    assert turn2.handoff_ready is True
-    assert turn2.handoff_report is not None
+    # BUG-090: ack ships immediately on turn2; the handoff pipeline itself
+    # is deferred to a follow-up call (`pending_handoff_pipeline`).
+    assert turn2.handoff_ready is False
+    assert turn2.session_state.pending_handoff_pipeline is True
+
+    turn3 = asyncio.run(
+        orch.process_turn(
+            OrchestratorInput(
+                session_id="t-b5-fillable-coverage",
+                raw_input="",
+                filled_slots=six_fillable,
+                session_state=turn2.session_state,
+            )
+        )
+    )
+    assert turn3.handoff_ready is True
+    assert turn3.handoff_report is not None
 
 
 def test_b5_legacy_full_12_slot_payload_still_computes_coverage() -> None:
@@ -1193,8 +1234,23 @@ def test_b5_legacy_full_12_slot_payload_still_computes_coverage() -> None:
         )
     )
     assert turn2.session_state.risk_grounded is True
-    assert turn2.handoff_ready is True
-    assert turn2.handoff_report is not None
+    # BUG-090: ack ships immediately on turn2; the handoff pipeline itself
+    # is deferred to a follow-up call (`pending_handoff_pipeline`).
+    assert turn2.handoff_ready is False
+    assert turn2.session_state.pending_handoff_pipeline is True
+
+    turn3 = asyncio.run(
+        orch.process_turn(
+            OrchestratorInput(
+                session_id="t-b5-legacy-12-slot",
+                raw_input="",
+                filled_slots=all_12,
+                session_state=turn2.session_state,
+            )
+        )
+    )
+    assert turn3.handoff_ready is True
+    assert turn3.handoff_report is not None
 
 
 # ── BUG-048(a): repetition guard scope widened to the follow-up-question
@@ -1602,8 +1658,22 @@ class TestExp030TerminationGate:
             )
         )
         assert final_turn.session_state.risk_grounded is True
-        assert final_turn.handoff_ready is True
-        assert final_turn.handoff_report is not None
+        # BUG-090: ack ships immediately; handoff pipeline deferred.
+        assert final_turn.handoff_ready is False
+        assert final_turn.session_state.pending_handoff_pipeline is True
+
+        resumed_turn = asyncio.run(
+            orch.process_turn(
+                OrchestratorInput(
+                    session_id="t-exp030-gate-fires",
+                    raw_input="",
+                    filled_slots=_EIGHT_TH_SLOT_MINUS_RISK,
+                    session_state=final_turn.session_state,
+                )
+            )
+        )
+        assert resumed_turn.handoff_ready is True
+        assert resumed_turn.handoff_report is not None
 
 
 class TestExp030SafetyProbeGroundsRiskAssessment:
@@ -1811,26 +1881,45 @@ class TestExp030PostHandoffOnceFireGuard:
                 )
             )
         )
-        assert turn2.handoff_ready is True
-        assert turn2.session_state.handoff_delivered is True
-        assert handoff_agent.call_count == 1
-        assert verifier_agent.call_count == 1
+        # BUG-090: turn2 ships the ack immediately, WITHOUT invoking the
+        # handoff/verifier agents yet — deferred to the next call.
+        assert turn2.handoff_ready is False
+        assert turn2.session_state.handoff_delivered is False
+        assert turn2.session_state.pending_handoff_pipeline is True
+        assert handoff_agent.call_count == 0
+        assert verifier_agent.call_count == 0
 
-        # Turn 3: session already completed — must short-circuit WITHOUT
-        # re-invoking the handoff/verifier agents.
+        # Turn 3 (lazy-resume): the deferred pipeline actually runs here.
         turn3 = asyncio.run(
             orch.process_turn(
                 OrchestratorInput(
                     session_id="t-exp030-once",
-                    raw_input="감사합니다",
+                    raw_input="",
                     filled_slots=_EIGHT_TH_SLOT_MINUS_RISK,
                     session_state=turn2.session_state,
                 )
             )
         )
-        assert turn3.current_stage == SessionStage.completed
-        assert turn3.handoff_ready is False
-        assert turn3.assistant_response  # non-empty short-circuit message
+        assert turn3.handoff_ready is True
+        assert turn3.session_state.handoff_delivered is True
+        assert handoff_agent.call_count == 1
+        assert verifier_agent.call_count == 1
+
+        # Turn 4: session already completed — must short-circuit WITHOUT
+        # re-invoking the handoff/verifier agents.
+        turn4 = asyncio.run(
+            orch.process_turn(
+                OrchestratorInput(
+                    session_id="t-exp030-once",
+                    raw_input="감사합니다",
+                    filled_slots=_EIGHT_TH_SLOT_MINUS_RISK,
+                    session_state=turn3.session_state,
+                )
+            )
+        )
+        assert turn4.current_stage == SessionStage.completed
+        assert turn4.handoff_ready is False
+        assert turn4.assistant_response  # non-empty short-circuit message
         assert handoff_agent.call_count == 1  # unchanged — no re-run
         assert verifier_agent.call_count == 1  # unchanged — no re-run
 
@@ -1844,8 +1933,12 @@ class TestExp030PostHandoffOnceFireGuard:
         from src.schemas.orchestrator import OrchestratorInput, SessionStage
 
         orch = OrchestratorAgent(model_router=None, prompt_loader=None)  # type: ignore[arg-type]
+        # BUG-090: an extra safety-gate call now happens on the lazy-resume
+        # turn (the deferred handoff pipeline's own turn) between the
+        # grounding turn and the eventual crisis turn — one more `(5, [])`
+        # entry than before, crisis kept as the LAST (repeats-forever) tuple.
         orch._safety_agent = _SequencedSafetyAgent(  # noqa: SLF001
-            [(5, []), (5, []), (1, ["suicidal_ideation"])]
+            [(5, []), (5, []), (5, []), (1, ["suicidal_ideation"])]
         )
         orch._slot_agent = _StubSlotAgentNoOp()  # noqa: SLF001
         orch._handoff_agent = _StubHandoffAgent()  # noqa: SLF001
@@ -1872,21 +1965,36 @@ class TestExp030PostHandoffOnceFireGuard:
                 )
             )
         )
-        assert turn2.handoff_ready is True
-        assert turn2.session_state.handoff_delivered is True
+        # BUG-090: turn2 ships the ack immediately; handoff pipeline
+        # deferred to the next call.
+        assert turn2.handoff_ready is False
+        assert turn2.session_state.pending_handoff_pipeline is True
 
         turn3 = asyncio.run(
             orch.process_turn(
                 OrchestratorInput(
                     session_id="t-exp030-posthandoff-crisis",
-                    raw_input="더 이상 못 버티겠어요",
+                    raw_input="",
                     filled_slots=_EIGHT_TH_SLOT_MINUS_RISK,
                     session_state=turn2.session_state,
                 )
             )
         )
-        assert turn3.current_stage == SessionStage.crisis_flow
-        assert turn3.crisis_triggered is True
+        assert turn3.handoff_ready is True
+        assert turn3.session_state.handoff_delivered is True
+
+        turn4 = asyncio.run(
+            orch.process_turn(
+                OrchestratorInput(
+                    session_id="t-exp030-posthandoff-crisis",
+                    raw_input="더 이상 못 버티겠어요",
+                    filled_slots=_EIGHT_TH_SLOT_MINUS_RISK,
+                    session_state=turn3.session_state,
+                )
+            )
+        )
+        assert turn4.current_stage == SessionStage.crisis_flow
+        assert turn4.crisis_triggered is True
 
 
 class TestAdr044BackstopVsRiskGroundingGate:
@@ -1937,12 +2045,11 @@ class TestAdr044BackstopVsRiskGroundingGate:
 
         assert turn.session_state.turn_count == _MAX_DIALOGUE_TURNS
         assert turn.session_state.risk_grounded is False
-        # The pipeline WAS actually run and would otherwise have produced
-        # a valid, verified report (proving this is a deliberate override,
-        # not a pipeline failure/reject being conflated with escalation).
-        assert handoff_agent.call_count == 1
-        assert verifier_agent.call_count == 1
-        # ... yet handoff_ready/handoff_report are force-suppressed.
+        # BUG-090: the escalation ack ships IMMEDIATELY — `risk_screening_
+        # incomplete` is already known synchronously (no LLM call
+        # required), so the pipeline itself has NOT run yet on this turn.
+        assert handoff_agent.call_count == 0
+        assert verifier_agent.call_count == 0
         assert turn.handoff_ready is False
         assert turn.handoff_report is None
         assert turn.clinical_escalation_required is True
@@ -1951,8 +2058,35 @@ class TestAdr044BackstopVsRiskGroundingGate:
         # calm patient-facing message (not empty, not the routine
         # "확인 필요" framing baked into a silent ready-for-handoff turn).
         assert turn.assistant_response == _INCOMPLETE_INTAKE_MESSAGE
-        # Session is terminal — no infinite unproductive re-attempt loop.
-        assert turn.session_state.handoff_delivered is True
+        # Not yet terminal in the Cluster G sense — the deferred pipeline
+        # still needs to run once (lazy-resume) before the once-fire latch
+        # engages.
+        assert turn.session_state.handoff_delivered is False
+        assert turn.session_state.pending_handoff_pipeline is True
+
+        # Lazy-resume turn: the deferred pipeline actually runs here — and
+        # WOULD otherwise have produced a valid, verified report (proving
+        # this is a deliberate override, not a pipeline failure/reject
+        # being conflated with escalation).
+        resumed = asyncio.run(
+            orch.process_turn(
+                OrchestratorInput(
+                    session_id="t-adr044-backstop",
+                    raw_input="",
+                    session_state=turn.session_state,
+                )
+            )
+        )
+        assert handoff_agent.call_count == 1
+        assert verifier_agent.call_count == 1
+        # ... yet handoff_ready/handoff_report are still force-suppressed.
+        assert resumed.handoff_ready is False
+        assert resumed.handoff_report is None
+        assert resumed.clinical_escalation_required is True
+        assert resumed.assistant_response == _INCOMPLETE_INTAKE_MESSAGE
+        # Session is NOW terminal — no infinite unproductive re-attempt loop.
+        assert resumed.session_state.handoff_delivered is True
+        assert resumed.session_state.pending_handoff_pipeline is False
 
         # A follow-up turn must short-circuit (no pipeline re-run) and
         # keep surfacing the same escalation signal, not silently drop it.
@@ -1961,7 +2095,7 @@ class TestAdr044BackstopVsRiskGroundingGate:
                 OrchestratorInput(
                     session_id="t-adr044-backstop",
                     raw_input="네",
-                    session_state=turn.session_state,
+                    session_state=resumed.session_state,
                 )
             )
         )
@@ -2002,10 +2136,23 @@ class TestAdr044BackstopVsRiskGroundingGate:
                 )
             )
         )
-        assert turn.handoff_ready is True
-        assert turn.handoff_report is not None
-        assert turn.clinical_escalation_required is False
-        assert turn.session_state.risk_screening_incomplete is False
+        # BUG-090: ack ships immediately; handoff pipeline deferred.
+        assert turn.handoff_ready is False
+        assert turn.session_state.pending_handoff_pipeline is True
+
+        resumed = asyncio.run(
+            orch.process_turn(
+                OrchestratorInput(
+                    session_id="t-adr044-grounded-backstop",
+                    raw_input="",
+                    session_state=turn.session_state,
+                )
+            )
+        )
+        assert resumed.handoff_ready is True
+        assert resumed.handoff_report is not None
+        assert resumed.clinical_escalation_required is False
+        assert resumed.session_state.risk_screening_incomplete is False
 
     def test_si_screen_forced_within_reserve_window_before_backstop(self) -> None:
         """ADR-044 option (i): within `_SI_SCREEN_RESERVE_TURNS` turns of
