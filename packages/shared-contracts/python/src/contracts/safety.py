@@ -3,6 +3,20 @@
 Single source of truth between apps/api (consumer) and apps/ai-server (producer).
 PRD §0.3 contract — change requires both PRDs updated simultaneously.
 SLA: p95 < 1,000 ms (PRD §4.1).
+
+BUG-062 fix (EXP-031 fix_wave_design.md, Option B): `SafetyRequest`/
+`SafetyResponse` below are now field-identical to ai-server's real wire
+schema (`apps/ai-server/src/schemas/safety.py::SafetyInput`/`SafetyOutput`) —
+this is what makes `AIClient.safety_classify` a plain generic `_post` call
+instead of a hand-built adapter. `SafetyAssessment` (below, formerly named
+`SafetyResponse` pre-fix) is the PLATFORM's own internal vocabulary
+(`RiskLevel`/`RiskCategory` enums) that `services/safety.py`'s domain layer
+translates the wire `SafetyResponse` into — the translation (including the
+category-priority reduction previously hand-built inline in `ai_client.py`)
+now lives in `services/safety.py::to_safety_assessment`, a single source
+shared with the CVR-051 orchestrator-crisis category vocabulary
+(`services/chat.py`'s `_CRISIS_CATEGORY_PRIORITY`, itself now imported from
+`services/safety.py` — see that module for the single-source mapping).
 """
 
 from __future__ import annotations
@@ -13,6 +27,12 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class RiskLevel(StrEnum):
+    """Platform-internal risk vocabulary (never sent to/from ai-server
+    directly) — `services/safety.py::to_safety_assessment` maps the wire
+    `SafetyResponse.risk_level` (which additionally has `"none"`) into this
+    enum, collapsing `"none"` to `LOW` (no separate "no risk" tier
+    platform-side; see that function for the mapping)."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -20,7 +40,7 @@ class RiskLevel(StrEnum):
 
 
 class RiskCategory(StrEnum):
-    """PRD §5.1 risk:detected event categories."""
+    """PRD §5.1 risk:detected event categories (platform-internal)."""
 
     SELF_HARM = "self_harm"
     SUICIDE = "suicide"
@@ -40,11 +60,17 @@ class SafetyEvidence(BaseModel):
 
 
 class SafetyRequest(BaseModel):
-    message: str = Field(min_length=1, max_length=4000)
-    prev_context: list[str] = Field(
+    """Wire request — field-identical to ai-server's `SafetyInput`
+    (BUG-062 fix). `session_id` is required by ai-server's shared
+    `AgentInput` base; apps/api's pre-gate caller has no natural per-message
+    session concept for this call, so it sends the platform session id."""
+
+    session_id: str
+    user_message: str = Field(min_length=1, max_length=4000)
+    conversation_history: list[dict[str, str]] = Field(
         default_factory=list,
-        description="Most recent N messages (oldest-first). Used as context for "
-        "classifier disambiguation. Bounded so the request stays small.",
+        description="Recent conversation turns [{role, content}, ...], "
+        "oldest-first. Bounded so the request stays small.",
         max_length=10,
     )
 
@@ -52,6 +78,35 @@ class SafetyRequest(BaseModel):
 
 
 class SafetyResponse(BaseModel):
+    """Wire response — mirrors ai-server's real `SafetyOutput` fields
+    (BUG-062 fix). Deliberately NOT `extra="forbid"`: ai-server's actual
+    JSON also carries the shared `AgentOutput` base fields (`model_used`,
+    `prompt_version`, `latency_ms`, `reason_summary`, `prompts_degraded`),
+    none of which this platform-facing subset needs — forbidding them would
+    make this contract brittle to any future additive `AgentOutput` field."""
+
+    risk_level: str = Field(
+        description="ai-server's RiskLevel wire value — includes 'none', "
+        "'low', 'medium', 'high', 'critical' (superset of this platform's "
+        "own `RiskLevel` enum, translated by `services/safety.py`)."
+    )
+    categories: list[str] = Field(default_factory=list)
+    flagged_phrases: list[str] = Field(default_factory=list)
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    ctrs_level: int = Field(default=5, ge=1, le=5)
+    requires_human_review: bool = Field(default=False)
+    crisis_protocol_activated: bool = Field(default=False)
+
+    model_config = ConfigDict(extra="ignore")
+
+
+class SafetyAssessment(BaseModel):
+    """Platform-internal safety result (formerly the pre-fix `SafetyResponse`
+    shape) — what `services/safety.py`/`services/chat.py`'s escalation logic
+    actually consumes. Built by `services/safety.py::to_safety_assessment`
+    from a wire `SafetyResponse`, or constructed directly for the
+    classifier-unavailable fallback / the orchestrator-crisis path."""
+
     level: RiskLevel
     category: RiskCategory
     evidence: SafetyEvidence
