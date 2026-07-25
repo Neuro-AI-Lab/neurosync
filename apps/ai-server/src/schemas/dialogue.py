@@ -118,6 +118,48 @@ class DialogueOutput(AgentOutput):
             "handoff_ready=True. Always None when handoff_ready=False."
         ),
     )
+    # ADR-044 (CVR-043 pin-fix): passthrough of `OrchestratorTurnResult.
+    # clinical_escalation_required` — True when this session's turn cap
+    # was reached with `risk_assessment` still ungrounded (the backstop-
+    # vs-risk-grounding gate), so `handoff_ready` was deliberately
+    # suppressed instead of shipping a routine "ready for pickup" signal.
+    # Clinician-facing only — never rendered to the patient (see
+    # `OrchestratorAgent._INCOMPLETE_INTAKE_MESSAGE`'s own docstring for
+    # why the patient-facing text stays calm/non-alarming).
+    clinical_escalation_required: bool = Field(
+        default=False,
+        description=(
+            "True when the session ended via the ADR-044 backstop-vs-"
+            "risk-grounding gate (risk_assessment never grounded before "
+            "the hard turn ceiling) — handoff_ready is always False and "
+            "handoff_report is always None whenever this is True."
+        ),
+    )
+    # CVR-051 fix: mirrors `OrchestratorTurnResult.crisis_triggered`
+    # (`schemas/orchestrator.py`) onto the wire — this route's own
+    # crisis-bypass branch (`routes/chat.py` Step 2) sets this True;
+    # every other branch/path leaves the safe default False. Previously
+    # absent from this schema entirely, so a crisis detected by THIS
+    # (conversation-history-aware, distinct from apps/api's pre-gate)
+    # SafetyClassifierAgent invocation was unrepresentable on the wire —
+    # only `risk_level`/`requires_human_review` (BUG-046) carried, and
+    # neither alone told the caller "this is the crisis-bypass turn".
+    # BUG-060/CVR-051 follow-up: passthrough of `SafetyStatus.categories`
+    # (`schemas/orchestrator.py`) — lets `routes/chat.py`'s crisis-bypass
+    # branch (Step 2) surface WHICH kind of risk fired this turn, instead
+    # of only carrying `risk_level`. Empty on every non-crisis turn and on
+    # a crisis turn where neither the rule engine nor the LLM attached a
+    # category (safe-default case, see `SafetyStatus.categories` docstring).
+    risk_categories: list[str] = Field(default_factory=list)
+    crisis_triggered: bool = Field(
+        default=False,
+        description=(
+            "True when this turn's orchestrator run hit the crisis "
+            "bypass (`OrchestratorTurnResult.crisis_triggered`) — "
+            "`assistant_response` is the fixed crisis-protocol message, "
+            "not a DialogueAgent LLM generation."
+        ),
+    )
     # BUG-030 iter-2 / BUG-035 guard telemetry (`docs/ai/fix_design_bug030_
     # iter2.md` §6, ADR-029). Additive, safe defaults — the two non-guard
     # construction sites (`routes/chat.py:95,111`) never set these.

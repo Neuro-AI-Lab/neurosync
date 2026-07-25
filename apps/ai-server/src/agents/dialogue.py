@@ -4,19 +4,36 @@
 slot_coverage가 임계값에 도달하면 handoff_ready를 신호합니다.
 
 반복 방지: 이전 턴에서 물어본 슬롯을 추적하여 같은 질문을 반복하지 않습니다.
+
+역할 분리 원칙(코디네이터 아키텍처 지시, 2026-07-25, BUG-083/084 동반):
+이 에이전트는 (1) 환자 답변을 슬롯 계층(OrchestratorAgent/ClinicalSlotAgent)에
+전달하고 (2) 그 계층이 결정한 다음 미수집 슬롯에 대한 유도 질문만 생성한다.
+"기록/다음 타깃 결정" 자체는 슬롯 계층의 책임이며 이 에이전트가 재구현하지
+않는다. **환자-facing 표면(assistant_response)에 슬롯 내부 정보(SLOT_KEY
+영문 식별자, "슬롯"/"coverage"/"grounding" 등 내부 용어, denied/unknown
+같은 내부 상태 라벨)가 노출되는 것은 심각한 오류다** — BUG-084b가 실제로
+관측한 증상("risk_assessment, personal_social_history... 슬롯이 있습니다").
+모든 슬롯-리스트 프롬프트 주입은 `_topic_label`/`_topic_list`(자연어 라벨)를
+거쳐야 하며, raw dict key를 직접 문자열 보간하지 않는다 — 이 파일 내
+`_build_retry_hint`/`_build_opening_context`/`_build_slot_context`의 모든
+멀티-슬롯 주입 지점이 이 규칙을 따른다(회귀 테스트:
+`tests/test_bug084_repeat_content_and_slot_key_leak.py`).
 """
 
 from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 from typing import Any
 
 from src.adapters.base import ChatMessage, LLMAdapter
 from src.agents.base import AgentInput, BaseAgent
+from src.grounding import infer_literal_target_slot, is_meta_utterance
 from src.prompts.loader import PromptLoader
 from src.routing.model_router import ModelRouter
+from src.safety_probe import PROBE_STAGES, infer_literal_probe_stage
 from src.schemas.common import RiskLevel
 from src.schemas.dialogue import DialogueInput, DialogueLLMResponse, DialogueOutput
 
@@ -62,13 +79,37 @@ _NEAR_DUP_NED_THRESHOLD = 0.3           # rubric_bug030_acceptance.md §1
 # content); "-군요" family added (reflective-acknowledgment coverage, so an
 # unmarked reflective template like "힘드시군요"/"그러시군요" can't repeat
 # undetected — CVR-011 Finding 5's near-dup blind spot).
+# CVR-039 finding 5 / PLAN-2026-W30 cluster B #2: "다행" added so a clause
+# carrying it registers as `is_empathy` — required for
+# `_degrade_empathy_clause`'s REPLACE branch (vs. PREPEND) to fire on a
+# `self_referential_relief` violation (see `_banned_self_referential_
+# relief_violation` below): without this, `_is_empathy_clause` on the
+# leading span would return False and the degrade would only PREPEND a
+# pool phrase, leaving the banned "다행이에요"/"다행입니다" text shipped
+# verbatim right after it — the opposite of what this fix requires.
 _EMPATHY_MARKERS = (
     "것 같아요", "것 같습니다",
     "감사합니다", "이해", "공감",
     "힘드셨", "힘드시", "지치셨", "지치시",
     "어려우셨", "어려우시",
     "군요",
+    "다행",
 )
+
+# CVR-039 finding 5 (real transcripts, B1/B2/B3): "다행"-root counselor
+# self-referential relief content ("다행이에요"/"다행입니다"/"다행이네요"
+# etc.) recurred immediately after safety disclosures despite v5's
+# prompt-level ban (CVR-038 finding 1's stated distinguishing principle) —
+# a prompt-instruction-ignored failure (`experiments/EXP-030/plan.md` §3
+# cluster B row), closed here at the lexical-detection layer instead.
+# Root-only match: "다행" inherently denotes the counselor's OWN
+# relief/fortunate framing (1인칭 내면 감정 진술) regardless of suffix —
+# deliberately narrower than a "positive frame" heuristic (no ambiguous
+# keyword-combination logic needed), and a disjoint lexical family from
+# the allowed "감사"-root patient-directed gratitude example CVR-038
+# itself pinned (finding 1's "서로 다른 어근" fix) — so a legitimate
+# "감사해요"/"감사합니다" clause never matches this list.
+_BANNED_SELF_REFERENTIAL_RELIEF_MARKERS = ("다행",)
 
 # BUG-037 (2026-07-12, `_archive/plans/fix_design_exhaustion_bug037.md`, PLAN-2026-
 # W28-U): output-isolation guard constants. `_MIN_OUTPUT_ISOLATION_LEN`
@@ -163,7 +204,7 @@ _DEGRADE_MARKER_CLAUSES: frozenset[str] = frozenset(
 # repetition of the patient's words, no 2-consecutive-turn reuse, opening/
 # continuity sections, absolute rules 1-6, output format) is carried
 # forward unchanged. `safety_classifier` stays pinned v2, untouched.
-# PLAN-2026-W28-Q W2: v3 (dialogue v3 redesign, `docs/ai/prompts/dialogue/
+# PLAN-2026-W28-Q W2: v3 (dialogue v3 redesign, `apps/ai-server/prompts/dialogue/
 # v3.system.md`) — DialogueAgent is now called at turn 0 too (autonomous,
 # conditions-aware greeting via session_state["opening_turn"], replacing the
 # old hardcoded f-string greeting) plus continuity phrasing for slots
@@ -171,7 +212,141 @@ _DEGRADE_MARKER_CLAUSES: frozenset[str] = frozenset(
 # clinical-dialogue core is preserved unchanged (evolution, not a rewrite).
 # PLAN-2026-W28 C1: v2 (prompt_redesign_v3.md §2.2) — absolute rules 8→6,
 # Safety section 5→1 line (P12 dedup vs runtime-injected slot/safety context).
-PROMPT_VERSION = "v4"
+#
+# EXP-029 Stage A2 / CVR-038 (cleared-with-conditions, condition applied):
+# v5 — addition-only over v4 (v4 body byte-identical), 3 new sections
+# targeting CVR-035 findings 1/2/3/5 (위기 인접 발화 처리 우선순위, 질문
+# 의도 다양화, 공감 캘리브레이션). CVR-038's one pin condition: the
+# 공감 캘리브레이션 section's banned/allowed examples previously shared the
+# "다행" root with no stated distinguishing principle — fixed by (a)
+# stating the principle explicitly (banned = 상담자 1인칭 내면 감정 진술;
+# allowed = 환자 사실-지향 짧은 인정) and (b) swapping the allowed example
+# to a different root ("그런 변화가 있었군요") so the two can't be
+# pattern-confused regardless of whether the principle is read. Every
+# existing red-line (6 절대 규칙, 1문장 공감/1질문, BUG-030 no-literal-menu
+# discipline) is unchanged. Live-verified before this pin (see
+# tests/test_deploy_contracts.py::TestExp029A2DialogueV5Live) — real
+# Upstage Solar Pro3 calls, all 3 scenarios passed.
+# STATE-2026-07-21f / PLAN-2026-W30 cluster B #2 (`experiments/EXP-030/
+# plan.md` §3): v5.1 — addition-only over v5 (v5 body byte-identical
+# except the 공감 캘리브레이션 section, replaced per this pin — see
+# `dialogue/v5.1.system.md`'s own changelog note). Closes CVR-039 finding
+# 5 (the "다행" root ban recurred in real transcripts despite v5's
+# prompt-level instruction): the "다행"-root guidance is now an explicit,
+# surface-form-enumerated prohibition instead of only the abstract
+# distinguishing principle, AND is now additionally enforced at the code
+# layer (`_banned_self_referential_relief_violation`, wired into `run()`'s
+# guard loop, degraded via the existing `_degrade_empathy_clause` splice
+# on retry-budget exhaustion — no new LLM call). Every other v5 section
+# (위기 인접 발화 처리 우선순위, 질문 의도 다양화, 6 절대 규칙, 1문장
+# 공감/1질문, BUG-030 no-literal-menu discipline) is unchanged.
+#
+# BUG-074 (2026-07-25, qa live repro `d2d9ba21`): v5.2 — addition-only over
+# v5.1 (v5.1 body byte-identical, see `prompts/dialogue/v5.2.system.md`'s own
+# changelog note) — adds exactly one new section, "환자 메타-발화 처리",
+# distinguishing a patient's self-disclosure (already covered by "공감
+# 캘리브레이션") from a meta-utterance about the conversation/agent itself
+# (e.g. "왜 자꾸 물어봐"), which the model previously misattributed as a
+# third-party disclosure and empathized with the wrong referent. No code-
+# level guard is added for this class this wave (prompt-only fix, per the
+# BUG's own routing) — unlike the v5.1 self-referential-relief case, there
+# is no cheap deterministic string check for "is this utterance about the
+# agent" the way there is for a fixed "다행" root.
+#
+# BUG-077 (2026-07-25, qa live re-verification `ad0da8c1`) / BUG-074
+# residual: v5.3 — addition-only over v5.2 (v5.2 body byte-identical, see
+# `prompts/dialogue/v5.3.system.md`'s own changelog note). Two prompt-level
+# changes: (1) "환자 메타-발화 처리" widened to recognize INDIRECT
+# repetition complaints ("아까도 말했잖아요" 류, not just direct "왜 자꾸
+# 물어봐" phrasing) + an explicit scope boundary so the section's
+# repeat-acknowledgment opener is never preemptively applied on a plain
+# turn that carries no actual meta-utterance (observed over-application,
+# `experiments/EXP-032_f1_reverify` t3); (2) "질문 의도 다양화" gains an
+# explicit instruction against substituting the assigned target topic with
+# a vague catch-all question. Item (1)/(2) are prompt-only (addition,
+# existing sections preserved verbatim per this file's own convention).
+# BUG-077 item (A)'s PRIMARY mechanism (user directive 2026-07-25: "don't
+# force behavior via isolated examples — check whether unnaturalness comes
+# FROM the forcing") is state-VISIBILITY, not a hard rule:
+# `_build_slot_context`/`_build_asked_topic_history` shows the model an
+# explicit filled/denied slot ledger + a literal question-answer history
+# (using `src.grounding.infer_literal_target_slot` — the SAME topic-keyword
+# definition `OrchestratorAgent`'s BUG-077 attribution fix uses, so "what
+# did this text literally ask about" cannot drift between the two call
+# sites) so the model can reason its own way out of repeating a generic
+# catch-all, instead of being told a rule from outside. `run()`'s guard
+# loop (`_resolve_round_robin_target`/`_is_catchall_question`/
+# `_count_prior_catchall_turns`/`_force_target_question`) is a SAFETY NET
+# only — it never intercepts a session's FIRST catch-all question at all
+# (gated on `prior_catchall_turns >= 1`), engaging only if the visibility
+# ledger turns out insufficient and the SAME generic-question shape recurs.
+#
+# BUG-078 CVR-055 #3 follow-up (2026-07-25, qa live re-verification
+# `ef4a2b55`, non-blocking part of the same wave as the blocking
+# `_advance_safety_probe` code fix — see `agents/orchestrator.py`): v5.4 —
+# the v5.2/v5.3 "환자 메타-발화 처리" sections' own worked-example sentences
+# ("같은 질문을 반복해서 불편하셨겠어요." / "같은 걸 다시 여쭤서
+# 불편하셨겠어요.") were reproduced VERBATIM by the model live, twice, on
+# two different turns (BUG-030-lineage prompt-example-anchoring recurrence
+# — the "문구 암기 금지" instruction sitting directly next to a single
+# copyable sentence did not prevent copying it). Unlike every prior
+# version in this file's history, this is NOT addition-only: the two
+# example bullets are replaced with an abstract shape/principle
+# description that gives the model no single quotable sentence to anchor
+# on, mirroring v4's BUG-030 fix for the (unrelated) empathy-calibration
+# examples. Every other line of both meta-utterance sections (판별 기준,
+# 공감 절감 지시, 금지 예시 안티패턴, 간접 문구 인지, 적용 범위 경계) is
+# unchanged — only the two "예시(형태만 참고, 문구 암기 금지)" bullets are
+# rewritten to describe the response's SHAPE (short repetition
+# acknowledgment, no third-party-referent phrasing, 1 sentence) instead of
+# supplying literal text. No other section of v5.3 changes.
+#
+# BUG-079 / REV-022 §4 (2026-07-25, user directive): v5.5 — the ONLY
+# section touched is "공감 캘리브레이션" (v5→v5.1's accumulated per-
+# incident additions — weight-proportional-length rule, 4 worked examples,
+# an anti-pattern paragraph, an explicit distinguishing-principle
+# paragraph — had grown into exactly the "누적 금지어·지침의 협착" REV-022
+# flagged). Replaced with a concise 1-2 sentence principle ("짧고 진심
+# 어린 인정 한 문장 후 자연스럽게 다음 질문으로; 과장·반복·형식적 공감
+# 금지") plus the ONE safety-critical enumerated ban CVR-039/CVR-041 kept
+# a live-verified finding for ("다행" root self-referential relief,
+# already double-defended at the code layer by `_banned_self_referential_
+# relief_violation`). No other content is lost — every other prior bullet
+# was pure prompt-level guidance never duplicated by a code guard, and the
+# new principle sentence still conveys the core intent (proportional,
+# non-repetitive, patient-directed acknowledgment). Every other section
+# (역할, 대화 스타일, 위기 인접 발화 처리 우선순위, 질문 의도 다양화, both
+# 환자 메타-발화 처리 sections, 세션 시작 인사, Safety 지시 우선 반영,
+# 절대 규칙 6개, 출력 형식) is byte-identical to v5.4.
+
+# BUG-085-follow-up (2026-07-25, user-reported live P0, session `04cfe927`):
+# v5.6 — two changes, both addition/replacement-only (no other section
+# touched). (1) "공감 캘리브레이션" is replaced with an abstract
+# utterance-type -> response-shape mapping principle (CVR-057's 6-type
+# discriminant table, condensed to principle language -- no literal
+# example sentences, per the same BUG-030 anchoring lesson v5.4/v5.5
+# already apply) -- the live session showed a FACT-only reply ("술과
+# 수면제 복용중이에요") and TWO distinct meta-utterance replies each
+# drawing high-intensity distress empathy ("정말 힘드실 것 같아요"),
+# which CVR-057 rates `inadequate` against its own discriminant table.
+# (2) "환자 메타-발화 처리" widened (principle-level, not a new literal
+# keyword list in the prompt -- the corresponding CODE-level gate,
+# `src.grounding._META_UTTERANCE_KEYWORDS`/`is_meta_utterance`, is
+# widened separately) to cover a THIRD meta-utterance shape this prompt
+# never named: complaints about the AGENT's OWN capability/memory
+# ("기억 못하시나요?", "너 못하냐고") -- same live session, turns 8/9,
+# neither a self/emotion disclosure nor a repetition complaint, and the
+# model responded to both as if they were emotional self-disclosure.
+PROMPT_VERSION = "v5.6"
+
+# BUG-085-follow-up (session `04cfe927`, probe-topic-mismatch guard):
+# stage-name -> question_hint lookup, sourced verbatim from
+# `safety_probe.PROBE_STAGES` (never independently invented) -- used by
+# `run()`'s exhaustion path to compose a deterministic, stage-bound
+# question when the model ignores `probe_instruction` and drifts onto an
+# unrelated topic for 2+ regeneration attempts (see `_force_probe_question`
+# below).
+_PROBE_STAGE_HINTS: dict[str, str] = dict(PROBE_STAGES)
 
 # 직접 질문하지 않는 슬롯 (관찰/자동생성/의료진 영역)
 _NO_QUESTION_SLOTS = {
@@ -186,7 +361,17 @@ _SLOT_QUESTION_GUIDE: dict[str, str] = {
     "encounter_metadata":         "(시스템 자동 수집 — 질문 불필요)",
     "chief_complaint":            "오늘 가장 도움받고 싶은 문제나 증상이 무엇인지",
     "history_of_present_illness": "증상이 언제부터 시작되었고 최근 좋아지는지 악화되는지, 일상생활(수면/식사/일/대인관계)에서 가장 영향 받은 부분",  # noqa: E501
-    "risk_assessment":            "안전 확인: 최근 스스로를 해치고 싶거나 죽고 싶다는 생각, 타해 충동 여부 (반드시 물어야 함)",  # noqa: E501
+    # CVR-056 finding 3: this guide previously packed BOTH self-harm/SI and
+    # other-directed-harm into one sentence — when composed verbatim into a
+    # single deterministic question (`_force_target_question`, or echoed by
+    # the model as a single-turn guide), that produces exactly the
+    # compound-question shape CVR-056 flagged live (`question_mark_count:
+    # 2`, self-harm and other-directed-harm mixed into one answer with no
+    # way to tell which was denied). Narrowed to SI/self-harm only — the
+    # single most safety-critical, single-topic screening question; a
+    # separate other-directed-harm exploration is out of this fix's scope
+    # (not previously asked as its own slot either).
+    "risk_assessment":            "안전 확인: 최근 스스로를 해치고 싶거나 죽고 싶다는 생각이 든 적이 있는지 (반드시 한 가지만 물어야 함)",  # noqa: E501
     "substance_use_history":      "최근 술, 수면제, 진정제, 카페인 등 증상에 영향 줄 수 있는 것 사용 여부",  # noqa: E501
     "past_psychiatric_history":   "현재 정신건강의학과 진료나 심리상담 여부, 진단받은 병명이 있는지, 기존 진료기록 확인",  # noqa: E501
     "medical_history":            "진단받은 신체질환이 있는지, 기존 처방 약 외 새로 복용 중인 약이나 변경된 약 여부",  # noqa: E501
@@ -196,6 +381,57 @@ _SLOT_QUESTION_GUIDE: dict[str, str] = {
     "clinical_assessment":        "(대화 종료 후 수집 정보 종합하여 생성. 직접 질문 불필요)",
     "treatment_plan":             "(의료진 영역. AI는 생성하지 않음. 질문 불필요)",
 }
+
+# BUG-084b (2026-07-25, user-reported live P0): short, natural-language
+# Korean topic labels for the 12 standard slot keys — used ONLY when a
+# LIST of missing/prior/remaining slot identifiers must be injected into
+# an LLM-facing prompt/hint (`_build_retry_hint`'s `exact_repeat`/
+# `question_repeat` branches, `_build_opening_context`'s prior-session
+# continuity line, `_build_slot_context`'s "이후 미수집" line, and this
+# turn's own "## 이번 턴: {target}" header). The pre-fix code joined RAW
+# English `SLOT_KEY` identifiers (`", ".join(missing)`) directly into
+# these strings with no "internal-only, do not echo" instruction — live
+# session `94f75e81` shows the model then echoed the raw list verbatim to
+# the patient ("risk_assessment, personal_social_history, family_history,
+# substance_use_history 중 아직 다루지 않은 슬롯이 있습니다"). Every
+# multi-slot-list injection site now renders through `_topic_list` below
+# instead of a raw key join, mirroring the discipline `_SLOT_QUESTION_
+# GUIDE`'s own natural-language phrasing already applies to the SINGLE
+# current-target case. Deliberately SHORT noun-phrase labels (not the
+# full `_SLOT_QUESTION_GUIDE` sentence) — these render inside a
+# comma-joined list, where a full guide sentence per item would be
+# unreadable/unwieldy; the single-target "질문 방향" line keeps using the
+# full guide text unchanged, only the list-of-multiple-slots sites change.
+_SLOT_TOPIC_LABELS: dict[str, str] = {
+    "encounter_metadata":         "기본 정보",
+    "chief_complaint":            "오늘 가장 힘든 문제",
+    "history_of_present_illness": "증상의 경과",
+    "risk_assessment":            "안전 확인",
+    "substance_use_history":      "음주·약물 사용 여부",
+    "past_psychiatric_history":   "정신과 진료 이력",
+    "medical_history":            "신체질환·복용 약",
+    "personal_social_history":    "주변 지지체계",
+    "family_history":             "가족력",
+    "mental_status_exam":         "정신상태 관찰",
+    "clinical_assessment":        "종합 평가",
+    "treatment_plan":             "치료 계획",
+}
+
+
+def _topic_label(slot: str | None) -> str:
+    """Natural-language topic label for a single slot key — falls back to
+    the raw key only when genuinely unrecognized (should not happen for
+    any of the 12 standard slots), never raising."""
+    if not slot:
+        return ""
+    return _SLOT_TOPIC_LABELS.get(slot, slot)
+
+
+def _topic_list(slots: list[str]) -> str:
+    """Comma-joined natural-language topic list for `slots` — the
+    BUG-084b-safe replacement for `", ".join(slots)` (raw key identifiers)
+    at every multi-slot prompt-injection site."""
+    return ", ".join(_topic_label(s) for s in slots)
 
 
 class DialogueAgent(BaseAgent):
@@ -354,7 +590,43 @@ class DialogueAgent(BaseAgent):
         session_clauses = self._exclude_degrade_marker_clauses(
             self._extract_used_empathy_clauses(inp.conversation_history),
         )
+        # BUG-048 Finding (b): the same FULL-session, unwindowed, no-dedup
+        # discipline as `session_clauses` above, but for the substantive
+        # (post-empathy) span — no degrade-marker exclusion needed here
+        # (that closed set is empathy-lead-in text only; it never matches a
+        # trailing question span).
+        session_question_clauses = self._extract_used_trailing_clauses(
+            inp.conversation_history
+        )
         crisis_adjacent = self._is_crisis_adjacent_turn(inp)
+
+        # BUG-077 item (A): resolve THIS turn's round-robin target the same
+        # way `_build_slot_context` does (BUG-056 union of the caller's
+        # `filled_slots` with the orchestrator's own `state.slot_data`) —
+        # None in opening/probe/summary-mode turns, where no round-robin
+        # target applies and the guard below is inert.
+        target_slot = self._resolve_round_robin_target(inp)
+
+        # BUG-085-follow-up (session `04cfe927`): the topic THIS turn's
+        # rendered probe question is expected to reflect, when
+        # `probe_instruction` is active (`target_slot` is None on these
+        # turns by design — see `_resolve_round_robin_target`, so the
+        # round-robin `target_mismatch`/`catchall_violation` guards are
+        # structurally inert here). `probe_instruction`'s own text embeds
+        # `PROBE_STAGES[stage_idx]`'s question_hint verbatim
+        # (`safety_probe.build_probe_instruction`) — reusing
+        # `infer_literal_probe_stage` on that text (the SAME primitive
+        # `OrchestratorAgent._advance_safety_probe` uses to validate a
+        # PRIOR turn's rendering) recovers the stage name without a new
+        # session_state field. None whenever this is not a probe turn, or
+        # the probe_instruction text itself doesn't literally name a stage
+        # (defensive — should not happen, `build_probe_instruction` always
+        # embeds one).
+        probe_instruction_text = (inp.session_state or {}).get("probe_instruction")
+        expected_probe_stage = (
+            infer_literal_probe_stage(str(probe_instruction_text))
+            if probe_instruction_text else None
+        )
 
         retry_count = 0
         retry_reasons: list[str] = []
@@ -386,30 +658,257 @@ class DialogueAgent(BaseAgent):
 
             candidate_clause = self._extract_leading_clause(llm_resp.assistant_response)
             is_empathy = self._is_empathy_clause(candidate_clause)
+            # CVR-041 pin (dialogue v5.1 re-gate): scan the FULL
+            # `assistant_response`, not just the leading clause — the
+            # prompt's own "다행" ban is stated as an exception-free
+            # absolute rule (position/surface-form unspecified), but the
+            # leading-clause-only scope left a same-turn SECOND clause
+            # (e.g. "...감사해요. 다행이네요. 언제부터...?") completely
+            # undetected. CVR-041 confirmed low false-positive risk: the
+            # "다행" root never overlaps the allowed "감사"/"~군요" families,
+            # so widening the scan does not risk flagging legitimate
+            # empathy content. NOTE (honest scope disclosure): the
+            # retry-budget-EXHAUSTION degrade path below
+            # (`_degrade_empathy_clause`) still only ever splices the
+            # LEADING-clause span — a violation caught SOLELY in a
+            # trailing clause, on the rare compound event of also
+            # exhausting both regeneration retries, would not be removed
+            # by the splice itself. This is unchanged, existing degrade
+            # scope (not widened this pass, per mission's "keep the
+            # degrade path intact") — the widened DETECTION here still
+            # forces the normal retry-regenerate path first, which is the
+            # primary defense and (per CVR-041) the one this pin actually
+            # targets.
+            self_ref_relief_violation = self._banned_self_referential_relief_violation(
+                llm_resp.assistant_response
+            )
             near_dup_reason = (
                 self._empathy_repetition_violation(candidate_clause, session_clauses)
                 if is_empathy else None
             )
             if near_dup_reason:
                 near_dup_detail.append({
+                    "kind": "empathy",
                     "reason": near_dup_reason,
                     "family": candidate_clause,
                     "count": self._family_count(candidate_clause, session_clauses),
                 })
+            # 4연속 verbatim 도입부 반복 (last-resort, independent of
+            # `is_empathy`) — see `_leading_prefix_repeat_violation`'s own
+            # docstring for the live repro this closes. Deliberately
+            # computed unconditionally (not gated on `is_empathy`), since
+            # the whole point is to catch a leading clause the marker-based
+            # `_is_empathy_clause` heuristic failed to classify.
+            leading_prefix_repeat = self._leading_prefix_repeat_violation(
+                candidate_clause, session_clauses,
+            )
+            # BUG-048 Finding (b): the guard above covers ONLY the leading
+            # empathy clause — a varying empathy lead-in previously let the
+            # SUBSTANTIVE follow-up-question sentence (the span after that
+            # lead-in, or the whole response when there is none) repeat
+            # byte-identically across non-adjacent turns, undetected (9x in
+            # EXP-028c). Same back-to-back/session-cap check
+            # (`_empathy_repetition_violation`'s body is generic over any
+            # clause + session-clause list, not empathy-specific), applied
+            # to the trailing/question span instead.
+            question_clause = self._extract_trailing_clause(llm_resp.assistant_response)
+            question_dup_reason = self._empathy_repetition_violation(
+                question_clause, session_question_clauses
+            )
+            if question_dup_reason:
+                near_dup_detail.append({
+                    "kind": "question",
+                    "reason": question_dup_reason,
+                    "family": question_clause,
+                    "count": self._family_count(question_clause, session_question_clauses),
+                })
             presence_missing = crisis_adjacent and not is_empathy
+            # Coordinator directive (2026-07-25, role-separation principle):
+            # checked ABOVE `isolation_reason` — a raw slot-key/internal-
+            # term leak is the single most severe interface-integrity
+            # breach this guard loop screens for (see `_internal_leak_
+            # violation`'s own docstring).
+            internal_leak = self._internal_leak_violation(llm_resp.assistant_response)
             isolation_reason = self._output_isolation_violation(
                 llm_resp.assistant_response, inp.filled_slots,
                 inp.slot_updates_this_turn, inp.user_message,
             )
+            # BUG-077 item (A) — SAFETY NET ONLY (user directive 2026-07-25):
+            # the PRIMARY mechanism is `_build_slot_context`'s state-
+            # visibility ledger (`_build_asked_topic_history` — shows the
+            # model its own already-asked topics, including a prior generic
+            # catch-all, so it can self-correct without a mechanical rule).
+            # This guard exists for when that visibility turns out
+            # insufficient in practice: it only engages once a generic
+            # catch-all has ALREADY occurred once this session
+            # (`prior_catchall_turns >= 1`) — the session's FIRST catch-all
+            # question is never intercepted here at all, exactly mirroring
+            # the ledger's own framing ("이미 한 번 범용 질문을 썼다면"). A
+            # round-robin turn (`target_slot` set) whose rendered question
+            # cannot be tied to ANY specific question-able slot topic
+            # (`infer_literal_target_slot` returns None) AND repeats a prior
+            # catch-all is the live repro's recurring-catch-all shape.
+            prior_catchall_turns = (
+                DialogueAgent._count_prior_catchall_turns(inp.conversation_history)
+                if target_slot is not None else 0
+            )
+            catchall_violation = (
+                target_slot is not None
+                and prior_catchall_turns >= 1
+                and self._is_catchall_question(llm_resp.assistant_response)
+            )
+            # User directive (2026-07-25, "슬롯 기반 유도 질문은 협상 불가 핵심
+            # 기능"): a non-crisis round-robin turn with a real target slot
+            # must always end in a question — a candidate that ships pure
+            # empathy with NO question at all is a defect in itself, not a
+            # style variance the near-dup/catch-all checks (which all
+            # require a "?" to even be evaluated) are equipped to catch.
+            # Live repro: session `db6da0e2` turn 4 shipped "잠을 잘 못
+            # 주무시고 짜증이 많이 나셨겠어요. 그럴 때는 정말 지치고
+            # 힘들죠." — zero "?", no guard fired (not near-dup, not
+            # catch-all, not output-isolation) — the model simply omitted
+            # the follow-up question the slot-collection flow requires.
+            # Deliberately the most conservative possible test (absence of
+            # ANY "?", not a topic/keyword heuristic) — per the same
+            # directive's false-positive-cost principle, this can only ever
+            # under-fire (miss a vague-but-technically-a-question reply),
+            # never over-fire and strip a genuine question.
+            question_missing = (
+                target_slot is not None
+                and "?" not in llm_resp.assistant_response
+            )
+            # CVR-056 finding 3 / REV-022 §4: the SI-screen/risk-targeted
+            # turn (either mechanism that can produce it — the forced probe
+            # path or the plain round-robin independently landing on
+            # `risk_assessment`, both of which set `risk_question_pending`
+            # True for THIS render, see `OrchestratorAgent._resolve_
+            # dialogue_probe_instruction`) must ask exactly ONE question.
+            # Live repro (`logs_run1_natural_requery` t5): a self-harm/SI
+            # question and an other-directed-harm question compounded into
+            # one turn (`question_mark_count: 2`) — a single denial reply
+            # cannot be attributed to either construct with confidence.
+            # Crisis-turn-scoped ONLY (never applied to ordinary chit-chat
+            # turns, per the user's anti-forcing principle) — general
+            # multi-question turns elsewhere are NOT this guard's concern.
+            # BUG-083 item 3 closure (2026-07-25, user-reported live P0,
+            # session `04cfe927`) / BUG-085-follow-up: this predicate was
+            # scoped to `risk_question_pending` ONLY (the mandatory SI
+            # screen OUTSIDE probe mode) — BUG-083's own resolution note
+            # already flagged this exact gap as open ("risk_question_
+            # missing/risk_compound_violation guards remain scoped to
+            # risk_question_pending only, probe_active turns still
+            # unguarded"). Live confirmation: session `04cfe927` turn 6 —
+            # the graduated Safety Probe (`probe_instruction` active,
+            # `target_slot` is None so `question_missing`/`catchall_
+            # violation` are also inert) shipped a candidate crammed with
+            # 5 question marks with NO guard able to even evaluate it,
+            # because `risk_compound_violation` alone required
+            # `risk_question_pending`, which is a DIFFERENT flag from
+            # `probe_instruction`/`probe_active`. Widened to treat any
+            # probe-active turn (`session_state["probe_instruction"]`
+            # truthy — the SAME signal `_resolve_round_robin_target` reads
+            # to null out `target_slot`) as risk-target-scoped too, so the
+            # existing `risk_compound_violation`/`risk_question_missing`
+            # guards (and their existing exhaustion-path composers) now
+            # also cover the 4-stage probe, closing the gap with zero new
+            # violation types.
+            is_risk_target_turn = bool(
+                (inp.session_state or {}).get("risk_question_pending")
+                or (inp.session_state or {}).get("probe_instruction")
+            )
+            risk_compound_violation = (
+                is_risk_target_turn
+                and llm_resp.assistant_response.count("?") >= 2
+            )
+            # BUG-082 (2026-07-25, live): `question_missing`'s own
+            # precondition (`target_slot is not None`) is structurally
+            # False on every probe-mode turn (`_resolve_round_robin_target`
+            # returns `None` whenever `probe_instruction`/an active SI
+            # screen is set, by design — see that method's docstring), so
+            # the ONLY question-presence guard active during an SI screen
+            # was `risk_compound_violation`, which only catches `count("?")
+            # >= 2` — a `count("?") == 0` candidate on an active SI-screen
+            # turn was invisible to BOTH guards simultaneously. Live repro:
+            # session `b28a1900...` turn 4, a genuine explicit SI denial
+            # got the reply "그런 변화가 있었군요." — zero "?", shipped
+            # unmodified, `risk_question_pending` left `True` indefinitely
+            # with no re-ask. Independent of `target_slot` by design (fix
+            # direction (a), not (b) — threading `target_slot="risk_
+            # assessment"` on probe turns risked reintroducing `target_
+            # mismatch`/`catchall_violation` false positives on those same
+            # turns, since those guards also key off `target_slot`).
+            risk_question_missing = (
+                is_risk_target_turn
+                and "?" not in llm_resp.assistant_response
+            )
+            # BUG-085-follow-up (session `04cfe927`, turns 7-10): a SEPARATE
+            # failure mode from `risk_question_missing`/`risk_compound_
+            # violation` above — the candidate contains exactly ONE question
+            # mark, so neither of those guards fires, but the question is
+            # about the WRONG topic: the model ignored `probe_instruction`'s
+            # assigned stage (live repro: stage was "plan" — "혹시 구체적인
+            # 계획을 생각해 본 적이 있는지" — but the rendered question asked
+            # a chief_complaint-shaped generic reflection, "가장 견디기
+            # 힘드신 점이 무엇인지", 4 turns straight). `target_slot`-scoped
+            # `catchall_violation`/`target_mismatch` cannot catch this
+            # (`target_slot` is None on every probe turn by design).
+            # `infer_literal_probe_stage` — the SAME primitive
+            # `OrchestratorAgent._advance_safety_probe` already uses to
+            # validate a PRIOR turn's rendering before scoring a reply
+            # against it — applied to THIS candidate detects when its
+            # question cannot be tied to the stage the model was told to
+            # ask about.
+            probe_topic_mismatch = (
+                expected_probe_stage is not None
+                and "?" in llm_resp.assistant_response
+                and infer_literal_probe_stage(llm_resp.assistant_response)
+                != expected_probe_stage
+            )
 
-            if isolation_reason:
-                violation: str | None = f"output_isolation_{isolation_reason}"
+            if internal_leak:
+                violation: str | None = "internal_leak"
+            elif isolation_reason:
+                violation = f"output_isolation_{isolation_reason}"
+            elif self_ref_relief_violation:
+                # CVR-039 finding 5 / PLAN-2026-W30 cluster B #2: banned
+                # counselor self-referential relief content ("다행"-root)
+                # must never ship — ranked above `presence_missing` (a
+                # candidate carrying this content already has an empathy
+                # clause per `_EMPATHY_MARKERS`, so `presence_missing`
+                # would not fire on it anyway; explicit ordering documents
+                # that this is the intended, higher-severity classification
+                # for that candidate) and above the near-dup/repeat checks
+                # (banned content is a content-correctness failure, not a
+                # variety failure).
+                violation = "self_referential_relief"
             elif presence_missing:
                 violation = "presence_missing"
+            elif risk_compound_violation:
+                violation = "risk_compound_question"
+            elif risk_question_missing:
+                violation = "risk_question_missing"
+            elif probe_topic_mismatch:
+                violation = "probe_topic_mismatch"
+            elif catchall_violation:
+                violation = "target_mismatch"
+            elif question_missing:
+                violation = "question_missing"
             elif is_repeated:
                 violation = "exact_repeat"
             elif near_dup_reason:
                 violation = f"near_dup_{near_dup_reason}"
+            elif leading_prefix_repeat:
+                violation = "leading_prefix_repeat"
+            elif question_dup_reason:
+                # Deliberately NOT prefixed "near_dup" — `_is_empathy_
+                # degradable` routes any `near_dup*` violation to the
+                # LEADING-empathy-clause text-surgery degrade path on
+                # budget exhaustion, which would ship the still-repeated
+                # question span byte-identical (its own hard constraint).
+                # This violation has no safe degrade; exhaustion falls
+                # through to `fall_through=True` (shipped + logged), same
+                # as any other non-degradable violation type.
+                violation = f"question_repeat_{question_dup_reason}"
             else:
                 violation = None
 
@@ -417,20 +916,181 @@ class DialogueAgent(BaseAgent):
                 break
 
             if retry_count >= _MAX_REGENERATION_ATTEMPTS:
-                if violation.startswith("output_isolation"):
-                    # BUG-037 exhaustion path: the violating text is NOT a
-                    # patient answer (it is internal clinical-note register
-                    # or a mechanical echo) — unlike the other three checks,
-                    # falling through and shipping it verbatim is not an
-                    # acceptable degrade. Ship a minimal neutral
+                if violation == "target_mismatch":
+                    # BUG-077 item (A) safety net (this branch is only
+                    # reachable when `prior_catchall_turns >= 1` — see the
+                    # `catchall_violation` computation above; the session's
+                    # first catch-all never reaches here at all): the retry
+                    # regenerations above already gave the model a chance to
+                    # self-correct using the visibility hint
+                    # (`_build_retry_hint`'s "target_mismatch" branch); once
+                    # that budget is exhausted on a REPEAT catch-all, force a
+                    # deterministic target-bound question instead of
+                    # shipping a third occurrence.
+                    degraded_text = DialogueAgent._force_target_question(
+                        llm_resp.assistant_response, target_slot,
+                    )
+                    logger.warning(
+                        "DialogueAgent target-binding safety net exhausted "
+                        "retry budget (%d) — this catch-all repeats a prior "
+                        "one this session — forcing a deterministic "
+                        "target-bound question instead of shipping another "
+                        "one, unresolved violation(s) %s",
+                        _MAX_REGENERATION_ATTEMPTS, retry_reasons + [violation],
+                    )
+                    retry_reasons.append(violation)
+                    exhaustion_degrade = violation
+                    exhaustion_degrade_phrase = target_slot
+                    llm_resp = DialogueLLMResponse(
+                        assistant_response=degraded_text,
+                        reason_summary=(
+                            "target-binding safety net exhausted retry "
+                            "budget — repeat catch-all question, "
+                            "deterministic target-bound question forced"
+                        ),
+                    )
+                    break
+                if violation == "risk_question_missing":
+                    # BUG-082 exhaustion path: mirrors `question_missing`'s
+                    # own forced-question fallback, but `target_slot` is
+                    # `None` on every probe-mode turn by design (see the
+                    # `risk_question_missing` computation above) — compose
+                    # the deterministic SI re-ask directly (`_SLOT_QUESTION_
+                    # GUIDE["risk_assessment"]`'s topic, not a raw slot-key
+                    # lookup against `None`) rather than passing `target_
+                    # slot` through unchanged.
+                    degraded_text = DialogueAgent._force_target_question(
+                        llm_resp.assistant_response, "risk_assessment",
+                    )
+                    logger.warning(
+                        "DialogueAgent risk-question-presence safety net "
+                        "exhausted retry budget (%d) — active SI-screen turn "
+                        "shipped zero question marks — forcing a "
+                        "deterministic SI re-ask, unresolved violation(s) %s",
+                        _MAX_REGENERATION_ATTEMPTS, retry_reasons + [violation],
+                    )
+                    retry_reasons.append(violation)
+                    exhaustion_degrade = violation
+                    exhaustion_degrade_phrase = "risk_assessment"
+                    llm_resp = DialogueLLMResponse(
+                        assistant_response=degraded_text,
+                        reason_summary=(
+                            "risk-question-presence guard exhausted retry "
+                            "budget — no question in candidate on an active "
+                            "SI-screen turn, deterministic SI re-ask forced"
+                        ),
+                    )
+                    break
+                if violation == "probe_topic_mismatch":
+                    # BUG-085-follow-up (session `04cfe927`): the retries
+                    # above already gave the model 2 chances to self-correct
+                    # onto `expected_probe_stage`'s topic via the hint below
+                    # — on exhaustion, compose the stage-bound question
+                    # deterministically instead of shipping another
+                    # off-topic rendering (same "never lose the mandated
+                    # topic" discipline `_force_target_question` applies to
+                    # round-robin turns, here applied to the probe's own
+                    # stage topic via `_force_probe_question`).
+                    degraded_text = DialogueAgent._force_probe_question(
+                        llm_resp.assistant_response, expected_probe_stage,
+                    )
+                    logger.warning(
+                        "DialogueAgent probe-topic safety net exhausted "
+                        "retry budget (%d) — candidate's question could not "
+                        "be tied to the assigned probe stage ('%s') — "
+                        "forcing a deterministic stage-bound question, "
+                        "unresolved violation(s) %s",
+                        _MAX_REGENERATION_ATTEMPTS, expected_probe_stage,
+                        retry_reasons + [violation],
+                    )
+                    retry_reasons.append(violation)
+                    exhaustion_degrade = violation
+                    exhaustion_degrade_phrase = expected_probe_stage
+                    llm_resp = DialogueLLMResponse(
+                        assistant_response=degraded_text,
+                        reason_summary=(
+                            "probe-topic guard exhausted retry budget — "
+                            "deterministic stage-bound question forced"
+                        ),
+                    )
+                    break
+                if violation == "question_missing":
+                    # User directive (2026-07-25): a collection turn's
+                    # fallback must NEVER drop the question — append a
+                    # deterministic target-bound question (same composer as
+                    # `target_mismatch`'s own forced path) rather than
+                    # shipping the empathy-only candidate as-is
+                    # (`fall_through` would otherwise ship exactly the
+                    # question-less text this guard exists to prevent).
+                    degraded_text = DialogueAgent._force_target_question(
+                        llm_resp.assistant_response, target_slot,
+                    )
+                    logger.warning(
+                        "DialogueAgent question-presence safety net exhausted "
+                        "retry budget (%d) — candidate had no question mark at "
+                        "all — forcing a deterministic target-bound question, "
+                        "unresolved violation(s) %s",
+                        _MAX_REGENERATION_ATTEMPTS, retry_reasons + [violation],
+                    )
+                    retry_reasons.append(violation)
+                    exhaustion_degrade = violation
+                    exhaustion_degrade_phrase = target_slot
+                    llm_resp = DialogueLLMResponse(
+                        assistant_response=degraded_text,
+                        reason_summary=(
+                            "question-presence guard exhausted retry budget — "
+                            "no question in candidate, deterministic "
+                            "target-bound question forced"
+                        ),
+                    )
+                    break
+                if violation == "risk_compound_question":
+                    # CVR-056 finding 3 / REV-022 §4: crisis-turn-scoped
+                    # question-count safety net — truncate to the FIRST
+                    # question span only (deterministic text surgery, no new
+                    # LLM call), same "never lose the question, never keep
+                    # more than the crisis-turn allows" discipline as the
+                    # other forced paths above.
+                    degraded_text = DialogueAgent._truncate_to_first_question(
+                        llm_resp.assistant_response,
+                    )
+                    logger.warning(
+                        "DialogueAgent risk-turn compound-question safety net "
+                        "exhausted retry budget (%d) — SI-screen turn asked "
+                        "%d questions — truncating to the first question only, "
+                        "unresolved violation(s) %s",
+                        _MAX_REGENERATION_ATTEMPTS,
+                        llm_resp.assistant_response.count("?"),
+                        retry_reasons + [violation],
+                    )
+                    retry_reasons.append(violation)
+                    exhaustion_degrade = violation
+                    exhaustion_degrade_phrase = None
+                    llm_resp = DialogueLLMResponse(
+                        assistant_response=degraded_text,
+                        reason_summary=(
+                            "risk-turn compound-question guard exhausted retry "
+                            "budget — truncated to the first question only"
+                        ),
+                    )
+                    break
+                if violation.startswith("output_isolation") or violation == "internal_leak":
+                    # BUG-037 exhaustion path (extended for `internal_leak`,
+                    # coordinator directive 2026-07-25): the violating text
+                    # is NOT a valid patient-facing message (internal
+                    # clinical-note register, a mechanical echo, or a raw
+                    # slot-key/internal-term leak) — unlike the other three
+                    # checks, falling through and shipping it verbatim is
+                    # not an acceptable degrade. Ship a minimal neutral
                     # continuation instead and flag it distinctly from
                     # `fall_through` (whose field contract specifically
                     # means "the violating text was shipped anyway" — that
                     # is precisely what must NOT happen here).
                     logger.warning(
-                        "DialogueAgent output-isolation guard exhausted retry "
-                        "budget (%d) — shipping neutral fallback instead of "
-                        "violating text, unresolved violation(s) %s",
+                        "DialogueAgent output-isolation/internal-leak guard "
+                        "exhausted retry budget (%d) — shipping neutral "
+                        "fallback instead of violating text, unresolved "
+                        "violation(s) %s",
                         _MAX_REGENERATION_ATTEMPTS, retry_reasons + [violation],
                     )
                     retry_reasons.append(violation)
@@ -438,9 +1098,66 @@ class DialogueAgent(BaseAgent):
                     llm_resp = DialogueLLMResponse(
                         assistant_response=_OUTPUT_ISOLATION_FALLBACK_RESPONSE,
                         reason_summary=(
-                            "output-isolation guard exhausted retry budget — "
-                            "neutral fallback shipped instead of clinical-note/"
-                            "echo text"
+                            "output-isolation/internal-leak guard exhausted "
+                            "retry budget — neutral fallback shipped instead "
+                            "of clinical-note/echo/internal-identifier text"
+                        ),
+                    )
+                    break
+                if target_slot is not None and (
+                    violation.startswith("question_repeat") or question_dup_reason
+                ):
+                    # BUG-084a (2026-07-25, user-reported live P0, session
+                    # `94f75e81`): the repeated CONTENT here is the
+                    # QUESTION, not the empathy lead-in — `_degrade_empathy_
+                    # clause` only ever splices the leading-clause span
+                    # BYTE-IDENTICAL from the terminal punctuation onward
+                    # (its own hard constraint), so routing a question-
+                    # content repeat through it ships the same
+                    # already-answered/already-grounded question verbatim
+                    # with only the empathy phrase swapped — exactly the
+                    # live symptom ("...substance_use_history grounded as a
+                    # bare denial... no re-ask needed" immediately followed
+                    # by the SAME substance-use question shipped again).
+                    # This fires whenever the CURRENT candidate's question
+                    # span repeats (either the `question_repeat_*` violation
+                    # itself, which `_is_empathy_degradable` never matches
+                    # and would otherwise fall through unresolved — see
+                    # that violation's own `elif` comment above — OR a
+                    # `near_dup_*` empathy-clause violation whose trailing
+                    # question ALSO independently repeats this same
+                    # iteration, `question_dup_reason`, which previously lost
+                    # to `_degrade_empathy_clause`'s empathy-only splice).
+                    # `target_slot` (this turn's own already-resolved
+                    # round-robin target — by construction NOT an
+                    # already-grounded/already-filled slot, see
+                    # `_resolve_round_robin_target`/`compute_target_slot`)
+                    # is used to force a fresh, on-topic, deterministic
+                    # question via the SAME composer `target_mismatch`'s own
+                    # exhaustion path uses — a genuine topic-switch away
+                    # from whatever slot the model kept repeating, never a
+                    # cosmetic empathy-only substitution.
+                    degraded_text = DialogueAgent._force_target_question(
+                        llm_resp.assistant_response, target_slot,
+                    )
+                    logger.warning(
+                        "DialogueAgent question-repeat safety net exhausted "
+                        "retry budget (%d) — repeated question content "
+                        "targeting an already-answered/already-grounded "
+                        "topic — forcing a deterministic different-topic "
+                        "question instead of an empathy-only degrade, "
+                        "unresolved violation(s) %s",
+                        _MAX_REGENERATION_ATTEMPTS, retry_reasons + [violation],
+                    )
+                    retry_reasons.append(violation)
+                    exhaustion_degrade = violation
+                    exhaustion_degrade_phrase = target_slot
+                    llm_resp = DialogueLLMResponse(
+                        assistant_response=degraded_text,
+                        reason_summary=(
+                            "question-repeat guard exhausted retry budget — "
+                            "deterministic target-bound question forced "
+                            "instead of an empathy-only degrade"
                         ),
                     )
                     break
@@ -496,7 +1213,7 @@ class DialogueAgent(BaseAgent):
                 "DialogueAgent guard violation (%s) — retry %d/%d",
                 violation, retry_count, _MAX_REGENERATION_ATTEMPTS,
             )
-            hint = self._build_retry_hint(violation, inp, candidate_clause)
+            hint = self._build_retry_hint(violation, inp, candidate_clause, target_slot)
             messages[-1] = ChatMessage(role="user", content=inp.user_message + hint)
             retry_started = time.perf_counter()
             try:
@@ -526,6 +1243,25 @@ class DialogueAgent(BaseAgent):
 
         latency_ms = (time.perf_counter() - started) * 1000
 
+        # CVR-057 qa recommendation #3 (2026-07-25, session `04cfe927`):
+        # log which of the 6 discriminant-table utterance types THIS
+        # turn's patient message was classified as, and whether the
+        # shipped response opened with an empathy clause — telemetry
+        # only, does not gate/alter the response, and is deliberately
+        # NOT added to `DialogueOutput`'s wire schema (no downstream
+        # contract change, ai-server-internal audit trail only per this
+        # mission's scope). Enables the future live-data audit CVR-057
+        # asks for ("판별표 준수 여부를 라이브 데이터로 자동 감사").
+        shipped_empathy = DialogueAgent._is_empathy_clause(
+            DialogueAgent._extract_leading_clause(llm_resp.assistant_response)
+        )
+        logger.info(
+            "DialogueAgent utterance_type_classified=%s empathy_shipped=%s "
+            "(CVR-057 telemetry, non-blocking)",
+            DialogueAgent._classify_utterance_type(inp.user_message, crisis_adjacent),
+            shipped_empathy,
+        )
+
         # Dialogue는 응답만 반환 — slot 추출/coverage/risk 판단은 하지 않음
         return DialogueOutput(
             model_used=resp.model,
@@ -551,15 +1287,32 @@ class DialogueAgent(BaseAgent):
         )
 
     @classmethod
-    def missing_questionable_slots(cls, filled_slots: dict[str, str]) -> list[str]:
-        """Return question-able slots not yet filled, essential slots first."""
+    def missing_questionable_slots(
+        cls,
+        filled_slots: dict[str, str],
+        deferred_slots: set[str] | frozenset[str] | None = None,
+    ) -> list[str]:
+        """Return question-able slots not yet filled, essential slots first.
+
+        `deferred_slots` (Cluster A, asked-slot generalized fix, additive):
+        slots the orchestrator has given up re-asking after
+        `_ASK_DEFER_THRESHOLD` unanswered attempts — excluded from the
+        round-robin the same way an already-filled slot is, so dialogue
+        steering stops re-selecting them for the rest of the session.
+        `risk_assessment` is never expected in this set (governed by the
+        Cluster C probe/termination gate instead), but no special-casing
+        is needed here — a caller simply never puts it in the set.
+        """
+        deferred = deferred_slots or frozenset()
         filled_keys = {k for k, v in filled_slots.items() if v and k in _ALL_SLOTS}
         questionable_essential = [s for s in _ESSENTIAL_SLOTS if s not in _NO_QUESTION_SLOTS]
-        missing_essential = [s for s in questionable_essential if s not in filled_keys]
+        missing_essential = [
+            s for s in questionable_essential if s not in filled_keys and s not in deferred
+        ]
         missing_other = [
             s for s in _ALL_SLOTS
             if s not in _ESSENTIAL_SLOTS and s not in filled_keys
-            and s not in _NO_QUESTION_SLOTS
+            and s not in _NO_QUESTION_SLOTS and s not in deferred
         ]
         return missing_essential + missing_other
 
@@ -568,14 +1321,18 @@ class DialogueAgent(BaseAgent):
         cls,
         filled_slots: dict[str, str],
         conversation_history: list[dict[str, str]] | None,
+        deferred_slots: set[str] | frozenset[str] | None = None,
     ) -> str | None:
         """Deterministic round-robin target slot for this turn (None = all filled).
 
-        Exposed so the F1 pipeline can record which slot the dialogue targeted
-        each turn (needed by the grounding filter's ask-evidence rule). The
-        result matches _build_slot_context exactly for the same inputs.
+        Exposed so the F1 pipeline (and now `OrchestratorAgent`, Cluster A)
+        can record which slot the dialogue targeted each turn (needed by
+        the grounding filter's ask-evidence rule / the asked-slot
+        deferral counter). The result matches _build_slot_context exactly
+        for the same inputs. See `missing_questionable_slots` for
+        `deferred_slots` semantics.
         """
-        all_missing = cls.missing_questionable_slots(filled_slots)
+        all_missing = cls.missing_questionable_slots(filled_slots, deferred_slots=deferred_slots)
         if not all_missing:
             return None
 
@@ -601,6 +1358,172 @@ class DialogueAgent(BaseAgent):
                 target = all_missing[idx]
 
         return target
+
+    # ── BUG-077 item (A): target-binding guard primitives ───────────────
+
+    @classmethod
+    def _resolve_round_robin_target(cls, inp: DialogueInput) -> str | None:
+        """The round-robin target THIS turn's rendered question is
+        expected to reflect — same BUG-056 union (`session_state["slot_
+        data"]` ∪ caller `filled_slots`) and `compute_target_slot` call
+        `_build_slot_context` uses to build its own "이번 턴: {target}에
+        대해 질문하세요" instruction, so the guard below validates the
+        model's OUTPUT against the exact target the prompt was told to
+        steer toward. Returns None on opening/probe-mode turns (no
+        round-robin target applies there — the guard is inert)."""
+        session_state = inp.session_state or {}
+        if session_state.get("opening_turn") or session_state.get("probe_instruction"):
+            return None
+        deferred_slots = set(session_state.get("deferred_slots") or [])
+        orchestrator_slot_data = session_state.get("slot_data") or {}
+        unioned_filled = {**orchestrator_slot_data, **inp.filled_slots}
+        return cls.compute_target_slot(
+            unioned_filled, inp.conversation_history, deferred_slots=deferred_slots,
+        )
+
+    @staticmethod
+    def _build_asked_topic_history(
+        conversation_history: list[dict[str, str]] | None,
+    ) -> list[str]:
+        """BUG-077 item (A), state-visibility primary mechanism (user
+        directive 2026-07-25): pair each prior assistant turn with the
+        patient's following reply and infer WHICH slot topic the assistant
+        turn literally asked about (`infer_literal_target_slot` — the same
+        primitive `OrchestratorAgent`'s BUG-077 attribution fix uses, so
+        this ledger cannot disagree with the code's own denial-attribution
+        logic). A turn whose literal text resolves to no specific slot is
+        shown as "(특정 주제 없는 범용 질문)" rather than silently omitted —
+        the model needs to SEE that it already used a generic question once
+        in order to reason its own way out of repeating it, rather than a
+        rule enforcing that from outside. Capped to the last 6 pairs (avoid
+        unbounded prompt growth on long sessions)."""
+        if not conversation_history:
+            return []
+        pairs: list[str] = []
+        pending_question: str | None = None
+        for m in conversation_history:
+            role = m.get("role")
+            content = (m.get("content") or "").strip()
+            if not content:
+                continue
+            if role == "assistant":
+                pending_question = content
+            elif role == "user" and pending_question is not None:
+                slot = infer_literal_target_slot(pending_question)
+                label = (
+                    _SLOT_QUESTION_GUIDE.get(slot, slot)
+                    if slot else "(특정 주제 없는 범용 질문)"
+                )
+                reply_gist = content if len(content) <= 40 else content[:40] + "..."
+                pairs.append(f'  - {label} → 환자 응답: "{reply_gist}"')
+                pending_question = None
+        return pairs[-6:]
+
+    @staticmethod
+    def _is_catchall_question(text: str) -> bool:
+        """BUG-077: True when `text`'s substantive/question span cannot be
+        tied (via `infer_literal_target_slot`) to any specific
+        question-able slot topic — the shape symptomatic of the BUG-077
+        repro's repeated "혹시 다른 증상이나 걱정되는 부분은 없으신가요?"
+        catch-all. Only meaningful on a round-robin turn (a specific target
+        was assigned) — callers gate this on `target_slot is not None`."""
+        if not text or "?" not in text:
+            return False
+        span = DialogueAgent._extract_trailing_clause(text) or text
+        return infer_literal_target_slot(span) is None
+
+    @staticmethod
+    def _count_prior_catchall_turns(
+        conversation_history: list[dict[str, str]] | None,
+    ) -> int:
+        """BUG-077 session-level cap: count of PRIOR assistant turns this
+        session whose rendered text was itself a generic catch-all
+        question (per `_is_catchall_question`) — used to allow exactly one
+        per session before the exhaustion path force-degrades any further
+        occurrence."""
+        if not conversation_history:
+            return 0
+        return sum(
+            1
+            for m in conversation_history
+            if m.get("role") == "assistant"
+            and DialogueAgent._is_catchall_question(m.get("content", ""))
+        )
+
+    @staticmethod
+    def _force_target_question(assistant_response: str, target_slot: str | None) -> str:
+        """BUG-077 item (A) exhaustion path (session-level catch-all cap):
+        deterministically composes a question that literally names
+        `target_slot`'s own guide topic, preserving the candidate's
+        leading clause (empathy lead-in, if any — same splice mechanism
+        `_degrade_empathy_clause` uses via `_splice_point`) so only the
+        QUESTION span is replaced. Zero new LLM call. Used only once the
+        retry budget is exhausted AND a generic catch-all question has
+        already shipped once this session (the session-level cap) — the
+        session's first catch-all is instead tolerated via fall-through.
+
+        BUG-079 (user directive 2026-07-25): composed as a literal "?"
+        question ("...대해 여쭤봐도 될까요?"), not a declarative "I'd like
+        to ask about..." statement — this is now also the shared exhaustion
+        fallback for `question_missing`, whose whole contract is "the
+        shipped text must contain a question"; a declarative composition
+        would defeat its own guard.
+
+        BUG-082 note: `_SLOT_QUESTION_GUIDE["risk_assessment"]` carries a
+        trailing parenthetical that is an internal composer instruction
+        ("(반드시 한 가지만 물어야 함)"), not patient-facing content — strip
+        any trailing " (...)" annotation before composing so it never leaks
+        into the deterministic question text shipped to the patient."""
+        guide = _SLOT_QUESTION_GUIDE.get(target_slot or "", target_slot or "")
+        guide = re.sub(r"\s*\([^()]*\)\s*$", "", guide).strip()
+        question = f"{guide}에 대해 여쭤봐도 될까요?"
+        end = DialogueAgent._splice_point(assistant_response)
+        if end is not None:
+            leading = assistant_response[: end + 1].strip()
+            if leading:
+                return f"{leading} {question}"
+        return question
+
+    @staticmethod
+    def _force_probe_question(
+        assistant_response: str, expected_probe_stage: str | None,
+    ) -> str:
+        """BUG-085-follow-up (session `04cfe927`) exhaustion path for
+        `probe_topic_mismatch`: deterministically composes a question
+        naming `expected_probe_stage`'s own `PROBE_STAGES` hint (the SAME
+        text `safety_probe.build_probe_instruction` embeds into the
+        prompt directive), preserving the candidate's leading clause via
+        the same splice mechanism `_force_target_question` uses. Zero new
+        LLM call. Falls back to a generic (but still on-topic-neutral,
+        never a chief_complaint-style substitute) safety-check phrasing
+        if `expected_probe_stage` is somehow unrecognized (defensive —
+        should not happen, this is only ever called when the caller's own
+        `probe_topic_mismatch` computation found a non-None expected
+        stage)."""
+        hint = _PROBE_STAGE_HINTS.get(expected_probe_stage or "", "")
+        question = f"{hint} 여쭤봐도 될까요?" if hint else "조금 더 자세히 말씀해 주시겠어요?"
+        end = DialogueAgent._splice_point(assistant_response)
+        if end is not None:
+            leading = assistant_response[: end + 1].strip()
+            if leading:
+                return f"{leading} {question}"
+        return question
+
+    @staticmethod
+    def _truncate_to_first_question(assistant_response: str) -> str:
+        """CVR-056 finding 3 exhaustion path: keep everything up to and
+        including the FIRST "?" only, dropping any second (or further)
+        question span — deterministic text surgery, zero new LLM call.
+        Used only on the crisis/SI-screen turn (`risk_compound_question`),
+        never on an ordinary collection turn. Falls back to returning the
+        text unchanged if it somehow contains no "?" at all (defensive —
+        this violation type is only ever computed on text with
+        `count("?") >= 2`, so this branch should be unreachable in
+        practice)."""
+        idx = assistant_response.find("?")
+        if idx == -1:
+            return assistant_response
+        return assistant_response[: idx + 1].strip()
 
     # ── BUG-030 iter-2 / BUG-035 guard primitives ──────────────────────
     # (`_archive/plans/fix_design_bug030_iter2.md` §1/§4/§5, ADR-029)
@@ -650,6 +1573,43 @@ class DialogueAgent(BaseAgent):
         return bool(clause) and any(m in clause for m in _EMPATHY_MARKERS)
 
     @staticmethod
+    def _banned_self_referential_relief_violation(text: str) -> bool:
+        """CVR-039 finding 5 / PLAN-2026-W30 cluster B #2
+        (`experiments/EXP-030/plan.md` §3): does `text` carry counselor
+        self-referential relief content ("다행"-root — e.g.
+        "다행이에요"/"다행입니다"/"다행이네요")? This is the content-level
+        ban CVR-038 finding 1 already stated at the prompt layer (v5's
+        공감 캘리브레이션 section) but which CVR-039's real transcripts
+        show the model does not reliably follow (B1/B2/B3 recurrence) —
+        `_EMPATHY_MARKERS` only detects empathy-clause PRESENCE, never
+        banned CONTENT (plan.md §3 cluster B row, CONFIRMED gap); this
+        closes that gap deterministically.
+
+        Deliberately root-only (`_BANNED_SELF_REFERENTIAL_RELIEF_MARKERS`
+        = `("다행",)`), not a "다행 root + separately-detected positive
+        frame" compound check: "다행" itself always denotes the
+        speaker's own relief/fortunate framing in Korean, so no extra
+        polarity signal is needed to disambiguate it, and it never
+        overlaps the allowed "감사"-root patient-directed gratitude
+        family (CVR-038's own distinguishing example swap) — a
+        legitimate "감사해요"/"그런 변화가 있었군요" clause cannot match.
+
+        CVR-041 pin (widened scope, EXP-030 pin-fix wave): scans the
+        caller-supplied `text` verbatim — the caller now passes the FULL
+        `assistant_response`, not just the leading clause, closing
+        CVR-041 finding 1 (a same-turn SECOND clause carrying "다행" went
+        completely undetected under the old leading-clause-only scope).
+        CVR-041 confirmed this widening carries low false-positive risk
+        (the "다행" root never overlaps the allowed "감사"/"~군요"
+        families). The retry-EXHAUSTION degrade path
+        (`_degrade_empathy_clause`) still only splices the leading-clause
+        span — see the call site's own comment for that residual, honestly
+        disclosed scope boundary."""
+        return bool(text) and any(
+            m in text for m in _BANNED_SELF_REFERENTIAL_RELIEF_MARKERS
+        )
+
+    @staticmethod
     def _extract_used_empathy_clauses(
         conversation_history: list[dict[str, str]] | None,
     ) -> list[str]:
@@ -683,6 +1643,44 @@ class DialogueAgent(BaseAgent):
         for m in conversation_history:
             if m.get("role") == "assistant":
                 clause = DialogueAgent._extract_leading_clause(m["content"])
+                if clause:
+                    used.append(clause)
+        return used
+
+    @staticmethod
+    def _extract_trailing_clause(text: str) -> str:
+        """BUG-048 Finding (b): the substantive span AFTER any leading
+        clause — the SAME boundary `_extract_leading_clause` locates
+        (`_leading_clause_boundary`), sliced from the other side. When
+        there is no leading-clause boundary (the response opens directly
+        with '?', or has no terminal punctuation at all — `_extract_
+        leading_clause`'s own "" case), the trailing clause IS the whole
+        response: there is no prefix to strip."""
+        stripped = text.strip()
+        if not stripped:
+            return ""
+        end = _leading_clause_boundary(stripped)
+        if end is None:
+            return stripped
+        return stripped[end + 1 :].strip()
+
+    @staticmethod
+    def _extract_used_trailing_clauses(
+        conversation_history: list[dict[str, str]] | None,
+    ) -> list[str]:
+        """BUG-048 Finding (b): mirrors `_extract_used_empathy_clauses`
+        exactly (full-session, unwindowed, no dedup — every prior
+        assistant turn's trailing/substantive clause, in chronological
+        order, including exact repeats) but for the post-empathy span, so
+        the session-cap/back-to-back check below can catch a repeated
+        follow-up QUESTION even while the empathy lead-in legitimately
+        varies turn to turn."""
+        used: list[str] = []
+        if not conversation_history:
+            return used
+        for m in conversation_history:
+            if m.get("role") == "assistant":
+                clause = DialogueAgent._extract_trailing_clause(m["content"])
                 if clause:
                     used.append(clause)
         return used
@@ -745,6 +1743,38 @@ class DialogueAgent(BaseAgent):
         if prior_family_count >= 2:
             return "session_cap"
         return None
+
+    @staticmethod
+    def _leading_prefix_repeat_violation(
+        candidate_clause: str, session_clauses: list[str],
+    ) -> bool:
+        """Last-resort safety net (2026-07-25, live re-verification):
+        `_empathy_repetition_violation` above only ever runs when
+        `_is_empathy_clause(candidate_clause)` is True — a phrase whose
+        leading clause functions as an empathy lead-in but does not
+        literally contain one of `_EMPATHY_MARKERS`' fixed substrings
+        (live repro: "잠 못 드는 상황이 계속되면 마음이 지칠 수 있어요" —
+        "지칠" does not match the marker list's "지치셨"/"지치시") is
+        invisible to that guard entirely, and to `exact_repeat` too (the
+        FULL response differs — only the leading clause repeats). Shipped
+        byte-identically 4 turns in a row live, despite the prompt-level
+        state-visibility X-list (`_build_slot_context`'s "이미 사용했으므로
+        절대 다시 사용하지 마세요") already showing it every turn.
+
+        Per the user's stated priority (state-visibility first, hard guard
+        only as a last resort): fires ONLY once the CURRENT candidate would
+        be the 3rd byte-identical occurrence IN A ROW (not `_empathy_
+        repetition_violation`'s single-prior-use `back_to_back`, and
+        independent of `_is_empathy_clause`) — deliberately the narrowest
+        possible trigger, so it can only ever catch a genuine, already-
+        repeated-twice verbatim prefix, never a stylistic near-miss."""
+        if not candidate_clause or len(session_clauses) < 2:
+            return False
+        clause = candidate_clause.strip()
+        return (
+            session_clauses[-1].strip() == clause
+            and session_clauses[-2].strip() == clause
+        )
 
     @staticmethod
     def _family_count(candidate_clause: str, session_clauses: list[str]) -> int:
@@ -815,10 +1845,23 @@ class DialogueAgent(BaseAgent):
         `near_dup_*`, `presence_missing`, `exact_repeat`.
         `output_isolation_*` is handled by its own, higher-priority Fix-3
         exhaustion branch and never reaches this check (see `run()`'s
-        exhaustion dispatch, which tests `output_isolation` first)."""
+        exhaustion dispatch, which tests `output_isolation` first).
+        `self_referential_relief` added (CVR-039 finding 5 / PLAN-2026-W30
+        cluster B #2): the banned "다행"-root clause is itself an empathy
+        clause per `_EMPATHY_MARKERS` (added for exactly this purpose), so
+        `_degrade_empathy_clause` REPLACES it with a pool phrase rather
+        than merely prepending one — the banned text must not ship at
+        all, not just be preceded by something else. `leading_prefix_
+        repeat` added (2026-07-25, live): the guard's whole definition IS
+        "this leading clause is the 3rd byte-identical occurrence in a
+        row" — always safe to REPLACE (see `_degrade_empathy_clause`'s
+        own override for this violation type, which skips the `_is_
+        empathy_clause` gate other REPLACE cases require)."""
         return (
             violation == "presence_missing"
             or violation == "exact_repeat"
+            or violation == "self_referential_relief"
+            or violation == "leading_prefix_repeat"
             or violation.startswith("near_dup")
         )
 
@@ -845,9 +1888,10 @@ class DialogueAgent(BaseAgent):
         - `presence_missing`: by definition no leading clause was
           detected on this candidate (that IS the violation) — always
           PREPEND.
-        - `near_dup_*` / `exact_repeat`: REPLACE the leading-clause span,
-          but ONLY if that span itself reads as empathy content per
-          `_is_empathy_clause` (CVR-014 finding CF1 fix, `docs/ai/
+        - `near_dup_*` / `exact_repeat` / `self_referential_relief`:
+          REPLACE the leading-clause span, but ONLY if that span itself
+          reads as empathy content per `_is_empathy_clause` (CVR-014
+          finding CF1 fix, `docs/ai/
           fix_design_exhaustion_bug037.md` §3 — a comma-joined response
           with TWO questions, the first terminated by its own `.` before
           a second, later `?`, gives `_splice_point` a valid index whose
@@ -869,9 +1913,58 @@ class DialogueAgent(BaseAgent):
             end = DialogueAgent._splice_point(assistant_response)
             if end is not None:
                 leading_span = DialogueAgent._extract_leading_clause(assistant_response)
-                if DialogueAgent._is_empathy_clause(leading_span):
+                # `leading_prefix_repeat`'s own definition already IS "this
+                # leading clause is a byte-identical repeat" — no need for
+                # (and no reliance on) the marker-based `_is_empathy_clause`
+                # test other violation types require before a safe REPLACE.
+                if (
+                    violation == "leading_prefix_repeat"
+                    or DialogueAgent._is_empathy_clause(leading_span)
+                ):
                     return phrase + assistant_response[end:], phrase
         return f"{phrase}. {assistant_response}", phrase
+
+    # CVR-057's 6-type discriminant table, condensed to short internal
+    # labels for the telemetry log field only (never patient-facing, never
+    # used to gate a response — see `_classify_utterance_type`'s own
+    # docstring for the full mapping and its honest accuracy caveat).
+    _UTTERANCE_TYPE_CRISIS = "crisis"
+    _UTTERANCE_TYPE_META = "meta_utterance"
+    _UTTERANCE_TYPE_SHORT_ANSWER = "short_answer"
+    _UTTERANCE_TYPE_FACT_RESPONSE = "fact_response"
+    _UTTERANCE_TYPE_EMOTION_DISCLOSURE = "emotion_disclosure"
+    _SHORT_ANSWER_MAX_LEN = 6
+
+    @staticmethod
+    def _classify_utterance_type(patient_message: str, crisis_adjacent: bool) -> str:
+        """CVR-057 qa recommendation #3 (`discussion.md`, 2026-07-25):
+        best-effort classification of `patient_message` into ONE of
+        CVR-057's 6-type discriminant table, using signals already
+        computed elsewhere in this module/pipeline (no new LLM call, no
+        new heuristic beyond what already exists). Honest scope
+        disclosure: this collapses CVR-057's own types 5 ("민감/취약
+        공개") into `emotion_disclosure` (no reliable code-level signal
+        distinguishes "trauma/dependence disclosure" from ordinary
+        emotional disclosure without a dedicated classifier this mission
+        does not add) — logged for future live-data audit, not treated as
+        a precise ground truth. Priority order mirrors the table's own
+        severity ordering (crisis > meta > short > fact > emotion, the
+        most specific/highest-stakes signal wins when several could
+        apply)."""
+        text = (patient_message or "").strip()
+        if not text:
+            return DialogueAgent._UTTERANCE_TYPE_SHORT_ANSWER
+        if crisis_adjacent:
+            return DialogueAgent._UTTERANCE_TYPE_CRISIS
+        if is_meta_utterance(text):
+            return DialogueAgent._UTTERANCE_TYPE_META
+        if len(text) <= DialogueAgent._SHORT_ANSWER_MAX_LEN:
+            return DialogueAgent._UTTERANCE_TYPE_SHORT_ANSWER
+        if not any(m in text for m in _EMPATHY_MARKERS) and not any(
+            w in text for w in ("힘들", "우울", "불안", "무섭", "지치", "슬프", "괴로")
+        ):
+            return DialogueAgent._UTTERANCE_TYPE_FACT_RESPONSE
+        return DialogueAgent._UTTERANCE_TYPE_EMOTION_DISCLOSURE
 
     @staticmethod
     def _is_crisis_adjacent_turn(inp: DialogueInput) -> bool:
@@ -971,24 +2064,142 @@ class DialogueAgent(BaseAgent):
         return None
 
     @staticmethod
+    def _internal_leak_violation(assistant_response: str) -> bool:
+        """Coordinator directive (2026-07-25, role-separation principle,
+        BUG-084b follow-on): the patient-facing `assistant_response` must
+        never expose slot-layer internal machinery — a raw `SLOT_KEY`
+        English identifier (e.g. "risk_assessment") or the internal terms
+        "슬롯"/"coverage"/"grounding" — regardless of source. BUG-084b
+        closed the ROOT CAUSE (this module's own prompt-injection sites no
+        longer hand the model raw identifiers to copy); this is a
+        defense-in-depth OUTPUT-level guard for the residual case of the
+        model spontaneously generating one anyway, mirroring `_output_
+        isolation_violation`'s own "must never ship" severity."""
+        if not assistant_response:
+            return False
+        if any(key in assistant_response for key in _ALL_SLOTS):
+            return True
+        return any(term in assistant_response for term in ("슬롯", "coverage", "grounding"))
+
+    @staticmethod
     def _build_retry_hint(
         violation: str, inp: DialogueInput, candidate_clause: str,
+        target_slot: str | None = None,
     ) -> str:
         """Runtime hint injected into the per-call user_message (code, not
         a prompt-file edit — same mechanism as the pre-existing
         exact-repeat hint)."""
+        deferred_slots = set((inp.session_state or {}).get("deferred_slots") or [])
+        if violation == "question_missing":
+            # User directive (2026-07-25): slot-based guided questioning is
+            # a non-negotiable core function — a response must never end
+            # without a follow-up question while slots remain uncollected.
+            guide = _SLOT_QUESTION_GUIDE.get(target_slot or "", "")
+            return (
+                "\n\n[주의: 방금 응답에 질문이 전혀 없습니다. 공감 표현만으로 "
+                "끝내지 말고, 반드시 다음 주제에 대한 질문 1개로 마무리하세요 — "
+                f"{guide}]"
+            )
+        if violation == "risk_compound_question":
+            return (
+                "\n\n[주의: 지금은 위기(자살/자해) 선별 질문 턴입니다. 한 턴에 "
+                "질문을 2개 이상 하지 마세요 — 최근 스스로를 해치고 싶거나 죽고 "
+                "싶다는 생각이 든 적이 있는지, 그 한 가지만 부드럽게 질문하세요. "
+                "다른 주제(타해 충동 포함)는 이번 턴에 함께 묻지 마세요.]"
+            )
+        if violation == "risk_question_missing":
+            # BUG-082: mirrors `question_missing`'s hint, scoped to the
+            # active SI-screen turn — the candidate must still ask the SI
+            # question even after a meta-complaint/off-topic reply, not
+            # pivot away from it with zero questions.
+            return (
+                "\n\n[주의: 지금은 위기(자살/자해) 선별 질문 턴인데 방금 응답에 "
+                "질문이 전혀 없습니다. 공감 표현만으로 끝내지 말고, 반드시 최근 "
+                "스스로를 해치고 싶거나 죽고 싶다는 생각이 든 적이 있는지 부드럽게 "
+                "한 가지만 질문하세요.]"
+            )
+        if violation == "probe_topic_mismatch":
+            # BUG-085-follow-up (session `04cfe927`): recompute the
+            # expected stage the same way `run()`'s own precondition does
+            # (`probe_instruction`'s text already literally embeds the
+            # stage's hint) — no new parameter threaded, keeps this
+            # method's existing signature.
+            probe_instruction_text = (inp.session_state or {}).get("probe_instruction")
+            expected_stage = (
+                infer_literal_probe_stage(str(probe_instruction_text))
+                if probe_instruction_text else None
+            )
+            hint = _PROBE_STAGE_HINTS.get(expected_stage or "", "")
+            return (
+                "\n\n[주의: 지금은 안전 탐색(Safety Probe) 단계입니다. 방금 응답의 "
+                "질문이 이번 단계에 지정된 주제와 다릅니다. 다른 주제로 질문을 "
+                f"바꾸지 말고, 반드시 다음 주제 하나만 부드럽게 질문하세요 — {hint}.]"
+            )
+        if violation == "target_mismatch":
+            # BUG-077 item (A) safety net — only reached on a REPEAT
+            # catch-all (see `catchall_violation`'s own gating comment in
+            # `run()`), so the hint names that explicitly rather than
+            # implying this is a first-occurrence rule.
+            guide = _SLOT_QUESTION_GUIDE.get(target_slot or "", "")
+            return (
+                "\n\n[주의: 방금 응답이 이전에 이미 사용한 것과 같은, 특정 주제 없는 "
+                '막연한 범용 질문입니다(예: "혹시 다른 증상이나 걱정되는 부분이 '
+                '있으신가요?" 류). 같은 막연한 질문을 또 반복하지 말고, 이번 턴은 '
+                f"반드시 다음 주제를 구체적으로 반영한 질문을 하세요 — {guide}]"
+            )
         if violation == "exact_repeat":
-            missing = DialogueAgent.missing_questionable_slots(inp.filled_slots)
-            missing_text = ", ".join(missing) if missing else "risk_assessment (안전 확인)"
+            # BUG-084b: was `", ".join(missing)` (raw English SLOT_KEY
+            # identifiers, e.g. "risk_assessment, personal_social_history")
+            # injected with no "internal-only" instruction — live session
+            # `94f75e81` shows the model echoed this raw list verbatim to
+            # the patient. Now rendered via `_topic_list` (natural-language
+            # Korean topic labels, never the raw key) plus an explicit
+            # echo-prohibition, mirroring `_build_opening_context`'s
+            # existing internal-term ban.
+            missing = DialogueAgent.missing_questionable_slots(
+                inp.filled_slots, deferred_slots=deferred_slots
+            )
+            missing_text = _topic_list(missing) if missing else "안전 확인"
             return (
                 f"\n\n[주의: 이전과 동일한 응답입니다. 반드시 다른 질문을 하세요. "
-                f"미수집 슬롯: {missing_text}]"
+                f"아직 다루지 않은 주제: {missing_text}. (이 목록은 내부 참고용입니다 — "
+                "슬롯 이름이나 영어 식별자, \"슬롯\"이라는 단어 자체를 환자에게 그대로 "
+                "언급하지 마세요.)]"
+            )
+        if violation == "self_referential_relief":
+            # CVR-039 finding 5 / PLAN-2026-W30 cluster B #2.
+            return (
+                "\n\n[주의: 방금 응답이 상담자 자신의 안도·감정을 1인칭으로 표현했습니다"
+                '("다행이에요"/"다행입니다"/"다행이네요" 계열 — "다행" 어근 사용 금지). '
+                "상담자 자신의 감정을 진술하지 말고, 환자가 말한 사실 자체를 향한 짧은 "
+                '사실-지향 인정으로 바꾸세요(예: "그런 변화가 있었군요"). 환자를 향한 '
+                '"감사해요"/"감사합니다" 표현은 허용되며 금지 대상이 아닙니다.]'
             )
         if violation.startswith("near_dup"):
             return (
                 f'\n\n[주의: 방금 응답의 공감 표현("{candidate_clause}")이 이전 턴과 '
                 "거의 같은 표현입니다. 완전히 다른 표현으로, 환자가 방금 한 말에 맞춰 "
                 "새로 공감하세요. 같은 문구나 비슷한 문구를 반복하지 마세요.]"
+            )
+        if violation == "leading_prefix_repeat":
+            return (
+                f'\n\n[주의: 방금 응답의 도입부("{candidate_clause}")가 최근 두 턴과 '
+                "완전히 동일한 문구입니다. 반드시 처음부터 다른 표현으로 시작하세요 "
+                "— 내용이 비슷하더라도 표현 자체를 새로 만드세요.]"
+            )
+        if violation.startswith("question_repeat"):
+            # BUG-048 Finding (b). BUG-084b: same raw-key-echo fix as
+            # `exact_repeat` above — natural-language topic list +
+            # explicit echo-prohibition instead of raw `SLOT_KEY` names.
+            missing = DialogueAgent.missing_questionable_slots(
+                inp.filled_slots, deferred_slots=deferred_slots
+            )
+            missing_text = _topic_list(missing) if missing else "안전 확인"
+            return (
+                "\n\n[주의: 방금 응답의 질문 내용이 이전 턴의 질문과 거의 같습니다. "
+                f"환자가 이미 답했거나 다른 미수집 주제({missing_text})에 대해 새로운 "
+                "질문을 하세요. 같은 질문을 문구만 바꿔 반복하지 마세요. (위 목록은 내부 "
+                "참고용입니다 — 슬롯 이름이나 영어 식별자를 그대로 언급하지 마세요.)]"
             )
         if violation == "presence_missing":
             return (
@@ -1006,6 +2217,18 @@ class DialogueAgent(BaseAgent):
                 "\n\n[주의: 방금 응답이 내부 임상 기록(차트)에 쓰이는 문구를 그대로 "
                 "포함하고 있습니다. 환자에게는 임상 기록 문구가 아니라 자연스러운 "
                 "대화체로 응답하세요. 방금 응답을 그대로 반복하지 마세요.]"
+            )
+        if violation == "internal_leak":
+            # Coordinator directive (2026-07-25, role-separation
+            # principle) — defense-in-depth hint for the residual case of
+            # the model spontaneously generating a raw slot-key/internal
+            # term (BUG-084b's own ROOT-CAUSE fix already stopped this
+            # module from ever injecting one).
+            return (
+                "\n\n[주의: 방금 응답에 슬롯 이름 같은 내부 시스템 식별자(영어 코드명) "
+                "또는 \"슬롯\"/\"coverage\"/\"grounding\" 같은 내부 용어가 그대로 "
+                "노출되었습니다. 그런 내부 식별자·용어를 절대 언급하지 말고, 환자에게 "
+                "자연스러운 대화체로만 응답하세요.]"
             )
         return ""
 
@@ -1054,9 +2277,15 @@ class DialogueAgent(BaseAgent):
                 "언급하지 마세요."
             )
             if prior_missing:
+                # BUG-084b sweep: was a raw `SLOT_KEY` join — this whole
+                # block already sits under the "내부 시스템 용어를 언급하지
+                # 마세요" instruction above, but the raw English identifiers
+                # themselves are a separate leak channel (same class as the
+                # exact_repeat/question_repeat hints) — rendered via
+                # `_topic_list` for consistency.
                 lines.append(
                     "- 아래는 이전 세션에서 다루지 못한 항목입니다 — 오늘 대화에서 "
-                    f"자연스럽게 이어서 다룰 수 있습니다: {', '.join(prior_missing)}"
+                    f"자연스럽게 이어서 다룰 수 있습니다: {_topic_list(prior_missing)}"
                 )
             lines.append(
                 "- 오늘 상태가 지난번과 비교해 어떤지 편하게 여쭤보며 대화를 여세요."
@@ -1105,6 +2334,22 @@ class DialogueAgent(BaseAgent):
         round-robin 슬롯 타겟팅을 중단하고 probe 지시만 전달한다.
         session_state["opening_turn"]이 있으면 turn 0 자율 인사 모드 —
         (Dialogue v3, PLAN-2026-W28-Q W2).
+
+        BUG-056 union (dialogue-steering ONLY): `filled_slots` as received
+        here is the raw CALLER-supplied map (`routes/chat.py`'s
+        `body.filled_slots`, the backend-accumulated slot state) — it can
+        lag behind `state.slot_data`, which the orchestrator additively
+        seeds/updates THIS turn (`OrchestratorAgent._seed_slot_data_from_
+        caller`/`update_slots`, `agents/orchestrator.py:780-794`) but never
+        threads back into `filled_slots` itself before calling this agent.
+        Steering (this method's target-slot selection + "already collected"
+        display) unions the two (`filled_slots ∪ state.slot_data`, caller
+        value wins on conflict) so a slot the orchestrator already knows is
+        filled is not re-asked. Scope is deliberately narrow: this union is
+        used ONLY inside `_build_slot_context` (steering context) — the
+        safety path, coverage computation, handoff assembly, and the
+        backstop gate all continue to read `state.slot_data`/`filled_slots`
+        directly, unaffected by this method.
         """
         if session_state and session_state.get("opening_turn"):
             return self._build_opening_context(session_state)
@@ -1113,10 +2358,23 @@ class DialogueAgent(BaseAgent):
             return self._build_probe_context(str(session_state["probe_instruction"]))
 
         prior_missing_slots = set((session_state or {}).get("prior_missing_slots") or [])
+        # Cluster A (asked-slot generalized fix, additive): slots the
+        # orchestrator has deferred after repeated unanswered asks —
+        # threaded through the same unconstrained `session_state` dict
+        # `prior_missing_slots`/`probe_instruction` already use, so this
+        # agent needs no orchestrator-specific import.
+        deferred_slots = set((session_state or {}).get("deferred_slots") or [])
+
+        # BUG-056: union the orchestrator's additive `state.slot_data`
+        # (nested in `session_state`, the SAME unconstrained dict already
+        # read above) into the raw caller `filled_slots` — steering-only,
+        # see docstring above.
+        orchestrator_slot_data = (session_state or {}).get("slot_data") or {}
+        filled_slots = {**orchestrator_slot_data, **filled_slots}
 
         filled_with_values = {k: v for k, v in filled_slots.items() if v and k in _ALL_SLOTS}
 
-        all_missing = self.missing_questionable_slots(filled_slots)
+        all_missing = self.missing_questionable_slots(filled_slots, deferred_slots=deferred_slots)
 
         lines: list[str] = []
 
@@ -1147,29 +2405,138 @@ class DialogueAgent(BaseAgent):
         lines.append("- 공감은 1문장으로 끝내고, 바로 새 질문을 하세요. 공감 문장을 생략하지 마세요.")  # noqa: E501
         lines.append("- 환자 말을 장황하게 반복하지 마세요.")
         lines.append("- 정해진 문구를 고르지 말고, 환자가 방금 한 말의 내용과 감정에 맞춰 그때그때 새로 표현하세요.")  # noqa: E501
+        # 4연속 verbatim 도입부 반복 (2026-07-25, 라이브 재검증): "지칠 수
+        # 있어요"류 문구가 `_EMPATHY_MARKERS` 표면형과 불일치해 근접중복
+        # 가드가 미발동, 아래 X-list("이미 사용했으므로 절대 다시 사용하지
+        # 마세요")가 이미 보여주고 있었음에도 4턴 연속 그대로 반복 출고됨.
+        # 1순위 대응(사용자 반-강제 원칙): 상태 가시화를 "직전 턴 도입부"로
+        # 좁혀 더 눈에 띄게 별도 강조 + 다양화 원칙 1문장 추가. 하드 가드
+        # (`_leading_prefix_repeat_violation`, run()의 최후 안전망)는 이
+        # 프롬프트 대응이 불충분할 때만 작동한다.
         if used_empathy:
+            lines.append(
+                f'- **직전 턴 도입부**: "{used_empathy[-1]}..." — 이번 턴은 '
+                "반드시 다른 표현으로 시작하세요."
+            )
             lines.append("- 아래 표현은 이전 턴에서 이미 사용했으므로 **절대 다시 사용하지 마세요**:")  # noqa: E501
             for e in used_empathy[-5:]:
                 lines.append(f'  X "{e}..."')
+            lines.append(
+                "- 매 턴 도입부(첫 문장)를 이전 턴들과 다르게 새로 표현하는 "
+                "것이 원칙입니다 — 내용은 비슷하더라도 표현은 매번 바꾸세요."
+            )
         lines.append("")
 
-        # ── 3. 이미 수집된 정보 ──
+        # ── 3. 이미 수집된 정보 (BUG-077 state-visibility: filled/denied 구분) ──
+        # 사용자 지시(2026-07-25): "단편적인 예시에 기능을 강제시키지 말 것" —
+        # 이 절이 BUG-077 item (A)의 1순위 해법이다. `slot_status`
+        # (`SessionState.slot_status`, `routes/chat.py`가 `state.model_dump()`
+        # 로 그대로 threading — f1.py 등 이 키를 채우지 않는 caller는 아래가
+        # 조용히 no-op) 를 읽어 "수집됨"과 "환자 부인(denied)"을 명시적으로
+        # 분리해 보여준다 — 모델이 "이미 부인된 항목은 다시 묻지 않는다"는
+        # 원칙을 스스로 지킬 수 있도록 상태를 보여주는 것이 1순위이며, 아래
+        # `run()`의 target-binding 재시도/강등 가드는 이 방식이 실측
+        # (라이브 재검증)에서 불충분할 때만 작동하는 안전망이다(그 가드 자체의
+        # 트리거 조건도 "이미 한 번 범용 질문이 있었던 경우"로 좁혀져 있다 —
+        # 첫 시도는 하드 개입 없이 통과된다).
+        # Coordinator directive (2026-07-25, "수집-불가 응답의 즉시-이동
+        # 규칙"): `slot_status` now carries a THIRD value, "unknown" (see
+        # `OrchestratorAgent._update_asked_slot_tracking`) — a "잘
+        # 모르겠습니다"-class reply is clinically distinct from an active
+        # "denied" and must be shown/handled distinctly here too, not
+        # silently folded into either "이미 수집 완료" (implies substantive
+        # positive content) or "denied" (implies an active denial).
+        slot_status_map: dict[str, str] = (session_state or {}).get("slot_status") or {}
         if filled_with_values:
-            lines.append("## 이미 수집 완료 — 다시 질문 금지")
-            for k, v in filled_with_values.items():
-                display_val = v if len(v) <= 80 else v[:80] + "..."
-                lines.append(f"  - {k}: {display_val}")
+            denied_items = {
+                k: v for k, v in filled_with_values.items()
+                if slot_status_map.get(k) == "denied"
+            }
+            unknown_items = {
+                k: v for k, v in filled_with_values.items()
+                if slot_status_map.get(k) == "unknown"
+            }
+            positive_items = {
+                k: v for k, v in filled_with_values.items()
+                if k not in denied_items and k not in unknown_items
+            }
+            if positive_items or denied_items or unknown_items:
+                # BUG-084b sweep: item labels below now render via
+                # `_topic_label` (natural-language, never a raw `SLOT_KEY`)
+                # + an explicit echo-prohibition, same discipline as the
+                # exact_repeat/question_repeat hints and the opening/prior-
+                # missing lists above.
+                lines.append(
+                    "- 아래 목록들의 항목명은 내부 분류용 라벨입니다 — 환자에게 "
+                    "그대로 인용하지 말고, 자연스러운 표현으로 이미 아는 내용을 "
+                    "반영하세요."
+                )
+            if positive_items:
+                lines.append("## 이미 수집 완료 — 다시 질문 금지")
+                for k, v in positive_items.items():
+                    display_val = v if len(v) <= 80 else v[:80] + "..."
+                    lines.append(f"  - {_topic_label(k)}: {display_val}")
+                lines.append("")
+            if denied_items:
+                lines.append("## 환자가 이미 부인(denied)함 — 다시 묻지 않음")
+                for k, v in denied_items.items():
+                    display_val = v if len(v) <= 80 else v[:80] + "..."
+                    lines.append(f"  - {_topic_label(k)}: {display_val}")
+                lines.append("")
+            if unknown_items:
+                lines.append(
+                    "## 환자가 모른다고 답함(unknown) — 다시 캐묻지 않음"
+                )
+                for k, v in unknown_items.items():
+                    display_val = v if len(v) <= 80 else v[:80] + "..."
+                    lines.append(f"  - {_topic_label(k)}: {display_val}")
+                lines.append(
+                    "- 위 항목에 대해서는 캐묻거나 재확인 질문을 하지 마세요. "
+                    "짧게 \"알겠습니다\" 류로 인정한 뒤 곧바로 다음 미수집 주제로 "
+                    "넘어가세요."
+                )
+                lines.append("")
+
+        # ── 3b. 질문-응답 이력 (BUG-077 state-visibility) ──
+        # 실제 렌더된 질문 텍스트에서 어떤 주제를 물었는지 역추론
+        # (`infer_literal_target_slot` — BUG-077 item (B)의 어석 귀속 로직과
+        # 동일한 정의를 공유, `src.grounding`) 해, 이번 세션에서 이미 어떤
+        # 주제로 물었고 환자가 뭐라 답했는지를 보여준다. 특정 주제로 귀속되지
+        # 않는 질문(막연한 범용 질문)도 "(특정 주제 없는 범용 질문)"으로
+        # 그대로 노출해, 모델이 "나는 이미 한 번 막연하게 물었다"는 사실을
+        # 스스로 인지하고 이번 턴에는 구체적 주제를 택하도록 유도한다 — 새
+        # 규칙을 강제하는 대신 사실을 보여주는 방식.
+        qa_history = self._build_asked_topic_history(conversation_history)
+        if qa_history:
+            lines.append("## 지금까지 질문-응답 이력 (참고 — 이미 다룬 주제 파악용)")
+            lines.extend(qa_history)
+            lines.append(
+                "- 위 이력에 특정 주제 없는 막연한 질문이 있었다면, 같은 막연한 "
+                "질문을 또 반복하지 말고 이번 턴은 아래 지정된 구체적 주제로 "
+                "질문하세요."
+            )
             lines.append("")
 
         # ── 4. 이번 턴 행동 ──
         if all_missing:
-            target = self.compute_target_slot(filled_slots, conversation_history)
+            target = self.compute_target_slot(
+                filled_slots, conversation_history, deferred_slots=deferred_slots
+            )
             if target is None:  # defensive — all_missing non-empty implies a target
                 target = all_missing[0]
 
             guide = _SLOT_QUESTION_GUIDE.get(target, target)
-            lines.append(f"## 이번 턴: {target}에 대해 질문하세요")
+            # BUG-084b sweep: the section header previously interpolated
+            # the raw `SLOT_KEY` identifier directly ("## 이번 턴:
+            # risk_assessment에 대해 질문하세요") — now shows the
+            # natural-language topic label; the actual instruction content
+            # (`guide`) was already natural-language and is unchanged.
+            lines.append(f"## 이번 턴: {_topic_label(target)}에 대해 질문하세요")
             lines.append(f"질문 방향: {guide}")
+            lines.append(
+                "- 위 제목/방향은 내부 참고용입니다 — 슬롯 이름이나 영어 식별자를 "
+                "환자에게 그대로 언급하지 마세요."
+            )
             # Dialogue v3 (b): continuity phrasing for slots missing from a
             # prior session (key names only — AVC-02, never values/prose).
             if target in prior_missing_slots:
@@ -1182,7 +2549,9 @@ class DialogueAgent(BaseAgent):
 
             remaining = [s for s in all_missing if s != target]
             if remaining:
-                lines.append(f"이후 미수집: {', '.join(remaining)}")
+                # BUG-084b: raw `SLOT_KEY` join replaced with `_topic_list`
+                # (see fix-direction note citing this exact line).
+                lines.append(f"이후 미수집: {_topic_list(remaining)}")
                 lines.append("")
         else:
             # ── 모든 슬롯 수집 완료 → 요약 모드 ──

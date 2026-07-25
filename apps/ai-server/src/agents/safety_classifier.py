@@ -88,10 +88,15 @@ _MEDIUM_KEYWORDS: list[tuple[str, str]] = [
     # v3 calibration table now floors this phrase (and "사는 게 의미가 없다",
     # matched by "의미가 없" above) at high/CTRS 2, not medium/CTRS 3. This
     # table is deliberately NOT bumped to _HIGH_KEYWORDS. Rationale: (1) LLM-
-    # available path — the rule-engine severity here never gates the merge
-    # for MEDIUM hits (BUG-008, open); the prompt table the LLM actually
-    # reads already carries the corrected CTRS-2 floor, so a keyword bump
-    # would be a no-op for this path. (2) LLM-unavailable path — the
+    # available path — BUG-008's original note here ("rule-engine severity
+    # never gates the merge for MEDIUM hits") is now FIXED by BUG-076's
+    # merge-floor change in `run()` (`final_level = _max_risk(rule_level,
+    # llm_classification.risk_level)`); the prompt table the LLM actually
+    # reads already carries the corrected CTRS-2 floor for THIS phrase
+    # specifically, so a keyword bump to `_HIGH_KEYWORDS` would still be a
+    # no-op for this path (the merge floor and the prompt calibration agree
+    # here) — kept at medium/table-only, unchanged. (2) LLM-unavailable
+    # path — the
     # fail-closed branch (below, `run()`) unconditionally floors EVERY
     # message at `_FAIL_CLOSED_LEVEL` (high/CTRS 2) regardless of
     # `rule_level`, proven by `tests/test_safety_failclosed.py::
@@ -102,6 +107,22 @@ _MEDIUM_KEYWORDS: list[tuple[str, str]] = [
     # rule-context injection to the LLM call, not change final routing.
     ("내가 없으면", "despair"),
     ("내가없으면", "despair"),
+    # BUG-076 fix: passive-SI (수동적 자살사고/passive death wish) idiom
+    # cluster — "wish to not wake up" / "wish to have not woken up while
+    # asleep" — had ZERO keyword-table coverage, so the rule engine passed
+    # zero context to the LLM and the LLM independently under-scored a live
+    # instance ("아침에 눈을 안 떴으면 좋겠어") as low/CTRS-4, one tier below
+    # the ADR-006 CTRS-3/medium floor for this idiom family (CVR-055
+    # finding, error.md BUG-076). Deliberately scoped to explicit,
+    # unambiguous idiom variants only (not "잠", "자다" etc. generally) to
+    # avoid over-triggering on ordinary sleep-complaint language — these
+    # phrasings only make clinical sense as a passive death wish.
+    ("눈을 뜨지 않았으면", "suicidal_ideation"),
+    ("눈을뜨지않았으면", "suicidal_ideation"),
+    ("눈을 안 떴으면", "suicidal_ideation"),
+    ("눈을안떴으면", "suicidal_ideation"),
+    ("잠들어서 안 깼으면", "suicidal_ideation"),
+    ("잠들어서안깼으면", "suicidal_ideation"),
 ]
 
 # ── Risk level ordering ─────────────────────────────────────────────
@@ -436,9 +457,19 @@ class SafetyClassifierAgent(BaseAgent):
                     rule_level, final_level,
                 )
             else:
-                # Rule didn't flag high → use LLM result directly
-                # But if LLM catches something rules missed, respect it
-                final_level = llm_classification.risk_level
+                # Rule didn't flag high → use LLM result directly, but floor
+                # it at the rule's own severity (BUG-076 fix). Previously
+                # this branch discarded `rule_level` outright even when the
+                # rule engine matched a medium-tier keyword (the BUG-008
+                # gap the `_MEDIUM_KEYWORDS` module docstring already
+                # flagged) — a live passive-SI idiom match (added to
+                # `_MEDIUM_KEYWORDS` this fix) would otherwise still be
+                # silently overridden down to `low` by an under-calibrated
+                # LLM judgment, reproducing BUG-076 even with the keyword
+                # coverage gap closed. `_max_risk` still lets the LLM
+                # escalate ABOVE the rule's floor freely (independent
+                # detections respected, unchanged).
+                final_level = _max_risk(rule_level, llm_classification.risk_level)
         else:
             # ISS-026: LLM unavailable → fail CLOSED. The final result is the
             # MORE SEVERE of (rule screening result, fail-closed default high).

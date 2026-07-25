@@ -26,6 +26,9 @@ import re
 import uuid
 from datetime import datetime
 from pathlib import Path
+from typing import NamedTuple
+
+from contracts.survey_plan import SI_POSITIVE_ACTION_KO
 
 from src.f1 import OUTPUT_DIR
 from src.schemas.handoff_report import (
@@ -189,6 +192,26 @@ def _chart_caption_ko(key: str, lon: LongitudinalAnalysisOutput, fig_no: int) ->
     body = _CHART_CAPTIONS_KO[key].format(n=lon.n_sessions, span=span)
     return f"그림 {fig_no}. {body}"
 
+
+def _slot_fill_all_zero(lon: LongitudinalAnalysisOutput) -> bool:
+    """CVR-032 Finding 3 (major): True when the 문진 항목 충족도 (F4 slot-
+    fill) series is empty OR every session shows `filled_count == 0` — an
+    uncaveated flat-zero completeness chart reads as "nothing was learned
+    across N sessions", a stronger/more alarming signal than the underlying
+    cause (typically: this run's harness never called `/ai/slots/extract`,
+    a known data-collection-scope gap, not an actual absence of dialogue
+    content)."""
+    if not lon.slot_fill_series:
+        return True
+    return all(p.filled_count == 0 for p in lon.slot_fill_series)
+
+
+_SLOT_FILL_FLAT_ZERO_CAVEAT_KO = (
+    "⚠ 문진 항목 충족도 데이터가 전체 세션에서 0 또는 미제공입니다 — 대화 내용이 "
+    "빈약했다는 의미가 아니라 이번 산출 경로에서 슬롯 데이터가 미수집되었을 가능성을 "
+    "나타냅니다 (수집 데이터 미제공/미수집)."
+)
+
 # ═══════════════════════════════════════════════════════════════════════
 # Readability-layer shared helpers (rendering only — never invents a
 # clinical fact; every value below is derived from an existing
@@ -237,6 +260,19 @@ _DIRECTION_KO = {
 }
 
 _CONCORDANCE_KO = {"concordant": "일치", "discordant": "불일치", "unknown": "판정 불가"}
+
+# CVR-032 Finding 1 (blocking): `course_shape` (F4's own archetype
+# classification, `src.f4._course_shape`) was computed but never surfaced
+# anywhere in rendered prose — a scripted `crisis_episode` course could
+# read as an unqualified "no crisis session" in text alone.
+_COURSE_SHAPE_KO = {
+    "gradual_improvement": "점진적 개선",
+    "improvement_with_plateau": "개선 후 정체",
+    "relapse_after_partial_improvement": "부분 개선 후 재악화",
+    "worsening_sustained": "지속적 악화",
+    "crisis_episode": "위기 삽화(crisis episode)",
+    "unknown": "판정 불가",
+}
 
 # Plain-Korean paraphrase of `OVERALL_DIRECTION_SENSITIVITY_NOTE_KO`
 # (`schemas.handoff_report`) — that schema constant embeds internal
@@ -416,6 +452,42 @@ def _risk_flag_line(a3: RiskSafetySection) -> str:
     return line
 
 
+def _recommend_administer_mismatch_ko(
+    a3: RiskSafetySection, a5: QuestionnaireSection, a7: RecommendationSection
+) -> str | None:
+    """CVR-032 Finding 5 / CVR-033 Finding 5: 권고-시행 불일치 note.
+
+    Prefers `a5.mismatch_sessions` (`f5.py::_build_a5`'s PER-SESSION
+    comparison over the WHOLE arc, from `all_f3_administrations`) — the
+    CVR-032 original single latest-vs-latest comparison silently missed
+    every earlier mismatched session (e.g. VP-001's GAD-7-recommended /
+    PHQ-9-administered sessions). Falls back to the single-session A7-vs-A5
+    comparison only when the caller has not supplied per-session F2
+    recommendations (`mismatch_sessions` empty, e.g. older callers) —
+    `None` when neither source shows a mismatch."""
+    if a5.mismatch_sessions:
+        total = a3.administered_session_count or len(a5.mismatch_sessions)
+        by_pair: dict[tuple[str, str], list[int]] = {}
+        for m in a5.mismatch_sessions:
+            by_pair.setdefault(
+                (m.recommended_questionnaire, m.administered_scale_name), []
+            ).append(m.session_index)
+        clauses = [
+            f"권고 {rec} vs 시행 {adm}: {len(sessions)}/{total}세션"
+            f"({', '.join(f'{i}회차' for i in sessions)})"
+            for (rec, adm), sessions in by_pair.items()
+        ]
+        return "권고-시행 불일치 — " + "; ".join(clauses)
+    if not a7.recommended_questionnaire or not a5.present or not a5.scale_name:
+        return None
+    if a7.recommended_questionnaire == a5.scale_name:
+        return None
+    return (
+        f"권고-시행 불일치: F2 추천 설문은 {a7.recommended_questionnaire}이나 "
+        f"실제 시행 설문은 {a5.scale_name}입니다."
+    )
+
+
 def _scale_trend_line(a5: QuestionnaireSection, lon: LongitudinalAnalysisOutput) -> str:
     if not a5.present or not a5.scale_name:
         return "시행된 설문 없음"
@@ -491,6 +563,13 @@ def _summary_box_lines(report: HandoffReportOutput, appendix: _AppendixCollector
         ),
         f"위험 플래그: {_risk_flag_line(a3)}",
         f"최신 설문: {_scale_trend_line(a5, lon)}",
+        # CVR-032 Finding 1-2 (blocking/major): course_shape + worst-session
+        # (nadir) disclosure in the headline itself, not only deep in the
+        # 종단 추세 body section — the SBAR box is where a time-pressed
+        # clinician reads first.
+        "경과 형태: "
+        + _COURSE_SHAPE_KO.get(lon.course_shape, lon.course_shape)
+        + (f" — {_worst_session_callout_ko(lon, a3)}" if _min_ctrs_disclosed(a3) else ""),
         f"주요 우려: {'; '.join(_key_concerns(a3, a5, lon))}",
     ]
 
@@ -502,7 +581,9 @@ _DISCLAIMER_BOX_KO = [
 ]
 
 
-def _risk_prose(a3: RiskSafetySection, appendix: _AppendixCollector) -> str:
+def _risk_prose(
+    lon: LongitudinalAnalysisOutput, a3: RiskSafetySection, appendix: _AppendixCollector
+) -> str:
     # CVR-026 Finding 1 (blocking, 최우선): the current-session risk
     # narrative's own patient-quote — a truncated, dead-referenced cut of
     # this exact quote was the single highest-severity finding. Full text
@@ -519,6 +600,12 @@ def _risk_prose(a3: RiskSafetySection, appendix: _AppendixCollector) -> str:
         f"{session_ref} 위험평가: {risk_text}.",
         f"위기 단계(CTRS) {_ctrs_stage_ko(a3.session_ctrs)}.",
     ]
+    # CVR-032 Finding 1-2 (blocking/major): worst-session (nadir) disclosure
+    # in the risk section itself, not only the current/latest session's own
+    # CTRS above — the same gating condition as the 종단 추세 section's
+    # qualified sentence (`_min_ctrs_disclosed`).
+    if _min_ctrs_disclosed(a3):
+        parts.append(f"전체 세션 중 최저 위기 단계: {_worst_session_callout_ko(lon, a3)}.")
     discordant = [
         s for s in a3.longitudinal_risk_signals if s.discordance_note.startswith("불일치")
     ]
@@ -669,7 +756,76 @@ def _change_history_summary(row: SlotOverviewRow) -> str:
     return base
 
 
-def _major_course_bullets(so: SlotOverviewSection, limit: int = 5) -> list[str]:
+_SCALE_SCORE_RE = re.compile(r"(PHQ-?9|GAD-?7|CTRS)\D{0,10}?(\d+)\s*/\s*(\d+)", re.IGNORECASE)
+
+
+def _history_entry_scale_score(entry: str) -> tuple[str, int, int] | None:
+    """Extracts an embedded (scale_name, total_score, max_score) triple from
+    one `change_history` entry when the slot's own text states a scored
+    dimension (PHQ-9/GAD-7/CTRS) verbatim -- `None` for the ordinary case of
+    free-form qualitative text with no numeric score axis, and `None` (never
+    a crash) on any malformed/non-numeric match."""
+    match = _SCALE_SCORE_RE.search(entry)
+    if not match:
+        return None
+    scale_name, total_str, max_str = match.groups()
+    try:
+        total, top = int(total_str), int(max_str)
+    except ValueError:
+        return None
+    if top <= 0 or total < 0:
+        return None
+    return scale_name.upper().replace("-", ""), total, top
+
+
+def _scale_nadir_index(history: list[str]) -> int | None:
+    """Value-based extremum selection for dimensions carrying a numeric
+    score (PHQ-9/GAD-7/CTRS) embedded in their own text. CTRS is a 0-5
+    stability scale where LOWER is clinically worse (closer to crisis);
+    PHQ-9/GAD-7 are symptom scales where a HIGHER score/max ratio is worse.
+    Returns `None` (no scored axis to compare) unless at least 2 entries
+    carry a parseable score -- callers must fall back to the qualitative
+    selection principle in that case."""
+    scored = [
+        (i, score)
+        for i, entry in enumerate(history)
+        if (score := _history_entry_scale_score(entry)) is not None
+    ]
+    if len(scored) < 2:
+        return None
+
+    def _severity(item: tuple[int, tuple[str, int, int]]) -> float:
+        scale_name, total, top = item[1]
+        ratio = total / top
+        return (1 - ratio) if scale_name == "CTRS" else ratio
+
+    return max(scored, key=_severity)[0]
+
+
+def _qualitative_nadir_index(history: list[str], min_ctrs_session_index: int | None) -> int:
+    """Non-positional selection principle for slots with no numeric score
+    axis (CC/HPI/PSH/etc.): picks the `change_history` entry whose own
+    session is closest to the arc's min-CTRS ("위험-인접") session -- the
+    same nadir marker already computed for A3/F4 (`RiskSafetySection.
+    min_ctrs_session_index`) -- instead of the list's positional midpoint.
+    Falls back to the old positional midpoint only as a last resort, when no
+    CTRS nadir session is known at all (e.g. no F3 administration occurred
+    anywhere in the arc) or no entry carries a parseable session marker."""
+    if min_ctrs_session_index is None:
+        return len(history) // 2
+    candidates = [
+        (i, int(m.group(1)))
+        for i, entry in enumerate(history)
+        if (m := _SLOT_HISTORY_SESSION_RE.match(entry))
+    ]
+    if not candidates:
+        return len(history) // 2
+    return min(candidates, key=lambda pair: abs(pair[1] - min_ctrs_session_index))[0]
+
+
+def _major_course_bullets(
+    so: SlotOverviewSection, a3: RiskSafetySection, limit: int = 5
+) -> list[str]:
     """CVR-026 Finding 3 (major): a first/last-only selection can silently
     drop a clinically material EARLY signal (e.g. an HPI slot's original
     precipitant, only ever stated in session 1) into the elided middle.
@@ -677,7 +833,16 @@ def _major_course_bullets(so: SlotOverviewSection, limit: int = 5) -> list[str]:
     points exist — every `change_history` entry is already a materially
     DISTINCT value, the engine collapses non-changes before this list is
     built, `f5.py::_slot_row`) + last, instead of first/last with an
-    ellipsis placeholder."""
+    ellipsis placeholder.
+
+    D2 (#6) fix: the MIDDLE point is no longer the positional midpoint
+    (`history[len(history)//2]`), which can silently miss the clinically
+    most-severe (nadir) session. Dimensions that carry a numeric score
+    (PHQ-9/GAD-7/CTRS) embedded in their own text select the true value-
+    based extremum (`_scale_nadir_index`); qualitative dimensions with no
+    score axis (CC/HPI/etc.) select the entry nearest the arc's min-CTRS
+    ("위험-인접") session instead (`_qualitative_nadir_index`), falling back
+    to the positional midpoint only when no nadir reference is available."""
     rows_by_key = {r.key: r for r in so.rows}
     bullets: list[str] = []
     for key in _COURSE_BULLET_PRIORITY:
@@ -685,8 +850,11 @@ def _major_course_bullets(so: SlotOverviewSection, limit: int = 5) -> list[str]:
         if row and len(row.change_history) >= 2:
             history = row.change_history
             if len(history) >= 3:
-                middle = history[len(history) // 2]
-                arrow = f"{history[0]} → {middle} → {history[-1]}"
+                nadir_idx = _scale_nadir_index(history)
+                if nadir_idx is None:
+                    nadir_idx = _qualitative_nadir_index(history, a3.min_ctrs_session_index)
+                nadir = history[nadir_idx]
+                arrow = f"{history[0]} → {nadir} → {history[-1]}"
             else:
                 arrow = f"{history[0]} → {history[-1]}"
             bullets.append(f"{row.label}: {arrow}")
@@ -748,18 +916,150 @@ _GAP_ACUITY_FRAMING_POINTER_KO = "※ 위 '시행된 설문 · F3 공백' 참조
 _CEILING_POINTER_KO = "※ 위 표 참조 (동일 세션 만점 캐비앗)"
 
 
+def _min_ctrs_disclosed(a3: RiskSafetySection) -> bool:
+    """True whenever there is anything worth disclosing about the arc's
+    worst point — a min CTRS below "안정"(4), a safety_net administration,
+    or any item-9 positive. False only for a genuinely quiet series (CVR-032
+    Finding 1's exact gating condition for the blanket "없음" line)."""
+    return (
+        (a3.min_ctrs_value is not None and a3.min_ctrs_value < 4)
+        or bool(a3.safety_net_sessions)
+        or a3.item9_positive_count > 0
+    )
+
+
+def _secondary_signals_ko(a3: RiskSafetySection) -> str:
+    """safety_net + item-9 clauses ONLY — no CTRS clause (used by the
+    CVR-033 Finding A honesty-qualifier branch, which states the CTRS band
+    itself separately, and by `_worst_session_callout_ko` below)."""
+    parts: list[str] = []
+    if a3.safety_net_sessions:
+        sessions = ", ".join(f"{i}회차" for i in a3.safety_net_sessions)
+        parts.append(f"안전망(safety_net) 설문 시행 {len(a3.safety_net_sessions)}건({sessions})")
+    if a3.item9_positive_count:
+        parts.append(
+            f"자살사고 문항(9번) 양성 {a3.item9_positive_count}/{a3.administered_session_count}세션"
+        )
+    return ", ".join(parts)
+
+
+class _NadirScale(NamedTuple):
+    scale_name: str | None
+    total_score: int
+    max_score: int | None
+    severity: str | None
+
+
+def _nadir_scale_point(
+    lon: LongitudinalAnalysisOutput, a3: RiskSafetySection
+) -> _NadirScale | None:
+    """CVR-033 Finding 3: the nadir (min-CTRS) session's own administered
+    scale score. Checks `a3.longitudinal_risk_signals` first (already
+    reliably derived from `all_f3_administrations` by `_build_a3` for any
+    flagged — item-9-positive or `safety_referral` — session), then falls
+    back to `lon.scale_series` (ALL scales across the arc, flagged or not)
+    so a nadir session whose administered scale was unflagged is never
+    silently skipped. `None` when the nadir session had no administered
+    scale in either source."""
+    if a3.min_ctrs_session_index is None:
+        return None
+    signal = next(
+        (
+            s
+            for s in a3.longitudinal_risk_signals
+            if s.session_index == a3.min_ctrs_session_index and s.total_score is not None
+        ),
+        None,
+    )
+    if signal is not None:
+        return _NadirScale(signal.scale_name, signal.total_score, signal.max_score, signal.severity)
+    for points in lon.scale_series.values():
+        for p in points:
+            if (
+                p.session_index == a3.min_ctrs_session_index
+                and p.administered
+                and p.total_score is not None
+            ):
+                return _NadirScale(p.scale_name, p.total_score, p.max_score, p.severity)
+    return None
+
+
+def _worst_session_callout_ko(lon: LongitudinalAnalysisOutput, a3: RiskSafetySection) -> str:
+    """Compact worst-session clause — the SAME components (min-CTRS
+    session, safety_net sessions, item-9 N/M) in every rendering location
+    (headline/risk-section/trend-section), never independently recomputed
+    per call site. CVR-033 Finding 3 (partial): includes the nadir
+    session's own administered scale score when one exists — the arc's
+    worst CTRS point is exactly where a clinician most needs the co-located
+    scale reading, not a cross-reference to a table elsewhere."""
+    parts: list[str] = []
+    if a3.min_ctrs_value is not None:
+        ctrs_clause = (
+            f"{a3.min_ctrs_session_index}회차({a3.min_ctrs_simulated_date})에서 "
+            f"CTRS {a3.min_ctrs_value}/5({_CTRS_STAGE_KO.get(a3.min_ctrs_value, '미상')})"
+        )
+        nadir_point = _nadir_scale_point(lon, a3)
+        if nadir_point is not None:
+            mode_label = "안전망 " if a3.min_ctrs_session_index in a3.safety_net_sessions else ""
+            ctrs_clause += (
+                f", {mode_label}{nadir_point.scale_name} "
+                f"{nadir_point.total_score}/{nadir_point.max_score} "
+                f"({_severity_ko(nadir_point.severity)})"
+            )
+        parts.append(ctrs_clause)
+    secondary = _secondary_signals_ko(a3)
+    if secondary:
+        parts.append(secondary)
+    return ", ".join(parts)
+
+
 def _events_and_concordance_lines(
     lon: LongitudinalAnalysisOutput,
     b: LongitudinalSection,
+    a3: RiskSafetySection,
     *,
     gap_framing_already_shown: bool,
     notes: _SystemNoteCollector,
 ) -> list[str]:
     lines: list[str] = []
+    # CVR-032 Finding 1 (blocking): course_shape was computed (F4) but never
+    # surfaced anywhere in rendered prose.
+    lines.append(
+        f"경과 형태(course_shape): {_COURSE_SHAPE_KO.get(lon.course_shape, lon.course_shape)}"
+    )
     crisis_sessions = [p for p in lon.ctrs_series if p.crisis_triggered]
     if crisis_sessions:
         s = ", ".join(f"{p.session_index}회차({p.simulated_date})" for p in crisis_sessions)
         lines.append(f"위기 반응 발생 세션: {s}")
+    elif a3.min_ctrs_value is not None and a3.min_ctrs_value <= 2:
+        # CVR-033 Finding 1 (major): the old "위기 전환(CTRS 1-2) 세션은
+        # 없었으나" sentence self-contradicted whenever min CTRS itself fell
+        # in the 1-2 band it just denied (`crisis_triggered` only reflects
+        # whether the orchestrator's bypass actually fired, not the CTRS
+        # value). State the crisis-band session plainly and flag the flow
+        # mismatch instead of denying it.
+        secondary = _secondary_signals_ko(a3)
+        tail = f", {secondary}" if secondary else ""
+        lines.append(
+            f"{a3.min_ctrs_session_index}회차({a3.min_ctrs_simulated_date})에 위기 수준"
+            f"(CTRS {a3.min_ctrs_value}/5, "
+            f"{_CTRS_STAGE_KO.get(a3.min_ctrs_value, '미상')}) 세션 발생{tail} — "
+            "위기 전환 플로우 미발동: 기록 불일치 가능성, 임상 확인 필요"
+        )
+    elif a3.min_ctrs_value == 3:
+        # CVR-032 Finding 1: the blanket "없음" line must not render while
+        # there IS a worse-than-stable interim signal — replace with a
+        # qualified sentence naming the actual worst point. Safe here since
+        # CTRS 3 genuinely falls outside the 1-2 band the sentence denies.
+        callout = _worst_session_callout_ko(lon, a3)
+        lines.append(f"위기 전환(CTRS 1-2) 세션은 없었으나, {callout} — 임상 확인 권장")
+    elif _min_ctrs_disclosed(a3):
+        # min CTRS unknown/4/5 (no low-CTRS clause to assert) but a
+        # safety_net administration or item-9 positive still warrants
+        # disclosure — state the crisis band is clear, then the secondary
+        # signal, never re-asserting a CTRS value that doesn't apply here.
+        secondary = _secondary_signals_ko(a3)
+        lines.append(f"위기 전환(CTRS 1-2) 세션 없음 — 다만 {secondary} — 임상 확인 권장")
     else:
         lines.append("위기 반응 발생 세션 없음")
     if lon.crisis_f3_gaps:
@@ -824,6 +1124,26 @@ _A7_ABSENCE_VALIDATION_DROPPED_PLAIN_KO = (
 )
 
 
+def _si_referral_note_ko(a3: RiskSafetySection) -> str | None:
+    """CVR-032 Finding 2 (major): when any session this arc had a
+    positive item-9 (suicidal ideation), the referral/follow-up section
+    must include SI-specific follow-up wording — reuses `contracts.
+    survey_plan.SI_POSITIVE_ACTION_KO` (the SAME 109/119 hotline text
+    `/ai/survey/plan`'s own SI gating already ships) verbatim, never a
+    newly authored clinical sentence. `None` when no session was item-9
+    positive. CVR-033 Finding 4 (minor): the section this note renders into
+    ("권장 진료과 및 후속 조치") is clinician-facing, but `SI_POSITIVE_ACTION_KO`
+    is written as patient-directed script — wrapped here as an explicit
+    clinician instruction ("환자에게 다음 안내 권장: ...") rather than a bare
+    quote, WITHOUT altering the constant's own text."""
+    if a3.item9_positive_count == 0:
+        return None
+    return (
+        f"자살사고 문항(9번) 양성 세션 확인됨 ({a3.item9_positive_count}/"
+        f"{a3.administered_session_count}세션) — 환자에게 다음 안내 권장: {SI_POSITIVE_ACTION_KO}"
+    )
+
+
 def _a7_absence_note_ko(a7: RecommendationSection, notes: _SystemNoteCollector) -> str:
     note = a7.department_candidates_absence_note
     if note is None:
@@ -876,7 +1196,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     lines.append("")
 
     # ── 위험/안전 평가 ──
-    lines += ["## 위험/안전 평가", "", _risk_prose(a3, appendix), ""]
+    lines += ["## 위험/안전 평가", "", _risk_prose(lon, a3, appendix), ""]
     risk_rows = _risk_table_rows(a3, appendix)
     # CVR-026 Finding 8 (minor): the exact-ceiling caveat previously
     # repeated verbatim BOTH adjacent to the risk table AND in the
@@ -958,7 +1278,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
     lines.append("")
     lines.append("**주요 경과**")
     lines.append("")
-    course_bullets = _major_course_bullets(so)
+    course_bullets = _major_course_bullets(so, a3)
     if course_bullets:
         lines += [f"- {b_}" for b_ in course_bullets]
     else:
@@ -990,6 +1310,9 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
             ),
             f"- 문진 방식: {a5.administration_mode or '미상'}",
         ]
+        mismatch_note = _recommend_administer_mismatch_ko(a3, a5, a7)
+        if mismatch_note:
+            lines.append(f"- {mismatch_note}")
         if a5.threshold_caveat:
             lines.append(f"- {a5.threshold_caveat}")
         if a5.threshold_caveat_asymmetry_note:
@@ -1026,14 +1349,19 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
         lines.append(f"| {dim} | {direction} | {evidence} |")
     lines.append("")
     lines += _events_and_concordance_lines(
-        lon, b, gap_framing_already_shown=gap_framing_shown, notes=notes
+        lon, b, a3, gap_framing_already_shown=gap_framing_shown, notes=notes
     )
     lines.append("")
     lines.append("### 추세 차트")
     lines.append("")
+    # CVR-032 Finding 7 (minor): "ctrs_zoom" rendered visually identical to
+    # the full "scales_ctrs_sentiment" panel (no added resolution) —
+    # dropped from the report entirely rather than shipping a redundant,
+    # mislabeled-as-"확대" page. Chart PIXEL generation is out of this
+    # renderer's scope either way (`trend_plotter.py`); this only stops
+    # embedding the reference.
     chart_map = {
         "scales_ctrs_sentiment": b.chart_filenames.scales_ctrs_sentiment,
-        "ctrs_zoom": b.chart_filenames.ctrs_zoom,
         "disease_similarity": b.chart_filenames.disease_similarity,
         "domain_confidence": b.chart_filenames.domain_confidence,
     }
@@ -1046,6 +1374,13 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
             lines.append(f"![{key}]({filename})")
             lines.append("")
             lines.append(f"*{_chart_caption_ko(key, lon, fig_no)}*")
+            # CVR-032 Finding 3 (major): an uncaveated flat-zero 문진 항목
+            # 충족도 sub-panel (part of this SAME combined chart) risks
+            # reading as "nothing was learned" — state the data-collection
+            # fact plainly instead of leaving a bare chart to imply it.
+            if key == "scales_ctrs_sentiment" and _slot_fill_all_zero(lon):
+                lines.append("")
+                lines.append(f"*{_SLOT_FILL_FLAT_ZERO_CAVEAT_KO}*")
             lines.append("")
         else:
             lines.append(f"{_CHART_TITLES_KO[key]}: 생성되지 않음")
@@ -1103,6 +1438,9 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
             + (f" — {a7.recommendation_caveat}" if a7.recommendation_caveat else "")
         )
         lines.append("")
+    si_note = _si_referral_note_ko(a3)
+    if si_note:
+        lines += [f"> {si_note}", ""]
     lines += [f"> {a7.medication_note}", ""]
 
     # ── 임상 종합 소견 (own top-level section — same structural-separation
@@ -1165,7 +1503,7 @@ def build_markdown_report(report: HandoffReportOutput) -> str:
 
 def build_narrative_input_text(report: HandoffReportOutput) -> str:
     """Compact plain-text summary of A0-A5/A7/B, EXCLUDING A6 and A8
-    themselves, matching `docs/ai/prompts/handoff_generator/v3.system.md`'s
+    themselves, matching `apps/ai-server/prompts/handoff_generator/v3.system.md`'s
     documented input format."""
     a0, a1, a2, a3 = (
         report.a0_header,
@@ -1410,7 +1748,7 @@ def build_pdf_report(
 
     # ── 위험/안전 평가 ──
     story.append(P("위험/안전 평가", "h2"))
-    story.append(P(_risk_prose(a3, appendix), "body"))
+    story.append(P(_risk_prose(lon, a3, appendix), "body"))
     risk_rows = _risk_table_rows(a3, appendix)
     ceiling_shown_in_a3 = False
     if risk_rows:
@@ -1472,7 +1810,7 @@ def build_pdf_report(
         )
     story.append(_table(rows, font_size=7))
     story.append(P("주요 경과", "h3"))
-    course_bullets = _major_course_bullets(so)
+    course_bullets = _major_course_bullets(so, a3)
     if course_bullets:
         for line in course_bullets:
             story.append(P(f"- {line}", "body"))
@@ -1509,6 +1847,9 @@ def build_pdf_report(
                 "body",
             )
         )
+        mismatch_note = _recommend_administer_mismatch_ko(a3, a5, a7)
+        if mismatch_note:
+            story.append(P(mismatch_note, "warn"))
         if a5.threshold_caveat:
             story.append(P(a5.threshold_caveat, "body"))
         if a5.threshold_caveat_asymmetry_note:
@@ -1535,14 +1876,16 @@ def build_pdf_report(
     rows = [["항목", "방향", "근거"]] + [list(r) for r in _trend_table_rows(lon)]
     story.append(_table(rows, font_size=7.5))
     for line in _events_and_concordance_lines(
-        lon, b, gap_framing_already_shown=gap_framing_shown, notes=notes
+        lon, b, a3, gap_framing_already_shown=gap_framing_shown, notes=notes
     ):
         story.append(P(f"- {line}", "body"))
 
     story.append(P("추세 차트", "h3"))
+    # CVR-032 Finding 7 (minor): "ctrs_zoom" dropped — rendered visually
+    # identical to the full "scales_ctrs_sentiment" panel, no added
+    # resolution (see markdown renderer's own comment for the same fix).
     chart_map = {
         "scales_ctrs_sentiment": b.chart_filenames.scales_ctrs_sentiment,
-        "ctrs_zoom": b.chart_filenames.ctrs_zoom,
         "disease_similarity": b.chart_filenames.disease_similarity,
         "domain_confidence": b.chart_filenames.domain_confidence,
     }
@@ -1566,6 +1909,10 @@ def build_pdf_report(
             # binding constraint at this figure's aspect ratio.
             story.append(Image(str(path), width=17 * cm, height=24 * cm, kind="proportional"))
             story.append(P(_chart_caption_ko(key, lon, fig_no), "meta"))
+            # CVR-032 Finding 3 (major): flat-zero 문진 항목 충족도 caveat,
+            # same gating/text as the markdown renderer.
+            if key == "scales_ctrs_sentiment" and _slot_fill_all_zero(lon):
+                story.append(P(_SLOT_FILL_FLAT_ZERO_CAVEAT_KO, "warn"))
             story.append(Spacer(1, 0.3 * cm))
     if not any_chart:
         story.append(P("정보 없음 (차트 없음 또는 chart_paths 미전달)", "body"))
@@ -1614,6 +1961,9 @@ def build_pdf_report(
                 "body",
             )
         )
+    si_note = _si_referral_note_ko(a3)
+    if si_note:
+        story.append(P(si_note, "warn"))
     story.append(P(a7.medication_note, "meta"))
 
     # ── 임상 종합 소견 (own top-level section, same as markdown) ──

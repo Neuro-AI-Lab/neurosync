@@ -8,6 +8,20 @@ from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+def _default_prompts_base_dir() -> str:
+    """ADR-041 T4 addendum: prompts now live inside the deploy unit
+    (`apps/ai-server/prompts/`, moved from repo-root `docs/ai/prompts/`).
+    Anchored to this file's own location (mirrors `resolve_registry_path`'s
+    existing `Path(__file__).parent`-anchored discipline) so the default is
+    correct regardless of process CWD (repo root or `apps/ai-server`) —
+    unlike the old bare relative-string default, which only resolved
+    correctly from one specific CWD. An explicit `PROMPTS_BASE_DIR` env var
+    (e.g. the container's `/app/prompts`) still overrides this unchanged,
+    with its pre-existing CWD-relative-or-absolute resolution semantics.
+    """
+    return str(Path(__file__).resolve().parents[1] / "prompts")
+
+
 class Settings(BaseSettings):
     """Central configuration — every secret/URL comes from env vars, never hardcoded."""
 
@@ -76,8 +90,13 @@ class Settings(BaseSettings):
         description="Override path for agent_model_registry.yaml",
     )
     prompts_base_dir: str = Field(
-        default="docs/ai/prompts",
-        description="Base directory for prompt templates (relative to project root)",
+        default_factory=_default_prompts_base_dir,
+        description=(
+            "Base directory for prompt templates. Default is an absolute "
+            "path anchored to this file (apps/ai-server/prompts/), CWD-"
+            "independent. Override via PROMPTS_BASE_DIR (e.g. Docker's "
+            "/app/prompts)."
+        ),
     )
 
     # ── Database (RAG 이전으로 ai-server가 직접 접속) ───────────────────
@@ -96,21 +115,6 @@ class Settings(BaseSettings):
         default="",
         description="HIRA Open API 일반 인증키 (공공데이터포털 발급)",
     )
-    hira_hospital_service_url: str = Field(
-        default="https://apis.data.go.kr/B551182/hospInfoServicev2",
-        description="HIRA 병원정보서비스 base endpoint",
-    )
-    hira_pharmacy_service_url: str = Field(
-        default="https://apis.data.go.kr/B551182/pharmacyInfoService",
-        description="HIRA 약국정보서비스 base endpoint",
-    )
-    hira_madm_dtl_service_url: str = Field(
-        default="https://apis.data.go.kr/B551182/MadmDtlInfoService2.8",
-        description=(
-            "HIRA 의료기관별상세정보서비스 2.8 — ykiho별 진료과목별 전문의 수 등 상세 조회. "
-            "getDgsbjtInfo2.8 endpoint 사용. 활용신청 승인 필요 (승인 전 403)."
-        ),
-    )
     hira_drug_efficacy_service_url: str = Field(
         default="https://apis.data.go.kr/B551182/msupCmpnMeftInfoService",
         description=(
@@ -118,31 +122,6 @@ class Settings(BaseSettings):
             "(meftDivNo)·분류명(divNm) 조회. getMajorCmpnNmCdList endpoint. "
             "정신과 약물 판정의 authoritative 소스 (하드코딩 카탈로그 대체)."
         ),
-    )
-
-    # ── Kakao (좌표 보정 · 지도 SDK) ────────────────────────────────────
-    # .env에서 KAKAO_REST_KEY_ENCODED / KAKAO_JS_KEY_ENCODED 로 저장한
-    # 실제 키 값을 우선 로드. KAKAO_REST_API_KEY / KAKAO_MAP_JAVASCRIPT_KEY
-    # 이름 관례 (docs)도 병행 지원.
-    kakao_rest_api_key: str = Field(
-        default="",
-        description="Kakao Local REST API 키 (backend only). address geocoding용",
-        validation_alias=AliasChoices(
-            "KAKAO_REST_KEY_ENCODED",
-            "KAKAO_REST_API_KEY_ACTUAL",
-        ),
-    )
-    kakao_map_javascript_key: str = Field(
-        default="",
-        description="Kakao Maps JavaScript SDK 키 (Web client에서 사용)",
-        validation_alias=AliasChoices(
-            "KAKAO_JS_KEY_ENCODED",
-            "KAKAO_MAP_JAVASCRIPT_KEY",
-        ),
-    )
-    kakao_local_rest_base_url: str = Field(
-        default="https://dapi.kakao.com",
-        description="Kakao Local REST API base URL",
     )
 
     # ── Application ───────────────────────────────────────────────────

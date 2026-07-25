@@ -21,8 +21,11 @@ def resolve_prompts_base_dir(project_root: str | Path) -> Path:
     root) silently passed through, and every prompt-driven agent then
     degraded to its generic hardcoded fallback prompt with no hard failure.
 
+    ADR-041 T4 addendum: prompts moved from repo-root ``docs/ai/prompts/`` to
+    the deploy unit, ``apps/ai-server/prompts/``.
+
     Resolution order:
-      1. Unset -> default to ``{project_root}/docs/ai/prompts``.
+      1. Unset -> default to ``{project_root}/apps/ai-server/prompts``.
       2. Set and resolves (as given — absolute, or relative to the current
          working directory) to an existing directory -> used as-is.
       3. Set but does not resolve from the cwd -> re-anchored against
@@ -42,6 +45,7 @@ def resolve_prompts_base_dir(project_root: str | Path) -> Path:
     root = Path(project_root)
     raw = os.environ.get("PROMPTS_BASE_DIR")
     attempted: list[Path] = []
+    default_dir = root / "apps" / "ai-server" / "prompts"
 
     if raw:
         candidate = Path(raw)
@@ -50,7 +54,7 @@ def resolve_prompts_base_dir(project_root: str | Path) -> Path:
             candidate = root / raw
             attempted.append(candidate.resolve())
     else:
-        candidate = root / "docs" / "ai" / "prompts"
+        candidate = default_dir
         attempted.append(candidate.resolve())
 
     if not candidate.is_dir():
@@ -60,7 +64,7 @@ def resolve_prompts_base_dir(project_root: str | Path) -> Path:
             f"(tried: {tried}). Every prompt-driven agent would otherwise "
             "silently fall back to a generic hardcoded prompt with no hard "
             "failure (BUG-021) — fix PROMPTS_BASE_DIR in .env, or unset it "
-            f"to use the default ({root / 'docs' / 'ai' / 'prompts'})."
+            f"to use the default ({default_dir})."
         )
 
     resolved = candidate.resolve()

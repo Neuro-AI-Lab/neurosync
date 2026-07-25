@@ -33,7 +33,6 @@ from pathlib import Path
 from typing import Any
 
 from src.agents.domain_inference import DomainInferenceAgent
-from src.agents.rag_trigger_judge import RagTriggerJudgeAgent
 from src.dependencies import get_model_router, get_prompt_loader, get_sessionmaker
 from src.eval.f2_grounding import (
     # VAL-011/ADR-020 condition 1: the SAME risk-lexicon primitives the
@@ -54,15 +53,15 @@ from src.rag.questionnaire_mapping import (
     resolve_questionnaire_for_disease_name_ko,
 )
 
-# PLAN-2026-W28-Q W4: RAG trigger Policy A/B — `_STAGE1_QUERY_SLOTS` now
+# PLAN-2026-W28-Q W4: RAG trigger Policy A — `_STAGE1_QUERY_SLOTS` now
 # lives in `src.rag_trigger` (single source of truth for both this module's
-# own default composition and the trigger-policy mechanism, so the two can
-# never silently drift apart), re-exported here under its historical name
-# for existing callers/tests (`f2._STAGE1_QUERY_SLOTS`,
+# own default composition and the trigger mechanism, so the two can never
+# silently drift apart), re-exported here under its historical name for
+# existing callers/tests (`f2._STAGE1_QUERY_SLOTS`,
 # `tests/test_f2_pipeline.py`). See `src.rag_trigger`'s module docstring for
 # the full VAL-010/REV-022 rationale this constant used to carry inline.
 from src.rag_trigger import STAGE1_QUERY_SLOTS as _STAGE1_QUERY_SLOTS
-from src.rag_trigger import decide_policy_a, decide_policy_b, no_rag_decision
+from src.rag_trigger import decide_policy_a, no_rag_decision
 from src.schemas.ai_predicted_disease import AIPredictedDiseaseCandidate, AIPredictedDiseaseOutput
 from src.schemas.domain_inference import (
     DomainCandidate,
@@ -129,7 +128,7 @@ def _infer_is_first_visit(data: dict[str, Any]) -> bool:
     """Consume F1Result's persisted ``is_revisit`` field when present
     (PLAN-2026-W28-Q W2, REV-023 ruling 4 — binding atomicity constraint).
 
-    Dialogue v3's autonomous turn-0 greeting (`docs/ai/prompts/dialogue/
+    Dialogue v3's autonomous turn-0 greeting (`apps/ai-server/prompts/dialogue/
     v3.system.md`) removed the hardcoded greeting string
     `_REVISIT_GREETING_MARKER` relied on, so that substring match can no
     longer be the primary signal — it silently stops matching, not fails
@@ -181,11 +180,11 @@ async def run_stage1(
     Args:
         queries_override: PLAN-2026-W28-Q W4 — when given (not ``None``),
             used AS-IS instead of the default cc/HPI composition. The
-            RAG-trigger-policy layer (`src.rag_trigger.decide_policy_a`/
-            `decide_policy_b`, called by `_run()` below) is the only
-            intended caller of this parameter — it has ALREADY applied the
-            single-choke-point risk-lexicon filter (REV-022 Issues 9/10)
-            to whatever it passes here. Direct callers of `run_stage1`
+            RAG-trigger layer (`src.rag_trigger.decide_policy_a`, called by
+            `_run()` below) is the only intended caller of this parameter —
+            it has ALREADY applied the single-choke-point risk-lexicon
+            filter (REV-022 Issues 9/10) to whatever it passes here.
+            Direct callers of `run_stage1`
             that omit this argument (e.g. this module's own pre-W4 tests)
             keep the exact prior default behavior, unfiltered — matching
             `_STAGE1_QUERY_SLOTS`' own historical, still-unfiltered
@@ -673,10 +672,10 @@ def _build_artifact(
     a real value.
 
     ``rag_trigger`` (PLAN-2026-W28-Q W4): ``TriggerDecision.as_dict()``
-    (`src.rag_trigger`) — the active policy (A/B), the effective retrieve
-    decision, the post-filter query list, dropped (risk-lexicon-flagged)
-    queries, and (Policy B only) the judge's own I/O, persisted as an audit
-    surface (this wave's binding requirement). SIBLING top-level key, same
+    (`src.rag_trigger`) — the active policy (A), the effective retrieve
+    decision, the post-filter query list, and dropped (risk-lexicon-flagged)
+    queries, persisted as an audit surface (this wave's binding
+    requirement). SIBLING top-level key, same
     convention as ``ai_predicted_disease``/``evidence_provenance_summary``
     above. ``None`` only for pre-W4 artifacts/tests; ``_run()`` always
     supplies a real value.
@@ -1020,24 +1019,13 @@ async def _run(args: argparse.Namespace) -> None:
     turns_for_trigger = _build_turns(data)
     probe_events = data.get("probe_events", [])
 
-    # PLAN-2026-W28-Q W4 — config-driven RAG trigger arm (default A). Both
-    # arms funnel through the SAME single-choke-point risk-lexicon filter
-    # (`src.rag_trigger.apply_risk_lexicon_filter`, REV-022 Issues 9/10)
-    # regardless of policy — this is what makes cc/HPI-content exposure
-    # mitigated identically for both arms, not scattered per-source.
-    # `--no-rag` is checked FIRST so Policy B never spends an LLM call when
-    # retrieval is disabled outright.
-    rag_trigger_policy = getattr(args, "rag_trigger_policy", "A") or "A"
+    # PLAN-2026-W28-Q W4 — code-side RAG trigger (Policy A). Funnels through
+    # the single-choke-point risk-lexicon filter
+    # (`src.rag_trigger.apply_risk_lexicon_filter`, REV-022 Issues 9/10) —
+    # this is what makes cc/HPI-content exposure mitigated at one place, not
+    # scattered per-source.
     if args.no_rag:
-        trigger = no_rag_decision(rag_trigger_policy)
-    elif rag_trigger_policy == "B":
-        judge_agent = RagTriggerJudgeAgent(
-            model_router=get_model_router(), prompt_loader=get_prompt_loader()
-        )
-        trigger = await decide_policy_b(
-            judge_agent, session_id=session_id, final_slots=final_slots,
-            turns=turns_for_trigger,
-        )
+        trigger = no_rag_decision("A")
     else:
         trigger = decide_policy_a(final_slots, turns_for_trigger, probe_events)
 
@@ -1157,16 +1145,6 @@ def main() -> None:
         "--no-rag", action="store_true", help="Stage 1 검색 건너뛰기(mode=llm_only)"
     )
     parser.add_argument("--k", type=int, default=3, help="Stage 1 테이블별 top-k (기본 3)")
-    parser.add_argument(
-        "--rag-trigger-policy",
-        choices=["A", "B"],
-        default="A",
-        dest="rag_trigger_policy",
-        help=(
-            "RAG 트리거 arm (PLAN-2026-W28-Q W4) — A: 슬롯 기반 + 전체 대화 fallback "
-            "(기본값, 코드 레벨). B: LLM 판정(rag_trigger_judge)."
-        ),
-    )
     parser.add_argument("--out", default=None, help="출력 디렉터리 override")
     parser.add_argument("--scale-scores", default=None, help="F3 척도 점수 JSON 경로(선택)")
     visit_group = parser.add_mutually_exclusive_group()
