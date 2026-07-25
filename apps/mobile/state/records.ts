@@ -12,7 +12,6 @@
 import { create } from "zustand";
 
 import { QuestionnaireResult, QuestionnaireType } from "../lib/api";
-import { MOCK } from "../lib/config";
 import { SURVEYS, surveyMaxScore } from "../lib/surveys";
 
 export type RecordStatus = "stored" | "delivered" | "reviewed";
@@ -44,49 +43,9 @@ export const STATUS_KO: Record<RecordStatus, string> = {
   reviewed: "검토 완료",
 };
 
-// MOCK 시드 — 디자인 목업(S-14 피드)과 동일한 이력. 실모드에서는 빈 목록.
-const daysAgo = (n: number) => Date.now() - n * 24 * 60 * 60 * 1000;
-const MOCK_SEED: IntakeRecord[] = MOCK
-  ? [
-      {
-        id: "seed-1",
-        completedAt: daysAgo(14),
-        instrument: "PHQ9",
-        totalScore: 14,
-        maxScore: 27,
-        severity: "moderate",
-        status: "reviewed",
-      },
-      {
-        id: "seed-2",
-        completedAt: daysAgo(21),
-        instrument: "GAD7",
-        totalScore: 11,
-        maxScore: 21,
-        severity: "moderate",
-        status: "reviewed",
-        riskFlag: true,
-      },
-      {
-        id: "seed-3",
-        completedAt: daysAgo(35),
-        instrument: "PHQ9",
-        totalScore: 9,
-        maxScore: 27,
-        severity: "mild",
-        status: "delivered",
-      },
-      {
-        id: "seed-4",
-        completedAt: daysAgo(49),
-        instrument: "PHQ9",
-        totalScore: 16,
-        maxScore: 27,
-        severity: "moderately_severe",
-        status: "reviewed",
-      },
-    ]
-  : [];
+// 기록은 실제로 완료한 문진(addFromResult)만 누적한다. 예전에는 mock 모드에서
+// 디자인 목업용 가짜 이력(seed-1..4)을 채웠으나, 실사용/시연 시 가짜 데이터가
+// 섞여 혼란스러워 제거했다 — 빈 상태로 시작한다.
 
 type RecordsState = {
   records: IntakeRecord[];
@@ -97,7 +56,7 @@ type RecordsState = {
 };
 
 export const useRecords = create<RecordsState>((set) => ({
-  records: MOCK_SEED,
+  records: [],
   addFromResult: (result, instrument) =>
     set((s) => ({
       records: [
