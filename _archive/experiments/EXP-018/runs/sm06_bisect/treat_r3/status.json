@@ -1,1 +1,0 @@
-{"exp_id":"EXP-018/runs/sm06_bisect/treat_r3","state":"completed","pid":1391672,"started_at":"2026-07-12T14:02:10+09:00","last_heartbeat":"2026-07-12T14:03:50+09:00","exit_code":0,"log":"experiments/EXP-018/runs/sm06_bisect/treat_r3/run.log","cmd":"bash -c cd apps/ai-server && .venv/bin/python -m src.safety_matrix --scenario SM-06"}

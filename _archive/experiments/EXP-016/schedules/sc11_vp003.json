@@ -1,8 +1,0 @@
-[
-  {
-    "turn_index": 6,
-    "modality": "stt",
-    "fixture_path": "tests/fixtures/audio/VP-003/VP-003-002.mp3",
-    "label": "SC11_VP-003_risk-cell_stt"
-  }
-]

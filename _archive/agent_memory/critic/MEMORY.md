@@ -1,8 +1,0 @@
-# critic memory
-
-Cross-session lessons for the critic role. One fact per bullet, dated. Prune entries that turn out wrong.
-
-- [Eval battery baseline](eval_battery_baseline.md) — 11/11 pass (2026-07-07); re-run before merging any .claude/prompts/ change.
-- [Recurring prompt-only enforcement gap](recurring_prompt_only_enforcement_gap.md) — 9 occurrences through 2026-07-10, 9th (REV-022 mitigation-target-mismatch) closed correctly on first pass 2026-07-11 (REV-024); also carries a distinct new watch-item from the same review: a correctly-targeted fix can still drop a field between agent-output and persisted-artifact dict-literal (trace new fields to their persistence layer, not just the return statement); plus certification-disposition calibration notes: gate on the load-bearing condition not the count of conditions met, treat a newly-failing previously-clean case as broadening (not discounting) a suspected failure, and check a binding condition's literal wording ("chunk" vs "quote") against the implementation before accepting closure.
-- [Cross-repo verification technique](cross_repo_verification_technique.md) — when adjudicating "predates this branch/merge" claims, independently grep the main repo's own current tree+env, not just the cited worktree (REV-021, BUG-021 case: found the exact same broken `.env` value already on Master, strengthening a NOT-PR-gating ruling).
-- [Aggregate-counter misattribution](aggregate-counter-misattribution.md) — REV-025/EXP-015: tracker attributed "Errors: 2" to a disclosed InputNormalizer defect; the counter was actually written by an undisclosed dialogue-repetition-guard trip. Grep the counter's real write site before accepting a nearby-defect attribution.

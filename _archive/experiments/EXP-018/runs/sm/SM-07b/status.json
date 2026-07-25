@@ -1,1 +1,0 @@
-{"exp_id":"EXP-018/runs/sm/SM-07b","state":"completed","pid":1387479,"started_at":"2026-07-12T13:45:56+09:00","last_heartbeat":"2026-07-12T13:46:13+09:00","exit_code":0,"log":"experiments/EXP-018/runs/sm/SM-07b/run.log","cmd":"bash -c cd apps/ai-server && .venv/bin/python -m src.safety_matrix --scenario SM-07b"}

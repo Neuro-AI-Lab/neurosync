@@ -57,9 +57,15 @@ build
 # Large source materials (kept locally, never shipped)
 references
 
-# Docs — not needed at runtime
+# Docs — not needed at runtime. ADR-041 T4: the versioned agent prompts
+# moved into the deploy unit (apps/ai-server/prompts/, no longer under
+# docs/), so no negation is needed here anymore for the Dockerfile's
+# COPY apps/ai-server/prompts /app/prompts to succeed.
 docs
 README.md
+
+# Archived legacy materials — segregated for traceability, never shipped
+_archive
 
 # Local data
 *.sqlite

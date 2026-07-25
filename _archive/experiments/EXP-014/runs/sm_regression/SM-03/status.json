@@ -1,1 +1,0 @@
-{"exp_id":"EXP-014/runs/sm_regression/SM-03","state":"completed","pid":859424,"started_at":"2026-07-11T12:10:55+09:00","last_heartbeat":"2026-07-11T12:12:11+09:00","exit_code":0,"log":"experiments/EXP-014/runs/sm_regression/SM-03/run.log","cmd":"bash -c cd apps/ai-server && .venv/bin/python -m src.safety_matrix --scenario SM-03"}
