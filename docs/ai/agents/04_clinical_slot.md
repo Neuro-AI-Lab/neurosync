@@ -12,7 +12,7 @@
 
 ## 목적
 
-대화 내용, STT transcript, OCR 추출 텍스트 등의 비정형 텍스트에서 구조화된 임상 정보를 JSON 형태로 추출한다. **실제 구현의 추출 결과는 슬롯 키 → flat 문자열 값(`dict[str, str]`)이며, 슬롯별 source/confidence/evidence 서브필드는 이 에이전트의 출력 스키마(`schemas/clinical_slot.py`)에 존재하지 않는다** — 아래 "출력" 절 참조. Evidence 인용(`[ev_*]`) 조립은 별도 단계(HandoffGenerator(10))의 책임이다.
+대화 내용, STT transcript, OCR 추출 텍스트 등의 비정형 텍스트에서 구조화된 임상 정보를 JSON 형태로 추출한다. **실제 구현의 추출 결과는 슬롯 키 → flat 문자열 값(`dict[str, str]`)이며, 슬롯별 source/confidence/evidence 서브필드는 이 에이전트의 출력 스키마(`schemas/clinical_slot.py`)에 존재하지 않는다** — 아래 "출력" 절 참조. Evidence 인용(`[ev_*]`) 조립은 별도 단계(HandoffGenerator(08))의 책임이다.
 
 ## 슬롯 스키마 (12 Standard Clinical Slots)
 
@@ -37,7 +37,7 @@
 
 ### AI 예상질환 엔티티와의 관계 (별개 필드, 병합 금지)
 
-**"AI 예상질환"(AI-predicted-disease) 엔티티는 이 12개 슬롯에 포함되지 않는다.** F2(`DomainInferenceAgent`, Agent 14)가 산출하는 별도의 비진단·비임상 필드(`AIPredictedDiseaseOutput`, `similarity_score` 라벨링, `is_diagnostic=Literal[False]`)이며, 이 에이전트(04)의 출력이나 `HandoffInput`/`SlotData`의 어떤 typed field에도 병합되지 않는다 — `f2.py`는 이를 기존 F2 출력에 병합하지 않고 sibling key로 배선한다. qa의 9-테스트 adversarial suite(`tests/test_hpi_isolation.py`)가 `AgentInput.extra`/`state.conversation_history` 두 채널을 포함해 이 격리를 확인했다(`REV-013` §3 조건 1 충족, mutation-checked). 이 격리 주장은 정확히 이 9개 테스트가 커버하는 범위로 한정된다. 상세: `docs/ai/agents/14_domain_inference.md` "AI 예상질환 엔티티" 절, `docs/ai/development_report.md` DR-010 §3.
+**"AI 예상질환"(AI-predicted-disease) 엔티티는 이 12개 슬롯에 포함되지 않는다.** F2(`DomainInferenceAgent`, Agent 11)가 산출하는 별도의 비진단·비임상 필드(`AIPredictedDiseaseOutput`, `similarity_score` 라벨링, `is_diagnostic=Literal[False]`)이며, 이 에이전트(04)의 출력이나 `HandoffInput`/`SlotData`의 어떤 typed field에도 병합되지 않는다 — `f2.py`는 이를 기존 F2 출력에 병합하지 않고 sibling key로 배선한다. qa의 9-테스트 adversarial suite(`tests/test_hpi_isolation.py`)가 `AgentInput.extra`/`state.conversation_history` 두 채널을 포함해 이 격리를 확인했다(`REV-013` §3 조건 1 충족, mutation-checked). 이 격리 주장은 정확히 이 9개 테스트가 커버하는 범위로 한정된다. 상세: `docs/ai/agents/11_domain_inference.md` "AI 예상질환 엔티티" 절, `docs/ai/development_report.md` DR-010 §3.
 
 ### Essential Slots (Coverage 계산 대상)
 
@@ -85,7 +85,7 @@
 
 ## Evidence ID 형식 — 이 에이전트에는 미구현
 
-**과거 버전 문서는 이 에이전트가 `[ev_{source_type}_{NNN}]` 형식의 evidence ID를 슬롯마다 부여한다고 기술했으나, `ClinicalSlotAgent`/`ClinicalSlotOutput`에는 해당 필드나 로직이 존재하지 않는다.** `[ev_msg_NNN]` 형식의 evidence citation은 `schemas/common.py`의 `EvidencePacket`을 통해 HandoffGenerator(10) 단계에서 별도로 조립된다. 대화 turn 원문에서 evidence를 재구성해야 하는 downstream 소비자는 이 에이전트가 아니라 HandoffGenerator의 evidence 조립 로직을 참조해야 한다.
+**과거 버전 문서는 이 에이전트가 `[ev_{source_type}_{NNN}]` 형식의 evidence ID를 슬롯마다 부여한다고 기술했으나, `ClinicalSlotAgent`/`ClinicalSlotOutput`에는 해당 필드나 로직이 존재하지 않는다.** `[ev_msg_NNN]` 형식의 evidence citation은 `schemas/common.py`의 `EvidencePacket`을 통해 HandoffGenerator(08) 단계에서 별도로 조립된다. 대화 turn 원문에서 evidence를 재구성해야 하는 downstream 소비자는 이 에이전트가 아니라 HandoffGenerator의 evidence 조립 로직을 참조해야 한다.
 
 ## 핵심 동작
 
