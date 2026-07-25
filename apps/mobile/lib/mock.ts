@@ -11,7 +11,10 @@
  */
 
 import type {
+  DeliverResult,
+  OCRResult,
   QuestionnaireResult,
+  ReportTrend,
   QuestionnaireType,
   RegisterInput,
   ReportStatusOut,
@@ -101,6 +104,9 @@ export const mockApi = {
     // Accept ANY credentials in mock mode.
     return delay(MOCK_TOKENS());
   },
+  updateProfileDemographics(): Promise<{ updated: string[] }> {
+    return delay({ updated: [] }, 300);
+  },
   refresh(): Promise<string | null> {
     return delay(`mock-access.${++seq}`);
   },
@@ -124,6 +130,77 @@ export const mockApi = {
     // 오프라인 데모 시나리오는 우울(PHQ-9)로 고정한다.
     // 실제 라우팅은 서버가 F2 도메인 추정으로 결정한다 (v3 FR-039).
     return delay({ instrument: "PHQ9" as QuestionnaireType }, 1200);
+  },
+  parseDocument(): Promise<OCRResult> {
+    // 오프라인 데모: 처방전 한 장을 인식한 것처럼 구조화 결과를 돌려준다.
+    return delay(
+      {
+        documentType: "prescription",
+        extractedSummary: {
+          diagnoses: ["우울에피소드 (F32.1)"],
+          medications: [
+            { name: "에스시탈로프람", dose: "10mg", frequency: "1일 1회", route: "경구" },
+            { name: "졸피뎀", dose: "10mg", frequency: "취침 전", route: "경구" },
+          ],
+          department: "정신건강의학과",
+          dates: ["2026-06-18"],
+          scaleScores: {},
+        },
+        lowConfidenceItems: [
+          {
+            blockId: "b-3",
+            field: "medications[1].dose",
+            value: "10mg",
+            confidence: 0.62,
+            severity: "verify",
+            message: "확인 필요",
+          },
+        ],
+        pageCount: 1,
+        elementCount: 12,
+      },
+      1400,
+    );
+  },
+  deliverReport(): Promise<DeliverResult> {
+    return delay({ delivered: true, deliveredAt: nowIso() }, 400);
+  },
+  getReportTrend(): Promise<ReportTrend> {
+    // 오프라인 데모: 3회 방문에 걸쳐 호전되는 추이(PHQ-9 18→14→9, GAD-7 15→11→7).
+    // CTRS는 낮을수록 위험 — 2→3→3으로 위험도 완화. 실경로는 F4 plot_data 바인딩.
+    return delay(
+      {
+        overallDirection: "improved",
+        isFirstVisit: false,
+        plotData: [
+          {
+            date: "2026-05-14",
+            phq9: 18,
+            gad7: 15,
+            ctrsLevel: 2,
+            sentimentPolarity: -0.42,
+            events: ["첫 방문"],
+          },
+          {
+            date: "2026-06-18",
+            phq9: 14,
+            gad7: 11,
+            ctrsLevel: 3,
+            sentimentPolarity: -0.18,
+            events: [],
+          },
+          {
+            date: "2026-07-19",
+            phq9: 9,
+            gad7: 7,
+            ctrsLevel: 3,
+            sentimentPolarity: 0.12,
+            events: ["수면 호전"],
+          },
+        ],
+      },
+      600,
+    );
   },
   submitSession(sessionId: string): Promise<SubmitAccepted> {
     const reportId = id("mock-report");

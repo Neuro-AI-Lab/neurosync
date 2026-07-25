@@ -184,6 +184,29 @@ def reply_has_negation(text: str) -> bool:
     return bool(_REPLY_NEGATION_RE.search(text))
 
 
+# BUG-084/coordinator directive (2026-07-25, "수집-불가 응답의 즉시-이동
+# 규칙"): a "don't-know"/unanswerable reply ("잘 모르겠습니다"/"모르겠어요"/
+# "모름") is clinically DISTINCT from an active denial ("없어요") — the
+# patient is not affirmatively ruling the item out, they genuinely cannot
+# answer. `_REPLY_NEGATION_RE` above already matches "모르"/"몰라" as a
+# negation morpheme (by design, for the denial-detection use case), so a
+# caller distinguishing the two MUST check `reply_is_dont_know` BEFORE
+# `reply_has_negation` and branch on it first — otherwise a don't-know
+# reply silently collapses into the "denied" bucket, mislabeling the
+# clinical record (a patient who doesn't know whether they take a
+# medication is not the same as one who denies taking any).
+_DONT_KNOW_RE = re.compile(r"(모르겠|모름|모르겟|잘\s*몰라|모르겠구)")
+
+
+def reply_is_dont_know(text: str) -> bool:
+    """True when a patient reply expresses inability to answer / genuine
+    not-knowing ("잘 모르겠습니다"/"모르겠어요"/"모름"), as opposed to an
+    active denial. Checked separately from — and, by callers, BEFORE —
+    `reply_has_negation`, since "모르"-rooted text also matches that
+    broader negation check."""
+    return bool(_DONT_KNOW_RE.search(text))
+
+
 _SENTENCE_SPLIT_RE = re.compile(r"[.!?…~\n]")
 
 
@@ -338,6 +361,176 @@ def evaluate_slot_grounding(
         key, value, VERDICT_UNGROUNDED,
         "no lexical evidence in patient utterances",
     )
+
+
+# ── BUG-077: literal-question topic inference ──────────────────────────
+
+# Distinctive keyword sets per question-able slot — substrings that
+# reliably indicate the LITERAL topic of a rendered assistant question,
+# independent of any internally-tracked steering target. Deliberately
+# narrow/non-overlapping and false-negative-biased: an ambiguous/generic
+# question (e.g. a catch-all "혹시 다른 증상이나 걱정되는 부분은
+# 없으신가요?") must infer NO slot rather than guess wrong — BUG-077's own
+# repro showed that trusting the internally-recorded target unconditionally
+# both over-attributes denials to slots never literally asked AND silently
+# starves slots that WERE literally asked but not internally targeted.
+# Sourced from `DialogueAgent._SLOT_QUESTION_GUIDE`'s own guide phrases and
+# the v5.2 prompt's own worked examples — not independently invented, so
+# the topic vocabulary here cannot drift from what the prompt/guide
+# actually instructs the model to ask.
+_SLOT_TOPIC_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "chief_complaint": ("가장 도움받고 싶은", "가장 힘든 문제", "오늘 어떤"),
+    "history_of_present_illness": (
+        "언제부터 시작", "최근 좋아지", "최근 악화", "일상생활에서",
+        "수면/식사/일/대인관계", "증상이 언제부터",
+    ),
+    "risk_assessment": (
+        "스스로를 해치", "죽고 싶다는 생각", "자해", "자살", "타해",
+    ),
+    "substance_use_history": (
+        "음주", "수면제", "진정제", "카페인", "물질 사용", "담배", "흡연",
+    ),
+    "past_psychiatric_history": (
+        "정신건강의학과 진료", "심리상담", "진단받은 병명", "정신과 진료",
+        "기존 진료기록",
+    ),
+    "medical_history": (
+        "신체질환", "처방 약 외", "복용 중인 약", "변경된 약",
+    ),
+    "personal_social_history": (
+        "힘이 되어주는 사람", "도움을 요청할 수 있는 사람", "연락하거나 도움",
+    ),
+    "family_history": (
+        "가족분들 중에", "비슷한 어려움을 겪으셨던", "가족력",
+    ),
+}
+
+
+def infer_literal_target_slot(text: str) -> str | None:
+    """BUG-077: infer which question-able slot a rendered assistant
+    question LITERALLY, recognizably asked about — via topic-keyword match
+    against `_SLOT_TOPIC_KEYWORDS`. Returns None when no slot's keywords
+    match (an ambiguous/generic "catch-all" question) — deliberately
+    conservative (no guess), since a wrong guess here would recreate
+    BUG-077's over-attribution symptom at a different call site.
+
+    BUG-085 (live repro, session `de33cf67`): a rendered turn routinely
+    RECAPS the prior turn's answer before asking THIS turn's new question
+    (e.g. "신체질환이나 복용 중인 약이 없으시다고 하셨는데, 혹시 가족분들 중에서
+    ... 계신가요?" — recaps `medical_history`, then asks `family_history`).
+    The previous dict-insertion-order first-match scan returned whichever
+    slot happened to be earlier in `_SLOT_TOPIC_KEYWORDS`'s iteration order
+    (`medical_history` before `family_history`), regardless of where in
+    the TEXT it occurred — so a recap phrase silently outranked the actual
+    closing question. That misattribution fed straight into
+    `OrchestratorAgent._update_asked_slot_tracking`'s ask-evidence check:
+    the true target (`family_history`) never matched the wrongly-inferred
+    `literal_slot` (`medical_history`, already filled), so a valid
+    don't-know/denial reply was NEVER grounded — the round-robin kept
+    re-selecting `family_history` turn after turn (observed live: asked 3
+    times, turns 7/9/13, despite two "모르겠" replies).
+    Fix: among ALL matching slots, return the one whose keyword occurs at
+    the RIGHTMOST (latest) position in `text` — the closing question, not
+    an earlier recap clause, is what the turn is actually asking. Ties
+    (same rightmost index) fall back to `_SLOT_TOPIC_KEYWORDS` iteration
+    order for determinism.
+
+    Pure, no I/O — shared by `DialogueAgent` (BUG-077 item A: target-
+    binding validation guard on its own generated candidate) and
+    `OrchestratorAgent` (BUG-077 item B: bare-denial ask-evidence
+    attribution) so both use the exact same "what did this text literally
+    ask about" definition."""
+    if not text:
+        return None
+    best_slot: str | None = None
+    best_index = -1
+    for slot, keywords in _SLOT_TOPIC_KEYWORDS.items():
+        for kw in keywords:
+            idx = text.rfind(kw)
+            if idx > best_index:
+                best_index = idx
+                best_slot = slot
+    return best_slot
+
+
+# ── BUG-078: patient meta-utterance detection (topic-relevance gate) ────
+
+# Substrings that reliably indicate a patient reply is a meta-complaint
+# about the CONVERSATION/AGENT itself (repetitive questioning, or the
+# agent's own competence/memory) rather than an answer to whatever was
+# just asked — direct protest ("왜 자꾸 물어봐", "몇 번을 말해요", "그만 좀
+# 물어보세요"), indirect "I already answered this" phrasing ("아까도
+# 말했잖아요", "방금 말씀드렸는데요", "이미 얘기했잖아요"), and (2026-07-25,
+# user-reported live session `04cfe927`) a THIRD shape this list previously
+# had zero coverage for: complaints directed at the AGENT'S OWN
+# capability/memory ("기억 못하시나요?", "너 못하냐고") — the patient is not
+# disclosing anything about themselves in any of these three shapes; all
+# three are "this conversation/you, the agent, are the problem" utterances,
+# the same underlying category `is_meta_utterance` exists to recognize.
+# Principle, not an exhaustive enumeration (CVR-057 / BUG-030 lesson —
+# keyword lists here are a narrow, conservative CODE-LEVEL gate; the
+# broader, generalizable recognition principle lives in the dialogue
+# prompt's own "환자 메타-발화 처리" section). Deliberately narrow/
+# false-negative-biased, same discipline as `_SLOT_TOPIC_KEYWORDS`: a
+# genuine SI answer must never be misread as a meta-complaint (a false
+# positive here would drop a real denial), so only reasonably distinctive
+# phrasing is listed.
+_META_UTTERANCE_KEYWORDS: tuple[str, ...] = (
+    "왜 자꾸", "왜 또", "몇 번을", "몇 번이나", "몇번을", "그만 좀", "그만좀",
+    "말했잖아", "말씀드렸잖아", "말씀드렸는데", "얘기했잖아", "이야기했잖아",
+    "이미 말했", "이미 말씀드렸", "이미 얘기했", "아까도 말", "아까 말했",
+    "방금 말씀드렸", "또 물어봐", "다시 물어봐", "자꾸 물어봐",
+    # 2026-07-25 (session `04cfe927`): agent capability/memory complaints.
+    "기억 못", "기억을 못", "기억못", "못하시나요", "못 하시나요",
+    "못하냐고", "못 하냐고", "못하는거야", "못 하는거야",
+)
+
+
+def is_meta_utterance(text: str) -> bool:
+    """BUG-078/BUG-085-follow-up: True when *text* is a patient
+    meta-complaint about the conversation/agent itself (repetitive
+    questioning, or the agent's own competence/memory) — NOT a
+    substantive answer to whatever the AI just asked (SI screen
+    included). Deliberately conservative — matches only the direct/
+    indirect repetition-complaint and capability/memory-complaint
+    phrasing the dialogue prompt itself teaches (see
+    `_META_UTTERANCE_KEYWORDS`); an unmatched reply is assumed to be a
+    genuine, on-topic answer.
+
+    Matching is whitespace-collapsed on both sides (2026-07-25, session
+    `04cfe927` live finding): a patient reply with natural spacing
+    variance ("이야기 했잖아" vs the keyword's "이야기했잖아") previously
+    fell through this substring check silently — collapsing internal
+    whitespace before comparison closes that gap without widening the
+    keyword list's own conservative scope.
+
+    Pure, no I/O — used by `OrchestratorAgent._advance_safety_probe` to
+    gate `safety_probe.compose_screen_risk_assessment` so a repetition
+    complaint is never fabricated into a permanent SI-denial citation
+    (BUG-078's own live repro: "없다니까 왜 자꾸 물어봐요." falsely
+    grounding risk_assessment via `reply_has_negation` alone)."""
+    if not text:
+        return False
+    collapsed = re.sub(r"\s+", "", text)
+    return any(re.sub(r"\s+", "", kw) in collapsed for kw in _META_UTTERANCE_KEYWORDS)
+
+
+def verdict_to_slot_status(verdict: GroundingVerdict) -> str:
+    """Map a `GroundingVerdict` to the 3-state wire label (BUG-072/073 wave):
+    ``"filled"`` | ``"denied"`` | ``"missing"``.
+
+    Used by both `routes/slots.py::_apply_grounding_filter` and
+    `agents/orchestrator.py` so the two callers never hand-duplicate this
+    mapping. ``system_slot``/``ungrounded`` both collapse to ``"missing"``
+    — the extractor proposed no *accepted* value for this turn; callers
+    must not confuse this with "confirmed absent" (only
+    `VERDICT_NEGATIVE_GROUNDED` means that).
+    """
+    if verdict.verdict == VERDICT_NEGATIVE_GROUNDED:
+        return "denied"
+    if verdict.verdict == VERDICT_GROUNDED:
+        return "filled"
+    return "missing"
 
 
 def grounded_coverage(filled_slots: Mapping[str, str]) -> float:

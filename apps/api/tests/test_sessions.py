@@ -12,8 +12,8 @@ import pytest
 from contracts.safety import (
     RiskCategory,
     RiskLevel,
+    SafetyAssessment,
     SafetyEvidence,
-    SafetyResponse,
 )
 
 from src.services.safety import (
@@ -24,8 +24,8 @@ from src.services.safety import (
 )
 
 
-def _make_response(level: RiskLevel, category: RiskCategory) -> SafetyResponse:
-    return SafetyResponse(
+def _make_response(level: RiskLevel, category: RiskCategory) -> SafetyAssessment:
+    return SafetyAssessment(
         level=level,
         category=category,
         evidence=SafetyEvidence(
@@ -49,6 +49,15 @@ class _FakeSession:
 
     def add(self, obj) -> None:
         self.added.append(obj)
+
+    async def flush(self) -> None:
+        """CVR-051 self-check fix (RM-1): `handle_safety_result`/
+        `handle_unavailable_classifier` now flush before reading
+        `risk_event.id` (a real AsyncSession assigns the Python-side
+        `default=uuid.uuid4` at flush time). This fake has no real DB, so
+        `.id` stays whatever the RiskEvent constructor left it as (None,
+        since no test here asserts on `riskEventId`'s value) — the no-op
+        just satisfies the call so these DB-less unit tests keep working."""
 
 
 # ────────── handle_safety_result ──────────
@@ -221,3 +230,31 @@ async def test_unavailable_classifier_respects_opt_out():
     assert payload["routeTo"] == "/self_hotline"
     risk_event = db.added[0]
     assert risk_event.legal_basis == "self_hotline_only"
+
+
+@pytest.mark.asyncio
+async def test_unavailable_classifier_category_is_honest_not_other_harm():
+    """CVR-053 regression: a classifier-infrastructure outage is not a
+    harm-to-others (타해) detection. `handle_unavailable_classifier` was the
+    one path BUG-062's category-mapping consolidation missed — it kept
+    hardcoding `RiskCategory.OTHER_HARM` for every outage. Both the
+    persisted `RiskEvent.category` and the wire payload's `category` must
+    be the honest `RiskCategory.NONE`, not `OTHER_HARM`."""
+    db = _FakeSession()
+    payload = await handle_unavailable_classifier(
+        db,  # type: ignore[arg-type]
+        patient_id=uuid.uuid4(),
+        session_id=uuid.uuid4(),
+        trigger_message_id=uuid.uuid4(),
+        context_message_ids=[],
+        consent=_consent(True),
+    )
+    risk_event = db.added[0]
+    assert risk_event.category == RiskCategory.NONE.value
+    assert risk_event.category != RiskCategory.OTHER_HARM.value
+    assert payload["category"] == RiskCategory.NONE.value
+    # Level stays MEDIUM and escalation still fires — CVR-053 scored the
+    # fail-safe turn-block clinically correct; only the category label
+    # was wrong, and only that changes here.
+    assert risk_event.level == RiskLevel.MEDIUM.value
+    assert payload["routeTo"] == "/emergency"  # opted in — still escalates

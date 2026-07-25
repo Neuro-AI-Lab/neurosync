@@ -16,7 +16,7 @@ export default async function DashboardPage() {
 
   if (errorCode) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4 text-state-danger">
+      <div className="bg-danger-soft border border-danger-line rounded-xl p-4 text-danger-ink">
         환자 목록을 불러오지 못했어요 (코드: {errorCode}).
       </div>
     );
@@ -36,13 +36,20 @@ export default async function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-semibold text-text-primary">환자 목록</h1>
-        <p className="text-sm text-text-secondary">{patients.length}명</p>
+        <div className="flex flex-col gap-1">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-faint">
+            사전 문진 · 환자
+          </p>
+          <h1 className="text-[26px] font-semibold tracking-tight text-text-primary">
+            환자 목록
+          </h1>
+        </div>
+        <p className="text-sm text-text-secondary tabular-nums">{patients.length}명</p>
       </header>
       {patients.length === 0 ? (
         <p className="text-text-secondary">아직 등록된 환자가 없어요.</p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-2.5">
           {sorted.map((p) => (
             <li key={p.userId}>
               <PatientListItem item={p} />

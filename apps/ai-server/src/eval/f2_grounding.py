@@ -162,8 +162,8 @@ _RISK_PHRASES: tuple[str, ...] = (
     "살기 싫",
     "살기싫",
     # VAL-015: the Korean-only lexicon does not catch English-language
-    # risk-worded content — real, structural exposure via Policy-B's
-    # judge-composed retrieval queries (EXP-016 findings 27/31/34,
+    # risk-worded content — real, structural exposure via the (retired)
+    # Policy-B's judge-composed retrieval queries (EXP-016 findings 27/31/34,
     # verbatim `retrieval_meta.queries` text re-extracted from
     # `_archive/simulation_results/VP-003/VP-003_20260711_220220_domain_
     # inference.json` / `..._220541_...json`: "...passive suicidal

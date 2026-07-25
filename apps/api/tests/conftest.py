@@ -13,7 +13,7 @@ Strategy:
 
 from __future__ import annotations
 
-import asyncio
+import functools
 import os
 from collections.abc import AsyncGenerator
 from urllib.parse import urlparse, urlunparse
@@ -32,16 +32,19 @@ from src.core.config import Settings, get_settings
 from src.db import Base, get_session
 from src.main import create_app
 
-# ── Pre-existing bug workaround (TEST-ONLY) ─────────────────────────────────
-# patient_profiles.is_minor is a Postgres GENERATED column whose expression uses
-# CURRENT_DATE (non-immutable). PG16 rejects that at CREATE TABLE ("generation
-# expression is not immutable"), which breaks Base.metadata.create_all for the
-# whole suite. Drop the generated expression for TEST schema creation only —
-# production models/DDL are untouched. (Model fix tracked as a separate issue.)
+# ── TEST-ONLY convenience default ───────────────────────────────────────────
+# BUG-065 fix: `patient_profiles.is_minor` is no longer a Postgres GENERATED
+# column (it used to use the non-immutable `CURRENT_DATE`, which PG16
+# rejected at CREATE TABLE — that was the original reason this module
+# patched the column at import time). It is now a plain, app-set
+# `Boolean NOT NULL` column (see `models/patient_profile.py`). This
+# `server_default` patch is kept — TEST-ONLY, production DDL is untouched —
+# purely so pre-existing tests that construct `PatientProfile(...)` without
+# passing `is_minor` (most of the suite, since this field is orthogonal to
+# what they're testing) keep working without a mass test-file edit.
 from src.models.patient_profile import PatientProfile as _PatientProfile  # noqa: E402
 
 _is_minor_col = _PatientProfile.__table__.c.is_minor
-_is_minor_col.computed = None
 _is_minor_col.server_default = text("false")
 
 # Skip the whole test module if no Postgres is reachable — keeps unit tests
@@ -58,13 +61,6 @@ def _swap_db_name(url: str, new_name: str) -> str:
 
 TEST_DB_NAME = "neurosync_test"
 TEST_URL = _swap_db_name(SOURCE_URL, TEST_DB_NAME)
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
 
 
 async def _ensure_test_database() -> bool:
@@ -135,7 +131,14 @@ def test_settings() -> Settings:
 @pytest_asyncio.fixture
 async def client(db_session: AsyncSession, test_settings: Settings) -> TestClient:
     app = create_app()
-    app.dependency_overrides[get_session] = lambda: _yield(db_session)
+    # BUG-057 root cause 1: a lambda wrapping an already-invoked call
+    # (`lambda: _yield(db_session)`) is not itself an async-generator
+    # *function* — FastAPI's dependency resolution inspects the override
+    # callable, not its return value, so it injects the raw un-iterated
+    # async-generator object instead of iterating it. functools.partial
+    # preserves `_yield`'s async-generator-function identity so FastAPI
+    # correctly resolves and iterates it.
+    app.dependency_overrides[get_session] = functools.partial(_yield, db_session)
     app.dependency_overrides[get_settings] = lambda: test_settings
 
     return TestClient(app)

@@ -15,6 +15,7 @@ this module makes zero clinical judgments and calls zero LLMs.
 from __future__ import annotations
 
 from contracts.longitudinal import DomainInferenceInput, LongitudinalSessionEntry
+from pydantic import ValidationError
 
 from src import f4, f5
 from src.schemas.ai_predicted_disease import AIPredictedDiseaseOutput
@@ -69,6 +70,27 @@ def build_series_input(
     return f4.LongitudinalSeriesInput(vp_id=vp_id, sessions=records)
 
 
+def _session_recommended_questionnaire(entry: LongitudinalSessionEntry) -> str | None:
+    """CVR-033 Finding 5 (production-path closure): THIS session's own F2
+    `recommended_questionnaire` — read from `entry.ai_predicted_disease`,
+    the same per-session F2 artifact dict `f4._build_disease_candidate_
+    series` already re-validates for the similarity-trend series (same raw
+    dict, same field, `contracts.longitudinal.LongitudinalSessionEntry.
+    ai_predicted_disease` — no contract change needed, the field already
+    carries it). Mirrors that function's soft-degradation discipline
+    exactly: a malformed/absent per-session dict yields `None` (skipped
+    honestly), never a raised error or a fabricated value — one
+    unparseable earlier session must never break mismatch detection for
+    the rest of the arc."""
+    if not entry.ai_predicted_disease:
+        return None
+    try:
+        validated = AIPredictedDiseaseOutput.model_validate(entry.ai_predicted_disease)
+    except ValidationError:
+        return None
+    return validated.recommended_questionnaire
+
+
 def build_f3_administration(entry: LongitudinalSessionEntry) -> f5.F3Administration | None:
     """One `f5.F3Administration` from `entry.f3` — mirrors
     `continuous_test._build_f5_f3_administration`'s field reprojection
@@ -79,7 +101,13 @@ def build_f3_administration(entry: LongitudinalSessionEntry) -> f5.F3Administrat
     the same `f3` dict (`contracts.longitudinal.LongitudinalSessionEntry.f3`
     docstring). Returns `None` (never raises) for an entry with no/
     unrecognized `f3` sub-object — an honest "no F3 this session", same
-    discipline as the harness."""
+    discipline as the harness.
+
+    `recommended_questionnaire` (CVR-033 Finding 5): populated from THIS
+    session's own `entry.ai_predicted_disease` (`_session_recommended_
+    questionnaire` above) so `f5._build_a5`'s per-session 권고-시행 불일치
+    comparison is exercised end-to-end on the stateless `POST /ai/handoff/
+    report` path, not only when a harness backfills it."""
     f3 = entry.f3
     if not f3:
         return None
@@ -101,6 +129,7 @@ def build_f3_administration(entry: LongitudinalSessionEntry) -> f5.F3Administrat
         safety_referral=bool(f3.get("safety_referral", False)),
         administration_mode=f3.get("administration_mode", "natural"),
         threshold_caveat=f3.get("threshold_caveat"),
+        recommended_questionnaire=_session_recommended_questionnaire(entry),
     )
 
 

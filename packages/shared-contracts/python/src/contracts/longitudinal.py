@@ -42,6 +42,33 @@ class LongitudinalSessionEntry(BaseModel):
     session_ctrs: int | None = None
     crisis_triggered: bool = False
     crisis_turn: int | None = None
+    # BUG-055 fail-loud (Option B, ADR-046 #1): explicit, typed carriers for
+    # this session's risk-assessment/escalation signal — the SAME value
+    # ai-server's orchestrator writes to `SessionState.slot_data
+    # ["risk_assessment"]` (`schemas/orchestrator.py`), reachable to the
+    # caller via `ChatResponse.session_state.slot_data.risk_assessment`
+    # once contract1 (session_state round-trip) is in place. Deliberately
+    # NOT folded into the untyped `final_slots` dict — a generic
+    # `dict[str, str]` slot silently absorbs a missing/blank value with no
+    # schema-level signal, which is exactly BUG-055's fail-silent mechanism
+    # (this endpoint had NO field at all for it before this fix). `/ai/slots
+    # /extract` still never accepts `risk_assessment` from the extractor
+    # (`routes/slots.py::_apply_grounding_filter`, BUG-049 — that filter is
+    # unaffected and correct-by-design: only a dedicated safety protocol may
+    # populate this value, never the slot extractor).
+    risk_assessment: str | None = Field(
+        default=None,
+        description="This session's risk-assessment text, sourced from "
+        "session_state.slot_data.risk_assessment — REQUIRED (fail-loud, "
+        "see `routes/handoff.py::report`) whenever crisis_triggered or "
+        "clinical_escalation_required is True for this session.",
+    )
+    clinical_escalation_required: bool = Field(
+        default=False,
+        description="ADR-044 backstop passthrough for this session — "
+        "sourced from ChatResponse.session_state's own "
+        "clinical_escalation_required (contract1).",
+    )
     probe_events: list[dict[str, Any]] = Field(default_factory=list)
     risk_floor: int | None = None
     turn_sentiment_polarities: list[float] = Field(default_factory=list)

@@ -15,6 +15,7 @@ from typing import Any
 
 from src.adapters.base import ChatMessage, LLMAdapter
 from src.agents.base import AgentInput, BaseAgent
+from src.grounding import OBSERVATION_SLOT_KEY, SYSTEM_SLOT_KEYS
 from src.prompts.loader import PromptLoader
 from src.routing.model_router import ModelRouter
 from src.schemas.clinical_slot import ClinicalSlotInput, ClinicalSlotOutput
@@ -46,11 +47,77 @@ ESSENTIAL_SLOT_KEYS = [
     "clinical_assessment",           # 11. 평가/진단적 인상
 ]
 
+# B5 enabler (EXP-029, orchestrator design decision), UPDATED by ADR-042
+# (EXP-030 cluster C): slots a PATIENT can actually fill by talking — the
+# denominator for the `handoff_ready` coverage gate
+# (`OrchestratorAgent._update_slot_coverage`), single source of truth.
+# Derived from the SAME categorization `src.grounding` already uses for
+# its own (independent, pre-existing) f1.py-path grounding rules — never
+# a second, hand-duplicated classification:
+#   - `SYSTEM_SLOT_KEYS` (encounter_metadata/clinical_assessment/
+#     treatment_plan) — clinician/system-authored, `src.grounding`'s own
+#     hard rule: "never accepted from the extractor".
+#   - `RISK_SLOT_KEY` (risk_assessment) — SafetyClassifier-owned by hard
+#     rule as far as the EXTRACTOR is concerned (`src.grounding`: "never
+#     accepted from the extractor... populated only by the safety probe
+#     protocol") — that rule is UNCHANGED (BUG-049's protection: see
+#     `routes/slots.py::_apply_grounding_filter`, still unconditionally
+#     drops it). What changed under ADR-042: production
+#     (`OrchestratorAgent`) now ALSO has a ported 4-stage graduated Safety
+#     Probe state machine (`src/safety_probe.py`, wired in
+#     `OrchestratorAgent._advance_safety_probe`) that fills
+#     `risk_assessment` organically from the patient's own probe/SI-
+#     screen answers — the SAME mechanism `f1.py`'s own harness has always
+#     had (`_ProbeState`/`_compose_probe_risk_assessment`). This closes
+#     the previously-documented divergence from f1.py's own
+#     `grounded_coverage`/`QUESTIONABLE_SLOT_KEYS` precedent (which always
+#     included risk_assessment in its denominator) — risk_assessment is
+#     therefore INCLUDED here now, not excluded. A production session's
+#     `handoff_ready` additionally cannot fire from coverage math alone
+#     until `SessionState.risk_grounded` is True (the termination gate,
+#     `OrchestratorAgent._should_extract_slots`) — coverage crossing 0.7
+#     is necessary but no longer sufficient on its own.
+#   - `OBSERVATION_SLOT_KEY` (mental_status_exam) — f1.py's own
+#     `QUESTIONABLE_SLOT_KEYS` ALREADY excludes this from its coverage
+#     denominator too (it is not one of the 8 listed there) — consistent
+#     with, not diverging from, f1.py's precedent. Empirically (EXP-029
+#     Stage A1 qa signoff transcript) its content also folds into
+#     `history_of_present_illness` in practice on the live route rather
+#     than landing as its own extracted slot.
+PATIENT_FILLABLE_SLOTS = [
+    k for k in ALL_SLOT_KEYS
+    if k not in SYSTEM_SLOT_KEYS and k != OBSERVATION_SLOT_KEY
+]
+
 # T1-F1-DEV-017: v2 replaces realistic example values with synthetic
 # placeholders after the 2026-07-03 prompt-echo fabrication incident.
 # PLAN-2026-W28 C1: v3 (prompt_redesign_v3.md §2.3) — hold budget, no content
 # change; REV-002 #3 cross-reference note deliberately NOT added.
-PROMPT_VERSION = "v3"
+# BUG-049 (critical, 2026-07-21): v4 was pinned briefly (BUG-048b/CVR-036)
+# then REVERTED — live re-probe found v4's denial-encoding rule caused
+# fabrication: "없음(환자 부인)" was extracted for 5 slots whose topics were
+# never raised yet (turn 6, topics only raised turns 8-10), a real turn-5
+# positive value was overwritten, and the actual risk denial was still
+# missed. DO NOT re-pin "v4" — see prompts/clinical_slot/v4.system.md's own
+# DO-NOT-PIN header. Structural fix (same BUG-049 pass): grounding is now
+# enforced in `POST /ai/slots/extract` regardless of prompt version
+# (`src/routes/slots.py`) — kills this fabrication class at the code layer,
+# independent of whatever prompt is pinned here.
+#
+# EXP-029 Stage A1 / CVR-037 (cleared-with-conditions, both conditions
+# applied): v5 — built from v3 body (NOT v4), quote-embedded denial format
+# "없음(환자 부인: '<환자 발화 인용>')" so the value is lexically groundable
+# by the route filter above (v4's bare fixed string was not) and
+# self-evidencing for chart review. Explicit BUG-049 anti-pattern guard
+# (unanswered/preview question never fabricates a denial), CVR-037
+# condition 1 (혼합 발화 가드 — a denial-only quote is forbidden when the
+# same patient turn also carries a positive/qualifying disclosure for that
+# slot), and CVR-037 condition 2 (partial multi-topic answer example).
+# risk_assessment stays fully carved out (unchanged, governed only by its
+# own special-rule section). Live-verified before this pin (see
+# tests/test_deploy_contracts.py::TestExp029A1DenialEncodingLiveV5) — real
+# Upstage Solar Pro3 calls, all passed.
+PROMPT_VERSION = "v5"
 
 
 class ClinicalSlotAgent(BaseAgent):

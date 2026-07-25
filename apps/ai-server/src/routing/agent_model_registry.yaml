@@ -101,42 +101,6 @@ agents:
     model: "rule-based"
     description: "Rule-based state machine — no LLM calls. Routes to sub-agents."
 
-  temporal_retriever:
-    strategy: benchmarked
-    primary:
-      adapter: solar-pro3
-      model: "solar-pro3"
-      supports_json_schema: true
-      supports_json_object: true
-    secondary:
-      adapter: k-exaone
-      model: "${LG_K_EXAONE_ENDPOINT_ID}"
-      supports_json_schema: false
-      supports_json_object: true
-    fallback:
-      adapter: ak-llm
-      model: "A.X-K1"
-      supports_json_schema: false
-      supports_json_object: false
-
-  temporal_summary:
-    strategy: benchmarked
-    primary:
-      adapter: solar-pro3
-      model: "solar-pro3"
-      supports_json_schema: true
-      supports_json_object: true
-    secondary:
-      adapter: k-exaone
-      model: "${LG_K_EXAONE_ENDPOINT_ID}"
-      supports_json_schema: false
-      supports_json_object: true
-    fallback:
-      adapter: ak-llm
-      model: "A.X-K1"
-      supports_json_schema: false
-      supports_json_object: false
-
   handoff_generator:
     strategy: benchmarked
     primary:
@@ -209,29 +173,3 @@ agents:
       supports_json_schema: false
       supports_json_object: false
 
-  # PLAN-2026-W28-Q W4 — RAG trigger Policy B judge (src/agents/
-  # rag_trigger_judge.py). Small JSON-only call; same tiering as the other
-  # benchmarked agents (no new vendor dependency).
-  rag_trigger_judge:
-    strategy: benchmarked
-    primary:
-      adapter: solar-pro3
-      model: "solar-pro3"
-      supports_json_schema: true
-      supports_json_object: true
-    secondary:
-      adapter: k-exaone
-      model: "${LG_K_EXAONE_ENDPOINT_ID}"
-      supports_json_schema: false
-      supports_json_object: true
-    fallback:
-      adapter: ak-llm
-      model: "A.X-K1"
-      supports_json_schema: false
-      supports_json_object: false
-
-  # ── Offline (not called at runtime) ─────────────────────────────────
-
-  prompt_eval:
-    strategy: offline
-    description: "Prompt evaluation — batch-only, not used in live inference"

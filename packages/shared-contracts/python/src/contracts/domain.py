@@ -19,8 +19,21 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+# ADR-046 #2 (contract4 fix): "panic" added to match ai-server's own 9-value
+# enum (`schemas.domain_inference.DomainName`, BUG-031 8->9) — the previous
+# 8-value enum here rejected a live "panic" candidate with a pydantic
+# `literal_error`, silently forcing the PHQ-4 fallback (routing neutered,
+# `analysis_app_merge_20260721.md` finding 4).
 DomainName = Literal[
-    "anxiety", "depression", "alcohol", "substance", "trauma", "sleep", "psychosis", "other"
+    "anxiety",
+    "depression",
+    "alcohol",
+    "substance",
+    "trauma",
+    "sleep",
+    "psychosis",
+    "other",
+    "panic",
 ]
 RetrievalMode = Literal["rag", "llm_only"]
 EvidenceSourceType = Literal["rag_chunk", "utterance", "ocr_document"]

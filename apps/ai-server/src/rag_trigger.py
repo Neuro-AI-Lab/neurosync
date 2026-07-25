@@ -1,8 +1,7 @@
-"""RAG trigger policy A/B — PLAN-2026-W28-Q W4.
+"""RAG trigger policy A — PLAN-2026-W28-Q W4.
 
-Decides WHEN F2's Stage-1 retrieval fires and WHICH query text reaches it,
-config-switchable between two arms (``f2.py --rag-trigger-policy {A,B}``,
-default A):
+Decides WHEN F2's Stage-1 retrieval fires and WHICH query text reaches it
+(code-side, no LLM surface):
 
   - **Policy A** (code-side, no new LLM surface): trigger the whole-
     conversation fallback when ``chief_complaint``+``history_of_present_
@@ -13,29 +12,22 @@ default A):
     Appendix A). Fallback queries are drawn from conversation turns
     EXCLUDING Safety-Probe/SI-screen-adjacent turns (``probe_events``-tagged
     turns).
-  - **Policy B** (LLM-judged, new agent ``src.agents.rag_trigger_judge``):
-    sees the session transcript + slot state (NOT persona paths, NOT
-    ``retrieve_grounding()``, NOT ``risk_assessment`` — plan §6 allowlist
-    row) and outputs ``{retrieve: bool, query: str|None}``.
 
 Binding design requirement (``discussion.md`` REV-022 Issues 9/10, blocking-
 scoped on this W4 wave): REV-011 §2's own project-proven finding is that the
 open VAL-010 residual channel is ORDINARY ``chief_complaint``/HPI content,
 not probe turns and not ``risk_assessment`` alone. Excluding probe turns
-(Policy A) or hard-excluding only ``risk_assessment`` (Policy B) does not,
-by itself, address that channel — both mitigations, as REV-022 found them
-originally specified, targeted a channel this project already proved is
-NOT the open one. This module's fix is architectural, not lexical:
+(Policy A) does not, by itself, address that channel — this mitigation, as
+REV-022 originally specified it, targeted a channel this project already
+proved is NOT the open one. This module's fix is architectural, not lexical:
 ``apply_risk_lexicon_filter`` is the SINGLE CHOKE POINT every composed
 query — from EVERY source (primary slot text, whole-conversation fallback
-turns, judge-composed text) and BOTH arms — passes through immediately
-before Stage 1 ever sees it, so cc/HPI-content exposure (the actually-open
-channel) is mitigated at the same place for both arms, not scattered
-per-source. ``decide_policy_a``/``decide_policy_b`` below both call it as
-their LAST step, unconditionally — including on the "sufficient/no-
-fallback" path, which is itself a fix: ``f2.py``'s pre-existing default
-cc/HPI query composition was NEVER filtered before this change (REV-022
-finding 3d).
+turns) — passes through immediately before Stage 1 ever sees it, so cc/HPI-
+content exposure (the actually-open channel) is mitigated at the same place,
+not scattered per-source. ``decide_policy_a`` below calls it as its LAST
+step, unconditionally — including on the "sufficient/no-fallback" path,
+which is itself a fix: ``f2.py``'s pre-existing default cc/HPI query
+composition was NEVER filtered before this change (REV-022 finding 3d).
 
 Residual exposure, disclosed (not closed by this module — critic
 adjudicates redesign-vs-disclosure at the W4 gate, per this dispatch's
@@ -62,7 +54,6 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 from src.eval.f2_grounding import _RISK_PHRASES, _contains_any
-from src.grounding import RISK_SLOT_KEY
 from src.schemas.domain_inference import UtteranceTurn
 
 # Appendix A (_archive/plans/validation_plan_f1f2_continuous.md), data's W1 finding
@@ -192,13 +183,12 @@ class TriggerDecision:
     surface in F2's run artifact (``rag_trigger`` top-level key, ``f2.py``).
     """
 
-    policy: Literal["A", "B"]
+    policy: Literal["A"]
     retrieve: bool
     queries: list[str]
     dropped_queries: list[str]
     trigger_reason: str
     fallback_used: bool
-    judge_output: dict[str, Any] | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -208,11 +198,10 @@ class TriggerDecision:
             "dropped_queries": list(self.dropped_queries),
             "trigger_reason": self.trigger_reason,
             "fallback_used": self.fallback_used,
-            "judge_output": self.judge_output,
         }
 
 
-def no_rag_decision(policy: Literal["A", "B"]) -> TriggerDecision:
+def no_rag_decision(policy: Literal["A"]) -> TriggerDecision:
     """``--no-rag`` short-circuit — the trigger is never evaluated (no LLM
     judge call, no fallback composition), but the artifact still records a
     real, honest ``TriggerDecision`` (MET-6 mode-consistency: ``rag_
@@ -262,66 +251,4 @@ def decide_policy_a(
     return TriggerDecision(
         policy="A", retrieve=retrieve, queries=clean, dropped_queries=dropped,
         trigger_reason=reason, fallback_used=fallback_used,
-    )
-
-
-async def decide_policy_b(
-    judge: Any,
-    *,
-    session_id: str,
-    final_slots: Mapping[str, str],
-    turns: Sequence[UtteranceTurn],
-) -> TriggerDecision:
-    """Policy B — LLM-judged trigger.
-
-    *judge* is a ``src.agents.rag_trigger_judge.RagTriggerJudgeAgent`` (typed
-    ``Any`` here to keep this module's pure trigger logic import-free of the
-    agent/adapter/model-router stack — only this one function has an LLM
-    dependency, and only via the injected agent instance, never a module-
-    level import of the router/adapter machinery).
-    """
-    from src.schemas.rag_trigger_judge import RagTriggerJudgeInput
-
-    # REV-022 Issue 10's ORIGINAL mitigation (still valid, now layered under
-    # the single choke point below, not relied on alone): risk_assessment
-    # is hard-excluded as a query source — the judge never even sees it.
-    licensed_slots = {k: v for k, v in final_slots.items() if k != RISK_SLOT_KEY}
-
-    judge_input = RagTriggerJudgeInput(
-        session_id=session_id, turns=list(turns), final_slots=licensed_slots,
-    )
-    judge_output = await judge.run(judge_input)
-
-    raw_query = judge_output.query or ""
-    composed = [raw_query] if raw_query.strip() else []
-    clean, dropped = apply_risk_lexicon_filter(composed)
-
-    # Final, EFFECTIVE retrieve decision requires BOTH the judge's own
-    # retrieve=True AND a surviving (non-risk-lexicon-flagged) query to
-    # actually search with — a judge that says "retrieve" but whose only
-    # composed query is risk-worded must not reach Stage 1 (ADR-014
-    # zero-tolerance precedent, applied here to queries). The judge's OWN
-    # raw decision is preserved unmodified in `judge_output` below (Gate
-    # 0.5 / SC-3b's stability check reads THAT field, not this one).
-    retrieve = bool(judge_output.retrieve) and bool(clean)
-
-    if judge_output.retrieve and not clean:
-        reason = "judge_retrieve_but_query_risk_filtered"
-    elif judge_output.retrieve:
-        reason = "judge_retrieve"
-    else:
-        reason = "judge_no_retrieve"
-
-    return TriggerDecision(
-        policy="B", retrieve=retrieve, queries=clean, dropped_queries=dropped,
-        trigger_reason=reason, fallback_used=False,
-        judge_output={
-            "retrieve": judge_output.retrieve,
-            "query": judge_output.query,
-            "reason_summary": judge_output.reason_summary,
-            "model_used": judge_output.model_used,
-            "prompt_version": judge_output.prompt_version,
-            "prompts_degraded": judge_output.prompts_degraded,
-            "latency_ms": judge_output.latency_ms,
-        },
     )

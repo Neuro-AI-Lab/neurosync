@@ -81,6 +81,7 @@ from src.schemas.handoff_report import (
     MentalStatusSection,
     MSEDomainStatus,
     NarrativeSection,
+    QuestionnaireMismatch,
     QuestionnaireSection,
     RankedDiseaseCandidate,
     RecommendationSection,
@@ -149,8 +150,22 @@ class F3Administration:
     severity: str | None = None
     critical_item_positive: bool | None = None
     safety_referral: bool = False
-    administration_mode: Literal["natural", "forced"] = "natural"
+    # CVR-032 Finding 1 fix: was `Literal["natural", "forced"]`, missing
+    # "safety_net" — `src.f3.resolve_administration_mode`'s actual return
+    # type is `Literal["natural", "forced", "safety_net"]`; the stale,
+    # narrower type here never raised at runtime (plain dataclass, no
+    # Pydantic validation) but silently mistyped every safety_net
+    # administration passed through this field.
+    administration_mode: Literal["natural", "forced", "safety_net"] = "natural"
     threshold_caveat: str | None = None
+    # CVR-033 Finding 5: the F2 `recommended_questionnaire` that was in
+    # effect for THIS session (i.e. that session's own domain_inference.json
+    # artifact — same field `DomainInferenceSnapshot`/A7 already reads, but
+    # PER SESSION here, not just the latest). `None` when the harness has
+    # not supplied a per-session F2 snapshot for this session (older
+    # callers keep working unchanged — no mismatch is ever computed from
+    # `None`). Never re-derived or guessed here; caller-supplied only.
+    recommended_questionnaire: str | None = None
 
 
 @dataclass(frozen=True)
@@ -615,6 +630,23 @@ def _build_a3(inp: HandoffReportInput) -> RiskSafetySection:
             )
         )
 
+    # CVR-032 Finding 1 (blocking): worst-session ("nadir") disclosure —
+    # the LOWEST session_ctrs across the WHOLE arc (never just current/
+    # header session), so a scripted mid-arc dip renders in prose even when
+    # first-vs-last framing alone would hide it.
+    ctrs_points_known = [p for p in inp.longitudinal.ctrs_series if p.session_ctrs is not None]
+    min_ctrs_point = (
+        min(ctrs_points_known, key=lambda p: p.session_ctrs) if ctrs_points_known else None
+    )
+
+    safety_net_sessions = [
+        admin.session_index
+        for admin in inp.all_f3_administrations
+        if admin.administration_mode == "safety_net"
+    ]
+    administered = [a for a in inp.all_f3_administrations if a.outcome == "administered"]
+    item9_positive_count = sum(1 for a in administered if a.critical_item_positive)
+
     return RiskSafetySection(
         current_session_index=s.session_index,
         current_simulated_date=s.simulated_date,
@@ -632,6 +664,12 @@ def _build_a3(inp: HandoffReportInput) -> RiskSafetySection:
             current_f3.critical_item_positive if current_f3 else None
         ),
         longitudinal_risk_signals=signals,
+        min_ctrs_session_index=min_ctrs_point.session_index if min_ctrs_point else None,
+        min_ctrs_simulated_date=min_ctrs_point.simulated_date if min_ctrs_point else None,
+        min_ctrs_value=min_ctrs_point.session_ctrs if min_ctrs_point else None,
+        safety_net_sessions=safety_net_sessions,
+        item9_positive_count=item9_positive_count,
+        administered_session_count=len(administered),
         trend_concordance_flag=inp.longitudinal.concordance_flag,
         staleness_pointer=_build_staleness_pointer(inp, has_f3),
     )
@@ -673,6 +711,23 @@ def _build_a5(inp: HandoffReportInput) -> QuestionnaireSection:
     if latest.scale_name == "GAD-7" and latest.threshold_caveat is None:
         asymmetry_note = GAD7_THRESHOLD_CAVEAT_ASYMMETRY_NOTE_KO
 
+    # CVR-033 Finding 5: per-session 권고-시행 불일치 — every administered
+    # session (not just `latest`) whose OWN `recommended_questionnaire`
+    # (caller-supplied per session, may be `None` for older callers) differs
+    # from the scale actually administered that same session.
+    mismatches = [
+        QuestionnaireMismatch(
+            session_index=a.session_index,
+            simulated_date=a.simulated_date,
+            recommended_questionnaire=a.recommended_questionnaire,
+            administered_scale_name=a.scale_name,
+        )
+        for a in administered
+        if a.recommended_questionnaire is not None
+        and a.scale_name is not None
+        and a.recommended_questionnaire != a.scale_name
+    ]
+
     return QuestionnaireSection(
         present=True,
         administering_session_index=latest.session_index,
@@ -693,6 +748,7 @@ def _build_a5(inp: HandoffReportInput) -> QuestionnaireSection:
         gap_disclosure=gap_notes,
         gap_acuity_framing_note=CRISIS_F3_GAP_ACUITY_FRAMING_KO if gap_notes else None,
         ceiling_caveat=_ceiling_caveat(latest.total_score, latest.max_score),
+        mismatch_sessions=mismatches,
     )
 
 

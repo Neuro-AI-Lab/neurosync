@@ -1,5 +1,5 @@
-import { router } from "expo-router";
-import { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -15,18 +15,40 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../../components/Button";
 import { Input } from "../../components/Input";
 import { APIException } from "../../lib/api";
-import { Check, ChevronRight } from "../../lib/icons";
 import { colors } from "../../lib/tokens";
 import { useAuth } from "../../state/auth";
 
 /**
- * Single-screen register — screen-spec §S-03 compresses profile + consent into
- * one for the Phase 1a demo. Consent is presented as the iOS "전체 동의" box over
- * a grouped checkbox list (필수 / 선택), matching the design mock.
+ * S-03 register — 2단계: 계정 + 필수 프로필. 약관 동의는 1단계(/consent)에서
+ * 이미 받아 params로 넘어온다(민감정보는 수집 전 동의, PIPA). 인적사항(선택)은
+ * 3단계(/profile-setup). 가입 성공 시 profile-setup으로 이동한다.
  */
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
   const register = useAuth((s) => s.register);
+
+  // 1단계 동의 결과(params). 필수 3종이 없으면 동의 화면으로 되돌린다.
+  const p = useLocalSearchParams<{
+    tos?: string;
+    privacy?: string;
+    sensitive?: string;
+    risk?: string;
+    voice?: string;
+  }>();
+  const consents = {
+    tos: p.tos === "1",
+    privacy: p.privacy === "1",
+    sensitive: p.sensitive === "1",
+    riskNotification: p.risk === "1",
+    voice: p.voice === "1",
+  };
+  useEffect(() => {
+    if (!(consents.tos && consents.privacy && consents.sensitive)) {
+      router.replace("/(auth)/consent");
+    }
+    // 최초 마운트 시 params 검증만. consents는 params 파생이라 안정적.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,31 +59,11 @@ export default function RegisterScreen() {
   const [region, setRegion] = useState("서울 강남구");
   const [gender, setGender] = useState<"male" | "female" | "other">("male");
 
-  const [tos, setTos] = useState(false);
-  const [privacy, setPrivacy] = useState(false);
-  const [sensitive, setSensitive] = useState(false);
-  // PRD §4.5.2 + FR-026 — risk_notification is OPT-IN per PIPA doctrine.
-  const [riskNotification, setRiskNotification] = useState(false);
-  // FR-034 — voice (STT) is sensitive (biometric); separate opt-in, default off.
-  const [voiceConsent, setVoiceConsent] = useState(false);
-
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const allOn = tos && privacy && sensitive && riskNotification && voiceConsent;
-  const setAll = (v: boolean) => {
-    setTos(v);
-    setPrivacy(v);
-    setSensitive(v);
-    setRiskNotification(v);
-    setVoiceConsent(v);
-  };
-
   const isFilled = (s: string) => s.trim().length > 0;
   const canSubmit =
-    tos &&
-    privacy &&
-    sensitive &&
     isFilled(email) &&
     isFilled(password) &&
     isFilled(name) &&
@@ -82,9 +84,10 @@ export default function RegisterScreen() {
         phone: phone.trim(),
         region: region.trim(),
         emergencyContact: emergency.trim(),
-        consents: { tos, privacy, sensitive, riskNotification, voice: voiceConsent },
+        consents,
       });
-      router.replace("/(patient)/(tabs)/home");
+      // 가입 완료 → 2단계 인적사항(선택) 화면으로. 홈이 아니다.
+      router.replace("/(auth)/profile-setup");
     } catch (e) {
       if (e instanceof APIException) {
         const c = e.body.code;
@@ -114,8 +117,9 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.head}>
-          <Text style={styles.title}>회원가입</Text>
-          <Text style={styles.sub}>민감한 의료 정보를 다루기에 항목을 나눴어요.</Text>
+          <Text style={styles.step}>회원가입 · 2/3</Text>
+          <Text style={styles.title}>계정 · 기본 정보</Text>
+          <Text style={styles.sub}>진료 연계에 필요한 최소한의 정보만 받아요.</Text>
         </View>
 
         <Input label="이메일" placeholder="you@example.com" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
@@ -148,29 +152,6 @@ export default function RegisterScreen() {
           </View>
         </View>
 
-        {/* Consent — 전체 동의 + grouped checkbox list */}
-        <Text style={styles.sectionLabel}>약관 동의</Text>
-        <Pressable
-          style={styles.agreeAll}
-          onPress={() => setAll(!allOn)}
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: allOn }}
-        >
-          <Checkbox on={allOn} size={26} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.agreeAllTitle}>전체 동의합니다</Text>
-            <Text style={styles.agreeAllSub}>필수·선택 항목을 모두 포함해요</Text>
-          </View>
-        </Pressable>
-
-        <View style={styles.clist}>
-          <ConsentRow label="서비스 이용약관" required on={tos} onToggle={() => setTos(!tos)} />
-          <ConsentRow label="개인정보 처리방침" required on={privacy} onToggle={() => setPrivacy(!privacy)} />
-          <ConsentRow label="민감정보(의료) 수집·이용" required on={sensitive} onToggle={() => setSensitive(!sensitive)} />
-          <ConsentRow label="위험 감지 시 비상 연락" on={riskNotification} onToggle={() => setRiskNotification(!riskNotification)} />
-          <ConsentRow label="음성 입력(STT) 사용" on={voiceConsent} onToggle={() => setVoiceConsent(!voiceConsent)} />
-        </View>
-
         {error ? (
           <View style={styles.errBox}>
             <Text style={styles.errText}>{error}</Text>
@@ -178,68 +159,24 @@ export default function RegisterScreen() {
         ) : null}
 
         <View style={{ height: 4 }} />
-        <Button label="동의하고 계속" onPress={onSubmit} loading={submitting} disabled={!canSubmit} />
+        <Button label="가입하고 계속" onPress={onSubmit} loading={submitting} disabled={!canSubmit} />
 
         <Pressable
           style={styles.footer}
           onPress={() => (router.canGoBack() ? router.back() : router.replace("/(auth)/login"))}
           accessibilityRole="button"
         >
-          <Text style={styles.footerText}>이미 회원이신가요? </Text>
-          <Text style={styles.footerLink}>로그인</Text>
+          <Text style={styles.footerText}>← 약관 동의로 돌아가기</Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-function Checkbox({ on, size = 24 }: { on: boolean; size?: number }) {
-  return (
-    <View
-      style={[
-        styles.check,
-        { width: size, height: size, borderRadius: size / 2 },
-        on && styles.checkOn,
-      ]}
-    >
-      {on ? <Check size={size - 10} color={colors.onInk} /> : null}
-    </View>
-  );
-}
-
-function ConsentRow({
-  label,
-  required,
-  on,
-  onToggle,
-}: {
-  label: string;
-  required?: boolean;
-  on: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <Pressable
-      style={styles.citem}
-      onPress={onToggle}
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked: on }}
-    >
-      <Checkbox on={on} />
-      <Text style={styles.citemLabel} numberOfLines={1}>
-        {label}
-      </Text>
-      <Text style={[styles.citemTag, required && styles.citemTagReq]}>
-        {required ? "필수" : "선택"}
-      </Text>
-      <ChevronRight size={13} color={colors.faint} />
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 20, gap: 12 },
   head: { marginBottom: 4, gap: 4 },
+  step: { fontSize: 11.5, fontWeight: "600", color: colors.muted, letterSpacing: 0.3 },
   title: { fontSize: 24, fontWeight: "700", color: colors.ink, letterSpacing: -0.6 },
   sub: { fontSize: 13, color: colors.muted },
   fieldLabel: { fontSize: 12.5, fontWeight: "500", color: colors.muted, paddingLeft: 2 },
@@ -258,39 +195,6 @@ const styles = StyleSheet.create({
   chipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
   chipText: { fontSize: 14, color: colors.ink },
   chipTextOn: { color: colors.onInk, fontWeight: "600" },
-  sectionLabel: { fontSize: 12.5, fontWeight: "600", color: colors.muted, marginTop: 12, paddingLeft: 2 },
-  agreeAll: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 13,
-    padding: 15,
-    borderWidth: 1.5,
-    borderColor: colors.ink,
-    borderRadius: 14,
-  },
-  agreeAllTitle: { fontSize: 15, fontWeight: "600", color: colors.ink },
-  agreeAllSub: { fontSize: 11.5, color: colors.muted, marginTop: 2 },
-  clist: { paddingHorizontal: 4 },
-  citem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 11,
-    height: 50,
-    paddingHorizontal: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.sep,
-  },
-  citemLabel: { flex: 1, fontSize: 14, color: colors.ink },
-  citemTag: { fontSize: 11, color: colors.muted },
-  citemTagReq: { color: colors.ink2, fontWeight: "500" },
-  check: {
-    borderWidth: 2,
-    borderColor: colors.lineStrong,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surface,
-  },
-  checkOn: { backgroundColor: colors.ink, borderColor: colors.ink },
   errBox: {
     backgroundColor: colors.dangerSoft,
     borderWidth: 1,
@@ -301,5 +205,4 @@ const styles = StyleSheet.create({
   errText: { fontSize: 13, color: colors.dangerInk },
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 10 },
   footerText: { fontSize: 14, color: colors.muted },
-  footerLink: { fontSize: 14, color: colors.ink, fontWeight: "600" },
 });

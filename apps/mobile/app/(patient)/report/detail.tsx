@@ -11,21 +11,68 @@
  */
 
 import { router, useLocalSearchParams } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "../../../components/Button";
 import { NavBar } from "../../../components/NavBar";
+import { TrendChart } from "../../../components/TrendChart";
+import { APIException, deliverReport, getReportTrend, ReportTrend } from "../../../lib/api";
 import { MOCK } from "../../../lib/config";
 import { SURVEYS } from "../../../lib/surveys";
 import { colors } from "../../../lib/tokens";
+import { useAuth } from "../../../state/auth";
 import { SEVERITY_KO, STATUS_KO, useRecords } from "../../../state/records";
+import { useSession } from "../../../state/session";
 
 export default function ReportDetailScreen() {
   const insets = useSafeAreaInsets();
   const { recordId } = useLocalSearchParams<{ recordId?: string }>();
   const record = useRecords((s) => s.records.find((r) => r.id === recordId));
   const markDelivered = useRecords((s) => s.markDelivered);
+  const accessToken = useAuth((s) => s.accessToken);
+  const sessionId = useSession((s) => s.sessionId);
+
+  // 점수 추이 (수정 7 · F4). 실 API에서 세션 id로 조회한다. mock 모드에서는
+  // 가짜 추이를 띄우지 않는다 — 실데이터 연동(§6-A) 후에만 표시한다. 세션 id가
+  // 없거나 실패하면 차트를 조용히 숨긴다.
+  const [trend, setTrend] = useState<ReportTrend | null>(null);
+  useEffect(() => {
+    let alive = true;
+    // recordId는 로컬 레코드 id라 세션 UUID가 아니다.
+    if (MOCK || !accessToken || !sessionId) return;
+    getReportTrend(accessToken, sessionId)
+      .then((t) => alive && setTrend(t))
+      .catch(() => alive && setTrend(null));
+    return () => {
+      alive = false;
+    };
+  }, [accessToken, sessionId]);
+
+  // FR-047 · §6-B — 수동 전달. MOCK은 로컬 상태만 전이, 실모드는 서버에 전달 후
+  // 로컬 반영. 실모드는 세션 id가 있어야 전달 대상이 특정된다.
+  const [delivering, setDelivering] = useState(false);
+  const onDeliver = async () => {
+    if (!record) return;
+    if (MOCK) {
+      markDelivered(record.id);
+      return;
+    }
+    if (!accessToken || !sessionId) return;
+    setDelivering(true);
+    try {
+      await deliverReport(accessToken, sessionId);
+      markDelivered(record.id);
+    } catch (e) {
+      Alert.alert(
+        "전달하지 못했어요",
+        e instanceof APIException ? e.body.message : "잠시 후 다시 시도해 주세요.",
+      );
+    } finally {
+      setDelivering(false);
+    }
+  };
 
   if (!record) {
     return (
@@ -73,45 +120,22 @@ export default function ReportDetailScreen() {
           </Text>
         </View>
 
-        {/* Handoff 미니 프리뷰 — 예시 서사는 MOCK 전용. 실모드에서 실제 기록 위에
-            가짜 임상 텍스트가 렌더되면 안 된다 (§6-A/B 배포 후 실데이터 바인딩). */}
-        {MOCK ? (
-          <View style={styles.report}>
-            <View style={styles.reportHead}>
-              <Text style={styles.reportHeadTitle}>Handoff 리포트</Text>
-              <Text style={styles.reportHeadDate}>{dateLabel}</Text>
-            </View>
-            <View style={styles.rrow}>
-              <Text style={styles.rk}>주호소</Text>
-              <Text style={styles.rv}>한 달 넘게 지속되는 수면 곤란과 우울감</Text>
-            </View>
-            <View style={styles.rrow}>
-              <Text style={styles.rk}>수면 · 식욕 · 활동</Text>
-              <Text style={styles.rv}>입면까지 2~3시간, 식욕 저하, 활동량 감소</Text>
-            </View>
-            <View style={[styles.rrow, styles.rrowLast]}>
-              <Text style={styles.rk}>위험 신호</Text>
-              {record.riskFlag ? (
-                <View style={styles.flag}>
-                  <View style={styles.flagDot} />
-                  <Text style={styles.flagText}>수동적 부정 사고 · 낮음</Text>
-                </View>
-              ) : (
-                <Text style={styles.rv}>특이 소견 없음</Text>
-              )}
-            </View>
+        {/* 점수 추이 차트 (수정 7 · F4 plot_data). 비교할 이전 방문이 있을 때만. */}
+        {trend && trend.plotData.length >= 2 ? (
+          <TrendChart points={trend.plotData} direction={trend.overallDirection} />
+        ) : null}
+
+        {/* Handoff 리포트 본문 — AI 서사는 실 연동(§6-A/B) 후 실데이터로 바인딩한다.
+            가짜 임상 텍스트를 기록 위에 렌더하지 않는다. */}
+        <View style={styles.report}>
+          <View style={styles.reportHead}>
+            <Text style={styles.reportHeadTitle}>Handoff 리포트</Text>
+            <Text style={styles.reportHeadDate}>{dateLabel}</Text>
           </View>
-        ) : (
-          <View style={styles.report}>
-            <View style={styles.reportHead}>
-              <Text style={styles.reportHeadTitle}>Handoff 리포트</Text>
-              <Text style={styles.reportHeadDate}>{dateLabel}</Text>
-            </View>
-            <View style={[styles.rrow, styles.rrowLast]}>
-              <Text style={styles.rv}>리포트 본문은 정식 연동 후 여기에서 볼 수 있어요.</Text>
-            </View>
+          <View style={[styles.rrow, styles.rrowLast]}>
+            <Text style={styles.rv}>리포트 본문은 정식 연동 후 여기에서 볼 수 있어요.</Text>
           </View>
-        )}
+        </View>
 
         <Text style={styles.fine}>
           본 리포트는 의료진 참고용이며, 진단이 아닙니다. 전달 전까지 의료진에게 공유되지 않아요.
@@ -119,9 +143,14 @@ export default function ReportDetailScreen() {
 
         <View style={{ flex: 1 }} />
 
-        {/* FR-047 — §6-B 배포 전 실모드 비노출 가드. MOCK에서만 전이 시연. */}
-        {MOCK && record.status === "stored" ? (
-          <Button label="의료진에게 전달하기" onPress={() => markDelivered(record.id)} />
+        {/* FR-047 · §6-B — 보관 중인 리포트를 [전달하기]. 실모드는 전달 대상
+            세션 id가 있을 때만 노출(과거 이력 실연동은 §6-A 후속). */}
+        {record.status === "stored" && (MOCK || sessionId) ? (
+          <Button
+            label="의료진에게 전달하기"
+            onPress={() => void onDeliver()}
+            loading={delivering}
+          />
         ) : null}
         {record.status === "delivered" ? (
           <Text style={styles.deliveredNote}>의료진에게 전달됐어요. 진료 때 함께 확인해요.</Text>
@@ -184,28 +213,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.line,
   },
   rrowLast: { borderBottomWidth: 0 },
-  rk: {
-    fontSize: 10.5,
-    letterSpacing: 0.4,
-    textTransform: "uppercase",
-    color: colors.faint,
-  },
   rv: { fontSize: 12.5, color: colors.ink, marginTop: 3, lineHeight: 18 },
-  flag: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    alignSelf: "flex-start",
-    marginTop: 4,
-    backgroundColor: colors.dangerSoft,
-    borderWidth: 1,
-    borderColor: colors.dangerLine,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-  },
-  flagDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.danger },
-  flagText: { fontSize: 11.5, fontWeight: "600", color: colors.dangerInk },
   fine: { fontSize: 11.5, color: colors.muted, lineHeight: 16 },
   deliveredNote: { textAlign: "center", fontSize: 13, color: colors.muted, paddingVertical: 12 },
 });

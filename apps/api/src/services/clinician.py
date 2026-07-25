@@ -225,6 +225,13 @@ async def get_patient_detail(
             profile.emergency_contact_encrypted,
             aad=_profile_aad(user.id, "emergency_contact"),
         ),
+        marital_status=profile.marital_status,
+        household_type=profile.household_type,
+        education_level=profile.education_level,
+        occupation=profile.occupation,
+        employment_status=profile.employment_status,
+        income_level=profile.income_level,
+        religion=profile.religion,
         consent=consent_out,
         sessions=summaries,
     )

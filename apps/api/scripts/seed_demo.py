@@ -42,6 +42,66 @@ def _message_aad(session_id: uuid.UUID, message_id: uuid.UUID) -> bytes:
     return f"messages.content:{session_id}:{message_id}".encode()
 
 
+def _is_minor(birth_year: int, settings: Settings) -> bool:
+    """BUG-065 fix: `is_minor` is no longer a DB-computed GENERATED column
+    (see `models/patient_profile.py`) — this demo seed sets it explicitly,
+    mirroring `api/v1/auth.py::_is_minor` (kept local here rather than
+    imported to avoid a `scripts/` -> `api/v1/` import across module
+    boundaries the rest of this file doesn't otherwise take)."""
+    return (datetime.now(tz=UTC).year - birth_year) < settings.minor_age_cutoff
+
+
+def _narrative_to_report_response(n: dict) -> dict:
+    """BUG-066 fix: `HandoffReport.content` must now match the realigned
+    `contracts.handoff.HandoffResponse` shape (`report_markdown`-primary)
+    instead of the pre-fix invented `chief_complaint`/`present_illness`/...
+    fields ai-server never actually produced — this demo seed data predates
+    that fix. Folds the old narrative dict into one Markdown report so the
+    clinician dashboard demo still renders real-looking content."""
+    saa = n.get("sleep_appetite_activity", {})
+    lines = [
+        f"## 주호소\n{n.get('chief_complaint', '')}",
+        f"## 현병력\n{n.get('present_illness', '')}",
+    ]
+    if n.get("symptoms"):
+        lines.append("## 주요 증상\n" + ", ".join(n["symptoms"]))
+    if n.get("onset"):
+        lines.append(f"## 시작 시점\n{n['onset']}")
+    if n.get("recent_changes"):
+        lines.append(f"## 최근 변화\n{n['recent_changes']}")
+    if n.get("triggers"):
+        lines.append("## 유발 요인\n" + ", ".join(n["triggers"]))
+    saa_text = " · ".join(
+        filter(
+            None,
+            [
+                f"수면: {saa.get('sleep')}" if saa.get("sleep") else None,
+                f"식욕: {saa.get('appetite')}" if saa.get("appetite") else None,
+                f"활동: {saa.get('activity')}" if saa.get("activity") else None,
+            ],
+        )
+    )
+    if saa_text:
+        lines.append(f"## 수면 / 식욕 / 활동\n{saa_text}")
+    if n.get("psych_history"):
+        lines.append(f"## 과거 정신건강 이력\n{n['psych_history']}")
+    if n.get("medications"):
+        lines.append(f"## 복용약\n{n['medications']}")
+    if n.get("clinician_attention"):
+        lines.append("## 의료진 확인 필요\n" + ", ".join(n["clinician_attention"]))
+
+    return {
+        "report_markdown": "\n\n".join(lines),
+        "report_json": None,
+        "report_pdf_base64": None,
+        "trend_plot_base64": None,
+        "evidence_packets": [],
+        "missing_slots": [],
+        "risk_level": "none",
+        "requires_human_review": False,
+    }
+
+
 def _severity_phq9(score: int) -> str:
     return (
         "minimal" if score <= 4 else "mild" if score <= 9 else "moderate"
@@ -233,6 +293,7 @@ async def _make_persona(db, settings: Settings, p: dict) -> None:
                 p["name"], aad=_profile_aad(user.id, "name"), settings=settings
             ),
             birth_year=p["birth_year"],
+            is_minor=_is_minor(p["birth_year"], settings),
             gender=p["gender"],
             phone_encrypted=encrypt_str(
                 p["phone"], aad=_profile_aad(user.id, "phone"), settings=settings
@@ -313,8 +374,10 @@ async def _make_persona(db, settings: Settings, p: dict) -> None:
         HandoffReport(
             session_id=sess.id,
             status="ready",
-            content=p["narrative"],
+            content=_narrative_to_report_response(p["narrative"]),
             generated_at=datetime.now(UTC) - timedelta(hours=1),
+            # v3 §6-B — 시드 리포트는 이미 전달된 상태로 둔다(의료진 대시보드 노출).
+            delivered_at=datetime.now(UTC) - timedelta(minutes=50),
         )
     )
 

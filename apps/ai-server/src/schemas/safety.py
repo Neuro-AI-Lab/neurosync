@@ -2,20 +2,28 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from src.agents.base import AgentInput, AgentOutput
 from src.schemas.common import CTRSLevel, RiskLevel
 
 
 class SafetyInput(AgentInput):
-    """Input to the safety classifier."""
+    """Input to the safety classifier.
+
+    BUG-066 fix: `extra="forbid"` scoped to this subclass (not the shared
+    `AgentInput` base — see that class's docstring) so any future
+    apps/api<->ai-server field-name drift on this specific contract 422s
+    immediately instead of silently dropping fields (BUG-062's root cause).
+    """
 
     user_message: str = Field(..., description="Raw user message text")
     conversation_history: list[dict[str, str]] = Field(
         default_factory=list,
         description="Recent conversation turns [{role, content}, ...]",
     )
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class SafetyClassification(BaseModel):

@@ -444,6 +444,27 @@ class RiskSafetySection(BaseModel):
     longitudinal_risk_signals: list[LongitudinalRiskSignal] = Field(default_factory=list)
     trend_concordance_flag: Literal["concordant", "discordant", "unknown"] = "unknown"
     staleness_pointer: StalenessPointer
+    # CVR-032 Finding 1 (blocking): worst-session ("nadir") disclosure —
+    # computed from the SAME `ctrs_series`/`all_f3_administrations` this
+    # section already draws `longitudinal_risk_signals` from (never a new
+    # data source), so a scripted mid-arc CTRS dip is visible in prose, not
+    # only in the chart. `min_ctrs_value` is the LOWEST `session_ctrs`
+    # across the WHOLE arc (never just the current/header session) — `None`
+    # only when no session has a known `session_ctrs` value.
+    min_ctrs_session_index: int | None = None
+    min_ctrs_simulated_date: str | None = None
+    min_ctrs_value: int | None = None
+    # Session indices where an F3 administration this arc had
+    # `administration_mode == "safety_net"` (CVR-028 Finding 1 lineage —
+    # forced PHQ-9 on a high-acuity session with no F2 recommendation).
+    safety_net_sessions: list[int] = Field(default_factory=list)
+    # N/M — item-9-positive (or scale-critical-item-positive) administered
+    # sessions out of ALL administered sessions this arc, both counted from
+    # `all_f3_administrations` (outcome == "administered"), never
+    # re-derived from `longitudinal_risk_signals` (that list also includes
+    # safety_referral-only entries, a broader set).
+    item9_positive_count: int = 0
+    administered_session_count: int = 0
 
 
 # ── A4 ──────────────────────────────────────────────────────────────────
@@ -473,6 +494,23 @@ class MentalStatusSection(BaseModel):
 
 
 # ── A5 ──────────────────────────────────────────────────────────────────
+
+
+class QuestionnaireMismatch(BaseModel):
+    """CVR-033 Finding 5: one session where that session's OWN F2
+    `recommended_questionnaire` differed from the scale actually
+    administered that same session — computed per-session across the WHOLE
+    arc (`f5.py::_build_a5`), never just the latest-vs-latest comparison
+    CVR-032's original fix used (which silently missed every earlier
+    mismatched session, e.g. VP-001's GAD-7-recommended/PHQ-9-administered
+    sessions)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    session_index: int
+    simulated_date: str
+    recommended_questionnaire: str
+    administered_scale_name: str
 
 
 class QuestionnaireSection(BaseModel):
@@ -508,6 +546,10 @@ class QuestionnaireSection(BaseModel):
             "including when present=False."
         ),
     )
+    # CVR-033 Finding 5: per-session 권고-시행 불일치 rows across the WHOLE
+    # arc (`f5.py::_build_a5`, from `all_f3_administrations`), replacing
+    # the CVR-032 original single-session (latest-vs-latest) comparison.
+    mismatch_sessions: list[QuestionnaireMismatch] = Field(default_factory=list)
 
 
 # ── A6 (hard red line — own section, never merged elsewhere) ──────────────

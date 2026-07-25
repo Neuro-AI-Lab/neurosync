@@ -20,12 +20,7 @@ import logging
 import uuid
 from datetime import UTC, datetime
 
-from contracts.handoff import (
-    HandoffMessage,
-    HandoffQuestionnaire,
-    HandoffRequest,
-    HandoffRiskSignal,
-)
+from contracts.handoff import HandoffRequest, ScaleScore, SlotData
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -80,15 +75,72 @@ async def create_pending_report(
     return report
 
 
+async def _build_slots(db: AsyncSession, session_id: uuid.UUID) -> SlotData:
+    """BUG-066 fix — resolves the fix_wave_design.md UNVERIFIED open item:
+    apps/api DOES persist per-session slot data, in `Session.clinical_slots`
+    (JSONB, populated in the background by `services/chat.py::
+    _extract_slots_bg` — a flat dict keyed by ClinicalSlotAgent's
+    canonical-12 slot names, per BUG-050). `_build_request` never read this
+    column before this fix — every handoff request silently shipped
+    `slots=SlotData()` (all-`None` defaults), which is why BUG-066's live
+    probe found a vacuous 12-section report despite real filled slots
+    existing in the DB. Unknown/stale dict keys (defensive — `clinical_slots`
+    is caller-controlled JSONB, not schema-enforced) are filtered against
+    `SlotData.model_fields` rather than passed through, so a stray key can
+    never trip `SlotData`'s own `extra="forbid"`."""
+    row = await db.execute(select(Session.clinical_slots).where(Session.id == session_id))
+    raw = row.scalar_one_or_none() or {}
+    filtered = {k: v for k, v in raw.items() if k in SlotData.model_fields}
+    return SlotData(**filtered)
+
+
+async def _build_patient_metadata(
+    db: AsyncSession, session_id: uuid.UUID
+) -> tuple[str | None, str | None, str | None]:
+    """BUG-069 follow-up (F5 metadata enrichment, 2026-07-25): resolves the
+    real `patient_gender`/`session_started_at`/`session_ended_at` values
+    `HandoffRequest` gained additively — previously nothing threaded these
+    into the handoff pipeline at all (v4.3's "기록 없음"/"미수집" fallback
+    was the only rendering, by design, given that absence). Returns `(None,
+    None, None)` per-field wherever the underlying row/column is missing —
+    never guesses; `handoff_generator.py::_build_user_content` keeps its
+    existing grounded fallback text for any `None` here."""
+    sess_row = await db.execute(
+        select(Session.created_at, Session.submitted_at, Session.patient_id).where(
+            Session.id == session_id
+        )
+    )
+    sess = sess_row.first()
+    if sess is None:
+        return None, None, None
+    created_at, submitted_at, patient_id = sess
+
+    gender_row = await db.execute(
+        select(PatientProfile.gender).where(PatientProfile.user_id == patient_id)
+    )
+    gender = gender_row.scalar_one_or_none()
+
+    return (
+        gender,
+        created_at.isoformat() if created_at is not None else None,
+        submitted_at.isoformat() if submitted_at is not None else None,
+    )
+
+
 async def _build_request(
     db: AsyncSession, session_id: uuid.UUID
 ) -> HandoffRequest:
+    """BUG-066 fix: assembles the REAL `HandoffInput`-shaped request
+    (`conversation_history`/`scale_scores`/`risk_events`/`slots`) instead of
+    the pre-fix invented `HandoffMessage`/`HandoffQuestionnaire`/
+    `HandoffRiskSignal` shape ai-server's `extra`-permissive (pre-fix)
+    `HandoffInput` silently dropped in full."""
     msg_rows = await db.execute(
         select(Message)
         .where(Message.session_id == session_id)
         .order_by(Message.created_at)
     )
-    messages: list[HandoffMessage] = []
+    conversation_history: list[dict[str, str]] = []
     for m in msg_rows.scalars().all():
         try:
             content = decrypt_str(
@@ -96,39 +148,44 @@ async def _build_request(
             )
         except Exception:
             content = ""
-        messages.append(
-            HandoffMessage(message_id=m.id, role=m.role, content=content)
-        )
+        conversation_history.append({"role": m.role, "content": content})
 
     q_rows = await db.execute(
         select(QuestionnaireResult).where(
             QuestionnaireResult.session_id == session_id
         )
     )
-    questionnaires = [
-        HandoffQuestionnaire(
-            type=q.type, total_score=q.total_score, severity=q.severity
-        )
+    scale_scores = [
+        ScaleScore(scale_name=q.type, total_score=q.total_score, severity=q.severity)
         for q in q_rows.scalars().all()
     ]
 
     r_rows = await db.execute(
         select(RiskEvent).where(RiskEvent.session_id == session_id)
     )
-    risk_signals = [
-        HandoffRiskSignal(
-            level=r.level,
-            category=r.category,
-            source_message_id=r.trigger_message_id,
-        )
+    risk_events: list[dict[str, str]] = [
+        {
+            "level": r.level,
+            "category": r.category or "",
+            "source_message_id": str(r.trigger_message_id) if r.trigger_message_id else "",
+        }
         for r in r_rows.scalars().all()
     ]
 
+    slots = await _build_slots(db, session_id)
+    patient_gender, session_started_at, session_ended_at = await _build_patient_metadata(
+        db, session_id
+    )
+
     return HandoffRequest(
-        session_id=session_id,
-        messages=messages,
-        questionnaires=questionnaires,
-        risk_signals=risk_signals,
+        session_id=str(session_id),
+        slots=slots,
+        conversation_history=conversation_history,
+        scale_scores=scale_scores,
+        risk_events=risk_events,
+        patient_gender=patient_gender,
+        session_started_at=session_started_at,
+        session_ended_at=session_ended_at,
     )
 
 
@@ -213,15 +270,26 @@ async def _mark_failed(
 
 
 async def build_report_response(
-    db: AsyncSession, *, actor: User, session_id: uuid.UUID
+    db: AsyncSession,
+    *,
+    actor: User,
+    session_id: uuid.UUID,
+    require_delivered: bool = True,
 ) -> HandoffReportOut | None:
     """Compose the GET /report payload. Returns None if no report row exists,
-    or if the session's patient is outside the actor's organization (ISS-022)."""
+    or if the session's patient is outside the actor's organization (ISS-022).
+
+    v3 §6-B — 수동 전달: 기본적으로 **전달된 리포트만** 노출한다. 환자가
+    [전달하기]를 누르기 전(delivered_at IS NULL)에는 의료진이 볼 수 없다. 리포트
+    본문은 여전히 clinician 전용이며, 이 게이트는 '언제 보이는가'만 통제한다."""
     row = await db.execute(
         select(HandoffReport).where(HandoffReport.session_id == session_id)
     )
     report = row.scalar_one_or_none()
     if report is None:
+        return None
+    if require_delivered and report.delivered_at is None:
+        # 아직 환자가 전달하지 않음 — 존재 자체를 노출하지 않는다(None → 404).
         return None
 
     sess_row = await db.execute(select(Session).where(Session.id == session_id))

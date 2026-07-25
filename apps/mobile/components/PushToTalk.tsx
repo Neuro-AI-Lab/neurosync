@@ -73,6 +73,10 @@ export function PushToTalk({ token, sessionId, disabled, onTranscript, onNotice 
   const startRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const canceledRef = useRef(false);
+  // 녹음 여부를 JS 쪽에서 추적한다. 언마운트 시 recorder.isRecording(네이티브
+  // shared object) 접근은 객체가 이미 해제됐으면 NativeSharedObjectNotFound로
+  // 터지므로, 정리 판단은 이 ref로만 한다.
+  const recordingRef = useRef(false);
 
   const clearTimer = () => {
     if (timerRef.current !== null) {
@@ -84,9 +88,16 @@ export function PushToTalk({ token, sessionId, disabled, onTranscript, onNotice 
   useEffect(() => {
     return () => {
       clearTimer();
-      // Best-effort teardown if unmounted mid-recording.
-      if (recorder.isRecording) {
-        void recorder.stop().catch(() => undefined);
+      // 녹음 중일 때만 최선의 정리. idle 언마운트(대부분)에서는 네이티브 객체를
+      // 아예 건드리지 않는다. 녹음 중이어도 네이티브 객체가 이미 해제됐을 수
+      // 있으므로 stop() 호출 자체를 try/catch로 감싼다.
+      if (recordingRef.current) {
+        recordingRef.current = false;
+        try {
+          void recorder.stop().catch(() => undefined);
+        } catch {
+          // NativeSharedObjectNotFound 등 — 이미 정리됨. 무시.
+        }
       }
     };
     // recorder identity is stable for the component's lifetime.
@@ -107,6 +118,7 @@ export function PushToTalk({ token, sessionId, disabled, onTranscript, onNotice 
       });
       await recorder.prepareToRecordAsync(WAV_OPTIONS);
       recorder.record();
+      recordingRef.current = true;
       canceledRef.current = false;
       startRef.current = Date.now();
       setElapsed(0);
@@ -125,6 +137,7 @@ export function PushToTalk({ token, sessionId, disabled, onTranscript, onNotice 
 
   const stopRecording = async (): Promise<string | null> => {
     clearTimer();
+    recordingRef.current = false;
     try {
       await recorder.stop();
       return recorder.uri;

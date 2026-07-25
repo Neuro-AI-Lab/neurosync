@@ -95,9 +95,11 @@ def upgrade() -> None:
         ),
         sa.Column("name_encrypted", sa.LargeBinary(), nullable=False),
         sa.Column("birth_year", sa.Integer(), nullable=False),
-        # BUG-065 fix: plain column, no DB-side GENERATED expression (see
-        # module docstring) — the app sets this explicitly at INSERT time
-        # (`api/v1/auth.py::register`, via `_is_minor()`).
+        # BUG-065 fix: plain column, not `GENERATED ALWAYS AS ... STORED` —
+        # PG16 rejects CURRENT_DATE (volatile) inside a generated expression,
+        # so a fresh `alembic upgrade head` never completed past this table.
+        # The application now sets the value explicitly at INSERT time
+        # (`api/v1/auth.py::_is_minor`, `models/patient_profile.py`).
         sa.Column("is_minor", sa.Boolean(), nullable=False),
         sa.Column("gender", sa.Text()),
         sa.Column("phone_encrypted", sa.LargeBinary()),

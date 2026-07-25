@@ -24,8 +24,10 @@ message/name은 api와 동일 AES-GCM(crypto.encrypt_str) → 앱이 복호화 �
 
 from __future__ import annotations
 
+import functools
 import glob
 import json
+import os
 import re
 import uuid
 from datetime import datetime
@@ -42,7 +44,30 @@ MODEL_TAG = "dummy" if USE_DUMMY else PASSAGE_MODEL  # embed_corpus와 동일 �
 # 프로젝트 루트 (…/neurosync). 이 파일: apps/ai-server/src/rag/tooling/load_simulations.py
 ROOT = Path(__file__).resolve().parents[5]
 SIM_DIR = ROOT / "docs" / "ai" / "simulation_results"
-PERSONA_DIR = ROOT / "docs" / "ai" / "personas"
+
+# ADR-041 T4 addendum (2026-07-20): docs/ai/personas/ (dev/validation ground
+# truth, not app-integration material) was archived to
+# _archive/docs_dev_cycle_20260720/personas/. This offline tool still needs
+# it (persona.md demographics/PHQ-9/GAD-7 anchors) — resolved lazily so a
+# bare `import` never fails, only an actual call that needs the directory
+# does, with a message pointing at the archive (or a `PERSONA_DIR` env
+# override for a working copy elsewhere).
+_ARCHIVED_PERSONA_DIR = ROOT / "_archive" / "docs_dev_cycle_20260720" / "personas"
+
+
+@functools.lru_cache(maxsize=1)
+def _persona_dir() -> Path:
+    override = os.environ.get("PERSONA_DIR")
+    d = Path(override) if override else (ROOT / "docs" / "ai" / "personas")
+    if not d.is_dir():
+        raise FileNotFoundError(
+            f"PERSONA_DIR not found: {d}. docs/ai/personas/ was archived "
+            "(ADR-041 T4, 2026-07-20) to _archive/docs_dev_cycle_20260720/"
+            "personas/ — this offline tool (src.rag.tooling.load_simulations) "
+            "needs a working copy: set the PERSONA_DIR env var to the archive "
+            f"path ({_ARCHIVED_PERSONA_DIR}) or another persona.md directory."
+        )
+    return d
 
 # uuid5 네임스페이스 (프로젝트 고정) — 결정론적 ID
 NS = uuid.uuid5(uuid.NAMESPACE_DNS, "neurosync.sim")
@@ -73,8 +98,27 @@ PERSONA_META = {
 CURRENT_YEAR = 2026
 MINOR_AGE_CUTOFF = 14  # api patient_profiles.is_minor 판정 기준(만 14세 미만)
 
-# F3 survey_scorer의 ScaleName 5종 (0008 마이그레이션 CHECK 제약과 동일).
+# F3 survey_scorer의 ScaleName 5종 (source survey.json의 scale_name 표기,
+# 하이픈형). *_survey.json 파일이 실제 사용하는 표기이므로 이 5종을 그대로
+# "인식 가능한 척도" 필터로 유지한다 — 이 필터는 questionnaire_results/
+# rag.longitudinal_series 양쪽 로딩에 공통으로 쓰인다(DB 저장 표기와는 별개).
 ALLOWED_SCALES = {"PHQ-9", "GAD-7", "PHQ-4", "WHO-5", "AUDIT-C"}
+
+# DB-F1 (2026-07-22): questionnaire_results.type CHECK은 0010(head, 0009a
+# 백필 이후 적용됨)에서 비하이픈 4종(PHQ9/GAD7/AUDITC/PHQ4)로 정합됐다 —
+# 0008이 만들었던 하이픈 5종 CHECK는 더 이상 head 제약이 아니다. source
+# scale_name(하이픈) -> DB questionnaire_results.type(비하이픈) 매핑.
+# WHO-5는 의도적으로 매핑 없음: 0010 CHECK에 WHO-5 슬롯이 없다(F4
+# rag.longitudinal_series 전용 종단 척도, F1-F3 questionnaire_results
+# 범위 밖 — 0008/0010 마이그레이션 docstring 참조). WHO-5 설문은 아래에서
+# questionnaire_results 삽입 대상에서만 제외되고, rag.longitudinal_series
+# (CHECK 없는 TEXT 컬럼, F4)에는 원래 표기 그대로 계속 적재된다.
+QUESTIONNAIRE_TYPE_MAP = {
+    "PHQ-9": "PHQ9",
+    "GAD-7": "GAD7",
+    "AUDIT-C": "AUDITC",
+    "PHQ-4": "PHQ4",
+}
 
 # 테스트리그 세션 식별자(정크). 실제 임상 세션(f1_VP-00X[_followup])만 남긴다.
 #   sc\d… : 시나리오 주입,  _injected/_rep\d/_phr/_audio : 변형 리그
@@ -158,7 +202,7 @@ def _administered_surveys(persona_dir: Path, conv_session: str) -> list[dict]:
 
 def _persona_demographics(persona_id: str) -> dict:
     """persona.md Demographics 표에서 이름/나이/성별/거주지 추출."""
-    hits = sorted(PERSONA_DIR.glob(f"{persona_id}_*.md"))
+    hits = sorted(_persona_dir().glob(f"{persona_id}_*.md"))
     if not hits:
         raise FileNotFoundError(f"persona md 없음: {persona_id}")
     text = hits[0].read_text(encoding="utf-8")
@@ -181,7 +225,7 @@ def _persona_demographics(persona_id: str) -> dict:
 
 def _phq_gad(persona_id: str) -> tuple[int | None, int | None]:
     """persona.md에서 PHQ-9/GAD-7 예상 점수(첫 '~N') 추출. 실패 시 None."""
-    hits = sorted(PERSONA_DIR.glob(f"{persona_id}_*.md"))
+    hits = sorted(_persona_dir().glob(f"{persona_id}_*.md"))
     text = hits[0].read_text(encoding="utf-8") if hits else ""
 
     def score(scale: str) -> int | None:
@@ -335,9 +379,14 @@ def _load_one(cur, conv_path: Path) -> dict:
     surveys = _administered_surveys(conv_path.parent, conv_session)
     n_qr = 0
     for s in surveys:  # 시간순 → 뒤(최신)가 이김
-        scale = s["scale_name"]
+        db_type = QUESTIONNAIRE_TYPE_MAP.get(s["scale_name"])
+        if db_type is None:
+            # WHO-5(또는 향후 미매핑 척도) — questionnaire_results CHECK
+            # 범위 밖(F4 전용). rag.longitudinal_series는 아래 별도 루프에서
+            # 원표기 그대로 계속 적재되므로 여기서만 건너뛴다.
+            continue
         sr = s["score_result"]
-        qid = uuid.uuid5(NS, f"qr:{conv_session}:{scale}")
+        qid = uuid.uuid5(NS, f"qr:{conv_session}:{db_type}")
         cur.execute(
             """INSERT INTO questionnaire_results
                  (id, session_id, type, answers, total_score, severity, completed_at)
@@ -348,7 +397,7 @@ def _load_one(cur, conv_path: Path) -> dict:
             (
                 qid,
                 session_id,
-                scale,
+                db_type,
                 Jsonb(s.get("responses")),
                 sr["total_score"],
                 sr["severity"],
