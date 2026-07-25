@@ -108,3 +108,48 @@ async def test_register_rejects_emergency_contact_same_as_phone(client):
     response = client.post(REGISTER_URL, json=payload)
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "INVALID_INPUT"
+
+
+@pytest.mark.asyncio
+async def test_update_profile_demographics_partial(client):
+    """PATCH /auth/me/profile — 가입 후 인적사항(선택) 부분 갱신 (미결 #3).
+
+    보낸 필드만 반영하고, 확장 인적사항 없이 가입해도(register가 안 보냄) 이후
+    여기서 채울 수 있다."""
+    reg = client.post(
+        REGISTER_URL, json=_base_payload(email="demo-profile@example.com")
+    )
+    assert reg.status_code == 201, reg.json()
+    access = reg.json()["data"]["accessToken"]
+    headers = {"Authorization": f"Bearer {access}"}
+
+    res = client.patch(
+        "/api/v1/auth/me/profile",
+        headers=headers,
+        json={"maritalStatus": "married", "religion": "buddhist", "occupation": "회사원"},
+    )
+    assert res.status_code == 200, res.json()
+    updated = res.json()["data"]["updated"]
+    assert set(updated) == {"marital_status", "religion", "occupation"}
+
+
+@pytest.mark.asyncio
+async def test_update_profile_rejects_invalid_code(client):
+    """잘못된 범주 코드는 422 — Literal 검증."""
+    reg = client.post(
+        REGISTER_URL, json=_base_payload(email="demo-badcode@example.com")
+    )
+    access = reg.json()["data"]["accessToken"]
+    res = client.patch(
+        "/api/v1/auth/me/profile",
+        headers={"Authorization": f"Bearer {access}"},
+        json={"maritalStatus": "not-a-real-code"},
+    )
+    assert res.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_update_profile_requires_patient_auth(client):
+    """인증 없이는 401."""
+    res = client.patch("/api/v1/auth/me/profile", json={"religion": "none"})
+    assert res.status_code == 401

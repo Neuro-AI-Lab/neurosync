@@ -200,6 +200,29 @@ export async function register(input: RegisterInput): Promise<TokenPair> {
   });
 }
 
+// v3 수정 1 — 가입 후 인적사항(선택) 저장. 보낸 필드만 갱신된다.
+export type ProfileDemographics = {
+  maritalStatus?: MaritalStatus;
+  householdType?: HouseholdType;
+  educationLevel?: EducationLevel;
+  occupation?: string;
+  employmentStatus?: EmploymentStatus;
+  incomeLevel?: IncomeLevel;
+  religion?: Religion;
+};
+
+export async function updateProfileDemographics(
+  token: string,
+  fields: ProfileDemographics,
+): Promise<{ updated: string[] }> {
+  if (MOCK) return mockApi.updateProfileDemographics();
+  return request<{ updated: string[] }>("/api/v1/auth/me/profile", {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(fields),
+  });
+}
+
 export async function login(
   email: string,
   password: string,
