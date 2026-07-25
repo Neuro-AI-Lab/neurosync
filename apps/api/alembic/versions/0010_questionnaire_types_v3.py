@@ -8,7 +8,15 @@ v3 FR-039 — 도메인 추정은 F1 임상 슬롯을 입력으로 받는다. �
 슬롯을 그쪽에 쓰면 RAG 코퍼스가 오염된다 — 반드시 분리한다.
 
 Revision ID: 0010
-Revises: 0009
+Revises: 0009a
+
+DB-F2 (2026-07-22): down_revision repointed from "0009" to "0009a".
+0009a backfills any hyphenated questionnaire_results.type rows left over
+from 0008 (PHQ-9/GAD-7/AUDIT-C/PHQ-4) to non-hyphenated form *before* this
+migration's ADD CONSTRAINT runs — without that backfill, this migration's
+own ADD CONSTRAINT fails validation on a DB carrying real 0008-era rows
+(confirmed on the DGX DB via a read-only probe; see 0009a's docstring).
+Only this pointer changed — upgrade()/downgrade() below are unmodified.
 """
 
 from __future__ import annotations
@@ -16,7 +24,7 @@ from __future__ import annotations
 from alembic import op
 
 revision: str = "0010"
-down_revision: str | None = "0009"
+down_revision: str | None = "0009a"
 branch_labels: str | None = None
 depends_on: str | None = None
 
