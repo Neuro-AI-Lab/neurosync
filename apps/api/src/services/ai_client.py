@@ -24,6 +24,7 @@ from contracts.safety import SafetyRequest, SafetyResponse
 from contracts.slots import SlotsExtractRequest, SlotsExtractResponse
 from contracts.stt import STTRequest, STTResponse
 from contracts.survey import SurveyScoreRequest, SurveyScoreResponse
+from contracts.survey_plan import SurveyPlanRequest, SurveyPlanResponse
 from contracts.temporal import TemporalSummarizeRequest, TemporalSummarizeResponse
 from pydantic import BaseModel, ValidationError
 
@@ -75,7 +76,25 @@ class AIClient:
             raise AIClientError(f"{path} failed: {exc}") from exc
 
     async def safety_classify(self, payload: SafetyRequest) -> SafetyResponse:
-        return await self._post("/ai/safety/classify", SafetyResponse, payload)
+        """POST /ai/safety/classify.
+
+        BUG-062 fix (EXP-031 fix_wave_design.md step 4, retiring the interim
+        hand-built adapter that used to live here): `SafetyRequest`/
+        `SafetyResponse` are now field-identical to ai-server's real
+        `SafetyInput`/`SafetyOutput` wire shape, so this is the same generic
+        `_post` path every other endpoint uses — no more manual dict-building
+        or response re-mapping. The category-priority reduction that used to
+        happen here (`_SAFETY_CATEGORY_MAP`/`_SAFETY_CATEGORY_PRIORITY`) now
+        lives in `services/safety.py::to_safety_assessment` (domain-layer
+        translation, single-sourced with the CVR-051 orchestrator-crisis
+        category map — see that module).
+        """
+        return await self._post(
+            "/ai/safety/classify",
+            SafetyResponse,
+            payload,
+            timeout=self._settings.ai_safety_timeout_seconds,
+        )
 
     async def chat_respond(self, payload: ChatRequest) -> ChatResponse:
         """POST /ai/chat/respond. Non-streaming dialogue turn; its own timeout
@@ -112,6 +131,11 @@ class AIClient:
     async def survey_score(self, payload: SurveyScoreRequest) -> SurveyScoreResponse:
         """POST /ai/survey/score. 결정론적 채점(LLM 없음) — 빠른 기본 타임아웃."""
         return await self._post("/ai/survey/score", SurveyScoreResponse, payload)
+
+    async def survey_plan(self, payload: SurveyPlanRequest) -> SurveyPlanResponse:
+        """POST /ai/survey/plan. F3 문진 시행 계획 — 결정론적(LLM 없음),
+        `survey_score`와 같은 기본 타임아웃(PLAN-2026-W30-INTEG P3-1(a))."""
+        return await self._post("/ai/survey/plan", SurveyPlanResponse, payload)
 
     async def domain_infer(self, payload: DomainInferRequest) -> DomainInferResponse:
         """POST /ai/domain/infer. LLM 호출이라 chat과 같은 예산을 쓴다.

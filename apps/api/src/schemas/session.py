@@ -16,6 +16,30 @@ class SessionOut(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
 
+class SessionListItemOut(BaseModel):
+    """S09 records — one row of the patient's own session history
+    (`GET /api/v1/sessions`). Deliberately thin: full transcript/report
+    content is NOT included here (existing `/{session_id}/report` route
+    already gates that clinician-only per screen-spec §S-12 elsewhere; the
+    patient-facing report body is fetched separately if/when needed)."""
+
+    session_id: UUID = Field(alias="sessionId")
+    status: str
+    created_at: datetime = Field(alias="createdAt")
+    # FR-004 intake completeness, same source of truth as the WS progress
+    # bar (`Session.progress_ratio`).
+    progress_ratio: float = Field(alias="progressRatio")
+    has_report: bool = Field(alias="hasReport")
+
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+
+class SessionListOut(BaseModel):
+    sessions: list[SessionListItemOut]
+
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+
 # ────────── WebSocket frames ──────────
 
 

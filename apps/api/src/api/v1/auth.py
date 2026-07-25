@@ -222,6 +222,12 @@ async def register(
             payload.name, aad=_profile_aad(user.id, "name"), settings=settings
         ),
         birth_year=payload.birth_year,
+        # BUG-065 fix: `is_minor` is no longer a DB-computed GENERATED
+        # column (see `models/patient_profile.py`/`alembic/0001` docstrings)
+        # — set explicitly here via the SAME `_is_minor()` helper
+        # `_check_guardian` above already used, so there is exactly one
+        # source of truth for this policy.
+        is_minor=_is_minor(payload.birth_year, settings),
         gender=payload.gender,
         phone_encrypted=encrypt_str(
             payload.phone, aad=_profile_aad(user.id, "phone"), settings=settings

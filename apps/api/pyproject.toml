@@ -57,3 +57,10 @@ known-first-party = ["src"]
 pythonpath = ["."]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+# pytest-asyncio 1.4.0 defaults to a function-scoped event loop per test; our
+# session-scoped `engine` fixture (asyncpg pool) must share one loop with the
+# tests that use it, or asyncpg raises "Task got Future attached to a
+# different loop" (BUG-057 root cause 2). Session-scope both fixtures and
+# tests so there is exactly one loop for the whole suite.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"

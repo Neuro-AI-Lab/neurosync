@@ -22,7 +22,7 @@ from __future__ import annotations
 import logging
 import uuid
 
-from contracts.survey import SurveyScoreRequest
+from contracts.survey import SurveyItemResponse, SurveyScoreRequest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -149,7 +149,14 @@ async def score_with_ai(
             SurveyScoreRequest(
                 session_id=str(session_id),
                 scale_name=AI_SCALE_NAME[qtype],
-                responses=answers,
+                # ADR-046 #2 (contract3 fix): ai-server's SurveyScoreInput
+                # expects 1-based index/value pairs, not a flat int list
+                # (`contracts.survey.SurveyItemResponse`, mirrors
+                # `schemas.survey.SurveyItemResponse` 1:1).
+                responses=[
+                    SurveyItemResponse(index=i + 1, value=v)
+                    for i, v in enumerate(answers)
+                ],
                 patient_sex=patient_sex,
             )
         )

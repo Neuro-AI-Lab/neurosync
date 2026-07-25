@@ -12,6 +12,7 @@ from typing import Any
 
 from sqlalchemy import (
     ARRAY,
+    Boolean,
     CheckConstraint,
     DateTime,
     Float,
@@ -64,6 +65,23 @@ class Session(Base):
     # 주의: rag.session_insights.slots는 VP 시뮬레이션 코퍼스 테이블이므로
     # 실환자 슬롯은 반드시 이 플랫폼 컬럼에만 쓴다 (코퍼스 오염 방지).
     clinical_slots: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    # ADR-046 #2 round-trip channel (PRD Phase 1, contract1 wiring): verbatim
+    # persistence of the PRIOR turn's `ChatResponse.session_state` (opaque,
+    # ai-server-owned `schemas/orchestrator.py::SessionState.model_dump()`
+    # shape) — carries the ADR-044 backstop fields (`asked_slot_counts`/
+    # `risk_screening_incomplete`/`handoff_delivered`) nested by their own
+    # key names. Lets the WS gateway reload state across reconnects instead
+    # of only connection-scoped in-memory (`services/chat.py::respond`).
+    session_state: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    # ADR-044 4th field — also a distinctly-named top-level field on
+    # `ChatResponse`/`DialogueOutput` (mirrors `OrchestratorTurnResult.
+    # clinical_escalation_required`). Extracted into its own column (not
+    # left to a JSONB reach-through into `session_state`) so it is
+    # queryable/observable as the minimal consumer CVR-047 recommendation 3
+    # calls for. Full counselor notification (F5) is a follow-up PRD's scope.
+    clinical_escalation_required: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
 
     messages = relationship(
         "Message", back_populates="session", cascade="all, delete-orphan"
@@ -73,8 +91,14 @@ class Session(Base):
 class Message(Base):
     __tablename__ = "messages"
     __table_args__ = (
+        # BUG-064 fix (additive step, migration 0012): 'assistant' is now
+        # also a valid stored value, matching the widened DB CHECK — storage
+        # still writes 'ai' (see services/chat.py's outbound seam-map
+        # docstring); the full rename to canonicalize storage on
+        # 'assistant' is an explicit, deferred follow-up (fix_wave_design.md
+        # §(c)), not part of this migration.
         CheckConstraint(
-            "role IN ('user','ai','system')", name="ck_messages_role"
+            "role IN ('user','ai','system','assistant')", name="ck_messages_role"
         ),
         CheckConstraint(
             "input_modality IN ('text','voice')", name="ck_messages_modality"
@@ -109,8 +133,12 @@ class RiskEvent(Base):
         CheckConstraint(
             "level IN ('low','medium','high','critical')", name="ck_risk_events_level"
         ),
+        # BUG-063 fix (migration 0012): widened to include 'pending_reclassify'
+        # (17 chars — see the column's String(32) below), the value
+        # `services/safety.py::handle_unavailable_classifier` unconditionally
+        # writes on every classifier-unavailable turn.
         CheckConstraint(
-            "status IN ('detected','acknowledged','resolved','dismissed')",
+            "status IN ('detected','acknowledged','resolved','dismissed','pending_reclassify')",
             name="ck_risk_events_status",
         ),
         CheckConstraint(
@@ -138,7 +166,9 @@ class RiskEvent(Base):
         ARRAY(PG_UUID(as_uuid=True))
     )
     ai_evidence: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
-    status: Mapped[str] = mapped_column(String(16), nullable=False, default="detected")
+    # BUG-063 fix: was String(16) — too short for 'pending_reclassify' (17
+    # chars), source/DB divergence fixed alongside migration 0012.
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="detected")
     notified_to: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     legal_basis: Mapped[str | None] = mapped_column(Text)
     consent_snapshot_id: Mapped[uuid.UUID | None] = mapped_column(
