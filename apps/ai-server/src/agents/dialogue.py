@@ -353,6 +353,35 @@ _DEGRADE_MARKER_CLAUSES: frozenset[str] = frozenset(
 # patient has moved on.
 PROMPT_VERSION = "v5.7"
 
+# CVR-058 (blocking) fix: system-prompt addendum for `_run_closing_mode`
+# — a session that has already reached a terminal (post-handoff, unverified
+# outcome) state, deliberately NOT layered on top of the round-robin/probe
+# machinery below (that machinery assumes an in-progress intake with a
+# `target_slot`; none applies once the session is terminal). Explicitly
+# bans re-asking a slot-collection question and internal-term leakage —
+# same "슬롯"/"coverage" ban `_build_opening_context` already applies
+# elsewhere in this file, restated here because this path never reaches
+# that method.
+_CLOSING_MODE_INSTRUCTION = (
+    "\n\n[종결 안내 모드]\n"
+    "사전문진은 이미 종료되어 상담원에게 전달하는 절차가 진행 중입니다. "
+    "새로운 슬롯 수집 질문을 하지 마세요. 환자의 이번 발화 내용을 짧게 "
+    "인지/반영하고, 추가로 나누고 싶은 이야기가 있다면 편하게 말씀해 "
+    "달라고 안내하며, 상담원이 확인 후 연락드릴 것이라는 점을 전달하세요. "
+    "진단이나 소견을 언급하지 말고, '슬롯'/'coverage'/'grounding' 등 내부 "
+    "시스템 용어를 절대 언급하지 마세요. 1-2문장으로 짧게 답하세요."
+)
+
+# CVR-058 fix: second-attempt-only nudge appended when the first candidate
+# byte-matches the immediately preceding assistant turn (the defect this
+# fix closes — a fixed canned string repeating forever regardless of what
+# the patient said). System-role (not user-role) so it is never mistaken
+# for new patient content.
+_CLOSING_MODE_ANTI_REPEAT_NUDGE = (
+    "[내부 지시] 방금 생성한 응답이 직전 턴과 동일합니다. 환자의 이번 발화 "
+    "내용을 반영해 다른 표현으로 다시 답하세요."
+)
+
 # BUG-085-follow-up (session `04cfe927`, probe-topic-mismatch guard):
 # stage-name -> question_hint lookup, sourced verbatim from
 # `safety_probe.PROBE_STAGES` (never independently invented) -- used by
@@ -361,6 +390,27 @@ PROMPT_VERSION = "v5.7"
 # unrelated topic for 2+ regeneration attempts (see `_force_probe_question`
 # below).
 _PROBE_STAGE_HINTS: dict[str, str] = dict(PROBE_STAGES)
+
+# CVR-058 finding 3 fix: deterministic, register-neutral PROCEDURAL bridge
+# phrases for `_force_probe_question`'s exhaustion path — deliberately NOT
+# empathy phrases (none carry an `_EMPATHY_MARKERS` marker) since v5.7's
+# own "메타-발화에는 정서-지향 고통 공감이 아니라 절차 인정만" calibration
+# principle applies with equal force here: the candidate this path
+# replaces was already REJECTED (off-topic/near-dup), so its emotional
+# register is untrustworthy — a bare procedural acknowledgment is the
+# safer default immediately before a safety-critical SI-probe question.
+# No trailing period on the pool entries themselves (mirrors
+# `_EMPATHY_DEGRADE_POOL`'s own convention) — `_select_probe_bridge_
+# phrase`'s session-rotation set is built from `_extract_leading_clause`,
+# which always strips the terminal punctuation boundary; a pool entry
+# WITH a trailing period would never match that stripped form and the
+# rotation would silently never detect a repeat. `_force_probe_question`
+# appends the period explicitly when composing.
+_PROBE_BRIDGE_POOL: tuple[str, ...] = (
+    "네, 말씀 잘 들었습니다",
+    "네, 답변 확인했습니다",
+    "네, 알겠습니다",
+)
 
 # 직접 질문하지 않는 슬롯 (관찰/자동생성/의료진 영역)
 _NO_QUESTION_SLOTS = {
@@ -476,6 +526,14 @@ class DialogueAgent(BaseAgent):
             raise TypeError(f"Expected DialogueInput, got {type(inp).__name__}")
 
         started = time.perf_counter()
+
+        # CVR-058 (blocking) fix: post-handoff-unverified follow-up turns
+        # (`orchestrator.py::_build_post_handoff_result`'s `unverified`
+        # branch) route here via `session_state["closing_mode"]` instead of
+        # the heavy round-robin/probe/guard pipeline below — see
+        # `_run_closing_mode` for the full rationale.
+        if isinstance(inp.session_state, dict) and inp.session_state.get("closing_mode"):
+            return await self._run_closing_mode(inp, started)
 
         # 1. Load system prompt
         prompts_degraded = False
@@ -1007,6 +1065,7 @@ class DialogueAgent(BaseAgent):
                     # stage topic via `_force_probe_question`).
                     degraded_text = DialogueAgent._force_probe_question(
                         llm_resp.assistant_response, expected_probe_stage,
+                        inp.conversation_history,
                     )
                     logger.warning(
                         "DialogueAgent probe-topic safety net exhausted "
@@ -1200,6 +1259,7 @@ class DialogueAgent(BaseAgent):
                     # leaving the wrong question shipped.
                     degraded_text = DialogueAgent._force_probe_question(
                         llm_resp.assistant_response, expected_probe_stage,
+                        inp.conversation_history,
                     )
                     logger.warning(
                         "DialogueAgent near-dup safety net exhausted retry "
@@ -1347,6 +1407,128 @@ class DialogueAgent(BaseAgent):
             exhaustion_degrade=exhaustion_degrade,
             exhaustion_degrade_phrase=exhaustion_degrade_phrase,
         )
+
+    async def _run_closing_mode(
+        self, inp: DialogueInput, started: float,
+    ) -> DialogueOutput:
+        """CVR-058 (blocking) fix — lightweight, content-aware response for
+        turns AFTER `orchestrator.py::_build_post_handoff_result`'s
+        `unverified` branch first fires.
+
+        Before this fix, every such turn shipped a fixed canned ack string
+        (`_HANDOFF_ACK_MESSAGE`) regardless of what the patient actually
+        said — live-observed as a 7-turn identical-string loop (qa session
+        `5f6583d4`) after a session may have just disclosed SI. This method
+        is the replacement path: ONE LLM call (never the round-robin/probe/
+        multi-attempt guard machinery `run()` uses — none of that applies
+        once the session is terminal and there is no slot left to target),
+        instructed to acknowledge THIS turn's content and never ask a new
+        slot-collection question, plus a single deterministic anti-repeat
+        retry so the same sentence is never shipped twice in a row.
+
+        Never re-runs slot extraction/handoff generation — the caller
+        (`orchestrator.py`'s `handoff_delivered`/`pending_handoff_pipeline`
+        latches, BUG-086/090) is untouched by this method; it only decides
+        what TEXT to ship for an already-terminal session's follow-up turn.
+        """
+        try:
+            system_prompt = self._prompt_loader.load_system_prompt("dialogue", PROMPT_VERSION)
+        except FileNotFoundError:
+            system_prompt = ""
+        full_system = (
+            (system_prompt + _CLOSING_MODE_INSTRUCTION)
+            if system_prompt else _CLOSING_MODE_INSTRUCTION.strip()
+        )
+
+        base_messages: list[ChatMessage] = [ChatMessage(role="system", content=full_system)]
+        for turn in inp.conversation_history:
+            base_messages.append(ChatMessage(
+                role=turn.get("role", "user"), content=turn.get("content", ""),
+            ))
+        base_messages.append(ChatMessage(role="user", content=inp.user_message))
+
+        prior_assistant = DialogueAgent._last_assistant_content(inp.conversation_history)
+
+        selection = self._router.select_model("dialogue", require_json=True)
+        adapter = self._router.get_adapter(selection.adapter_name)
+        assert isinstance(adapter, LLMAdapter)
+        response_format = None
+        if selection.supports_json_schema or selection.supports_json_object:
+            response_format = {"type": "json_object"}
+
+        async def _call(messages: list[ChatMessage]) -> Any:
+            try:
+                result = await adapter.chat_timed(
+                    messages, model=selection.model_id, temperature=0.4,
+                    max_tokens=256, response_format=response_format,
+                )
+                self._router.record_success(selection.adapter_name)
+                return result
+            except Exception as exc:
+                logger.error("Closing-mode dialogue LLM failed: %s", exc)
+                self._router.record_failure(selection.adapter_name, exc)
+                fallback = self._router.get_fallback(
+                    "dialogue", selection.adapter_name, str(exc),
+                )
+                if fallback is None:
+                    raise
+                fb_adapter = self._router.get_adapter(fallback.adapter_name)
+                assert isinstance(fb_adapter, LLMAdapter)
+                fb_format = (
+                    {"type": "json_object"}
+                    if fallback.supports_json_schema or fallback.supports_json_object
+                    else None
+                )
+                fb_result = await fb_adapter.chat_timed(
+                    messages, model=fallback.model_id, temperature=0.4,
+                    max_tokens=256, response_format=fb_format,
+                )
+                self._router.record_success(fallback.adapter_name)
+                return fb_result
+
+        resp = await _call(base_messages)
+        llm_resp = self._parse_response(resp.content)
+        assistant_response = llm_resp.assistant_response
+
+        # Single deterministic anti-repeat retry (zero new call unless the
+        # first candidate byte-matches the immediately preceding assistant
+        # turn) — the exact defect this fix closes.
+        if prior_assistant and assistant_response.strip() == prior_assistant.strip():
+            retry_messages = base_messages + [
+                ChatMessage(role="system", content=_CLOSING_MODE_ANTI_REPEAT_NUDGE),
+            ]
+            resp = await _call(retry_messages)
+            llm_resp = self._parse_response(resp.content)
+            assistant_response = llm_resp.assistant_response
+
+        latency_ms = (time.perf_counter() - started) * 1000
+        return DialogueOutput(
+            model_used=resp.model,
+            prompt_version=PROMPT_VERSION,
+            latency_ms=latency_ms,
+            reason_summary="closing-mode acknowledgment (post-handoff-unverified, CVR-058)",
+            assistant_response=assistant_response,
+            slot_updates={},
+            risk_level=RiskLevel.none,
+            requires_human_review=False,
+            all_slots=dict(inp.filled_slots),
+            handoff_ready=False,
+        )
+
+    @staticmethod
+    def _last_assistant_content(history: list[dict[str, str]] | None) -> str:
+        """Most recent assistant-role turn's content in `history`, or ""
+        when there is none — used by `_run_closing_mode`'s anti-repeat
+        check (mirrors `orchestrator.py::_last_assistant_message`'s "read
+        the closest prior assistant turn" pattern, but over a plain prior-
+        turns list rather than `conversation_history[-2]`, since closing-
+        mode's `inp.conversation_history` never includes the current
+        turn's just-appended user message — see `routes/chat.py`'s
+        closing-mode construction)."""
+        for turn in reversed(history or []):
+            if turn.get("role") == "assistant":
+                return turn.get("content", "") or ""
+        return ""
 
     @classmethod
     def missing_questionable_slots(
@@ -1547,28 +1729,62 @@ class DialogueAgent(BaseAgent):
         return question
 
     @staticmethod
+    def _select_probe_bridge_phrase(
+        conversation_history: list[dict[str, str]] | None,
+    ) -> str:
+        """CVR-058 finding 3 fix — same deterministic, session-scoped
+        rotation shape `_select_degrade_phrase` uses (no randomness,
+        reproducible): picks the first `_PROBE_BRIDGE_POOL` entry not
+        already shipped as a probe bridge earlier in THIS session,
+        wrapping around to the first entry once every pool entry has been
+        used (small closed pool, same accepted residual `_select_degrade_
+        phrase` documents)."""
+        used = {
+            DialogueAgent._extract_leading_clause(m["content"])
+            for m in (conversation_history or [])
+            if m.get("role") == "assistant"
+        }
+        for phrase in _PROBE_BRIDGE_POOL:
+            if phrase not in used:
+                return phrase
+        return _PROBE_BRIDGE_POOL[0]
+
+    @staticmethod
     def _force_probe_question(
         assistant_response: str, expected_probe_stage: str | None,
+        conversation_history: list[dict[str, str]] | None = None,
     ) -> str:
         """BUG-085-follow-up (session `04cfe927`) exhaustion path for
         `probe_topic_mismatch`: deterministically composes a question
         naming `expected_probe_stage`'s own `PROBE_STAGES` hint (the SAME
         text `safety_probe.build_probe_instruction` embeds into the
-        prompt directive), preserving the candidate's leading clause via
-        the same splice mechanism `_force_target_question` uses. Zero new
-        LLM call. Falls back to a generic (but still on-topic-neutral,
-        never a chief_complaint-style substitute) safety-check phrasing
-        if `expected_probe_stage` is somehow unrecognized (defensive —
-        should not happen, this is only ever called when the caller's own
-        `probe_topic_mismatch` computation found a non-None expected
-        stage)."""
+        prompt directive). Zero new LLM call. Falls back to a generic
+        (but still on-topic-neutral, never a chief_complaint-style
+        substitute) safety-check phrasing if `expected_probe_stage` is
+        somehow unrecognized (defensive — should not happen, this is only
+        ever called when the caller's own `probe_topic_mismatch`
+        computation found a non-None expected stage).
+
+        CVR-058 finding 3 fix: this no longer splices the CANDIDATE's own
+        leading clause onto the deterministic question — that clause was
+        authored by the model for a DIFFERENT, rejected/off-topic
+        question, so preserving it risks an awkward, contextually
+        mismatched seam right before a safety-critical SI-probe question
+        (e.g. a meta-utterance procedural-acknowledgment clause abruptly
+        followed by a "방법이나 수단" question). When the candidate had a
+        leading clause at all, it is replaced with a deterministic,
+        register-neutral procedural bridge (`_PROBE_BRIDGE_POOL`, rotated
+        session-scoped via `_select_probe_bridge_phrase`) instead of the
+        candidate's own text — this reads as one coherent redirect rather
+        than a content non-sequitur. No leading clause (candidate opened
+        directly with a question) still composes the bare question,
+        unchanged."""
         hint = _PROBE_STAGE_HINTS.get(expected_probe_stage or "", "")
         question = f"{hint} 여쭤봐도 될까요?" if hint else "조금 더 자세히 말씀해 주시겠어요?"
         end = DialogueAgent._splice_point(assistant_response)
-        if end is not None:
-            leading = assistant_response[: end + 1].strip()
-            if leading:
-                return f"{leading} {question}"
+        if end is not None and assistant_response[: end + 1].strip():
+            bridge = DialogueAgent._select_probe_bridge_phrase(conversation_history)
+            return f"{bridge}. {question}"
         return question
 
     @staticmethod

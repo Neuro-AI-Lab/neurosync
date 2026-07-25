@@ -1150,6 +1150,20 @@ class OrchestratorAgent(BaseAgent):
         matching `_HANDOFF_ACK_MESSAGE` text on every subsequent turn,
         distinct from both the real-success `_POST_HANDOFF_MESSAGE` and
         the escalation `_INCOMPLETE_INTAKE_MESSAGE`.
+
+        CVR-058 (blocking) fix: the `unverified` branch used to ship
+        `_HANDOFF_ACK_MESSAGE` verbatim on EVERY subsequent turn of the
+        session, regardless of what the patient said — live-observed as a
+        7-turn identical-string non-responsive loop (qa session
+        `5f6583d4`), right at a point where the patient may have just
+        disclosed SI. `_HANDOFF_ACK_MESSAGE` is still returned here as
+        `assistant_response` (the safe, never-empty fallback — BUG-086's
+        own invariant is preserved unconditionally), but
+        `needs_closing_dialogue=True` is now also set on this branch so
+        `routes/chat.py` can override it with a real, content-aware
+        `DialogueAgent` closing-mode call. The escalation and real-
+        success branches are unaffected (both already ship a genuine
+        terminal message, not a content-blind repeat).
         """
         escalation = state.risk_screening_incomplete
         unverified = state.handoff_unverified
@@ -1179,6 +1193,8 @@ class OrchestratorAgent(BaseAgent):
             clinical_escalation_required=escalation,
             session_state=state,
             stage_history=state.stage_history,
+            # CVR-058 fix: unverified-only — escalation/real-success stay False.
+            needs_closing_dialogue=(unverified and not escalation),
         )
 
     @staticmethod

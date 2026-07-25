@@ -210,6 +210,7 @@ async def respond(
     # (Step 2), which runs before the orchestrator's own handoff_delivered
     # guard (safety-gate-before-coverage invariant, ADR-043).
     if orch_result.current_stage == SessionStage.completed:
+        state = orch_result.session_state
         latency_ms = (time.perf_counter() - start) * 1000
         # ADR-044 (CVR-043 pin-fix): this branch is also reached on the
         # FIRST turn the backstop-vs-risk-grounding gate fires this
@@ -225,19 +226,65 @@ async def respond(
             if orch_result.clinical_escalation_required
             else "Post-handoff — session already completed (ADR-043)"
         )
+        assistant_response = orch_result.assistant_response
+
+        # CVR-058 (blocking) fix: the `handoff_unverified` sub-branch used
+        # to ship `orch_result.assistant_response` (a fixed canned string,
+        # `_HANDOFF_ACK_MESSAGE`) verbatim on EVERY subsequent turn —
+        # live-observed as a 7-turn identical-string non-responsive loop
+        # (qa session `5f6583d4`). `needs_closing_dialogue` (set only on
+        # that sub-branch, never on escalation/real-success — see
+        # `orchestrator.py::_build_post_handoff_result`) routes this turn
+        # through ONE lightweight `DialogueAgent` closing-mode call
+        # instead: content-aware, never re-runs slot extraction/handoff
+        # generation (that pipeline already concluded — this call only
+        # decides what TEXT to ship). On any failure, the safe canned-
+        # string fallback above is kept (never regresses to BUG-086's
+        # empty-string stall).
+        if orch_result.needs_closing_dialogue:
+            try:
+                closing_state = (
+                    state.model_dump() if hasattr(state, "model_dump") else state
+                )
+                closing_dialogue_agent = DialogueAgent(
+                    model_router=model_router, prompt_loader=prompt_loader,
+                )
+                closing_input = DialogueInput(
+                    session_id=body.session_id,
+                    request_id=body.request_id,
+                    user_message=body.user_message,
+                    conversation_history=_strip_injected_overlays_for_llm(
+                        body.conversation_history
+                    ),
+                    filled_slots=body.filled_slots,
+                    session_state={
+                        **(closing_state if isinstance(closing_state, dict) else {}),
+                        "closing_mode": True,
+                    },
+                    patient_history_context=body.patient_history_context,
+                )
+                closing_output = await closing_dialogue_agent.run(closing_input)
+                assistant_response = closing_output.assistant_response
+            except Exception as exc:
+                logger.error(
+                    "Closing-mode dialogue call failed (CVR-058) — "
+                    "shipping the canned handoff-unverified ack instead: %s",
+                    exc,
+                )
+
         return DialogueOutput(
             model_used="orchestrator",
             prompt_version=_PROMPT_VERSION,
             latency_ms=latency_ms,
             reason_summary=reason_summary,
-            assistant_response=orch_result.assistant_response,
+            assistant_response=assistant_response,
             slot_updates={},
             risk_level=orch_result.safety_status.risk_level,
             requires_human_review=(
                 True if orch_result.clinical_escalation_required else False
             ),
             all_slots=dict(body.filled_slots),
-            session_state=orch_result.session_state.model_dump(),
+            session_state=state.model_dump() if hasattr(state, "model_dump") else state,
             handoff_ready=False,
             clinical_escalation_required=orch_result.clinical_escalation_required,
         )

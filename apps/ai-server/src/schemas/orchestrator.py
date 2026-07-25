@@ -359,3 +359,16 @@ class OrchestratorTurnResult(BaseModel):
     session_state: SessionState
     stage_history: list[StageRecord] = Field(default_factory=list)
     error: str | None = None
+    # CVR-058 (blocking) fix: True exactly on the `_build_post_handoff_
+    # result` `unverified` sub-branch (post-handoff, evidence-verifier-
+    # rejected/regenerate-exhausted/exception outcome, no escalation) —
+    # tells `routes/chat.py` Step 3.5 to call `DialogueAgent`'s
+    # closing-mode path (ONE lightweight LLM call, content-aware, never
+    # re-running slot extraction/handoff generation) instead of shipping
+    # `assistant_response` (the safe canned-string fallback, still
+    # populated here so a caller that ignores this flag — or a closing-
+    # mode call that itself fails — never regresses to BUG-086's empty-
+    # string stall) verbatim on every subsequent turn. Always False on
+    # the escalation and real-success post-handoff branches (both
+    # unchanged by this fix — see `_build_post_handoff_result`).
+    needs_closing_dialogue: bool = False
