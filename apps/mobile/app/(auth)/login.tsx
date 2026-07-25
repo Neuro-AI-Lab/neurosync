@@ -101,7 +101,7 @@ export default function LoginScreen() {
 
         <Pressable
           style={styles.regRow}
-          onPress={() => router.push("/(auth)/register")}
+          onPress={() => router.push("/(auth)/consent")}
           accessibilityRole="button"
         >
           <Text style={styles.regText}>처음이신가요? </Text>
