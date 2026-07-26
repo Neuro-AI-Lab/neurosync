@@ -18,8 +18,18 @@ import { inferDomainInstrument, QuestionnaireType } from "./api";
  */
 export const FALLBACK_SURVEY: QuestionnaireType = "PHQ4";
 
-/** '분석 중' 대기 상한 — NFR(v3-3). 초과 시 폴백 문진으로 진행. */
-export const INFER_TIMEOUT_MS = 5_000;
+/**
+ * '분석 중' 대기 상한. 초과 시 폴백 문진(FALLBACK_SURVEY)으로 진행 — 절대 throw
+ * 하지 않는다는 원칙은 그대로다.
+ *
+ * BUG-091 (2026-07-26): 구 NFR(v3-3) "5초 상한" 전제가 서버 실측(20.2s-30.6s
+ * live) 대비 완전히 틀렸음이 드러나 폐기됐다. 서버 `ai_domain_timeout_seconds`
+ * 가 60s로 올라갔으므로, 서버 판정(진짜 top1 라우팅 vs 서버측 폴백)이 클라
+ * 폴백보다 항상 먼저 나오도록 이 값은 서버 예산보다 커야 한다 — 75s
+ * (서버 60s + 15s 왕복/처리 여유). 대기 UX는 `chat.tsx`의 증상확인 게이지가
+ * 흡수한다(FR-041 2단계).
+ */
+export const INFER_TIMEOUT_MS = 75_000;
 
 const VALID: readonly QuestionnaireType[] = ["PHQ9", "GAD7", "AUDITC", "PHQ4"];
 

@@ -157,3 +157,44 @@ async def test_sends_llm_only_mode_and_utterances() -> None:
     sent = client.calls[0]
     assert sent.retrieval_mode == "llm_only"
     assert [t.turn for t in sent.turns] == [1, 2]
+
+
+# ────────── BUG-091 권고 #3: timeout vs 그 외 오류 로그 구분 ──────────
+
+
+@pytest.mark.asyncio
+async def test_timeout_fallback_logs_reason_timeout(caplog) -> None:
+    """AIClientError가 httpx.TimeoutException을 감싼 경우 로그에
+    reason=timeout이 찍혀야 한다 — "no candidate"/"unmapped domain"과 구분되지
+    않던 BUG-091 관측성 결함의 회귀 테스트."""
+    import httpx
+
+    from src.services.ai_client import AIClientError
+
+    cause = httpx.TimeoutException("timed out")
+    try:
+        raise AIClientError("/ai/domain/infer failed: ") from cause
+    except AIClientError as wrapped:
+        client = _FakeClient(error=wrapped)
+
+    with caplog.at_level("WARNING"):
+        got = await infer_instrument(ai_client=client, session_id=SESSION, turns=TURNS)
+
+    assert got == FALLBACK_INSTRUMENT
+    assert any(
+        "reason=timeout" in record.message for record in caplog.records
+    ), f"expected reason=timeout in logs, got: {[r.message for r in caplog.records]}"
+
+
+@pytest.mark.asyncio
+async def test_non_timeout_fallback_logs_reason_error(caplog) -> None:
+    """타임아웃이 아닌 예외(예: 스키마 검증 실패)는 reason=error로 구분된다."""
+    client = _FakeClient(error=ValueError("schema drift / malformed 200"))
+
+    with caplog.at_level("WARNING"):
+        got = await infer_instrument(ai_client=client, session_id=SESSION, turns=TURNS)
+
+    assert got == FALLBACK_INSTRUMENT
+    assert any(
+        "reason=error" in record.message for record in caplog.records
+    ), f"expected reason=error in logs, got: {[r.message for r in caplog.records]}"

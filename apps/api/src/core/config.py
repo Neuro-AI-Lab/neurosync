@@ -122,9 +122,19 @@ class Settings(BaseSettings):
     ai_chat_timeout_seconds: float = Field(default=90.0)
     # STT budget — PRD §4.1 SLA < 2,000ms, allow margin for the vendor chain.
     ai_stt_timeout_seconds: float = Field(default=8.0)
-    # v3 FR-039 — 도메인 추정. 모바일 '분석 중' 상한이 5초(NFR v3-3)라 그 안에서
-    # 끝나야 폴백 없이 top1 라우팅이 성립한다.
-    ai_domain_timeout_seconds: float = Field(default=4.5)
+    # v3 FR-039 — 도메인 추정. BUG-091 (2026-07-26, live-verified): 4.5s는
+    # `/ai/domain/infer`(solar-pro3, mode=rag, 20 chunks 근거) 실제 latency
+    # (2/2 실세션 20.2s~30.6s, 둘 다 예산 초과로 PHQ4 오폴백 — 한 세션은
+    # 이미 정답 domain=depression을 냈으나 무시됨)의 1/5도 못 미친다.
+    # BUG-068(handoff 45→90s)/BUG-081(chat 10→90s)과 같은 margin-over-
+    # observed-p95 원칙(관측 worst case의 ~2배)으로 60.0s — 관측
+    # 30.6s worst case 대비 ~2x 여유. NFR v3-3의 구(舊) "5초 상한" 설계는
+    # 폐기되었다 — 모바일 쪽은 증상확인 게이지 UX(FR-041 2단계, `chat.tsx`
+    # `SURVEY_GAUGE_*`)가 20-60s 대기를 실시간 프리페치 진행률로 흡수하는
+    # 구조로 바뀌었으므로 "5초 안에 끝나야 한다"는 전제 자체가 더 이상
+    # 유효하지 않다(PRD_frontend_v3.md FR-041/NFR v3-3 문서 현행화는 writer
+    # 담당 — 별도 보고).
+    ai_domain_timeout_seconds: float = Field(default=60.0)
     # F1 슬롯 추출 — 대화 배경 작업이라 짧게 끊고 실패는 무시한다.
     ai_slots_timeout_seconds: float = Field(default=6.0)
     # OCR — Upstage Document Parse 왕복 + 큰 파일 업로드라 여유 있게.
