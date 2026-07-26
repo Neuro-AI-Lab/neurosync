@@ -12,10 +12,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && \
     pip install --no-cache-dir uv && \
     useradd --create-home --shell /bin/bash --uid 1001 app
 
-COPY packages/shared-contracts/python /workspace/packages/shared-contracts/python
+# Monorepo-relative depth preserved inside the image. `apps/ai-server/
+# pyproject.toml` pins `[tool.uv.sources] neuro-sync-contracts path =
+# "../../packages/shared-contracts/python"` — a monorepo-root-relative path.
+# Flattening pyproject.toml straight into WORKDIR /app (1 level under the
+# image root) made `../..` normalize past filesystem root; `uv` refused with
+# "cannot normalize a relative path beyond the base directory" (live DGX
+# build failure). Placing pyproject.toml at /app/apps/ai-server instead (2
+# levels deep, mirroring the repo checkout) makes `../../packages/...`
+# resolve to /app/packages/... exactly, matching this COPY layout. Editable
+# installs (`-e .` / `-e <contracts path>`) bake this on-disk layout into the
+# install itself, so /app/apps/ai-server and /app/packages/... must stay in
+# place at runtime, not just at build time.
+COPY packages/shared-contracts/python /app/packages/shared-contracts/python
 
-COPY apps/ai-server/pyproject.toml ./
-COPY apps/ai-server/src ./src
+COPY apps/ai-server/pyproject.toml /app/apps/ai-server/pyproject.toml
+COPY apps/ai-server/src /app/apps/ai-server/src
 
 # Pinned prompts (docs/ai/deployment_integration_plan.md G1) — safety v2,
 # dialogue v4, domain_inference v2, handoff v2/v3, etc. ADR-041 T4: prompts
@@ -24,7 +36,10 @@ COPY apps/ai-server/src ./src
 # `PROMPTS_BASE_DIR` at request time; the ENV below is only the
 # IN-CONTAINER default (pydantic-settings env-var precedence over
 # `.env`-file values, src/config.py) — a host run's own `.env` value still
-# overrides it, unaffected by this image default.
+# overrides it, unaffected by this image default. Kept at the top-level
+# /app/prompts (not nested under /app/apps/ai-server) since PROMPTS_BASE_DIR
+# is always an explicit absolute override here — never subject to the
+# monorepo-relative-depth fix above.
 COPY apps/ai-server/prompts /app/prompts
 ENV PROMPTS_BASE_DIR=/app/prompts
 
@@ -32,18 +47,23 @@ ENV PROMPTS_BASE_DIR=/app/prompts
 # G2) — the SAME committed, SHA256-pinned TTF subsets
 # `src/services/f5_report.py::_register_korean_fonts` already reads from
 # `apps/ai-server/assets/fonts` at import-relative path resolution
-# (`Path(__file__).resolve().parents[2] / "assets" / "fonts"` ==
-# `/app/assets/fonts` once `src/` lands at `/app/src`); shipping the
-# committed build script alongside them (never regenerated at build time —
-# regeneration requires this host's own installed Noto CJK KR fonts, not
-# guaranteed reproducible inside the image) preserves provenance/audit
-# traceability for anyone inspecting the running container.
-COPY apps/ai-server/assets/fonts /app/assets/fonts
-COPY apps/ai-server/scripts/build_korean_fonts.py /app/scripts/build_korean_fonts.py
+# (`Path(__file__).resolve().parents[2] / "assets" / "fonts"`, code
+# unchanged) — with `src/` now landing at `/app/apps/ai-server/src`,
+# `parents[2]` resolves to `/app/apps/ai-server`, so the asset COPY target
+# below moves alongside it (was `/app/assets/fonts` when src sat directly
+# under `/app`). Shipping the committed build script alongside them (never
+# regenerated at build time — regeneration requires this host's own
+# installed Noto CJK KR fonts, not guaranteed reproducible inside the image)
+# preserves provenance/audit traceability for anyone inspecting the running
+# container.
+COPY apps/ai-server/assets/fonts /app/apps/ai-server/assets/fonts
+COPY apps/ai-server/scripts/build_korean_fonts.py /app/apps/ai-server/scripts/build_korean_fonts.py
+
+WORKDIR /app/apps/ai-server
 
 RUN uv pip install --system -e . && \
-    uv pip install --system -e /workspace/packages/shared-contracts/python && \
-    chown -R app:app /app /workspace
+    uv pip install --system -e /app/packages/shared-contracts/python && \
+    chown -R app:app /app
 
 USER app
 

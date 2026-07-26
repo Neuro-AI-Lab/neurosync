@@ -12,15 +12,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && \
     pip install --no-cache-dir uv && \
     useradd --create-home --shell /bin/bash --uid 1001 app
 
-COPY packages/shared-contracts/python /workspace/packages/shared-contracts/python
+# Monorepo-relative depth preserved inside the image. `apps/api/pyproject.toml`
+# pins `[tool.uv.sources] neuro-sync-contracts path =
+# "../../packages/shared-contracts/python"` — a monorepo-root-relative path.
+# Flattening pyproject.toml straight into WORKDIR /app (1 level under the
+# image root) made `../..` normalize past filesystem root; `uv` refused with
+# "cannot normalize a relative path beyond the base directory" (live DGX
+# build failure). Placing pyproject.toml at /app/apps/api instead (2 levels
+# deep, mirroring the repo checkout) makes `../../packages/...` resolve to
+# /app/packages/... exactly, matching this COPY layout. Editable installs
+# (`-e .` / `-e <contracts path>`) bake this on-disk layout into the install
+# itself, so /app/apps/api and /app/packages/... must stay in place at
+# runtime, not just at build time.
+COPY packages/shared-contracts/python /app/packages/shared-contracts/python
 
-COPY apps/api/pyproject.toml ./
-COPY apps/api/src ./src
-COPY apps/api/tests ./tests
+COPY apps/api/pyproject.toml /app/apps/api/pyproject.toml
+COPY apps/api/src /app/apps/api/src
+COPY apps/api/tests /app/apps/api/tests
+
+WORKDIR /app/apps/api
 
 RUN uv pip install --system -e . && \
-    uv pip install --system -e /workspace/packages/shared-contracts/python && \
-    chown -R app:app /app /workspace
+    uv pip install --system -e /app/packages/shared-contracts/python && \
+    chown -R app:app /app
 
 USER app
 
