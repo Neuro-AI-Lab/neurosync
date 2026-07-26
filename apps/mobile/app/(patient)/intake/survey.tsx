@@ -17,14 +17,12 @@ import { APIException, QuestionnaireType, submitQuestionnaire } from "../../../l
 import { FALLBACK_SURVEY } from "../../../lib/domain";
 import { SURVEYS } from "../../../lib/surveys";
 import { useAuth } from "../../../state/auth";
-import { useRecords } from "../../../state/records";
 import { useSession } from "../../../state/session";
 
 export default function SurveyScreen() {
   const params = useLocalSearchParams<{ instrument?: string }>();
   const accessToken = useAuth((s) => s.accessToken);
   const sessionId = useSession((s) => s.sessionId);
-  const addRecord = useRecords((s) => s.addFromResult);
   const [submitting, setSubmitting] = useState(false);
 
   // 알 수 없는/누락된 instrument는 폴백 문진으로 — 라우팅은 항상 성공 (FR-039).
@@ -39,9 +37,12 @@ export default function SurveyScreen() {
     setSubmitting(true);
     try {
       const result = await submitQuestionnaire(accessToken, sessionId, def.id, answers);
-      // 기록·리포트 화면(FR-045/046)용 로컬 이력 — 세션 리셋과 무관하게 유지.
-      addRecord(result, def.id);
-      router.push("/(patient)/intake/submit");
+      // 기록에는 제출 확정 시에만 남긴다(보류하기는 미기록). 결과를 제출 확인
+      // 화면으로 넘겨, 거기서 '제출하기'를 눌러야 addFromResult가 호출된다.
+      router.push({
+        pathname: "/(patient)/intake/submit",
+        params: { result: JSON.stringify(result), instrument: def.id },
+      });
     } catch (e) {
       const code = e instanceof APIException ? e.body.code : "NETWORK";
       Alert.alert("저장 실패", `잠시 후 다시 시도해 주세요 (코드: ${code})`);
