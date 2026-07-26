@@ -111,6 +111,8 @@ export default function ChatScreen() {
   // AI 응답 대기 상태(입력 중 "…" 표시) + 타자기 효과를 걸 최신 AI 메시지 id.
   const [awaitingAi, setAwaitingAi] = useState(false);
   const [lastAiId, setLastAiId] = useState<string | null>(null);
+  // 이미 타자기로 드러낸 메시지 id — 스크롤로 재마운트돼도 재실행하지 않는다(F2).
+  const revealedRef = useRef<Set<string>>(new Set());
   const clientRef = useRef<SessionChatClient | null>(null);
   const listRef = useRef<FlatList<LocalMessage>>(null);
   // 분석 중 화면 이탈(Android back 등) 시 늦은 router.push를 막는다.
@@ -316,6 +318,12 @@ export default function ChatScreen() {
     }
   };
 
+  // F3 — 소켓이 open을 벗어나면(순단·재연결 등) 대기 표시를 풀어 "입력 중…"
+  // 고착을 막는다. 완결 이벤트(ai:complete/risk/error)와 별개의 안전망.
+  useEffect(() => {
+    if (status !== "open") setAwaitingAi(false);
+  }, [status]);
+
   const onSend = () => {
     const content = draft.trim();
     if (!content || !clientRef.current) return;
@@ -354,7 +362,15 @@ export default function ChatScreen() {
   const canSend = !!draft.trim() && status === "open";
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.surface, paddingBottom: kbHeight }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: colors.surface,
+        // iOS만 수동 오프셋. Android는 OS adjustResize가 윈도우를 축소해 이미
+        // 입력바를 밀어올리므로 여기서 또 패딩하면 이중으로 뜬다(F1).
+        paddingBottom: Platform.OS === "ios" ? kbHeight : 0,
+      }}
+    >
       <NavBar
         backLabel="그만하기"
         onBack={() => router.back()}
@@ -422,7 +438,8 @@ export default function ChatScreen() {
             role={item.role}
             content={item.content}
             safetyLevel={item.safetyLevel}
-            animate={item.id === lastAiId}
+            animate={item.id === lastAiId && !revealedRef.current.has(item.id)}
+            onRevealed={() => revealedRef.current.add(item.id)}
           />
         )}
         extraData={lastAiId}
@@ -433,8 +450,9 @@ export default function ChatScreen() {
           <Text style={styles.empty}>오늘은 어떤 점이 가장 힘드신가요?{"\n"}편하게 말씀해 주세요.</Text>
         }
         ListFooterComponent={
-          // AI 응답 대기 중이면 "입력 중…" 인디케이터를 맨 아래 표시.
-          awaitingAi ? (
+          // AI 응답 대기 중이면 "입력 중…" 인디케이터. 단 설문 단계 진입 후엔
+          // 진행률/CTA를 가리지 않도록 억제한다(F5).
+          awaitingAi && !surveyStageShown ? (
             <TypingIndicator />
           ) : // 사용자 확정 UX 스펙: 종료 멘트 버블 아래 실시간 "증상 확인" 진행률
           // → 완료 시 "설문으로 넘어가기" CTA. 슬롯/내부 용어는 노출하지 않는다.
