@@ -17,16 +17,40 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AttachButton } from "../../../components/AttachButton";
+import { Button } from "../../../components/Button";
 import { MessageBubble } from "../../../components/MessageBubble";
 import { NavBar } from "../../../components/NavBar";
 import { PushToTalk } from "../../../components/PushToTalk";
 import { RiskConfirmModal } from "../../../components/RiskConfirm";
+import type { QuestionnaireType } from "../../../lib/api";
 import { inferTopSurvey } from "../../../lib/domain";
 import { ArrowUp } from "../../../lib/icons";
 import { SafetyLevel, SessionChatClient, WSEvent, WSStatus } from "../../../lib/ws";
-import { colors } from "../../../lib/tokens";
+import { colors, radius } from "../../../lib/tokens";
 import { useAuth } from "../../../state/auth";
 import { LocalMessage, useSession } from "../../../state/session";
+
+// BUG-086/090 (apps/ai-server/src/agents/orchestrator.py::_HANDOFF_ACK_MESSAGE)
+// stage-1 closing ack literal, mirrored client-side ONLY to detect the closing
+// bubble and drive the post-closing "증상 확인" progress UI below it — never
+// duplicated as UI copy. If the server-side literal changes, this must too.
+const HANDOFF_ACK_MESSAGE = "네 알겠습니다. 답변 주신 내용을 토대로 증상 확인 중입니다.";
+
+// 사용자 지시(2026-07-25, 마무리 멘트 재설계 2단계) stage-2 bubble, shared by
+// the auto-prefetch flow and the manual 설문 nav-button fallback so the copy
+// never drifts between the two call sites.
+const SURVEY_STAGE2_MESSAGE =
+  "증상 확인이 완료되었습니다. 보다 정확한 상태 확인을 위해 자가 설문을 진행하겠습니다. " +
+  "해당 설문 결과는 의료진 면담에 활용되므로 솔직하게 답변해주시면 감사하겠습니다.";
+
+// Simulated-gauge time constant (ms) — purely cosmetic pacing for the
+// real-time-looking gauge while `inferTopSurvey` (background prefetch, capped
+// at INFER_TIMEOUT_MS = 5s, never throws) is in flight. The gauge asymptotes
+// toward 92% so it never looks "done" before the real answer lands, then
+// snaps to 100% the instant the prefetch resolves (success OR fallback).
+const SURVEY_GAUGE_TIME_CONSTANT_MS = 2500;
+const SURVEY_GAUGE_CAP = 0.92;
+const SURVEY_GAUGE_TICK_MS = 120;
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
@@ -60,10 +84,20 @@ export default function ChatScreen() {
   // 분석 중 화면 이탈(Android back 등) 시 늦은 router.push를 막는다.
   const mountedRef = useRef(true);
 
+  // 종료 멘트(HANDOFF_ACK_MESSAGE) 이하 "증상 확인" 진행률 게이지 + CTA 상태.
+  const [surveyStageShown, setSurveyStageShown] = useState(false);
+  const [surveyProgress, setSurveyProgress] = useState(0);
+  const [surveyCtaReady, setSurveyCtaReady] = useState(false);
+  // 백그라운드 prefetch 결과 재사용(중복 inferTopSurvey 호출/중복 2단계 버블 방지).
+  const surveyInstrumentRef = useRef<QuestionnaireType | null>(null);
+  const surveyPrefetchStartedRef = useRef(false);
+  const surveyGaugeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      if (surveyGaugeTimerRef.current) clearInterval(surveyGaugeTimerRef.current);
     };
   }, []);
 
@@ -149,6 +183,61 @@ export default function ChatScreen() {
   // 내부적으로 판단해 "설문" 내비 버튼 강조에 쓰고, 비율 자체는 표시하지 않는다.
   const questionnaireReady = progress >= 0.7;
 
+  // 사용자 확정 UX 스펙(오늘): 종료 멘트(HANDOFF_ACK_MESSAGE) 도착 시 그 버블
+  // 아래에 "증상 확인" 진행률을 실시간으로 보여주고, 완료되면 "설문으로
+  // 넘어가기" CTA를 노출한다. 진행률은 실제 작업(설문 구성 API prefetch)과
+  // 동기화한다 — 애니메이션은 예상 소요 기준 시각적 페이싱일 뿐, 완결은
+  // 항상 실제 응답 도착(성공/폴백 불문, inferTopSurvey는 throw하지 않음)에서
+  // 온다. `messages`를 감시해 재마운트(앱 리로드/화면 재진입) 시에도 이미
+  // 종료 멘트/2단계 버블이 남아있으면 중복 호출·중복 버블 없이 같은
+  // 상태(진행 중 vs CTA-ready)로 복원한다.
+  useEffect(() => {
+    if (surveyPrefetchStartedRef.current) return;
+    const hasClosingAck = messages.some(
+      (m) => m.role === "ai" && m.content === HANDOFF_ACK_MESSAGE,
+    );
+    if (!hasClosingAck) return;
+    surveyPrefetchStartedRef.current = true;
+    setSurveyStageShown(true);
+
+    const hasStage2 = messages.some((m) => m.role === "ai" && m.content === SURVEY_STAGE2_MESSAGE);
+    if (hasStage2) {
+      // Remounted after the prefetch had already completed in a prior mount.
+      setSurveyProgress(1);
+      setSurveyCtaReady(true);
+      return;
+    }
+
+    const startedAt = Date.now();
+    surveyGaugeTimerRef.current = setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      const eased =
+        SURVEY_GAUGE_CAP * (1 - Math.exp(-elapsed / SURVEY_GAUGE_TIME_CONSTANT_MS));
+      setSurveyProgress((prev) => Math.max(prev, eased));
+    }, SURVEY_GAUGE_TICK_MS);
+
+    void inferTopSurvey(initialAccessToken, sessionId).then((instrument) => {
+      if (surveyGaugeTimerRef.current) {
+        clearInterval(surveyGaugeTimerRef.current);
+        surveyGaugeTimerRef.current = null;
+      }
+      if (!mountedRef.current) return;
+      surveyInstrumentRef.current = instrument;
+      setSurveyProgress(1);
+      addAiMessage({
+        id: Crypto.randomUUID(),
+        role: "ai",
+        content: SURVEY_STAGE2_MESSAGE,
+        sentAt: Date.now(),
+      });
+      setSurveyCtaReady(true);
+    });
+    // messages is the trigger source (watched for the closing-ack literal);
+    // the effect body is idempotent via surveyPrefetchStartedRef, so it is
+    // intentionally not re-run on every other dependency's identity change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
+
   // v3 FR-039/041 — 대화 종료 → '분석 중' → top1 문진 1종으로 바로 진입.
   // 추정 결과(도구 ID)는 라우팅에만 쓰고 화면·상태에 남기지 않는다 (NFR v3-2).
   // 사용자 지시(2026-07-25, 마무리 멘트 재설계 2단계): domain/infer 성공 후
@@ -158,6 +247,15 @@ export default function ChatScreen() {
   // 무관하게 항상 표시된다.
   const goSurvey = async () => {
     if (analyzing) return;
+    // 백그라운드 prefetch가 이미 끝난 경우(종료 멘트 이후 CTA 경로) 재호출
+    // 없이 즉시 진입 — 2단계 버블은 prefetch 완료 시 이미 추가돼 있다.
+    if (surveyInstrumentRef.current) {
+      router.push({
+        pathname: "/(patient)/intake/survey",
+        params: { instrument: surveyInstrumentRef.current },
+      });
+      return;
+    }
     setAnalyzing(true);
     try {
       const instrument = await inferTopSurvey(initialAccessToken, sessionId);
@@ -165,9 +263,7 @@ export default function ChatScreen() {
       addAiMessage({
         id: Crypto.randomUUID(),
         role: "ai",
-        content:
-          "증상 확인이 완료되었습니다. 보다 정확한 상태 확인을 위해 자가 설문을 진행하겠습니다. " +
-          "해당 설문 결과는 의료진 면담에 활용되므로 솔직하게 답변해주시면 감사하겠습니다.",
+        content: SURVEY_STAGE2_MESSAGE,
         sentAt: Date.now(),
       });
       router.push({
@@ -292,6 +388,37 @@ export default function ChatScreen() {
         ListEmptyComponent={
           <Text style={styles.empty}>오늘은 어떤 점이 가장 힘드신가요?{"\n"}편하게 말씀해 주세요.</Text>
         }
+        ListFooterComponent={
+          // 사용자 확정 UX 스펙: 종료 멘트 버블 아래 실시간 "증상 확인" 진행률
+          // → 완료 시 "설문으로 넘어가기" CTA. 슬롯/내부 용어는 노출하지 않는다.
+          surveyStageShown ? (
+            <View style={styles.surveyStage}>
+              {!surveyCtaReady ? (
+                <View accessibilityLiveRegion="polite">
+                  <View style={styles.surveyTrack}>
+                    <View
+                      style={[
+                        styles.surveyFill,
+                        { width: `${Math.round(surveyProgress * 100)}%` },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.surveyLabel}>
+                    증상 확인 중… {Math.round(surveyProgress * 100)}%
+                  </Text>
+                </View>
+              ) : (
+                <Button
+                  label="설문으로 넘어가기"
+                  onPress={() => void goSurvey()}
+                  variant="primary"
+                  disabled={analyzing}
+                  loading={analyzing}
+                />
+              )}
+            </View>
+          ) : null
+        }
       />
 
       <View style={[styles.inbar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
@@ -395,6 +522,19 @@ const styles = StyleSheet.create({
   },
   list: { flex: 1 },
   listContent: { paddingHorizontal: 16, paddingVertical: 8 },
+  surveyStage: { paddingHorizontal: 4, paddingTop: 4, paddingBottom: 12, gap: 8 },
+  surveyTrack: {
+    height: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.fill,
+    overflow: "hidden",
+  },
+  surveyFill: {
+    height: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.ink,
+  },
+  surveyLabel: { fontSize: 12, color: colors.muted },
   empty: {
     textAlign: "center",
     color: colors.muted,
