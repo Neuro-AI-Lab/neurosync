@@ -100,7 +100,48 @@ function Narrative({ n }: { n: HandoffNarrative }) {
         <dt className="text-xs font-semibold text-text-secondary">리포트</dt>
         <dd className="text-text-primary whitespace-pre-wrap">{n.report_markdown}</dd>
       </div>
-      <ListField label="누락된 항목" items={n.missing_slots} />
+
+      {/* F5 풀 리포트: editorial PDF 다운로드 (있을 때만) */}
+      {n.pdf_base64 ? (
+        <div className="flex flex-col gap-1">
+          <dt className="text-[11px] font-medium uppercase tracking-wide text-faint">
+            인계 보고서 PDF
+          </dt>
+          <dd>
+            <a
+              href={`data:application/pdf;base64,${n.pdf_base64}`}
+              download="handoff_report.pdf"
+              className="inline-flex items-center rounded-md border border-line px-3 py-1.5 text-sm font-medium text-text-primary hover:bg-surface-hover"
+            >
+              PDF 다운로드
+            </a>
+          </dd>
+        </div>
+      ) : null}
+
+      {/* F4 종단 차트 (있을 때만) */}
+      {n.chart_pngs_base64 && n.chart_pngs_base64.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <dt className="text-[11px] font-medium uppercase tracking-wide text-faint">
+            종단 추이 차트 ({n.chart_pngs_base64.length})
+          </dt>
+          <dd className="flex flex-col gap-3">
+            {n.chart_pngs_base64.map((png, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={`data:image/png;base64,${png}`}
+                alt={`종단 차트 ${i + 1}`}
+                className="w-full rounded-md border border-line"
+              />
+            ))}
+          </dd>
+        </div>
+      ) : null}
+
+      {n.missing_slots && n.missing_slots.length > 0 ? (
+        <ListField label="누락된 항목" items={n.missing_slots} />
+      ) : null}
 
       {n.evidence_packets && n.evidence_packets.length > 0 ? (
         <div className="flex flex-col gap-2">
