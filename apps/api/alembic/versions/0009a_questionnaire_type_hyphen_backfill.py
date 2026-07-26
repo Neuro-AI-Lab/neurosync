@@ -30,6 +30,34 @@ head '0010' or later (that DB would never run 0009a). No such environment
 is known to exist for this project; the DGX DB is confirmed pre-0010 by
 the probe above, and a from-scratch install runs the full chain in order.
 
+DB-F2b (2026-07-26, live DGX replay): the fix above shipped 0009a's
+UPDATE-before-0010 ordering, but missed a second constraint-order bug in
+0009a itself. At the point 0009a's upgrade() runs, 0008's CHECK
+(`ck_questionnaire_results_type`, hyphenated values only — see 0008's
+`create_check_constraint`) is still the live constraint on the table;
+0010 is the migration that eventually narrows it, and 0010 runs *after*
+0009a. So the UPDATE statements below, which rewrite rows to
+'PHQ9'/'GAD7'/'AUDITC'/'PHQ4', violate 0008's still-active hyphenated-only
+CHECK directly (`CheckViolationError`) — confirmed live against the DGX DB
+(stamped at 0009, 0009a not yet applied there; rows were exactly the
+PHQ-9(7)/GAD-7(5)/AUDIT-C(1) set from the probe cited above; transaction
+rolled back, 0009 left intact). Fix: drop 0008's CHECK at the start of
+this migration's upgrade() (guarded `IF EXISTS`, mirroring 0008's own
+drop-before-update-then-recreate pattern), then run the UPDATEs. No new
+CHECK is (re-)created here — 0010's own `ADD CONSTRAINT` (itself preceded
+by `DROP CONSTRAINT IF EXISTS`) runs immediately next in the same
+`upgrade head` invocation and re-establishes it; the gap with no CHECK
+active never spans more than this one non-interactive migration run. No
+environment is known to have this file's old upgrade() body already
+applied and stamped at 0009a — the DGX DB (the only non-fresh environment
+touched by this migration) is confirmed pre-0009a by the replay above, so
+editing this revision's body in place (rather than adding a 0009b) is
+safe. Verified via a DGX-shaped throwaway-DB regression: apply through
+0009, seed the exact hyphenated rows with 0008's CHECK still live, then
+`upgrade head` — must complete with no data loss and the final
+non-hyphenated CHECK in force; plus the existing fresh 0001->head chain
+regression (BUG-065's test) re-run to confirm no fresh-DB regression.
+
 Revision ID: 0009a
 Revises: 0009
 Create Date: 2026-07-22
@@ -57,6 +85,17 @@ _HYPHEN_TO_PLAIN = {
 
 
 def upgrade() -> None:
+    # DB-F2b: 0008's CHECK (hyphenated values only) is still the live
+    # constraint here — 0010 hasn't narrowed it yet. Drop it first so the
+    # UPDATE below (which writes non-hyphenated values) doesn't violate it.
+    # IF EXISTS: a from-scratch chain or any DB where it's already absent
+    # for any reason is unaffected (no-op). 0010's own ADD CONSTRAINT
+    # (guarded by its own DROP CONSTRAINT IF EXISTS) runs immediately next
+    # and re-establishes a CHECK, so no lasting state change here.
+    op.execute(
+        "ALTER TABLE questionnaire_results DROP CONSTRAINT IF EXISTS "
+        "ck_questionnaire_results_type"
+    )
     # Selective UPDATE — touches only rows still in hyphenated form; a no-op
     # wherever a DB has no such rows (idempotent, safe to re-run/re-apply).
     for hyphenated, plain in _HYPHEN_TO_PLAIN.items():
