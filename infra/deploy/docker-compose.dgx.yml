@@ -13,11 +13,14 @@
 #     with any compose project or container already on the DGX.
 #   - External port 24855 is the allocated ai-server port. Backend base URL:
 #     http://223.194.33.26:24855  (container listens on 8001, Dockerfile CMD).
-#   - External port 24856 for api is a WORKING ASSUMPTION (ADR-046 decision 5,
-#     2026-07-22) — no port has been formally allocated by the operator yet.
-#     Co-locating api on this same DGX + compose file is itself a working
-#     assumption (PRD §9 decision #6 default: co-locate with DB + ai-server,
-#     no separate-host instruction received). If the operator assigns a
+#   - External port 24857 is the allocated api port (corrected 2026-07-26,
+#     see docs/ai/deployment_integration_plan.md §3 — the operator confirmed
+#     external 24856 is already NAT-routed to the DGX host's SSH port 22, not
+#     available for a service; 24855/24857 pass through 1:1 to the same
+#     container-host ports docker publishes below). Co-locating api on this
+#     same DGX + compose file remains a working assumption (ADR-046 decision
+#     5, PRD §9 decision #6 default: co-locate with DB + ai-server, no
+#     separate-host instruction received). If the operator assigns a
 #     different port or a separate host, only this file's `ports:`/service
 #     block needs to change — no code change required.
 #   - All secrets come from each service's own .env via env_file at RUN time;
@@ -30,7 +33,7 @@
 # Run from repo root on the DGX:
 #   docker compose -f infra/deploy/docker-compose.dgx.yml up -d --build
 #   curl -s localhost:24855/health   # ai-server
-#   curl -s localhost:24856/health   # api
+#   curl -s localhost:24857/health   # api
 #
 # DB reachability: DATABASE_URL in each .env points at 223.194.33.26:28881. If
 # a container cannot hairpin through the host's external IP, change only the
@@ -103,7 +106,7 @@ services:
       # this one value to http://223.194.33.26:24855 (no code change).
       AI_SERVER_URL: http://ai-server:8001
     ports:
-      - "24856:8000"
+      - "24857:8000"  # external 24856 is SSH NAT — see note at top of file
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
