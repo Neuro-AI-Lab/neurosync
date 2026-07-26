@@ -38,7 +38,11 @@ from uuid import UUID
 import anyio
 from contracts.safety import SafetyRequest
 from contracts.survey_plan import SurveyPlanRequest
-from contracts.temporal import TemporalSummarizeRequest
+from contracts.temporal import (
+    Direction,
+    TemporalPlotPoint,
+    TemporalSummarizeResponse,
+)
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -653,6 +657,31 @@ async def _session_scales(db: AsyncSession, session_id: UUID) -> dict[str, int]:
     return {_SCALE_NAME.get(r.type, r.type): r.total_score for r in rows.scalars()}
 
 
+def _pairwise_direction(current: dict[str, int], prior: dict[str, int]) -> Direction:
+    """F4의 척도 방향 규칙과 동일한 결정론적 pairwise 판정. 표준 척도는 점수가
+    **낮을수록 호전**(PHQ-9/GAD-7/AUDIT-C/PHQ-4). 두 방문에 공통으로 존재하는
+    대표 척도(우선순위: PHQ-9 → GAD-7 → AUDIT-C → PHQ-4)의 총점 변화로 판정한다."""
+    for scale in ("PHQ-9", "GAD-7", "AUDIT-C", "PHQ-4"):
+        if scale in current and scale in prior:
+            delta = current[scale] - prior[scale]
+            if delta < 0:
+                return "improved"
+            if delta > 0:
+                return "worsened"
+            return "unchanged"
+    return "unknown"
+
+
+def _trend_point(scales: dict[str, int], date: str, label: str) -> TemporalPlotPoint:
+    """모바일 추이 차트용 포인트. 표준 척도 점수(환자 본인 응답)만 싣는다."""
+    return TemporalPlotPoint(
+        date=date,
+        phq9=scales.get("PHQ-9"),
+        gad7=scales.get("GAD-7"),
+        events=[label],
+    )
+
+
 @router.get("/{session_id}/report/trend", response_model=dict)
 async def get_report_trend(
     session_id: UUID,
@@ -660,7 +689,6 @@ async def get_report_trend(
         User, Depends(require_role("patient", "clinician", "org_admin", "super_admin"))
     ],
     db: Annotated[AsyncSession, Depends(get_session)],
-    ai_client: Annotated[AIClient, Depends(get_ai_client)],
 ) -> dict:
     """수정 7 — 리포트 점수 추이 차트용 F4 종단 추론 (plot_data 바인딩).
 
@@ -720,27 +748,28 @@ async def get_report_trend(
             prior_date = prior.created_at.date().isoformat()
             break
 
-    payload = TemporalSummarizeRequest(
-        session_id=str(session_id),
-        patient_id=str(sess.patient_id),
-        is_first_visit=not prior_scales,
-        current_scales=current_scales,
-        prior_scales=prior_scales,
-        current_date=sess.created_at.date().isoformat(),
-        prior_date=prior_date,
-    )
-    try:
-        result = await ai_client.temporal_summarize(payload)
-    except AIClientError as exc:
-        logger.warning("temporal summarize failed (session=%s): %s", session_id, exc)
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail={
-                "code": "TREND_UNAVAILABLE",
-                "message": "추이 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
-            },
-        ) from exc
+    # 환자용 2점 추이는 자기 척도 점수의 결정론적 pairwise 비교로 계산한다(F4의
+    # 척도 방향 규칙과 동일: 점수↓=호전). ai-server /ai/temporal/analyze는 세션당
+    # 단일 척도·리치 입력(f3·sentiment)을 요구하는 N-세션 엔진이라, 환자 차트가
+    # 필요로 하는 PHQ-9·GAD-7 동시 pairwise와 형태가 다르다 — cross-service 호출
+    # 없이 여기서 산출해 502(폐기된 summarize 라우트 호출)를 제거한다.
+    is_first_visit = not prior_scales
+    current_date = sess.created_at.date().isoformat()
 
+    plot_data: list[TemporalPlotPoint] = []
+    if not is_first_visit:
+        plot_data.append(_trend_point(prior_scales, prior_date, "이전 방문"))
+    plot_data.append(_trend_point(current_scales, current_date, "이번 방문"))
+
+    overall_direction: Direction = (
+        "unknown" if is_first_visit else _pairwise_direction(current_scales, prior_scales)
+    )
+
+    result = TemporalSummarizeResponse(
+        overall_direction=overall_direction,
+        plot_data=plot_data,
+        is_first_visit=is_first_visit,
+    )
     # by_alias — 모바일에는 camelCase (나머지 API와 동일 컨벤션).
     return {"success": True, "data": result.model_dump(by_alias=True, mode="json")}
 
