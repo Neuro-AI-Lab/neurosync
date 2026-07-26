@@ -6,7 +6,8 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  KeyboardAvoidingView,
+  Keyboard,
+  LayoutAnimation,
   Platform,
   Pressable,
   StyleSheet,
@@ -20,6 +21,7 @@ import { AttachButton } from "../../../components/AttachButton";
 import { Button } from "../../../components/Button";
 import { MessageBubble } from "../../../components/MessageBubble";
 import { NavBar } from "../../../components/NavBar";
+import { TypingIndicator } from "../../../components/TypingIndicator";
 import { PushToTalk } from "../../../components/PushToTalk";
 import { RiskConfirmModal } from "../../../components/RiskConfirm";
 import type { QuestionnaireType } from "../../../lib/api";
@@ -63,6 +65,7 @@ export default function ChatScreen() {
   // Pull token ONCE via a ref so a future refresh doesn't tear down the WS.
   const initialAccessToken = useAuth((s) => s.accessToken);
   const refreshAccessToken = useAuth((s) => s.refreshAccessToken);
+  const logout = useAuth((s) => s.logout);
   const sessionId = useSession((s) => s.sessionId);
   const messages = useSession((s) => s.messages);
   const progress = useSession((s) => s.progress);
@@ -72,6 +75,26 @@ export default function ChatScreen() {
   const setRisk = useSession((s) => s.setRisk);
   const setProgress = useSession((s) => s.setProgress);
   const clearRisk = useSession((s) => s.clearRisk);
+
+  // 키보드 높이를 직접 측정해 입력창을 밀어올린다(KeyboardAvoidingView가 이
+  // 구성에서 불안정해 결정적 방식으로 대체). 컨테이너 하단 패딩 = 키보드 높이.
+  const [kbHeight, setKbHeight] = useState(0);
+  useEffect(() => {
+    const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const onShow = Keyboard.addListener(showEvt, (e) => {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setKbHeight(e.endCoordinates.height);
+    });
+    const onHide = Keyboard.addListener(hideEvt, () => {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setKbHeight(0);
+    });
+    return () => {
+      onShow.remove();
+      onHide.remove();
+    };
+  }, []);
 
   const [draft, setDraft] = useState("");
   const [status, setStatus] = useState<WSStatus>("idle");
@@ -85,6 +108,9 @@ export default function ChatScreen() {
   // v3 FR-042 — 강제 전환 대신 확인 창. FR-041 — 도메인 추정 '분석 중' 상태.
   const [riskConfirm, setRiskConfirm] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  // AI 응답 대기 상태(입력 중 "…" 표시) + 타자기 효과를 걸 최신 AI 메시지 id.
+  const [awaitingAi, setAwaitingAi] = useState(false);
+  const [lastAiId, setLastAiId] = useState<string | null>(null);
   const clientRef = useRef<SessionChatClient | null>(null);
   const listRef = useRef<FlatList<LocalMessage>>(null);
   // 분석 중 화면 이탈(Android back 등) 시 늦은 router.push를 막는다.
@@ -126,12 +152,16 @@ export default function ChatScreen() {
         }
       } else if (event.type === "ai:complete") {
         const { messageId, content, progress: p } = event.payload;
+        setAwaitingAi(false);
         addAiMessage({ id: messageId, role: "ai", content, sentAt: Date.now() });
+        setLastAiId(messageId); // 이 메시지만 타자기 효과로 드러낸다
         setProgress(p.ratio);
       } else if (event.type === "risk:detected") {
         const { level, reason } = event.payload;
         setRisk(event.payload);
         if (level === "high" || level === "critical") {
+          // 위기 시 대화 중단 — AI 답변이 오지 않으므로 대기 표시 종료.
+          setAwaitingAi(false);
           // v3 FR-042 — 강제 전환 금지. 강한 햅틱 + 확인 창(모달)에서
           // [도움 받기] 선택 시에만 /emergency 진입.
           void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -153,8 +183,13 @@ export default function ChatScreen() {
           );
         }
       } else if (event.type === "auth:error") {
-        Alert.alert("연결 오류", "로그인이 만료되었어요. 다시 로그인해 주세요.");
+        // 세션 만료 — 확인 시 로그아웃하면 루트 인증 가드가 로그인으로 보낸다.
+        setAwaitingAi(false);
+        Alert.alert("세션 만료", "로그인이 만료되었어요. 다시 로그인해 주세요.", [
+          { text: "확인", onPress: () => void logout() },
+        ]);
       } else if (event.type === "error") {
+        setAwaitingAi(false);
         const safeCode = ["FRAME_DECODE_FAILED", "FRAME_INVALID", "FRAME_UNEXPECTED"].includes(
           event.payload.code,
         )
@@ -297,6 +332,7 @@ export default function ChatScreen() {
     });
     setDraft("");
     setMediumBanner(null);
+    setAwaitingAi(true); // AI 응답 대기 — "입력 중…" 표시
   };
 
   const statusLabel = useMemo<string>(() => {
@@ -318,11 +354,7 @@ export default function ChatScreen() {
   const canSend = !!draft.trim() && status === "open";
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.surface }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 24}
-    >
+    <View style={{ flex: 1, backgroundColor: colors.surface, paddingBottom: kbHeight }}>
       <NavBar
         backLabel="그만하기"
         onBack={() => router.back()}
@@ -386,8 +418,14 @@ export default function ChatScreen() {
         data={messages}
         keyExtractor={(m) => m.id}
         renderItem={({ item }) => (
-          <MessageBubble role={item.role} content={item.content} safetyLevel={item.safetyLevel} />
+          <MessageBubble
+            role={item.role}
+            content={item.content}
+            safetyLevel={item.safetyLevel}
+            animate={item.id === lastAiId}
+          />
         )}
+        extraData={lastAiId}
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
         style={styles.list}
         contentContainerStyle={styles.listContent}
@@ -395,7 +433,10 @@ export default function ChatScreen() {
           <Text style={styles.empty}>오늘은 어떤 점이 가장 힘드신가요?{"\n"}편하게 말씀해 주세요.</Text>
         }
         ListFooterComponent={
-          // 사용자 확정 UX 스펙: 종료 멘트 버블 아래 실시간 "증상 확인" 진행률
+          // AI 응답 대기 중이면 "입력 중…" 인디케이터를 맨 아래 표시.
+          awaitingAi ? (
+            <TypingIndicator />
+          ) : // 사용자 확정 UX 스펙: 종료 멘트 버블 아래 실시간 "증상 확인" 진행률
           // → 완료 시 "설문으로 넘어가기" CTA. 슬롯/내부 용어는 노출하지 않는다.
           surveyStageShown ? (
             <View style={styles.surveyStage}>
@@ -427,7 +468,13 @@ export default function ChatScreen() {
         }
       />
 
-      <View style={[styles.inbar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+      <View
+        style={[
+          styles.inbar,
+          // 키보드가 올라오면 컨테이너가 이미 밀어올리므로 홈 인디케이터 여백은 뺀다.
+          { paddingBottom: kbHeight > 0 ? 8 : Math.max(insets.bottom, 8) },
+        ]}
+      >
         <AttachButton
           disabled={status !== "open"}
           onPick={(doc) =>
@@ -489,7 +536,7 @@ export default function ChatScreen() {
           <Text style={styles.analyzingSub}>곧 알맞은 문진으로 이어드릴게요</Text>
         </View>
       ) : null}
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
