@@ -16,6 +16,7 @@ import type {
   QuestionnaireResult,
   ReportTrend,
   ReportSummary,
+  ReportPdf,
   QuestionnaireType,
   RegisterInput,
   ReportStatusOut,
@@ -247,6 +248,12 @@ export const mockApi = {
       disclaimer:
         "이 요약은 자가보고와 설문을 정리한 자료로, 의학적 진단이 아닙니다. 정확한 평가는 의료진과 상담해 주세요.",
     });
+  },
+  getReportPdf(): Promise<ReportPdf> {
+    // 오프라인 데모: 최소 유효 PDF 1페이지(base64). 실경로는 F5 editorial PDF.
+    const MINI_PDF =
+      "JVBERi0xLjQKMSAwIG9iago8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PC9UeXBlL1BhZ2VzL0tpZHNbMyAwIFJdL0NvdW50IDE+PgplbmRvYmoKMyAwIG9iago8PC9UeXBlL1BhZ2UvUGFyZW50IDIgMCBSL01lZGlhQm94WzAgMCA2MTIgNzkyXT4+CmVuZG9iagp4cmVmCjAgNAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCnRyYWlsZXIKPDwvU2l6ZSA0L1Jvb3QgMSAwIFI+PgpzdGFydHhyZWYKMTkwCiUlRU9G";
+    return delay({ filename: "handoff_report_demo.pdf", pdfBase64: MINI_PDF });
   },
   acknowledgeRiskEvent(
     riskEventId: string,

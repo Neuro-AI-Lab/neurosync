@@ -491,6 +491,23 @@ export async function getReportSummary(
   });
 }
 
+export type ReportPdf = { filename: string; pdfBase64: string };
+
+/**
+ * 최종 핸드오프 리포트 PDF(base64). F5 editorial PDF(다세션 종단 리포트 생성 시
+ * 포함)를 그대로 받아 저장·공유에 쓴다. 단일세션 서사 리포트엔 PDF가 없어 404.
+ */
+export async function getReportPdf(
+  token: string,
+  sessionId: string,
+): Promise<ReportPdf> {
+  if (MOCK) return mockApi.getReportPdf();
+  return request<ReportPdf>(`/api/v1/sessions/${sessionId}/report/pdf`, {
+    method: "GET",
+    token,
+  });
+}
+
 // ────────── 점수 추이 (F4 종단 추론 · 리포트 차트) ──────────
 
 export type TrendDirection = "improved" | "worsened" | "unchanged" | "unknown";

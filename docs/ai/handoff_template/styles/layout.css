@@ -1,0 +1,73 @@
+/* ============================================================
+   Layout — A4 page frame, 12-column grid, baseline system
+   ============================================================ */
+
+* { box-sizing: border-box; }
+
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  word-break: keep-all;      /* 한글 단어 분리 방지 */
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── 연속 흐름 문서 (섹션 고정 페이지 없음) ──────────────── */
+/* 화면: A4 폭 콘텐츠 컬럼을 종이처럼 중앙 정렬. 인쇄: @page가 여백 담당 */
+.doc {
+  max-width: var(--page-w);
+  margin: 0 auto;
+  background: var(--surface);
+  padding: 20mm 17mm;
+}
+.block { margin-bottom: var(--sp-8); }
+.block + .block { padding-top: var(--sp-4); border-top: var(--rule) solid var(--line); }
+.doc-foot { margin-top: var(--sp-8); padding-top: var(--sp-3); border-top: var(--rule) solid var(--line); }
+
+@media screen {
+  body { background: #E7E6E1; padding: 12mm 0; }
+  .doc { box-shadow: 0 1px 4px rgba(29,37,44,0.08); }
+}
+
+/* ── 12-column grid ─────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: var(--grid-gap);
+}
+.col-3  { grid-column: span 3; }
+.col-4  { grid-column: span 4; }
+.col-5  { grid-column: span 5; }
+.col-6  { grid-column: span 6; }
+.col-7  { grid-column: span 7; }
+.col-8  { grid-column: span 8; }
+.col-12 { grid-column: span 12; }
+
+/* ── Section spacing / rules ────────────────────────────── */
+.section { margin-top: var(--sp-6); }
+.rule {
+  border: 0;
+  border-top: var(--rule) solid var(--line);
+  margin: 0;
+}
+.rule-strong { border-top-color: var(--line-strong); }
+
+/* 좌측 accent bar 강조 (박스 대신) */
+.accent-bar {
+  padding-left: var(--sp-4);
+}
+
+/* 페이지 상단 의도적 여백 */
+.page-lead-space { height: var(--sp-6); }
+
+.stack-1 > * + * { margin-top: var(--sp-1); }
+.stack-2 > * + * { margin-top: var(--sp-2); }
+.stack-3 > * + * { margin-top: var(--sp-3); }
+.stack-4 > * + * { margin-top: var(--sp-4); }

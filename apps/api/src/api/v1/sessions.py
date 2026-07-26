@@ -641,6 +641,55 @@ async def get_report_summary(
                 "이 요약은 자가보고와 설문을 정리한 자료로, 의학적 진단이 아닙니다. "
                 "정확한 평가는 의료진과 상담해 주세요."
             ),
+            # F5 editorial PDF 존재 여부 — 모바일 '저장' 버튼 노출 판단용.
+            "hasPdf": bool(
+                isinstance(report.content, dict) and report.content.get("pdf_base64")
+            ),
+        },
+    }
+
+
+@router.get("/{session_id}/report/pdf", response_model=dict)
+async def get_report_pdf(
+    session_id: UUID,
+    patient: Annotated[User, Depends(require_role("patient"))],
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> dict:
+    """환자 본인용 최종 핸드오프 리포트 PDF(base64). F5 editorial PDF를 그대로
+    돌려준다(다세션 종단 리포트 생성 시 포함). 단일세션 서사 리포트에는 PDF가 없어
+    404를 반환한다."""
+    srow = await db.execute(select(Session).where(Session.id == session_id))
+    sess = srow.scalar_one_or_none()
+    if sess is None or sess.patient_id != patient.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "SESSION_NOT_FOUND", "message": "세션을 찾을 수 없어요."},
+        )
+    rrow = await db.execute(
+        select(HandoffReport)
+        .where(HandoffReport.session_id == session_id)
+        .order_by(HandoffReport.created_at.desc())
+        .limit(1)
+    )
+    report = rrow.scalar_one_or_none()
+    pdf_b64 = (
+        report.content.get("pdf_base64")
+        if report and isinstance(report.content, dict)
+        else None
+    )
+    if not pdf_b64:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "code": "PDF_NOT_AVAILABLE",
+                "message": "이 리포트에는 저장할 PDF가 아직 없어요. (종단 리포트는 재방문 시 생성)",
+            },
+        )
+    return {
+        "success": True,
+        "data": {
+            "filename": f"handoff_report_{session_id}.pdf",
+            "pdfBase64": pdf_b64,
         },
     }
 

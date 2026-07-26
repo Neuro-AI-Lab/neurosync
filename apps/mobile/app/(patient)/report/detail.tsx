@@ -10,7 +10,9 @@
  * 전이(보관→전달됨)로 플로우를 시연한다.
  */
 
+import * as FileSystem from "expo-file-system/legacy";
 import { router, useLocalSearchParams } from "expo-router";
+import * as Sharing from "expo-sharing";
 import { useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -21,6 +23,7 @@ import { TrendChart } from "../../../components/TrendChart";
 import {
   APIException,
   deliverReport,
+  getReportPdf,
   getReportSummary,
   getReportTrend,
   ReportSummary,
@@ -91,6 +94,37 @@ export default function ReportDetailScreen() {
       );
     } finally {
       setDelivering(false);
+    }
+  };
+
+  // 최종 핸드오프 리포트 PDF 저장·공유. 서버에서 base64 PDF를 받아 임시 파일로
+  // 쓰고 OS 공유 시트를 연다(저장/타 앱 전송). PDF 없으면 안내.
+  const [savingPdf, setSavingPdf] = useState(false);
+  const onSavePdf = async () => {
+    if (!accessToken || !effectiveSessionId) return;
+    setSavingPdf(true);
+    try {
+      const { filename, pdfBase64 } = await getReportPdf(accessToken, effectiveSessionId);
+      const uri = FileSystem.cacheDirectory + filename;
+      await FileSystem.writeAsStringAsync(uri, pdfBase64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: "application/pdf",
+          dialogTitle: "핸드오프 리포트 저장",
+          UTI: "com.adobe.pdf",
+        });
+      } else {
+        Alert.alert("저장 완료", `리포트를 저장했어요:\n${uri}`);
+      }
+    } catch (e) {
+      Alert.alert(
+        "PDF를 준비하지 못했어요",
+        e instanceof APIException ? e.body.message : "잠시 후 다시 시도해 주세요.",
+      );
+    } finally {
+      setSavingPdf(false);
     }
   };
 
@@ -189,6 +223,16 @@ export default function ReportDetailScreen() {
         <Text style={styles.fine}>
           본 리포트는 의료진 참고용이며, 진단이 아닙니다. 전달 전까지 의료진에게 공유되지 않아요.
         </Text>
+
+        {/* 최종 핸드오프 리포트 PDF 저장·공유 */}
+        {MOCK || effectiveSessionId ? (
+          <Button
+            label="리포트 PDF 저장·공유"
+            variant="ghost"
+            onPress={() => void onSavePdf()}
+            loading={savingPdf}
+          />
+        ) : null}
 
         <View style={{ flex: 1 }} />
 

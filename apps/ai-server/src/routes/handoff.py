@@ -58,6 +58,38 @@ _PDF_SIZE_GUARD_BYTES = 10 * 1024 * 1024
 _MAX_REGENERATE_ATTEMPTS = 2
 
 
+def _render_editorial_pdf(vp_id, longitudinal, report_markdown: str) -> bytes | None:
+    """사용자 고도화 Editorial(HTML→Chrome) PDF 렌더.
+
+    F4 종단분석(`longitudinal`)을 `<vp>_<ts>_temporal.json`, F5 markdown을
+    `<vp>_<ts>_handoff.md`로 `docs/ai/simulation_results/<vp>/`에 쓰고,
+    `render_editorial_handoff`(build_report_json → Chrome print-to-pdf)를 호출한다.
+    Chrome/템플릿 미가용이면 None (호출부가 기본 PDF로 폴백)."""
+    import json
+    import tempfile as _tf
+
+    from src.services.editorial_handoff import _repo_root, render_editorial_handoff
+
+    sim = _repo_root() / "docs" / "ai" / "simulation_results" / str(vp_id)
+    sim.mkdir(parents=True, exist_ok=True)
+    ts = uuid.uuid4().hex[:12]
+    prefix = f"{vp_id}_{ts}"
+    (sim / f"{prefix}_temporal.json").write_text(
+        json.dumps(longitudinal.model_dump(mode="json"), ensure_ascii=False),
+        encoding="utf-8",
+    )
+    (sim / f"{prefix}_handoff.md").write_text(report_markdown, encoding="utf-8")
+
+    out_pdf = Path(_tf.gettempdir()) / f"editorial_{prefix}.pdf"
+    result = render_editorial_handoff(str(vp_id), out_pdf)
+    if result and out_pdf.exists():
+        data = out_pdf.read_bytes()
+        out_pdf.unlink(missing_ok=True)
+        logger.info("editorial handoff PDF rendered: vp=%s bytes=%d", vp_id, len(data))
+        return data
+    return None
+
+
 def _get_handoff_agent(
     model_router: ModelRouter = Depends(get_model_router),
     prompt_loader: PromptLoader = Depends(get_prompt_loader),
@@ -289,22 +321,33 @@ async def report(body: HandoffReportRequest) -> HandoffReportResponse:
     }
 
     if body.include_pdf:
-        chart_paths: dict[str, Path] = {}
+        pdf_bytes: bytes | None = None
 
-        with tempfile.TemporaryDirectory(prefix="ns_handoff_pdf_") as tmp:
-            tmp_dir = Path(tmp)
-            for key, png in chart_png_bytes.items():
-                path = tmp_dir / f"{key}.png"
-                path.write_bytes(png)
-                chart_paths[key] = path
-            try:
-                pdf_bytes = build_pdf_report(handoff_report, chart_paths)
-            except RuntimeError as exc:
-                # Missing/mismatched embedded Korean font asset (ADR-038
-                # Decision 1 / BUG-044) — an honest 500, never a silently
-                # PDF-less response with no explanation.
-                logger.error("Handoff report PDF build failed: %s", exc)
-                raise HTTPException(status_code=500, detail=str(exc)) from exc
+        # 사용자 고도화 Editorial(HTML→Chrome) PDF 우선. F4(temporal.json)+F5
+        # (handoff.md) 아티팩트를 써서 docs/ai/handoff_template 템플릿을 Chrome로
+        # print한다. Chrome/템플릿 미가용이면 None을 돌려주므로 아래 기본 PDF로 폴백.
+        try:
+            pdf_bytes = _render_editorial_pdf(body.vp_id, longitudinal, report_markdown)
+        except Exception as exc:  # noqa: BLE001 — editorial은 best-effort, 실패해도 기본 PDF로
+            logger.warning("editorial handoff PDF failed, falling back: %s", exc)
+            pdf_bytes = None
+
+        if pdf_bytes is None:
+            chart_paths: dict[str, Path] = {}
+            with tempfile.TemporaryDirectory(prefix="ns_handoff_pdf_") as tmp:
+                tmp_dir = Path(tmp)
+                for key, png in chart_png_bytes.items():
+                    path = tmp_dir / f"{key}.png"
+                    path.write_bytes(png)
+                    chart_paths[key] = path
+                try:
+                    pdf_bytes = build_pdf_report(handoff_report, chart_paths)
+                except RuntimeError as exc:
+                    # Missing/mismatched embedded Korean font asset (ADR-038
+                    # Decision 1 / BUG-044) — an honest 500, never a silently
+                    # PDF-less response with no explanation.
+                    logger.error("Handoff report PDF build failed: %s", exc)
+                    raise HTTPException(status_code=500, detail=str(exc)) from exc
 
         if len(pdf_bytes) > _PDF_SIZE_GUARD_BYTES:
             pdf_omitted_reason = (
