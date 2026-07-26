@@ -457,6 +457,40 @@ export async function getReportStatus(
   });
 }
 
+// ────────── 환자용 리포트 요약 (F5 본문 · 환자 안전 뷰) ──────────
+
+export type ReportSelfReported = { key: string; label: string; value: string };
+export type ReportQuestionnaire = {
+  scale: string;
+  totalScore: number;
+  severity: string;
+  severityLabel: string;
+};
+export type ReportSummary = {
+  status: string;
+  ready: boolean;
+  generatedAt?: string | null;
+  selfReported?: ReportSelfReported[];
+  questionnaires?: ReportQuestionnaire[];
+  disclaimer?: string;
+};
+
+/**
+ * 환자 본인용 문진 리포트 요약(F5 완료 후). 자기보고(주호소·현병력)와 본인 설문
+ * 결과(점수·심각도)만 반환하며, AI 추정질환·신호강도 등 clinician 전용 정보는
+ * 서버에서 제외한다(비노출 원칙). `ready=false`면 아직 생성 중이다.
+ */
+export async function getReportSummary(
+  token: string,
+  sessionId: string,
+): Promise<ReportSummary> {
+  if (MOCK) return mockApi.getReportSummary();
+  return request<ReportSummary>(`/api/v1/sessions/${sessionId}/report/summary`, {
+    method: "GET",
+    token,
+  });
+}
+
 // ────────── 점수 추이 (F4 종단 추론 · 리포트 차트) ──────────
 
 export type TrendDirection = "improved" | "worsened" | "unchanged" | "unknown";

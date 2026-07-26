@@ -18,6 +18,8 @@ export type RecordStatus = "stored" | "delivered" | "reviewed";
 
 export type IntakeRecord = {
   id: string;
+  /** 서버 세션 UUID — 리포트 상세에서 F4/F5(추이·요약) 조회에 사용. */
+  sessionId?: string;
   /** epoch ms */
   completedAt: number;
   instrument: QuestionnaireType;
@@ -49,19 +51,24 @@ export const STATUS_KO: Record<RecordStatus, string> = {
 
 type RecordsState = {
   records: IntakeRecord[];
-  /** 문진 제출 결과를 이력에 추가 (survey.tsx에서 호출). */
-  addFromResult: (result: QuestionnaireResult, instrument: QuestionnaireType) => void;
+  /** 문진 제출 결과를 이력에 추가 (survey.tsx에서 호출). sessionId로 리포트 상세에서 서버 조회. */
+  addFromResult: (
+    result: QuestionnaireResult,
+    instrument: QuestionnaireType,
+    sessionId?: string,
+  ) => void;
   /** FR-047 mock — [전달하기]. 실모드는 §6-B 배포 전 버튼 자체를 비노출. */
   markDelivered: (id: string) => void;
 };
 
 export const useRecords = create<RecordsState>((set) => ({
   records: [],
-  addFromResult: (result, instrument) =>
+  addFromResult: (result, instrument, sessionId) =>
     set((s) => ({
       records: [
         {
           id: result.id,
+          sessionId,
           // 서버 completedAt 우선 — 클라이언트 시계와의 불일치 방지.
           completedAt: Date.parse(result.completedAt) || Date.now(),
           instrument,

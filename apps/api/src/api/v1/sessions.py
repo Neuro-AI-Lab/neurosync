@@ -556,6 +556,91 @@ async def get_report_status(
     }
 
 
+# 환자에게 보여줄 수 있는 슬롯(자기보고 정보) 화이트리스트. AI 추정질환/신호강도/
+# evidence 등 clinician 전용 필드는 절대 포함하지 않는다(비노출 원칙).
+_PATIENT_SLOT_FIELDS: dict[str, str] = {
+    "chief_complaint": "주호소",
+    "history_of_present_illness": "현병력",
+}
+# 문진 심각도(내부 코드) → 환자용 순화 라벨.
+_SEVERITY_KO = {
+    "none": "해당 없음", "minimal": "최소", "mild": "경도",
+    "moderate": "중등도", "moderately_severe": "중등도-중증", "severe": "중증",
+}
+
+
+@router.get("/{session_id}/report/summary", response_model=dict)
+async def get_report_summary(
+    session_id: UUID,
+    patient: Annotated[User, Depends(require_role("patient"))],
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> dict:
+    """FR-013/018 — 환자 본인용 문진 리포트 요약(F5 완료 후).
+
+    clinician 전용 전체 핸드오프(AI 추정질환·신호강도·evidence 등)는 제외하고,
+    **환자 자기보고 기반 정보**(주호소·현병력)와 **본인 설문 결과**(점수·심각도)만
+    결정론적으로 반환한다. 리포트가 아직 준비되지 않았으면 status만 돌려준다.
+    """
+    srow = await db.execute(select(Session).where(Session.id == session_id))
+    sess = srow.scalar_one_or_none()
+    if sess is None or sess.patient_id != patient.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "SESSION_NOT_FOUND", "message": "세션을 찾을 수 없어요."},
+        )
+    rrow = await db.execute(
+        select(HandoffReport)
+        .where(HandoffReport.session_id == session_id)
+        .order_by(HandoffReport.created_at.desc())
+        .limit(1)
+    )
+    report = rrow.scalar_one_or_none()
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "REPORT_NOT_FOUND", "message": "리포트를 찾을 수 없어요."},
+        )
+    # 아직 생성 중/실패면 본문 없이 상태만 — 모바일이 폴링/에러 처리.
+    if report.status != "ready":
+        return {"success": True, "data": {"status": report.status, "ready": False}}
+
+    slots = sess.clinical_slots or {}
+    self_reported = [
+        {"key": k, "label": label, "value": str(slots[k]).strip()}
+        for k, label in _PATIENT_SLOT_FIELDS.items()
+        if slots.get(k)
+    ]
+    q_rows = await db.execute(
+        select(QuestionnaireResult).where(QuestionnaireResult.session_id == session_id)
+    )
+    questionnaires = [
+        {
+            "scale": _SCALE_NAME.get(q.type, q.type),
+            "totalScore": q.total_score,
+            "severity": q.severity,
+            "severityLabel": _SEVERITY_KO.get(q.severity, q.severity),
+        }
+        for q in q_rows.scalars().all()
+    ]
+    return {
+        "success": True,
+        "data": {
+            "status": report.status,
+            "ready": True,
+            "generatedAt": (
+                report.generated_at.isoformat() if report.generated_at else None
+            ),
+            "selfReported": self_reported,
+            "questionnaires": questionnaires,
+            # 환자용 고지 — 진단이 아니라 의료진 상담 자료임을 명시.
+            "disclaimer": (
+                "이 요약은 자가보고와 설문을 정리한 자료로, 의학적 진단이 아닙니다. "
+                "정확한 평가는 의료진과 상담해 주세요."
+            ),
+        },
+    }
+
+
 # 문진 type(DB) → ai-server 척도명. F4 입력은 "PHQ-9" 형식을 기대한다.
 _SCALE_NAME = {"PHQ9": "PHQ-9", "GAD7": "GAD-7", "AUDITC": "AUDIT-C", "PHQ4": "PHQ-4"}
 

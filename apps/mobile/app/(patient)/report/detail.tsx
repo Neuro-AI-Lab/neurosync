@@ -18,7 +18,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../../../components/Button";
 import { NavBar } from "../../../components/NavBar";
 import { TrendChart } from "../../../components/TrendChart";
-import { APIException, deliverReport, getReportTrend, ReportTrend } from "../../../lib/api";
+import {
+  APIException,
+  deliverReport,
+  getReportSummary,
+  getReportTrend,
+  ReportSummary,
+  ReportTrend,
+} from "../../../lib/api";
 import { MOCK } from "../../../lib/config";
 import { SURVEYS } from "../../../lib/surveys";
 import { colors } from "../../../lib/tokens";
@@ -32,23 +39,36 @@ export default function ReportDetailScreen() {
   const record = useRecords((s) => s.records.find((r) => r.id === recordId));
   const markDelivered = useRecords((s) => s.markDelivered);
   const accessToken = useAuth((s) => s.accessToken);
-  const sessionId = useSession((s) => s.sessionId);
+  const storeSessionId = useSession((s) => s.sessionId);
+  // 세션 리셋 후에도 상세를 열 수 있도록, 레코드에 실린 sessionId를 우선 사용하고
+  // 없으면 현재 세션 스토어 값으로 폴백한다.
+  const effectiveSessionId = record?.sessionId ?? storeSessionId;
 
   // 점수 추이 (수정 7 · F4). 실 API에서 세션 id로 조회한다. mock 모드에서는
   // 가짜 추이를 띄우지 않는다 — 실데이터 연동(§6-A) 후에만 표시한다. 세션 id가
   // 없거나 실패하면 차트를 조용히 숨긴다.
   const [trend, setTrend] = useState<ReportTrend | null>(null);
+  // F5 환자용 리포트 요약(자기보고 + 설문). ready 전이면 null.
+  const [summary, setSummary] = useState<ReportSummary | null>(null);
   useEffect(() => {
     let alive = true;
-    // recordId는 로컬 레코드 id라 세션 UUID가 아니다.
-    if (MOCK || !accessToken || !sessionId) return;
-    getReportTrend(accessToken, sessionId)
+    if (MOCK) {
+      getReportSummary("", "").then((s) => alive && setSummary(s));
+      return () => {
+        alive = false;
+      };
+    }
+    if (!accessToken || !effectiveSessionId) return;
+    getReportTrend(accessToken, effectiveSessionId)
       .then((t) => alive && setTrend(t))
       .catch(() => alive && setTrend(null));
+    getReportSummary(accessToken, effectiveSessionId)
+      .then((s) => alive && setSummary(s.ready ? s : null))
+      .catch(() => alive && setSummary(null));
     return () => {
       alive = false;
     };
-  }, [accessToken, sessionId]);
+  }, [accessToken, effectiveSessionId]);
 
   // FR-047 · §6-B — 수동 전달. MOCK은 로컬 상태만 전이, 실모드는 서버에 전달 후
   // 로컬 반영. 실모드는 세션 id가 있어야 전달 대상이 특정된다.
@@ -59,10 +79,10 @@ export default function ReportDetailScreen() {
       markDelivered(record.id);
       return;
     }
-    if (!accessToken || !sessionId) return;
+    if (!accessToken || !effectiveSessionId) return;
     setDelivering(true);
     try {
-      await deliverReport(accessToken, sessionId);
+      await deliverReport(accessToken, effectiveSessionId);
       markDelivered(record.id);
     } catch (e) {
       Alert.alert(
@@ -125,16 +145,45 @@ export default function ReportDetailScreen() {
           <TrendChart points={trend.plotData} direction={trend.overallDirection} />
         ) : null}
 
-        {/* Handoff 리포트 본문 — AI 서사는 실 연동(§6-A/B) 후 실데이터로 바인딩한다.
-            가짜 임상 텍스트를 기록 위에 렌더하지 않는다. */}
+        {/* Handoff 리포트 본문 (F5). 서버 요약(자기보고 + 설문)만 렌더한다 —
+            AI 추정질환·신호강도 등 clinician 전용 정보는 서버가 제외한다. */}
         <View style={styles.report}>
           <View style={styles.reportHead}>
             <Text style={styles.reportHeadTitle}>Handoff 리포트</Text>
             <Text style={styles.reportHeadDate}>{dateLabel}</Text>
           </View>
-          <View style={[styles.rrow, styles.rrowLast]}>
-            <Text style={styles.rv}>리포트 본문은 정식 연동 후 여기에서 볼 수 있어요.</Text>
-          </View>
+
+          {summary ? (
+            <>
+              {(summary.selfReported ?? []).map((row) => (
+                <View key={row.key} style={styles.rrow}>
+                  <Text style={styles.rk}>{row.label}</Text>
+                  <Text style={styles.rv}>{row.value}</Text>
+                </View>
+              ))}
+              {(summary.questionnaires ?? []).length > 0 ? (
+                <View style={styles.rrow}>
+                  <Text style={styles.rk}>설문 결과</Text>
+                  <View style={{ flex: 1 }}>
+                    {(summary.questionnaires ?? []).map((q) => (
+                      <Text key={q.scale} style={styles.rv}>
+                        {q.scale} · {q.totalScore}점 · {q.severityLabel}
+                      </Text>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
+              {summary.disclaimer ? (
+                <View style={[styles.rrow, styles.rrowLast]}>
+                  <Text style={styles.rv}>{summary.disclaimer}</Text>
+                </View>
+              ) : null}
+            </>
+          ) : (
+            <View style={[styles.rrow, styles.rrowLast]}>
+              <Text style={styles.rv}>리포트 본문을 불러오는 중이에요…</Text>
+            </View>
+          )}
         </View>
 
         <Text style={styles.fine}>
@@ -145,7 +194,7 @@ export default function ReportDetailScreen() {
 
         {/* FR-047 · §6-B — 보관 중인 리포트를 [전달하기]. 실모드는 전달 대상
             세션 id가 있을 때만 노출(과거 이력 실연동은 §6-A 후속). */}
-        {record.status === "stored" && (MOCK || sessionId) ? (
+        {record.status === "stored" && (MOCK || effectiveSessionId) ? (
           <Button
             label="의료진에게 전달하기"
             onPress={() => void onDeliver()}
@@ -213,6 +262,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.line,
   },
   rrowLast: { borderBottomWidth: 0 },
+  rk: { fontSize: 11, fontWeight: "600", color: colors.muted },
   rv: { fontSize: 12.5, color: colors.ink, marginTop: 3, lineHeight: 18 },
   fine: { fontSize: 11.5, color: colors.muted, lineHeight: 16 },
   deliveredNote: { textAlign: "center", fontSize: 13, color: colors.muted, paddingVertical: 12 },

@@ -40,7 +40,8 @@ export default function SurveyScreen() {
     try {
       const result = await submitQuestionnaire(accessToken, sessionId, def.id, answers);
       // 기록·리포트 화면(FR-045/046)용 로컬 이력 — 세션 리셋과 무관하게 유지.
-      addRecord(result, def.id);
+      // sessionId를 실어 리포트 상세에서 F4/F5(추이·요약)를 서버 조회한다.
+      addRecord(result, def.id, sessionId);
       router.push("/(patient)/intake/submit");
     } catch (e) {
       const code = e instanceof APIException ? e.body.code : "NETWORK";
