@@ -36,6 +36,47 @@
 3. AI 서버: `.env` 배치(operator), `docker compose up -d`; DB는 compose 내부 `postgres:5432` 또는 이후 분리 시 외부 28881 — env-DSN만으로 전환.
 4. 검증: `/health` 200, DB preflight, prompt SHA pin, F1 1턴 + F5 report 1건 smoke.
 
+### 실측 프로덕션 토폴로지 (2026-07-26, DGX 라이브 확인)
+
+**NAT 구조 (외부 IP `223.194.33.26` → DGX 호스트):**
+
+| 외부 포트 | 내부 목적지 | 용도 |
+|---|---|---|
+| `28881` | DGX 호스트 `:35001` (→ 컨테이너 `ns-postgres` 내부 `5432`) | RAG/애플리케이션 DB |
+| `24856` | DGX 호스트 `:22` (SSH) | **서비스 포트 아님** — 이전 버전 문서·compose가 `api` 외부 포트로 잘못 가정했던 값(ADR-046 결정 5 working assumption). 이 NAT가 이미 SSH에 배정되어 있어 `api`는 대신 `24857`로 정정(이번 PR) |
+| `24855` | DGX 호스트 `:24855` (1:1, 변환 없음) | `ai-server` — 컨테이너 `ns-ai-server-dgx`, 내부 `8001` |
+| `24857` | DGX 호스트 `:24857` (1:1, 변환 없음) | `api` — 컨테이너 `ns-api-dgx`, 내부 `8000` (정정 전 24856은 위 SSH NAT와 충돌) |
+
+**컨테이너 (실측, `docker ps`):**
+
+| 컨테이너명 | 이미지 | 포트 (호스트:컨테이너) | 비고 |
+|---|---|---|---|
+| `ns-ai-server-dgx` | `neuro-sync-ai-dgx-ai-server` | `24855:8001` | `/health` 200 확인(2026-07-26) |
+| `ns-api-dgx` | `neuro-sync-ai-dgx-api` | `24857:8000` | `/health` 200 확인(2026-07-26) |
+| `ns-postgres` | `pgvector/pgvector:pg16` | `35001:5432` (외부), `127.0.0.1:5432` (로컬) | 네트워크 `neuro-sync-dev_default`, DB role `neurosync`(superuser) — 실제 비밀번호는 `apps/ai-server/.env`/`apps/api/.env`에만 존재, 본 문서 기재 안 함 |
+| `ns-redis` | `redis:7-alpine` | `127.0.0.1:6379`(로컬만) | ai-server 종속 캐시 |
+
+구 `ns-ai-server`/`ns-api`(하이픈 없는 구 이름) 컨테이너는 **2026-07-26 제거 완료** — 현재
+`docker ps -a`에 존재하지 않음, `ns-*-dgx` 네이밍만 라이브.
+
+**`.env` 배치 위치:** DGX 리포 clone(`/home/neuroai/AI_Champion/neurosync`, 실측 경로) 기준
+`apps/ai-server/.env`, `apps/api/.env` — 둘 다 리포 최상위가 아니라 각 앱 디렉터리 안,
+operator가 물리적으로 배치(git 추적 안 됨). `ENCRYPTION_KEY`는 두 파일에 **동일 값**을 재사용해야
+한다 — 기존 메시지 복호화 연속성이 이 재사용에 의존하므로(한쪽만 교체하면 상대측이 이미
+암호화한 데이터를 더 이상 복호화하지 못함), 최초 배치든 로테이션이든 절차는 §6b(ENCRYPTION_KEY
+공유 SOP)를 그대로 따른다 — 본 절에서 값·절차를 반복하지 않는다.
+
+**마이그레이션 실행 경로:** `alembic upgrade head`(§6a 1.c)는 DGX 컨테이너 안에서 직접 실행할
+필요 없이, 운영 워크스테이션에서 SSH 포트포워딩으로 원격 DB(외부 `28881`)에 터널을 열어 실행할
+수 있다(예: `ssh -L 15432:localhost:28881 <DGX host> -p <SSH NAT 포트>` 이후
+`DATABASE_URL=postgresql+asyncpg://...@localhost:15432/... uv run alembic upgrade head`) — DGX에
+직접 로그인해 리포를 체크아웃하지 않아도 되는 대안 경로일 뿐, §6a의 실행 원칙(운영자 명시
+승인, compose가 자동 실행하지 않음)은 변경되지 않는다.
+
+**백업 파일:** 마이그레이션 직전 스냅샷은 DGX 홈 디렉터리에 `pg_dump` 형식으로
+남는다(예: `~/backup_pre_<revision>_<timestamp>.dump`, 리포 밖 — git 추적 대상 아님). 정확한
+파일명은 마이그레이션 시점마다 달라지므로 실행자가 직접 `ls ~ | grep backup_pre` 로 확인한다.
+
 ## 4. 게이트
 
 qa(CI-mirror + route contract 테스트 + 컨테이너 build/boot smoke) → clinical-validator가 `/ai/survey/plan` 시맨틱을 quick pass(safety-net/SI-supplement 결정이 검증된 동작과 일치해야 함) → critic 문구/회귀 검토. 로컬 커밋만 수행하며, 사용자의 명시적 word가 있을 때만 publish한다.
@@ -207,9 +248,10 @@ bundle을 요청 body로 전달하면(stateless, LLM/디스크 I/O 없이 `src.p
 
 **작업 가정(ADR-046 결정 5, 명시적):** apps/api를 기존 DB(외부 상시 :28881)·ai-server와
 동일 DGX + 동일 compose 파일에 co-locate한다 — 사용자로부터 별도 host 지시가 없어 기본값으로
-채택. 외부 포트 `24856`은 미확정 working assumption(운영자 포트 할당 전까지) — ai-server의
-확정 포트 `24855`와 달리 공식 할당 근거 없음, 반박 시 `docker-compose.dgx.yml`의 `api.ports`
-한 줄만 교체하면 된다(코드 무영향).
+채택. 외부 포트는 **`24857`로 정정 확정**(2026-07-26, 위 §3 실측 토폴로지 — 원래 working
+assumption이던 `24856`은 DGX 호스트 SSH(22)에 이미 NAT 배정되어 있어 사용 불가로 판명);
+ai-server의 확정 포트 `24855`와 함께 두 값 모두 1:1 NAT(변환 없음). 이후 운영자가 다른 포트를
+재할당하면 `docker-compose.dgx.yml`의 `api.ports` 한 줄만 교체하면 된다(코드 무영향).
 
 1. **선행 조건 (순서 중요):**
    a. `apps/api/.env`를 DGX에 배치 — `DATABASE_URL`이 기존 상시 postgres
@@ -243,7 +285,7 @@ bundle을 요청 body로 전달하면(stateless, LLM/디스크 I/O 없이 `src.p
 2. `docker compose -f infra/deploy/docker-compose.dgx.yml up -d --build` — ai-server와 api
    둘 다 빌드/기동(기존 ai-server 절차와 동일 명령, api 서비스가 추가됐을 뿐 명령 자체는
    불변).
-3. 검증: `curl -s localhost:24856/health` 200 확인 → DB 연결(선행 조건 a/c 성공 시 정상) →
+3. 검증: `curl -s localhost:24857/health` 200 확인(2026-07-26 라이브 재확인 완료) → DB 연결(선행 조건 a/c 성공 시 정상) →
    ai-server 연결(`AI_SERVER_URL=http://ai-server:8001`, 내부 compose 네트워크) 스모크(예:
    `/api/v1/sessions` 1건 생성 후 F1 1턴).
 4. 롤백: api 서비스만 `docker compose stop api` — ai-server는 무영향(독립 서비스 정의,
