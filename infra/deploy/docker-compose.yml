@@ -44,9 +44,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    # Dockerfile now installs apps/api at /app/apps/api (monorepo-relative
+    # depth fix, DGX build failure — see apps/api/Dockerfile comment) — bind
+    # mounts follow the same nested path so --reload still picks up host edits.
     volumes:
-      - ../../apps/api/src:/app/src
-      - ../../apps/api/tests:/app/tests
+      - ../../apps/api/src:/app/apps/api/src
+      - ../../apps/api/tests:/app/apps/api/tests
 
   ai-server:
     build:
@@ -70,9 +73,13 @@ services:
       PROMPTS_BASE_DIR:
     ports:
       - "127.0.0.1:8001:8001"
+    # Dockerfile now installs apps/ai-server at /app/apps/ai-server
+    # (monorepo-relative depth fix, DGX build failure — see
+    # apps/ai-server/Dockerfile comment) — bind mounts follow the same nested
+    # path so --reload still picks up host edits.
     volumes:
-      - ../../apps/ai-server/src:/app/src
-      - ../../apps/ai-server/tests:/app/tests
+      - ../../apps/ai-server/src:/app/apps/ai-server/src
+      - ../../apps/ai-server/tests:/app/apps/ai-server/tests
 
 volumes:
   postgres_data:
