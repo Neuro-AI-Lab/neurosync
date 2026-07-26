@@ -2,7 +2,8 @@
  * v3 FR-040 — 문항 주입형 단일 문진 화면.
  *
  * `/intake/chat`의 도메인 추정(FR-039)이 결정한 도구를 `instrument` 파라미터로
- * 받아 렌더한다. 고정 순차(phq9 → gad7)를 대체하며 진행 표기는 항상 '문진 1/1'.
+ * 받아 렌더한다. 고정 순차(phq9 → gad7)를 대체하며 진행 표기는 매핑된 설문지의
+ * 실제 문항 인덱스 기준(예: "문항 3/9") — QuestionnaireForm이 내부에서 계산.
  * 제출 후 바로 최종 제출 확인(/intake/submit)으로 간다 — 사전 문진 단계의
  * 문서 업로드는 폐지(v3, OCR은 FR-048에서 대화 중 첨부로 이동).
  */
@@ -52,7 +53,6 @@ export default function SurveyScreen() {
   return (
     <QuestionnaireForm
       def={def}
-      progressLabel="문진 1/1"
       submitLabel="제출하기"
       submitting={submitting}
       onSubmit={onSubmit}

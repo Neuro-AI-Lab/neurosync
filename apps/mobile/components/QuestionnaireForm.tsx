@@ -5,6 +5,10 @@
  * 동일 컴포넌트로 렌더한다. 헤더에는 도구명만 표시하고(질환명 금지, v3 원칙 1),
  * "AI 추정은 참고용" 고지를 서브텍스트로 둔다.
  *
+ * 진행 표시(문항 번호 + 진행 바)는 매핑된 설문지 안의 실제 문항 인덱스
+ * (index+1 / items.length, 예: "문항 3/9") 기준 — 고정 문진 단계 수(과거
+ * "문진 1/1")는 매핑형 설문 전달 구조와 불일치해 폐지.
+ *
  * FR-043: riskItemIndex 문항에 양성(>0) 응답 시 인라인 위험 확인 카드를 띄운다.
  * 응답 값은 그대로 유지(점수 계산 보존), 설문은 중단되지 않는다.
  * [도움 받기] → /emergency · [괜찮아요] → 다음 문항.
@@ -22,8 +26,6 @@ import { RiskConfirmCard } from "./RiskConfirm";
 
 type Props = {
   def: SurveyDef;
-  /** v3 FR-040 — 항상 '문진 1/1'. */
-  progressLabel: string;
   submitLabel: string;
   submitting: boolean;
   onSubmit: (answers: number[]) => void;
@@ -31,7 +33,6 @@ type Props = {
 
 export function QuestionnaireForm({
   def,
-  progressLabel,
   submitLabel,
   submitting,
   onSubmit,
@@ -91,11 +92,9 @@ export function QuestionnaireForm({
         <Text style={styles.disclaimer}>AI 추정은 참고용이에요. 진단은 의료진이 합니다.</Text>
 
         <View style={styles.qtop}>
-          <Text style={styles.eyebrow}>
-            {progressLabel} · {def.timeframe}
-          </Text>
+          <Text style={styles.eyebrow}>{def.timeframe}</Text>
           <Text style={styles.score}>
-            {index + 1} / {items.length}
+            문항 {index + 1} / {items.length}
           </Text>
         </View>
         <View style={styles.qtrack}>
