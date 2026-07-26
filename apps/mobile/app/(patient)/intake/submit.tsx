@@ -1,12 +1,13 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Button } from "../../../components/Button";
 import { NavBar } from "../../../components/NavBar";
-import { APIException, submitSession } from "../../../lib/api";
+import { APIException, QuestionnaireResult, QuestionnaireType, submitSession } from "../../../lib/api";
 import { colors } from "../../../lib/tokens";
 import { useAuth } from "../../../state/auth";
+import { useRecords } from "../../../state/records";
 import { useSession } from "../../../state/session";
 
 // PRD §C 제출 전 안내 문구 (FR-010).
@@ -19,13 +20,35 @@ type Phase = "review" | "submitting";
 export default function SubmitScreen() {
   const accessToken = useAuth((s) => s.accessToken);
   const sessionId = useSession((s) => s.sessionId);
+  const addRecord = useRecords((s) => s.addFromResult);
+  // survey에서 넘어온 문진 결과 — 기록에는 '제출하기'를 눌러 확정할 때만 추가한다
+  // (보류하기는 기록을 남기지 않는다).
+  const params = useLocalSearchParams<{ result?: string; instrument?: string }>();
   const [phase, setPhase] = useState<Phase>("review");
+
+  // 보류 — 제출하지 않고 홈으로. 세션은 진행 중으로 남아 나중에 이어갈 수 있다.
+  const onHold = () => {
+    if (router.canDismiss()) router.dismissAll();
+    else router.replace("/(patient)/(tabs)/home");
+  };
 
   const onSubmit = async () => {
     if (!accessToken || !sessionId) return;
     setPhase("submitting");
     try {
       const accepted = await submitSession(accessToken, sessionId);
+      // 제출 확정 시에만 기록에 남긴다 (보류하기는 미기록).
+      if (params.result && params.instrument) {
+        try {
+          const result = JSON.parse(params.result) as QuestionnaireResult;
+          // sessionId를 기록에 실어 리포트 상세에서 F4/F5(추이·요약)를 서버 조회
+          // 할 수 있게 한다(세션 리셋 후에도). 여기 sessionId는 방금 submitSession에
+          // 사용한 값과 동일 — 제출된 바로 그 세션이다.
+          addRecord(result, params.instrument as QuestionnaireType, sessionId);
+        } catch {
+          // 파싱 실패는 기록 누락일 뿐, 제출 흐름은 계속한다.
+        }
+      }
       // FR-018 — generation runs out-of-band; hand off to the status screen
       // which polls. Replace so back doesn't return to the submit confirm.
       router.replace({
@@ -63,7 +86,7 @@ export default function SubmitScreen() {
           loading={phase === "submitting"}
           disabled={phase === "submitting"}
         />
-        <Button label="더 작성하기" variant="ghost" onPress={() => router.back()} />
+        <Button label="보류하기" variant="ghost" onPress={onHold} />
       </ScrollView>
     </View>
   );
