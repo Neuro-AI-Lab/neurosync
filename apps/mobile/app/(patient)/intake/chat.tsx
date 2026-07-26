@@ -45,10 +45,16 @@ const SURVEY_STAGE2_MESSAGE =
 
 // Simulated-gauge time constant (ms) — purely cosmetic pacing for the
 // real-time-looking gauge while `inferTopSurvey` (background prefetch, capped
-// at INFER_TIMEOUT_MS = 5s, never throws) is in flight. The gauge asymptotes
+// at INFER_TIMEOUT_MS = 75s, never throws) is in flight. The gauge asymptotes
 // toward 92% so it never looks "done" before the real answer lands, then
 // snaps to 100% the instant the prefetch resolves (success OR fallback).
-const SURVEY_GAUGE_TIME_CONSTANT_MS = 2500;
+// BUG-091 (2026-07-26): the real `/ai/domain/infer` latency observed live is
+// 20.2s-30.6s (server budget now 60s) — a 2500ms time constant would sit
+// pinned at the 92% cap for the bulk of that wait, looking frozen. 9000ms
+// keeps the curve visibly climbing across the observed 20-30s range
+// (~82%-89% at t=20s/30s) while still reaching the cap by the time the
+// 60s server budget could plausibly be hit.
+const SURVEY_GAUGE_TIME_CONSTANT_MS = 9000;
 const SURVEY_GAUGE_CAP = 0.92;
 const SURVEY_GAUGE_TICK_MS = 120;
 
@@ -243,8 +249,8 @@ export default function ChatScreen() {
   // 사용자 지시(2026-07-25, 마무리 멘트 재설계 2단계): domain/infer 성공 후
   // (= "증상 확인"이 완료된 시점) 설문 전환 전 마무리 멘트를 채팅 말풍선으로
   // 보여준 뒤 설문으로 이동한다. inferTopSurvey는 절대 throw하지 않으므로
-  // (5초 상한 초과/오류는 FALLBACK_SURVEY로 흡수) 이 멘트는 실패 여부와
-  // 무관하게 항상 표시된다.
+  // (BUG-091: 75초 상한 초과/오류는 FALLBACK_SURVEY로 흡수) 이 멘트는 실패
+  // 여부와 무관하게 항상 표시된다.
   const goSurvey = async () => {
     if (analyzing) return;
     // 백그라운드 prefetch가 이미 끝난 경우(종료 멘트 이후 CTA 경로) 재호출

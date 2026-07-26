@@ -138,10 +138,13 @@ class AIClient:
         return await self._post("/ai/survey/plan", SurveyPlanResponse, payload)
 
     async def domain_infer(self, payload: DomainInferRequest) -> DomainInferResponse:
-        """POST /ai/domain/infer. LLM 호출이라 chat과 같은 예산을 쓴다.
+        """POST /ai/domain/infer. LLM 호출이라 chat과 비슷한 예산(60s)을 쓴다.
 
-        NFR(v3-3): 모바일 '분석 중' 대기 상한이 5초이므로 이 예산을 넘기면
-        호출자가 폴백 문진으로 진행한다.
+        BUG-091 (2026-07-26): 구 4.5s 예산은 실측 20.2s-30.6s latency를
+        전혀 커버하지 못해 2/2 실세션이 예산 초과로 폴백했다(모바일 구
+        NFR v3-3 "5초 상한"도 같은 계열의 잘못된 전제). 이 예산을 넘기거나
+        오류가 나면 호출자(`domain_routing._resolve_routing`)가 폴백
+        문진(PHQ4)으로 진행한다 — 라우팅은 예외를 던지지 않는다.
         """
         return await self._post(
             "/ai/domain/infer",

@@ -17,6 +17,7 @@ import logging
 import uuid
 from dataclasses import dataclass
 
+import httpx
 from contracts.domain import DomainInferRequest, UtteranceTurn
 
 from src.services.ai_client import AIClient
@@ -126,7 +127,15 @@ async def _resolve_routing(
         )
         result = await ai_client.domain_infer(payload)
     except Exception as exc:  # noqa: BLE001 — 라우팅은 어떤 실패에서도 폴백한다
-        logger.warning("domain routing fell back (session=%s): %s", session_id, exc)
+        # BUG-091 권고 #3: "예산 초과(timeout)"와 그 외 전송/스키마 오류를 로그에서
+        # 구분한다 — AIClientError는 `raise ... from exc`로 원인을 보존하므로
+        # `__cause__`가 httpx.TimeoutException이면 timeout, 아니면 error다.
+        # (여기서는 여전히 둘 다 동일하게 FALLBACK_INSTRUMENT로 떨어진다 — 이건
+        # 관측성만 개선하는 것이지 폴백 동작 자체는 바뀌지 않는다.)
+        reason = "timeout" if isinstance(exc.__cause__, httpx.TimeoutException) else "error"
+        logger.warning(
+            "domain routing fell back (session=%s, reason=%s): %s", session_id, reason, exc
+        )
         return InstrumentRouting(instrument=FALLBACK_INSTRUMENT)
 
     candidates = [c for c in result.domain_candidates if c.confidence >= MIN_CONFIDENCE]
