@@ -90,6 +90,10 @@ async def generate(
     )
 
     last_result: HandoffOutput | None = None
+    # 직전 재생성의 이슈 수 — 재생성했는데도 이슈가 줄지 않으면(데이터 부족형 이슈는
+    # 재생성으로 채울 수 없음) 더 돌려도 소용없으므로 조기 종료해 지연을 줄인다.
+    # 최종 반환물은 어차피 마지막 결과라 품질은 동일하고, 헛도는 LLM 호출만 없앤다.
+    prev_issue_count: int | None = None
 
     for attempt in range(1 + _MAX_REGENERATE_ATTEMPTS):
         try:
@@ -163,12 +167,24 @@ async def generate(
             )
 
         # regenerate
+        issue_count = len(verification.issues)
         logger.info(
             "Handoff needs regeneration (attempt %d/%d): %d issues",
             attempt + 1,
             1 + _MAX_REGENERATE_ATTEMPTS,
-            len(verification.issues),
+            issue_count,
         )
+        # 조기 종료: 재생성했는데 이슈가 줄지 않으면(수렴 실패 — 대개 슬롯 부족으로
+        # 인한 섹션 완전성 이슈라 재생성으로 해결 불가) 남은 시도를 건너뛴다.
+        if prev_issue_count is not None and issue_count >= prev_issue_count:
+            logger.info(
+                "Handoff regeneration not converging (%d→%d issues) — early exit, "
+                "skipping remaining attempts",
+                prev_issue_count,
+                issue_count,
+            )
+            break
+        prev_issue_count = issue_count
 
     # Exhausted regeneration attempts — return the last result with a warning
     if last_result:
