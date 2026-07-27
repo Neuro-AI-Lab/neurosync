@@ -2,8 +2,8 @@
  * v3 FR-048 — OCR 결과 확인 화면.
  *
  * 대화에서 첨부한 처방전/진단서를 업로드→인식하고, 추출 결과를 카드로 보여준다.
- * 저신뢰 항목("확인 필요")은 빨간 배지로 표시한다. [확인 완료]를 눌러야 확정되며,
- * 그 시점에만 리포트에 반영된다(현재는 확인 후 대화로 복귀 — 리포트 반영은 제출 시).
+ * 저신뢰 항목("확인 필요")은 빨간 배지로 표시한다. [확인 완료]를 누르면 확정 요약을
+ * 대화로 흘려보내(FR-048) F1이 인지·응답하고 conversation_history(→리포트)에 남는다.
  */
 
 import { router, useLocalSearchParams } from "expo-router";
@@ -27,6 +27,28 @@ const DOC_LABEL: Record<string, string> = {
   unknown: "문서",
 };
 
+/**
+ * 확정된 OCR 요약을 대화용 한국어 한 문장으로 조립한다(FR-048). 사용자 말풍선으로
+ * 전송돼 F1이 복용약/진단을 인지하고 후속 질문에 활용한다. 추출값이 전혀 없으면
+ * null → 주입을 건너뛴다(빈 첨부 안내 방지).
+ */
+function buildInjection(r: OCRResult): string | null {
+  const s = r.extractedSummary;
+  const docLabel = DOC_LABEL[r.documentType] ?? "문서";
+  const parts: string[] = [];
+  if (s.diagnoses.length > 0) parts.push(`진단은 ${s.diagnoses.join(", ")}`);
+  if (s.medications.length > 0) {
+    const meds = s.medications
+      .map((m) => [m.name, m.dose, m.frequency].filter(Boolean).join(" "))
+      .filter(Boolean)
+      .join(", ");
+    if (meds) parts.push(`처방약은 ${meds}`);
+  }
+  if (s.department) parts.push(`진료과는 ${s.department}`);
+  if (parts.length === 0) return null;
+  return `${docLabel}을 첨부했어요. ${parts.join(", ")}예요.`;
+}
+
 type Phase = "loading" | "ready" | "error";
 
 export default function OcrConfirmScreen() {
@@ -34,6 +56,7 @@ export default function OcrConfirmScreen() {
   const { uri, name, mime } = useLocalSearchParams<{ uri: string; name: string; mime: string }>();
   const accessToken = useAuth((s) => s.accessToken);
   const sessionId = useSession((s) => s.sessionId);
+  const setPendingInjection = useSession((s) => s.setPendingInjection);
 
   const [phase, setPhase] = useState<Phase>("loading");
   const [result, setResult] = useState<OCRResult | null>(null);
@@ -155,12 +178,19 @@ export default function OcrConfirmScreen() {
             ) : null}
 
             <Text style={styles.fine}>
-              확인한 내용만 사전 문진 리포트에 참고 자료로 반영돼요.
+              확인한 내용은 대화에 반영되고 사전 문진 리포트에 참고 자료로 담겨요.
             </Text>
           </ScrollView>
 
           <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-            <Button label="확인 완료" onPress={() => router.back()} />
+            <Button
+              label="확인 완료"
+              onPress={() => {
+                const summary = buildInjection(result);
+                if (summary) setPendingInjection(summary);
+                router.back();
+              }}
+            />
           </View>
         </>
       ) : null}
