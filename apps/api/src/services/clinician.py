@@ -1,7 +1,12 @@
 """Clinician read service — decrypts PII and assembles dashboard payloads.
 
-Phase 1a Demo simplification: every authenticated clinician sees every patient.
-PRD §0.1 organization-scoped RLS lands in Phase 2.
+Org-scoped per PRD §0.1 / ISS-022 (PR #22): a clinician / org_admin may read
+only patients whose `PatientProfile.target_hospital_id` matches the actor's
+`organization_id`; `super_admin` (service_role) sees all. See
+`_can_access_patient` / `_patient_list_filter` for the exact rule. (BUG-092,
+error.md: this docstring previously claimed "every authenticated clinician
+sees every patient" — stale since PR #22 landed the org-scope filter; fixed
+here to match actual behavior.)
 """
 
 from __future__ import annotations

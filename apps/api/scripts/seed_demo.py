@@ -277,7 +277,7 @@ async def _make_clinician(db, settings: Settings, org_id: uuid.UUID) -> None:
     )
 
 
-async def _make_persona(db, settings: Settings, p: dict) -> None:
+async def _make_persona(db, settings: Settings, p: dict, org_id: uuid.UUID) -> None:
     user = User(
         email=p["email"],
         password_hash=hash_password(DEMO_PASSWORD, settings),
@@ -304,6 +304,12 @@ async def _make_persona(db, settings: Settings, p: dict) -> None:
                 aad=_profile_aad(user.id, "emergency_contact"),
                 settings=settings,
             ),
+            # BUG-092 fix: org-scope filter (services/clinician.py, ISS-022/PR
+            # #22) requires target_hospital_id == actor.organization_id. This
+            # seed's demo patients belong to the demo clinician's org, so
+            # they must be assigned to it or the dashboard is structurally
+            # empty (NULL never matches a real UUID).
+            target_hospital_id=org_id,
         )
     )
     consent = ConsentSnapshot(
@@ -398,7 +404,7 @@ async def _main() -> None:
 
         await _make_clinician(db, settings, org.id)
         for persona in PERSONAS:
-            await _make_persona(db, settings, persona)
+            await _make_persona(db, settings, persona, org.id)
 
         await db.commit()
         print(
