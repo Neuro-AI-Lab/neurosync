@@ -220,8 +220,10 @@ function LiveRecordsScreen({ insets }: { insets: { top: number } }) {
 function LiveRow({ item }: { item: SessionListItem & { completedAt: number } }) {
   const d = new Date(item.completedAt);
   const percent = Math.round(item.progressRatio * 100);
-  return (
-    <View style={styles.entry}>
+  // 리포트가 있는 세션만 상세 조회로 연결한다(서버 sessionId로 report/detail 열람).
+  const canOpen = item.hasReport;
+  const body = (
+    <>
       <View style={styles.day}>
         <Text style={styles.dayNum}>{String(d.getDate()).padStart(2, "0")}</Text>
         <Text style={styles.dayDow}>{DOW[d.getDay()]}</Text>
@@ -237,7 +239,21 @@ function LiveRow({ item }: { item: SessionListItem & { completedAt: number } }) 
           {item.hasReport ? "리포트 있음" : "리포트 없음"}
         </Text>
       </View>
-    </View>
+    </>
+  );
+  if (!canOpen) return <View style={styles.entry}>{body}</View>;
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.entry, pressed && { opacity: 0.6 }]}
+      onPress={() =>
+        router.push({
+          pathname: "/(patient)/report/detail",
+          params: { sessionId: item.sessionId },
+        })
+      }
+    >
+      {body}
+    </Pressable>
   );
 }
 

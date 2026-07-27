@@ -21,6 +21,11 @@ import uuid
 from datetime import UTC, datetime
 
 from contracts.handoff import HandoffRequest, ScaleScore, SlotData
+from contracts.longitudinal import (
+    DomainInferenceInput,
+    HandoffReportRequest,
+    LongitudinalSessionEntry,
+)
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -189,13 +194,142 @@ async def _build_request(
     )
 
 
+# 문진 type(DB) → (ai-server 척도명, 만점). F4/F5 입력은 "PHQ-9" 형식을 기대한다.
+_SCALE_META = {
+    "PHQ9": ("PHQ-9", 27),
+    "GAD7": ("GAD-7", 21),
+    "AUDITC": ("AUDIT-C", 12),
+    "PHQ4": ("PHQ-4", 12),
+}
+# 세션 대표 척도 우선순위 (F5는 세션당 단일 척도를 모델링).
+_SCALE_PRIORITY = ("PHQ9", "GAD7", "AUDITC", "PHQ4")
+# risk level → CTRS (1=응급 … 5=안정).
+_RISK_TO_CTRS = {"critical": 1, "high": 2, "medium": 3, "low": 4, "none": 5}
+
+
+async def _build_longitudinal_sessions(
+    db: AsyncSession, patient_id: uuid.UUID
+) -> list[LongitudinalSessionEntry]:
+    """이 환자의 세션들을 F4/F5 입력(LongitudinalSessionEntry)으로 변환한다.
+
+    데이터가 있는 세션(clinical_slots 또는 설문 결과 존재)만 시간순으로 담고,
+    각 세션의 슬롯·대표 설문(F3)·위기단계(CTRS)를 채운다. F2 도메인추론은 API DB에
+    저장되지 않으므로 비우고(A6/A7은 '정보 없음' 처리), F5가 우아하게 degrade한다."""
+    srows = await db.execute(
+        select(Session)
+        .where(Session.patient_id == patient_id)
+        .order_by(Session.created_at)
+    )
+    sessions = list(srows.scalars())
+
+    entries: list[LongitudinalSessionEntry] = []
+    idx = 0
+    for sess in sessions:
+        slots = {k: str(v) for k, v in (sess.clinical_slots or {}).items() if v}
+
+        # 대표 설문 1개 → F3 dict
+        qrows = await db.execute(
+            select(QuestionnaireResult).where(QuestionnaireResult.session_id == sess.id)
+        )
+        qmap = {q.type: q for q in qrows.scalars()}
+        f3: dict | None = None
+        for t in _SCALE_PRIORITY:
+            if t in qmap:
+                q = qmap[t]
+                name, max_score = _SCALE_META.get(t, (t, None))
+                f3 = {
+                    "outcome": "administered",
+                    "scale_name": name,
+                    "total_score": q.total_score,
+                    "max_score": max_score,
+                    "severity": q.severity,
+                    "responses": list(q.answers or ()),
+                }
+                break
+
+        # 데이터가 전혀 없는 세션은 종단 시리즈에서 제외한다.
+        if not slots and f3 is None:
+            continue
+
+        # 위기단계: 세션의 가장 심각한 위험신호 → CTRS.
+        rrows = await db.execute(
+            select(RiskEvent.level).where(RiskEvent.session_id == sess.id)
+        )
+        ctrs_vals = [
+            _RISK_TO_CTRS.get(str(lvl), 5) for lvl in rrows.scalars() if lvl
+        ]
+        session_ctrs = min(ctrs_vals) if ctrs_vals else None
+
+        # BUG-055 fail-loud: 위기 플래그를 세우면 risk_assessment를 반드시 실어야
+        # 한다. session_state.slot_data.risk_assessment에서 가져오고, 없으면 근거가
+        # 없는 위기 주장을 피하기 위해 crisis 플래그를 세우지 않는다(CTRS는 유지).
+        state = sess.session_state or {}
+        slot_data = state.get("slot_data") if isinstance(state, dict) else None
+        risk_assessment = None
+        if isinstance(slot_data, dict):
+            ra = slot_data.get("risk_assessment")
+            risk_assessment = str(ra) if ra else None
+        crisis = bool(ctrs_vals and min(ctrs_vals) <= 2 and risk_assessment)
+
+        entries.append(
+            LongitudinalSessionEntry(
+                session_index=idx,
+                simulated_date=sess.created_at.date().isoformat(),
+                final_slots=slots,
+                session_ctrs=session_ctrs,
+                crisis_triggered=crisis,
+                risk_assessment=risk_assessment,
+                f3=f3,
+                session_id=str(sess.id),
+            )
+        )
+        idx += 1
+
+    return entries
+
+
 async def generate_report_task(
     session_id: uuid.UUID, *, ai_client: AIClient | None = None
 ) -> None:
-    """Background entrypoint. Opens its own session; never raises to the caller."""
+    """Background entrypoint. Opens its own session; never raises to the caller.
+
+    다세션(≥2)이면 사용자가 고도화한 결정론적 F4+F5 통합 리포트(12섹션 markdown +
+    HL7 FHIR + editorial PDF + F4 차트)를 `/ai/handoff/report`로 생성한다. 초진
+    단일세션이면 종단 비교가 불가하므로 기존 단일세션 서사(`/ai/handoff/generate`)로
+    폴백한다."""
     client = ai_client or get_ai_client()
     async with SessionLocal() as db:
         try:
+            srow = await db.execute(select(Session).where(Session.id == session_id))
+            sess = srow.scalar_one_or_none()
+            patient_id = sess.patient_id if sess else None
+
+            entries = (
+                await _build_longitudinal_sessions(db, patient_id)
+                if patient_id
+                else []
+            )
+
+            if len(entries) >= 2:
+                # 사용자 고도화 F4+F5 풀 리포트 (결정론적, PDF/FHIR/차트 포함).
+                report_req = HandoffReportRequest(
+                    vp_id=str(patient_id),
+                    sessions=entries,
+                    domain_inference=DomainInferenceInput(),
+                    include_charts=True,
+                    include_pdf=True,
+                )
+                full = await client.handoff_report(report_req)
+                await _mark_ready(db, session_id, content=full.model_dump(mode="json"))
+                logger.info(
+                    "handoff.report.full ready (sessions=%d, pdf=%s, charts=%d)",
+                    len(entries),
+                    bool(full.pdf_base64),
+                    len(full.chart_pngs_base64 or []),
+                )
+                return
+
+            # 초진 단일세션 — 종단 리포트 불가, 단일세션 서사로 폴백.
             request = await _build_request(db, session_id)
             response = await client.handoff_generate(request)
         except AIClientError as exc:

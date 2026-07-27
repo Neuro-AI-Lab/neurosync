@@ -10,7 +10,9 @@
  * 전이(보관→전달됨)로 플로우를 시연한다.
  */
 
+import * as FileSystem from "expo-file-system/legacy";
 import { router, useLocalSearchParams } from "expo-router";
+import * as Sharing from "expo-sharing";
 import { useEffect, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,7 +20,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../../../components/Button";
 import { NavBar } from "../../../components/NavBar";
 import { TrendChart } from "../../../components/TrendChart";
-import { APIException, deliverReport, getReportTrend, ReportTrend } from "../../../lib/api";
+import {
+  APIException,
+  deliverReport,
+  getReportPdf,
+  getReportSummary,
+  getReportTrend,
+  ReportSummary,
+  ReportTrend,
+} from "../../../lib/api";
 import { MOCK } from "../../../lib/config";
 import { SURVEYS } from "../../../lib/surveys";
 import { colors } from "../../../lib/tokens";
@@ -26,29 +36,55 @@ import { useAuth } from "../../../state/auth";
 import { SEVERITY_KO, STATUS_KO, useRecords } from "../../../state/records";
 import { useSession } from "../../../state/session";
 
+// 척도명 → 만점 (서버 요약 기반 표시용, 로컬 레코드 없을 때).
+const _SCALE_MAX: Record<string, number> = {
+  "PHQ-9": 27,
+  "GAD-7": 21,
+  "AUDIT-C": 12,
+  "PHQ-4": 12,
+};
+
 export default function ReportDetailScreen() {
   const insets = useSafeAreaInsets();
-  const { recordId } = useLocalSearchParams<{ recordId?: string }>();
+  // recordId: 인테이크/mock 흐름의 로컬 레코드. sessionId: 기록 탭(실모드)에서
+  // 과거 세션을 서버 조회로 여는 경로 — 로컬 레코드가 없어도 상세를 볼 수 있다.
+  const { recordId, sessionId: sessionIdParam } = useLocalSearchParams<{
+    recordId?: string;
+    sessionId?: string;
+  }>();
   const record = useRecords((s) => s.records.find((r) => r.id === recordId));
   const markDelivered = useRecords((s) => s.markDelivered);
   const accessToken = useAuth((s) => s.accessToken);
-  const sessionId = useSession((s) => s.sessionId);
+  const storeSessionId = useSession((s) => s.sessionId);
+  // 레코드에 실린 sessionId > 파라미터로 넘어온 sessionId(과거 기록 조회) >
+  // 현재 세션 스토어 순으로 사용한다.
+  const effectiveSessionId = record?.sessionId ?? sessionIdParam ?? storeSessionId;
 
   // 점수 추이 (수정 7 · F4). 실 API에서 세션 id로 조회한다. mock 모드에서는
   // 가짜 추이를 띄우지 않는다 — 실데이터 연동(§6-A) 후에만 표시한다. 세션 id가
   // 없거나 실패하면 차트를 조용히 숨긴다.
   const [trend, setTrend] = useState<ReportTrend | null>(null);
+  // F5 환자용 리포트 요약(자기보고 + 설문). ready 전이면 null.
+  const [summary, setSummary] = useState<ReportSummary | null>(null);
   useEffect(() => {
     let alive = true;
-    // recordId는 로컬 레코드 id라 세션 UUID가 아니다.
-    if (MOCK || !accessToken || !sessionId) return;
-    getReportTrend(accessToken, sessionId)
+    if (MOCK) {
+      getReportSummary("", "").then((s) => alive && setSummary(s));
+      return () => {
+        alive = false;
+      };
+    }
+    if (!accessToken || !effectiveSessionId) return;
+    getReportTrend(accessToken, effectiveSessionId)
       .then((t) => alive && setTrend(t))
       .catch(() => alive && setTrend(null));
+    getReportSummary(accessToken, effectiveSessionId)
+      .then((s) => alive && setSummary(s.ready ? s : null))
+      .catch(() => alive && setSummary(null));
     return () => {
       alive = false;
     };
-  }, [accessToken, sessionId]);
+  }, [accessToken, effectiveSessionId]);
 
   // FR-047 · §6-B — 수동 전달. MOCK은 로컬 상태만 전이, 실모드는 서버에 전달 후
   // 로컬 반영. 실모드는 세션 id가 있어야 전달 대상이 특정된다.
@@ -59,10 +95,10 @@ export default function ReportDetailScreen() {
       markDelivered(record.id);
       return;
     }
-    if (!accessToken || !sessionId) return;
+    if (!accessToken || !effectiveSessionId) return;
     setDelivering(true);
     try {
-      await deliverReport(accessToken, sessionId);
+      await deliverReport(accessToken, effectiveSessionId);
       markDelivered(record.id);
     } catch (e) {
       Alert.alert(
@@ -74,7 +110,39 @@ export default function ReportDetailScreen() {
     }
   };
 
-  if (!record) {
+  // 최종 핸드오프 리포트 PDF 저장·공유. 서버에서 base64 PDF를 받아 임시 파일로
+  // 쓰고 OS 공유 시트를 연다(저장/타 앱 전송). PDF 없으면 안내.
+  const [savingPdf, setSavingPdf] = useState(false);
+  const onSavePdf = async () => {
+    if (!accessToken || !effectiveSessionId) return;
+    setSavingPdf(true);
+    try {
+      const { filename, pdfBase64 } = await getReportPdf(accessToken, effectiveSessionId);
+      const uri = FileSystem.cacheDirectory + filename;
+      await FileSystem.writeAsStringAsync(uri, pdfBase64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: "application/pdf",
+          dialogTitle: "핸드오프 리포트 저장",
+          UTI: "com.adobe.pdf",
+        });
+      } else {
+        Alert.alert("저장 완료", `리포트를 저장했어요:\n${uri}`);
+      }
+    } catch (e) {
+      Alert.alert(
+        "PDF를 준비하지 못했어요",
+        e instanceof APIException ? e.body.message : "잠시 후 다시 시도해 주세요.",
+      );
+    } finally {
+      setSavingPdf(false);
+    }
+  };
+
+  // 로컬 레코드도, 서버 조회용 세션 id도 없으면 열 수 없다.
+  if (!record && !effectiveSessionId) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.surface }}>
         <NavBar title="리포트" backLabel="뒤로" onBack={() => router.back()} />
@@ -85,10 +153,37 @@ export default function ReportDetailScreen() {
     );
   }
 
-  const d = new Date(record.completedAt);
+  // 서버 조회 모드(레코드 없음)에서는 아직 요약 로딩 전일 수 있다.
+  if (!record && !summary) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.surface }}>
+        <NavBar title="리포트" backLabel="뒤로" onBack={() => router.back()} />
+        <View style={styles.empty}>
+          <Text style={styles.emptyText}>리포트를 불러오는 중이에요…</Text>
+        </View>
+      </View>
+    );
+  }
+
+  // 점수·날짜 표시값: 로컬 레코드가 있으면 그걸, 없으면 서버 요약의 대표 설문을 쓴다.
+  const primaryQ = summary?.questionnaires?.[0];
+  const dateEpoch = record
+    ? record.completedAt
+    : summary?.generatedAt
+      ? Date.parse(summary.generatedAt)
+      : Date.now();
+  const d = new Date(dateEpoch);
   const dateLabel = `${d.getFullYear()} · ${String(d.getMonth() + 1).padStart(2, "0")} · ${String(
     d.getDate(),
   ).padStart(2, "0")}`;
+  const scoreNum = record ? record.totalScore : primaryQ?.totalScore ?? null;
+  const scoreMaxN = record ? record.maxScore : _SCALE_MAX[primaryQ?.scale ?? ""] ?? null;
+  const scoreLabel = record
+    ? `${SURVEYS[record.instrument].toolLabel} · ${SEVERITY_KO[record.severity] ?? record.severity}`
+    : primaryQ
+      ? `${primaryQ.scale} · ${primaryQ.severityLabel}`
+      : "";
+  const statusText = record ? STATUS_KO[record.status] : summary?.ready ? "리포트 있음" : "생성 중";
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
@@ -104,55 +199,93 @@ export default function ReportDetailScreen() {
           </View>
           <View style={styles.pill}>
             <View style={styles.pillDot} />
-            <Text style={styles.pillText}>{STATUS_KO[record.status]}</Text>
+            <Text style={styles.pillText}>{statusText}</Text>
           </View>
         </View>
 
         {/* 점수 — 환자 본인 응답 기반이라 노출 가능 (원칙 1 가드레일) */}
-        <View style={styles.scoreCard}>
-          <Text style={styles.scoreNum}>
-            {record.totalScore}
-            <Text style={styles.scoreMax}> /{record.maxScore}</Text>
-          </Text>
-          <Text style={styles.scoreLabel}>
-            {SURVEYS[record.instrument].toolLabel} ·{" "}
-            {SEVERITY_KO[record.severity] ?? record.severity}
-          </Text>
-        </View>
+        {scoreNum != null ? (
+          <View style={styles.scoreCard}>
+            <Text style={styles.scoreNum}>
+              {scoreNum}
+              {scoreMaxN != null ? <Text style={styles.scoreMax}> /{scoreMaxN}</Text> : null}
+            </Text>
+            <Text style={styles.scoreLabel}>{scoreLabel}</Text>
+          </View>
+        ) : null}
 
         {/* 점수 추이 차트 (수정 7 · F4 plot_data). 비교할 이전 방문이 있을 때만. */}
         {trend && trend.plotData.length >= 2 ? (
           <TrendChart points={trend.plotData} direction={trend.overallDirection} />
         ) : null}
 
-        {/* Handoff 리포트 본문 — AI 서사는 실 연동(§6-A/B) 후 실데이터로 바인딩한다.
-            가짜 임상 텍스트를 기록 위에 렌더하지 않는다. */}
+        {/* Handoff 리포트 본문 (F5). 서버 요약(자기보고 + 설문)만 렌더한다 —
+            AI 추정질환·신호강도 등 clinician 전용 정보는 서버가 제외한다. */}
         <View style={styles.report}>
           <View style={styles.reportHead}>
             <Text style={styles.reportHeadTitle}>Handoff 리포트</Text>
             <Text style={styles.reportHeadDate}>{dateLabel}</Text>
           </View>
-          <View style={[styles.rrow, styles.rrowLast]}>
-            <Text style={styles.rv}>리포트 본문은 정식 연동 후 여기에서 볼 수 있어요.</Text>
-          </View>
+
+          {summary ? (
+            <>
+              {(summary.selfReported ?? []).map((row) => (
+                <View key={row.key} style={styles.rrow}>
+                  <Text style={styles.rk}>{row.label}</Text>
+                  <Text style={styles.rv}>{row.value}</Text>
+                </View>
+              ))}
+              {(summary.questionnaires ?? []).length > 0 ? (
+                <View style={styles.rrow}>
+                  <Text style={styles.rk}>설문 결과</Text>
+                  <View style={{ flex: 1 }}>
+                    {(summary.questionnaires ?? []).map((q) => (
+                      <Text key={q.scale} style={styles.rv}>
+                        {q.scale} · {q.totalScore}점 · {q.severityLabel}
+                      </Text>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
+              {summary.disclaimer ? (
+                <View style={[styles.rrow, styles.rrowLast]}>
+                  <Text style={styles.rv}>{summary.disclaimer}</Text>
+                </View>
+              ) : null}
+            </>
+          ) : (
+            <View style={[styles.rrow, styles.rrowLast]}>
+              <Text style={styles.rv}>리포트 본문을 불러오는 중이에요…</Text>
+            </View>
+          )}
         </View>
 
         <Text style={styles.fine}>
           본 리포트는 의료진 참고용이며, 진단이 아닙니다. 전달 전까지 의료진에게 공유되지 않아요.
         </Text>
 
+        {/* 최종 핸드오프 리포트 PDF 저장·공유 */}
+        {MOCK || effectiveSessionId ? (
+          <Button
+            label="리포트 PDF 저장·공유"
+            variant="ghost"
+            onPress={() => void onSavePdf()}
+            loading={savingPdf}
+          />
+        ) : null}
+
         <View style={{ flex: 1 }} />
 
-        {/* FR-047 · §6-B — 보관 중인 리포트를 [전달하기]. 실모드는 전달 대상
-            세션 id가 있을 때만 노출(과거 이력 실연동은 §6-A 후속). */}
-        {record.status === "stored" && (MOCK || sessionId) ? (
+        {/* FR-047 · §6-B — 보관 중인 리포트를 [전달하기]. 로컬 레코드(방금 제출한
+            인테이크)가 보관 상태일 때만 노출. 과거 기록 서버조회 열람은 읽기 전용. */}
+        {record && record.status === "stored" && (MOCK || effectiveSessionId) ? (
           <Button
             label="의료진에게 전달하기"
             onPress={() => void onDeliver()}
             loading={delivering}
           />
         ) : null}
-        {record.status === "delivered" ? (
+        {record && record.status === "delivered" ? (
           <Text style={styles.deliveredNote}>의료진에게 전달됐어요. 진료 때 함께 확인해요.</Text>
         ) : null}
       </ScrollView>
@@ -213,6 +346,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.line,
   },
   rrowLast: { borderBottomWidth: 0 },
+  rk: { fontSize: 11, fontWeight: "600", color: colors.muted },
   rv: { fontSize: 12.5, color: colors.ink, marginTop: 3, lineHeight: 18 },
   fine: { fontSize: 11.5, color: colors.muted, lineHeight: 16 },
   deliveredNote: { textAlign: "center", fontSize: 13, color: colors.muted, paddingVertical: 12 },

@@ -1,0 +1,62 @@
+/* ============================================================
+   Editorial Clinical Handoff — Design Tokens
+   색상 · 타이포그래피 · 간격 · 그리드의 단일 소스.
+   ============================================================ */
+
+:root {
+  /* ── Color · Petrol Teal + Ink (Modern Clinical) ─────── */
+  --paper: #FFFFFF;          /* 페이지 배경 (흰색) */
+  --surface: #FFFFFF;
+  --ink: #17211F;            /* 본문 기본 (cool near-black) */
+  --primary: #17494E;        /* Deep Petrol Teal — 주요 데이터/제목 */
+  --secondary: #5E6A68;      /* 보조 텍스트/메타 (cool gray) */
+  --line: #D5D6D2;           /* 얇은 구분선 */
+  --line-strong: #B7B9B4;
+  --soft-bg: #E9EEEC;        /* 옅은 teal-gray 강조 배경 */
+  --accent: #A6462F;         /* Clay — 섹션번호/우선순위 */
+  --warning: #A96F18;
+  --success: #2E6E62;
+  --danger: #C4302A;         /* 실제 위험 표시 (명확한 red) */
+
+  /* ── Typography ──────────────────────────────────────── */
+  --font-serif: "Noto Serif KR", "Noto Serif CJK KR", "Nanum Myeongjo", serif;
+  --font-sans: "Pretendard", "Pretendard Variable", "Noto Sans KR",
+    "Noto Sans CJK KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --font-mono: "SFMono-Regular", ui-monospace, "Menlo", monospace;
+
+  --fs-report-title: 26px;
+  --fs-page-title: 20px;
+  --fs-lead: 17px;
+  --fs-section-no: 30px;
+  --fs-section-label: 9px;
+  --fs-body: 10px;
+  --fs-table: 9px;
+  --fs-meta: 8px;
+  --fs-caption: 8px;
+  --fs-metric: 30px;
+
+  --lh-body: 1.7;
+  --lh-lead: 1.6;
+  --ls-label: 0.12em;   /* 영문 라벨 letter-spacing */
+
+  /* ── Spacing (4px / 2mm base) ────────────────────────── */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+
+  /* ── Page geometry (A4) ──────────────────────────────── */
+  --page-w: 210mm;
+  --page-h: 297mm;
+  --margin-top: 16mm;
+  --margin-side: 15mm;
+  --margin-bottom: 18mm;
+  --grid-gap: 6mm;
+
+  --radius: 3px;
+  --rule: 0.75px;      /* 기본 얇은 선 두께 */
+}

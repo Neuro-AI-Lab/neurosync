@@ -1,0 +1,50 @@
+/* ============================================================
+   Print CSS — 연속 흐름 + @page 반복 헤더/푸터/페이지번호 (Chrome print)
+   섹션 고정 페이지 없이 내용이 흐르고, 원자 블록만 분할 방지.
+   ============================================================ */
+
+@page {
+  size: A4;
+  margin: 20mm 17mm 15mm;
+  font-family: "Noto Sans KR", "Noto Sans CJK KR", sans-serif;
+  /* @top-left / @top-right / @bottom-left 내용은 render-report.js가
+     리포트 데이터로 @page 규칙을 동적 주입한다(Chrome은 string() 미지원).
+     페이지 번호만 정적 counter. */
+  @bottom-right { content: counter(page) " / " counter(pages); font-size: 7.5pt; color: #6E7881; }
+}
+/* 표지(첫 면)엔 러닝 헤더 생략 — 마스트헤드가 대신 */
+@page :first {
+  margin-top: 17mm;
+  @top-left  { content: none; }
+  @top-right { content: none; }
+}
+
+@media print {
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: #fff; }
+  .doc { max-width: none; margin: 0; padding: 0; box-shadow: none; background: #fff; }
+  .block { margin: 0 0 var(--sp-6); padding: 0; }
+  .block + .block { padding-top: var(--sp-4); }
+
+  /* 섹션 제목은 고아 방지 */
+  /* 제목·라벨은 바로 뒤 내용과 붙여서(고아 방지) */
+  .block-title { break-after: avoid; }
+  .section-label { break-after: avoid; }
+  .list-head { break-after: avoid; }
+  .block { break-inside: auto; }
+  /* 부록은 연속 흐름으로 이어 붙여 앞 섹션의 하단 여백을 회수한다(사용자 선호: 연속 흐름).
+     '상세 부록' 제목이 위계 구분을 담당하므로 강제 페이지 나눔은 두지 않는다. */
+
+  /* 원자 항목: 페이지 경계에서 쪼개지면 항목 전체를 다음 면으로 (분할 금지) */
+  .keep-together,
+  .metric, .obs li, .clinical-quote, .risk-current, .risk-flag,
+  .slot-row, .phq-item, .scale-row, .care-row, .ar-row,
+  .tl-item, .action-item, .figure-block, .apx-quote,
+  .narr-block, .rail-item, .tn-row, .cbc,
+  .apx-hist .ah-slot, .apx-hist .ah-step { break-inside: avoid; }
+  .apx-hist .ah-slot { break-after: avoid; }
+
+  figure img { max-width: 100%; height: auto; break-inside: avoid; }
+  thead { display: table-header-group; }
+  .no-print { display: none !important; }
+}

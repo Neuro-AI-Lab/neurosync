@@ -38,7 +38,11 @@ from uuid import UUID
 import anyio
 from contracts.safety import SafetyRequest
 from contracts.survey_plan import SurveyPlanRequest
-from contracts.temporal import TemporalSummarizeRequest
+from contracts.temporal import (
+    Direction,
+    TemporalPlotPoint,
+    TemporalSummarizeResponse,
+)
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -556,6 +560,140 @@ async def get_report_status(
     }
 
 
+# 환자에게 보여줄 수 있는 슬롯(자기보고 정보) 화이트리스트. AI 추정질환/신호강도/
+# evidence 등 clinician 전용 필드는 절대 포함하지 않는다(비노출 원칙).
+_PATIENT_SLOT_FIELDS: dict[str, str] = {
+    "chief_complaint": "주호소",
+    "history_of_present_illness": "현병력",
+}
+# 문진 심각도(내부 코드) → 환자용 순화 라벨.
+_SEVERITY_KO = {
+    "none": "해당 없음", "minimal": "최소", "mild": "경도",
+    "moderate": "중등도", "moderately_severe": "중등도-중증", "severe": "중증",
+}
+
+
+@router.get("/{session_id}/report/summary", response_model=dict)
+async def get_report_summary(
+    session_id: UUID,
+    patient: Annotated[User, Depends(require_role("patient"))],
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> dict:
+    """FR-013/018 — 환자 본인용 문진 리포트 요약(F5 완료 후).
+
+    clinician 전용 전체 핸드오프(AI 추정질환·신호강도·evidence 등)는 제외하고,
+    **환자 자기보고 기반 정보**(주호소·현병력)와 **본인 설문 결과**(점수·심각도)만
+    결정론적으로 반환한다. 리포트가 아직 준비되지 않았으면 status만 돌려준다.
+    """
+    srow = await db.execute(select(Session).where(Session.id == session_id))
+    sess = srow.scalar_one_or_none()
+    if sess is None or sess.patient_id != patient.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "SESSION_NOT_FOUND", "message": "세션을 찾을 수 없어요."},
+        )
+    rrow = await db.execute(
+        select(HandoffReport)
+        .where(HandoffReport.session_id == session_id)
+        .order_by(HandoffReport.created_at.desc())
+        .limit(1)
+    )
+    report = rrow.scalar_one_or_none()
+    if report is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "REPORT_NOT_FOUND", "message": "리포트를 찾을 수 없어요."},
+        )
+    # 아직 생성 중/실패면 본문 없이 상태만 — 모바일이 폴링/에러 처리.
+    if report.status != "ready":
+        return {"success": True, "data": {"status": report.status, "ready": False}}
+
+    slots = sess.clinical_slots or {}
+    self_reported = [
+        {"key": k, "label": label, "value": str(slots[k]).strip()}
+        for k, label in _PATIENT_SLOT_FIELDS.items()
+        if slots.get(k)
+    ]
+    q_rows = await db.execute(
+        select(QuestionnaireResult).where(QuestionnaireResult.session_id == session_id)
+    )
+    questionnaires = [
+        {
+            "scale": _SCALE_NAME.get(q.type, q.type),
+            "totalScore": q.total_score,
+            "severity": q.severity,
+            "severityLabel": _SEVERITY_KO.get(q.severity, q.severity),
+        }
+        for q in q_rows.scalars().all()
+    ]
+    return {
+        "success": True,
+        "data": {
+            "status": report.status,
+            "ready": True,
+            "generatedAt": (
+                report.generated_at.isoformat() if report.generated_at else None
+            ),
+            "selfReported": self_reported,
+            "questionnaires": questionnaires,
+            # 환자용 고지 — 진단이 아니라 의료진 상담 자료임을 명시.
+            "disclaimer": (
+                "이 요약은 자가보고와 설문을 정리한 자료로, 의학적 진단이 아닙니다. "
+                "정확한 평가는 의료진과 상담해 주세요."
+            ),
+            # F5 editorial PDF 존재 여부 — 모바일 '저장' 버튼 노출 판단용.
+            "hasPdf": bool(
+                isinstance(report.content, dict) and report.content.get("pdf_base64")
+            ),
+        },
+    }
+
+
+@router.get("/{session_id}/report/pdf", response_model=dict)
+async def get_report_pdf(
+    session_id: UUID,
+    patient: Annotated[User, Depends(require_role("patient"))],
+    db: Annotated[AsyncSession, Depends(get_session)],
+) -> dict:
+    """환자 본인용 최종 핸드오프 리포트 PDF(base64). F5 editorial PDF를 그대로
+    돌려준다(다세션 종단 리포트 생성 시 포함). 단일세션 서사 리포트에는 PDF가 없어
+    404를 반환한다."""
+    srow = await db.execute(select(Session).where(Session.id == session_id))
+    sess = srow.scalar_one_or_none()
+    if sess is None or sess.patient_id != patient.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "SESSION_NOT_FOUND", "message": "세션을 찾을 수 없어요."},
+        )
+    rrow = await db.execute(
+        select(HandoffReport)
+        .where(HandoffReport.session_id == session_id)
+        .order_by(HandoffReport.created_at.desc())
+        .limit(1)
+    )
+    report = rrow.scalar_one_or_none()
+    pdf_b64 = (
+        report.content.get("pdf_base64")
+        if report and isinstance(report.content, dict)
+        else None
+    )
+    if not pdf_b64:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "code": "PDF_NOT_AVAILABLE",
+                "message": "이 리포트에는 저장할 PDF가 아직 없어요. (종단 리포트는 재방문 시 생성)",
+            },
+        )
+    return {
+        "success": True,
+        "data": {
+            "filename": f"handoff_report_{session_id}.pdf",
+            "pdfBase64": pdf_b64,
+        },
+    }
+
+
 # 문진 type(DB) → ai-server 척도명. F4 입력은 "PHQ-9" 형식을 기대한다.
 _SCALE_NAME = {"PHQ9": "PHQ-9", "GAD7": "GAD-7", "AUDITC": "AUDIT-C", "PHQ4": "PHQ-4"}
 
@@ -568,6 +706,31 @@ async def _session_scales(db: AsyncSession, session_id: UUID) -> dict[str, int]:
     return {_SCALE_NAME.get(r.type, r.type): r.total_score for r in rows.scalars()}
 
 
+def _pairwise_direction(current: dict[str, int], prior: dict[str, int]) -> Direction:
+    """F4의 척도 방향 규칙과 동일한 결정론적 pairwise 판정. 표준 척도는 점수가
+    **낮을수록 호전**(PHQ-9/GAD-7/AUDIT-C/PHQ-4). 두 방문에 공통으로 존재하는
+    대표 척도(우선순위: PHQ-9 → GAD-7 → AUDIT-C → PHQ-4)의 총점 변화로 판정한다."""
+    for scale in ("PHQ-9", "GAD-7", "AUDIT-C", "PHQ-4"):
+        if scale in current and scale in prior:
+            delta = current[scale] - prior[scale]
+            if delta < 0:
+                return "improved"
+            if delta > 0:
+                return "worsened"
+            return "unchanged"
+    return "unknown"
+
+
+def _trend_point(scales: dict[str, int], date: str, label: str) -> TemporalPlotPoint:
+    """모바일 추이 차트용 포인트. 표준 척도 점수(환자 본인 응답)만 싣는다."""
+    return TemporalPlotPoint(
+        date=date,
+        phq9=scales.get("PHQ-9"),
+        gad7=scales.get("GAD-7"),
+        events=[label],
+    )
+
+
 @router.get("/{session_id}/report/trend", response_model=dict)
 async def get_report_trend(
     session_id: UUID,
@@ -575,7 +738,6 @@ async def get_report_trend(
         User, Depends(require_role("patient", "clinician", "org_admin", "super_admin"))
     ],
     db: Annotated[AsyncSession, Depends(get_session)],
-    ai_client: Annotated[AIClient, Depends(get_ai_client)],
 ) -> dict:
     """수정 7 — 리포트 점수 추이 차트용 F4 종단 추론 (plot_data 바인딩).
 
@@ -635,27 +797,28 @@ async def get_report_trend(
             prior_date = prior.created_at.date().isoformat()
             break
 
-    payload = TemporalSummarizeRequest(
-        session_id=str(session_id),
-        patient_id=str(sess.patient_id),
-        is_first_visit=not prior_scales,
-        current_scales=current_scales,
-        prior_scales=prior_scales,
-        current_date=sess.created_at.date().isoformat(),
-        prior_date=prior_date,
-    )
-    try:
-        result = await ai_client.temporal_summarize(payload)
-    except AIClientError as exc:
-        logger.warning("temporal summarize failed (session=%s): %s", session_id, exc)
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail={
-                "code": "TREND_UNAVAILABLE",
-                "message": "추이 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
-            },
-        ) from exc
+    # 환자용 2점 추이는 자기 척도 점수의 결정론적 pairwise 비교로 계산한다(F4의
+    # 척도 방향 규칙과 동일: 점수↓=호전). ai-server /ai/temporal/analyze는 세션당
+    # 단일 척도·리치 입력(f3·sentiment)을 요구하는 N-세션 엔진이라, 환자 차트가
+    # 필요로 하는 PHQ-9·GAD-7 동시 pairwise와 형태가 다르다 — cross-service 호출
+    # 없이 여기서 산출해 502(폐기된 summarize 라우트 호출)를 제거한다.
+    is_first_visit = not prior_scales
+    current_date = sess.created_at.date().isoformat()
 
+    plot_data: list[TemporalPlotPoint] = []
+    if not is_first_visit:
+        plot_data.append(_trend_point(prior_scales, prior_date, "이전 방문"))
+    plot_data.append(_trend_point(current_scales, current_date, "이번 방문"))
+
+    overall_direction: Direction = (
+        "unknown" if is_first_visit else _pairwise_direction(current_scales, prior_scales)
+    )
+
+    result = TemporalSummarizeResponse(
+        overall_direction=overall_direction,
+        plot_data=plot_data,
+        is_first_visit=is_first_visit,
+    )
     # by_alias — 모바일에는 camelCase (나머지 API와 동일 컨벤션).
     return {"success": True, "data": result.model_dump(by_alias=True, mode="json")}
 

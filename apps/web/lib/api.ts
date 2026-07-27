@@ -229,13 +229,17 @@ export type EvidencePacket = {
 
 export type HandoffNarrative = {
   report_markdown: string;
-  report_json: Record<string, unknown> | null;
-  report_pdf_base64: string | null;
-  trend_plot_base64: string | null;
-  evidence_packets: EvidencePacket[];
-  missing_slots: string[];
-  risk_level: string;
-  requires_human_review: boolean;
+  report_json?: Record<string, unknown> | null;
+  report_pdf_base64?: string | null;
+  trend_plot_base64?: string | null;
+  evidence_packets?: EvidencePacket[];
+  missing_slots?: string[];
+  risk_level?: string;
+  requires_human_review?: boolean;
+  // F5 풀 리포트(/ai/handoff/report) 전용 — editorial PDF + F4 차트(base64 PNG).
+  pdf_base64?: string | null;
+  chart_pngs_base64?: string[] | null;
+  fhir_bundle?: Record<string, unknown> | null;
 };
 
 export type HandoffReport = {

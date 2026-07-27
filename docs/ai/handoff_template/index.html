@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>종단 문진 인계 보고서</title>
+  <link rel="stylesheet" href="./styles/tokens.css" />
+  <link rel="stylesheet" href="./styles/layout.css" />
+  <link rel="stylesheet" href="./styles/components.css" />
+  <link rel="stylesheet" href="./styles/print.css" />
+</head>
+<body>
+<main class="doc">
+
+  <!-- ── Masthead (표지 1회) ── -->
+  <header class="masthead">
+    <span class="brand"><span class="brand-neuro">Neuro</span><span class="brand-sync">Sync</span></span>
+    <span class="brand-tag">Mental Health Pre-Screening</span>
+    <span class="brand-right">AI 대화형 사전문진 · 종단 인계</span>
+  </header>
+
+  <!-- ── Executive ── -->
+  <section class="block" id="page-1">
+    <header class="report-header">
+      <div class="lede">
+        <div class="eyebrow" id="p1-eyebrow"></div>
+        <h1 class="report-title" id="p1-title"></h1>
+      </div>
+      <div class="report-idblock">
+        <div class="rid" id="p1-rid"></div>
+      </div>
+    </header>
+    <div class="meta-row" id="p1-meta"></div>
+    <hr class="rule rule-strong" style="margin-top: var(--sp-5);" />
+    <div class="section">
+      <div class="section-label" style="margin-bottom: var(--sp-3);">현재 상태</div>
+      <p class="lead" id="p1-lead"></p>
+    </div>
+    <div class="section metrics" id="p1-metrics"></div>
+    <div class="section grid">
+      <div class="col-7">
+        <div class="list-head"><span class="section-label">주요 관찰</span></div>
+        <ul class="obs" id="p1-observations" style="padding:0; margin:0;"></ul>
+      </div>
+      <div class="col-5">
+        <div class="list-head"><span class="section-label">인계 중점</span></div>
+        <ul class="obs focus-list" id="p1-focus" style="padding:0; margin:0;"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 위험 · 안전 ── -->
+  <section class="block" id="page-2">
+    <h2 class="block-title">위험 · 안전 평가</h2>
+    <div class="section-label" style="margin-bottom: var(--sp-3);">당해 세션 평가</div>
+    <div class="risk-current keep-together" id="p2-current"></div>
+    <div class="grid" style="margin-top: var(--sp-6);">
+      <div class="col-7">
+        <div class="section-label" style="margin-bottom: var(--sp-2);">안전 플래그</div>
+        <div class="risk-flags" id="p2-flags"></div>
+      </div>
+      <div class="col-5">
+        <div class="section-label" style="margin-bottom: var(--sp-2);">위험 신호 경과</div>
+        <div class="timeline risk-traj" id="p2-traj"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 임상 요약 (가이드라인 §2.1·§3: 주호소·현병력·배경을 한 섹션으로 통합) ── -->
+  <section class="block" id="page-3">
+    <h2 class="block-title">임상 요약</h2>
+    <div class="grid">
+      <div class="col-8">
+        <div class="narr-block"><span class="nk">주호소</span><p id="p3-concern"></p></div>
+        <div class="narr-block"><span class="nk">현병력</span><p id="p3-hpi"></p></div>
+        <div class="narr-block"><span class="nk">정신상태검사</span><p id="p3-mse"></p></div>
+        <div class="clinical-quote keep-together" id="p3-quote"></div>
+      </div>
+      <div class="col-4 annotation-rail">
+        <div class="rail-title">임상 배경</div>
+        <div id="p3-rail"></div>
+      </div>
+    </div>
+    <!-- 최신 설문 요약(총점·심각도·자살문항). 문항별 응답은 부록으로 이동(가이드라인 §5.2) -->
+    <div class="section keep-together" style="margin-top: var(--sp-6);">
+      <div class="section-label" style="margin-bottom: var(--sp-3);">최신 설문</div>
+      <div class="survey-head" id="p4-survey-head"></div>
+      <p class="minor-note" id="p4-auditc"></p>
+    </div>
+  </section>
+
+  <!-- ── 종단 경과 ── -->
+  <!-- ── 종단 경과 (텍스트 요약 + 차트 통합; 초진·최신·중복 카드 제거) ── -->
+  <section class="block" id="page-5">
+    <h2 class="block-title">종단 경과</h2>
+    <div class="section-label" style="margin-bottom: var(--sp-2);">주요 세션</div>
+    <div class="timeline" id="p5-timeline"></div>
+    <div class="section keep-together" style="margin-top: var(--sp-5);">
+      <div class="section-label" style="margin-bottom: var(--sp-2);">척도 변화 요약 <span id="p5-overall" style="color:var(--success);"></span></div>
+      <div class="scale-table" id="p5-scale"></div>
+      <ul class="scale-notes" id="p5-scale-notes" style="padding:0;"></ul>
+    </div>
+    <p class="lead-sm" id="p6-interp" style="margin-top: var(--sp-5);"></p>
+    <figure class="figure-block keep-together" id="p6-figure" style="margin-top: var(--sp-3);"></figure>
+    <div class="section keep-together" style="margin-top: var(--sp-5);">
+      <div class="section-label" style="margin-bottom: var(--sp-1);">보조 종단 지표</div>
+      <figure class="figure-block" id="p6-figure2" style="margin-top: var(--sp-2);"></figure>
+    </div>
+  </section>
+
+  <!-- ── 인계 조치 ── -->
+  <section class="block" id="page-7">
+    <h2 class="block-title">다음 담당자 확인 및 조치 사항</h2>
+    <div class="action-list" id="p7-actions"></div>
+    <div class="section grid" style="margin-top: var(--sp-6);">
+      <div class="col-7">
+        <div class="section-label" style="margin-bottom: var(--sp-2);">권장 진료</div>
+        <div class="care-routing" id="p7-routing"></div>
+        <div class="care-note" id="p7-questionnaire"></div>
+        <div class="care-note" id="p7-medication"></div>
+      </div>
+      <div class="col-5">
+        <div class="section-label" style="margin-bottom: var(--sp-2);">문서 정보</div>
+        <div class="audit-meta" id="p7-prov" style="border-top:0; margin-top:0;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 부록 I (문진 스냅샷·문항별 설문·AI 참고·인용을 부록으로) ── -->
+  <section class="block block--appendix" id="page-8">
+    <h2 class="block-title">상세 부록</h2>
+    <div class="section keep-together">
+      <div class="section-label" style="margin-bottom: var(--sp-2);">시행 설문 — 문항별 응답</div>
+      <div class="phq-items" id="p4-phq"></div>
+    </div>
+    <div class="section keep-together" style="margin-top: var(--sp-6);">
+      <div class="section-label" style="margin-bottom: var(--sp-1);">AI 참고 지표 (비진단)</div>
+      <div class="apx-ranking" id="p8-ranking" style="margin-top: var(--sp-2);"></div>
+    </div>
+    <div class="grid" style="margin-top: var(--sp-6);">
+      <div class="col-7">
+        <div class="section-label" style="margin-bottom: var(--sp-1);">전문 인용</div>
+        <div id="p8-quotes"></div>
+      </div>
+      <div class="col-5">
+        <div class="section-label" style="margin-bottom: var(--sp-1);">문항 출처</div>
+        <p class="minor-note" id="p8-source" style="margin-top: var(--sp-2);"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 부록 II ── -->
+  <section class="block" id="page-9">
+    <div class="section-label" style="margin-bottom: var(--sp-2);">슬롯별 전체 변화 이력</div>
+    <div class="apx-hist" id="p9-hist"></div>
+  </section>
+
+  <!-- ── 면책 (문서 말미 1회) ── -->
+  <footer class="doc-foot">
+    <p class="disclaimer" id="p1-disclaimer"></p>
+  </footer>
+
+</main>
+<script src="./scripts/render-report.js"></script>
+</body>
+</html>

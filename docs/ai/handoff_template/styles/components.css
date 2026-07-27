@@ -1,0 +1,456 @@
+/* ============================================================
+   Components — reusable editorial primitives
+   (Step 1: Page 1 components. Pages 2–5 extend this file.)
+   ============================================================ */
+
+/* ── Typographic primitives ─────────────────────────────── */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--fs-section-label);
+  font-weight: 600;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+.eyebrow .sep { color: var(--line-strong); margin: 0 var(--sp-1); }
+
+.section-label {
+  font-size: var(--fs-section-label);
+  font-weight: 600;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+
+.section-no { display: none; }
+
+.serif { font-family: var(--font-sans); }
+.num { font-variant-numeric: tabular-nums; }
+
+/* ── ReportHeader ───────────────────────────────────────── */
+.report-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.report-header .lede .eyebrow { margin-bottom: var(--sp-3); }
+.report-title {
+  font-family: var(--font-sans);
+  font-size: var(--fs-report-title);
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin: 0;
+}
+.report-idblock { text-align: right; }
+.report-idblock .rid {
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  letter-spacing: 0.06em;
+  color: var(--secondary);
+}
+.status-chip {
+  display: inline-flex; align-items: center; gap: var(--sp-1);
+  margin-top: var(--sp-2);
+  font-size: var(--fs-meta);
+  font-weight: 700;
+  letter-spacing: var(--ls-label);
+  color: var(--primary);
+}
+.status-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+
+/* ── PatientMetadata (label–value inline row) ───────────── */
+.meta-row { display: flex; flex-wrap: wrap; gap: var(--sp-6); margin-top: var(--sp-4); }
+.meta-item .k {
+  display: block;
+  font-size: var(--fs-meta);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--secondary);
+  margin-bottom: 2px;
+}
+.meta-item .v { font-size: var(--fs-body); color: var(--ink); font-weight: 500; }
+
+/* ── LeadSummary ────────────────────────────────────────── */
+.lead {
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  color: var(--ink);
+  max-width: 62ch;            /* 읽기 폭 제한 */
+  font-weight: 400;
+}
+
+/* ── LargeMetric ────────────────────────────────────────── */
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); column-gap: var(--grid-gap); }
+.metric { padding-top: var(--sp-3); border-top: var(--rule) solid var(--line-strong); }
+.metric .m-label {
+  font-size: var(--fs-section-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--secondary);
+  font-weight: 600;
+}
+.metric .m-sub { font-size: var(--fs-meta); color: var(--secondary); margin-top: 1px; }
+.metric .m-value {
+  font-family: var(--font-sans);
+  font-size: var(--fs-metric);
+  font-weight: 600;
+  color: var(--primary);
+  line-height: 1.05;
+  margin-top: var(--sp-2);
+}
+.metric .m-value .m-unit {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--secondary);
+  margin-left: 2px;
+}
+.metric .m-state { font-size: var(--fs-body); color: var(--ink); margin-top: var(--sp-1); font-weight: 500; }
+.metric .m-change {
+  display: inline-flex; align-items: baseline; gap: 3px;
+  font-size: var(--fs-meta); margin-top: 2px;
+}
+.metric .m-change.up-good, .metric .m-change.improved { color: var(--success); }
+.metric .m-change.down-bad, .metric .m-change.worsened { color: var(--accent); }
+.metric .m-change .prev { color: var(--secondary); }
+
+/* ── ObservationList / HandoffFocus ─────────────────────── */
+.list-head {
+  display: flex; align-items: baseline; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+.list-head .section-label { color: var(--secondary); }
+.obs { }
+.obs li {
+  list-style: none;
+  padding: var(--sp-3) 0;
+  border-top: var(--rule) solid var(--line);
+  display: grid; grid-template-columns: 16px 1fr auto; gap: var(--sp-2);
+  align-items: baseline;
+}
+.obs li:first-child { border-top: 0; }
+.obs .idx { font-family: var(--font-mono); font-size: var(--fs-meta); color: var(--secondary); }
+.obs .otext { font-size: var(--fs-body); line-height: 1.62; }
+.obs .osrc { font-size: var(--fs-meta); color: var(--secondary); white-space: nowrap; }
+
+.prio {
+  font-size: var(--fs-meta); font-weight: 700; letter-spacing: 0.08em;
+}
+.prio.HIGH { color: var(--accent); }
+.prio.MEDIUM { color: var(--warning); }
+.prio.LOW { color: var(--secondary); }
+
+/* HANDOFF FOCUS: 우선순위를 텍스트 아래 라벨로 — 우측 잘림 방지 */
+.focus-list li { grid-template-columns: 16px 1fr; }
+.fcontent .otext { display: block; }
+.fcontent .prio { display: inline-block; margin-top: 4px; }
+
+/* ── Masthead (NeuroSync 브랜드 워드마크) ────────────────── */
+.masthead {
+  display: flex; align-items: baseline; gap: var(--sp-3);
+  padding-bottom: var(--sp-3);
+  border-bottom: var(--rule) solid var(--line);
+  margin-bottom: var(--sp-5);
+}
+.brand {
+  font-family: var(--font-sans);
+  font-size: 13px; font-weight: 800; letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.brand .brand-neuro { color: var(--ink); }
+.brand .brand-sync { color: var(--ink); }
+.brand-tag {
+  font-size: var(--fs-meta); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--secondary);
+}
+.masthead .brand-right { margin-left: auto; font-size: var(--fs-meta); color: var(--secondary); letter-spacing: 0.04em; }
+
+/* ── Disclaimer ─────────────────────────────────────────── */
+.disclaimer {
+  font-size: var(--fs-meta);
+  line-height: 1.5;
+  color: var(--secondary);
+  max-width: 80ch;
+}
+
+/* ── ReportFooter ───────────────────────────────────────── */
+.report-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: var(--fs-meta); color: var(--secondary);
+  padding-top: var(--sp-2); border-top: var(--rule) solid var(--line);
+}
+.report-footer .num { letter-spacing: 0.04em; }
+
+/* ── Risk & Safety ──────────────────────────────────────── */
+.risk-current { padding-left: var(--sp-4); border-left: 2px solid var(--line-strong); }
+.risk-current .rc-assess { font-size: 12px; color: var(--ink); line-height: 1.55; }
+.risk-current .rc-quote { font-family: var(--font-sans); font-size: 12px; color: var(--ink); margin: var(--sp-2) 0; }
+.risk-lines { display: flex; flex-wrap: wrap; gap: var(--sp-6); margin-top: var(--sp-3); }
+.risk-lines .rl .rk { display:block; font-size: var(--fs-meta); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--secondary); margin-bottom: 2px; }
+.risk-lines .rl .rv { font-size: 11px; color: var(--ink); font-weight: 500; }
+.risk-flags { margin-top: var(--sp-5); }
+.risk-flag { display: grid; grid-template-columns: 14px 1fr; gap: var(--sp-2); padding: var(--sp-3) 0; border-top: var(--rule) solid var(--line); font-size: 10px; line-height: 1.62; }
+.risk-flag:first-child { border-top: 0; }
+.risk-flag .fdot { width: 7px; height: 7px; border-radius: 50%; margin-top: 4px; }
+.risk-flag.info .fdot { background: var(--secondary); }
+.risk-flag.attention .fdot { background: var(--warning); }
+.risk-flag.attention { color: var(--ink); }
+.risk-traj .tl-item { grid-template-columns: 74px 1fr; }
+.risk-traj .tl-date { font-size: 11px; white-space: nowrap; }
+
+/* ── Clinical Summary — Slot table ──────────────────────── */
+.slot-table { margin-top: var(--sp-3); }
+.slot-row {
+  display: grid; grid-template-columns: 96px 1fr 92px;
+  gap: var(--sp-3); padding: var(--sp-4) 0; border-top: var(--rule) solid var(--line);
+  align-items: baseline;
+}
+.slot-row:first-child { border-top: 0; }
+.slot-row .sl-k { font-size: 10px; font-weight: 600; color: var(--ink); }
+.slot-row .sl-v { font-size: 9.5px; line-height: 1.65; color: var(--ink); }
+.slot-row .sl-meta { text-align: right; }
+.slot-row .sl-src { font-size: var(--fs-meta); color: var(--secondary); display: block; }
+.slot-row .sl-chg { font-size: var(--fs-meta); color: var(--secondary); display: block; margin-top: 2px; }
+
+/* ── Surveys ────────────────────────────────────────────── */
+.survey-head { display: flex; align-items: baseline; gap: var(--sp-3); }
+.survey-head .sv-score { font-family: var(--font-sans); font-size: 22px; font-weight: 600; color: var(--primary); }
+.survey-head .sv-score .sv-max { font-size: 12px; color: var(--secondary); font-family: var(--font-sans); }
+.survey-head .sv-sev { font-size: 11px; color: var(--ink); font-weight: 500; }
+.survey-head .sv-when { margin-left: auto; font-size: var(--fs-meta); color: var(--secondary); }
+.phq-items { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2) var(--sp-5); margin-top: var(--sp-3); }
+.phq-item { display: grid; grid-template-columns: 1fr 40px; gap: var(--sp-2); align-items: center; padding: var(--sp-2) 0; border-top: var(--rule) solid var(--line); }
+.phq-item .pi-label { font-size: 9px; color: var(--ink); }
+.phq-item .pi-label .pi-no { color: var(--secondary); margin-right: 4px; }
+.phq-item .pi-bar { display: flex; gap: 2px; justify-content: flex-end; align-items: center; }
+.phq-item .pi-dot { width: 6px; height: 6px; border-radius: 1px; background: var(--line-strong); }
+.phq-item .pi-dot.on { background: var(--primary); }
+.phq-item.crit .pi-dot.on { background: var(--accent); }
+.phq-item .pi-num { font-size: 9px; color: var(--secondary); font-variant-numeric: tabular-nums; }
+
+/* ── Scale-change table ─────────────────────────────────── */
+.scale-table { margin-top: var(--sp-2); }
+.scale-row { display: block; padding: var(--sp-3) 0; border-top: var(--rule) solid var(--line); }
+.scale-row:first-child { border-top: 0; }
+.scale-row .sc-head { display: flex; align-items: baseline; gap: var(--sp-2); }
+.scale-row .sc-m { font-size: 10.5px; color: var(--ink); font-weight: 600; }
+.scale-row .sc-d { font-size: 9px; font-weight: 700; }
+.scale-row .sc-d.improved { color: var(--success); }
+.scale-row .sc-d.worsened { color: var(--accent); }
+.scale-row .sc-d.unchanged { color: var(--secondary); }
+.scale-row .sc-line { font-size: 10.5px; color: var(--ink); margin-top: 5px; }
+.scale-row .sc-val { font-weight: 600; font-variant-numeric: tabular-nums; }
+.scale-row .sc-when { color: var(--secondary); font-size: 8px; margin-left: 4px; }
+.scale-row .sc-arrow { color: var(--line-strong); margin: 0 10px; }
+.scale-row .sc-note { font-size: 8.5px; color: var(--secondary); margin-top: 4px; }
+.scale-notes { margin-top: var(--sp-3); font-size: var(--fs-meta); color: var(--secondary); }
+.scale-notes li { list-style: none; padding: 1px 0; }
+.scale-notes li::before { content: "· "; color: var(--line-strong); }
+
+/* ── Appendix · AI ranking ──────────────────────────────── */
+.apx-ranking .ar-title { font-size: var(--fs-meta); color: var(--secondary); margin-bottom: var(--sp-1); }
+.ar-row { display: grid; grid-template-columns: 64px 1fr 52px; gap: var(--sp-3); padding: var(--sp-2) 0; border-top: var(--rule) solid var(--line); align-items: baseline; }
+.ar-row:first-of-type { border-top: 0; }
+.ar-row .ar-rank { font-size: var(--fs-meta); color: var(--secondary); letter-spacing: 0.04em; }
+.ar-row .ar-name { font-size: 10px; color: var(--ink); }
+.ar-row .ar-score { font-size: 9.5px; color: var(--secondary); text-align: right; font-variant-numeric: tabular-nums; }
+.apx-ranking .ar-others { font-size: var(--fs-meta); color: var(--secondary); margin-top: var(--sp-2); }
+
+/* ── Appendix ───────────────────────────────────────────── */
+.apx-quote { padding-left: var(--sp-3); border-left: 2px solid var(--line-strong); margin-top: var(--sp-3); }
+.apx-quote .aq-k { font-size: var(--fs-meta); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--secondary); display: block; margin-bottom: 2px; }
+.apx-quote .aq-t { font-size: 9.5px; line-height: 1.55; color: var(--ink); }
+.apx-hist { margin-top: var(--sp-3); }
+.apx-hist .ah-slot { font-size: 10px; font-weight: 600; color: var(--ink); margin-top: var(--sp-3); padding-bottom: 2px; border-bottom: var(--rule) solid var(--line); }
+.apx-hist .ah-step { display: grid; grid-template-columns: 96px 1fr; gap: var(--sp-2); font-size: 8.5px; line-height: 1.65; padding: var(--sp-1) 0; color: var(--ink); }
+.apx-hist .ah-step .ah-s { color: var(--secondary); font-family: var(--font-mono); white-space: nowrap; }
+
+/* ── ActionItem (Page 5) ────────────────────────────────── */
+.action-list { margin-top: var(--sp-2); }
+.action-item {
+  display: grid; grid-template-columns: 30px 1fr; gap: var(--sp-4);
+  padding: var(--sp-5) 0; border-top: var(--rule) solid var(--line);
+}
+.action-item:first-child { border-top: 0; }
+.action-item .ai-no { font-family: var(--font-sans); font-size: 15px; color: var(--secondary); font-weight: 600; line-height: 1; }
+.action-item .ai-text { font-size: 11px; line-height: 1.65; color: var(--ink); }
+.action-item .ai-meta { display: flex; flex-wrap: wrap; gap: var(--sp-5); margin-top: var(--sp-2); }
+.ai-meta .m { font-size: var(--fs-meta); }
+.ai-meta .m .mk { color: var(--secondary); letter-spacing: var(--ls-label); text-transform: uppercase; margin-right: 5px; }
+.ai-meta .m .mv { color: var(--ink); font-weight: 600; }
+.ai-meta .m .mv.HIGH { color: var(--accent); }
+.ai-meta .m .mv.MEDIUM { color: var(--warning); }
+.ai-meta .m .mv.OPEN { color: var(--ink); }
+
+/* ── Care Routing / Audit (Page 5 lower) ────────────────── */
+.care-routing { margin-top: var(--sp-3); }
+.care-row { display: grid; grid-template-columns: 96px 1fr; gap: var(--sp-3); padding: var(--sp-3) 0; border-top: var(--rule) solid var(--line); }
+.care-row:first-child { border-top: 0; }
+.care-row .cr-dept { font-size: 11px; font-weight: 600; color: var(--ink); }
+.care-row .cr-reason { font-size: 9.5px; color: var(--ink); line-height: 1.6; }
+.care-note { font-size: var(--fs-meta); color: var(--secondary); margin-top: var(--sp-3); }
+.audit-meta {
+  margin-top: var(--sp-4); padding-top: var(--sp-2);
+  border-top: var(--rule) solid var(--line);
+  font-size: 7.5px; color: var(--faint, #9AA0A0); line-height: 1.6; letter-spacing: 0.03em;
+}
+.audit-meta .am-k { color: var(--secondary); letter-spacing: var(--ls-label); text-transform: uppercase; }
+
+/* ── EditorialTimeline (Page 3) ─────────────────────────── */
+.timeline { margin-top: var(--sp-2); }
+.tl-item {
+  display: grid; grid-template-columns: 66px 1fr; gap: var(--sp-4);
+  padding: var(--sp-4) 0; border-top: var(--rule) solid var(--line);
+  align-items: baseline;
+}
+.tl-item:first-child { border-top: 0; }
+.tl-when .tl-date { font-family: var(--font-sans); font-size: 12px; color: var(--ink); font-weight: 600; }
+.tl-when .tl-sess { font-size: var(--fs-meta); color: var(--secondary); letter-spacing: var(--ls-label); text-transform: uppercase; display: block; margin-top: 1px; }
+.tl-body .tl-change { font-size: 10.5px; line-height: 1.6; color: var(--ink); }
+.tl-body .tl-scale { font-size: var(--fs-meta); color: var(--secondary); margin-top: 2px; display: inline-block; }
+
+/* ── THEN / NOW ─────────────────────────────────────────── */
+.thennow { }
+.tn-block { padding-left: var(--sp-3); border-left: 2px solid var(--line-strong); }
+.tn-block.tn-now { border-left-color: var(--line-strong); margin-top: var(--sp-3); }
+.tn-block .tn-label {
+  font-size: var(--fs-section-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--secondary); font-weight: 700; margin-bottom: var(--sp-2);
+}
+.tn-block.tn-now .tn-label { color: var(--ink); }
+.tn-row { display: grid; grid-template-columns: 1fr auto; gap: var(--sp-2); padding: var(--sp-1) 0; align-items: baseline; }
+.tn-row .tn-k { font-size: 9px; color: var(--secondary); }
+.tn-row .tn-v { font-size: 11px; color: var(--ink); font-weight: 500; }
+.tn-block.tn-then .tn-v { color: var(--secondary); }
+.tn-v .tn-arrow { font-size: 8px; margin-left: 4px; }
+.tn-v .tn-arrow.improved { color: var(--success); }
+.tn-v .tn-arrow.worsened { color: var(--accent); }
+.tn-divider { text-align: center; color: var(--line-strong); font-size: 12px; margin: var(--sp-2) 0; }
+
+/* ── Narrative blocks (Page 2 left column) ──────────────── */
+.narr-block { margin-top: var(--sp-5); }
+.narr-block:first-of-type { margin-top: var(--sp-4); }
+.narr-block .nk {
+  font-size: var(--fs-section-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--secondary); font-weight: 600;
+  display: block; margin-bottom: var(--sp-2);
+}
+.narr-block p { margin: 0; font-size: 10.5px; line-height: 1.72; max-width: 58ch; }
+
+/* ── ClinicalQuote (accent line + 여백, 큰 따옴표 X) ─────── */
+.clinical-quote { margin-top: var(--sp-6); padding-left: var(--sp-4); border-left: 2px solid var(--line-strong); }
+.clinical-quote .cq-eyebrow {
+  font-size: var(--fs-section-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--secondary); font-weight: 700;
+}
+.clinical-quote .cq-text {
+  font-family: var(--font-serif); font-size: 14px; line-height: 1.6;
+  color: var(--ink); margin: var(--sp-2) 0 var(--sp-2);
+}
+.clinical-quote .cq-attr { font-size: var(--fs-meta); color: var(--secondary); letter-spacing: 0.04em; }
+
+/* ── AnnotationRail (Page 2 right column) ───────────────── */
+.annotation-rail { }
+.annotation-rail .rail-title {
+  font-size: var(--fs-section-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--secondary); font-weight: 600;
+  padding-bottom: var(--sp-2); border-bottom: var(--rule) solid var(--line-strong);
+  margin-bottom: var(--sp-1);
+}
+.rail-item { padding: var(--sp-4) 0; border-top: var(--rule) solid var(--line); }
+.rail-item:first-of-type { border-top: 0; }
+.rail-item .rk {
+  font-size: var(--fs-meta); letter-spacing: var(--ls-label); text-transform: uppercase;
+  color: var(--secondary); display: block; margin-bottom: 3px;
+}
+.rail-item .rv { font-size: 9.5px; line-height: 1.6; color: var(--ink); }
+.rail-item .rsrc { font-size: 7.5px; color: var(--faint, #9AA0A0); margin-top: 3px; display: block; }
+
+/* ── Running head (inner pages) ─────────────────────────── */
+.running-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding-bottom: var(--sp-2);
+  border-bottom: var(--rule) solid var(--line);
+  margin-bottom: var(--sp-6);
+  font-size: var(--fs-meta); color: var(--secondary); letter-spacing: 0.04em;
+}
+.running-head .brand { font-size: 11px; }
+
+/* ── Section head (번호 + 제목) ─────────────────────────── */
+.section-head { display: flex; align-items: flex-start; gap: var(--sp-4); }
+.page-title {
+  font-family: var(--font-sans);
+  font-size: var(--fs-page-title); font-weight: 700; color: var(--primary);
+  margin: 2px 0 0; line-height: 1.2;
+}
+.lead-sm {
+  font-size: 13px; line-height: 1.55; color: var(--ink);
+  max-width: 66ch; margin-top: var(--sp-4);
+}
+
+/* ── Current / Baseline / Change ────────────────────────── */
+.cbc { display: grid; grid-template-columns: repeat(3, max-content); gap: var(--sp-8); margin-top: var(--sp-4); }
+.cbc .cbc-k {
+  font-size: var(--fs-section-label); letter-spacing: var(--ls-label);
+  text-transform: uppercase; color: var(--secondary); margin-bottom: 2px;
+}
+.cbc .cbc-v { font-family: var(--font-sans); font-size: 15px; color: var(--ink); font-weight: 600; }
+.cbc .cbc-v.chg { color: var(--success); }
+
+/* ── FigureBlock ────────────────────────────────────────── */
+.figure-block { margin: var(--sp-5) 0 0; }
+.figure-block img { display: block; width: 100%; height: auto; }
+.figure-block figcaption {
+  margin-top: var(--sp-3); padding-top: var(--sp-2);
+  border-top: var(--rule) solid var(--line);
+  font-size: var(--fs-caption); color: var(--secondary); line-height: 1.5;
+}
+.figure-block .fig-id {
+  font-family: var(--font-mono); font-weight: 700; color: var(--secondary);
+  letter-spacing: 0.06em; margin-right: var(--sp-2);
+}
+.figure-block .fig-src { display: block; color: var(--faint, #9AA0A0); margin-top: 2px; }
+.fig-note {
+  margin-top: var(--sp-2); font-size: var(--fs-caption); color: var(--secondary);
+}
+.fig-note .swatch {
+  display: inline-block; width: 9px; height: 9px; vertical-align: -1px;
+  background: var(--accent); opacity: 0.13; margin-right: 3px;
+}
+.minor-note { margin-top: var(--sp-5); font-size: var(--fs-meta); color: var(--secondary); }
+
+/* ── Stub pages (Steps 2–5, placeholder) ────────────────── */
+.stub {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 60mm; color: var(--line-strong);
+  font-size: var(--fs-body); letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+}
+
+/* ── Editorial refinement (calm clinical) ───────────────── */
+.section-head .section-label { display: none; }   /* 영문 kicker 제거 */
+.section-head { gap: 0; }
+.page-title { font-size: 19px; font-weight: 700; color: var(--primary); letter-spacing: -0.01em; }
+.metrics { display: flex; gap: var(--sp-8); }       /* 3지표 flex, 카드 아님 */
+.metric { flex: 1; }
+.report-title { font-size: 25px; }
+
+/* ── MetricScale — 점수 척도 게이지 (범위·밴드·현재위치·근거) ── */
+.m-scale { margin-top: var(--sp-3); }
+.m-scale-bar {
+  position: relative; display: flex; height: 6px;
+  border-radius: 2px; overflow: hidden; background: #EFF0EC;
+}
+.m-scale-bar .seg { height: 100%; }
+.m-scale-bar .m-marker {
+  position: absolute; top: -3px; width: 0; height: 0;
+  border-left: 3.5px solid transparent; border-right: 3.5px solid transparent;
+  border-top: 5px solid var(--ink); transform: translateX(-3.5px);
+}
+.m-scale-ticks {
+  display: flex; justify-content: space-between;
+  font-size: 7px; color: var(--secondary); margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+}
+.m-basis { font-size: 7.5px; color: var(--secondary); margin-top: 4px; }
+.m-basis .cur { color: var(--ink); font-weight: 600; }
+
+.fig-note .axkey { font-weight: 700; color: var(--secondary); letter-spacing: 0.06em; margin-right: 4px; }

@@ -18,6 +18,7 @@ import httpx
 from contracts.chat import ChatRequest, ChatResponse
 from contracts.domain import DomainInferRequest, DomainInferResponse
 from contracts.handoff import HandoffRequest, HandoffResponse
+from contracts.longitudinal import HandoffReportRequest, HandoffReportResponse
 from contracts.nearby import NearbyHospitalsResponse
 from contracts.ocr import OCRParseResponse
 from contracts.safety import SafetyRequest, SafetyResponse
@@ -122,6 +123,19 @@ class AIClient:
         return await self._post(
             "/ai/handoff/generate",
             HandoffResponse,
+            payload,
+            timeout=self._settings.ai_handoff_timeout_seconds,
+        )
+
+    async def handoff_report(
+        self, payload: HandoffReportRequest
+    ) -> HandoffReportResponse:
+        """POST /ai/handoff/report. 결정론적(LLM 없음) F4+F5 통합 리포트 —
+        12섹션 markdown + HL7 FHIR + editorial PDF + F4 차트. PDF/차트 렌더가
+        있어 handoff_generate와 동일한 넉넉한 예산을 쓴다."""
+        return await self._post(
+            "/ai/handoff/report",
+            HandoffReportResponse,
             payload,
             timeout=self._settings.ai_handoff_timeout_seconds,
         )

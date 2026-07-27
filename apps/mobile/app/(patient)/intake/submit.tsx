@@ -41,7 +41,10 @@ export default function SubmitScreen() {
       if (params.result && params.instrument) {
         try {
           const result = JSON.parse(params.result) as QuestionnaireResult;
-          addRecord(result, params.instrument as QuestionnaireType);
+          // sessionId를 기록에 실어 리포트 상세에서 F4/F5(추이·요약)를 서버 조회
+          // 할 수 있게 한다(세션 리셋 후에도). 여기 sessionId는 방금 submitSession에
+          // 사용한 값과 동일 — 제출된 바로 그 세션이다.
+          addRecord(result, params.instrument as QuestionnaireType, sessionId);
         } catch {
           // 파싱 실패는 기록 누락일 뿐, 제출 흐름은 계속한다.
         }
