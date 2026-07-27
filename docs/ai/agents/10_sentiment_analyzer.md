@@ -1,6 +1,6 @@
 # Agent 10: Sentiment Analyzer Agent
 
-> **번호 재부여 2026-07-20 (wave-6, 사용자 directive):** 구 Agent 13(`13_sentiment_analyzer.md`).
+> **번호 재부여 2026-07-20 (wave-6, 사용자 directive):** 구 Agent 13(`13_sentiment_analyzer.md`). 구번호 원본 파일은 2026-07-27 사용자 directive로 파기 — 스펙 번호 재정립: 01–11 = `apps/ai-server/prompts/` 최종 구성과 1:1.
 > old→new 전체 매핑은 `docs/ai/agent_collaboration_f1f5.md`의 번호 체계 표를 참조.
 > 이번 작업에서 이 번호 재부여보다 앞서 존재하던 stale downstream-agent 참조 2건
 > (`TemporalSummaryAgent`, `HandoffGeneratorAgent`)도 함께 정정했다 — 아래 inline note 참조.
