@@ -7,9 +7,10 @@
  *
  * MOCK=0: `GET /api/v1/sessions`(본인 세션 목록 — id/status/createdAt/
  * progress/리포트 유무) 실호출로 교체한다. 서버가 내려주는 필드가 세션
- * 요약뿐(문진 점수·중증도는 없음)이라 렌더링은 목업 피드보다 얇다 — 문진
- * 결과 상세(`/report/detail`)는 여전히 `state/records.ts` 스토어만 바라보는
- * mock 전용 화면이라(§6-B 배포 전) 실모드 행은 상세로 연결하지 않는다.
+ * 요약뿐(문진 점수·중증도는 없음)이라 렌더링은 목업 피드보다 얇다 — 리포트가
+ * 있는 세션(`hasReport`)만 `sessionId`로 상세(`/report/detail`)로 연결한다
+ * (G2 — 상세 화면이 서버 조회 경로를 지원한 이후 현행화; 서버 리포트 요약
+ * 조회는 `state/records.ts` 로컬 스토어 없이도 동작한다).
  */
 
 import { router } from "expo-router";

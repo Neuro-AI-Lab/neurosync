@@ -7,7 +7,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-import { ACCESS_COOKIE, REFRESH_COOKIE, USER_COOKIE } from "./config";
+import { ACCESS_COOKIE, REFRESH_COOKIE, TLS_EXEMPT, USER_COOKIE } from "./config";
 
 export type SessionUser = {
   userId: string;
@@ -17,7 +17,12 @@ export type SessionUser = {
 
 const COMMON_COOKIE_OPTS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  // `Secure` requires the browser's own connection to this app be https.
+  // Under the closed-network DGX demo exemption (API_TLS_EXEMPT=1, see
+  // lib/config.ts) the web frontend itself is served over plain http, so a
+  // `Secure` cookie would never round-trip back and login would silently
+  // fail to persist — same underlying no-TLS condition as the API guard.
+  secure: process.env.NODE_ENV === "production" && !TLS_EXEMPT,
   sameSite: "lax",
   path: "/",
 } as const;

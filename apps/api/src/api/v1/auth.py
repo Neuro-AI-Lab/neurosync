@@ -238,7 +238,14 @@ async def register(
             aad=_profile_aad(user.id, "emergency_contact"),
             settings=settings,
         ),
-        target_hospital_id=payload.target_hospital_id,
+        # G3 fix: request value always wins; otherwise fall back to the
+        # operator-configured default org (settings.default_target_hospital_id,
+        # None by default = prior NULL behavior). See config.py docstring.
+        target_hospital_id=(
+            payload.target_hospital_id
+            if payload.target_hospital_id is not None
+            else settings.default_target_hospital_id
+        ),
         # v3 수정 1 — 확장 인적사항(선택). 비-PII 범주형이라 평문 저장.
         marital_status=payload.marital_status,
         household_type=payload.household_type,

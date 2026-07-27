@@ -5,9 +5,11 @@
  * 가능, v3 원칙 1 가드레일)와 Handoff 리포트 미니 프리뷰를 보여준다.
  * AI 추정 질환명·도메인은 어디에도 표시하지 않는다.
  *
- * [전달하기] (FR-047): 실백엔드는 §6-B(보관→전달) 배포 전이므로 실모드에서는
- * 버튼을 비노출한다(PRD §3.2 이중 전달 방지 가드). MOCK 모드에서만 로컬 상태
- * 전이(보관→전달됨)로 플로우를 시연한다.
+ * [전달하기] (FR-047): §6-B(보관→전달)는 배포되어 있다 — LIVE 모드는 서버
+ * 리포트 요약(`report/summary`)의 `delivered`/`ready` 상태로 노출을 결정한다
+ * (로컬 zustand 레코드는 persist가 없어 재실행·기록탭 경로에서 사라지므로
+ * 노출 판단 기준으로 쓰지 않는다 — `state/records.ts` 참고). MOCK 모드는
+ * 여전히 로컬 상태 전이(보관→전달됨)로 플로우를 시연한다.
  */
 
 import * as FileSystem from "expo-file-system/legacy";
@@ -86,12 +88,13 @@ export default function ReportDetailScreen() {
     };
   }, [accessToken, effectiveSessionId]);
 
-  // FR-047 · §6-B — 수동 전달. MOCK은 로컬 상태만 전이, 실모드는 서버에 전달 후
-  // 로컬 반영. 실모드는 세션 id가 있어야 전달 대상이 특정된다.
+  // FR-047 · §6-B — 수동 전달. MOCK은 로컬 상태만 전이. 실모드는 서버에 전달 후
+  // 서버 상태(summary.delivered)를 갱신한다 — 로컬 레코드(record)가 없는
+  // 기록탭 경로(sessionId만 전달)에서도 동작해야 한다.
   const [delivering, setDelivering] = useState(false);
   const onDeliver = async () => {
-    if (!record) return;
     if (MOCK) {
+      if (!record) return;
       markDelivered(record.id);
       return;
     }
@@ -99,7 +102,8 @@ export default function ReportDetailScreen() {
     setDelivering(true);
     try {
       await deliverReport(accessToken, effectiveSessionId);
-      markDelivered(record.id);
+      if (record) markDelivered(record.id);
+      setSummary((s) => (s ? { ...s, delivered: true } : s));
     } catch (e) {
       Alert.alert(
         "전달하지 못했어요",
@@ -276,16 +280,22 @@ export default function ReportDetailScreen() {
 
         <View style={{ flex: 1 }} />
 
-        {/* FR-047 · §6-B — 보관 중인 리포트를 [전달하기]. 로컬 레코드(방금 제출한
-            인테이크)가 보관 상태일 때만 노출. 과거 기록 서버조회 열람은 읽기 전용. */}
-        {record && record.status === "stored" && (MOCK || effectiveSessionId) ? (
+        {/* FR-047 · §6-B — 보관 중인 리포트를 [전달하기]. MOCK은 로컬 레코드
+            상태로, LIVE는 서버 요약(summary.ready && !summary.delivered)으로
+            노출을 판단한다 — 로컬 레코드가 없는 기록탭 경로(sessionId만
+            전달)에서도 동작해야 이중 전달 방지 가드가 유지된다. */}
+        {(
+          MOCK
+            ? record && record.status === "stored"
+            : effectiveSessionId && summary?.ready && !summary?.delivered
+        ) ? (
           <Button
             label="의료진에게 전달하기"
             onPress={() => void onDeliver()}
             loading={delivering}
           />
         ) : null}
-        {record && record.status === "delivered" ? (
+        {(MOCK ? record && record.status === "delivered" : effectiveSessionId && summary?.delivered) ? (
           <Text style={styles.deliveredNote}>의료진에게 전달됐어요. 진료 때 함께 확인해요.</Text>
         ) : null}
       </ScrollView>

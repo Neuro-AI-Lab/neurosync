@@ -13,6 +13,11 @@
 #     with any compose project or container already on the DGX.
 #   - External port 24855 is the allocated ai-server port. Backend base URL:
 #     http://223.194.33.26:24855  (container listens on 8001, Dockerfile CMD).
+#   - External port 24858 for `web` (this file) is a PLACEHOLDER, not yet
+#     confirmed by NAT reconnaissance (parallel to the 24856/24857 correction
+#     below) — kept as a compose variable (WEB_EXTERNAL_PORT) so the operator
+#     can override it with one env value, no compose edit, once the real port
+#     is confirmed.
 #   - External port 24857 is the allocated api port (corrected 2026-07-26,
 #     see docs/ai/deployment_integration_plan.md §3 — the operator confirmed
 #     external 24856 is already NAT-routed to the DGX host's SSH port 22, not
@@ -25,15 +30,17 @@
 #     block needs to change — no code change required.
 #   - All secrets come from each service's own .env via env_file at RUN time;
 #     the images never contain .env (root .dockerignore excludes it). The
-#     operator places both apps/ai-server/.env and apps/api/.env on the DGX
-#     before `up`. ENCRYPTION_KEY MUST be byte-identical across the two .env
-#     files — see docs/ai/deployment_integration_plan.md §6b (ENCRYPTION_KEY
-#     SOP) before first boot.
+#     operator places apps/ai-server/.env, apps/api/.env, AND apps/web/.env
+#     (see apps/web/.env.example) on the DGX before `up`. ENCRYPTION_KEY MUST
+#     be byte-identical across the ai-server/api .env files — see
+#     docs/ai/deployment_integration_plan.md §6b (ENCRYPTION_KEY SOP) before
+#     first boot.
 #
 # Run from repo root on the DGX:
 #   docker compose -f infra/deploy/docker-compose.dgx.yml up -d --build
 #   curl -s localhost:24855/health   # ai-server
 #   curl -s localhost:24857/health   # api
+#   curl -s -I localhost:24858/login # web (placeholder port, no /health route)
 #
 # DB reachability: DATABASE_URL in each .env points at 223.194.33.26:28881. If
 # a container cannot hairpin through the host's external IP, change only the
@@ -111,4 +118,40 @@ services:
       - "host.docker.internal:host-gateway"
     depends_on:
       - ai-server
+    restart: unless-stopped
+
+  web:
+    # Clinician dashboard (apps/web, Next.js standalone). All calls to
+    # API_BASE_URL happen server-side only — apps/web/lib/api.ts (the sole
+    # caller of API_BASE_URL) is imported only by server components
+    # (app/dashboard/page.tsx) and Next.js route handlers
+    # (app/api/auth/{login,logout}/route.ts); the two client-side fetch()
+    # call sites (components/DashboardHeader.tsx, app/login/LoginForm.tsx)
+    # target same-origin `/api/auth/...` paths on this container, never the
+    # backend directly. The browser therefore never talks to `api`, so
+    # API_BASE_URL is wired to the internal compose network (same-project
+    # service-name resolution) instead of the external NAT address —
+    # cheaper and avoids a hairpin round-trip, same reasoning as
+    # AI_SERVER_URL below the api service above.
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    container_name: ns-web-dgx
+    env_file:
+      - ../../apps/web/.env
+    environment:
+      NODE_ENV: production
+      API_BASE_URL: http://api:8000
+      # Closed-network demo only (apps/web/lib/config.ts::assertProductionTLS,
+      # apps/web/lib/auth.ts cookie Secure flag) — this compose file serves
+      # both api and web over plain http on an isolated demo network with no
+      # TLS termination anywhere in front of them. Never set this for an
+      # internet-reachable deployment.
+      API_TLS_EXEMPT: "1"
+    ports:
+      - "${WEB_EXTERNAL_PORT:-24858}:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - api
     restart: unless-stopped

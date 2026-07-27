@@ -473,6 +473,10 @@ export type ReportSummary = {
   selfReported?: ReportSelfReported[];
   questionnaires?: ReportQuestionnaire[];
   disclaimer?: string;
+  /** G2 — server-side delivered state (delivered_at != null). Drives the
+   * LIVE-mode "전달하기" button instead of the non-persisted local record. */
+  delivered?: boolean;
+  deliveredAt?: string | null;
 };
 
 /**

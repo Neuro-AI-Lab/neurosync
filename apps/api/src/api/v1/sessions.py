@@ -645,6 +645,15 @@ async def get_report_summary(
             "hasPdf": bool(
                 isinstance(report.content, dict) and report.content.get("pdf_base64")
             ),
+            # G2 fix — server-side delivered state so the mobile "전달하기"
+            # button can key off it instead of a non-persisted zustand
+            # record (`state/records.ts`, no persist middleware). Mirrors
+            # POST /report/deliver's own idempotent delivered_at semantics
+            # (sessions.py `deliver_report`).
+            "delivered": report.delivered_at is not None,
+            "deliveredAt": (
+                report.delivered_at.isoformat() if report.delivered_at else None
+            ),
         },
     }
 
