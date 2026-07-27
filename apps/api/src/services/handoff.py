@@ -207,6 +207,34 @@ _SCALE_PRIORITY = ("PHQ9", "GAD7", "AUDITC", "PHQ4")
 _RISK_TO_CTRS = {"critical": 1, "high": 2, "medium": 3, "low": 4, "none": 5}
 
 
+def _display_vp(patient_id: uuid.UUID) -> str:
+    """리포트 표시용 환자 코드. 원본 DB UUID는 개발자 정보라 노출 금지 —
+    editorial 렌더의 `patient.id`·F4 차트 제목·FHIR `id`가 모두 vp_id를 그대로
+    쓰므로, 여기서 비가역 축약 코드(`VP-XXXXXX`)로 바꿔 UUID 누출을 차단한다.
+    템플릿의 VP-XXX 관례와도 맞아 build_report_json의 reportNo 파싱이 그대로 동작."""
+    return f"VP-{patient_id.hex[:6].upper()}"
+
+
+async def _patient_display_name(
+    db: AsyncSession, patient_id: uuid.UUID
+) -> str | None:
+    """환자 실명(AES-256 복호화). F5 A0 헤더 `환자: {persona_name}`에 실려
+    editorial 렌더에서 `mask()`로 마스킹 표기된다(예: 김서연→김○연). 프로필/키가
+    없으면 None → F5는 '이름 없음'으로 우아하게 degrade(UUID 노출 없음)."""
+    row = await db.execute(
+        select(PatientProfile.name_encrypted).where(
+            PatientProfile.user_id == patient_id
+        )
+    )
+    enc = row.scalar_one_or_none()
+    if enc is None:
+        return None
+    try:
+        return decrypt_str(enc, aad=_profile_aad(patient_id, "name"))
+    except Exception:
+        return None
+
+
 async def _build_longitudinal_sessions(
     db: AsyncSession, patient_id: uuid.UUID
 ) -> list[LongitudinalSessionEntry]:
@@ -221,6 +249,10 @@ async def _build_longitudinal_sessions(
         .order_by(Session.created_at)
     )
     sessions = list(srows.scalars())
+
+    # 환자 표시 정체성(실명 마스킹용 + 비-UUID 코드) — F5 A0 헤더/차트/FHIR가 소비.
+    display_name = await _patient_display_name(db, patient_id)
+    display_vp = _display_vp(patient_id)
 
     entries: list[LongitudinalSessionEntry] = []
     idx = 0
@@ -281,6 +313,8 @@ async def _build_longitudinal_sessions(
                 risk_assessment=risk_assessment,
                 f3=f3,
                 session_id=str(sess.id),
+                persona_name=display_name,
+                persona_id=display_vp,
             )
         )
         idx += 1
@@ -313,7 +347,7 @@ async def generate_report_task(
             if len(entries) >= 2:
                 # 사용자 고도화 F4+F5 풀 리포트 (결정론적, PDF/FHIR/차트 포함).
                 report_req = HandoffReportRequest(
-                    vp_id=str(patient_id),
+                    vp_id=_display_vp(patient_id),
                     sessions=entries,
                     domain_inference=DomainInferenceInput(),
                     include_charts=True,

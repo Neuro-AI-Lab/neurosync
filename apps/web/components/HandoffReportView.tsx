@@ -96,28 +96,57 @@ function EvidenceRow({ e }: { e: EvidencePacket }) {
 function Narrative({ n }: { n: HandoffNarrative }) {
   return (
     <dl className="flex flex-col gap-4">
-      <div className="flex flex-col gap-0.5">
-        <dt className="text-xs font-semibold text-text-secondary">리포트</dt>
-        <dd className="text-text-primary whitespace-pre-wrap">{n.report_markdown}</dd>
-      </div>
-
-      {/* F5 풀 리포트: editorial PDF 다운로드 (있을 때만) */}
+      {/* 의료진용 핸드오프: editorial PDF가 있으면 페이지에 인라인 렌더(1차 뷰),
+          raw markdown 은 접이식 원문으로 내린다. PDF가 없는 리포트(단일세션 서사
+          폴백 등)에서만 markdown 을 본문으로 표시. */}
       {n.pdf_base64 ? (
-        <div className="flex flex-col gap-1">
-          <dt className="text-[11px] font-medium uppercase tracking-wide text-faint">
-            인계 보고서 PDF
-          </dt>
-          <dd>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <dt className="text-xs font-semibold text-text-secondary">의료진 인계 보고서</dt>
             <a
               href={`data:application/pdf;base64,${n.pdf_base64}`}
               download="handoff_report.pdf"
-              className="inline-flex items-center rounded-md border border-line px-3 py-1.5 text-sm font-medium text-text-primary hover:bg-surface-hover"
+              className="inline-flex items-center rounded-md border border-line px-3 py-1.5 text-sm font-medium text-text-primary hover:bg-surface-hover print:hidden"
             >
               PDF 다운로드
             </a>
+          </div>
+          <dd>
+            <object
+              data={`data:application/pdf;base64,${n.pdf_base64}`}
+              type="application/pdf"
+              className="w-full h-[1000px] rounded-lg border border-border bg-surface-elevated"
+              aria-label="의료진 인계 보고서 PDF"
+            >
+              <p className="p-4 text-sm text-text-secondary">
+                이 브라우저에서 PDF를 인라인으로 표시할 수 없어요.{" "}
+                <a
+                  href={`data:application/pdf;base64,${n.pdf_base64}`}
+                  download="handoff_report.pdf"
+                  className="underline"
+                >
+                  PDF 다운로드
+                </a>
+              </p>
+            </object>
           </dd>
+          {n.report_markdown ? (
+            <details className="mt-1">
+              <summary className="cursor-pointer text-[11px] font-medium uppercase tracking-wide text-faint">
+                원문 (markdown)
+              </summary>
+              <pre className="mt-2 whitespace-pre-wrap text-[13px] leading-relaxed text-text-secondary">
+                {n.report_markdown}
+              </pre>
+            </details>
+          ) : null}
         </div>
-      ) : null}
+      ) : (
+        <div className="flex flex-col gap-0.5">
+          <dt className="text-xs font-semibold text-text-secondary">리포트</dt>
+          <dd className="text-text-primary whitespace-pre-wrap">{n.report_markdown}</dd>
+        </div>
+      )}
 
       {/* F4 종단 차트 (있을 때만) */}
       {n.chart_pngs_base64 && n.chart_pngs_base64.length > 0 ? (

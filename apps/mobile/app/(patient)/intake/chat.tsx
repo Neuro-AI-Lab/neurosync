@@ -75,6 +75,8 @@ export default function ChatScreen() {
   const setRisk = useSession((s) => s.setRisk);
   const setProgress = useSession((s) => s.setProgress);
   const clearRisk = useSession((s) => s.clearRisk);
+  const pendingInjection = useSession((s) => s.pendingInjection);
+  const clearPendingInjection = useSession((s) => s.clearPendingInjection);
 
   // 키보드 높이를 직접 측정해 입력창을 밀어올린다(KeyboardAvoidingView가 이
   // 구성에서 불안정해 결정적 방식으로 대체). 컨테이너 하단 패딩 = 키보드 높이.
@@ -324,24 +326,37 @@ export default function ChatScreen() {
     if (status !== "open") setAwaitingAi(false);
   }, [status]);
 
-  const onSend = () => {
-    const content = draft.trim();
-    if (!content || !clientRef.current) return;
-    if (status !== "open") return;
+  // 낙관적 버블 + WS 전송 공통 경로. 성공 시 true. draft 지우기는 호출측 책임.
+  const sendContent = (content: string): boolean => {
+    if (!content || !clientRef.current || status !== "open") return false;
     // Insert AFTER we confirm the socket is ready, to avoid orphan optimistic bubbles.
     const idempotencyKey = Crypto.randomUUID();
     const sent = clientRef.current.sendMessage({ content, idempotencyKey });
-    if (!sent) return;
+    if (!sent) return false;
     addUserMessage({
       id: idempotencyKey,
       role: "user",
       content,
       sentAt: Date.now(),
     });
-    setDraft("");
     setMediumBanner(null);
     setAwaitingAi(true); // AI 응답 대기 — "입력 중…" 표시
+    return true;
   };
+
+  const onSend = () => {
+    if (sendContent(draft.trim())) setDraft("");
+  };
+
+  // FR-048 — OCR 확인([확인 완료])이 큐잉한 요약을 소켓 open 시 사용자 메시지로
+  // 흘려보낸다. F1이 인지·응답하고 conversation_history(→리포트)에 남는다.
+  // 소켓이 아직 닫혀 있으면 큐를 유지했다가 open되는 즉시 전송된다.
+  useEffect(() => {
+    if (!pendingInjection || status !== "open") return;
+    if (sendContent(pendingInjection)) clearPendingInjection();
+    // sendContent는 매 렌더 새로 만들어지므로 deps에서 제외(전송은 멱등키로 1회).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingInjection, status]);
 
   const statusLabel = useMemo<string>(() => {
     switch (status) {
