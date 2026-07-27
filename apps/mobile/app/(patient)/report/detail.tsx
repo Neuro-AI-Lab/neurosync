@@ -36,16 +36,29 @@ import { useAuth } from "../../../state/auth";
 import { SEVERITY_KO, STATUS_KO, useRecords } from "../../../state/records";
 import { useSession } from "../../../state/session";
 
+// 척도명 → 만점 (서버 요약 기반 표시용, 로컬 레코드 없을 때).
+const _SCALE_MAX: Record<string, number> = {
+  "PHQ-9": 27,
+  "GAD-7": 21,
+  "AUDIT-C": 12,
+  "PHQ-4": 12,
+};
+
 export default function ReportDetailScreen() {
   const insets = useSafeAreaInsets();
-  const { recordId } = useLocalSearchParams<{ recordId?: string }>();
+  // recordId: 인테이크/mock 흐름의 로컬 레코드. sessionId: 기록 탭(실모드)에서
+  // 과거 세션을 서버 조회로 여는 경로 — 로컬 레코드가 없어도 상세를 볼 수 있다.
+  const { recordId, sessionId: sessionIdParam } = useLocalSearchParams<{
+    recordId?: string;
+    sessionId?: string;
+  }>();
   const record = useRecords((s) => s.records.find((r) => r.id === recordId));
   const markDelivered = useRecords((s) => s.markDelivered);
   const accessToken = useAuth((s) => s.accessToken);
   const storeSessionId = useSession((s) => s.sessionId);
-  // 세션 리셋 후에도 상세를 열 수 있도록, 레코드에 실린 sessionId를 우선 사용하고
-  // 없으면 현재 세션 스토어 값으로 폴백한다.
-  const effectiveSessionId = record?.sessionId ?? storeSessionId;
+  // 레코드에 실린 sessionId > 파라미터로 넘어온 sessionId(과거 기록 조회) >
+  // 현재 세션 스토어 순으로 사용한다.
+  const effectiveSessionId = record?.sessionId ?? sessionIdParam ?? storeSessionId;
 
   // 점수 추이 (수정 7 · F4). 실 API에서 세션 id로 조회한다. mock 모드에서는
   // 가짜 추이를 띄우지 않는다 — 실데이터 연동(§6-A) 후에만 표시한다. 세션 id가
@@ -128,7 +141,8 @@ export default function ReportDetailScreen() {
     }
   };
 
-  if (!record) {
+  // 로컬 레코드도, 서버 조회용 세션 id도 없으면 열 수 없다.
+  if (!record && !effectiveSessionId) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.surface }}>
         <NavBar title="리포트" backLabel="뒤로" onBack={() => router.back()} />
@@ -139,10 +153,37 @@ export default function ReportDetailScreen() {
     );
   }
 
-  const d = new Date(record.completedAt);
+  // 서버 조회 모드(레코드 없음)에서는 아직 요약 로딩 전일 수 있다.
+  if (!record && !summary) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.surface }}>
+        <NavBar title="리포트" backLabel="뒤로" onBack={() => router.back()} />
+        <View style={styles.empty}>
+          <Text style={styles.emptyText}>리포트를 불러오는 중이에요…</Text>
+        </View>
+      </View>
+    );
+  }
+
+  // 점수·날짜 표시값: 로컬 레코드가 있으면 그걸, 없으면 서버 요약의 대표 설문을 쓴다.
+  const primaryQ = summary?.questionnaires?.[0];
+  const dateEpoch = record
+    ? record.completedAt
+    : summary?.generatedAt
+      ? Date.parse(summary.generatedAt)
+      : Date.now();
+  const d = new Date(dateEpoch);
   const dateLabel = `${d.getFullYear()} · ${String(d.getMonth() + 1).padStart(2, "0")} · ${String(
     d.getDate(),
   ).padStart(2, "0")}`;
+  const scoreNum = record ? record.totalScore : primaryQ?.totalScore ?? null;
+  const scoreMaxN = record ? record.maxScore : _SCALE_MAX[primaryQ?.scale ?? ""] ?? null;
+  const scoreLabel = record
+    ? `${SURVEYS[record.instrument].toolLabel} · ${SEVERITY_KO[record.severity] ?? record.severity}`
+    : primaryQ
+      ? `${primaryQ.scale} · ${primaryQ.severityLabel}`
+      : "";
+  const statusText = record ? STATUS_KO[record.status] : summary?.ready ? "리포트 있음" : "생성 중";
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
@@ -158,21 +199,20 @@ export default function ReportDetailScreen() {
           </View>
           <View style={styles.pill}>
             <View style={styles.pillDot} />
-            <Text style={styles.pillText}>{STATUS_KO[record.status]}</Text>
+            <Text style={styles.pillText}>{statusText}</Text>
           </View>
         </View>
 
         {/* 점수 — 환자 본인 응답 기반이라 노출 가능 (원칙 1 가드레일) */}
-        <View style={styles.scoreCard}>
-          <Text style={styles.scoreNum}>
-            {record.totalScore}
-            <Text style={styles.scoreMax}> /{record.maxScore}</Text>
-          </Text>
-          <Text style={styles.scoreLabel}>
-            {SURVEYS[record.instrument].toolLabel} ·{" "}
-            {SEVERITY_KO[record.severity] ?? record.severity}
-          </Text>
-        </View>
+        {scoreNum != null ? (
+          <View style={styles.scoreCard}>
+            <Text style={styles.scoreNum}>
+              {scoreNum}
+              {scoreMaxN != null ? <Text style={styles.scoreMax}> /{scoreMaxN}</Text> : null}
+            </Text>
+            <Text style={styles.scoreLabel}>{scoreLabel}</Text>
+          </View>
+        ) : null}
 
         {/* 점수 추이 차트 (수정 7 · F4 plot_data). 비교할 이전 방문이 있을 때만. */}
         {trend && trend.plotData.length >= 2 ? (
@@ -236,16 +276,16 @@ export default function ReportDetailScreen() {
 
         <View style={{ flex: 1 }} />
 
-        {/* FR-047 · §6-B — 보관 중인 리포트를 [전달하기]. 실모드는 전달 대상
-            세션 id가 있을 때만 노출(과거 이력 실연동은 §6-A 후속). */}
-        {record.status === "stored" && (MOCK || effectiveSessionId) ? (
+        {/* FR-047 · §6-B — 보관 중인 리포트를 [전달하기]. 로컬 레코드(방금 제출한
+            인테이크)가 보관 상태일 때만 노출. 과거 기록 서버조회 열람은 읽기 전용. */}
+        {record && record.status === "stored" && (MOCK || effectiveSessionId) ? (
           <Button
             label="의료진에게 전달하기"
             onPress={() => void onDeliver()}
             loading={delivering}
           />
         ) : null}
-        {record.status === "delivered" ? (
+        {record && record.status === "delivered" ? (
           <Text style={styles.deliveredNote}>의료진에게 전달됐어요. 진료 때 함께 확인해요.</Text>
         ) : null}
       </ScrollView>
