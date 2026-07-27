@@ -1,6 +1,6 @@
 # Agent 11: 정신건강 영역 추론 에이전트 (DomainInferenceAgent) — 단일 RAG 에이전트
 
-> **번호 재부여 2026-07-20 (wave-6, 사용자 directive):** 구 Agent 14(`14_domain_inference.md`).
+> **번호 재부여 2026-07-20 (wave-6, 사용자 directive):** 구 Agent 14(`14_domain_inference.md`). 구번호 원본 파일은 2026-07-27 사용자 directive로 파기 — 스펙 번호 재정립: 01–11 = `apps/ai-server/prompts/` 최종 구성과 1:1.
 > old→new 전체 매핑은 `docs/ai/agent_collaboration_f1f5.md`의 번호 체계 표를 참조.
 
 ## 개요
