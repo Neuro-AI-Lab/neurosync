@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class RiskBadge(BaseModel):
@@ -24,7 +24,15 @@ class RiskBadge(BaseModel):
 
 class PatientListItem(BaseModel):
     user_id: UUID = Field(alias="userId")
-    email: EmailStr
+    # BUG-092 follow-on (discovered live, error.md): plain `str`, not
+    # `EmailStr` — these values echo an already-existing `User.email` row
+    # from the DB, not user input being validated. `EmailStr` rejected the
+    # demo dataset's `@demo` (no-TLD) addresses with a 500 the moment the
+    # org-scope filter (ISS-022) stopped masking it by returning empty
+    # first. Response-side re-validation of a value that already exists in
+    # the DB is not a security control here — it only breaks legitimately
+    # stored rows that don't fit RFC 5322 assumptions.
+    email: str
     name: str
     birth_year: int = Field(alias="birthYear")
     is_minor: bool = Field(alias="isMinor")
@@ -60,7 +68,15 @@ class ConsentSnapshotOut(BaseModel):
 
 class PatientDetail(BaseModel):
     user_id: UUID = Field(alias="userId")
-    email: EmailStr
+    # BUG-092 follow-on (discovered live, error.md): plain `str`, not
+    # `EmailStr` — these values echo an already-existing `User.email` row
+    # from the DB, not user input being validated. `EmailStr` rejected the
+    # demo dataset's `@demo` (no-TLD) addresses with a 500 the moment the
+    # org-scope filter (ISS-022) stopped masking it by returning empty
+    # first. Response-side re-validation of a value that already exists in
+    # the DB is not a security control here — it only breaks legitimately
+    # stored rows that don't fit RFC 5322 assumptions.
+    email: str
     name: str
     birth_year: int = Field(alias="birthYear")
     is_minor: bool = Field(alias="isMinor")
