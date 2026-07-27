@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+import uuid
 from datetime import datetime
 from typing import Any
 
 import pytest
+
+from src.core.config import get_settings
+from src.core.security import create_token, hash_password
+from src.models.patient_profile import PatientProfile
+from src.models.user import Organization, User
 
 ADULT_BIRTH_YEAR = datetime.now().year - 30  # 30yo
 MINOR_BIRTH_YEAR = datetime.now().year - 10  # 10yo
@@ -153,3 +159,142 @@ async def test_update_profile_requires_patient_auth(client):
     """인증 없이는 401."""
     res = client.patch("/api/v1/auth/me/profile", json={"religion": "none"})
     assert res.status_code == 401
+
+
+# ────────── G3 — DEFAULT_TARGET_HOSPITAL_ID fallback org (docs/ai/
+# patient_org_visibility_decision.md 권고 ②). Matrix: setting present/absent
+# × request field present/absent. ──────────
+
+
+async def _patient_target_hospital_id(db_session, user_id):
+    from sqlalchemy import select
+
+    row = await db_session.execute(
+        select(PatientProfile.target_hospital_id).where(
+            PatientProfile.user_id == user_id
+        )
+    )
+    return row.scalar_one()
+
+
+@pytest.mark.asyncio
+async def test_register_no_default_no_request_field_stays_null(
+    client, db_session, test_settings
+):
+    """Setting unset + request omits targetHospitalId -> NULL (prior behavior,
+    no regression)."""
+    assert test_settings.default_target_hospital_id is None
+    reg = client.post(
+        REGISTER_URL, json=_base_payload(email="g3-no-default-no-req@example.com")
+    )
+    assert reg.status_code == 201, reg.json()
+    user_id = reg.json()["data"]["userId"]
+    assert await _patient_target_hospital_id(db_session, user_id) is None
+
+
+@pytest.mark.asyncio
+async def test_register_no_default_request_field_wins(client, db_session, test_settings):
+    """Setting unset + request supplies targetHospitalId -> request value used."""
+    org_id = uuid.uuid4()
+    reg = client.post(
+        REGISTER_URL,
+        json=_base_payload(
+            email="g3-no-default-req@example.com", targetHospitalId=str(org_id)
+        ),
+    )
+    assert reg.status_code == 201, reg.json()
+    user_id = reg.json()["data"]["userId"]
+    assert await _patient_target_hospital_id(db_session, user_id) == org_id
+
+
+@pytest.mark.asyncio
+async def test_register_default_set_no_request_field_assigns_default(
+    client, db_session, test_settings
+):
+    """Setting present + request omits targetHospitalId -> default org assigned
+    (the G3 fix — this is the app-signup path that previously always landed
+    NULL and was excluded from every clinician org-scope filter)."""
+    org_id = uuid.uuid4()
+    settings_with_default = test_settings.model_copy(
+        update={"default_target_hospital_id": org_id}
+    )
+    client.app.dependency_overrides[get_settings] = lambda: settings_with_default
+    try:
+        reg = client.post(
+            REGISTER_URL, json=_base_payload(email="g3-default-no-req@example.com")
+        )
+        assert reg.status_code == 201, reg.json()
+        user_id = reg.json()["data"]["userId"]
+        assert await _patient_target_hospital_id(db_session, user_id) == org_id
+    finally:
+        client.app.dependency_overrides[get_settings] = lambda: test_settings
+
+
+@pytest.mark.asyncio
+async def test_register_default_set_request_field_wins(client, db_session, test_settings):
+    """Setting present + request supplies its own targetHospitalId -> request
+    value wins over the configured default."""
+    default_org_id = uuid.uuid4()
+    request_org_id = uuid.uuid4()
+    settings_with_default = test_settings.model_copy(
+        update={"default_target_hospital_id": default_org_id}
+    )
+    client.app.dependency_overrides[get_settings] = lambda: settings_with_default
+    try:
+        reg = client.post(
+            REGISTER_URL,
+            json=_base_payload(
+                email="g3-default-req@example.com", targetHospitalId=str(request_org_id)
+            ),
+        )
+        assert reg.status_code == 201, reg.json()
+        user_id = reg.json()["data"]["userId"]
+        assigned = await _patient_target_hospital_id(db_session, user_id)
+        assert assigned == request_org_id
+        assert assigned != default_org_id
+    finally:
+        client.app.dependency_overrides[get_settings] = lambda: test_settings
+
+
+@pytest.mark.asyncio
+async def test_register_default_assigned_patient_passes_clinician_org_filter(
+    client, db_session, test_settings
+):
+    """End-to-end G3 check: a patient who signs up through the app-style
+    request (no targetHospitalId) with DEFAULT_TARGET_HOSPITAL_ID configured
+    becomes visible on that org's clinician dashboard — the exact gap this
+    fix closes (services/clinician.py org-scope filter, `_patient_list_
+    filter`)."""
+    org = Organization(name="G3 Test Hospital", type="hospital")
+    db_session.add(org)
+    await db_session.flush()
+    org_id = org.id
+
+    settings_with_default = test_settings.model_copy(
+        update={"default_target_hospital_id": org_id}
+    )
+    client.app.dependency_overrides[get_settings] = lambda: settings_with_default
+    try:
+        reg = client.post(
+            REGISTER_URL, json=_base_payload(email="g3-e2e-patient@example.com")
+        )
+        assert reg.status_code == 201, reg.json()
+    finally:
+        client.app.dependency_overrides[get_settings] = lambda: test_settings
+
+    clinician = User(
+        email=f"g3-doc-{uuid.uuid4().hex[:8]}@hospital.example",
+        password_hash=hash_password("Doctor!Password-2026", test_settings),
+        role="clinician",
+        organization_id=org_id,
+    )
+    db_session.add(clinician)
+    await db_session.flush()
+    token = create_token(clinician.id, "access", role="clinician", settings=test_settings)
+
+    res = client.get(
+        "/api/v1/clinician/patients", headers={"Authorization": f"Bearer {token}"}
+    )
+    assert res.status_code == 200, res.json()
+    emails = [p["email"] for p in res.json()["data"]]
+    assert "g3-e2e-patient@example.com" in emails

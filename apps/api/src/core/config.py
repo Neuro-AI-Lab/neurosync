@@ -11,6 +11,7 @@ import logging
 import os
 from functools import lru_cache
 from typing import Literal
+from uuid import UUID
 
 from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -69,6 +70,29 @@ class Settings(BaseSettings):
 
     # Age policy — FR-027 (Phase 2): under-14 guardian consent enforced.
     minor_age_cutoff: int = Field(default=14)
+
+    # G3 — patient dashboard visibility default org assignment (docs/ai/
+    # patient_org_visibility_decision.md 권고 ②). `PatientProfile.
+    # target_hospital_id`'s only production writer is `auth.register`; the
+    # mobile app currently never sends `targetHospitalId`, so every real
+    # signup lands NULL and is excluded from every clinician org-scope
+    # filter (services/clinician.py). This setting supplies a fallback org
+    # for registrations that omit the field. A request-supplied
+    # `targetHospitalId` always takes precedence. `None` (default)
+    # preserves the exact prior behavior (NULL) — no behavior change until
+    # an operator sets it. Org-scope security itself is unchanged: this is
+    # purely a default *value* for the same field, not a new access path.
+    default_target_hospital_id: UUID | None = Field(
+        default=None,
+        validation_alias=AliasChoices("DEFAULT_TARGET_HOSPITAL_ID"),
+        description=(
+            "Fallback PatientProfile.target_hospital_id for registrations "
+            "that omit targetHospitalId. Unset by default (NULL, prior "
+            "behavior). Malformed UUID strings fail Settings() construction "
+            "at startup (pydantic type validation) rather than silently "
+            "falling back."
+        ),
+    )
 
     # CORS — DEV permissive. Validator below forbids wildcard outside dev.
     cors_origins: list[str] = Field(default_factory=lambda: ["*"])
