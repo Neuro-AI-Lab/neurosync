@@ -123,36 +123,6 @@ class Settings(BaseSettings):
             "정신과 약물 판정의 authoritative 소스 (하드코딩 카탈로그 대체)."
         ),
     )
-    hira_hospital_service_url: str = Field(
-        default="https://apis.data.go.kr/B551182/hospInfoServicev2",
-        description="HIRA 병원정보서비스 base endpoint",
-    )
-    hira_pharmacy_service_url: str = Field(
-        default="https://apis.data.go.kr/B551182/pharmacyInfoService",
-        description="HIRA 약국정보서비스 base endpoint",
-    )
-    hira_madm_dtl_service_url: str = Field(
-        default="https://apis.data.go.kr/B551182/MadmDtlInfoService2.8",
-        description=(
-            "HIRA 의료기관별상세정보서비스 2.8 — ykiho별 진료과목별 전문의 수 등 상세 조회. "
-            "getDgsbjtInfo2.8 endpoint 사용. 활용신청 승인 필요 (승인 전 403)."
-        ),
-    )
-
-    # ── Kakao (좌표 보정 · 지도 SDK) — 병원 검색용 REST 키 (backend only) ──
-    kakao_rest_api_key: str = Field(
-        default="",
-        description="Kakao Local REST API 키 (backend only). address geocoding용",
-        validation_alias=AliasChoices(
-            "KAKAO_REST_KEY_ENCODED",
-            "KAKAO_REST_API_KEY_ACTUAL",
-            "KAKAO_REST_API_KEY",
-        ),
-    )
-    kakao_local_rest_base_url: str = Field(
-        default="https://dapi.kakao.com",
-        description="Kakao Local REST API base URL",
-    )
 
     # ── Application ───────────────────────────────────────────────────
     log_level: str = Field(default="INFO", description="Logging level")
