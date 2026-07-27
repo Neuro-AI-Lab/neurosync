@@ -1,16 +1,17 @@
 """GET /api/v1/nearby/hospitals/map — 카카오맵 HTML 렌더 (FR-049).
 
-지도 렌더는 플랫폼 책임이다 — 데이터 조회(HIRA + 지오코딩)는 ai-server가
-`/ai/nearby/hospitals` JSON으로 담당하고, 여기서 그 좌표로 카카오맵 HTML을
-그린다. 카카오 JS 키도 플랫폼 설정(KAKAO_JS_KEY_ENCODED)에 둔다.
+ADR-041: 병원 검색 데이터는 플랫폼(apps/api)이 직접 조회한다(ai-server 미경유).
+데이터 조회는 `src.services.hospital_finder`(Kakao Local 키워드 검색)가 담당하고,
+여기서 그 좌표로 카카오맵 HTML을 그린다. 카카오 JS 키는 플랫폼 설정
+(KAKAO_JS_KEY_ENCODED)에 둔다.
 
 앱은 이 URL을 react-native-webview로 로드한다. 지도 데이터(병원 위치)는 공개
 정보라 인증을 요구하지 않는다 — 위기 상황에 로그인 없이도 근처 병원을 볼 수
 있어야 한다.
 
 우아한 저하:
-- 카카오 키 없음 → 안내 화면(200)
-- 병원 검색 실패(HIRA 키 없음 등) → 내 위치만 있는 빈 지도(200)
+- 카카오 JS 키 없음 → 안내 화면(200)
+- 병원 검색 실패(REST 키 없음 등) → 내 위치만 있는 빈 지도(200)
 어떤 경우에도 500을 내지 않는다 — WebView가 500을 받으면 에러 화면만 뜬다.
 """
 
@@ -24,7 +25,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import HTMLResponse
 
 from src.core.config import Settings, get_settings
-from src.services.ai_client import AIClient, AIClientError, get_ai_client
+from src.services.hospital_finder import find_psychiatry_hospitals
 
 logger = logging.getLogger(__name__)
 
@@ -36,32 +37,17 @@ async def hospitals_map(
     lat: Annotated[float, Query(ge=-90.0, le=90.0)],
     lng: Annotated[float, Query(ge=-180.0, le=180.0)],
     settings: Annotated[Settings, Depends(get_settings)],
-    ai_client: Annotated[AIClient, Depends(get_ai_client)],
     radius_km: Annotated[float, Query(ge=0.0, le=20.0)] = 5.0,
 ) -> HTMLResponse:
     js_key = settings.kakao_map_javascript_key
     if not js_key:
         return HTMLResponse(_KEY_MISSING_HTML, status_code=200)
 
-    places: list[dict] = []
-    try:
-        result = await ai_client.nearby_hospitals(lat=lat, lng=lng, radius_km=radius_km)
-        places = [
-            {
-                "name": p.name,
-                "lat": p.lat,
-                "lng": p.lng,
-                "address": p.address,
-                "phone": p.phone,
-                "distance_km": p.distance_km,
-                "type_name": p.type_name or "정신건강의학과",
-            }
-            for p in result.places
-            if p.lat is not None and p.lng is not None
-        ]
-    except AIClientError as exc:
-        # 검색이 안 돼도 내 위치만 있는 빈 지도는 보여준다.
-        logger.warning("hospitals/map search unavailable: %s", exc)
+    # ADR-041 정합: 플랫폼이 직접 Kakao Local로 근처 정신건강의학과를 조회한다.
+    # 실패해도 빈 리스트를 돌려주므로 내 위치만 있는 지도로 우아하게 저하한다.
+    places = await find_psychiatry_hospitals(
+        lat=lat, lng=lng, radius_km=radius_km, settings=settings
+    )
 
     html = (
         _MAP_TEMPLATE.replace("{{JS_KEY}}", js_key)

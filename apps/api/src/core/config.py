@@ -149,6 +149,15 @@ class Settings(BaseSettings):
         default="",
         validation_alias=AliasChoices("KAKAO_JS_KEY_ENCODED", "KAKAO_MAP_JAVASCRIPT_KEY"),
     )
+    # ADR-041: 병원 검색 데이터는 플랫폼(apps/api)이 직접 조회한다(ai-server 미경유).
+    # Kakao Local REST 키 — 근처 '정신건강의학과' 키워드 검색용(backend only).
+    kakao_rest_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "KAKAO_REST_KEY_ENCODED", "KAKAO_REST_API_KEY", "KAKAO_REST_API_KEY_ACTUAL"
+        ),
+    )
+    kakao_local_base_url: str = Field(default="https://dapi.kakao.com")
 
     # FR-048/028 — 대화 중 첨부(처방전) 업로드 상한. Upstage 50MB보다 보수적.
     ocr_max_bytes: int = Field(default=20 * 1024 * 1024)  # 20MB (FR-028)
