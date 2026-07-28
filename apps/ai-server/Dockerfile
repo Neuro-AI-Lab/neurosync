@@ -7,7 +7,12 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl && \
+# curl(healthcheck) + chromium(F5 editorial handoff PDF, `services/editorial_handoff.py`
+# → Chrome --headless --print-to-pdf) + fonts-noto-cjk(Chrome는 시스템 폰트를 쓰므로
+# 한글 리포트 렌더에 필수). chromium 없으면 `_find_chrome()`가 None → editorial 렌더가
+# 스킵되고 F5 ReportLab 폴백 PDF가 저장된다(= DGX에서 편집형 PDF가 안 나오던 원인).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl chromium fonts-noto-cjk && \
     rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir uv && \
     useradd --create-home --shell /bin/bash --uid 1001 app
@@ -58,6 +63,12 @@ ENV PROMPTS_BASE_DIR=/app/prompts
 # container.
 COPY apps/ai-server/assets/fonts /app/apps/ai-server/assets/fonts
 COPY apps/ai-server/scripts/build_korean_fonts.py /app/apps/ai-server/scripts/build_korean_fonts.py
+
+# F5 editorial handoff 템플릿(HTML/CSS/JS + build_report_json/make_charts 스크립트 +
+# 번들 trend_plotter_editorial). `services/editorial_handoff.py::_template_dir()`가
+# `_repo_root()/docs/ai/handoff_template`로 해석하며, 컨테이너에선 `_repo_root()`가
+# `/app`이므로 여기로 복사한다. 이게 없으면 Chrome이 있어도 편집형 렌더가 실패한다.
+COPY docs/ai/handoff_template /app/docs/ai/handoff_template
 
 WORKDIR /app/apps/ai-server
 
