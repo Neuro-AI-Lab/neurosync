@@ -1,3 +1,4 @@
+import { CtrsLegend } from "../../components/CtrsLegend";
 import { PatientListItem } from "../../components/PatientListItem";
 import { APIException, listPatients, type PatientListItem as Item } from "../../lib/api";
 
@@ -49,13 +50,16 @@ export default async function DashboardPage() {
       {patients.length === 0 ? (
         <p className="text-text-secondary">아직 등록된 환자가 없어요.</p>
       ) : (
-        <ul className="flex flex-col gap-2.5">
-          {sorted.map((p) => (
-            <li key={p.userId}>
-              <PatientListItem item={p} />
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-col md:flex-row gap-6 items-start">
+          <ul className="flex flex-col gap-2.5 flex-1 min-w-0 w-full">
+            {sorted.map((p) => (
+              <li key={p.userId}>
+                <PatientListItem item={p} />
+              </li>
+            ))}
+          </ul>
+          <CtrsLegend />
+        </div>
       )}
     </div>
   );

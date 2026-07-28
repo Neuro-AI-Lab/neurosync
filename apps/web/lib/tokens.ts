@@ -44,3 +44,44 @@ export const riskBadge = {
 } as const;
 
 export type RiskLevel = keyof typeof riskColor;
+
+/**
+ * CTRS(위기분류척도, Crisis Triage Rating Scale) 단계 표기.
+ * 대시보드 환자 목록은 safety risk level을 위험성(Rating A) 기준 CTRS 단계로 환산해
+ * 표기한다: critical→1(고위험) … RiskEvent 없음→5(안정). (앱 서버 `_RISK_TO_CTRS`와 동일)
+ */
+export type CtrsStage = 1 | 2 | 3 | 4 | 5;
+
+export function ctrsFromLevel(level: RiskLevel | null | undefined): CtrsStage {
+  switch (level) {
+    case "critical":
+      return 1;
+    case "high":
+      return 2;
+    case "medium":
+      return 3;
+    case "low":
+      return 4;
+    default:
+      return 5; // RiskEvent 없음 = 위험 신호 없음
+  }
+}
+
+export const CTRS_META: Record<
+  CtrsStage,
+  { label: string; badge: { bg: string; border: string; text: string; dot: string } }
+> = {
+  1: { label: "고위험", badge: riskBadge.critical },
+  2: { label: "위험", badge: riskBadge.high },
+  3: { label: "주의", badge: riskBadge.medium },
+  4: { label: "관찰", badge: riskBadge.low },
+  5: {
+    label: "안정",
+    badge: {
+      bg: "bg-surface-elevated",
+      border: "border-border",
+      text: "text-text-secondary",
+      dot: "bg-faint",
+    },
+  },
+};
