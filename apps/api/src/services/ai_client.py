@@ -167,6 +167,27 @@ class AIClient:
             timeout=self._settings.ai_domain_timeout_seconds,
         )
 
+    async def domain_infer_artifact(self, payload: DomainInferRequest) -> dict:
+        """POST /ai/domain/infer, returning the FULL raw artifact dict.
+
+        `DomainInferResponse`(공유 contract)는 `domain_candidates`/`summary`만 담아
+        `ai_predicted_disease`(질환 유사도)·`department_candidates`(진료과)를 버린다 —
+        F5 A6/A7 리포트 섹션이 바로 이 둘을 필요로 하므로, 라우트의 full artifact
+        (`DomainInferRouteResponse`)를 raw dict로 받아 하위 객체를 그대로 통과시킨다
+        (`DomainInferenceInput`이 dict를 받음). 실패 시 AIClientError → 호출자가 빈
+        도메인추론으로 우아하게 degrade."""
+        url = f"{self._settings.ai_server_url}/ai/domain/infer"
+        try:
+            resp = await self._client.post(
+                url,
+                json=payload.model_dump(mode="json"),
+                timeout=self._settings.ai_domain_timeout_seconds,
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except (httpx.HTTPError, ValueError) as exc:
+            raise AIClientError(f"/ai/domain/infer (artifact) failed: {exc}") from exc
+
     async def nearby_hospitals(
         self, *, lat: float, lng: float, radius_km: float = 5.0, num_of_rows: int = 30
     ) -> NearbyHospitalsResponse:

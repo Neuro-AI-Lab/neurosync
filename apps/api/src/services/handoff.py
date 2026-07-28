@@ -20,6 +20,7 @@ import logging
 import uuid
 from datetime import UTC, datetime
 
+from contracts.domain import DomainInferRequest, UtteranceTurn
 from contracts.handoff import HandoffRequest, ScaleScore, SlotData
 from contracts.longitudinal import (
     DomainInferenceInput,
@@ -322,6 +323,55 @@ async def _build_longitudinal_sessions(
     return entries
 
 
+async def _build_domain_inference(
+    db: AsyncSession, session_id: uuid.UUID, sess: Session, client: AIClient
+) -> DomainInferenceInput:
+    """제출 세션의 대화로 F2 도메인추론(`/ai/domain/infer`)을 호출해 리포트
+    A6(AI 예상질환)·A7(권장 진료과) 입력을 만든다. F1이 라이브로 계산하지만 그 산출물이
+    DB에 저장되지 않으므로 리포트 생성 시점에 재계산한다. 발화가 없거나 호출이 실패하면
+    빈 DomainInferenceInput → F5가 '정보 없음'으로 우아하게 degrade(기존 동작 유지)."""
+    mrows = await db.execute(
+        select(Message).where(Message.session_id == session_id).order_by(Message.created_at)
+    )
+    turns: list[UtteranceTurn] = []
+    for m in mrows.scalars().all():
+        if m.role != "user":
+            continue
+        try:
+            content = decrypt_str(m.content_encrypted, aad=_message_aad(session_id, m.id))
+        except Exception:
+            continue
+        if content.strip():
+            turns.append(UtteranceTurn(turn=len(turns), patient_message=content))
+    if not turns:
+        return DomainInferenceInput()
+
+    slots = {k: str(v) for k, v in (sess.clinical_slots or {}).items() if v}
+    rrows = await db.execute(
+        select(RiskEvent.level).where(RiskEvent.session_id == session_id)
+    )
+    ctrs_vals = [_RISK_TO_CTRS.get(str(lvl), 5) for lvl in rrows.scalars() if lvl]
+    try:
+        artifact = await client.domain_infer_artifact(
+            DomainInferRequest(
+                session_id=str(session_id),
+                final_slots=slots,
+                session_ctrs=min(ctrs_vals) if ctrs_vals else 3,
+                crisis_triggered=bool(ctrs_vals and min(ctrs_vals) <= 2),
+                is_first_visit=True,
+                turns=turns,
+                retrieval_mode="rag",
+            )
+        )
+    except AIClientError as exc:
+        logger.warning("handoff.domain_infer.failed (session=%s): %s", session_id, exc)
+        return DomainInferenceInput()
+    return DomainInferenceInput(
+        ai_predicted_disease=artifact.get("ai_predicted_disease"),
+        department_candidates=artifact.get("department_candidates") or [],
+    )
+
+
 async def generate_report_task(
     session_id: uuid.UUID, *, ai_client: AIClient | None = None
 ) -> None:
@@ -346,10 +396,15 @@ async def generate_report_task(
 
             if len(entries) >= 2:
                 # 사용자 고도화 F4+F5 풀 리포트 (결정론적, PDF/FHIR/차트 포함).
+                # F2 도메인추론(질환·진료과)을 제출 세션 대화로 재계산해 리포트에 실음.
+                # 실패해도 빈 값으로 degrade하므로 리포트 생성 자체는 막지 않는다.
+                domain_inference = await _build_domain_inference(
+                    db, session_id, sess, client
+                )
                 report_req = HandoffReportRequest(
                     vp_id=_display_vp(patient_id),
                     sessions=entries,
-                    domain_inference=DomainInferenceInput(),
+                    domain_inference=domain_inference,
                     include_charts=True,
                     include_pdf=True,
                 )
