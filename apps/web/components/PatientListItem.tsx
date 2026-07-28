@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import type { PatientListItem as PatientListItemT } from "../lib/api";
-import { RiskBadge } from "./RiskBadge";
+import { CtrsBadge } from "./CtrsBadge";
 
 function relative(iso: string | null): string {
   if (!iso) return "—";
@@ -38,7 +38,8 @@ export function PatientListItem({ item }: { item: PatientListItemT }) {
           </p>
         </div>
         <div className="flex flex-col items-end gap-1.5 shrink-0">
-          {item.latestRisk ? <RiskBadge level={item.latestRisk.level} /> : null}
+          {/* CTRS 위기분류척도 단계 — 전원 표기(위험신호 없으면 5·안정). */}
+          <CtrsBadge level={item.latestRisk?.level ?? null} />
           {item.riskEventCount > 0 ? (
             <span className="text-xs text-text-secondary tabular-nums">
               위험 이벤트 {item.riskEventCount}건
