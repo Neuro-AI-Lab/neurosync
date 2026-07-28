@@ -28,7 +28,7 @@ const STAGES: CtrsStage[] = [1, 2, 3, 4, 5];
 
 export function CtrsLegend() {
   return (
-    <aside className="w-full lg:w-72 shrink-0 rounded-xl border border-border bg-surface p-4 flex flex-col gap-3 h-fit lg:sticky lg:top-20">
+    <aside className="w-full md:w-72 shrink-0 rounded-xl border border-border bg-surface p-4 flex flex-col gap-3 h-fit md:sticky md:top-20">
       <div className="flex flex-col gap-0.5">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-faint">참고</p>
         <h2 className="text-sm font-semibold tracking-tight text-text-primary">
