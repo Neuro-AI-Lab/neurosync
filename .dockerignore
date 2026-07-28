@@ -59,9 +59,12 @@ references
 
 # Docs — not needed at runtime. ADR-041 T4: the versioned agent prompts
 # moved into the deploy unit (apps/ai-server/prompts/, no longer under
-# docs/), so no negation is needed here anymore for the Dockerfile's
-# COPY apps/ai-server/prompts /app/prompts to succeed.
+# docs/). EXCEPTION: the F5 editorial handoff template must ship in the
+# ai-server image (`Dockerfile: COPY docs/ai/handoff_template`) for
+# Chrome→PDF rendering, so it's re-included below.
 docs
+!docs/ai/handoff_template
+!docs/ai/handoff_template/**
 README.md
 
 # Archived legacy materials — segregated for traceability, never shipped
