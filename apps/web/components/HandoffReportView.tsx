@@ -5,6 +5,7 @@ import type {
   QuestionnaireScore,
   ReportRiskSignal,
 } from "../lib/api";
+import { formatKST } from "../lib/datetime";
 import { riskColor } from "../lib/tokens";
 import { RiskBadge } from "./RiskBadge";
 
@@ -202,7 +203,7 @@ export function HandoffReportView({ report }: { report: HandoffReport }) {
         </div>
         {report.status === "ready" && report.generatedAt ? (
           <time className="text-xs text-text-secondary tabular-nums">
-            생성 {new Date(report.generatedAt).toLocaleString("ko-KR")}
+            생성 {formatKST(report.generatedAt)}
           </time>
         ) : null}
       </header>

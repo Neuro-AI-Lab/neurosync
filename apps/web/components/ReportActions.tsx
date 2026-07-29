@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatKST } from "../lib/datetime";
 
 import type { HandoffReport } from "../lib/api";
 
@@ -24,7 +25,7 @@ function toEmrText(report: HandoffReport, patientName: string): string {
   const L: string[] = [];
   L.push("[Neuro-Sync 사전 문진 리포트]");
   L.push(`환자: ${patientName}`);
-  if (report.generatedAt) L.push(`생성: ${new Date(report.generatedAt).toLocaleString("ko-KR")}`);
+  if (report.generatedAt) L.push(`생성: ${formatKST(report.generatedAt)}`);
   L.push("");
 
   if (report.questionnaires.length) {

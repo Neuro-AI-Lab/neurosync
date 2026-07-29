@@ -27,8 +27,7 @@ export function DashboardHeader({ user }: { user: SessionUser | null }) {
             <span className="h-[5px] w-[5px] rounded-full bg-ink" />
           </span>
           <span className="text-[15px] font-semibold tracking-tight text-text-primary">
-            Neuro-Sync{" "}
-            <span className="font-normal text-text-secondary">의료진</span>
+            의료진용 대시보드
           </span>
         </a>
         <div className="flex items-center gap-4 text-[13px]">

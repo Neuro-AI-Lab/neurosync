@@ -5,7 +5,10 @@ import type { Config } from "tailwindcss";
  * 흰 바탕 · ink 텍스트 · 색은 위험(danger)과 경고(warn)에만. 나머지는 무채색.
  */
 const config: Config = {
-  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  // lib/ 포함 필수 — tokens.ts의 배지 색 클래스(riskBadge/CTRS_META의 bg-state-danger
+  // 등)는 여기서만 문자열로 존재한다. 스캔하지 않으면 해당 utility CSS가 생성되지 않아
+  // 배경/색이 통째로 빠진다(CTRS 1 흰 배경+흰 글씨로 안 보이던 원인).
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
