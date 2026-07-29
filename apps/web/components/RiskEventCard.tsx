@@ -1,4 +1,5 @@
 import type { RiskEventOut } from "../lib/api";
+import { formatKST } from "../lib/datetime";
 import { riskColor } from "../lib/tokens";
 import { RiskBadge } from "./RiskBadge";
 
@@ -131,7 +132,7 @@ export function RiskEventCard({ event }: { event: RiskEventOut }) {
       <header className="flex items-center justify-between gap-2">
         <RiskBadge level={event.level} />
         <time className="text-xs text-text-secondary tabular-nums">
-          {new Date(event.detectedAt).toLocaleString("ko-KR")}
+          {formatKST(event.detectedAt)}
         </time>
       </header>
       <AiCategoryBadges evidence={aiCategoryEvidence} />

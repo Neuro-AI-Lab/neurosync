@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatKST } from "../../../../../../lib/datetime";
 import { notFound } from "next/navigation";
 
 import { AutoRefresh } from "../../../../../../components/AutoRefresh";
@@ -35,7 +36,7 @@ export default async function SessionPage({ params }: Params) {
             </p>
             <h1 className="text-[26px] font-semibold tracking-tight text-text-primary">세션</h1>
             <p className="text-text-secondary tabular-nums">
-              상태: {sess.status} · 시작 {new Date(sess.createdAt).toLocaleString("ko-KR")}
+              상태: {sess.status} · 시작 {formatKST(sess.createdAt)}
             </p>
           </div>
           {report && report.status === "ready" ? (

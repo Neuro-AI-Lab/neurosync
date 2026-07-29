@@ -1,4 +1,5 @@
 import type { MessageOut } from "../lib/api";
+import { formatKST } from "../lib/datetime";
 
 const roleLabel: Record<MessageOut["role"], string> = {
   user: "환자",
@@ -24,7 +25,7 @@ export function MessageRow({ msg }: { msg: MessageOut }) {
           {msg.content}
         </p>
         <p className="text-xs text-faint mt-1 tabular-nums">
-          {new Date(msg.createdAt).toLocaleString("ko-KR")}
+          {formatKST(msg.createdAt)}
           {msg.inputModality === "voice" ? " · 🎤 음성" : ""}
         </p>
       </div>

@@ -67,21 +67,30 @@ export function ctrsFromLevel(level: RiskLevel | null | undefined): CtrsStage {
   }
 }
 
+// 중증도 그라데이션: 1(고위험)로 갈수록 강한 위험색, 5(안정)로 갈수록 옅은 중립.
+// 1은 solid red + 흰 글씨로 대비 확보(기존엔 배경 CSS 미생성으로 흰 배경에 안 보였음).
 export const CTRS_META: Record<
   CtrsStage,
   { label: string; badge: { bg: string; border: string; text: string; dot: string } }
 > = {
-  1: { label: "고위험", badge: riskBadge.critical },
-  2: { label: "위험", badge: riskBadge.high },
-  3: { label: "주의", badge: riskBadge.medium },
-  4: { label: "관찰", badge: riskBadge.low },
+  1: {
+    label: "고위험",
+    badge: { bg: "bg-state-danger", border: "border-state-danger", text: "text-white", dot: "bg-white" },
+  },
+  2: {
+    label: "위험",
+    badge: { bg: "bg-danger-soft", border: "border-state-danger", text: "text-danger-ink", dot: "bg-state-danger" },
+  },
+  3: {
+    label: "주의",
+    badge: { bg: "bg-warn-soft", border: "border-warn-line", text: "text-warn", dot: "bg-warn" },
+  },
+  4: {
+    label: "관찰",
+    badge: { bg: "bg-surface", border: "border-border-strong", text: "text-ink2", dot: "bg-text-secondary" },
+  },
   5: {
     label: "안정",
-    badge: {
-      bg: "bg-surface-elevated",
-      border: "border-border",
-      text: "text-text-secondary",
-      dot: "bg-faint",
-    },
+    badge: { bg: "bg-surface-elevated", border: "border-border", text: "text-text-secondary", dot: "bg-faint" },
   },
 };

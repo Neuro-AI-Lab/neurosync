@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatKST } from "../lib/datetime";
 
 import type { SessionSummary } from "../lib/api";
 import { RiskBadge } from "./RiskBadge";
@@ -28,11 +29,11 @@ export function SessionCard({
             {statusLabel[session.status] ?? session.status}
           </p>
           <p className="text-[13px] text-text-secondary tabular-nums">
-            시작 {new Date(session.createdAt).toLocaleString("ko-KR")}
+            시작 {formatKST(session.createdAt)}
           </p>
           {session.submittedAt ? (
             <p className="text-[13px] text-text-secondary tabular-nums">
-              제출 {new Date(session.submittedAt).toLocaleString("ko-KR")}
+              제출 {formatKST(session.submittedAt)}
             </p>
           ) : null}
         </div>
